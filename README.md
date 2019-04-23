@@ -1,4 +1,4 @@
-# mr-auth
+# mr_auth
 
 Authentication server.
 
@@ -49,6 +49,12 @@ Format source code and run clippy.
 
 ```Shell
 $ cargo fmt && cargo clippy
+```
+
+Build manual.
+
+```Shell
+$ mdbook serve
 ```
 
 Run unit and integration tests.
