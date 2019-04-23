@@ -1,5 +1,5 @@
 [package]
-name = "mr_auth"
+name = "ark_auth"
 version = "0.1.0"
 authors = ["Sam Ward <mail@mojzu.net>"]
 edition = "2018"

@@ -78,7 +78,7 @@ fn main() {
         (COMMAND_INIT, Some(submatches)) => {
             let name = submatches.value_of(ARG_SERVICE_NAME).unwrap();
             let url = submatches.value_of(ARG_SERVICE_URL).unwrap();
-            mr_auth::cli_init(&db_url, name, url).map(|(service, key)| {
+            ark_auth::cli_init(&db_url, name, url).map(|(service, key)| {
                 println!("service_id: {}", service.service_id);
                 println!("service_name: {}", service.service_name);
                 println!("key_id: {}", key.key_id);
@@ -87,10 +87,10 @@ fn main() {
             })
         }
         (COMMAND_START, Some(_submatches)) => match config(server_addr) {
-            Ok(config) => mr_auth::cli_start(config, &db_url).map(|_| 0),
+            Ok(config) => ark_auth::cli_start(config, &db_url).map(|_| 0),
             Err(e) => Err(e),
         },
-        _ => Err(mr_auth::CliError::InvalidCommand),
+        _ => Err(ark_auth::CliError::InvalidCommand),
     };
 
     match result {
@@ -102,23 +102,23 @@ fn main() {
     }
 }
 
-fn config(server_addr: String) -> Result<mr_auth::api::ApiConfig, mr_auth::CliError> {
-    let mut config = mr_auth::api::ApiConfig::new(server_addr);
+fn config(server_addr: String) -> Result<ark_auth::api::ApiConfig, ark_auth::CliError> {
+    let mut config = ark_auth::api::ApiConfig::new(server_addr);
 
-    let gh_client_id = std::env::var("GITHUB_CLIENT_ID").map_err(mr_auth::CliError::StdEnvVar);
+    let gh_client_id = std::env::var("GITHUB_CLIENT_ID").map_err(ark_auth::CliError::StdEnvVar);
     let gh_client_secret =
-        std::env::var("GITHUB_CLIENT_SECRET").map_err(mr_auth::CliError::StdEnvVar);
+        std::env::var("GITHUB_CLIENT_SECRET").map_err(ark_auth::CliError::StdEnvVar);
     let gh_redirect_url =
-        std::env::var("GITHUB_REDIRECT_URL").map_err(mr_auth::CliError::StdEnvVar);
+        std::env::var("GITHUB_REDIRECT_URL").map_err(ark_auth::CliError::StdEnvVar);
     if gh_client_id.is_ok() || gh_client_secret.is_ok() || gh_redirect_url.is_ok() {
         config = config.set_oauth_github(gh_client_id?, gh_client_secret?, gh_redirect_url?);
     }
 
-    let ms_client_id = std::env::var("MICROSOFT_CLIENT_ID").map_err(mr_auth::CliError::StdEnvVar);
+    let ms_client_id = std::env::var("MICROSOFT_CLIENT_ID").map_err(ark_auth::CliError::StdEnvVar);
     let ms_client_secret =
-        std::env::var("MICROSOFT_CLIENT_SECRET").map_err(mr_auth::CliError::StdEnvVar);
+        std::env::var("MICROSOFT_CLIENT_SECRET").map_err(ark_auth::CliError::StdEnvVar);
     let ms_redirect_url =
-        std::env::var("MICROSOFT_REDIRECT_URL").map_err(mr_auth::CliError::StdEnvVar);
+        std::env::var("MICROSOFT_REDIRECT_URL").map_err(ark_auth::CliError::StdEnvVar);
     if ms_client_id.is_ok() || ms_client_secret.is_ok() || ms_redirect_url.is_ok() {
         config = config.set_oauth_microsoft(ms_client_id?, ms_client_secret?, ms_redirect_url?);
     }

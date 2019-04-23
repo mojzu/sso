@@ -6,7 +6,7 @@ mod support;
 use actix_http::http::header::ContentType;
 use actix_web::http::{header, StatusCode};
 use chrono::Utc;
-use mr_auth::api;
+use ark_auth::api;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct UserPassword {

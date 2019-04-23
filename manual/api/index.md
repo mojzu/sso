@@ -5,7 +5,7 @@ HTTP endpoints are available at `$SERVER_ADDR`.
 Requests are authenticated using `Authorization: $key_value` header. Service keys can be created via command line.
 
 ```Shell
-$ mr_auth init $service_name $service_url
+$ ark_auth init $service_name $service_url
 ```
 
 ## Ping [/v1/ping]

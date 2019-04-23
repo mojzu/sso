@@ -1,7 +1,7 @@
 mod support;
 
 use actix_web::http::StatusCode;
-use mr_auth::api;
+use ark_auth::api;
 
 #[test]
 fn post_key_verify_authorisation_test() {

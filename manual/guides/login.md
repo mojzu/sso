@@ -3,8 +3,8 @@
 Initialise a service and start server.
 
 ```Shell
-$ mr_auth init $service_name $service_url
-$ mr_auth start
+$ ark_auth init $service_name $service_url
+$ ark_auth start
 ```
 
 Service creates a user with password.

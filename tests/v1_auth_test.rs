@@ -1,7 +1,7 @@
 mod support;
 
 use actix_web::http::{header, StatusCode};
-use mr_auth::api;
+use ark_auth::api;
 
 #[test]
 fn post_login_authorisation_test() {

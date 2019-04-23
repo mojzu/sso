@@ -1,4 +1,4 @@
-# mr_auth
+# ark_auth
 
 Authentication server.
 
@@ -16,7 +16,7 @@ Export environment variables.
 
 ```Shell
 # Database connection URL, required.
-$ export DATABASE_URL="postgres://$db_user:$db_password@$db_host:$db_port/mr_auth"
+$ export DATABASE_URL="postgres://$db_user:$db_password@$db_host:$db_port/ark_auth"
 # Server address, required.
 $ export SERVER_ADDR="$server_host:$server_port"
 # Sentry URL for logging integration, optional.

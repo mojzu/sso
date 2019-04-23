@@ -2,13 +2,13 @@ use actix_http::HttpService;
 use actix_http_test::TestServer;
 use actix_web::http::{header, StatusCode};
 use actix_web::{web, App, HttpResponse};
-use mr_auth::api;
-use mr_auth::models::{AuthKey, AuthService, AuthUser};
+use ark_auth::api;
+use ark_auth::models::{AuthKey, AuthService, AuthUser};
 
-pub fn app() -> (mr_auth::db::Db, actix_http_test::TestServerRuntime) {
+pub fn app() -> (ark_auth::db::Db, actix_http_test::TestServerRuntime) {
     let config = api::ApiConfig::new("localhost:9001".to_owned());
     let db_url = std::env::var("DATABASE_URL").unwrap();
-    let db = mr_auth::db::Db::new(&db_url);
+    let db = ark_auth::db::Db::new(&db_url);
     let db_app = db.clone();
 
     let server = TestServer::new(move || {
@@ -54,13 +54,13 @@ pub fn app_post<T: Into<actix_http::body::Body>>(
     (status_code, content_length, bytes.to_vec())
 }
 
-pub fn service_key(db: &mr_auth::db::Db) -> (AuthService, AuthKey) {
+pub fn service_key(db: &ark_auth::db::Db) -> (AuthService, AuthKey) {
     let random = uuid::Uuid::new_v4().to_simple().to_string();
     db.init(&random, &random).unwrap()
 }
 
 pub fn user_key(
-    db: &mr_auth::db::Db,
+    db: &ark_auth::db::Db,
     service: &AuthService,
     password: Option<&str>,
 ) -> (AuthUser, AuthKey) {

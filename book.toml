@@ -2,4 +2,4 @@
 authors = ["Sam Ward"]
 multilingual = false
 src = "manual"
-title = "mr_auth"
+title = "ark_auth"

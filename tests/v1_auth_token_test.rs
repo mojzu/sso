@@ -1,7 +1,7 @@
 mod support;
 
 use actix_web::http::{header, StatusCode};
-use mr_auth::api;
+use ark_auth::api;
 
 #[test]
 fn post_token_verify_authorisation_test() {
@@ -70,7 +70,7 @@ fn post_token_verify_test() {
     let (service, key) = support::service_key(&db);
     let (_service2, key2) = support::service_key(&db);
     let (user, user_key) = support::user_key(&db, &service, None);
-    let token = mr_auth::db::auth::login(&user, &user_key, &service).unwrap();
+    let token = ark_auth::db::auth::login(&user, &user_key, &service).unwrap();
 
     // Service 2 cannot verify token.
     let payload = format!(r#"{{"token": "{}"}}"#, &token.token);
@@ -171,7 +171,7 @@ fn post_token_refresh_test() {
     let (service, key) = support::service_key(&db);
     let (_service2, key2) = support::service_key(&db);
     let (user, user_key) = support::user_key(&db, &service, None);
-    let token = mr_auth::db::auth::login(&user, &user_key, &service).unwrap();
+    let token = ark_auth::db::auth::login(&user, &user_key, &service).unwrap();
 
     // Sleep to ensure refreshed tokens have different expiry time.
     std::thread::sleep(std::time::Duration::from_secs(1));
@@ -275,7 +275,7 @@ fn post_token_revoke_test() {
     let (service, key) = support::service_key(&db);
     let (_service2, key2) = support::service_key(&db);
     let (user, user_key) = support::user_key(&db, &service, None);
-    let token = mr_auth::db::auth::login(&user, &user_key, &service).unwrap();
+    let token = ark_auth::db::auth::login(&user, &user_key, &service).unwrap();
 
     // Service 2 cannot revoke token.
     let payload = format!(r#"{{"token": "{}"}}"#, &token.token);
