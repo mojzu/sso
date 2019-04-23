@@ -1,0 +1,5 @@
+[book]
+authors = ["Sam Ward"]
+multilingual = false
+src = "manual"
+title = "mr_auth"

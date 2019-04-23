@@ -1,0 +1,37 @@
+[package]
+name = "mr_auth"
+version = "0.1.0"
+authors = ["Sam Ward <mail@mojzu.net>"]
+edition = "2018"
+
+[dependencies]
+actix = "*"
+actix-http = "*"
+actix-rt = "*"
+actix-service = "*"
+actix-web = { version = "1.0.0-beta.1", features = ["ssl"] }
+bcrypt = "*"
+clap = "*"
+chrono = { version = "*", features = ["serde"] }
+diesel = { version = "*", features = ["postgres", "r2d2", "chrono", "serde_json"] }
+diesel_migrations = { version = "*", features = ["postgres"] }
+env_logger = "*"
+failure = "*"
+futures = "*"
+jsonwebtoken = "*"
+log = { version = "*", features = ["max_level_trace", "release_max_level_info"] }
+r2d2 = "*"
+oauth2 = "2.0.0-beta.2"
+sentry = "*"
+sentry-actix = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+url = "*"
+uuid = { version = "*", features = ["v4"] }
+time = "*"
+validator = "*"
+validator_derive = "*"
+
+[dev-dependencies]
+actix-http-test = "*"
