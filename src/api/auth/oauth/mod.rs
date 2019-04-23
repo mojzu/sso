@@ -7,6 +7,8 @@ use actix_web::http::{header, StatusCode};
 use actix_web::{web, HttpResponse};
 use url::Url;
 
+// TODO(feature): Other OAuth providers support.
+
 /// Version 1 authentication oauth routes scope.
 pub fn v1_service() -> actix_web::Scope {
     web::scope("/oauth")

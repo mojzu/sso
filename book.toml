@@ -2,4 +2,12 @@
 authors = ["Sam Ward"]
 multilingual = false
 src = "manual"
-title = "ark_auth"
+title = "Ark Auth Manual"
+
+[build]
+build-dir = "target/book"
+create-missing = false
+preprocess = ["links", "index"]
+
+[output.html]
+theme = "manual/theme"
