@@ -14,7 +14,7 @@ use diesel::r2d2::ConnectionManager;
 // TODO(feature): Password pwned, strength checks.
 
 // Database migrations embedded in binary output for use in production.
-embed_migrations!("migrations");
+embed_migrations!("migrations/postgres");
 
 #[derive(Fail, Debug)]
 pub enum DbError {

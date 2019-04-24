@@ -16,3 +16,4 @@
     - [User](./api/user.md)
     - [Service](./api/service.md)
     - [Key](./api/key.md)
+- [Developer](./developer.md)
