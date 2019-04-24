@@ -15,6 +15,7 @@ extern crate validator_derive;
 
 pub mod api;
 pub mod db;
+mod email;
 pub mod models;
 mod schema;
 

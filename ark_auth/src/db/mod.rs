@@ -126,7 +126,6 @@ impl Db {
         email: &str,
         service: &AuthService,
     ) -> Result<TokenResponse, DbError> {
-        // TODO(feature): Send password reset email with redirect url link.
         let conn = self.connection()?;
         let user = user::read_by_email(email, &conn)?;
         let key = key::read_by_user_id(user.user_id, service.service_id, &conn)?;

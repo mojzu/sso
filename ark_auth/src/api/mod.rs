@@ -71,7 +71,7 @@ impl From<actix_web::error::BlockingError<ApiError>> for ApiError {
     }
 }
 
-/// API service oauth provider configuration.
+/// API service OAuth provider configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiConfigOauthProvider {
     pub client_id: String,
@@ -79,7 +79,16 @@ pub struct ApiConfigOauthProvider {
     pub redirect_url: String,
 }
 
-/// API service oauth configuration.
+/// API service SMTP configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiConfigSmtp {
+    pub host: String,
+    pub port: u16,
+    pub user: String,
+    pub password: String,
+}
+
+/// API service OAuth configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiConfigOauth {
     github: Option<ApiConfigOauthProvider>,
@@ -91,6 +100,7 @@ pub struct ApiConfigOauth {
 pub struct ApiConfig {
     server_addr: String,
     user_agent: String,
+    smtp: Option<ApiConfigSmtp>,
     oauth: ApiConfigOauth,
 }
 
@@ -101,6 +111,7 @@ impl ApiConfig {
         ApiConfig {
             server_addr,
             user_agent,
+            smtp: None,
             oauth: ApiConfigOauth {
                 github: None,
                 microsoft: None,
@@ -108,7 +119,18 @@ impl ApiConfig {
         }
     }
 
-    /// Set github oauth provider.
+    // Set SMTP provider.
+    pub fn set_smtp(mut self, host: String, port: u16, user: String, password: String) -> Self {
+        self.smtp = Some(ApiConfigSmtp {
+            host,
+            port,
+            user,
+            password,
+        });
+        self
+    }
+
+    /// Set GitHub OAuth provider.
     pub fn set_oauth_github(
         mut self,
         client_id: String,
@@ -123,7 +145,7 @@ impl ApiConfig {
         self
     }
 
-    /// Set microsoft oauth provider.
+    /// Set Microsoft OAuth provider.
     pub fn set_oauth_microsoft(
         mut self,
         client_id: String,
@@ -138,12 +160,16 @@ impl ApiConfig {
         self
     }
 
+    pub fn server_addr(&self) -> &str {
+        &self.server_addr
+    }
+
     pub fn user_agent(&self) -> &str {
         &self.user_agent
     }
 
-    pub fn server_addr(&self) -> &str {
-        &self.server_addr
+    pub fn smtp(&self) -> Option<&ApiConfigSmtp> {
+        self.smtp.as_ref()
     }
 
     pub fn oauth_github(&self) -> Option<&ApiConfigOauthProvider> {
@@ -172,12 +198,17 @@ impl ApiData {
         self.config.user_agent()
     }
 
-    /// Configured Github oauth settings.
+    /// Configured SMTP settings.
+    pub fn smtp(&self) -> Option<&ApiConfigSmtp> {
+        self.config.smtp()
+    }
+
+    /// Configured Github OAuth settings.
     pub fn oauth_github(&self) -> Option<&ApiConfigOauthProvider> {
         self.config.oauth_github()
     }
 
-    /// Configured Microsoft oauth settings.
+    /// Configured Microsoft OAuth settings.
     pub fn oauth_microsoft(&self) -> Option<&ApiConfigOauthProvider> {
         self.config.oauth_microsoft()
     }

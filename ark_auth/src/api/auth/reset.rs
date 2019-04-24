@@ -3,6 +3,7 @@ use crate::api::{
     authenticate, body_json_config, ApiData, ApiError, BodyFromValue,
 };
 use crate::db::DbError;
+use crate::email;
 use actix_web::{middleware::identity::Identity, web, Error, HttpResponse, ResponseError};
 use futures::{future, Future};
 use validator::Validate;
@@ -67,11 +68,17 @@ fn reset_password_inner(
     body: ResetPasswordBody,
 ) -> impl Future<Item = TokenResponse, Error = ApiError> {
     web::block(move || {
-        authenticate(&data, id).and_then(|service| {
-            data.db
-                .auth_reset_password(&body.email, &service)
-                .map_err(map_bad_request)
-        })
+        authenticate(&data, id)
+            .and_then(|service| {
+                data.db
+                    .auth_reset_password(&body.email, &service)
+                    .map_err(map_bad_request)
+            })
+            .and_then(|token_response| {
+                // TODO(feature): Send password reset email with redirect url link.
+                // email::send_reset_password(data.smtp(), );
+                Ok(token_response)
+            })
     })
     .map_err(Into::into)
 }
