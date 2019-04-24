@@ -1,17 +1,9 @@
-# README
+# ark_auth
 
-Rust crates for building an authentication server.
+[Rust](https://www.rust-lang.org/) crates for building an authentication server.
 
-## Directories
-
-### manual
-
-User and developer documentation, [see manual](https://mojzu.net/ark_auth/).
-
-### docs
-
-Manual build output for GitHub pages, [see manual](https://mojzu.net/ark_auth/).
-
-### ark_auth
-
-Authentication server binary crate, see `Developer` section of manual.
+| Directory   | Description                                                                          |
+| ----------- | ------------------------------------------------------------------------------------ |
+| `/manual`   | User and developer documentation sources, [see manual](https://mojzu.net/ark_auth/). |
+| `/docs`     | Manual build for GitHub pages, [see manual](https://mojzu.net/ark_auth/).            |
+| `/ark_auth` | Authentication server binary crate, see `Developer` section of manual.               |
