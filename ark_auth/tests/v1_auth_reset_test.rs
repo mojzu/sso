@@ -185,7 +185,7 @@ fn post_reset_password_confirm_test() {
     let (service, key) = support::service_key(&db);
     let (_servic2, key2) = support::service_key(&db);
     let (user, _key) = support::user_key(&db, &service, None);
-    let token = db.auth_reset_password(&user.user_email, &service).unwrap();
+    let (_, token) = db.auth_reset_password(&user.user_email, &service).unwrap();
 
     // Service 2 cannot confirm reset password.
     // 400 BAD REQUEST response.

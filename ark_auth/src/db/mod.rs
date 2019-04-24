@@ -125,11 +125,12 @@ impl Db {
         &self,
         email: &str,
         service: &AuthService,
-    ) -> Result<TokenResponse, DbError> {
+    ) -> Result<(AuthUser, TokenResponse), DbError> {
         let conn = self.connection()?;
         let user = user::read_by_email(email, &conn)?;
         let key = key::read_by_user_id(user.user_id, service.service_id, &conn)?;
-        auth::reset_password(&user, &key, service)
+        let token = auth::reset_password(&user, &key, service)?;
+        Ok((user, token))
     }
 
     pub fn auth_reset_password_confirm(

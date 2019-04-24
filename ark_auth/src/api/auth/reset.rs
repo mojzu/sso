@@ -70,13 +70,14 @@ fn reset_password_inner(
     web::block(move || {
         authenticate(&data, id)
             .and_then(|service| {
-                data.db
+                let reset = data
+                    .db
                     .auth_reset_password(&body.email, &service)
-                    .map_err(map_bad_request)
+                    .map_err(map_bad_request)?;
+                Ok((service, reset))
             })
-            .and_then(|token_response| {
-                // TODO(feature): Send password reset email with redirect url link.
-                // email::send_reset_password(data.smtp(), );
+            .and_then(|(service, (user, token_response))| {
+                email::send_reset_password(data.smtp(), &user, &service, &token_response.token)?;
                 Ok(token_response)
             })
     })

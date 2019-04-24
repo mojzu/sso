@@ -164,6 +164,11 @@ $ docker-compose up
 $ export DATABASE_URL=&quot;postgres://ark_auth:guest@localhost:5432/ark_auth&quot;
 # Server address, required.
 $ export SERVER_ADDR=&quot;localhost:9000&quot;
+# SMTP configured, required for reset password emails.
+$ export SMTP_HOST=&quot;...&quot;
+$ export SMTP_PORT=&quot;...&quot;
+$ export SMTP_USER=&quot;...&quot;
+$ export SMTP_PASSWORD=&quot;...&quot;
 # Sentry URL for logging integration, optional.
 $ export SENTRY_URL=&quot;...&quot;
 # GitHub OAuth support, optional.

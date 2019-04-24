@@ -105,6 +105,15 @@ fn main() {
 fn config(server_addr: String) -> Result<ark_auth::api::ApiConfig, ark_auth::CliError> {
     let mut config = ark_auth::api::ApiConfig::new(server_addr);
 
+    let smtp_host = std::env::var("SMTP_HOST").map_err(ark_auth::CliError::StdEnvVar);
+    let smtp_port = std::env::var("SMTP_PORT").map_err(ark_auth::CliError::StdEnvVar);
+    let smtp_user = std::env::var("SMTP_USER").map_err(ark_auth::CliError::StdEnvVar);
+    let smtp_password = std::env::var("SMTP_PASSWORD").map_err(ark_auth::CliError::StdEnvVar);
+    if smtp_host.is_ok() || smtp_port.is_ok() || smtp_user.is_ok() || smtp_password.is_ok() {
+        let smtp_port = smtp_port?.parse::<u16>().unwrap();
+        config = config.set_smtp(smtp_host?, smtp_port, smtp_user?, smtp_password?);
+    }
+
     let gh_client_id = std::env::var("GITHUB_CLIENT_ID").map_err(ark_auth::CliError::StdEnvVar);
     let gh_client_secret =
         std::env::var("GITHUB_CLIENT_SECRET").map_err(ark_auth::CliError::StdEnvVar);

@@ -168,12 +168,12 @@ $ ark_auth start
 <p>Service redirects user to returned URL, OAuth provider authentication occurs.</p>
 <p>If successful, OAuth provider redirects user to <code>$server_url/v1/auth/oauth/$oauth_provider</code> with required query parameters.</p>
 <p>Query parameters are exchanged for API access token, authenticated email address is requested from OAuth provider APIs.</p>
-<p>If authenticated email returned by API matches a user email address, and user has key for specified service, a user authentication token is generated and the user is redirected to <code>$service_url?token=$user_token</code>.</p>
+<p>If authenticated email returned by API matches a user email address, and user has key for specified service, a user authentication token is generated and the user is redirected to <code>$service_url?token=$token</code>.</p>
 <p>Service receives token via query parameter and verifies it to authenticate requests.</p>
 <pre><code class="language-Shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;token&quot;:&quot;$user_token&quot;}' \
+  --data '{&quot;token&quot;:&quot;$token&quot;}' \
   $server_url/v1/auth/token/verify
 </code></pre>
 

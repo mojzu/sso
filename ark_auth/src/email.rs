@@ -15,7 +15,10 @@ pub fn send_reset_password(
     let smtp = smtp.ok_or(ApiError::Unwrap("smtp settings undefined"))?;
 
     let email_subject = format!("{}: Reset Password Request", service.service_name);
-    let email_url = format!("{}?reset_password={}", service.service_url, token);
+    let email_url = format!(
+        "{}?email={}&reset_password_token={}",
+        service.service_url, &user.user_email, token
+    );
     let email = Email::builder()
         .to((user.user_email.to_owned(), user.user_name.to_owned()))
         // TODO(refactor): SMTP name configuration.
@@ -49,7 +52,10 @@ pub fn send_reset_password(
 
     let result = mailer
         .send(email.into())
-        .map_err(|_e| ApiError::Unwrap("failed to send email"))
+        .map_err(|e| {
+            error!("e = {}", e);
+            ApiError::Unwrap("failed to send email")
+        })
         .map(|_r| ());
     mailer.close();
     result

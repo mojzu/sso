@@ -43,7 +43,7 @@ If successful, OAuth provider redirects user to `$server_url/v1/auth/oauth/$oaut
 
 Query parameters are exchanged for API access token, authenticated email address is requested from OAuth provider APIs.
 
-If authenticated email returned by API matches a user email address, and user has key for specified service, a user authentication token is generated and the user is redirected to `$service_url?token=$user_token`.
+If authenticated email returned by API matches a user email address, and user has key for specified service, a user authentication token is generated and the user is redirected to `$service_url?token=$token`.
 
 Service receives token via query parameter and verifies it to authenticate requests.
 
@@ -51,6 +51,6 @@ Service receives token via query parameter and verifies it to authenticate reque
 $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"token":"$user_token"}' \
+  --data '{"token":"$token"}' \
   $server_url/v1/auth/token/verify
 ```

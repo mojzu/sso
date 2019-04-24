@@ -28,6 +28,11 @@ Export environment variables.
 $ export DATABASE_URL="postgres://ark_auth:guest@localhost:5432/ark_auth"
 # Server address, required.
 $ export SERVER_ADDR="localhost:9000"
+# SMTP configured, required for reset password emails.
+$ export SMTP_HOST="..."
+$ export SMTP_PORT="..."
+$ export SMTP_USER="..."
+$ export SMTP_PASSWORD="..."
 # Sentry URL for logging integration, optional.
 $ export SENTRY_URL="..."
 # GitHub OAuth support, optional.
