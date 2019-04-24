@@ -1,0 +1,686 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Ark Auth Manual</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <ol class="chapter"><li><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="guides/index.html"><strong aria-hidden="true">2.</strong> Guides</a></li><li><ol class="section"><li><a href="guides/deployment.html"><strong aria-hidden="true">2.1.</strong> Deployment</a></li><li><a href="guides/login.html"><strong aria-hidden="true">2.2.</strong> Login</a></li><li><a href="guides/reset-password.html"><strong aria-hidden="true">2.3.</strong> Reset Password</a></li><li><a href="guides/api-key.html"><strong aria-hidden="true">2.4.</strong> API Key</a></li><li><a href="guides/oauth-login.html"><strong aria-hidden="true">2.5.</strong> OAuth Login</a></li></ol></li><li><a href="api/index.html"><strong aria-hidden="true">3.</strong> API</a></li><li><ol class="section"><li><a href="api/auth.html"><strong aria-hidden="true">3.1.</strong> Authentication</a></li><li><ol class="section"><li><a href="api/auth-reset.html"><strong aria-hidden="true">3.1.1.</strong> Reset</a></li><li><a href="api/auth-token.html"><strong aria-hidden="true">3.1.2.</strong> Token</a></li><li><a href="api/auth-key.html"><strong aria-hidden="true">3.1.3.</strong> Key</a></li><li><a href="api/auth-oauth.html"><strong aria-hidden="true">3.1.4.</strong> OAuth</a></li></ol></li><li><a href="api/user.html"><strong aria-hidden="true">3.2.</strong> User</a></li><li><a href="api/service.html"><strong aria-hidden="true">3.3.</strong> Service</a></li><li><a href="api/key.html"><strong aria-hidden="true">3.4.</strong> Key</a></li></ol></li><li><a href="developer.html"><strong aria-hidden="true">4.</strong> Developer</a></li></ol>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Ark Auth Manual</h1> 
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <a class="header" href="#introduction" id="introduction"><h1>Introduction</h1></a>
+<p>TODO(doc)</p>
+<a class="header" href="#guides" id="guides"><h1>Guides</h1></a>
+<p>Usage pattern guides.</p>
+<a class="header" href="#deployment" id="deployment"><h1>Deployment</h1></a>
+<p>TODO(doc)</p>
+<a class="header" href="#login" id="login"><h1>Login</h1></a>
+<p>Initialise a service and start server.</p>
+<pre><code class="language-Shell">$ ark_auth init $service_name $service_url
+$ ark_auth start
+</code></pre>
+<p>Service creates a user with password.</p>
+<pre><code class="language-Shell">$ curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data '{&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
+  $server_url/v1/user
+</code></pre>
+<p>Service creates a key for user.</p>
+<pre><code class="language-Shell">$ curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data '{&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:$user_id}' \
+  $server_url/v1/key
+</code></pre>
+<p>User makes login request to service, service makes a login request.</p>
+<pre><code class="language-Shell">$ curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data '{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
+  $server_url/v1/auth/login
+</code></pre>
+<p>Service receives token response and verifies it to authenticate requests.</p>
+<pre><code class="language-Shell">$ curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data '{&quot;token&quot;:&quot;$user_token&quot;}' \
+  $server_url/v1/auth/token/verify
+</code></pre>
+<a class="header" href="#reset-password" id="reset-password"><h1>Reset Password</h1></a>
+<p>TODO(doc)</p>
+<a class="header" href="#api-key" id="api-key"><h1>API Key</h1></a>
+<p>TODO(doc)</p>
+<a class="header" href="#oauth-login" id="oauth-login"><h1>OAuth Login</h1></a>
+<p>Initialise a service and start server.</p>
+<pre><code class="language-Shell">$ ark_auth init $service_name $service_url
+$ ark_auth start
+</code></pre>
+<p>Service creates a user with email address matching OAuth provider.</p>
+<pre><code class="language-Shell">$ curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data '{&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}' \
+  $server_url/v1/user
+</code></pre>
+<p>Service creates a key for user.</p>
+<pre><code class="language-Shell">$ curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data '{&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:$user_id}' \
+  $server_url/v1/key
+</code></pre>
+<p>User makes OAuth login request to service.</p>
+<p>Service requests a redirect URL for OAuth provider, supported providers are <code>github</code>, <code>microsoft</code>.</p>
+<pre><code class="language-Shell">$ curl --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  $server_url/v1/auth/oauth/$oauth_provider
+</code></pre>
+<p>Service redirects user to returned URL, OAuth provider authentication occurs.</p>
+<p>If successful, OAuth provider redirects user to <code>$server_url/v1/auth/oauth/$oauth_provider</code> with required query parameters.</p>
+<p>Query parameters are exchanged for API access token, authenticated email address is requested from OAuth provider APIs.</p>
+<p>If authenticated email returned by API matches a user email address, and user has key for specified service, a user authentication token is generated and the user is redirected to <code>$service_url?token=$user_token</code>.</p>
+<p>Service receives token via query parameter and verifies it to authenticate requests.</p>
+<pre><code class="language-Shell">$ curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data '{&quot;token&quot;:&quot;$user_token&quot;}' \
+  $server_url/v1/auth/token/verify
+</code></pre>
+<a class="header" href="#api" id="api"><h1>API</h1></a>
+<p>HTTP endpoints are available at <code>$SERVER_ADDR</code>.</p>
+<p>Requests are authenticated using <code>Authorization: $key_value</code> header. Service keys can be created via command line.</p>
+<pre><code class="language-Shell">$ ark_auth init $service_name $service_url
+</code></pre>
+<a class="header" href="#ping-v1ping" id="ping-v1ping"><h2>Ping [/v1/ping]</h2></a>
+<a class="header" href="#ping-get" id="ping-get"><h3>Ping [GET]</h3></a>
+<p>Uptime test route, authentication is not required for this route.</p>
+<a class="header" href="#response-200-ok" id="response-200-ok"><h4>Response [200, OK]</h4></a>
+<pre><code class="language-JSON">&quot;pong&quot;
+</code></pre>
+<a class="header" href="#authentication" id="authentication"><h1>Authentication</h1></a>
+<a class="header" href="#login-v1authlogin" id="login-v1authlogin"><h2>Login [/v1/auth/login]</h2></a>
+<a class="header" href="#email-and-password-post" id="email-and-password-post"><h3>Email and Password [POST]</h3></a>
+<p>Login with email address and password.</p>
+<a class="header" href="#request" id="request"><h4>Request</h4></a>
+<pre><code class="language-JSON">{
+    &quot;email&quot;: &quot;user@example.com&quot;,
+    &quot;password&quot;: &quot;guest&quot;
+}
+</code></pre>
+<ul>
+<li><code>email</code>: User email address (required).</li>
+<li><code>password</code>: User password (required).</li>
+</ul>
+<a class="header" href="#response-200-ok-1" id="response-200-ok-1"><h4>Response [200, OK]</h4></a>
+<pre><code class="language-JSON">{
+    &quot;user_id&quot;: 1,
+    &quot;token&quot;: &quot;eyJ0e...6eEvY&quot;,
+    &quot;token_expires&quot;: 1555881550
+}
+</code></pre>
+<ul>
+<li><code>user_id</code>: User ID.</li>
+<li><code>token</code>: JWT authentication token for user.</li>
+<li><code>token_expires</code>: JWT expiry time, unix timestamp.</li>
+</ul>
+<a class="header" href="#response-400-bad-request" id="response-400-bad-request"><h4>Response [400, Bad Request]</h4></a>
+<ul>
+<li>Request body is invalid.</li>
+<li>User email address is invalid or unknown.</li>
+<li>User password is invalid or incorrect or null.</li>
+<li>User is not assigned key for service.</li>
+</ul>
+<a class="header" href="#response-403-forbidden" id="response-403-forbidden"><h4>Response [403, Forbidden]</h4></a>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<a class="header" href="#reset" id="reset"><h1>Reset</h1></a>
+<a class="header" href="#reset-password-v1authresetpassword" id="reset-password-v1authresetpassword"><h2>Reset Password [/v1/auth/reset/password]</h2></a>
+<a class="header" href="#email-request-post" id="email-request-post"><h3>Email Request [POST]</h3></a>
+<p>Reset password request for email address.</p>
+<a class="header" href="#request-1" id="request-1"><h4>Request</h4></a>
+<pre><code class="language-JSON">{
+    &quot;email&quot;: &quot;user@example.com&quot;
+}
+</code></pre>
+<ul>
+<li><code>email</code>: User email address (required).</li>
+</ul>
+<a class="header" href="#response-200-ok-2" id="response-200-ok-2"><h4>Response [200, OK]</h4></a>
+<a class="header" href="#response-400-bad-request-1" id="response-400-bad-request-1"><h4>Response [400, Bad Request]</h4></a>
+<ul>
+<li>Request body is invalid.</li>
+<li>User email address is invalid or unknown.</li>
+<li>User is not assigned key for service.</li>
+<li>Unable to send password reset email.</li>
+</ul>
+<a class="header" href="#response-403-forbidden-1" id="response-403-forbidden-1"><h4>Response [403, Forbidden]</h4></a>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<a class="header" href="#reset-password-confirm-v1authresetpasswordconfirm" id="reset-password-confirm-v1authresetpasswordconfirm"><h2>Reset Password Confirm [/v1/auth/reset/password/confirm]</h2></a>
+<a class="header" href="#token-confirm-post" id="token-confirm-post"><h3>Token Confirm [POST]</h3></a>
+<p>Confirm reset password request.</p>
+<a class="header" href="#request-2" id="request-2"><h4>Request</h4></a>
+<pre><code class="language-JSON">{
+    &quot;token&quot;: &quot;eyJ0e...6eEvY&quot;,
+    &quot;password&quot;: &quot;guest&quot;
+}
+</code></pre>
+<ul>
+<li><code>token</code>: JWT reset authentication token for user (required).</li>
+<li><code>password</code>: User password (required).</li>
+</ul>
+<a class="header" href="#response-200-ok-3" id="response-200-ok-3"><h4>Response [200, OK]</h4></a>
+<a class="header" href="#response-400-bad-request-2" id="response-400-bad-request-2"><h4>Response [400, Bad Request]</h4></a>
+<ul>
+<li>Request body is invalid.</li>
+<li>Token is invalid or has been used.</li>
+<li>User password is invalid.</li>
+<li>User is not assigned key for service.</li>
+</ul>
+<a class="header" href="#response-403-forbidden-2" id="response-403-forbidden-2"><h4>Response [403, Forbidden]</h4></a>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<a class="header" href="#token" id="token"><h1>Token</h1></a>
+<a class="header" href="#verify-token-v1authtokenverify" id="verify-token-v1authtokenverify"><h2>Verify Token [/v1/auth/token/verify]</h2></a>
+<a class="header" href="#token-post" id="token-post"><h3>Token [POST]</h3></a>
+<p>Verify user token.</p>
+<a class="header" href="#request-3" id="request-3"><h4>Request</h4></a>
+<pre><code class="language-JSON">{
+    &quot;token&quot;: &quot;eyJ0e...Dlgu4&quot;,
+}
+</code></pre>
+<ul>
+<li><code>token</code>: JWT authentication token for user (required).</li>
+</ul>
+<a class="header" href="#response-200-ok-4" id="response-200-ok-4"><h4>Response [200, OK]</h4></a>
+<pre><code class="language-JSON">{
+    &quot;user_id&quot;: 3,
+    &quot;token&quot;: &quot;eyJ0e...Dlgu4&quot;,
+    &quot;token_expires&quot;: 1555957164
+}
+</code></pre>
+<ul>
+<li><code>user_id</code>: User ID.</li>
+<li><code>token</code>: JWT authentication token for user.</li>
+<li><code>token_expires</code>: JWT expiry time, unix timestamp.</li>
+</ul>
+<a class="header" href="#response-400-bad-request-3" id="response-400-bad-request-3"><h4>Response [400, Bad Request]</h4></a>
+<ul>
+<li>Request body is invalid.</li>
+<li>Token is invalid.</li>
+<li>Token is not for authorised service.</li>
+</ul>
+<a class="header" href="#response-403-forbidden-3" id="response-403-forbidden-3"><h4>Response [403, Forbidden]</h4></a>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<a class="header" href="#refresh-token-v1authtokenrefresh" id="refresh-token-v1authtokenrefresh"><h2>Refresh Token [/v1/auth/token/refresh]</h2></a>
+<a class="header" href="#token-post-1" id="token-post-1"><h3>Token [POST]</h3></a>
+<p>Refresh user token, creates new token with updated expiry time.</p>
+<a class="header" href="#request-4" id="request-4"><h4>Request</h4></a>
+<pre><code class="language-JSON">{
+    &quot;token&quot;: &quot;eyJ0e...Dlgu4&quot;,
+}
+</code></pre>
+<ul>
+<li><code>token</code>: JWT authentication token for user (required).</li>
+</ul>
+<a class="header" href="#response-200-ok-5" id="response-200-ok-5"><h4>Response [200, OK]</h4></a>
+<pre><code class="language-JSON">{
+    &quot;user_id&quot;: 3,
+    &quot;token&quot;: &quot;eyJ0e...0ZT7k&quot;,
+    &quot;token_expires&quot;: 1555957470
+}
+</code></pre>
+<ul>
+<li><code>user_id</code>: User ID.</li>
+<li><code>token</code>: JWT authentication token for user.</li>
+<li><code>token_expires</code>: JWT expiry time, unix timestamp.</li>
+</ul>
+<a class="header" href="#response-400-bad-request-4" id="response-400-bad-request-4"><h4>Response [400, Bad Request]</h4></a>
+<ul>
+<li>Request body is invalid.</li>
+<li>Token is invalid.</li>
+<li>Token is not for authorised service.</li>
+</ul>
+<a class="header" href="#response-403-forbidden-4" id="response-403-forbidden-4"><h4>Response [403, Forbidden]</h4></a>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<a class="header" href="#revoke-token-v1authtokenrevoke" id="revoke-token-v1authtokenrevoke"><h2>Revoke Token [/v1/auth/token/revoke]</h2></a>
+<a class="header" href="#token-post-2" id="token-post-2"><h3>Token [POST]</h3></a>
+<p>Revoke user token, deletes associated key to prevent reuse.</p>
+<a class="header" href="#request-5" id="request-5"><h4>Request</h4></a>
+<pre><code class="language-JSON">{
+    &quot;token&quot;: &quot;eyJ0e...Dlgu4&quot;,
+}
+</code></pre>
+<ul>
+<li><code>token</code>: JWT authentication token for user (required).</li>
+</ul>
+<a class="header" href="#response-200-ok-6" id="response-200-ok-6"><h4>Response [200, OK]</h4></a>
+<a class="header" href="#response-400-bad-request-5" id="response-400-bad-request-5"><h4>Response [400, Bad Request]</h4></a>
+<ul>
+<li>Request body is invalid.</li>
+<li>Token is invalid.</li>
+<li>Token is not for authorised service.</li>
+</ul>
+<a class="header" href="#response-403-forbidden-5" id="response-403-forbidden-5"><h4>Response [403, Forbidden]</h4></a>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<a class="header" href="#key" id="key"><h1>Key</h1></a>
+<a class="header" href="#verify-key-v1authkeyverify" id="verify-key-v1authkeyverify"><h2>Verify Key [/v1/auth/key/verify]</h2></a>
+<a class="header" href="#key-post" id="key-post"><h3>Key [POST]</h3></a>
+<p>Verify user key.</p>
+<a class="header" href="#request-6" id="request-6"><h4>Request</h4></a>
+<pre><code class="language-JSON">{
+    &quot;key&quot;: &quot;5a044..4d37c&quot;,
+}
+</code></pre>
+<ul>
+<li><code>key</code>: User key (required).</li>
+</ul>
+<a class="header" href="#response-200-ok-7" id="response-200-ok-7"><h4>Response [200, OK]</h4></a>
+<pre><code class="language-JSON">{
+    &quot;user_id&quot;: 2,
+    &quot;key&quot;: &quot;0e12c...e693f&quot;
+}
+</code></pre>
+<ul>
+<li><code>user_id</code>: User ID.</li>
+<li><code>key</code>: User key.</li>
+</ul>
+<a class="header" href="#response-400-bad-request-6" id="response-400-bad-request-6"><h4>Response [400, Bad Request]</h4></a>
+<ul>
+<li>Request body is invalid.</li>
+<li>Key is invalid.</li>
+<li>Key is for a service.</li>
+</ul>
+<a class="header" href="#response-403-forbidden-6" id="response-403-forbidden-6"><h4>Response [403, Forbidden]</h4></a>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<a class="header" href="#revoke-key-v1authkeyrevoke" id="revoke-key-v1authkeyrevoke"><h2>Revoke Key [/v1/auth/key/revoke]</h2></a>
+<a class="header" href="#key-post-1" id="key-post-1"><h3>Key [POST]</h3></a>
+<p>Revoke a user key, any associated tokens will become invalid.</p>
+<a class="header" href="#request-7" id="request-7"><h4>Request</h4></a>
+<pre><code class="language-JSON">{
+    &quot;key&quot;: &quot;5a044..4d37c&quot;,
+}
+</code></pre>
+<ul>
+<li><code>key</code>: User key (required).</li>
+</ul>
+<a class="header" href="#response-200-ok-8" id="response-200-ok-8"><h4>Response [200, OK]</h4></a>
+<a class="header" href="#response-400-bad-request-7" id="response-400-bad-request-7"><h4>Response [400, Bad Request]</h4></a>
+<ul>
+<li>Request body is invalid.</li>
+<li>Key is invalid.</li>
+<li>Key is for a service.</li>
+</ul>
+<a class="header" href="#response-403-forbidden-7" id="response-403-forbidden-7"><h4>Response [403, Forbidden]</h4></a>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<a class="header" href="#oauth" id="oauth"><h1>OAuth</h1></a>
+<a class="header" href="#github-v1authoauthgithub" id="github-v1authoauthgithub"><h2>GitHub [/v1/auth/oauth/github]</h2></a>
+<a class="header" href="#request-post" id="request-post"><h3>Request [POST]</h3></a>
+<p>Request a authentication redirect URL.</p>
+<a class="header" href="#response-200-ok-9" id="response-200-ok-9"><h4>Response [200, OK]</h4></a>
+<pre><code class="language-JSON">{
+    &quot;url&quot;: &quot;https://github.com/login/oauth/authorize?...JAMBQ&quot;
+}
+</code></pre>
+<ul>
+<li><code>url</code>: Authentication redirect URL.</li>
+</ul>
+<a class="header" href="#response-403-forbidden-8" id="response-403-forbidden-8"><h4>Response [403, Forbidden]</h4></a>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<a class="header" href="#callback-get" id="callback-get"><h3>Callback [GET]</h3></a>
+<p>Used by GitHub OAuth provider.</p>
+<a class="header" href="#microsoft-v1authoauthmicrosoft" id="microsoft-v1authoauthmicrosoft"><h2>Microsoft [/v1/auth/oauth/microsoft]</h2></a>
+<a class="header" href="#request-post-1" id="request-post-1"><h3>Request [POST]</h3></a>
+<p>Request a authentication redirect URL.</p>
+<a class="header" href="#response-200-ok-10" id="response-200-ok-10"><h4>Response [200, OK]</h4></a>
+<pre><code class="language-JSON">{
+    &quot;url&quot;: &quot;https://login.microsoftonline.com/common/oauth2/v2.0/authorize?...aRgyE&quot;
+}
+</code></pre>
+<ul>
+<li><code>url</code>: Authentication redirect URL.</li>
+</ul>
+<a class="header" href="#response-403-forbidden-9" id="response-403-forbidden-9"><h4>Response [403, Forbidden]</h4></a>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<a class="header" href="#callback-get-1" id="callback-get-1"><h3>Callback [GET]</h3></a>
+<p>Used by Microsoft OAuth provider.</p>
+<a class="header" href="#user" id="user"><h1>User</h1></a>
+<a class="header" href="#collection-v1user" id="collection-v1user"><h2>Collection [/v1/user]</h2></a>
+<a class="header" href="#read-many-get" id="read-many-get"><h3>Read Many [GET]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#create-one-post" id="create-one-post"><h3>Create One [POST]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#user-v1userid" id="user-v1userid"><h2>User [/v1/user/{id}]</h2></a>
+<a class="header" href="#read-one-get" id="read-one-get"><h3>Read One [GET]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#update-one-patch" id="update-one-patch"><h3>Update One [PATCH]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#delete-one-delete" id="delete-one-delete"><h3>Delete One [DELETE]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#service" id="service"><h1>Service</h1></a>
+<a class="header" href="#collection-v1service" id="collection-v1service"><h2>Collection [/v1/service]</h2></a>
+<a class="header" href="#read-many-get-1" id="read-many-get-1"><h3>Read Many [GET]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#create-one-post-1" id="create-one-post-1"><h3>Create One [POST]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#service-v1serviceid" id="service-v1serviceid"><h2>Service [/v1/service/{id}]</h2></a>
+<a class="header" href="#read-one-get-1" id="read-one-get-1"><h3>Read One [GET]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#update-one-patch-1" id="update-one-patch-1"><h3>Update One [PATCH]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#delete-one-delete-1" id="delete-one-delete-1"><h3>Delete One [DELETE]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#key-1" id="key-1"><h1>Key</h1></a>
+<a class="header" href="#collection-v1key" id="collection-v1key"><h2>Collection [/v1/key]</h2></a>
+<a class="header" href="#read-many-get-2" id="read-many-get-2"><h3>Read Many [GET]</h3></a>
+<p>Read many keys.</p>
+<a class="header" href="#request-8" id="request-8"><h4>Request</h4></a>
+<pre><code>?offset=X&amp;limit=Y&amp;order=Z
+</code></pre>
+<ul>
+<li><code>offset</code>: ID offset (optional).</li>
+<li><code>limit</code>: Limit number of returned items (optional).</li>
+<li><code>order</code>: ID order, <code>asc</code> or <code>desc</code> (optional).</li>
+</ul>
+<a class="header" href="#response-200-ok-11" id="response-200-ok-11"><h4>Response [200, OK]</h4></a>
+<pre><code class="language-JSON">{
+    &quot;data&quot;: [
+        ...
+    ]
+}
+</code></pre>
+<ul>
+<li><code>data</code>: Array of read items.</li>
+</ul>
+<a class="header" href="#response-400-bad-request-8" id="response-400-bad-request-8"><h4>Response [400, Bad Request]</h4></a>
+<ul>
+<li>Request query is invalid.</li>
+</ul>
+<a class="header" href="#response-403-forbidden-10" id="response-403-forbidden-10"><h4>Response [403, Forbidden]</h4></a>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<a class="header" href="#create-one-post-2" id="create-one-post-2"><h3>Create One [POST]</h3></a>
+<p>Create one key.</p>
+<a class="header" href="#request-9" id="request-9"><h4>Request</h4></a>
+<pre><code class="language-JSON">{
+    &quot;name&quot;: &quot;Name&quot;,
+    &quot;user_id&quot;: 2
+}
+</code></pre>
+<ul>
+<li><code>name</code>: Key name (required).</li>
+<li><code>user_id</code>: User ID (required).</li>
+</ul>
+<a class="header" href="#response-200-ok-12" id="response-200-ok-12"><h4>Response [200, OK]</h4></a>
+<pre><code class="language-JSON">{
+    &quot;created_at&quot;: &quot;2019...304Z&quot;,
+    &quot;id&quot;: 39,
+    &quot;name&quot;: &quot;Name&quot;,
+    &quot;value&quot;: &quot;455c7...c8630&quot;,
+    &quot;service_id&quot;: 26,
+    &quot;user_id&quot;: 10
+}
+</code></pre>
+<a class="header" href="#key-v1keyid" id="key-v1keyid"><h2>Key [/v1/key/{id}]</h2></a>
+<a class="header" href="#read-one-get-2" id="read-one-get-2"><h3>Read One [GET]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#update-one-patch-2" id="update-one-patch-2"><h3>Update One [PATCH]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#delete-one-delete-2" id="delete-one-delete-2"><h3>Delete One [DELETE]</h3></a>
+<p>TODO(doc)</p>
+<a class="header" href="#developer" id="developer"><h1>Developer</h1></a>
+<a class="header" href="#requirements" id="requirements"><h2>Requirements</h2></a>
+<ul>
+<li><a href="https://www.rust-lang.org/">Rust</a></li>
+<li><a href="http://diesel.rs/">Diesel</a></li>
+</ul>
+<pre><code class="language-Shell"># Rust installation, updates and utilities.
+$ curl https://sh.rustup.rs -sSf | sh
+$ rustup self update &amp;&amp; rustup update &amp;&amp; cargo update
+$ rustup component add rustfmt
+$ rustup component add clippy
+# Diesel CLI installation.
+$ cargo install diesel_cli --no-default-features --features &quot;postgres sqlite&quot;
+</code></pre>
+<p>Create a database user with permission to create databases.</p>
+<pre><code class="language-Shell">$ sudo -i -u postgres
+(postgres) $ psql -c &quot;CREATE USER $db_user WITH PASSWORD '$db_password';&quot;;
+(postgres) $ psql -c &quot;ALTER USER $db_user CREATEDB;&quot;;
+</code></pre>
+<p>Export environment variables.</p>
+<pre><code class="language-Shell"># Database connection URL, required.
+$ export DATABASE_URL=&quot;postgres://$db_user:$db_password@$db_host:$db_port/ark_auth&quot;
+# Server address, required.
+$ export SERVER_ADDR=&quot;$server_host:$server_port&quot;
+# Sentry URL for logging integration, optional.
+$ export SENTRY_URL=&quot;...&quot;
+# GitHub OAuth support, optional.
+$ export GITHUB_CLIENT_ID=&quot;...&quot;
+$ export GITHUB_CLIENT_SECRET=&quot;...&quot;
+$ export GITHUB_REDIRECT_URL=&quot;$server_url/v1/auth/oauth/github&quot;
+# Microsoft OAuth support, optional.
+$ export MICROSOFT_CLIENT_ID=&quot;...&quot;
+$ export MICROSOFT_CLIENT_SECRET=&quot;...&quot;
+$ export MICROSOFT_REDIRECT_URL=&quot;$server_url/v1/auth/oauth/microsoft&quot;
+</code></pre>
+<p>Create database and run migrations.</p>
+<pre><code class="language-Shell">$ diesel database reset
+</code></pre>
+<p>Build application, initialise database with service, start server.</p>
+<pre><code class="language-Shell">$ cargo build [--release]
+$ cargo run init $service_name $service_url
+$ cargo run start
+</code></pre>
+<p>Format source code and run clippy.</p>
+<pre><code class="language-Shell">$ cargo fmt &amp;&amp; cargo clippy
+</code></pre>
+<p>Build manual.</p>
+<pre><code class="language-Shell">$ mdbook serve
+</code></pre>
+<p>Run unit and integration tests.</p>
+<pre><code class="language-Shell">$ diesel database reset &amp;&amp; cargo test
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+        
+        <script type="text/javascript">
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+        
+        
+
+    </body>
+</html>

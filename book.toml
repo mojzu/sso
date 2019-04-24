@@ -5,7 +5,7 @@ src = "manual"
 title = "Ark Auth Manual"
 
 [build]
-build-dir = "target/book"
+build-dir = "docs"
 create-missing = false
 preprocess = ["links", "index"]
 

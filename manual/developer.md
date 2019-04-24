@@ -1,5 +1,20 @@
 # Developer
 
+## Requirements
+
+-   [Rust](https://www.rust-lang.org/)
+-   [Diesel](http://diesel.rs/)
+
+```Shell
+# Rust installation, updates and utilities.
+$ curl https://sh.rustup.rs -sSf | sh
+$ rustup self update && rustup update && cargo update
+$ rustup component add rustfmt
+$ rustup component add clippy
+# Diesel CLI installation.
+$ cargo install diesel_cli --no-default-features --features "postgres sqlite"
+```
+
 Create a database user with permission to create databases.
 
 ```Shell
@@ -57,10 +72,4 @@ Run unit and integration tests.
 
 ```Shell
 $ diesel database reset && cargo test
-```
-
-Update Rust and dependencies.
-
-```Shell
-$ rustup self update && rustup update && cargo update
 ```

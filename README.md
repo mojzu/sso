@@ -6,12 +6,11 @@ Rust crates for building an authentication server.
 
 ### manual
 
-User and developer documentation.
+User and developer documentation, [see manual](https://mojzu.net/ark_auth/).
 
-```Shell
-$ cargo install mdbook
-$ mdbook serve
-```
+### docs
+
+Manual build output for GitHub pages, [see manual](https://mojzu.net/ark_auth/).
 
 ### ark_auth
 
