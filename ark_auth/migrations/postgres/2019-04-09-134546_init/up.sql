@@ -16,8 +16,7 @@ CREATE TABLE auth_service (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     service_id BIGSERIAL PRIMARY KEY NOT NULL,
     service_name VARCHAR NOT NULL,
-    service_url VARCHAR NOT NULL,
-    CONSTRAINT uq_auth_service_url UNIQUE(service_url)
+    service_url VARCHAR NOT NULL
 );
 
 -- Authentication keys table.

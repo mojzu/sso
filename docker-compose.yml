@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ark_auth
+      POSTGRES_PASSWORD: guest
+    ports:
+      - "5432:5432"
