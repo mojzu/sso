@@ -145,6 +145,8 @@
 <ul>
 <li><a href="https://www.rust-lang.org/">Rust</a></li>
 <li><a href="http://diesel.rs/">Diesel</a></li>
+<li><a href="https://docs.docker.com/install/">Docker</a></li>
+<li><a href="https://docs.docker.com/compose/">Docker Compose</a></li>
 </ul>
 <pre><code class="language-Shell"># Rust installation, updates and utilities.
 $ curl https://sh.rustup.rs -sSf | sh
@@ -153,30 +155,28 @@ $ rustup component add rustfmt
 $ rustup component add clippy
 # Diesel CLI installation.
 $ cargo install diesel_cli --no-default-features --features &quot;postgres sqlite&quot;
+# Docker, Docker Compose installation and start containers.
+$ docker-compose up
 </code></pre>
-<p>Create a database user with permission to create databases.</p>
-<pre><code class="language-Shell">$ sudo -i -u postgres
-(postgres) $ psql -c &quot;CREATE USER $db_user WITH PASSWORD '$db_password';&quot;;
-(postgres) $ psql -c &quot;ALTER USER $db_user CREATEDB;&quot;;
-</code></pre>
+<a class="header" href="#notes" id="notes"><h2>Notes</h2></a>
 <p>Export environment variables.</p>
 <pre><code class="language-Shell"># Database connection URL, required.
-$ export DATABASE_URL=&quot;postgres://$db_user:$db_password@$db_host:$db_port/ark_auth&quot;
+$ export DATABASE_URL=&quot;postgres://ark_auth:guest@localhost:5432/ark_auth&quot;
 # Server address, required.
-$ export SERVER_ADDR=&quot;$server_host:$server_port&quot;
+$ export SERVER_ADDR=&quot;localhost:9000&quot;
 # Sentry URL for logging integration, optional.
 $ export SENTRY_URL=&quot;...&quot;
 # GitHub OAuth support, optional.
 $ export GITHUB_CLIENT_ID=&quot;...&quot;
 $ export GITHUB_CLIENT_SECRET=&quot;...&quot;
-$ export GITHUB_REDIRECT_URL=&quot;$server_url/v1/auth/oauth/github&quot;
+$ export GITHUB_REDIRECT_URL=&quot;http://localhost:9000/v1/auth/oauth/github&quot;
 # Microsoft OAuth support, optional.
 $ export MICROSOFT_CLIENT_ID=&quot;...&quot;
 $ export MICROSOFT_CLIENT_SECRET=&quot;...&quot;
-$ export MICROSOFT_REDIRECT_URL=&quot;$server_url/v1/auth/oauth/microsoft&quot;
+$ export MICROSOFT_REDIRECT_URL=&quot;http://localhost:9000/v1/auth/oauth/microsoft&quot;
 </code></pre>
 <p>Create database and run migrations.</p>
-<pre><code class="language-Shell">$ diesel database reset
+<pre><code class="language-Shell">$ diesel database reset --migration-dir migrations/postgres
 </code></pre>
 <p>Build application, initialise database with service, start server.</p>
 <pre><code class="language-Shell">$ cargo build [--release]
@@ -186,11 +186,12 @@ $ cargo run start
 <p>Format source code and run clippy.</p>
 <pre><code class="language-Shell">$ cargo fmt &amp;&amp; cargo clippy
 </code></pre>
-<p>Build manual.</p>
+<p>Serve and build manual.</p>
 <pre><code class="language-Shell">$ mdbook serve
+$ mdbook build
 </code></pre>
 <p>Run unit and integration tests.</p>
-<pre><code class="language-Shell">$ diesel database reset &amp;&amp; cargo test
+<pre><code class="language-Shell">$ diesel database reset --migration-dir migrations/postgres &amp;&amp; cargo test
 </code></pre>
 
                     </main>
