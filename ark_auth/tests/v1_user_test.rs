@@ -14,32 +14,16 @@ struct UserPassword {
 }
 
 #[test]
+fn get_many_user_authorisation_test() {
+    let (_db, mut app) = support::app();
+    support::get_authorisation_test(&mut app, "/v1/user")
+}
+
+#[test]
 fn post_user_authorisation_test() {
     let (_db, mut app) = support::app();
-
-    // Missing header.
-    let payload = r#"{ "name": "User Name", "email": "user1@example.com" }"#.as_bytes();
-    let req = app
-        .post("/v1/user")
-        .header(header::CONTENT_TYPE, header::ContentType::json())
-        .send_body(payload);
-
-    // 403 FORBIDDEN response.
-    let res = app.block_on(req).unwrap();
-    assert_eq!(res.status(), StatusCode::FORBIDDEN);
-    assert_eq!(res.headers().get(header::CONTENT_LENGTH).unwrap(), "0");
-
-    // Invalid header.
-    let req = app
-        .post("/v1/user")
-        .header(header::CONTENT_TYPE, header::ContentType::json())
-        .header(header::AUTHORIZATION, "invalid")
-        .send_body(payload);
-
-    // 403 FORBIDDEN response.
-    let res = app.block_on(req).unwrap();
-    assert_eq!(res.status(), StatusCode::FORBIDDEN);
-    assert_eq!(res.headers().get(header::CONTENT_LENGTH).unwrap(), "0");
+    let payload = r#"{ "name": "test", "user_id": 1 }"#.as_bytes();
+    support::post_authorisation_test(&mut app, "/v1/user", payload)
 }
 
 #[test]

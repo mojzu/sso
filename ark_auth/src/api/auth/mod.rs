@@ -53,6 +53,14 @@ pub fn validate_name(name: &str) -> Result<(), ValidationError> {
     }
 }
 
+pub fn validate_id(id: i64) -> Result<(), ValidationError> {
+    if id < 1 {
+        Err(ValidationError::new("invalid_id"))
+    } else {
+        Ok(())
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct LoginBody {

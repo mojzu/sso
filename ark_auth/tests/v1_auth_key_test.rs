@@ -6,23 +6,8 @@ use ark_auth::api;
 #[test]
 fn post_key_verify_authorisation_test() {
     let (_db, mut app) = support::app();
-
-    // Missing header.
-    // 403 FORBIDDEN response.
     let payload = r#"{ "key": "5a044d9035334e95a60ac0338904d37c" }"#.as_bytes();
-    let (status_code, content_length, bytes) =
-        support::app_post(&mut app, "/v1/auth/key/verify", None, payload);
-    assert_eq!(status_code, StatusCode::FORBIDDEN);
-    assert_eq!(content_length, 0);
-    assert_eq!(bytes.len(), 0);
-
-    // Invalid header.
-    // 403 FORBIDDEN response.
-    let (status_code, content_length, bytes) =
-        support::app_post(&mut app, "/v1/auth/key/verify", Some("invalid"), payload);
-    assert_eq!(status_code, StatusCode::FORBIDDEN);
-    assert_eq!(content_length, 0);
-    assert_eq!(bytes.len(), 0);
+    support::post_authorisation_test(&mut app, "/v1/auth/key/verify", payload)
 }
 
 #[test]
@@ -110,23 +95,8 @@ fn post_key_verify_test() {
 #[test]
 fn post_key_revoke_authorisation_test() {
     let (_db, mut app) = support::app();
-
-    // Missing header.
-    // 403 FORBIDDEN response.
     let payload = r#"{ "key": "5a044d9035334e95a60ac0338904d37c" }"#.as_bytes();
-    let (status_code, content_length, bytes) =
-        support::app_post(&mut app, "/v1/auth/key/revoke", None, payload);
-    assert_eq!(status_code, StatusCode::FORBIDDEN);
-    assert_eq!(content_length, 0);
-    assert_eq!(bytes.len(), 0);
-
-    // Invalid header.
-    // 403 FORBIDDEN response.
-    let (status_code, content_length, bytes) =
-        support::app_post(&mut app, "/v1/auth/key/revoke", Some("invalid"), payload);
-    assert_eq!(status_code, StatusCode::FORBIDDEN);
-    assert_eq!(content_length, 0);
-    assert_eq!(bytes.len(), 0);
+    support::post_authorisation_test(&mut app, "/v1/auth/key/revoke", payload)
 }
 
 #[test]

@@ -5,27 +5,8 @@ use actix_web::http::StatusCode;
 #[test]
 fn post_reset_password_authorisation_test() {
     let (_db, mut app) = support::app();
-
-    // Missing header.
-    // 403 FORBIDDEN response.
     let payload = r#"{ "email": "reset-password@example.com" }"#.as_bytes();
-    let (status_code, content_length, bytes) =
-        support::app_post(&mut app, "/v1/auth/reset/password", None, payload);
-    assert_eq!(status_code, StatusCode::FORBIDDEN);
-    assert_eq!(content_length, 0);
-    assert_eq!(bytes.len(), 0);
-
-    // Invalid header.
-    // 403 FORBIDDEN response.
-    let (status_code, content_length, bytes) = support::app_post(
-        &mut app,
-        "/v1/auth/reset/password",
-        Some("invalid"),
-        payload,
-    );
-    assert_eq!(status_code, StatusCode::FORBIDDEN);
-    assert_eq!(content_length, 0);
-    assert_eq!(bytes.len(), 0);
+    support::post_authorisation_test(&mut app, "/v1/auth/reset/password", payload)
 }
 
 #[test]
@@ -111,27 +92,8 @@ fn post_reset_password_test() {
 #[test]
 fn post_reset_password_confirm_authorisation_test() {
     let (_db, mut app) = support::app();
-
-    // Missing header.
-    // 403 FORBIDDEN response.
     let payload = r#"{ "token": "some-token", "password": "guest" }"#.as_bytes();
-    let (status_code, content_length, bytes) =
-        support::app_post(&mut app, "/v1/auth/reset/password/confirm", None, payload);
-    assert_eq!(status_code, StatusCode::FORBIDDEN);
-    assert_eq!(content_length, 0);
-    assert_eq!(bytes.len(), 0);
-
-    // Invalid header.
-    // 403 FORBIDDEN response.
-    let (status_code, content_length, bytes) = support::app_post(
-        &mut app,
-        "/v1/auth/reset/password/confirm",
-        Some("invalid"),
-        payload,
-    );
-    assert_eq!(status_code, StatusCode::FORBIDDEN);
-    assert_eq!(content_length, 0);
-    assert_eq!(bytes.len(), 0);
+    support::post_authorisation_test(&mut app, "/v1/auth/reset/password/confirm", payload)
 }
 
 #[test]
