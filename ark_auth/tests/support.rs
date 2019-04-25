@@ -24,6 +24,7 @@ pub fn app() -> (ark_auth::db::Db, actix_http_test::TestServerRuntime) {
     (db, server)
 }
 
+#[allow(dead_code)]
 pub fn app_post<T: Into<actix_http::body::Body>>(
     app: &mut actix_http_test::TestServerRuntime,
     uri: &str,
@@ -54,11 +55,13 @@ pub fn app_post<T: Into<actix_http::body::Body>>(
     (status_code, content_length, bytes.to_vec())
 }
 
+#[allow(dead_code)]
 pub fn service_key(db: &ark_auth::db::Db) -> (AuthService, AuthKey) {
     let random = uuid::Uuid::new_v4().to_simple().to_string();
     db.init(&random, &random).unwrap()
 }
 
+#[allow(dead_code)]
 pub fn user_key(
     db: &ark_auth::db::Db,
     service: &AuthService,
