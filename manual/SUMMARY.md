@@ -7,6 +7,7 @@
     - [Reset Password](./guides/reset-password.md)
     - [API Key](./guides/api-key.md)
     - [OAuth2 Login](./guides/oauth2-login.md)
+    - [WebAuthn Login](./guides/webauthn-login.md)
 - [API](./api/index.md)
     - [Authentication](./api/auth.md)
         - [Reset](./api/auth-reset.md)

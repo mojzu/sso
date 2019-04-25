@@ -75,7 +75,7 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="guides/index.html"><strong aria-hidden="true">2.</strong> Guides</a></li><li><ol class="section"><li><a href="guides/deployment.html"><strong aria-hidden="true">2.1.</strong> Deployment</a></li><li><a href="guides/login.html"><strong aria-hidden="true">2.2.</strong> Login</a></li><li><a href="guides/reset-password.html"><strong aria-hidden="true">2.3.</strong> Reset Password</a></li><li><a href="guides/api-key.html"><strong aria-hidden="true">2.4.</strong> API Key</a></li><li><a href="guides/oauth2-login.html"><strong aria-hidden="true">2.5.</strong> OAuth2 Login</a></li></ol></li><li><a href="api/index.html"><strong aria-hidden="true">3.</strong> API</a></li><li><ol class="section"><li><a href="api/auth.html"><strong aria-hidden="true">3.1.</strong> Authentication</a></li><li><ol class="section"><li><a href="api/auth-reset.html"><strong aria-hidden="true">3.1.1.</strong> Reset</a></li><li><a href="api/auth-token.html"><strong aria-hidden="true">3.1.2.</strong> Token</a></li><li><a href="api/auth-key.html"><strong aria-hidden="true">3.1.3.</strong> Key</a></li><li><a href="api/auth-oauth2.html"><strong aria-hidden="true">3.1.4.</strong> OAuth2</a></li></ol></li><li><a href="api/user.html"><strong aria-hidden="true">3.2.</strong> User</a></li><li><a href="api/service.html"><strong aria-hidden="true">3.3.</strong> Service</a></li><li><a href="api/key.html"><strong aria-hidden="true">3.4.</strong> Key</a></li></ol></li><li><a href="developer.html"><strong aria-hidden="true">4.</strong> Developer</a></li></ol>
+            <ol class="chapter"><li><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="guides/index.html"><strong aria-hidden="true">2.</strong> Guides</a></li><li><ol class="section"><li><a href="guides/deployment.html"><strong aria-hidden="true">2.1.</strong> Deployment</a></li><li><a href="guides/login.html"><strong aria-hidden="true">2.2.</strong> Login</a></li><li><a href="guides/reset-password.html"><strong aria-hidden="true">2.3.</strong> Reset Password</a></li><li><a href="guides/api-key.html"><strong aria-hidden="true">2.4.</strong> API Key</a></li><li><a href="guides/oauth2-login.html"><strong aria-hidden="true">2.5.</strong> OAuth2 Login</a></li><li><a href="guides/webauthn-login.html"><strong aria-hidden="true">2.6.</strong> WebAuthn Login</a></li></ol></li><li><a href="api/index.html"><strong aria-hidden="true">3.</strong> API</a></li><li><ol class="section"><li><a href="api/auth.html"><strong aria-hidden="true">3.1.</strong> Authentication</a></li><li><ol class="section"><li><a href="api/auth-reset.html"><strong aria-hidden="true">3.1.1.</strong> Reset</a></li><li><a href="api/auth-token.html"><strong aria-hidden="true">3.1.2.</strong> Token</a></li><li><a href="api/auth-key.html"><strong aria-hidden="true">3.1.3.</strong> Key</a></li><li><a href="api/auth-oauth2.html"><strong aria-hidden="true">3.1.4.</strong> OAuth2</a></li></ol></li><li><a href="api/user.html"><strong aria-hidden="true">3.2.</strong> User</a></li><li><a href="api/service.html"><strong aria-hidden="true">3.3.</strong> Service</a></li><li><a href="api/key.html"><strong aria-hidden="true">3.4.</strong> Key</a></li></ol></li><li><a href="developer.html"><strong aria-hidden="true">4.</strong> Developer</a></li></ol>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -282,6 +282,13 @@ $ ark_auth start
   --data '{&quot;token&quot;:&quot;$token&quot;}' \
   $server_url/v1/auth/token/verify
 </code></pre>
+<a class="header" href="#webauthn-login" id="webauthn-login"><h1>WebAuthn Login</h1></a>
+<p>Not implemented yet.</p>
+<p>TODO(doc)</p>
+<ul>
+<li><a href="https://webauthn.guide/">https://webauthn.guide/</a></li>
+<li><a href="https://github.com/Firstyear/webauthn-rs/">https://github.com/Firstyear/webauthn-rs/</a></li>
+</ul>
 <a class="header" href="#api" id="api"><h1>API</h1></a>
 <p>HTTP endpoints are available at <code>$SERVER_ADDR</code>.</p>
 <p>Requests are authenticated using <code>Authorization: $key_value</code> header. Service keys can be created via command line.</p>
