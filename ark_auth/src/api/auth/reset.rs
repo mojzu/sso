@@ -77,8 +77,20 @@ fn reset_password_inner(
                 Ok((service, reset))
             })
             .and_then(|(service, (user, token_response))| {
-                email::send_reset_password(data.smtp(), &user, &service, &token_response.token)?;
-                Ok(token_response)
+                // Send user email with reset password confirmation link.
+                match email::send_reset_password(
+                    data.smtp(),
+                    &user,
+                    &service,
+                    &token_response.token,
+                ) {
+                    Ok(_) => Ok(token_response),
+                    // Log warning in case of failure to send email.
+                    Err(e) => {
+                        warn!("Failed to send reset password email ({})", e);
+                        Ok(token_response)
+                    }
+                }
             })
     })
     .map_err(Into::into)
