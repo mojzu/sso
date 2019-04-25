@@ -100,7 +100,7 @@ impl Db {
         Ok((service, key))
     }
 
-    pub fn oauth_login(&self, email: &str, service_id: i64) -> Result<TokenResponse, DbError> {
+    pub fn oauth2_login(&self, email: &str, service_id: i64) -> Result<TokenResponse, DbError> {
         let conn = self.connection()?;
         let user = user::read_by_email(email, &conn)?;
         let service = service::read_by_id(service_id, service_id, &conn)?;

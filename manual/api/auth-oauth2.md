@@ -1,6 +1,6 @@
-# OAuth
+# OAuth2
 
-## GitHub [/v1/auth/oauth/github]
+## GitHub [/v1/auth/oauth2/github]
 
 ### Request [POST]
 
@@ -22,9 +22,9 @@ Request a authentication redirect URL.
 
 ### Callback [GET]
 
-Used by GitHub OAuth provider.
+Used by GitHub OAuth2 provider.
 
-## Microsoft [/v1/auth/oauth/microsoft]
+## Microsoft [/v1/auth/oauth2/microsoft]
 
 ### Request [POST]
 
@@ -46,4 +46,4 @@ Request a authentication redirect URL.
 
 ### Callback [GET]
 
-Used by Microsoft OAuth provider.
+Used by Microsoft OAuth2 provider.

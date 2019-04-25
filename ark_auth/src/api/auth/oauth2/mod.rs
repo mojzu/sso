@@ -7,11 +7,11 @@ use actix_web::http::{header, StatusCode};
 use actix_web::{web, HttpResponse};
 use url::Url;
 
-// TODO(feature): Other OAuth providers support.
+// TODO(feature): Other OAuth2 providers support.
 
-/// Version 1 authentication oauth routes scope.
+/// Version 1 authentication OAuth2 routes scope.
 pub fn v1_service() -> actix_web::Scope {
-    web::scope("/oauth")
+    web::scope("/oauth2")
         .service(
             web::resource("/github")
                 .route(web::post().to_async(github::v1))
@@ -35,14 +35,14 @@ pub struct UrlResponse {
     pub url: String,
 }
 
-pub fn oauth_login(
+pub fn oauth2_login(
     data: &web::Data<ApiData>,
     email: &str,
     service_id: i64,
 ) -> Result<(auth::TokenResponse, AuthService), ApiError> {
     let token = data
         .db
-        .oauth_login(email, service_id)
+        .oauth2_login(email, service_id)
         .map_err(ApiError::Db)?;
     let service = data
         .db
@@ -51,7 +51,7 @@ pub fn oauth_login(
     Ok((token, service))
 }
 
-pub fn oauth_redirect(token: auth::TokenResponse, service: AuthService) -> HttpResponse {
+pub fn oauth2_redirect(token: auth::TokenResponse, service: AuthService) -> HttpResponse {
     let mut url = Url::parse(&service.service_url).unwrap();
     let token_query = format!("token={}", token.token);
     url.set_query(Some(&token_query));

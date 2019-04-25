@@ -75,7 +75,7 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="guides/index.html"><strong aria-hidden="true">2.</strong> Guides</a></li><li><ol class="section"><li><a href="guides/deployment.html"><strong aria-hidden="true">2.1.</strong> Deployment</a></li><li><a href="guides/login.html"><strong aria-hidden="true">2.2.</strong> Login</a></li><li><a href="guides/reset-password.html"><strong aria-hidden="true">2.3.</strong> Reset Password</a></li><li><a href="guides/api-key.html"><strong aria-hidden="true">2.4.</strong> API Key</a></li><li><a href="guides/oauth-login.html"><strong aria-hidden="true">2.5.</strong> OAuth Login</a></li></ol></li><li><a href="api/index.html"><strong aria-hidden="true">3.</strong> API</a></li><li><ol class="section"><li><a href="api/auth.html"><strong aria-hidden="true">3.1.</strong> Authentication</a></li><li><ol class="section"><li><a href="api/auth-reset.html"><strong aria-hidden="true">3.1.1.</strong> Reset</a></li><li><a href="api/auth-token.html"><strong aria-hidden="true">3.1.2.</strong> Token</a></li><li><a href="api/auth-key.html"><strong aria-hidden="true">3.1.3.</strong> Key</a></li><li><a href="api/auth-oauth.html"><strong aria-hidden="true">3.1.4.</strong> OAuth</a></li></ol></li><li><a href="api/user.html"><strong aria-hidden="true">3.2.</strong> User</a></li><li><a href="api/service.html"><strong aria-hidden="true">3.3.</strong> Service</a></li><li><a href="api/key.html"><strong aria-hidden="true">3.4.</strong> Key</a></li></ol></li><li><a href="developer.html"><strong aria-hidden="true">4.</strong> Developer</a></li></ol>
+            <ol class="chapter"><li><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="guides/index.html"><strong aria-hidden="true">2.</strong> Guides</a></li><li><ol class="section"><li><a href="guides/deployment.html"><strong aria-hidden="true">2.1.</strong> Deployment</a></li><li><a href="guides/login.html"><strong aria-hidden="true">2.2.</strong> Login</a></li><li><a href="guides/reset-password.html"><strong aria-hidden="true">2.3.</strong> Reset Password</a></li><li><a href="guides/api-key.html"><strong aria-hidden="true">2.4.</strong> API Key</a></li><li><a href="guides/oauth2-login.html"><strong aria-hidden="true">2.5.</strong> OAuth2 Login</a></li></ol></li><li><a href="api/index.html"><strong aria-hidden="true">3.</strong> API</a></li><li><ol class="section"><li><a href="api/auth.html"><strong aria-hidden="true">3.1.</strong> Authentication</a></li><li><ol class="section"><li><a href="api/auth-reset.html"><strong aria-hidden="true">3.1.1.</strong> Reset</a></li><li><a href="api/auth-token.html"><strong aria-hidden="true">3.1.2.</strong> Token</a></li><li><a href="api/auth-key.html"><strong aria-hidden="true">3.1.3.</strong> Key</a></li><li><a href="api/auth-oauth2.html"><strong aria-hidden="true">3.1.4.</strong> OAuth2</a></li></ol></li><li><a href="api/user.html"><strong aria-hidden="true">3.2.</strong> User</a></li><li><a href="api/service.html"><strong aria-hidden="true">3.3.</strong> Service</a></li><li><a href="api/key.html"><strong aria-hidden="true">3.4.</strong> Key</a></li></ol></li><li><a href="developer.html"><strong aria-hidden="true">4.</strong> Developer</a></li></ol>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -246,12 +246,12 @@ $ ark_auth start
   --data '{&quot;key&quot;:&quot;$user_key&quot;}' \
   $server_url/v1/auth/key/verify
 </code></pre>
-<a class="header" href="#oauth-login" id="oauth-login"><h1>OAuth Login</h1></a>
+<a class="header" href="#oauth2-login" id="oauth2-login"><h1>OAuth2 Login</h1></a>
 <p>Initialise a service and start server.</p>
 <pre><code class="language-Shell">$ ark_auth init $service_name $service_url
 $ ark_auth start
 </code></pre>
-<p>Service creates a user with email address matching OAuth provider.</p>
+<p>Service creates a user with email address matching OAuth2 provider.</p>
 <pre><code class="language-Shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
@@ -265,15 +265,15 @@ $ ark_auth start
   --data '{&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:$user_id}' \
   $server_url/v1/key
 </code></pre>
-<p>User makes OAuth login request to service.</p>
-<p>Service requests a redirect URL for OAuth provider, supported providers are <code>github</code>, <code>microsoft</code>.</p>
+<p>User makes OAuth2 login request to service.</p>
+<p>Service requests a redirect URL for OAuth2 provider, supported providers are <code>github</code>, <code>microsoft</code>.</p>
 <pre><code class="language-Shell">$ curl --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  $server_url/v1/auth/oauth/$oauth_provider
+  $server_url/v1/auth/oauth2/$oauth2_provider
 </code></pre>
-<p>Service redirects user to returned URL, OAuth provider authentication occurs.</p>
-<p>If successful, OAuth provider redirects user to <code>$server_url/v1/auth/oauth/$oauth_provider</code> with required query parameters.</p>
-<p>Query parameters are exchanged for API access token, authenticated email address is requested from OAuth provider APIs.</p>
+<p>Service redirects user to returned URL, OAuth2 provider authentication occurs.</p>
+<p>If successful, OAuth2 provider redirects user to <code>$server_url/v1/auth/oauth2/$oauth2_provider</code> with required query parameters.</p>
+<p>Query parameters are exchanged for API access token, authenticated email address is requested from OAuth2 provider APIs.</p>
 <p>If authenticated email returned by API matches a user email address, and user has key for specified service, a user authentication token is generated and the user is redirected to <code>$service_url?token=$token</code>.</p>
 <p>Service receives token via query parameter and verifies it to authenticate requests.</p>
 <pre><code class="language-Shell">$ curl --header &quot;Content-Type: application/json&quot; \
@@ -522,8 +522,8 @@ $ ark_auth start
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#oauth" id="oauth"><h1>OAuth</h1></a>
-<a class="header" href="#github-v1authoauthgithub" id="github-v1authoauthgithub"><h2>GitHub [/v1/auth/oauth/github]</h2></a>
+<a class="header" href="#oauth2" id="oauth2"><h1>OAuth2</h1></a>
+<a class="header" href="#github-v1authoauth2github" id="github-v1authoauth2github"><h2>GitHub [/v1/auth/oauth2/github]</h2></a>
 <a class="header" href="#request-post" id="request-post"><h3>Request [POST]</h3></a>
 <p>Request a authentication redirect URL.</p>
 <a class="header" href="#response-200-ok-9" id="response-200-ok-9"><h4>Response [200, OK]</h4></a>
@@ -539,8 +539,8 @@ $ ark_auth start
 <li>Authorisation header is invalid.</li>
 </ul>
 <a class="header" href="#callback-get" id="callback-get"><h3>Callback [GET]</h3></a>
-<p>Used by GitHub OAuth provider.</p>
-<a class="header" href="#microsoft-v1authoauthmicrosoft" id="microsoft-v1authoauthmicrosoft"><h2>Microsoft [/v1/auth/oauth/microsoft]</h2></a>
+<p>Used by GitHub OAuth2 provider.</p>
+<a class="header" href="#microsoft-v1authoauth2microsoft" id="microsoft-v1authoauth2microsoft"><h2>Microsoft [/v1/auth/oauth2/microsoft]</h2></a>
 <a class="header" href="#request-post-1" id="request-post-1"><h3>Request [POST]</h3></a>
 <p>Request a authentication redirect URL.</p>
 <a class="header" href="#response-200-ok-10" id="response-200-ok-10"><h4>Response [200, OK]</h4></a>
@@ -556,7 +556,7 @@ $ ark_auth start
 <li>Authorisation header is invalid.</li>
 </ul>
 <a class="header" href="#callback-get-1" id="callback-get-1"><h3>Callback [GET]</h3></a>
-<p>Used by Microsoft OAuth provider.</p>
+<p>Used by Microsoft OAuth2 provider.</p>
 <a class="header" href="#user" id="user"><h1>User</h1></a>
 <a class="header" href="#collection-v1user" id="collection-v1user"><h2>Collection [/v1/user]</h2></a>
 <a class="header" href="#read-many-get" id="read-many-get"><h3>Read Many [GET]</h3></a>
@@ -673,14 +673,14 @@ $ export SMTP_USER=&quot;...&quot;
 $ export SMTP_PASSWORD=&quot;...&quot;
 # Sentry URL for logging integration, optional.
 $ export SENTRY_URL=&quot;...&quot;
-# GitHub OAuth support, optional.
+# GitHub OAuth2 support, optional.
 $ export GITHUB_CLIENT_ID=&quot;...&quot;
 $ export GITHUB_CLIENT_SECRET=&quot;...&quot;
-$ export GITHUB_REDIRECT_URL=&quot;http://localhost:9000/v1/auth/oauth/github&quot;
-# Microsoft OAuth support, optional.
+$ export GITHUB_REDIRECT_URL=&quot;http://localhost:9000/v1/auth/oauth2/github&quot;
+# Microsoft OAuth2 support, optional.
 $ export MICROSOFT_CLIENT_ID=&quot;...&quot;
 $ export MICROSOFT_CLIENT_SECRET=&quot;...&quot;
-$ export MICROSOFT_REDIRECT_URL=&quot;http://localhost:9000/v1/auth/oauth/microsoft&quot;
+$ export MICROSOFT_REDIRECT_URL=&quot;http://localhost:9000/v1/auth/oauth2/microsoft&quot;
 </code></pre>
 <p>Create database and run migrations.</p>
 <pre><code class="language-Shell">$ diesel database reset --migration-dir migrations/postgres

@@ -1,4 +1,4 @@
-# OAuth Login
+# OAuth2 Login
 
 Initialise a service and start server.
 
@@ -7,7 +7,7 @@ $ ark_auth init $service_name $service_url
 $ ark_auth start
 ```
 
-Service creates a user with email address matching OAuth provider.
+Service creates a user with email address matching OAuth2 provider.
 
 ```Shell
 $ curl --header "Content-Type: application/json" \
@@ -27,21 +27,21 @@ $ curl --header "Content-Type: application/json" \
   $server_url/v1/key
 ```
 
-User makes OAuth login request to service.
+User makes OAuth2 login request to service.
 
-Service requests a redirect URL for OAuth provider, supported providers are `github`, `microsoft`.
+Service requests a redirect URL for OAuth2 provider, supported providers are `github`, `microsoft`.
 
 ```Shell
 $ curl --header "Authorization: $service_key" \
   --request POST \
-  $server_url/v1/auth/oauth/$oauth_provider
+  $server_url/v1/auth/oauth2/$oauth2_provider
 ```
 
-Service redirects user to returned URL, OAuth provider authentication occurs.
+Service redirects user to returned URL, OAuth2 provider authentication occurs.
 
-If successful, OAuth provider redirects user to `$server_url/v1/auth/oauth/$oauth_provider` with required query parameters.
+If successful, OAuth2 provider redirects user to `$server_url/v1/auth/oauth2/$oauth2_provider` with required query parameters.
 
-Query parameters are exchanged for API access token, authenticated email address is requested from OAuth provider APIs.
+Query parameters are exchanged for API access token, authenticated email address is requested from OAuth2 provider APIs.
 
 If authenticated email returned by API matches a user email address, and user has key for specified service, a user authentication token is generated and the user is redirected to `$service_url?token=$token`.
 

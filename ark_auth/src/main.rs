@@ -120,7 +120,7 @@ fn config(server_addr: String) -> Result<ark_auth::api::ApiConfig, ark_auth::Cli
     let gh_redirect_url =
         std::env::var("GITHUB_REDIRECT_URL").map_err(ark_auth::CliError::StdEnvVar);
     if gh_client_id.is_ok() || gh_client_secret.is_ok() || gh_redirect_url.is_ok() {
-        config = config.set_oauth_github(gh_client_id?, gh_client_secret?, gh_redirect_url?);
+        config = config.set_oauth2_github(gh_client_id?, gh_client_secret?, gh_redirect_url?);
     }
 
     let ms_client_id = std::env::var("MICROSOFT_CLIENT_ID").map_err(ark_auth::CliError::StdEnvVar);
@@ -129,7 +129,7 @@ fn config(server_addr: String) -> Result<ark_auth::api::ApiConfig, ark_auth::Cli
     let ms_redirect_url =
         std::env::var("MICROSOFT_REDIRECT_URL").map_err(ark_auth::CliError::StdEnvVar);
     if ms_client_id.is_ok() || ms_client_secret.is_ok() || ms_redirect_url.is_ok() {
-        config = config.set_oauth_microsoft(ms_client_id?, ms_client_secret?, ms_redirect_url?);
+        config = config.set_oauth2_microsoft(ms_client_id?, ms_client_secret?, ms_redirect_url?);
     }
 
     Ok(config)

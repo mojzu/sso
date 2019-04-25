@@ -35,14 +35,14 @@ $ export SMTP_USER="..."
 $ export SMTP_PASSWORD="..."
 # Sentry URL for logging integration, optional.
 $ export SENTRY_URL="..."
-# GitHub OAuth support, optional.
+# GitHub OAuth2 support, optional.
 $ export GITHUB_CLIENT_ID="..."
 $ export GITHUB_CLIENT_SECRET="..."
-$ export GITHUB_REDIRECT_URL="http://localhost:9000/v1/auth/oauth/github"
-# Microsoft OAuth support, optional.
+$ export GITHUB_REDIRECT_URL="http://localhost:9000/v1/auth/oauth2/github"
+# Microsoft OAuth2 support, optional.
 $ export MICROSOFT_CLIENT_ID="..."
 $ export MICROSOFT_CLIENT_SECRET="..."
-$ export MICROSOFT_REDIRECT_URL="http://localhost:9000/v1/auth/oauth/microsoft"
+$ export MICROSOFT_REDIRECT_URL="http://localhost:9000/v1/auth/oauth2/microsoft"
 ```
 
 Create database and run migrations.

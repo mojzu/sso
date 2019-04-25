@@ -1,5 +1,5 @@
-use crate::api::auth::oauth::{oauth_login, oauth_redirect, CallbackQuery, UrlResponse};
-use crate::api::{authenticate, ApiConfigOauthProvider, ApiData, ApiError};
+use crate::api::auth::oauth2::{oauth2_login, oauth2_redirect, CallbackQuery, UrlResponse};
+use crate::api::{authenticate, ApiConfigOauth2Provider, ApiData, ApiError};
 use crate::models::AuthService;
 use actix_http::http::header::ContentType;
 use actix_web::http::{header, StatusCode};
@@ -40,10 +40,10 @@ pub fn v1_callback(
             microsoft_api_user_email(data, &access_token, service_id)
         })
         .and_then(|(data, email, service_id)| {
-            web::block(move || oauth_login(&data, &email, service_id)).map_err(Into::into)
+            web::block(move || oauth2_login(&data, &email, service_id)).map_err(Into::into)
         })
         .map_err(Into::into)
-        .map(|(token, service)| oauth_redirect(token, service))
+        .map(|(token, service)| oauth2_redirect(token, service))
 }
 
 fn microsoft_authorise(
@@ -55,7 +55,7 @@ fn microsoft_authorise(
     let code_verifier = PkceCodeVerifierS256::new_random();
 
     // Generate the authorisation URL to redirect.
-    let client = microsoft_client(data.oauth_microsoft())?;
+    let client = microsoft_client(data.oauth2_microsoft())?;
     let (authorize_url, state) = client.authorize_url_extension(
         &ResponseType::new("code".to_string()),
         CsrfToken::new_random,
@@ -83,7 +83,7 @@ fn microsoft_callback(
     let params: Vec<(&str, &str)> = vec![("code_verifier", &csrf.csrf_value)];
 
     // Exchange the code with a token.
-    let client = microsoft_client(data.oauth_microsoft())?;
+    let client = microsoft_client(data.oauth2_microsoft())?;
     let code = AuthorizationCode::new(code.to_owned());
     let token = client
         .exchange_code_extension(code, &params)
@@ -123,8 +123,8 @@ fn microsoft_api_user_email(
         .map(move |response| (data, response.mail, service_id))
 }
 
-fn microsoft_client(provider: Option<&ApiConfigOauthProvider>) -> Result<BasicClient, ApiError> {
-    let provider = provider.ok_or(ApiError::InvalidOauthProvider)?;
+fn microsoft_client(provider: Option<&ApiConfigOauth2Provider>) -> Result<BasicClient, ApiError> {
+    let provider = provider.ok_or(ApiError::InvalidOauth2Provider)?;
 
     let graph_client_id = ClientId::new(provider.client_id.to_owned());
     let graph_client_secret = ClientSecret::new(provider.client_secret.to_owned());

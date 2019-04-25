@@ -27,9 +27,9 @@ pub enum ApiError {
     /// Forbidden, authentication failure.
     #[fail(display = "ApiError::Forbidden")]
     Forbidden,
-    /// Invalid OAuth provider, configuration not available.
-    #[fail(display = "ApiError::InvalidOauthProvider")]
-    InvalidOauthProvider,
+    /// Invalid OAuth2 provider, configuration not available.
+    #[fail(display = "ApiError::InvalidOauth2Provider")]
+    InvalidOauth2Provider,
     /// Database module error wrapper.
     #[fail(display = "ApiError::Db {}", _0)]
     Db(#[fail(cause)] DbError),
@@ -49,7 +49,7 @@ impl actix_web::ResponseError for ApiError {
         match self {
             ApiError::BadRequest => HttpResponse::BadRequest().finish(),
             ApiError::Forbidden => HttpResponse::Forbidden().finish(),
-            ApiError::InvalidOauthProvider => HttpResponse::MethodNotAllowed().finish(),
+            ApiError::InvalidOauth2Provider => HttpResponse::MethodNotAllowed().finish(),
             ApiError::Db(e) => {
                 error!("{}", e);
                 HttpResponse::InternalServerError().finish()
@@ -71,9 +71,9 @@ impl From<actix_web::error::BlockingError<ApiError>> for ApiError {
     }
 }
 
-/// API service OAuth provider configuration.
+/// API service OAuth2 provider configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiConfigOauthProvider {
+pub struct ApiConfigOauth2Provider {
     pub client_id: String,
     pub client_secret: String,
     pub redirect_url: String,
@@ -88,11 +88,11 @@ pub struct ApiConfigSmtp {
     pub password: String,
 }
 
-/// API service OAuth configuration.
+/// API service OAuth2 configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiConfigOauth {
-    github: Option<ApiConfigOauthProvider>,
-    microsoft: Option<ApiConfigOauthProvider>,
+pub struct ApiConfigOauth2 {
+    github: Option<ApiConfigOauth2Provider>,
+    microsoft: Option<ApiConfigOauth2Provider>,
 }
 
 /// API service configuration.
@@ -101,7 +101,7 @@ pub struct ApiConfig {
     server_addr: String,
     user_agent: String,
     smtp: Option<ApiConfigSmtp>,
-    oauth: ApiConfigOauth,
+    oauth2: ApiConfigOauth2,
 }
 
 impl ApiConfig {
@@ -112,7 +112,7 @@ impl ApiConfig {
             server_addr,
             user_agent,
             smtp: None,
-            oauth: ApiConfigOauth {
+            oauth2: ApiConfigOauth2 {
                 github: None,
                 microsoft: None,
             },
@@ -130,14 +130,14 @@ impl ApiConfig {
         self
     }
 
-    /// Set GitHub OAuth provider.
-    pub fn set_oauth_github(
+    /// Set GitHub OAuth2 provider.
+    pub fn set_oauth2_github(
         mut self,
         client_id: String,
         client_secret: String,
         redirect_url: String,
     ) -> Self {
-        self.oauth.github = Some(ApiConfigOauthProvider {
+        self.oauth2.github = Some(ApiConfigOauth2Provider {
             client_id,
             client_secret,
             redirect_url,
@@ -145,14 +145,14 @@ impl ApiConfig {
         self
     }
 
-    /// Set Microsoft OAuth provider.
-    pub fn set_oauth_microsoft(
+    /// Set Microsoft OAuth2 provider.
+    pub fn set_oauth2_microsoft(
         mut self,
         client_id: String,
         client_secret: String,
         redirect_url: String,
     ) -> Self {
-        self.oauth.microsoft = Some(ApiConfigOauthProvider {
+        self.oauth2.microsoft = Some(ApiConfigOauth2Provider {
             client_id,
             client_secret,
             redirect_url,
@@ -172,12 +172,12 @@ impl ApiConfig {
         self.smtp.as_ref()
     }
 
-    pub fn oauth_github(&self) -> Option<&ApiConfigOauthProvider> {
-        self.oauth.github.as_ref()
+    pub fn oauth2_github(&self) -> Option<&ApiConfigOauth2Provider> {
+        self.oauth2.github.as_ref()
     }
 
-    pub fn oauth_microsoft(&self) -> Option<&ApiConfigOauthProvider> {
-        self.oauth.microsoft.as_ref()
+    pub fn oauth2_microsoft(&self) -> Option<&ApiConfigOauth2Provider> {
+        self.oauth2.microsoft.as_ref()
     }
 }
 
@@ -203,14 +203,14 @@ impl ApiData {
         self.config.smtp()
     }
 
-    /// Configured Github OAuth settings.
-    pub fn oauth_github(&self) -> Option<&ApiConfigOauthProvider> {
-        self.config.oauth_github()
+    /// Configured Github OAuth2 settings.
+    pub fn oauth2_github(&self) -> Option<&ApiConfigOauth2Provider> {
+        self.config.oauth2_github()
     }
 
-    /// Configured Microsoft OAuth settings.
-    pub fn oauth_microsoft(&self) -> Option<&ApiConfigOauthProvider> {
-        self.config.oauth_microsoft()
+    /// Configured Microsoft OAuth2 settings.
+    pub fn oauth2_microsoft(&self) -> Option<&ApiConfigOauth2Provider> {
+        self.config.oauth2_microsoft()
     }
 }
 

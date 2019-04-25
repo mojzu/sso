@@ -1,5 +1,5 @@
-use crate::api::auth::oauth::{oauth_login, oauth_redirect, CallbackQuery, UrlResponse};
-use crate::api::{authenticate, ApiConfigOauthProvider, ApiData, ApiError};
+use crate::api::auth::oauth2::{oauth2_login, oauth2_redirect, CallbackQuery, UrlResponse};
+use crate::api::{authenticate, ApiConfigOauth2Provider, ApiData, ApiError};
 use crate::models::AuthService;
 use actix_http::http::header::ContentType;
 use actix_web::http::{header, StatusCode};
@@ -40,15 +40,15 @@ pub fn v1_callback(
             github_api_user_email(data, &access_token, service_id)
         })
         .and_then(|(data, email, service_id)| {
-            web::block(move || oauth_login(&data, &email, service_id)).map_err(Into::into)
+            web::block(move || oauth2_login(&data, &email, service_id)).map_err(Into::into)
         })
         .map_err(Into::into)
-        .map(|(token, service)| oauth_redirect(token, service))
+        .map(|(token, service)| oauth2_redirect(token, service))
 }
 
 fn github_authorise(data: &web::Data<ApiData>, service: AuthService) -> Result<String, ApiError> {
     // Generate the authorization URL to which we'll redirect the user.
-    let client = github_client(data.oauth_github())?;
+    let client = github_client(data.oauth2_github())?;
     let (authorize_url, state) = client.authorize_url(CsrfToken::new_random);
 
     // Save the state and code verifier secrets as a CSRF key, value.
@@ -68,7 +68,7 @@ fn github_callback(
     let csrf = data.db.csrf_read_by_key(&state).map_err(ApiError::Db)?;
 
     // Exchange the code with a token.
-    let client = github_client(data.oauth_github())?;
+    let client = github_client(data.oauth2_github())?;
     let code = AuthorizationCode::new(code.to_owned());
     let token = client
         .exchange_code(code)
@@ -108,8 +108,8 @@ fn github_api_user_email(
         .map(move |response| (data, response.email, service_id))
 }
 
-fn github_client(provider: Option<&ApiConfigOauthProvider>) -> Result<BasicClient, ApiError> {
-    let provider = provider.ok_or(ApiError::InvalidOauthProvider)?;
+fn github_client(provider: Option<&ApiConfigOauth2Provider>) -> Result<BasicClient, ApiError> {
+    let provider = provider.ok_or(ApiError::InvalidOauth2Provider)?;
 
     let github_client_id = ClientId::new(provider.client_id.to_owned());
     let github_client_secret = ClientSecret::new(provider.client_secret.to_owned());

@@ -1,5 +1,5 @@
 pub mod key;
-pub mod oauth;
+pub mod oauth2;
 pub mod reset;
 pub mod token;
 
@@ -18,7 +18,7 @@ pub fn v1_service() -> actix_web::Scope {
         .service(reset::v1_service())
         .service(token::v1_service())
         .service(key::v1_service())
-        .service(oauth::v1_service())
+        .service(oauth2::v1_service())
 }
 
 pub fn validate_password(password: &str) -> Result<(), ValidationError> {
