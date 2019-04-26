@@ -119,26 +119,25 @@ pub fn delete_by_id(id: i64, conn: &PgConnection) -> Result<usize, DbError> {
         .map_err(Into::into)
 }
 
-/// Hash password string using bcrypt and checks haveibeenpwned.com for leaked passwords.
-/// If password is None, a random password is generated and hashed.
-pub fn hash_password(password: Option<&str>) -> Result<(String, bool), DbError> {
+/// Hash password string using bcrypt, check haveibeenpwned.com for leaked passwords.
+pub fn hash_password(password: Option<&str>) -> Result<(Option<String>, bool), DbError> {
     match password {
         Some(password) => {
             let hashed = bcrypt::hash(password, bcrypt::DEFAULT_COST).map_err(DbError::Bcrypt)?;
-            Ok((hashed, false))
+            Ok((Some(hashed), false))
         }
         None => Ok((None, false)),
     }
 }
 
-/// Checks if password string and password bcrypt hash are equal.
-pub fn check_password(user_password: Option<&str>, check_password: &str) -> Result<(), DbError> {
+/// Check if password string and password bcrypt hash are equal, check haveibeenpwned.com for leaked passwords.
+pub fn check_password(user_password: Option<&str>, check_password: &str) -> Result<bool, DbError> {
     match user_password {
         Some(user_password) => bcrypt::verify(check_password, user_password)
             .map_err(DbError::Bcrypt)
             .and_then(|verified| {
                 if verified {
-                    Ok(())
+                    Ok(false)
                 } else {
                     Err(DbError::InvalidPassword)
                 }
