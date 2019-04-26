@@ -148,17 +148,3 @@ pub fn check_password(user_password: Option<&str>, check_password: &str) -> Resu
 
 // TODO(feature): Password strength detection.
 // https://github.com/shssoichiro/zxcvbn-rs
-
-// TODO(feature): Pwned password check in hash_password.
-// const client = this.restifyClients.createStringClient(
-//     `https://api.pwnedpasswords.com/range/${sha1Hash.substr(0, 5)}`,
-// );
-// const response = await client.get("");
-// const index: { [key: string]: number } = {};
-// if (response.data != null) {
-//     response.data.split("\r\n").map((line) => {
-//         const [hash, count] = line.split(":");
-//         index[hash.trim()] = Number(count.trim());
-//     });
-// }
-// return has(index, sha1Hash.toUpperCase().substring(5));

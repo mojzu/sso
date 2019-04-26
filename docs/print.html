@@ -146,6 +146,28 @@
 <p>Usage pattern guides.</p>
 <a class="header" href="#deployment" id="deployment"><h1>Deployment</h1></a>
 <p>TODO(doc)</p>
+<a class="header" href="#nginx" id="nginx"><h2>Nginx</h2></a>
+<p>Example <a href="https://www.nginx.com/">nginx</a> configuration.</p>
+<pre><code class="language-nginx">http {
+    # HTTPS and headers configuration.
+    # https://www.nginx.com/blog/using-free-ssltls-certificates-from-lets-encrypt-with-nginx/
+    # https://www.owasp.org/index.php/OWASP_Secure_Headers_Project
+
+    # API request rate limit.
+    # https://www.nginx.com/blog/rate-limiting-nginx/
+    limit_req_zone $binary_remote_addr zone=api_zone:10m rate=50r/s;
+
+    # API proxy server.
+    # https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
+    location /api {
+        limit_req zone=api_zone burst=100 nodelay;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass http://127.0.0.1:4000;
+    }
+}
+</code></pre>
 <a class="header" href="#login" id="login"><h1>Login</h1></a>
 <p>Initialise a service and start server.</p>
 <pre><code class="language-Shell">$ ark_auth init $service_name $service_url
@@ -317,12 +339,14 @@ $ ark_auth start
 <a class="header" href="#response-200-ok-1" id="response-200-ok-1"><h4>Response [200, OK]</h4></a>
 <pre><code class="language-JSON">{
     &quot;user_id&quot;: 1,
+    &quot;password_pwned&quot;: false,
     &quot;token&quot;: &quot;eyJ0e...6eEvY&quot;,
     &quot;token_expires&quot;: 1555881550
 }
 </code></pre>
 <ul>
 <li><code>user_id</code>: User ID.</li>
+<li><code>password_pwned</code>: True if password detected by <code>haveibeenpwned.com</code>.</li>
 <li><code>token</code>: JWT authentication token for user.</li>
 <li><code>token_expires</code>: JWT expiry time, unix timestamp.</li>
 </ul>

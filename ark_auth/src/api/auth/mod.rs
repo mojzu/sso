@@ -5,6 +5,9 @@ pub mod token;
 
 use crate::api::{authenticate, body_json_config, ApiData, ApiError, BodyFromValue};
 use crate::db::DbError;
+use crate::models::AuthService;
+use actix_http::http::header::ContentType;
+use actix_web::http::{header, StatusCode};
 use actix_web::{middleware::identity::Identity, web, Error, HttpResponse, ResponseError};
 use futures::{future, Future};
 use validator::{Validate, ValidationError};
@@ -61,7 +64,7 @@ pub fn validate_id(id: i64) -> Result<(), ValidationError> {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct LoginBody {
     #[validate(email)]
@@ -72,7 +75,7 @@ pub struct LoginBody {
 
 impl BodyFromValue<LoginBody> for LoginBody {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoginResponse {
     pub user_id: i64,
     pub password_pwned: bool,
@@ -141,17 +144,71 @@ fn login_inner(
     id: Option<String>,
     body: LoginBody,
 ) -> impl Future<Item = LoginResponse, Error = ApiError> {
-    web::block(move || {
-        authenticate(&data, id).and_then(|service| {
-            data.db
-                .auth_login(&body.email, &body.password, &service)
-                // Map invalid password, not found errors to bad request to prevent leakage.
-                // TODO(feature): Warning logs for bad requests.
-                .map_err(|e| match e {
-                    DbError::InvalidPassword | DbError::NotFound => ApiError::BadRequest,
-                    _e => ApiError::Db(_e),
-                })
+    let (data1, data2, body1) = (data.clone(), data.clone(), body.clone());
+
+    web::block(move || authenticate(&data, id))
+        .map_err(Into::into)
+        .and_then(move |service| {
+            check_password_pwned(&data1, &body.password)
+                .map(|password_pwned| (service, password_pwned))
         })
-    })
-    .map_err(Into::into)
+        .and_then(move |(service, _password_pwned)| {
+            web::block(move || {
+                data2
+                    .db
+                    .auth_login(&body1.email, &body1.password, &service)
+                    // Map invalid password, not found errors to bad request to prevent leakage.
+                    // TODO(feature): Warning logs for bad requests.
+                    .map_err(|e| match e {
+                        DbError::InvalidPassword | DbError::NotFound => ApiError::BadRequest,
+                        _e => ApiError::Db(_e),
+                    })
+            })
+            .map_err(Into::into)
+        })
 }
+
+pub fn check_password_pwned(
+    _data: &web::Data<ApiData>,
+    password: &str,
+) -> impl Future<Item = bool, Error = ApiError> {
+    use sha1::{Digest, Sha1};
+
+    let mut hasher = Sha1::new();
+    hasher.input(password);
+    let _hash = format!("{:.5X}", hasher.result());
+
+    future::ok(false)
+
+    // TODO(feature): Pwned password check in hash_password.
+    // let client = actix_web::client::Client::new();
+    // client
+    //     .get("https://graph.microsoft.com/v1.0/me")
+    //     .header(header::CONTENT_TYPE, ContentType::plaintext())
+    //     .header(header::USER_AGENT, data.user_agent())
+    //     .send()
+    //     .map_err(|_e| ApiError::Unwrap("failed to client.request"))
+    //     .and_then(|response| match response.status() {
+    //         StatusCode::OK => future::ok(response),
+    //         _ => future::err(ApiError::Unwrap("failed to receive ok response")),
+    //     })
+    //     .and_then(|mut response| {
+    //         // response
+    //         //     .json::<MicrosoftUser>()
+    //         //     .map_err(|_e| ApiError::Unwrap("failed to parse json"))
+    //     })
+    //     .map(move |response| (data, response.mail, service_id))
+}
+
+// const client = this.restifyClients.createStringClient(
+//     `https://api.pwnedpasswords.com/range/${sha1Hash.substr(0, 5)}`,
+// );
+// const response = await client.get("");
+// const index: { [key: string]: number } = {};
+// if (response.data != null) {
+//     response.data.split("\r\n").map((line) => {
+//         const [hash, count] = line.split(":");
+//         index[hash.trim()] = Number(count.trim());
+//     });
+// }
+// return has(index, sha1Hash.toUpperCase().substring(5));

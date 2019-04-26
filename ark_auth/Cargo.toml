@@ -30,6 +30,7 @@ sentry-actix = "*"
 serde = "*"
 serde_derive = "*"
 serde_json = "*"
+sha-1 = "*"
 url = "*"
 uuid = { version = "*", features = ["v4"] }
 time = "*"
