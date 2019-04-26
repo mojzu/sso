@@ -39,12 +39,13 @@ pub fn create(
 ) -> Result<AuthUser, DbError> {
     use crate::schema::auth_user::dsl::*;
 
-    let password = hash_password(password)?;
+    let (password_hash, password_pwned) = hash_password(password)?;
     let value = AuthUserInsert {
         user_name: name,
         user_email: email,
-        user_password: password.as_ref().map(|x| &**x),
+        user_password: password_hash.as_ref().map(|x| &**x),
         user_password_revision: 1,
+        user_password_pwned: password_pwned,
     };
     diesel::insert_into(auth_user)
         .values(&value)
@@ -98,12 +99,13 @@ pub fn update_password_by_id(
     }
 
     let user_updated_at = chrono::Utc::now();
-    let password = hash_password(Some(password))?;
+    let (password_hash, password_pwned) = hash_password(Some(password))?;
     diesel::update(auth_user.filter(user_id.eq(id)))
         .set((
             updated_at.eq(user_updated_at),
-            user_password.eq(password),
+            user_password.eq(password_hash),
             user_password_revision.eq(user.user_password_revision + 1),
+            user_password_pwned.eq(password_pwned),
         ))
         .execute(conn)
         .map_err(Into::into)
@@ -117,14 +119,15 @@ pub fn delete_by_id(id: i64, conn: &PgConnection) -> Result<usize, DbError> {
         .map_err(Into::into)
 }
 
-/// Hash optional password string using bcrypt.
-pub fn hash_password(password: Option<&str>) -> Result<Option<String>, DbError> {
+/// Hash optional password string using bcrypt. Also checks haveibeenpwned.com for leaked passwords.
+pub fn hash_password(password: Option<&str>) -> Result<(Option<String>, bool), DbError> {
+    // TODO(feature): Pwned password check.
     match password {
         Some(password) => {
             let hashed = bcrypt::hash(password, bcrypt::DEFAULT_COST).map_err(DbError::Bcrypt)?;
-            Ok(Some(hashed))
+            Ok((Some(hashed), false))
         }
-        None => Ok(None),
+        None => Ok((None, false)),
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::api::auth::TokenResponse;
+use crate::api::auth::{LoginResponse, TokenResponse};
 use crate::db::user;
 use crate::db::DbError;
 use crate::models::{AuthKey, AuthService, AuthUser};
@@ -47,13 +47,14 @@ pub fn login(
     user: &AuthUser,
     key: &AuthKey,
     service: &AuthService,
-) -> Result<TokenResponse, DbError> {
+) -> Result<LoginResponse, DbError> {
     let claims = Claims::new(service.service_id, user.user_id, 3600);
     let token = encode(&Header::default(), &claims, key.key_value.as_ref())
         .map_err(DbError::Jsonwebtoken)?;
 
-    Ok(TokenResponse {
+    Ok(LoginResponse {
         user_id: user.user_id,
+        password_pwned: user.user_password_pwned,
         token,
         token_expires: claims.exp,
     })
@@ -121,7 +122,7 @@ pub fn token_refresh(
     let validation = Claims::validation(service.service_id, user.user_id);
     let _ = decode::<Claims>(token, key.key_value.as_ref(), &validation)
         .map_err(|_e| DbError::Unwrap("failed to decode jwt"))?;
-    login(user, key, service)
+    login(user, key, service).map(Into::into)
 }
 
 /// Unsafely decodes a token, checks if service identifier matches `iss` claim.

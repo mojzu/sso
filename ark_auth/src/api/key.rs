@@ -1,5 +1,6 @@
 use crate::api::{
-    auth::{validate_name, validate_id}, authenticate, body_json_config, ApiData, ApiError, BodyFromValue,
+    auth::{validate_id, validate_name},
+    authenticate, body_json_config, ApiData, ApiError, BodyFromValue,
 };
 use crate::models::AuthKey;
 use actix_web::http::StatusCode;

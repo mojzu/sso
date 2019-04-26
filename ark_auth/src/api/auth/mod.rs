@@ -72,6 +72,14 @@ pub struct LoginBody {
 
 impl BodyFromValue<LoginBody> for LoginBody {}
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LoginResponse {
+    pub user_id: i64,
+    pub password_pwned: bool,
+    pub token: String,
+    pub token_expires: usize,
+}
+
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct TokenBody {
@@ -86,6 +94,16 @@ pub struct TokenResponse {
     pub user_id: i64,
     pub token: String,
     pub token_expires: usize,
+}
+
+impl From<LoginResponse> for TokenResponse {
+    fn from(r: LoginResponse) -> Self {
+        TokenResponse {
+            user_id: r.user_id,
+            token: r.token,
+            token_expires: r.token_expires,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -122,7 +140,7 @@ fn login_inner(
     data: web::Data<ApiData>,
     id: Option<String>,
     body: LoginBody,
-) -> impl Future<Item = TokenResponse, Error = ApiError> {
+) -> impl Future<Item = LoginResponse, Error = ApiError> {
     web::block(move || {
         authenticate(&data, id).and_then(|service| {
             data.db

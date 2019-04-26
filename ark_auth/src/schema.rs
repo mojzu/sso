@@ -38,6 +38,7 @@ table! {
         user_email -> Varchar,
         user_password -> Nullable<Varchar>,
         user_password_revision -> Int4,
+        user_password_pwned -> Bool,
     }
 }
 

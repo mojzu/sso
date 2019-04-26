@@ -4,7 +4,7 @@ pub mod key;
 pub mod service;
 pub mod user;
 
-use crate::api::auth::{KeyResponse, TokenResponse};
+use crate::api::auth::{KeyResponse, LoginResponse, TokenResponse};
 use crate::models::{AuthCsrf, AuthKey, AuthService, AuthUser};
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
@@ -105,7 +105,7 @@ impl Db {
         let user = user::read_by_email(email, &conn)?;
         let service = service::read_by_id(service_id, service_id, &conn)?;
         let key = key::read_by_user_id(user.user_id, service_id, &conn)?;
-        auth::login(&user, &key, &service)
+        auth::login(&user, &key, &service).map(Into::into)
     }
 
     pub fn auth_login(
@@ -113,7 +113,7 @@ impl Db {
         email: &str,
         password: &str,
         service: &AuthService,
-    ) -> Result<TokenResponse, DbError> {
+    ) -> Result<LoginResponse, DbError> {
         let conn = self.connection()?;
         let user = user::read_by_email(email, &conn)?;
         user::check_password(user.user_password.as_ref().map(|x| &**x), password)?;

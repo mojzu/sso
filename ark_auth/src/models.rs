@@ -15,6 +15,7 @@ pub struct AuthUser {
     pub user_email: String,
     pub user_password: Option<String>,
     pub user_password_revision: i32,
+    pub user_password_pwned: bool,
 }
 
 #[derive(Debug, Insertable)]
@@ -24,6 +25,7 @@ pub struct AuthUserInsert<'a> {
     pub user_email: &'a str,
     pub user_password: Option<&'a str>,
     pub user_password_revision: i32,
+    pub user_password_pwned: bool,
 }
 
 #[derive(AsChangeset)]

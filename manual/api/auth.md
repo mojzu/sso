@@ -23,12 +23,14 @@ Login with email address and password.
 ```JSON
 {
     "user_id": 1,
+    "password_pwned": false,
     "token": "eyJ0e...6eEvY",
     "token_expires": 1555881550
 }
 ```
 
 -   `user_id`: User ID.
+-   `password_pwned`: True if password detected by `haveibeenpwned.com`.
 -   `token`: JWT authentication token for user.
 -   `token_expires`: JWT expiry time, unix timestamp.
 
