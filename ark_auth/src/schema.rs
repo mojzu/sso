@@ -36,7 +36,7 @@ table! {
         user_id -> Int8,
         user_name -> Varchar,
         user_email -> Varchar,
-        user_password -> Nullable<Varchar>,
+        user_password -> Varchar,
         user_password_revision -> Int4,
         user_password_pwned -> Bool,
     }

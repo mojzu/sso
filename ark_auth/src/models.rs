@@ -13,7 +13,7 @@ pub struct AuthUser {
     pub user_id: i64,
     pub user_name: String,
     pub user_email: String,
-    pub user_password: Option<String>,
+    pub user_password: String,
     pub user_password_revision: i32,
     pub user_password_pwned: bool,
 }
@@ -23,7 +23,7 @@ pub struct AuthUser {
 pub struct AuthUserInsert<'a> {
     pub user_name: &'a str,
     pub user_email: &'a str,
-    pub user_password: Option<&'a str>,
+    pub user_password: &'a str,
     pub user_password_revision: i32,
     pub user_password_pwned: bool,
 }
