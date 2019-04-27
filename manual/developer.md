@@ -19,6 +19,12 @@ $ cargo install diesel_cli --no-default-features --features "postgres sqlite"
 $ docker-compose up
 ```
 
+### Ubuntu
+
+```Shell
+$ sudo apt install libpq-dev libsqlite3-dev libssl-dev pkg-config
+```
+
 ## Notes
 
 Export environment variables.
