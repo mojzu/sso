@@ -14,8 +14,7 @@ pub struct AuthUser {
     pub user_name: String,
     pub user_email: String,
     pub user_password: Option<String>,
-    pub user_password_revision: i32,
-    pub user_password_pwned: bool,
+    pub user_password_revision: Option<i64>,
 }
 
 #[derive(Debug, Insertable)]
@@ -24,8 +23,7 @@ pub struct AuthUserInsert<'a> {
     pub user_name: &'a str,
     pub user_email: &'a str,
     pub user_password: Option<&'a str>,
-    pub user_password_revision: i32,
-    pub user_password_pwned: bool,
+    pub user_password_revision: Option<i64>,
 }
 
 #[derive(AsChangeset)]
@@ -33,6 +31,14 @@ pub struct AuthUserInsert<'a> {
 pub struct AuthUserUpdate<'a> {
     pub updated_at: &'a DateTime<Utc>,
     pub user_name: Option<&'a str>,
+}
+
+#[derive(AsChangeset)]
+#[table_name = "auth_user"]
+pub struct AuthUserUpdatePassword<'a> {
+    pub updated_at: &'a DateTime<Utc>,
+    pub user_password: String,
+    pub user_password_revision: i64,
 }
 
 #[derive(Debug, Identifiable, Queryable)]

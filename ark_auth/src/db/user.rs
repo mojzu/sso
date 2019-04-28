@@ -39,13 +39,16 @@ pub fn create(
 ) -> Result<AuthUser, DbError> {
     use crate::schema::auth_user::dsl::*;
 
-    let (password_hash, password_pwned) = hash_password(password)?;
+    let password_hash = hash_password(password)?;
+    let password_revision = match password_hash {
+        Some(_) => Some(1),
+        None => None,
+    };
     let value = AuthUserInsert {
         user_name: name,
         user_email: email,
         user_password: password_hash.as_ref().map(|x| &**x),
-        user_password_revision: 1,
-        user_password_pwned: password_pwned,
+        user_password_revision: password_revision,
     };
     diesel::insert_into(auth_user)
         .values(&value)
@@ -88,24 +91,30 @@ pub fn update_by_id(id: i64, name: Option<&str>, conn: &PgConnection) -> Result<
 pub fn update_password_by_id(
     id: i64,
     password: &str,
-    password_revision: i32,
+    password_revision: i64,
     conn: &PgConnection,
 ) -> Result<usize, DbError> {
     use crate::schema::auth_user::dsl::*;
 
     let user = read_by_id(id, conn)?;
-    if password_revision != user.user_password_revision {
-        return Err(DbError::InvalidPasswordRevision);
-    }
+    let password_revision = match user.user_password_revision {
+        Some(check_password_revision) => {
+            if password_revision != check_password_revision {
+                Err(DbError::InvalidPasswordRevision)
+            } else {
+                Ok(check_password_revision)
+            }
+        }
+        None => Err(DbError::InvalidPasswordRevision),
+    }?;
 
     let user_updated_at = chrono::Utc::now();
-    let (password_hash, password_pwned) = hash_password(Some(password))?;
+    let password_hash = hash_password(Some(password))?;
     diesel::update(auth_user.filter(user_id.eq(id)))
         .set((
             updated_at.eq(user_updated_at),
             user_password.eq(password_hash),
-            user_password_revision.eq(user.user_password_revision + 1),
-            user_password_pwned.eq(password_pwned),
+            user_password_revision.eq(password_revision + 1),
         ))
         .execute(conn)
         .map_err(Into::into)
@@ -119,18 +128,18 @@ pub fn delete_by_id(id: i64, conn: &PgConnection) -> Result<usize, DbError> {
         .map_err(Into::into)
 }
 
-/// Hash password string using bcrypt, check haveibeenpwned.com for leaked passwords.
-pub fn hash_password(password: Option<&str>) -> Result<(Option<String>, bool), DbError> {
+/// Hash password string using bcrypt, none is returned for none as input.
+pub fn hash_password(password: Option<&str>) -> Result<Option<String>, DbError> {
     match password {
         Some(password) => {
             let hashed = bcrypt::hash(password, bcrypt::DEFAULT_COST).map_err(DbError::Bcrypt)?;
-            Ok((Some(hashed), false))
+            Ok(Some(hashed))
         }
-        None => Ok((None, false)),
+        None => Ok(None),
     }
 }
 
-/// Check if password string and password bcrypt hash are equal, check haveibeenpwned.com for leaked passwords.
+/// Check if password string and password bcrypt hash are equal, error is returned for none as user password.
 pub fn check_password(user_password: Option<&str>, check_password: &str) -> Result<bool, DbError> {
     match user_password {
         Some(user_password) => bcrypt::verify(check_password, user_password)
@@ -145,6 +154,3 @@ pub fn check_password(user_password: Option<&str>, check_password: &str) -> Resu
         None => Err(DbError::InvalidPassword),
     }
 }
-
-// TODO(feature): Password strength detection.
-// https://github.com/shssoichiro/zxcvbn-rs

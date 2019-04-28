@@ -10,7 +10,7 @@ pub struct Claims {
     iss: String,
     sub: String,
     exp: usize,
-    password_revision: Option<i32>,
+    password_revision: Option<i64>,
 }
 
 impl Claims {
@@ -25,12 +25,12 @@ impl Claims {
         }
     }
 
-    pub fn set_password_revision(mut self, password_revision: Option<i32>) -> Self {
+    pub fn set_password_revision(mut self, password_revision: Option<i64>) -> Self {
         self.password_revision = password_revision;
         self
     }
 
-    pub fn password_revision(&self) -> Option<i32> {
+    pub fn password_revision(&self) -> Option<i64> {
         self.password_revision
     }
 
@@ -54,7 +54,6 @@ pub fn login(
 
     Ok(LoginResponse {
         user_id: user.user_id,
-        password_pwned: user.user_password_pwned,
         token,
         token_expires: claims.exp,
     })
@@ -65,8 +64,12 @@ pub fn reset_password(
     key: &AuthKey,
     service: &AuthService,
 ) -> Result<TokenResponse, DbError> {
+    let password_revision = match user.user_password_revision {
+        Some(password_revision) => Ok(password_revision),
+        None => Err(DbError::InvalidPasswordRevision),
+    }?;
     let claims = Claims::new(service.service_id, user.user_id, 3600)
-        .set_password_revision(Some(user.user_password_revision));
+        .set_password_revision(Some(password_revision));
     let token = encode(&Header::default(), &claims, key.key_value.as_ref())
         .map_err(DbError::Jsonwebtoken)?;
 
