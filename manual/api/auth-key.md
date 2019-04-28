@@ -14,29 +14,33 @@ Verify user key.
 }
 ```
 
--   `key`: User key (required).
+- `key`: User key (required).
 
 #### Response [200, OK]
 
 ```JSON
 {
-    "user_id": 2,
-    "key": "0e12c...e693f"
+    "data": {
+        "user_id": 2,
+        "key": "0e12c...e693f"
+    }
 }
 ```
 
--   `user_id`: User ID.
--   `key`: User key.
+##### Data
+
+- `user_id`: User ID.
+- `key`: User key.
 
 #### Response [400, Bad Request]
 
--   Request body is invalid.
--   Key is invalid.
--   Key is for a service.
+- Request body is invalid.
+- Key is invalid.
+- Key is for a service.
 
 #### Response [403, Forbidden]
 
--   Authorisation header is invalid.
+- Authorisation header is invalid.
 
 ## Revoke Key [/v1/auth/key/revoke]
 
@@ -52,16 +56,16 @@ Revoke a user key, any associated tokens will become invalid.
 }
 ```
 
--   `key`: User key (required).
+- `key`: User key (required).
 
 #### Response [200, OK]
 
 #### Response [400, Bad Request]
 
--   Request body is invalid.
--   Key is invalid.
--   Key is for a service.
+- Request body is invalid.
+- Key is invalid.
+- Key is for a service.
 
 #### Response [403, Forbidden]
 
--   Authorisation header is invalid.
+- Authorisation header is invalid.

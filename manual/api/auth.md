@@ -15,32 +15,43 @@ Login with email address and password.
 }
 ```
 
--   `email`: User email address (required).
--   `password`: User password (required).
+- `email`: User email address (required).
+- `password`: User password (required).
 
 #### Response [200, OK]
 
 ```JSON
 {
-    "user_id": 1,
-    "password_pwned": false,
-    "token": "eyJ0e...6eEvY",
-    "token_expires": 1555881550
+    "meta": {
+        "password_strength": 2,
+        "password_pwned": false
+    },
+    "data": {
+        "user_id": 1,
+        "token": "eyJ0e...6eEvY",
+        "token_expires": 1555881550
+    }
 }
 ```
 
--   `user_id`: User ID.
--   `password_pwned`: True if password detected by `haveibeenpwned.com`.
--   `token`: JWT authentication token for user.
--   `token_expires`: JWT expiry time, unix timestamp.
+##### Meta
+
+- `password_strength`: Password strength score by `zxcvbn`, null if scoring failed.
+- `password_pwned`: True if password detected by `haveibeenpwned.com`, null if request failed.
+
+##### Data
+
+- `user_id`: User ID.
+- `token`: JWT authentication token for user.
+- `token_expires`: JWT expiry time, unix timestamp.
 
 #### Response [400, Bad Request]
 
--   Request body is invalid.
--   User email address is invalid or unknown.
--   User password is invalid or incorrect or null.
--   User is not assigned key for service.
+- Request body is invalid.
+- User email address is invalid or unknown.
+- User password is invalid or incorrect or null.
+- User is not assigned key for service.
 
 #### Response [403, Forbidden]
 
--   Authorisation header is invalid.
+- Authorisation header is invalid.

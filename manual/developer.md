@@ -4,6 +4,7 @@
 
 -   [Rust](https://www.rust-lang.org/)
 -   [Diesel](http://diesel.rs/)
+-   [mdBook](https://github.com/rust-lang-nursery/mdBook)
 -   [Docker](https://docs.docker.com/install/)
 -   [Docker Compose](https://docs.docker.com/compose/)
 
@@ -13,8 +14,9 @@ $ curl https://sh.rustup.rs -sSf | sh
 $ rustup self update && rustup update && cargo update
 $ rustup component add rustfmt
 $ rustup component add clippy
-# Diesel CLI installation.
+# Diesel CLI, mdBook installation.
 $ cargo install diesel_cli --no-default-features --features "postgres sqlite"
+$ cargo install mdbook
 # Docker, Docker Compose installation and start containers.
 $ docker-compose up
 ```
@@ -75,7 +77,7 @@ Serve and build manual.
 
 ```Shell
 $ mdbook serve
-$ mdbook build
+$ rm -rf docs && mdbook build
 ```
 
 Run unit and integration tests.

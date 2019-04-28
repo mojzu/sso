@@ -14,31 +14,35 @@ Verify user token.
 }
 ```
 
--   `token`: JWT authentication token for user (required).
+- `token`: JWT authentication token for user (required).
 
 #### Response [200, OK]
 
 ```JSON
 {
-    "user_id": 3,
-    "token": "eyJ0e...Dlgu4",
-    "token_expires": 1555957164
+    "data": {
+        "user_id": 3,
+        "token": "eyJ0e...Dlgu4",
+        "token_expires": 1555957164
+    }
 }
 ```
 
--   `user_id`: User ID.
--   `token`: JWT authentication token for user.
--   `token_expires`: JWT expiry time, unix timestamp.
+##### Data
+
+- `user_id`: User ID.
+- `token`: JWT authentication token for user.
+- `token_expires`: JWT expiry time, unix timestamp.
 
 #### Response [400, Bad Request]
 
--   Request body is invalid.
--   Token is invalid.
--   Token is not for authorised service.
+- Request body is invalid.
+- Token is invalid.
+- Token is not for authorised service.
 
 #### Response [403, Forbidden]
 
--   Authorisation header is invalid.
+- Authorisation header is invalid.
 
 ## Refresh Token [/v1/auth/token/refresh]
 
@@ -54,31 +58,35 @@ Refresh user token, creates new token with updated expiry time.
 }
 ```
 
--   `token`: JWT authentication token for user (required).
+- `token`: JWT authentication token for user (required).
 
 #### Response [200, OK]
 
 ```JSON
 {
-    "user_id": 3,
-    "token": "eyJ0e...0ZT7k",
-    "token_expires": 1555957470
+    "data": {
+        "user_id": 3,
+        "token": "eyJ0e...0ZT7k",
+        "token_expires": 1555957470
+    }
 }
 ```
 
--   `user_id`: User ID.
--   `token`: JWT authentication token for user.
--   `token_expires`: JWT expiry time, unix timestamp.
+##### Data
+
+- `user_id`: User ID.
+- `token`: JWT authentication token for user.
+- `token_expires`: JWT expiry time, unix timestamp.
 
 #### Response [400, Bad Request]
 
--   Request body is invalid.
--   Token is invalid.
--   Token is not for authorised service.
+- Request body is invalid.
+- Token is invalid.
+- Token is not for authorised service.
 
 #### Response [403, Forbidden]
 
--   Authorisation header is invalid.
+- Authorisation header is invalid.
 
 ## Revoke Token [/v1/auth/token/revoke]
 
@@ -94,16 +102,16 @@ Revoke user token, deletes associated key to prevent reuse.
 }
 ```
 
--   `token`: JWT authentication token for user (required).
+- `token`: JWT authentication token for user (required).
 
 #### Response [200, OK]
 
 #### Response [400, Bad Request]
 
--   Request body is invalid.
--   Token is invalid.
--   Token is not for authorised service.
+- Request body is invalid.
+- Token is invalid.
+- Token is not for authorised service.
 
 #### Response [403, Forbidden]
 
--   Authorisation header is invalid.
+- Authorisation header is invalid.
