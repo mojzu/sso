@@ -338,15 +338,25 @@ $ ark_auth start
 </ul>
 <a class="header" href="#response-200-ok-1" id="response-200-ok-1"><h4>Response [200, OK]</h4></a>
 <pre><code class="language-JSON">{
-    &quot;user_id&quot;: 1,
-    &quot;password_pwned&quot;: false,
-    &quot;token&quot;: &quot;eyJ0e...6eEvY&quot;,
-    &quot;token_expires&quot;: 1555881550
+    &quot;meta&quot;: {
+        &quot;password_strength&quot;: 2,
+        &quot;password_pwned&quot;: false
+    },
+    &quot;data&quot;: {
+        &quot;user_id&quot;: 1,
+        &quot;token&quot;: &quot;eyJ0e...6eEvY&quot;,
+        &quot;token_expires&quot;: 1555881550
+    }
 }
 </code></pre>
+<a class="header" href="#meta" id="meta"><h5>Meta</h5></a>
+<ul>
+<li><code>password_strength</code>: Password strength score by <code>zxcvbn</code>, null if scoring failed.</li>
+<li><code>password_pwned</code>: True if password detected by <code>haveibeenpwned.com</code>, null if request failed.</li>
+</ul>
+<a class="header" href="#data" id="data"><h5>Data</h5></a>
 <ul>
 <li><code>user_id</code>: User ID.</li>
-<li><code>password_pwned</code>: True if password detected by <code>haveibeenpwned.com</code>.</li>
 <li><code>token</code>: JWT authentication token for user.</li>
 <li><code>token_expires</code>: JWT expiry time, unix timestamp.</li>
 </ul>
@@ -424,11 +434,14 @@ $ ark_auth start
 </ul>
 <a class="header" href="#response-200-ok-4" id="response-200-ok-4"><h4>Response [200, OK]</h4></a>
 <pre><code class="language-JSON">{
-    &quot;user_id&quot;: 3,
-    &quot;token&quot;: &quot;eyJ0e...Dlgu4&quot;,
-    &quot;token_expires&quot;: 1555957164
+    &quot;data&quot;: {
+        &quot;user_id&quot;: 3,
+        &quot;token&quot;: &quot;eyJ0e...Dlgu4&quot;,
+        &quot;token_expires&quot;: 1555957164
+    }
 }
 </code></pre>
+<a class="header" href="#data-1" id="data-1"><h5>Data</h5></a>
 <ul>
 <li><code>user_id</code>: User ID.</li>
 <li><code>token</code>: JWT authentication token for user.</li>
@@ -457,11 +470,14 @@ $ ark_auth start
 </ul>
 <a class="header" href="#response-200-ok-5" id="response-200-ok-5"><h4>Response [200, OK]</h4></a>
 <pre><code class="language-JSON">{
-    &quot;user_id&quot;: 3,
-    &quot;token&quot;: &quot;eyJ0e...0ZT7k&quot;,
-    &quot;token_expires&quot;: 1555957470
+    &quot;data&quot;: {
+        &quot;user_id&quot;: 3,
+        &quot;token&quot;: &quot;eyJ0e...0ZT7k&quot;,
+        &quot;token_expires&quot;: 1555957470
+    }
 }
 </code></pre>
+<a class="header" href="#data-2" id="data-2"><h5>Data</h5></a>
 <ul>
 <li><code>user_id</code>: User ID.</li>
 <li><code>token</code>: JWT authentication token for user.</li>
@@ -513,10 +529,13 @@ $ ark_auth start
 </ul>
 <a class="header" href="#response-200-ok-7" id="response-200-ok-7"><h4>Response [200, OK]</h4></a>
 <pre><code class="language-JSON">{
-    &quot;user_id&quot;: 2,
-    &quot;key&quot;: &quot;0e12c...e693f&quot;
+    &quot;data&quot;: {
+        &quot;user_id&quot;: 2,
+        &quot;key&quot;: &quot;0e12c...e693f&quot;
+    }
 }
 </code></pre>
+<a class="header" href="#data-3" id="data-3"><h5>Data</h5></a>
 <ul>
 <li><code>user_id</code>: User ID.</li>
 <li><code>key</code>: User key.</li>
@@ -678,6 +697,7 @@ $ ark_auth start
 <ul>
 <li><a href="https://www.rust-lang.org/">Rust</a></li>
 <li><a href="http://diesel.rs/">Diesel</a></li>
+<li><a href="https://github.com/rust-lang-nursery/mdBook">mdBook</a></li>
 <li><a href="https://docs.docker.com/install/">Docker</a></li>
 <li><a href="https://docs.docker.com/compose/">Docker Compose</a></li>
 </ul>
@@ -686,10 +706,14 @@ $ curl https://sh.rustup.rs -sSf | sh
 $ rustup self update &amp;&amp; rustup update &amp;&amp; cargo update
 $ rustup component add rustfmt
 $ rustup component add clippy
-# Diesel CLI installation.
+# Diesel CLI, mdBook installation.
 $ cargo install diesel_cli --no-default-features --features &quot;postgres sqlite&quot;
+$ cargo install mdbook
 # Docker, Docker Compose installation and start containers.
 $ docker-compose up
+</code></pre>
+<a class="header" href="#ubuntu" id="ubuntu"><h3>Ubuntu</h3></a>
+<pre><code class="language-Shell">$ sudo apt install libpq-dev libsqlite3-dev libssl-dev pkg-config
 </code></pre>
 <a class="header" href="#notes" id="notes"><h2>Notes</h2></a>
 <p>Export environment variables.</p>
@@ -726,7 +750,7 @@ $ cargo run start
 </code></pre>
 <p>Serve and build manual.</p>
 <pre><code class="language-Shell">$ mdbook serve
-$ mdbook build
+$ rm -rf docs &amp;&amp; mdbook build
 </code></pre>
 <p>Run unit and integration tests.</p>
 <pre><code class="language-Shell">$ diesel database reset --migration-dir migrations/postgres &amp;&amp; cargo test

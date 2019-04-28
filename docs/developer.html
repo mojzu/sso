@@ -145,6 +145,7 @@
 <ul>
 <li><a href="https://www.rust-lang.org/">Rust</a></li>
 <li><a href="http://diesel.rs/">Diesel</a></li>
+<li><a href="https://github.com/rust-lang-nursery/mdBook">mdBook</a></li>
 <li><a href="https://docs.docker.com/install/">Docker</a></li>
 <li><a href="https://docs.docker.com/compose/">Docker Compose</a></li>
 </ul>
@@ -153,10 +154,14 @@ $ curl https://sh.rustup.rs -sSf | sh
 $ rustup self update &amp;&amp; rustup update &amp;&amp; cargo update
 $ rustup component add rustfmt
 $ rustup component add clippy
-# Diesel CLI installation.
+# Diesel CLI, mdBook installation.
 $ cargo install diesel_cli --no-default-features --features &quot;postgres sqlite&quot;
+$ cargo install mdbook
 # Docker, Docker Compose installation and start containers.
 $ docker-compose up
+</code></pre>
+<a class="header" href="#ubuntu" id="ubuntu"><h3>Ubuntu</h3></a>
+<pre><code class="language-Shell">$ sudo apt install libpq-dev libsqlite3-dev libssl-dev pkg-config
 </code></pre>
 <a class="header" href="#notes" id="notes"><h2>Notes</h2></a>
 <p>Export environment variables.</p>
@@ -193,7 +198,7 @@ $ cargo run start
 </code></pre>
 <p>Serve and build manual.</p>
 <pre><code class="language-Shell">$ mdbook serve
-$ mdbook build
+$ rm -rf docs &amp;&amp; mdbook build
 </code></pre>
 <p>Run unit and integration tests.</p>
 <pre><code class="language-Shell">$ diesel database reset --migration-dir migrations/postgres &amp;&amp; cargo test
