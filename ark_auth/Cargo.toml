@@ -36,6 +36,7 @@ uuid = { version = "*", features = ["v4"] }
 time = "*"
 validator = "*"
 validator_derive = "*"
+zxcvbn = "*"
 
 [dev-dependencies]
 actix-http-test = "*"

@@ -4,9 +4,7 @@ pub mod reset;
 pub mod token;
 
 use crate::api::{authenticate, body_json_config, ApiData, ApiError, BodyFromValue};
-use crate::db::DbError;
-use crate::models::AuthService;
-use actix_http::http::header::ContentType;
+use crate::db::{DbError, KeyData, TokenData};
 use actix_web::http::{header, StatusCode};
 use actix_web::{middleware::identity::Identity, web, Error, HttpResponse, ResponseError};
 use futures::{future, Future};
@@ -76,11 +74,15 @@ pub struct LoginBody {
 impl BodyFromValue<LoginBody> for LoginBody {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoginMetaResponse {
+    pub password_strength: Option<u8>,
+    pub password_pwned: Option<bool>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoginResponse {
-    pub user_id: i64,
-    pub password_pwned: bool,
-    pub token: String,
-    pub token_expires: usize,
+    pub meta: LoginMetaResponse,
+    pub data: TokenData,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -94,19 +96,7 @@ impl BodyFromValue<TokenBody> for TokenBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenResponse {
-    pub user_id: i64,
-    pub token: String,
-    pub token_expires: usize,
-}
-
-impl From<LoginResponse> for TokenResponse {
-    fn from(r: LoginResponse) -> Self {
-        TokenResponse {
-            user_id: r.user_id,
-            token: r.token,
-            token_expires: r.token_expires,
-        }
-    }
+    pub data: TokenData,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -120,8 +110,7 @@ impl BodyFromValue<KeyBody> for KeyBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeyResponse {
-    pub user_id: i64,
-    pub key: String,
+    pub data: KeyData,
 }
 
 pub fn v1_login(
@@ -144,17 +133,13 @@ fn login_inner(
     id: Option<String>,
     body: LoginBody,
 ) -> impl Future<Item = LoginResponse, Error = ApiError> {
-    let (data1, data2, body1) = (data.clone(), data.clone(), body.clone());
+    let (data1, data2, body1, body2) = (data.clone(), data.clone(), body.clone(), body.clone());
 
     web::block(move || authenticate(&data, id))
         .map_err(Into::into)
         .and_then(move |service| {
-            check_password_pwned(&data1, &body.password)
-                .map(|password_pwned| (service, password_pwned))
-        })
-        .and_then(move |(service, _password_pwned)| {
             web::block(move || {
-                data2
+                data1
                     .db
                     .auth_login(&body1.email, &body1.password, &service)
                     // Map invalid password, not found errors to bad request to prevent leakage.
@@ -165,50 +150,81 @@ fn login_inner(
                     })
             })
             .map_err(Into::into)
+            .and_then(move |token_response| {
+                // TODO(feature): Check these for other password inputs.
+                let token_response = future::ok(token_response);
+                let password_strength =
+                    check_password_strength(&body2.password).then(|r| match r {
+                        Ok(entropy) => future::ok(Some(entropy.score)),
+                        Err(_e) => future::ok(None),
+                    });
+                let password_pwned =
+                    check_password_pwned(&data2, &body2.password).then(|r| match r {
+                        Ok(password_pwned) => future::ok(Some(password_pwned)),
+                        Err(_e) => future::ok(None),
+                    });
+
+                token_response.join3(password_strength, password_pwned)
+            })
+        })
+        .map(|(data, password_strength, password_pwned)| LoginResponse {
+            meta: LoginMetaResponse {
+                password_strength,
+                password_pwned,
+            },
+            data,
         })
 }
 
+/// Returns strength test performed by `zxcvbn`.
+/// <https://github.com/shssoichiro/zxcvbn-rs>
+pub fn check_password_strength(
+    password: &str,
+) -> impl Future<Item = zxcvbn::Entropy, Error = ApiError> {
+    future::result(zxcvbn::zxcvbn(password, &[]).map_err(|_e| ApiError::Unwrap("zxcvbn failed")))
+}
+
+/// Returns true if password is present in `Pwned Passwords` index, else false.
+/// <https://haveibeenpwned.com/Passwords>
 pub fn check_password_pwned(
-    _data: &web::Data<ApiData>,
+    data: &web::Data<ApiData>,
     password: &str,
 ) -> impl Future<Item = bool, Error = ApiError> {
     use sha1::{Digest, Sha1};
 
-    let mut hasher = Sha1::new();
-    hasher.input(password);
-    let _hash = format!("{:.5X}", hasher.result());
+    // Make request to API using first 5 characters of SHA1 password hash.
+    let mut hash = Sha1::new();
+    hash.input(password);
+    let hash = format!("{:X}", hash.result());
 
-    future::ok(false)
-
-    // TODO(feature): Pwned password check in hash_password.
-    // let client = actix_web::client::Client::new();
-    // client
-    //     .get("https://graph.microsoft.com/v1.0/me")
-    //     .header(header::CONTENT_TYPE, ContentType::plaintext())
-    //     .header(header::USER_AGENT, data.user_agent())
-    //     .send()
-    //     .map_err(|_e| ApiError::Unwrap("failed to client.request"))
-    //     .and_then(|response| match response.status() {
-    //         StatusCode::OK => future::ok(response),
-    //         _ => future::err(ApiError::Unwrap("failed to receive ok response")),
-    //     })
-    //     .and_then(|mut response| {
-    //         // response
-    //         //     .json::<MicrosoftUser>()
-    //         //     .map_err(|_e| ApiError::Unwrap("failed to parse json"))
-    //     })
-    //     .map(move |response| (data, response.mail, service_id))
+    let client = actix_web::client::Client::new();
+    let url = format!("https://api.pwnedpasswords.com/range/{:.5}", hash);
+    client
+        .get(url)
+        .header(header::USER_AGENT, data.user_agent())
+        .send()
+        .map_err(|_e| ApiError::Unwrap("failed to client.request"))
+        // Receive OK response and return body as string.
+        .and_then(|response| match response.status() {
+            StatusCode::OK => future::ok(response),
+            _ => future::err(ApiError::Unwrap("failed to receive ok response")),
+        })
+        .and_then(|mut response| {
+            response
+                .body()
+                .map_err(|_e| ApiError::Unwrap("failed to parse text"))
+                .and_then(|b| {
+                    String::from_utf8(b.to_vec())
+                        .map_err(|_e| ApiError::Unwrap("failed to parse text"))
+                })
+        })
+        // Compare suffix of hash to lines to determine if password is pwned.
+        .and_then(move |text| {
+            for line in text.lines() {
+                if &hash[5..] == &line[..35] {
+                    return Ok(true);
+                }
+            }
+            Ok(false)
+        })
 }
-
-// const client = this.restifyClients.createStringClient(
-//     `https://api.pwnedpasswords.com/range/${sha1Hash.substr(0, 5)}`,
-// );
-// const response = await client.get("");
-// const index: { [key: string]: number } = {};
-// if (response.data != null) {
-//     response.data.split("\r\n").map((line) => {
-//         const [hash, count] = line.split(":");
-//         index[hash.trim()] = Number(count.trim());
-//     });
-// }
-// return has(index, sha1Hash.toUpperCase().substring(5));

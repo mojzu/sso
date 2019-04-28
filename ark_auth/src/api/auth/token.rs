@@ -60,6 +60,7 @@ fn token_verify_inner(
         })
     })
     .map_err(Into::into)
+    .map(|data| TokenResponse { data })
 }
 
 pub fn v1_token_refresh(
@@ -90,6 +91,7 @@ fn token_refresh_inner(
         })
     })
     .map_err(Into::into)
+    .map(|data| TokenResponse { data })
 }
 
 pub fn v1_token_revoke(

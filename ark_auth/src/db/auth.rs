@@ -1,6 +1,5 @@
-use crate::api::auth::{LoginResponse, TokenResponse};
 use crate::db::user;
-use crate::db::DbError;
+use crate::db::{DbError, TokenData};
 use crate::models::{AuthKey, AuthService, AuthUser};
 use diesel::prelude::*;
 use jsonwebtoken::{dangerous_unsafe_decode, decode, encode, Header, Validation};
@@ -47,12 +46,12 @@ pub fn login(
     user: &AuthUser,
     key: &AuthKey,
     service: &AuthService,
-) -> Result<LoginResponse, DbError> {
+) -> Result<TokenData, DbError> {
     let claims = Claims::new(service.service_id, user.user_id, 3600);
     let token = encode(&Header::default(), &claims, key.key_value.as_ref())
         .map_err(DbError::Jsonwebtoken)?;
 
-    Ok(LoginResponse {
+    Ok(TokenData {
         user_id: user.user_id,
         token,
         token_expires: claims.exp,
@@ -63,7 +62,7 @@ pub fn reset_password(
     user: &AuthUser,
     key: &AuthKey,
     service: &AuthService,
-) -> Result<TokenResponse, DbError> {
+) -> Result<TokenData, DbError> {
     let password_revision = match user.user_password_revision {
         Some(password_revision) => Ok(password_revision),
         None => Err(DbError::InvalidPasswordRevision),
@@ -73,7 +72,7 @@ pub fn reset_password(
     let token = encode(&Header::default(), &claims, key.key_value.as_ref())
         .map_err(DbError::Jsonwebtoken)?;
 
-    Ok(TokenResponse {
+    Ok(TokenData {
         user_id: user.user_id,
         token,
         token_expires: claims.exp,
@@ -104,12 +103,12 @@ pub fn token_verify(
     user: &AuthUser,
     key: &AuthKey,
     service: &AuthService,
-) -> Result<TokenResponse, DbError> {
+) -> Result<TokenData, DbError> {
     let validation = Claims::validation(service.service_id, user.user_id);
     let data = decode::<Claims>(token, key.key_value.as_ref(), &validation)
         .map_err(DbError::Jsonwebtoken)?;
 
-    Ok(TokenResponse {
+    Ok(TokenData {
         user_id: user.user_id,
         token: token.to_owned(),
         token_expires: data.claims.exp,
@@ -121,7 +120,7 @@ pub fn token_refresh(
     user: &AuthUser,
     key: &AuthKey,
     service: &AuthService,
-) -> Result<TokenResponse, DbError> {
+) -> Result<TokenData, DbError> {
     let validation = Claims::validation(service.service_id, user.user_id);
     let _ = decode::<Claims>(token, key.key_value.as_ref(), &validation)
         .map_err(|_e| DbError::Unwrap("failed to decode jwt"))?;

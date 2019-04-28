@@ -94,6 +94,7 @@ fn reset_password_inner(
             })
     })
     .map_err(Into::into)
+    .map(|data| TokenResponse { data })
 }
 
 pub fn v1_reset_password_confirm(

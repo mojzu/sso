@@ -47,6 +47,7 @@ fn key_verify_inner(
         })
     })
     .map_err(Into::into)
+    .map(|data| KeyResponse { data })
 }
 
 pub fn v1_key_revoke(

@@ -4,7 +4,6 @@ pub mod key;
 pub mod service;
 pub mod user;
 
-use crate::api::auth::{KeyResponse, LoginResponse, TokenResponse};
 use crate::models::{AuthCsrf, AuthKey, AuthService, AuthUser};
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
@@ -69,6 +68,19 @@ impl DbOrder {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyData {
+    pub user_id: i64,
+    pub key: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenData {
+    pub user_id: i64,
+    pub token: String,
+    pub token_expires: usize,
+}
+
 #[derive(Clone)]
 pub struct Db {
     pool: r2d2::Pool<ConnectionManager<PgConnection>>,
@@ -99,7 +111,7 @@ impl Db {
         Ok((service, key))
     }
 
-    pub fn oauth2_login(&self, email: &str, service_id: i64) -> Result<TokenResponse, DbError> {
+    pub fn oauth2_login(&self, email: &str, service_id: i64) -> Result<TokenData, DbError> {
         let conn = self.connection()?;
         let user = user::read_by_email(email, &conn)?;
         let service = service::read_by_id(service_id, service_id, &conn)?;
@@ -112,7 +124,7 @@ impl Db {
         email: &str,
         password: &str,
         service: &AuthService,
-    ) -> Result<LoginResponse, DbError> {
+    ) -> Result<TokenData, DbError> {
         let conn = self.connection()?;
         let user = user::read_by_email(email, &conn)?;
         user::check_password(user.user_password.as_ref().map(|x| &**x), password)?;
@@ -124,7 +136,7 @@ impl Db {
         &self,
         email: &str,
         service: &AuthService,
-    ) -> Result<(AuthUser, TokenResponse), DbError> {
+    ) -> Result<(AuthUser, TokenData), DbError> {
         let conn = self.connection()?;
         let user = user::read_by_email(email, &conn)?;
         let key = key::read_by_user_id(user.user_id, service.service_id, &conn)?;
@@ -150,7 +162,7 @@ impl Db {
         &self,
         token: &str,
         service: &AuthService,
-    ) -> Result<TokenResponse, DbError> {
+    ) -> Result<TokenData, DbError> {
         // Unsafely decode token to get user identifier, read key for doing safe token decode.
         let user_id = auth::token_unsafe_decode(token, service.service_id)?;
         let conn = self.connection()?;
@@ -163,7 +175,7 @@ impl Db {
         &self,
         token: &str,
         service: &AuthService,
-    ) -> Result<TokenResponse, DbError> {
+    ) -> Result<TokenData, DbError> {
         // Unsafely decode token to get user identifier, read key for doing safe token decode.
         let user_id = auth::token_unsafe_decode(token, service.service_id)?;
         let conn = self.connection()?;
@@ -185,11 +197,11 @@ impl Db {
         &self,
         key_value: &str,
         service: &AuthService,
-    ) -> Result<KeyResponse, DbError> {
+    ) -> Result<KeyData, DbError> {
         let conn = self.connection()?;
         let key = key::user_read_by_value(key_value, service.service_id, &conn)?;
         let user_id = key.user_id.unwrap();
-        Ok(KeyResponse {
+        Ok(KeyData {
             user_id,
             key: key_value.to_owned(),
         })
