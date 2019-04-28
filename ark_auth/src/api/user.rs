@@ -1,5 +1,5 @@
 use crate::api::{
-    auth::{validate_name, validate_password},
+    auth::{check_password_meta, validate_name, validate_password, PasswordMetaResponse},
     authenticate, body_json_config, ApiData, ApiError, BodyFromValue,
 };
 use crate::models::AuthUser;
@@ -26,7 +26,7 @@ pub fn v1_service() -> actix_web::Scope {
         )
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -47,19 +47,19 @@ impl From<AuthUser> for User {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListQuery {
     pub offset: Option<i64>,
     pub limit: Option<i64>,
     pub order: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListResponse {
     pub data: Vec<User>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct CreateBody {
     #[validate(custom = "validate_name")]
@@ -71,6 +71,12 @@ pub struct CreateBody {
 }
 
 impl BodyFromValue<CreateBody> for CreateBody {}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateResponse {
+    meta: PasswordMetaResponse,
+    data: User,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateBody {
@@ -133,7 +139,9 @@ fn v1_create_inner(
     data: web::Data<ApiData>,
     id: Option<String>,
     body: CreateBody,
-) -> impl Future<Item = User, Error = ApiError> {
+) -> impl Future<Item = CreateResponse, Error = ApiError> {
+    let (data1, body1) = (data.clone(), body.clone());
+
     web::block(move || {
         authenticate(&data, id).and_then(|_service| {
             data.db
@@ -143,10 +151,21 @@ fn v1_create_inner(
                     body.password.as_ref().map(|x| &**x),
                 )
                 .map_err(Into::into)
-                .map(Into::into)
         })
     })
     .map_err(Into::into)
+    .and_then(move |user| {
+        let password_meta = match body1.password {
+            Some(password) => future::Either::A(check_password_meta(&data1, &password)),
+            None => future::Either::B(future::ok(PasswordMetaResponse::default())),
+        };
+        let user = future::ok(user);
+        password_meta.join(user)
+    })
+    .map(|(meta, user)| CreateResponse {
+        meta,
+        data: user.into(),
+    })
 }
 
 pub fn v1_read(

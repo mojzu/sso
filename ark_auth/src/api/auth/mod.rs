@@ -74,14 +74,23 @@ pub struct LoginBody {
 impl BodyFromValue<LoginBody> for LoginBody {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LoginMetaResponse {
+pub struct PasswordMetaResponse {
     pub password_strength: Option<u8>,
     pub password_pwned: Option<bool>,
 }
 
+impl Default for PasswordMetaResponse {
+    fn default() -> Self {
+        PasswordMetaResponse {
+            password_strength: None,
+            password_pwned: None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoginResponse {
-    pub meta: LoginMetaResponse,
+    pub meta: PasswordMetaResponse,
     pub data: TokenData,
 }
 
@@ -151,34 +160,38 @@ fn login_inner(
             })
             .map_err(Into::into)
             .and_then(move |token_response| {
-                // TODO(feature): Check these for other password inputs.
+                let password_meta = check_password_meta(&data2, &body2.password);
                 let token_response = future::ok(token_response);
-                let password_strength =
-                    check_password_strength(&body2.password).then(|r| match r {
-                        Ok(entropy) => future::ok(Some(entropy.score)),
-                        Err(_e) => future::ok(None),
-                    });
-                let password_pwned =
-                    check_password_pwned(&data2, &body2.password).then(|r| match r {
-                        Ok(password_pwned) => future::ok(Some(password_pwned)),
-                        Err(_e) => future::ok(None),
-                    });
-
-                token_response.join3(password_strength, password_pwned)
+                password_meta.join(token_response)
             })
         })
-        .map(|(data, password_strength, password_pwned)| LoginResponse {
-            meta: LoginMetaResponse {
-                password_strength,
-                password_pwned,
-            },
-            data,
+        .map(|(meta, data)| LoginResponse { meta, data })
+}
+
+/// Returns password strength and pwned checks.
+pub fn check_password_meta(
+    data: &web::Data<ApiData>,
+    password: &str,
+) -> impl Future<Item = PasswordMetaResponse, Error = ApiError> {
+    let password_strength = check_password_strength(password).then(|r| match r {
+        Ok(entropy) => future::ok(Some(entropy.score)),
+        Err(_e) => future::ok(None),
+    });
+    let password_pwned = check_password_pwned(data, password).then(|r| match r {
+        Ok(password_pwned) => future::ok(Some(password_pwned)),
+        Err(_e) => future::ok(None),
+    });
+    password_strength
+        .join(password_pwned)
+        .map(|(password_strength, password_pwned)| PasswordMetaResponse {
+            password_strength,
+            password_pwned,
         })
 }
 
-/// Returns strength test performed by `zxcvbn`.
+/// Returns password strength test performed by `zxcvbn`.
 /// <https://github.com/shssoichiro/zxcvbn-rs>
-pub fn check_password_strength(
+fn check_password_strength(
     password: &str,
 ) -> impl Future<Item = zxcvbn::Entropy, Error = ApiError> {
     future::result(zxcvbn::zxcvbn(password, &[]).map_err(|_e| ApiError::Unwrap("zxcvbn failed")))
@@ -186,7 +199,7 @@ pub fn check_password_strength(
 
 /// Returns true if password is present in `Pwned Passwords` index, else false.
 /// <https://haveibeenpwned.com/Passwords>
-pub fn check_password_pwned(
+fn check_password_pwned(
     data: &web::Data<ApiData>,
     password: &str,
 ) -> impl Future<Item = bool, Error = ApiError> {

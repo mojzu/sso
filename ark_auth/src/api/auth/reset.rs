@@ -1,5 +1,7 @@
 use crate::api::{
-    auth::{validate_password, validate_token, TokenResponse},
+    auth::{
+        check_password_meta, validate_password, validate_token, PasswordMetaResponse, TokenResponse,
+    },
     authenticate, body_json_config, ApiData, ApiError, BodyFromValue,
 };
 use crate::db::DbError;
@@ -8,7 +10,7 @@ use actix_web::{middleware::identity::Identity, web, Error, HttpResponse, Respon
 use futures::{future, Future};
 use validator::Validate;
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct ResetPasswordBody {
     #[validate(email)]
@@ -17,7 +19,7 @@ pub struct ResetPasswordBody {
 
 impl BodyFromValue<ResetPasswordBody> for ResetPasswordBody {}
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct ResetPasswordConfirmBody {
     #[validate(custom = "validate_token")]
@@ -27,6 +29,11 @@ pub struct ResetPasswordConfirmBody {
 }
 
 impl BodyFromValue<ResetPasswordConfirmBody> for ResetPasswordConfirmBody {}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetPasswordConfirmResponse {
+    meta: PasswordMetaResponse,
+}
 
 /// Version 1 authentication reset routes scope.
 pub fn v1_service() -> actix_web::Scope {
@@ -107,7 +114,7 @@ pub fn v1_reset_password_confirm(
     ResetPasswordConfirmBody::from_value(body.into_inner())
         .and_then(move |body| reset_password_confirm_inner(data, id, body))
         .then(|r| match r {
-            Ok(_r) => future::ok(HttpResponse::Ok().finish()),
+            Ok(r) => future::ok(HttpResponse::Ok().json(r)),
             Err(e) => future::ok(e.error_response()),
         })
 }
@@ -116,7 +123,9 @@ fn reset_password_confirm_inner(
     data: web::Data<ApiData>,
     id: Option<String>,
     body: ResetPasswordConfirmBody,
-) -> impl Future<Item = usize, Error = ApiError> {
+) -> impl Future<Item = ResetPasswordConfirmResponse, Error = ApiError> {
+    let (data1, body1) = (data.clone(), body.clone());
+
     web::block(move || {
         authenticate(&data, id).and_then(|service| {
             data.db
@@ -125,6 +134,8 @@ fn reset_password_confirm_inner(
         })
     })
     .map_err(Into::into)
+    .and_then(move |_| check_password_meta(&data1, &body1.password))
+    .map(|meta| ResetPasswordConfirmResponse { meta })
 }
 
 /// Map not found errors to bad request to prevent leakage.
