@@ -141,6 +141,43 @@
                 <div id="content" class="content">
                     <main>
                         <a class="header" href="#introduction" id="introduction"><h1>Introduction</h1></a>
+<p><strong>Warning: The author of this application is not a security export, nor has the code undergone any kind of review or verification. Use at your own risk.</strong></p>
+<p>Ark Auth is an authentication server, it is intended to be used as a backend for other services which must authenticate their users requests. The following authentication methods are supported.</p>
+<ul>
+<li><strong>Password Login</strong>
+<ul>
+<li>Users can authenticate to services using a unique email address and password.</li>
+<li>Logins produce a time-limited, revokable json web token which can be used to authenticate requests.</li>
+<li>User passwords can be reset via email.</li>
+<li>Passwords are stored as <code>bcrypt</code> hashes.</li>
+<li>Password strength is checked by <code>zxcvbn</code>.</li>
+<li>Password leaks are checked by <code>haveibeenpwned.com</code>.</li>
+<li>Users can be created without passwords to disable password login.</li>
+</ul>
+</li>
+<li><strong>API Key</strong>
+<ul>
+<li>API consumers can authenticate requests to services using a unique, random key.</li>
+<li>Keys are not time-limited but are revokable.</li>
+</ul>
+</li>
+<li><strong>OAuth2</strong>
+<ul>
+<li>Users can authenticate to services via an OAuth2 provider.</li>
+<li>Authentication produces a time-limited, revokable json web token which can be used to authenticate requests.</li>
+</ul>
+</li>
+</ul>
+<a class="header" href="#overview" id="overview"><h2>Overview</h2></a>
+<p>The following diagram illustrates how services and Ark Auth integrate to authenticate user requests.</p>
+<p><img src="../images/diagram.svg" alt="User request verification" /></p>
+<ol>
+<li>User with token or key sends HTTP request to service.</li>
+<li>Service sends HTTP request to Ark Auth with the users token or key, and its own key.</li>
+<li>Ark Auth authenticates service using the provided key, and verifies user token or key.</li>
+<li>If authenticated/verified, service handles request and sends HTTP response to user.</li>
+<li>User handles HTTP response.</li>
+</ol>
 <p>TODO(doc)</p>
 
                     </main>
