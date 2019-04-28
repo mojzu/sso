@@ -143,8 +143,8 @@
                         <a class="header" href="#introduction" id="introduction"><h1>Introduction</h1></a>
 <p><strong>Warning: The author of this application is not a security export, nor has the code undergone any kind of review or verification. Use at your own risk.</strong></p>
 <p>Ark Auth is an authentication server, it is intended to be used as a backend for other services which must authenticate their users requests. The following authentication methods are supported.</p>
-<ul>
-<li><strong>Password Login</strong>
+<a class="header" href="#authentication-methods" id="authentication-methods"><h2>Authentication Methods</h2></a>
+<a class="header" href="#password-login" id="password-login"><h3>Password Login</h3></a>
 <ul>
 <li>Users can authenticate to services using a unique email address and password.</li>
 <li>Logins produce a time-limited, revokable json web token which can be used to authenticate requests.</li>
@@ -154,23 +154,19 @@
 <li>Password leaks are checked by <code>haveibeenpwned.com</code>.</li>
 <li>Users can be created without passwords to disable password login.</li>
 </ul>
-</li>
-<li><strong>API Key</strong>
+<a class="header" href="#api-key" id="api-key"><h3>API Key</h3></a>
 <ul>
 <li>API consumers can authenticate requests to services using a unique, random key.</li>
 <li>Keys are not time-limited but are revokable.</li>
 </ul>
-</li>
-<li><strong>OAuth2</strong>
+<a class="header" href="#oauth2" id="oauth2"><h3>OAuth2</h3></a>
 <ul>
 <li>Users can authenticate to services via an OAuth2 provider.</li>
 <li>Authentication produces a time-limited, revokable json web token which can be used to authenticate requests.</li>
 </ul>
-</li>
-</ul>
 <a class="header" href="#overview" id="overview"><h2>Overview</h2></a>
 <p>The following diagram illustrates how services and Ark Auth integrate to authenticate user requests.</p>
-<p><img src="../images/diagram.svg" alt="User request verification" /></p>
+<p><img src="./images/diagram.svg" alt="User request verification" /></p>
 <ol>
 <li>User with token or key sends HTTP request to service.</li>
 <li>Service sends HTTP request to Ark Auth with the users token or key, and its own key.</li>
