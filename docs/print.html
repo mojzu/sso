@@ -359,7 +359,7 @@ $ ark_auth start
 <a class="header" href="#meta" id="meta"><h5>Meta</h5></a>
 <ul>
 <li><code>password_strength</code>: Password strength score by <code>zxcvbn</code>, null if scoring failed.</li>
-<li><code>password_pwned</code>: True if password detected by <code>haveibeenpwned.com</code>, null if request failed.</li>
+<li><code>password_pwned</code>: True if password detected by <code>haveibeenpwned.com</code>, null if request failed or feature disabled.</li>
 </ul>
 <a class="header" href="#data" id="data"><h5>Data</h5></a>
 <ul>
@@ -417,6 +417,18 @@ $ ark_auth start
 <li><code>password</code>: User password (required).</li>
 </ul>
 <a class="header" href="#response-200-ok-3" id="response-200-ok-3"><h4>Response [200, OK]</h4></a>
+<pre><code class="language-JSON">{
+    &quot;meta&quot;: {
+        &quot;password_strength&quot;: 2,
+        &quot;password_pwned&quot;: false
+    }
+}
+</code></pre>
+<a class="header" href="#meta-1" id="meta-1"><h5>Meta</h5></a>
+<ul>
+<li><code>password_strength</code>: Password strength score by <code>zxcvbn</code>, null if scoring failed.</li>
+<li><code>password_pwned</code>: True if password detected by <code>haveibeenpwned.com</code>, null if request failed or feature disabled.</li>
+</ul>
 <a class="header" href="#response-400-bad-request-2" id="response-400-bad-request-2"><h4>Response [400, Bad Request]</h4></a>
 <ul>
 <li>Request body is invalid.</li>
@@ -620,7 +632,58 @@ $ ark_auth start
 <a class="header" href="#read-many-get" id="read-many-get"><h3>Read Many [GET]</h3></a>
 <p>TODO(doc)</p>
 <a class="header" href="#create-one-post" id="create-one-post"><h3>Create One [POST]</h3></a>
-<p>TODO(doc)</p>
+<p>Create one user.</p>
+<a class="header" href="#request-8" id="request-8"><h4>Request</h4></a>
+<pre><code class="language-JSON">{
+    &quot;name&quot;: &quot;User Name&quot;,
+    &quot;email&quot;: &quot;user@example.com&quot;,
+    &quot;password&quot;: &quot;guest&quot;
+}
+</code></pre>
+<ul>
+<li><code>name</code>: User name (required).</li>
+<li><code>email</code>: User email address, must be unique (required).</li>
+<li><code>password</code>: User password, optional.</li>
+</ul>
+<a class="header" href="#response-200-ok-11" id="response-200-ok-11"><h4>Response [200, OK]</h4></a>
+<pre><code class="language-JSON">{
+    &quot;meta&quot;: {
+        &quot;password_strength&quot;: 0,
+        &quot;password_pwned&quot;: true
+    },
+    &quot;data&quot;: {
+        &quot;created_at&quot;: &quot;2019...04Z&quot;,
+        &quot;updated_at&quot;: &quot;2019...04Z&quot;,
+        &quot;id&quot;: 10,
+        &quot;name&quot;: &quot;User Name&quot;,
+        &quot;email&quot;: &quot;user@example.com&quot;
+    }
+}
+</code></pre>
+<a class="header" href="#meta-2" id="meta-2"><h5>Meta</h5></a>
+<ul>
+<li><code>password_strength</code>: Password strength score by <code>zxcvbn</code>, null if scoring failed or password was not provided.</li>
+<li><code>password_pwned</code>: True if password detected by <code>haveibeenpwned.com</code>, null if request failed, feature disabled or password was not provided.</li>
+</ul>
+<a class="header" href="#data-4" id="data-4"><h5>Data</h5></a>
+<ul>
+<li><code>created_at</code>: Created time ISO 8601 timestamp.</li>
+<li><code>updated_at</code>: Updated time ISO 8601 timestamp.</li>
+<li><code>id</code>: User ID.</li>
+<li><code>name</code>: User name.</li>
+<li><code>email</code>: User email address.</li>
+</ul>
+<a class="header" href="#response-400-bad-request-8" id="response-400-bad-request-8"><h4>Response [400, Bad Request]</h4></a>
+<ul>
+<li>Request body is invalid.</li>
+<li>User name is invalid.</li>
+<li>User email address is invalid or not unique.</li>
+<li>User password is invalid.</li>
+</ul>
+<a class="header" href="#response-403-forbidden-10" id="response-403-forbidden-10"><h4>Response [403, Forbidden]</h4></a>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
 <a class="header" href="#user-v1userid" id="user-v1userid"><h2>User [/v1/user/{id}]</h2></a>
 <a class="header" href="#read-one-get" id="read-one-get"><h3>Read One [GET]</h3></a>
 <p>TODO(doc)</p>
@@ -645,7 +708,7 @@ $ ark_auth start
 <a class="header" href="#collection-v1key" id="collection-v1key"><h2>Collection [/v1/key]</h2></a>
 <a class="header" href="#read-many-get-2" id="read-many-get-2"><h3>Read Many [GET]</h3></a>
 <p>Read many keys.</p>
-<a class="header" href="#request-8" id="request-8"><h4>Request</h4></a>
+<a class="header" href="#request-9" id="request-9"><h4>Request</h4></a>
 <pre><code>?offset=X&amp;limit=Y&amp;order=Z
 </code></pre>
 <ul>
@@ -653,7 +716,7 @@ $ ark_auth start
 <li><code>limit</code>: Limit number of returned items (optional).</li>
 <li><code>order</code>: ID order, <code>asc</code> or <code>desc</code> (optional).</li>
 </ul>
-<a class="header" href="#response-200-ok-11" id="response-200-ok-11"><h4>Response [200, OK]</h4></a>
+<a class="header" href="#response-200-ok-12" id="response-200-ok-12"><h4>Response [200, OK]</h4></a>
 <pre><code class="language-JSON">{
     &quot;data&quot;: [
         ...
@@ -663,17 +726,17 @@ $ ark_auth start
 <ul>
 <li><code>data</code>: Array of read items.</li>
 </ul>
-<a class="header" href="#response-400-bad-request-8" id="response-400-bad-request-8"><h4>Response [400, Bad Request]</h4></a>
+<a class="header" href="#response-400-bad-request-9" id="response-400-bad-request-9"><h4>Response [400, Bad Request]</h4></a>
 <ul>
 <li>Request query is invalid.</li>
 </ul>
-<a class="header" href="#response-403-forbidden-10" id="response-403-forbidden-10"><h4>Response [403, Forbidden]</h4></a>
+<a class="header" href="#response-403-forbidden-11" id="response-403-forbidden-11"><h4>Response [403, Forbidden]</h4></a>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
 <a class="header" href="#create-one-post-2" id="create-one-post-2"><h3>Create One [POST]</h3></a>
 <p>Create one key.</p>
-<a class="header" href="#request-9" id="request-9"><h4>Request</h4></a>
+<a class="header" href="#request-10" id="request-10"><h4>Request</h4></a>
 <pre><code class="language-JSON">{
     &quot;name&quot;: &quot;Name&quot;,
     &quot;user_id&quot;: 2
@@ -683,7 +746,7 @@ $ ark_auth start
 <li><code>name</code>: Key name (required).</li>
 <li><code>user_id</code>: User ID (required).</li>
 </ul>
-<a class="header" href="#response-200-ok-12" id="response-200-ok-12"><h4>Response [200, OK]</h4></a>
+<a class="header" href="#response-200-ok-13" id="response-200-ok-13"><h4>Response [200, OK]</h4></a>
 <pre><code class="language-JSON">{
     &quot;created_at&quot;: &quot;2019...304Z&quot;,
     &quot;id&quot;: 39,

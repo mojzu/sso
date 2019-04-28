@@ -37,7 +37,7 @@ Login with email address and password.
 ##### Meta
 
 - `password_strength`: Password strength score by `zxcvbn`, null if scoring failed.
-- `password_pwned`: True if password detected by `haveibeenpwned.com`, null if request failed.
+- `password_pwned`: True if password detected by `haveibeenpwned.com`, null if request failed or feature disabled.
 
 ##### Data
 

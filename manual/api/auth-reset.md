@@ -14,21 +14,21 @@ Reset password request for email address.
 }
 ```
 
--   `email`: User email address (required).
+- `email`: User email address (required).
 
 #### Response [200, OK]
 
 #### Response [400, Bad Request]
 
--   Request body is invalid.
--   User email address is invalid or unknown.
--   User is not assigned key for service.
--   User password is null.
--   Unable to send password reset email.
+- Request body is invalid.
+- User email address is invalid or unknown.
+- User is not assigned key for service.
+- User password is null.
+- Unable to send password reset email.
 
 #### Response [403, Forbidden]
 
--   Authorisation header is invalid.
+- Authorisation header is invalid.
 
 ## Reset Password Confirm [/v1/auth/reset/password/confirm]
 
@@ -45,18 +45,32 @@ Confirm reset password request.
 }
 ```
 
--   `token`: JWT reset authentication token for user (required).
--   `password`: User password (required).
+- `token`: JWT reset authentication token for user (required).
+- `password`: User password (required).
 
 #### Response [200, OK]
 
+```JSON
+{
+    "meta": {
+        "password_strength": 2,
+        "password_pwned": false
+    }
+}
+```
+
+##### Meta
+
+- `password_strength`: Password strength score by `zxcvbn`, null if scoring failed.
+- `password_pwned`: True if password detected by `haveibeenpwned.com`, null if request failed or feature disabled.
+
 #### Response [400, Bad Request]
 
--   Request body is invalid.
--   Token is invalid or has been used.
--   User password is invalid.
--   User is not assigned key for service.
+- Request body is invalid.
+- Token is invalid or has been used.
+- User password is invalid.
+- User is not assigned key for service.
 
 #### Response [403, Forbidden]
 
--   Authorisation header is invalid.
+- Authorisation header is invalid.

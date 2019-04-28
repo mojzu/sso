@@ -14,11 +14,11 @@ Request a authentication redirect URL.
 }
 ```
 
--   `url`: Authentication redirect URL.
+- `url`: Authentication redirect URL.
 
 #### Response [403, Forbidden]
 
--   Authorisation header is invalid.
+- Authorisation header is invalid.
 
 ### Callback [GET]
 
@@ -38,11 +38,11 @@ Request a authentication redirect URL.
 }
 ```
 
--   `url`: Authentication redirect URL.
+- `url`: Authentication redirect URL.
 
 #### Response [403, Forbidden]
 
--   Authorisation header is invalid.
+- Authorisation header is invalid.
 
 ### Callback [GET]
 
