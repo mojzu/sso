@@ -223,7 +223,7 @@ pub fn check_password_pwned(
                 // Compare suffix of hash to lines to determine if password is pwned.
                 .and_then(move |text| {
                     for line in text.lines() {
-                        if &hash[5..] == &line[..35] {
+                        if hash[5..] == line[..35] {
                             return Ok(true);
                         }
                     }
