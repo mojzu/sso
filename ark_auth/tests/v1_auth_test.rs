@@ -148,9 +148,9 @@ fn post_login_test() {
     let bytes = app.block_on(res.body()).unwrap();
     let body: api::auth::TokenResponse = serde_json::from_slice(&bytes).unwrap();
 
-    assert_eq!(body.user_id, user.user_id);
-    assert!(body.token.len() > 0);
-    assert!(body.token_expires > 0);
+    assert_eq!(body.data.user_id, user.user_id);
+    assert!(body.data.token.len() > 0);
+    assert!(body.data.token_expires > 0);
 
     // Service 2 does not have key for user.
     let payload = r#"{ "email": "login@example.com", "password": "guest" }"#.as_bytes();

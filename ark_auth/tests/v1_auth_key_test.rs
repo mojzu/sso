@@ -88,8 +88,8 @@ fn post_key_verify_test() {
     assert_eq!(content_length, bytes.len());
 
     let body: api::auth::KeyResponse = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(body.user_id, user.user_id);
-    assert_eq!(body.key, user_key.key_value);
+    assert_eq!(body.data.user_id, user.user_id);
+    assert_eq!(body.data.key, user_key.key_value);
 }
 
 #[test]

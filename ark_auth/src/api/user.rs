@@ -85,6 +85,17 @@ pub fn v1_list(
     let id = id.identity();
     let query = query.into_inner();
 
+    list_inner(data, id, query).then(|r| match r {
+        Ok(r) => future::ok(HttpResponse::Ok().json(r)),
+        Err(e) => future::ok(e.error_response()),
+    })
+}
+
+fn list_inner(
+    data: web::Data<ApiData>,
+    id: Option<String>,
+    query: ListQuery,
+) -> impl Future<Item = ListResponse, Error = ApiError> {
     web::block(move || {
         authenticate(&data, id).and_then(|_service| {
             data.db
@@ -101,7 +112,6 @@ pub fn v1_list(
         })
     })
     .map_err(Into::into)
-    .map(|list_response| HttpResponse::build(StatusCode::OK).json(list_response))
 }
 
 pub fn v1_create(

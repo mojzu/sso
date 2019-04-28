@@ -77,9 +77,9 @@ fn post_token_verify_test() {
 
     let bytes = app.block_on(res.body()).unwrap();
     let body: api::auth::TokenResponse = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(body.user_id, user.user_id);
-    assert_eq!(body.token, token.token);
-    assert_eq!(body.token_expires, token.token_expires);
+    assert_eq!(body.data.user_id, user.user_id);
+    assert_eq!(body.data.token, token.token);
+    assert_eq!(body.data.token_expires, token.token_expires);
 }
 
 #[test]
@@ -159,9 +159,9 @@ fn post_token_refresh_test() {
 
     let bytes = app.block_on(res.body()).unwrap();
     let body: api::auth::TokenResponse = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(body.user_id, user.user_id);
-    assert_ne!(body.token, token.token);
-    assert!(body.token_expires > token.token_expires);
+    assert_eq!(body.data.user_id, user.user_id);
+    assert_ne!(body.data.token, token.token);
+    assert!(body.data.token_expires > token.token_expires);
 }
 
 #[test]

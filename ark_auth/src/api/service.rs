@@ -1,11 +1,14 @@
 use crate::api::key::Key;
-use crate::api::{authenticate, body_json_config, ApiData};
+use crate::api::{
+    auth::validate_name, authenticate, body_json_config, ApiData, ApiError, BodyFromValue,
+};
 use crate::models::AuthService;
 use actix_web::http::StatusCode;
 use actix_web::middleware::identity::Identity;
-use actix_web::{web, Error, HttpResponse};
+use actix_web::{web, Error, HttpResponse, ResponseError};
 use chrono::{DateTime, Utc};
-use futures::Future;
+use futures::{future, Future};
+use validator::Validate;
 
 /// Version 1 service routes scope.
 pub fn v1_service() -> actix_web::Scope {
@@ -52,11 +55,15 @@ pub struct ListResponse {
     pub data: Vec<Service>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct CreateBody {
+    #[validate(custom = "validate_name")]
     pub name: String,
+    #[validate(url)]
     pub url: String,
 }
+
+impl BodyFromValue<CreateBody> for CreateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateResponse {
@@ -77,6 +84,17 @@ pub fn v1_list(
     let id = id.identity();
     let query = query.into_inner();
 
+    list_inner(data, id, query).then(|r| match r {
+        Ok(r) => future::ok(HttpResponse::Ok().json(r)),
+        Err(e) => future::ok(e.error_response()),
+    })
+}
+
+fn list_inner(
+    data: web::Data<ApiData>,
+    id: Option<String>,
+    query: ListQuery,
+) -> impl Future<Item = ListResponse, Error = ApiError> {
     web::block(move || {
         authenticate(&data, id).and_then(|service| {
             data.db
@@ -94,17 +112,28 @@ pub fn v1_list(
         })
     })
     .map_err(Into::into)
-    .map(|list_response| HttpResponse::build(StatusCode::OK).json(list_response))
 }
 
 pub fn v1_create(
     data: web::Data<ApiData>,
     id: Identity,
-    body: web::Json<CreateBody>,
+    body: web::Json<serde_json::Value>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
-    let body = body.into_inner();
 
+    CreateBody::from_value(body.into_inner())
+        .and_then(move |body| create_inner(data, id, body))
+        .then(|r| match r {
+            Ok(r) => future::ok(HttpResponse::Ok().json(r)),
+            Err(e) => future::ok(e.error_response()),
+        })
+}
+
+fn create_inner(
+    data: web::Data<ApiData>,
+    id: Option<String>,
+    body: CreateBody,
+) -> impl Future<Item = CreateResponse, Error = ApiError> {
     web::block(move || {
         authenticate(&data, id).and_then(|_service| {
             data.db
@@ -122,7 +151,6 @@ pub fn v1_create(
         })
     })
     .map_err(Into::into)
-    .map(|create_response| HttpResponse::build(StatusCode::OK).json(create_response))
 }
 
 pub fn v1_read(

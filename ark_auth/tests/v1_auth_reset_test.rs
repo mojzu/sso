@@ -60,7 +60,7 @@ fn post_reset_password_test() {
     assert_eq!(content_length, 0);
     assert_eq!(bytes.len(), 0);
 
-    let (user, _key) = support::user_key(&db, &service, None);
+    let (user, _key) = support::user_key(&db, &service, Some("guest"));
 
     // Service 2 cannot reset password.
     // 400 BAD REQUEST response.
@@ -146,7 +146,7 @@ fn post_reset_password_confirm_test() {
     let (db, mut app) = support::app();
     let (service, key) = support::service_key(&db);
     let (_servic2, key2) = support::service_key(&db);
-    let (user, _key) = support::user_key(&db, &service, None);
+    let (user, _key) = support::user_key(&db, &service, Some("guest"));
     let (_, token) = db.auth_reset_password(&user.user_email, &service).unwrap();
 
     // Service 2 cannot confirm reset password.
