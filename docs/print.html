@@ -206,11 +206,11 @@ $ ark_auth start
 <pre><code class="language-Shell">$ ark_auth init $service_name $service_url
 $ ark_auth start
 </code></pre>
-<p>Service creates a user without password.</p>
+<p>Service creates a user with password.</p>
 <pre><code class="language-Shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}' \
+  --data '{&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
   $server_url/v1/user
 </code></pre>
 <p>Service creates a key for user.</p>
@@ -389,6 +389,7 @@ $ ark_auth start
 <li>Request body is invalid.</li>
 <li>User email address is invalid or unknown.</li>
 <li>User is not assigned key for service.</li>
+<li>User password is null.</li>
 <li>Unable to send password reset email.</li>
 </ul>
 <a class="header" href="#response-403-forbidden-1" id="response-403-forbidden-1"><h4>Response [403, Forbidden]</h4></a>

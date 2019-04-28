@@ -23,6 +23,7 @@ Reset password request for email address.
 -   Request body is invalid.
 -   User email address is invalid or unknown.
 -   User is not assigned key for service.
+-   User password is null.
 -   Unable to send password reset email.
 
 #### Response [403, Forbidden]

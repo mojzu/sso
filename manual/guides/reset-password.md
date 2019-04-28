@@ -7,13 +7,13 @@ $ ark_auth init $service_name $service_url
 $ ark_auth start
 ```
 
-Service creates a user without password.
+Service creates a user with password.
 
 ```Shell
 $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"name":"$user_name","email":"$user_email"}' \
+  --data '{"name":"$user_name","email":"$user_email","password":"$user_password"}' \
   $server_url/v1/user
 ```
 
