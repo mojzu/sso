@@ -3,6 +3,7 @@
 - [Introduction](./introduction.md)
 - [Guides](./guides/index.md)
     - [Deployment](./guides/deployment.md)
+    - [Integration](./guides/integration.md)
     - [Login](./guides/login.md)
     - [Reset Password](./guides/reset-password.md)
     - [API Key](./guides/api-key.md)
