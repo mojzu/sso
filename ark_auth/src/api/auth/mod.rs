@@ -192,39 +192,47 @@ pub fn check_password_pwned(
 ) -> impl Future<Item = bool, Error = ApiError> {
     use sha1::{Digest, Sha1};
 
-    // Make request to API using first 5 characters of SHA1 password hash.
-    let mut hash = Sha1::new();
-    hash.input(password);
-    let hash = format!("{:X}", hash.result());
+    if data.password_pwned() {
+        // Make request to API using first 5 characters of SHA1 password hash.
+        let mut hash = Sha1::new();
+        hash.input(password);
+        let hash = format!("{:X}", hash.result());
 
-    let client = actix_web::client::Client::new();
-    let url = format!("https://api.pwnedpasswords.com/range/{:.5}", hash);
-    client
-        .get(url)
-        .header(header::USER_AGENT, data.user_agent())
-        .send()
-        .map_err(|_e| ApiError::Unwrap("failed to client.request"))
-        // Receive OK response and return body as string.
-        .and_then(|response| match response.status() {
-            StatusCode::OK => future::ok(response),
-            _ => future::err(ApiError::Unwrap("failed to receive ok response")),
-        })
-        .and_then(|mut response| {
-            response
-                .body()
-                .map_err(|_e| ApiError::Unwrap("failed to parse text"))
-                .and_then(|b| {
-                    String::from_utf8(b.to_vec())
-                        .map_err(|_e| ApiError::Unwrap("failed to parse text"))
+        let client = actix_web::client::Client::new();
+        let url = format!("https://api.pwnedpasswords.com/range/{:.5}", hash);
+        future::Either::A(
+            client
+                .get(url)
+                .header(header::USER_AGENT, data.user_agent())
+                .send()
+                .map_err(|_e| ApiError::Unwrap("failed to client.request"))
+                // Receive OK response and return body as string.
+                .and_then(|response| match response.status() {
+                    StatusCode::OK => future::ok(response),
+                    _ => future::err(ApiError::Unwrap("failed to receive ok response")),
                 })
-        })
-        // Compare suffix of hash to lines to determine if password is pwned.
-        .and_then(move |text| {
-            for line in text.lines() {
-                if &hash[5..] == &line[..35] {
-                    return Ok(true);
-                }
-            }
-            Ok(false)
-        })
+                .and_then(|mut response| {
+                    response
+                        .body()
+                        .map_err(|_e| ApiError::Unwrap("failed to parse text"))
+                        .and_then(|b| {
+                            String::from_utf8(b.to_vec())
+                                .map_err(|_e| ApiError::Unwrap("failed to parse text"))
+                        })
+                })
+                // Compare suffix of hash to lines to determine if password is pwned.
+                .and_then(move |text| {
+                    for line in text.lines() {
+                        if &hash[5..] == &line[..35] {
+                            return Ok(true);
+                        }
+                    }
+                    Ok(false)
+                }),
+        )
+    } else {
+        future::Either::B(future::err(ApiError::Unwrap(
+            "password pwned check disabled",
+        )))
+    }
 }

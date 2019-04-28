@@ -42,11 +42,7 @@ impl Claims {
     }
 }
 
-pub fn login(
-    user: &AuthUser,
-    key: &AuthKey,
-    service: &AuthService,
-) -> Result<TokenData, DbError> {
+pub fn login(user: &AuthUser, key: &AuthKey, service: &AuthService) -> Result<TokenData, DbError> {
     let claims = Claims::new(service.service_id, user.user_id, 3600);
     let token = encode(&Header::default(), &claims, key.key_value.as_ref())
         .map_err(DbError::Jsonwebtoken)?;

@@ -103,7 +103,7 @@ fn main() {
 }
 
 fn config(server_addr: String) -> Result<ark_auth::api::ApiConfig, ark_auth::CliError> {
-    let mut config = ark_auth::api::ApiConfig::new(server_addr);
+    let mut config = ark_auth::api::ApiConfig::new(server_addr).set_password_pwned(true);
 
     let smtp_host = std::env::var("SMTP_HOST").map_err(ark_auth::CliError::StdEnvVar);
     let smtp_port = std::env::var("SMTP_PORT").map_err(ark_auth::CliError::StdEnvVar);

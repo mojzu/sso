@@ -13,7 +13,7 @@ use futures::future;
 use serde::de::DeserializeOwned;
 use validator::Validate;
 
-// TODO(feature): Audit logging, x-forwarded-for header.
+// TODO(feature): Audit logging, x-forwarded-for header for user sessions.
 // TODO(feature): Metrics, status/events page.
 
 /// API module errors.
@@ -100,6 +100,7 @@ pub struct ApiConfigOauth2 {
 pub struct ApiConfig {
     server_addr: String,
     user_agent: String,
+    password_pwned: bool,
     smtp: Option<ApiConfigSmtp>,
     oauth2: ApiConfigOauth2,
 }
@@ -111,12 +112,19 @@ impl ApiConfig {
         ApiConfig {
             server_addr,
             user_agent,
+            password_pwned: false,
             smtp: None,
             oauth2: ApiConfigOauth2 {
                 github: None,
                 microsoft: None,
             },
         }
+    }
+
+    // Enable password pwned checks.
+    pub fn set_password_pwned(mut self, password_pwned: bool) -> Self {
+        self.password_pwned = password_pwned;
+        self
     }
 
     // Set SMTP provider.
@@ -168,6 +176,10 @@ impl ApiConfig {
         &self.user_agent
     }
 
+    pub fn password_pwned(&self) -> bool {
+        self.password_pwned
+    }
+
     pub fn smtp(&self) -> Option<&ApiConfigSmtp> {
         self.smtp.as_ref()
     }
@@ -196,6 +208,11 @@ impl ApiData {
     /// Configured user agent header value, for outgoing http requests.
     pub fn user_agent(&self) -> &str {
         self.config.user_agent()
+    }
+
+    /// Configured enable password pwned checks.
+    pub fn password_pwned(&self) -> bool {
+        self.config.password_pwned()
     }
 
     /// Configured SMTP settings.
