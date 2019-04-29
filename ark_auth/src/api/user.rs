@@ -1,6 +1,6 @@
 use crate::api::{
     auth::{check_password_meta, validate_name, validate_password, PasswordMetaResponse},
-    authenticate, body_json_config, ApiData, ApiError, BodyFromValue,
+    authenticate, body_json_config, ApiData, ApiError, FromJsonValue,
 };
 use crate::models::AuthUser;
 use actix_web::{
@@ -70,7 +70,7 @@ pub struct CreateBody {
     pub password: Option<String>,
 }
 
-impl BodyFromValue<CreateBody> for CreateBody {}
+impl FromJsonValue<CreateBody> for CreateBody {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateResponse {

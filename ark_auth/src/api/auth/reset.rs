@@ -2,7 +2,7 @@ use crate::api::{
     auth::{
         check_password_meta, validate_password, validate_token, PasswordMetaResponse, TokenResponse,
     },
-    authenticate, body_json_config, ApiData, ApiError, BodyFromValue,
+    authenticate, body_json_config, ApiData, ApiError, FromJsonValue,
 };
 use crate::db::DbError;
 use crate::email;
@@ -17,7 +17,7 @@ pub struct ResetPasswordBody {
     email: String,
 }
 
-impl BodyFromValue<ResetPasswordBody> for ResetPasswordBody {}
+impl FromJsonValue<ResetPasswordBody> for ResetPasswordBody {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
@@ -28,7 +28,7 @@ pub struct ResetPasswordConfirmBody {
     password: String,
 }
 
-impl BodyFromValue<ResetPasswordConfirmBody> for ResetPasswordConfirmBody {}
+impl FromJsonValue<ResetPasswordConfirmBody> for ResetPasswordConfirmBody {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResetPasswordConfirmResponse {

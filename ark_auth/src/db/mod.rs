@@ -4,6 +4,7 @@ pub mod key;
 pub mod service;
 pub mod user;
 
+use crate::api;
 use crate::models::{AuthCsrf, AuthKey, AuthService, AuthUser};
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
@@ -64,6 +65,14 @@ impl DbOrder {
                 _ => Err(DbError::InvalidOrder),
             },
             None => Ok(DbOrder::Asc),
+        }
+    }
+
+    /// Return owned string representation.
+    pub fn to_string(&self) -> String {
+        match self {
+            DbOrder::Asc => "asc".to_owned(),
+            DbOrder::Desc => "desc".to_owned(),
         }
     }
 }
@@ -306,17 +315,21 @@ impl Db {
 
     pub fn key_list(
         &self,
-        offset: Option<i64>,
+        gt: Option<i64>,
+        lt: Option<i64>,
         limit: Option<i64>,
-        order: Option<&str>,
         service_id: i64,
-    ) -> Result<Vec<AuthKey>, DbError> {
-        let offset = offset.unwrap_or(0);
+    ) -> Result<(api::key::ListMetaResponse, Vec<AuthKey>), DbError> {
         let limit = limit.unwrap_or(100);
-        let order = DbOrder::parse(order)?;
+        let gt = match lt {
+            Some(_) => None,
+            None => Some(gt.unwrap_or(0)),
+        };
+        let meta = api::key::ListMetaResponse { gt, lt, limit };
 
         let conn = self.connection()?;
-        key::list(offset, limit, order, service_id, &conn)
+        let keys = key::list(gt, lt, limit, service_id, &conn)?;
+        Ok((meta, keys))
     }
 
     pub fn key_create(

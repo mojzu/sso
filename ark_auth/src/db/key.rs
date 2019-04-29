@@ -1,4 +1,4 @@
-use crate::db::{DbError, DbOrder};
+use crate::db::DbError;
 use crate::models::{AuthKey, AuthKeyInsert, AuthKeyUpdate};
 use crate::schema;
 use diesel::pg::Pg;
@@ -7,28 +7,23 @@ use diesel::sql_types::Bool;
 use uuid::Uuid;
 
 pub fn list(
-    offset: i64,
+    gt: Option<i64>,
+    lt: Option<i64>,
     limit: i64,
-    order: DbOrder,
     key_service_id: i64,
     conn: &PgConnection,
 ) -> Result<Vec<AuthKey>, DbError> {
     use crate::schema::auth_key::dsl::*;
 
-    let filter_expr: Box<BoxableExpression<schema::auth_key::table, Pg, SqlType = Bool>> =
-        match order {
-            DbOrder::Asc => Box::new(key_id.gt(offset)),
-            DbOrder::Desc => Box::new(key_id.lt(offset)),
-        };
-    let order_expr: Box<BoxableExpression<schema::auth_key::table, Pg, SqlType = ()>> = match order
+    let filter_expr: Box<BoxableExpression<schema::auth_key::table, Pg, SqlType = Bool>> = match lt
     {
-        DbOrder::Asc => Box::new(key_id.asc()),
-        DbOrder::Desc => Box::new(key_id.desc()),
+        Some(lt) => Box::new(key_id.lt(lt)),
+        None => Box::new(key_id.gt(gt.unwrap_or(0))),
     };
     auth_key
         .filter(service_id.eq(key_service_id).and(filter_expr))
         .limit(limit)
-        .order(order_expr)
+        .order(key_id.asc())
         .load::<AuthKey>(conn)
         .map_err(Into::into)
 }

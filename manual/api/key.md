@@ -9,32 +9,45 @@ Read many keys.
 #### Request
 
 ```
-?offset=X&limit=Y&order=Z
+?gt=X&lt=Y&limit=Z
 ```
 
--   `offset`: ID offset (optional).
--   `limit`: Limit number of returned items (optional).
--   `order`: ID order, `asc` or `desc` (optional).
+- `gt`: Greater than ID (optional).
+- `lt`: Less than ID (optional).
+- `limit`: Limit number of returned items (optional).
 
 #### Response [200, OK]
 
 ```JSON
 {
+    "meta": {
+        "gt": 0,
+        "lt": null,
+        "limit": 10
+    },
     "data": [
         ...
     ]
 }
 ```
 
--   `data`: Array of read items.
+##### Meta
+
+- `gt`: Greater than ID, or null.
+- `lt`: Greater than ID, or null.
+- `limit`: Returned items limit.
+
+##### Data
+
+Array of read items.
 
 #### Response [400, Bad Request]
 
--   Request query is invalid.
+- Request query is invalid.
 
 #### Response [403, Forbidden]
 
--   Authorisation header is invalid.
+- Authorisation header is invalid.
 
 ### Create One [POST]
 
@@ -49,8 +62,8 @@ Create one key.
 }
 ```
 
--   `name`: Key name (required).
--   `user_id`: User ID (required).
+- `name`: Key name (required).
+- `user_id`: User ID (required).
 
 #### Response [200, OK]
 

@@ -1,6 +1,6 @@
 use crate::api::key::Key;
 use crate::api::{
-    auth::validate_name, authenticate, body_json_config, ApiData, ApiError, BodyFromValue,
+    auth::validate_name, authenticate, body_json_config, ApiData, ApiError, FromJsonValue,
 };
 use crate::models::AuthService;
 use actix_web::http::StatusCode;
@@ -63,7 +63,7 @@ pub struct CreateBody {
     pub url: String,
 }
 
-impl BodyFromValue<CreateBody> for CreateBody {}
+impl FromJsonValue<CreateBody> for CreateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateResponse {

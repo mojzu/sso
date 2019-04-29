@@ -1,6 +1,6 @@
 use crate::api::{
-    auth::{validate_id, validate_name},
-    authenticate, body_json_config, ApiData, ApiError, BodyFromValue,
+    auth::{validate_id, validate_name, validate_unsigned},
+    authenticate, body_json_config, ApiData, ApiError, FromJsonValue,
 };
 use crate::models::AuthKey;
 use actix_web::http::StatusCode;
@@ -26,9 +26,10 @@ pub fn v1_service() -> actix_web::Scope {
         )
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Key {
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub id: i64,
     pub name: String,
     pub value: String,
@@ -40,6 +41,7 @@ impl From<AuthKey> for Key {
     fn from(key: AuthKey) -> Self {
         Key {
             created_at: key.created_at,
+            updated_at: key.updated_at,
             id: key.key_id,
             name: key.key_name,
             value: key.key_value,
@@ -49,15 +51,28 @@ impl From<AuthKey> for Key {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 pub struct ListQuery {
-    pub offset: Option<i64>,
+    #[validate(custom = "validate_unsigned")]
+    pub gt: Option<i64>,
+    #[validate(custom = "validate_unsigned")]
+    pub lt: Option<i64>,
+    #[validate(custom = "validate_unsigned")]
     pub limit: Option<i64>,
-    pub order: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+impl FromJsonValue<ListQuery> for ListQuery {}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListMetaResponse {
+    pub gt: Option<i64>,
+    pub lt: Option<i64>,
+    pub limit: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListResponse {
+    pub meta: ListMetaResponse,
     pub data: Vec<Key>,
 }
 
@@ -69,7 +84,7 @@ pub struct CreateBody {
     pub user_id: i64,
 }
 
-impl BodyFromValue<CreateBody> for CreateBody {}
+impl FromJsonValue<CreateBody> for CreateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateBody {
@@ -79,15 +94,16 @@ pub struct UpdateBody {
 pub fn v1_list(
     data: web::Data<ApiData>,
     id: Identity,
-    query: web::Query<ListQuery>,
+    query: web::Query<serde_json::Value>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
-    let query = query.into_inner();
 
-    list_inner(data, id, query).then(|r| match r {
-        Ok(r) => future::ok(HttpResponse::Ok().json(r)),
-        Err(e) => future::ok(e.error_response()),
-    })
+    ListQuery::from_value(query.into_inner())
+        .and_then(move |query| list_inner(data, id, query))
+        .then(|r| match r {
+            Ok(r) => future::ok(HttpResponse::Ok().json(r)),
+            Err(e) => future::ok(e.error_response()),
+        })
 }
 
 fn list_inner(
@@ -98,16 +114,11 @@ fn list_inner(
     web::block(move || {
         authenticate(&data, id).and_then(|service| {
             data.db
-                .key_list(
-                    query.offset,
-                    query.limit,
-                    query.order.as_ref().map(|x| &**x),
-                    service.service_id,
-                )
+                .key_list(query.gt, query.lt, query.limit, service.service_id)
                 .map_err(Into::into)
-                .map(|keys| {
+                .map(|(meta, keys)| {
                     let data: Vec<Key> = keys.into_iter().map(Into::into).collect();
-                    ListResponse { data }
+                    ListResponse { meta, data }
                 })
         })
     })

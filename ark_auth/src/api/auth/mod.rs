@@ -3,7 +3,7 @@ pub mod oauth2;
 pub mod reset;
 pub mod token;
 
-use crate::api::{authenticate, body_json_config, ApiData, ApiError, BodyFromValue};
+use crate::api::{authenticate, body_json_config, ApiData, ApiError, FromJsonValue};
 use crate::db::{DbError, KeyData, TokenData};
 use actix_web::http::{header, StatusCode};
 use actix_web::{middleware::identity::Identity, web, Error, HttpResponse, ResponseError};
@@ -62,6 +62,21 @@ pub fn validate_id(id: i64) -> Result<(), ValidationError> {
     }
 }
 
+pub fn validate_unsigned(id: i64) -> Result<(), ValidationError> {
+    if id < 0 {
+        Err(ValidationError::new("invalid_unsigned"))
+    } else {
+        Ok(())
+    }
+}
+
+pub fn validate_order(order: &str) -> Result<(), ValidationError> {
+    match order {
+        "asc" | "desc" => Ok(()),
+        _ => Err(ValidationError::new("invalid_order")),
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct LoginBody {
@@ -71,7 +86,7 @@ pub struct LoginBody {
     pub password: String,
 }
 
-impl BodyFromValue<LoginBody> for LoginBody {}
+impl FromJsonValue<LoginBody> for LoginBody {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PasswordMetaResponse {
@@ -101,7 +116,7 @@ pub struct TokenBody {
     pub token: String,
 }
 
-impl BodyFromValue<TokenBody> for TokenBody {}
+impl FromJsonValue<TokenBody> for TokenBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenResponse {
@@ -115,7 +130,7 @@ pub struct KeyBody {
     pub key: String,
 }
 
-impl BodyFromValue<KeyBody> for KeyBody {}
+impl FromJsonValue<KeyBody> for KeyBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeyResponse {

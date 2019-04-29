@@ -83,5 +83,5 @@ $ rm -rf docs && mdbook build
 Run unit and integration tests.
 
 ```Shell
-$ diesel database reset --migration-dir migrations/postgres && cargo test
+$ diesel database reset --migration-dir migrations/postgres && cargo test [--test $test_name]
 ```

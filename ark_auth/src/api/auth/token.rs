@@ -1,6 +1,6 @@
 use crate::api::{
     auth::{TokenBody, TokenResponse},
-    authenticate, body_json_config, ApiData, ApiError, BodyFromValue,
+    authenticate, body_json_config, ApiData, ApiError, FromJsonValue,
 };
 use crate::db::DbError;
 use actix_web::{middleware::identity::Identity, web, Error, HttpResponse, ResponseError};

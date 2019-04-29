@@ -330,7 +330,7 @@ pub fn body_json_config() -> web::JsonConfig {
 }
 
 /// Body from JSON value validation trait.
-trait BodyFromValue<T: DeserializeOwned + Validate> {
+trait FromJsonValue<T: DeserializeOwned + Validate> {
     /// Extract and validate body from JSON value.
     fn from_value(value: serde_json::Value) -> future::FutureResult<T, ApiError> {
         future::result(
