@@ -201,7 +201,7 @@ $ cargo run start
 $ rm -rf docs &amp;&amp; mdbook build
 </code></pre>
 <p>Run unit and integration tests.</p>
-<pre><code class="language-Shell">$ diesel database reset --migration-dir migrations/postgres &amp;&amp; cargo test
+<pre><code class="language-Shell">$ diesel database reset --migration-dir migrations/postgres &amp;&amp; cargo test [--test $test_name]
 </code></pre>
 
                     </main>

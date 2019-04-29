@@ -145,23 +145,33 @@
 <a class="header" href="#read-many-get" id="read-many-get"><h3>Read Many [GET]</h3></a>
 <p>Read many keys.</p>
 <a class="header" href="#request" id="request"><h4>Request</h4></a>
-<pre><code>?offset=X&amp;limit=Y&amp;order=Z
+<pre><code>?gt=X&amp;lt=Y&amp;limit=Z
 </code></pre>
 <ul>
-<li><code>offset</code>: ID offset (optional).</li>
+<li><code>gt</code>: Greater than ID (optional).</li>
+<li><code>lt</code>: Less than ID (optional).</li>
 <li><code>limit</code>: Limit number of returned items (optional).</li>
-<li><code>order</code>: ID order, <code>asc</code> or <code>desc</code> (optional).</li>
 </ul>
 <a class="header" href="#response-200-ok" id="response-200-ok"><h4>Response [200, OK]</h4></a>
 <pre><code class="language-JSON">{
+    &quot;meta&quot;: {
+        &quot;gt&quot;: 0,
+        &quot;lt&quot;: null,
+        &quot;limit&quot;: 10
+    },
     &quot;data&quot;: [
         ...
     ]
 }
 </code></pre>
+<a class="header" href="#meta" id="meta"><h5>Meta</h5></a>
 <ul>
-<li><code>data</code>: Array of read items.</li>
+<li><code>gt</code>: Greater than ID, or null.</li>
+<li><code>lt</code>: Greater than ID, or null.</li>
+<li><code>limit</code>: Returned items limit.</li>
 </ul>
+<a class="header" href="#data" id="data"><h5>Data</h5></a>
+<p>Array of read items.</p>
 <a class="header" href="#response-400-bad-request" id="response-400-bad-request"><h4>Response [400, Bad Request]</h4></a>
 <ul>
 <li>Request query is invalid.</li>
