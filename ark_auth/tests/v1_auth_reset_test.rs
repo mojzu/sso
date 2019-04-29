@@ -1,6 +1,7 @@
 mod support;
 
 use actix_web::http::StatusCode;
+use ark_auth::api::auth::reset::ResetPasswordConfirmResponse;
 
 #[test]
 fn post_reset_password_authorisation_test() {
@@ -178,8 +179,11 @@ fn post_reset_password_confirm_test() {
         payload,
     );
     assert_eq!(status_code, StatusCode::OK);
-    assert_eq!(content_length, 0);
-    assert_eq!(bytes.len(), 0);
+    assert_eq!(content_length, bytes.len());
+
+    let body: ResetPasswordConfirmResponse = serde_json::from_slice(&bytes).unwrap();
+    assert!(body.meta.password_strength.is_some());
+    assert_eq!(body.meta.password_pwned, None);
 
     // User password is updated.
     // 200 OK response.

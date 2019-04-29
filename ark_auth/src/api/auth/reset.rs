@@ -32,7 +32,7 @@ impl FromJsonValue<ResetPasswordConfirmBody> for ResetPasswordConfirmBody {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResetPasswordConfirmResponse {
-    meta: PasswordMetaResponse,
+    pub meta: PasswordMetaResponse,
 }
 
 /// Version 1 authentication reset routes scope.
