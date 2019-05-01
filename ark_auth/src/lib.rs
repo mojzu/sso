@@ -19,10 +19,13 @@ extern crate validator_derive;
 
 pub mod api;
 pub mod db;
-pub mod driver;
 mod email;
 pub mod models;
 mod schema;
+
+// TODO(refactor): Refactor here.
+pub mod driver;
+pub mod server;
 
 use crate::api::ApiConfig;
 use crate::models::{AuthKey, AuthService};
