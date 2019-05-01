@@ -12,9 +12,6 @@ use diesel::r2d2::ConnectionManager;
 // TODO(refactor): Diesel query clean up.
 // TODO(feature): SQLite database support.
 
-// Database migrations embedded in binary output for use in production.
-embed_migrations!("migrations/postgres");
-
 #[derive(Fail, Debug)]
 pub enum DbError {
     #[fail(display = "DbError::Unwrap {}", _0)]
@@ -101,10 +98,6 @@ impl Db {
     pub fn new(url: &str) -> Self {
         let manager = ConnectionManager::<PgConnection>::new(url);
         let pool = r2d2::Pool::builder().build(manager).unwrap();
-
-        let conn = pool.get().unwrap();
-        embedded_migrations::run(&conn).unwrap();
-
         Db { pool }
     }
 

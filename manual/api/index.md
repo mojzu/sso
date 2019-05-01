@@ -1,6 +1,6 @@
 # API
 
-HTTP endpoints are available at `$SERVER_ADDR`.
+HTTP endpoints are available at `$SERVER_BIND`.
 
 Requests are authenticated using `Authorization: $key_value` header. Service keys can be created via command line.
 

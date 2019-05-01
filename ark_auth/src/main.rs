@@ -1,25 +1,27 @@
 #[macro_use]
 extern crate clap;
 #[macro_use]
+extern crate diesel_migrations;
+#[macro_use]
 extern crate log;
 
 use clap::{App, Arg, SubCommand};
+use diesel::prelude::*;
 use sentry::integrations::log::LoggerOptions;
 
 // TODO(feature): Docker image output.
 // TODO(refactor): Clean up unwrap, other possible panics.
 
-/// Initialise command.
 const COMMAND_INIT: &str = "init";
-
-/// Start command.
 const COMMAND_START: &str = "start";
 
-/// Service name command line argument.
 const ARG_SERVICE_NAME: &str = "NAME";
-
-/// Service URL command line argument.
 const ARG_SERVICE_URL: &str = "URL";
+
+struct Configuration {
+    pub database_url: String,
+    pub server_configuration: ark_auth::api::ApiConfig,
+}
 
 fn main() {
     // Configure logging environment variables.
@@ -60,7 +62,7 @@ fn main() {
                         .required(true)
                         .index(1),
                     Arg::with_name(ARG_SERVICE_URL)
-                        .help("Service url")
+                        .help("Service URL")
                         .required(true)
                         .index(2),
                 ]),
@@ -71,14 +73,17 @@ fn main() {
         ])
         .get_matches();
 
-    let db_url = std::env::var("DATABASE_URL").unwrap();
-    let server_addr = std::env::var("SERVER_ADDR").unwrap();
+    // Build configuration from environment and run embedded migrations.
+    let configuration = configuration_from_environment().unwrap();
+    run_migrations(&configuration.database_url);
 
+    // Call library functions with command line arguments.
+    // TODO(refactor): Library API, postgres/sqlite drivers.
     let result = match matches.subcommand() {
         (COMMAND_INIT, Some(submatches)) => {
             let name = submatches.value_of(ARG_SERVICE_NAME).unwrap();
             let url = submatches.value_of(ARG_SERVICE_URL).unwrap();
-            ark_auth::cli_init(&db_url, name, url).map(|(service, key)| {
+            ark_auth::cli_init(&configuration.database_url, name, url).map(|(service, key)| {
                 println!("service_id: {}", service.service_id);
                 println!("service_name: {}", service.service_name);
                 println!("key_id: {}", key.key_id);
@@ -86,13 +91,15 @@ fn main() {
                 0
             })
         }
-        (COMMAND_START, Some(_submatches)) => match config(server_addr) {
-            Ok(config) => ark_auth::cli_start(config, &db_url).map(|_| 0),
-            Err(e) => Err(e),
-        },
+        (COMMAND_START, Some(_submatches)) => ark_auth::cli_start(
+            configuration.server_configuration,
+            &configuration.database_url,
+        )
+        .map(|_| 0),
         _ => Err(ark_auth::CliError::InvalidCommand),
     };
 
+    // Handle errors and exit with code.
     match result {
         Ok(code) => std::process::exit(code),
         Err(e) => {
@@ -102,8 +109,13 @@ fn main() {
     }
 }
 
-fn config(server_addr: String) -> Result<ark_auth::api::ApiConfig, ark_auth::CliError> {
-    let mut config = ark_auth::api::ApiConfig::new(server_addr).set_password_pwned(true);
+/// Build configuration from environment.
+fn configuration_from_environment() -> Result<Configuration, ark_auth::CliError> {
+    // TODO(refactor): Clean this up.
+    let database_url = std::env::var("DATABASE_URL").unwrap();
+    let server_bind = std::env::var("SERVER_BIND").unwrap();
+    let mut server_configuration =
+        ark_auth::api::ApiConfig::new(server_bind).set_password_pwned(true);
 
     let smtp_host = std::env::var("SMTP_HOST").map_err(ark_auth::CliError::StdEnvVar);
     let smtp_port = std::env::var("SMTP_PORT").map_err(ark_auth::CliError::StdEnvVar);
@@ -111,7 +123,8 @@ fn config(server_addr: String) -> Result<ark_auth::api::ApiConfig, ark_auth::Cli
     let smtp_password = std::env::var("SMTP_PASSWORD").map_err(ark_auth::CliError::StdEnvVar);
     if smtp_host.is_ok() || smtp_port.is_ok() || smtp_user.is_ok() || smtp_password.is_ok() {
         let smtp_port = smtp_port?.parse::<u16>().unwrap();
-        config = config.set_smtp(smtp_host?, smtp_port, smtp_user?, smtp_password?);
+        server_configuration =
+            server_configuration.set_smtp(smtp_host?, smtp_port, smtp_user?, smtp_password?);
     }
 
     let gh_client_id = std::env::var("GITHUB_CLIENT_ID").map_err(ark_auth::CliError::StdEnvVar);
@@ -120,7 +133,11 @@ fn config(server_addr: String) -> Result<ark_auth::api::ApiConfig, ark_auth::Cli
     let gh_redirect_url =
         std::env::var("GITHUB_REDIRECT_URL").map_err(ark_auth::CliError::StdEnvVar);
     if gh_client_id.is_ok() || gh_client_secret.is_ok() || gh_redirect_url.is_ok() {
-        config = config.set_oauth2_github(gh_client_id?, gh_client_secret?, gh_redirect_url?);
+        server_configuration = server_configuration.set_oauth2_github(
+            gh_client_id?,
+            gh_client_secret?,
+            gh_redirect_url?,
+        );
     }
 
     let ms_client_id = std::env::var("MICROSOFT_CLIENT_ID").map_err(ark_auth::CliError::StdEnvVar);
@@ -129,8 +146,37 @@ fn config(server_addr: String) -> Result<ark_auth::api::ApiConfig, ark_auth::Cli
     let ms_redirect_url =
         std::env::var("MICROSOFT_REDIRECT_URL").map_err(ark_auth::CliError::StdEnvVar);
     if ms_client_id.is_ok() || ms_client_secret.is_ok() || ms_redirect_url.is_ok() {
-        config = config.set_oauth2_microsoft(ms_client_id?, ms_client_secret?, ms_redirect_url?);
+        server_configuration = server_configuration.set_oauth2_microsoft(
+            ms_client_id?,
+            ms_client_secret?,
+            ms_redirect_url?,
+        );
     }
 
-    Ok(config)
+    Ok(Configuration {
+        database_url,
+        server_configuration,
+    })
+}
+
+// Embed PostgreSQL migrations.
+#[cfg(all(feature = "postgres", not(feature = "sqlite")))]
+embed_migrations!("migrations/postgres");
+
+/// Run PostgreSQL embedded migrations.
+#[cfg(all(feature = "postgres", not(feature = "sqlite")))]
+fn run_migrations(database_url: &str) {
+    let connection = diesel::pg::PgConnection::establish(database_url).unwrap();
+    embedded_migrations::run(&connection).unwrap();
+}
+
+// Embed SQLite migrations.
+#[cfg(all(feature = "sqlite", not(feature = "postgres")))]
+embed_migrations!("migrations/sqlite");
+
+/// Run SQLite embedded migrations.
+#[cfg(all(feature = "sqlite", not(feature = "postgres")))]
+fn run_migrations(database_url: &str) {
+    let connection = diesel::sqlite::SqliteConnection::establish(database_url).unwrap();
+    embedded_migrations::run(&connection).unwrap();
 }

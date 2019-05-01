@@ -4,6 +4,11 @@ version = "0.1.0"
 authors = ["Sam Ward <mail@mojzu.net>"]
 edition = "2018"
 
+[features]
+default = ["postgres"]
+postgres = []
+sqlite = []
+
 [dependencies]
 actix = "*"
 actix-http = "*"
@@ -13,16 +18,17 @@ actix-web = { version = "1.0.0-beta.2", features = ["rust-tls", "client"] }
 bcrypt = "*"
 clap = "*"
 chrono = { version = "*", features = ["serde"] }
-diesel = { version = "*", features = ["postgres", "r2d2", "chrono", "serde_json"] }
-diesel_migrations = { version = "*", features = ["postgres"] }
+diesel = { version = "*", features = ["postgres", "sqlite", "r2d2", "chrono", "serde_json"] }
+diesel_migrations = { version = "*", features = ["postgres", "sqlite"] }
 env_logger = "*"
 failure = "*"
 futures = "*"
 jsonwebtoken = "*"
 lettre = "*"
 lettre_email = "*"
-log = { version = "*", features = ["max_level_trace", "release_max_level_info"] }
+# TODO(refactor): Remove native-tls dependency (lettre).
 native-tls = "*"
+log = { version = "*", features = ["max_level_trace", "release_max_level_info"] }
 r2d2 = "*"
 oauth2 = "2.0.0-beta.2"
 sentry = "*"

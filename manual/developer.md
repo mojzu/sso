@@ -34,8 +34,8 @@ Export environment variables.
 ```Shell
 # Database connection URL, required.
 $ export DATABASE_URL="postgres://ark_auth:guest@localhost:5432/ark_auth"
-# Server address, required.
-$ export SERVER_ADDR="localhost:9000"
+# Server bind, required.
+$ export SERVER_BIND="localhost:9000"
 # SMTP configured, required for reset password emails.
 $ export SMTP_HOST="..."
 $ export SMTP_PORT="..."

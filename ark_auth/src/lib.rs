@@ -1,9 +1,9 @@
+#![recursion_limit = "1024"]
+
 #[macro_use]
 extern crate clap;
 #[macro_use]
 extern crate diesel;
-#[macro_use]
-extern crate diesel_migrations;
 #[macro_use]
 extern crate failure;
 #[macro_use]
@@ -15,6 +15,7 @@ extern crate validator_derive;
 
 pub mod api;
 pub mod db;
+pub mod drivers;
 mod email;
 pub mod models;
 mod schema;

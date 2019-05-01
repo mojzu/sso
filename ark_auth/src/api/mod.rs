@@ -98,7 +98,7 @@ pub struct ApiConfigOauth2 {
 /// API service configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiConfig {
-    server_addr: String,
+    server_bind: String,
     user_agent: String,
     password_pwned: bool,
     smtp: Option<ApiConfigSmtp>,
@@ -107,10 +107,10 @@ pub struct ApiConfig {
 
 impl ApiConfig {
     /// Construct new configuration.
-    pub fn new(server_addr: String) -> Self {
+    pub fn new(server_bind: String) -> Self {
         let user_agent = format!("{}/{}", crate_name!(), crate_version!());
         ApiConfig {
-            server_addr,
+            server_bind,
             user_agent,
             password_pwned: false,
             smtp: None,
@@ -168,8 +168,8 @@ impl ApiConfig {
         self
     }
 
-    pub fn server_addr(&self) -> &str {
-        &self.server_addr
+    pub fn server_bind(&self) -> &str {
+        &self.server_bind
     }
 
     pub fn user_agent(&self) -> &str {
@@ -262,7 +262,7 @@ pub fn start(config: ApiConfig, db: Db) {
             // Default route (method not allowed).
             .default_service(web::route().to(HttpResponse::MethodNotAllowed))
     })
-    .bind(config.server_addr())
+    .bind(config.server_bind())
     .unwrap()
     .start();
 }
