@@ -1,12 +1,10 @@
 #[macro_use]
 extern crate clap;
 #[macro_use]
-extern crate diesel_migrations;
-#[macro_use]
 extern crate log;
 
+use ark_auth::driver;
 use clap::{App, Arg, SubCommand};
-use diesel::prelude::*;
 use sentry::integrations::log::LoggerOptions;
 
 // TODO(feature): Docker image output.
@@ -73,9 +71,9 @@ fn main() {
         ])
         .get_matches();
 
-    // Build configuration from environment and run embedded migrations.
+    // Build configuration from environment and initialise driver.
     let configuration = configuration_from_environment().unwrap();
-    run_migrations(&configuration.database_url);
+    let _driver = initialise_driver(&configuration.database_url);
 
     // Call library functions with command line arguments.
     // TODO(refactor): Library API, postgres/sqlite drivers.
@@ -159,24 +157,12 @@ fn configuration_from_environment() -> Result<Configuration, ark_auth::CliError>
     })
 }
 
-// Embed PostgreSQL migrations.
 #[cfg(all(feature = "postgres", not(feature = "sqlite")))]
-embed_migrations!("migrations/postgres");
-
-/// Run PostgreSQL embedded migrations.
-#[cfg(all(feature = "postgres", not(feature = "sqlite")))]
-fn run_migrations(database_url: &str) {
-    let connection = diesel::pg::PgConnection::establish(database_url).unwrap();
-    embedded_migrations::run(&connection).unwrap();
+fn initialise_driver(database_url: &str) -> impl driver::Driver {
+    driver::postgres::Driver::initialise(database_url).unwrap()
 }
 
-// Embed SQLite migrations.
 #[cfg(all(feature = "sqlite", not(feature = "postgres")))]
-embed_migrations!("migrations/sqlite");
-
-/// Run SQLite embedded migrations.
-#[cfg(all(feature = "sqlite", not(feature = "postgres")))]
-fn run_migrations(database_url: &str) {
-    let connection = diesel::sqlite::SqliteConnection::establish(database_url).unwrap();
-    embedded_migrations::run(&connection).unwrap();
+fn initialise_driver(database_url: &str) -> impl driver::Driver {
+    driver::sqlite::Driver::initialise(database_url).unwrap()
 }
