@@ -1,6 +1,6 @@
 //! # User
 use crate::{
-    server,
+    core, server,
     server::{route_json_config, route_response, validate_unsigned, Data, ValidateFromValue},
 };
 use actix_web::{middleware::identity::Identity, web, Error, HttpResponse};
@@ -12,7 +12,7 @@ use validator::Validate;
 pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/user").service(
         web::resource("")
-            .route(web::get().to_async(api_v1_list))
+            .route(web::get().to_async(v1_list))
             // .route(web::post().data(route_json_config()).to_async(v1_create)),
     )
     .service(
@@ -25,6 +25,7 @@ pub fn api_v1_scope() -> actix_web::Scope {
 
 /// List query.
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
 pub struct ListQuery {
     #[validate(custom = "validate_unsigned")]
     pub gt: Option<i64>,
@@ -36,23 +37,21 @@ pub struct ListQuery {
 
 impl ValidateFromValue<ListQuery> for ListQuery {}
 
-// TODO(refactor): Refactor User into driver.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct User {
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-    pub id: i64,
-    pub name: String,
-    pub email: String,
+pub struct ListMetaResponse {
+    pub gt: Option<i64>,
+    pub lt: Option<i64>,
+    pub limit: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListResponse {
-    pub data: Vec<User>,
+    pub meta: ListMetaResponse,
+    pub data: Vec<core::User>,
 }
 
 /// API version 1 user list route.
-pub fn api_v1_list(
+pub fn v1_list(
     data: web::Data<Data>,
     id: Identity,
     query: web::Query<serde_json::Value>,
@@ -60,17 +59,40 @@ pub fn api_v1_list(
     let id = id.identity();
 
     ListQuery::from_value(query.into_inner())
-        .and_then(|query| {
-            web::block(move || list_inner(data.get_ref(), id, query)).map_err(Into::into)
-        })
+        .and_then(|query| list_inner(data, id, query))
         .then(|result| route_response(result))
 }
 
 /// User list handler.
 fn list_inner(
-    data: &Data,
+    data: web::Data<Data>,
     id: Option<String>,
     query: ListQuery,
-) -> Result<ListResponse, server::Error> {
-    unimplemented!();
+) -> impl Future<Item = ListResponse, Error = server::Error> {
+    web::block(move || {
+        core::service_authenticate(data.driver(), id)
+            .and_then(|service| {
+                let limit = query.limit.unwrap_or(10);
+                let (gt, lt, users) = match query.lt {
+                    Some(lt) => {
+                        let users =
+                            core::user_list_where_id_lt(data.driver(), &service, lt, limit)?;
+                        (None, Some(lt), users)
+                    }
+                    None => {
+                        let gt = query.gt.unwrap_or(0);
+                        let users =
+                            core::user_list_where_id_gt(data.driver(), &service, gt, limit)?;
+                        (Some(gt), None, users)
+                    }
+                };
+
+                Ok(ListResponse {
+                    meta: ListMetaResponse { gt, lt, limit },
+                    data: users,
+                })
+            })
+            .map_err(Into::into)
+    })
+    .map_err(Into::into)
 }

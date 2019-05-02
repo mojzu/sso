@@ -1,7 +1,7 @@
 //! # PostgreSQL Driver
 mod schema;
 
-use crate::driver;
+use crate::{core, driver};
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
 
@@ -38,5 +38,9 @@ impl Driver {
 impl driver::Driver for Driver {
     fn box_clone(&self) -> Box<driver::Driver> {
         Box::new((*self).clone())
+    }
+
+    fn service_read_by_key_value(&self, key_value: &str) -> Result<core::Service, driver::Error> {
+        unimplemented!();
     }
 }

@@ -24,6 +24,7 @@ pub mod models;
 mod schema;
 
 // TODO(refactor): Refactor here.
+pub mod core;
 pub mod driver;
 pub mod server;
 

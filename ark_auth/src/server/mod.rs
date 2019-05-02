@@ -2,7 +2,7 @@
 //! HTTP server.
 pub mod user;
 
-use crate::driver;
+use crate::{core, driver};
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
     middleware,
@@ -23,9 +23,9 @@ pub enum Error {
     /// Forbidden, authentication failure.
     #[fail(display = "ServerError::Forbidden")]
     Forbidden,
-    /// Driver error wrapper.
-    #[fail(display = "ServerError::DriverError {}", _0)]
-    Driver(#[fail(cause)] driver::Error),
+    /// Core error wrapper.
+    #[fail(display = "ServerError::CoreError {}", _0)]
+    Core(#[fail(cause)] core::Error),
     /// Actix web blocking error cancelled wrapper.
     #[fail(display = "ServerError::ActixWebBlockingCancelled")]
     ActixWebBlockingCancelled,
@@ -34,9 +34,9 @@ pub enum Error {
     StdIo(#[fail(cause)] std::io::Error),
 }
 
-impl From<driver::Error> for Error {
-    fn from(error: driver::Error) -> Self {
-        Error::Driver(error)
+impl From<core::Error> for Error {
+    fn from(error: core::Error) -> Self {
+        Error::Core(error)
     }
 }
 
@@ -170,6 +170,9 @@ pub fn api_v1_scope() -> actix_web::Scope {
         .service(web::resource("/ping").route(web::get().to(api_v1_ping)))
         .service(user::api_v1_scope())
 }
+
+// TODO(feature): Prometheus metrics.
+// <https://prometheus.io/>
 
 /// Service configuration.
 pub fn api_service(configuration: &mut web::ServiceConfig) {
