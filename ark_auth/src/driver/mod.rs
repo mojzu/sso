@@ -17,4 +17,4 @@ pub enum Error {
 }
 
 /// Driver trait.
-pub trait Driver {}
+pub trait Driver: Clone + Send + Sync {}
