@@ -1,6 +1,6 @@
 //! # Server
 //! HTTP server.
-// pub mod user;
+pub mod user;
 
 use crate::driver;
 use actix_web::{
@@ -9,10 +9,16 @@ use actix_web::{
     middleware::identity::{IdentityPolicy, IdentityService},
     web, App, HttpResponse, HttpServer,
 };
+use futures::future;
+use serde::de::DeserializeOwned;
+use validator::{Validate};
 
 /// Server errors.
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// Bad request, deserialisation failure.
+    #[fail(display = "ServerError::BadRequest")]
+    BadRequest,
     /// Forbidden, authentication failure.
     #[fail(display = "ServerError::Forbidden")]
     Forbidden,
@@ -81,6 +87,7 @@ impl Configuration {
 }
 
 /// Server data.
+#[derive(Clone)]
 pub struct Data {
     configuration: Configuration,
     driver: Box<driver::Driver>,
@@ -88,10 +95,10 @@ pub struct Data {
 
 impl Data {
     /// Create new data.
-    pub fn new<T: driver::Driver + 'static>(configuration: Configuration, driver: T) -> Self {
+    pub fn new(configuration: Configuration, driver: Box<driver::Driver>) -> Self {
         Data {
             configuration,
-            driver: Box::new(driver),
+            driver,
         }
     }
 
@@ -100,10 +107,10 @@ impl Data {
         &self.configuration
     }
 
-    // /// Get referece to driver.
-    // pub fn driver<T: dyn driver::Driver>(&self) -> &T {
-    //     self.driver.as_ref()
-    // }
+    /// Get reference to driver.
+    pub fn driver(&self) -> &driver::Driver {
+        self.driver.as_ref()
+    }
 }
 
 /// Authorisation identity policy.
@@ -160,7 +167,7 @@ pub fn api_v1_ping() -> actix_web::Result<HttpResponse> {
 pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/v1")
         .service(web::resource("/ping").route(web::get().to(api_v1_ping)))
-        // .service(user::api_v1_scope())
+        .service(user::api_v1_scope())
 }
 
 /// Service configuration.
@@ -169,16 +176,13 @@ pub fn api_service(configuration: &mut web::ServiceConfig) {
 }
 
 /// Start HTTP server.
-pub fn start<T: driver::Driver + 'static>(
-    configuration: Configuration,
-    driver: T,
-) -> Result<(), Error> {
+pub fn start(configuration: Configuration, driver: Box<driver::Driver>) -> Result<(), Error> {
     let bind = configuration.bind().to_owned();
 
     let server = HttpServer::new(move || {
         App::new()
             // Shared data.
-            .data(Data::new(configuration.clone(), driver))
+            .data(Data::new(configuration.clone(), driver.clone()))
             // Logger middleware.
             .wrap(middleware::Logger::default())
             // TODO(refactor): Sentry middleware support.
@@ -199,4 +203,31 @@ pub fn start<T: driver::Driver + 'static>(
 /// Route body JSON size limit configuration.
 pub fn body_json_config() -> web::JsonConfig {
     web::JsonConfig::default().limit(1024)
+}
+
+/// Validate JSON value trait.
+trait ValidateJsonValue<T: DeserializeOwned + Validate> {
+    /// Extract and validate data from JSON value.
+    fn from_value(value: serde_json::Value) -> future::FutureResult<T, Error> {
+        future::result(
+            serde_json::from_value::<T>(value)
+                .map_err(|_e| Error::BadRequest)
+                .and_then(|body| {
+                    body.validate().map_err(|_e| Error::BadRequest)?;
+                    Ok(body)
+                }),
+        )
+    }
+}
+
+pub mod validate {
+    use validator::{ValidationError};
+
+    pub fn unsigned(id: i64) -> Result<(), ValidationError> {
+        if id < 0 {
+            Err(ValidationError::new("invalid_unsigned"))
+        } else {
+            Ok(())
+        }
+    }
 }

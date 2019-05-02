@@ -17,4 +17,13 @@ pub enum Error {
 }
 
 /// Driver trait.
-pub trait Driver: Send + Sync {}
+pub trait Driver: Send + Sync {
+    /// Return a boxed trait containing clone of self.
+    fn box_clone(&self) -> Box<Driver>;
+}
+
+impl Clone for Box<Driver> {
+    fn clone(&self) -> Box<Driver> {
+        self.box_clone()
+    }
+}

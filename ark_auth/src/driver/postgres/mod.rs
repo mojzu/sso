@@ -35,4 +35,8 @@ impl Driver {
     }
 }
 
-impl driver::Driver for Driver {}
+impl driver::Driver for Driver {
+    fn box_clone(&self) -> Box<driver::Driver> {
+        Box::new((*self).clone())
+    }
+}
