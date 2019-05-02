@@ -7,6 +7,7 @@ CREATE TABLE auth_user (
     user_email VARCHAR NOT NULL,
     user_password VARCHAR,
     user_password_revision BIGINT,
+    -- TODO(feature): User locale for translation support.
     CONSTRAINT uq_auth_user_email UNIQUE(user_email)
 );
 

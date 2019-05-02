@@ -7,11 +7,12 @@ use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
     middleware,
     middleware::identity::{IdentityPolicy, IdentityService},
-    web, App, HttpResponse, HttpServer,
+    web, App, HttpResponse, HttpServer, ResponseError,
 };
-use futures::future;
+use futures::{future, Future};
 use serde::de::DeserializeOwned;
-use validator::{Validate};
+use serde::Serialize;
+use validator::{Validate, ValidationError};
 
 /// Server errors.
 #[derive(Debug, Fail)]
@@ -200,13 +201,24 @@ pub fn start(configuration: Configuration, driver: Box<driver::Driver>) -> Resul
     Ok(())
 }
 
-/// Route body JSON size limit configuration.
-pub fn body_json_config() -> web::JsonConfig {
+/// Route JSON size limit configuration.
+pub fn route_json_config() -> web::JsonConfig {
     web::JsonConfig::default().limit(1024)
 }
 
+/// Route response handler.
+pub fn route_response<T: Serialize>(
+    result: Result<T, Error>,
+) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+    match result {
+        Ok(result) => future::ok(HttpResponse::Ok().json(result)),
+        Err(error) => future::ok(error.error_response()),
+    }
+}
+
+// TODO(refactor)
 /// Validate JSON value trait.
-trait ValidateJsonValue<T: DeserializeOwned + Validate> {
+pub trait ValidateFromValue<T: DeserializeOwned + Validate> {
     /// Extract and validate data from JSON value.
     fn from_value(value: serde_json::Value) -> future::FutureResult<T, Error> {
         future::result(
@@ -220,14 +232,10 @@ trait ValidateJsonValue<T: DeserializeOwned + Validate> {
     }
 }
 
-pub mod validate {
-    use validator::{ValidationError};
-
-    pub fn unsigned(id: i64) -> Result<(), ValidationError> {
-        if id < 0 {
-            Err(ValidationError::new("invalid_unsigned"))
-        } else {
-            Ok(())
-        }
+pub fn validate_unsigned(id: i64) -> Result<(), ValidationError> {
+    if id < 0 {
+        Err(ValidationError::new("invalid_unsigned"))
+    } else {
+        Ok(())
     }
 }
