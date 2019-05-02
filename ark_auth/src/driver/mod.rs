@@ -1,8 +1,8 @@
 //! # Drivers
 //! Binary application drivers.
-#[cfg(all(feature = "postgres", not(feature = "sqlite")))]
+#[cfg(feature = "postgres")]
 pub mod postgres;
-#[cfg(all(feature = "sqlite", not(feature = "postgres")))]
+#[cfg(feature = "sqlite")]
 pub mod sqlite;
 
 /// Driver errors.
@@ -17,4 +17,4 @@ pub enum Error {
 }
 
 /// Driver trait.
-pub trait Driver: Clone + Send + Sync {}
+pub trait Driver: Send + Sync {}

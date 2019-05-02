@@ -1,5 +1,6 @@
 //! # Server
 //! HTTP server.
+// pub mod user;
 
 use crate::driver;
 use actix_web::{
@@ -80,18 +81,17 @@ impl Configuration {
 }
 
 /// Server data.
-#[derive(Clone)]
-pub struct Data<T: driver::Driver> {
+pub struct Data {
     configuration: Configuration,
-    driver: T,
+    driver: Box<driver::Driver>,
 }
 
-impl<T: driver::Driver> Data<T> {
+impl Data {
     /// Create new data.
-    pub fn new(configuration: Configuration, driver: T) -> Self {
+    pub fn new<T: driver::Driver + 'static>(configuration: Configuration, driver: T) -> Self {
         Data {
             configuration,
-            driver,
+            driver: Box::new(driver),
         }
     }
 
@@ -100,10 +100,10 @@ impl<T: driver::Driver> Data<T> {
         &self.configuration
     }
 
-    /// Get referece to driver.
-    pub fn driver(&self) -> &T {
-        &self.driver
-    }
+    // /// Get referece to driver.
+    // pub fn driver<T: dyn driver::Driver>(&self) -> &T {
+    //     self.driver.as_ref()
+    // }
 }
 
 /// Authorisation identity policy.
@@ -150,9 +150,17 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
     }
 }
 
-/// Version 1 service scope.
+/// API version 1 ping route.
+pub fn api_v1_ping() -> actix_web::Result<HttpResponse> {
+    let body = r#"pong"#;
+    Ok(HttpResponse::Ok().json(body))
+}
+
+/// API version 1 service scope.
 pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/v1")
+        .service(web::resource("/ping").route(web::get().to(api_v1_ping)))
+        // .service(user::api_v1_scope())
 }
 
 /// Service configuration.
@@ -170,7 +178,7 @@ pub fn start<T: driver::Driver + 'static>(
     let server = HttpServer::new(move || {
         App::new()
             // Shared data.
-            .data(Data::new(configuration.clone(), driver.clone()))
+            .data(Data::new(configuration.clone(), driver))
             // Logger middleware.
             .wrap(middleware::Logger::default())
             // TODO(refactor): Sentry middleware support.
@@ -186,4 +194,9 @@ pub fn start<T: driver::Driver + 'static>(
 
     server.start();
     Ok(())
+}
+
+/// Route body JSON size limit configuration.
+pub fn body_json_config() -> web::JsonConfig {
+    web::JsonConfig::default().limit(1024)
 }
