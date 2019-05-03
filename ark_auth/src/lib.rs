@@ -17,12 +17,6 @@ extern crate serde_derive;
 #[macro_use]
 extern crate validator_derive;
 
-pub mod api;
-pub mod db;
-mod email;
-pub mod models;
-mod schema;
-
 // TODO(refactor): Refactor here.
 pub mod core;
 pub mod driver;

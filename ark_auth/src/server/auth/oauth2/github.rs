@@ -1,10 +1,9 @@
-use crate::api::auth::oauth2::{oauth2_login, oauth2_redirect, CallbackQuery, UrlResponse};
-use crate::api::{authenticate, ApiConfigOauth2Provider, ApiData, ApiError};
-use crate::models::AuthService;
+//! # GitHub
+use crate::server::{Data, Error};
 use actix_http::http::header::ContentType;
 use actix_web::http::{header, StatusCode};
 use actix_web::middleware::identity::Identity;
-use actix_web::{web, Error, HttpResponse};
+use actix_web::{web, HttpResponse};
 use futures::{future, Future};
 use oauth2::basic::BasicClient;
 use oauth2::prelude::*;
@@ -20,9 +19,9 @@ pub struct GithubUser {
 }
 
 pub fn v1(
-    data: web::Data<ApiData>,
+    data: web::Data<Data>,
     id: Identity,
-) -> impl Future<Item = HttpResponse, Error = Error> {
+) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
     web::block(move || authenticate(&data, id).and_then(|s| github_authorise(&data, s)))
@@ -31,9 +30,9 @@ pub fn v1(
 }
 
 pub fn v1_callback(
-    data: web::Data<ApiData>,
+    data: web::Data<Data>,
     query: web::Query<CallbackQuery>,
-) -> impl Future<Item = HttpResponse, Error = Error> {
+) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     web::block(move || github_callback(data, &query.code, &query.state))
         .map_err(Into::into)
         .and_then(move |(data, access_token, service_id)| {
@@ -46,7 +45,7 @@ pub fn v1_callback(
         .map(|(token, service)| oauth2_redirect(token, service))
 }
 
-fn github_authorise(data: &web::Data<ApiData>, service: AuthService) -> Result<String, ApiError> {
+fn github_authorise(data: &web::Data<Data>, service: AuthService) -> Result<String, Error> {
     // Generate the authorization URL to which we'll redirect the user.
     let client = github_client(data.oauth2_github())?;
     let (authorize_url, state) = client.authorize_url(CsrfToken::new_random);
@@ -54,25 +53,25 @@ fn github_authorise(data: &web::Data<ApiData>, service: AuthService) -> Result<S
     // Save the state and code verifier secrets as a CSRF key, value.
     data.db
         .csrf_create(&state.secret(), &state.secret(), service.service_id)
-        .map_err(ApiError::Db)?;
+        .map_err(Error::Db)?;
 
     Ok(authorize_url.to_string())
 }
 
 fn github_callback(
-    data: web::Data<ApiData>,
+    data: web::Data<Data>,
     code: &str,
     state: &str,
-) -> Result<(web::Data<ApiData>, String, i64), ApiError> {
+) -> Result<(web::Data<Data>, String, i64), Error> {
     // Read the CSRF key using state value, rebuild code verifier from value.
-    let csrf = data.db.csrf_read_by_key(&state).map_err(ApiError::Db)?;
+    let csrf = data.db.csrf_read_by_key(&state).map_err(Error::Db)?;
 
     // Exchange the code with a token.
     let client = github_client(data.oauth2_github())?;
     let code = AuthorizationCode::new(code.to_owned());
     let token = client
         .exchange_code(code)
-        .map_err(|_e| ApiError::Unwrap("failed to exchange code"))?;
+        .map_err(|_e| Error::Unwrap("failed to exchange code"))?;
 
     // Return access token value.
     Ok((
@@ -83,10 +82,10 @@ fn github_callback(
 }
 
 fn github_api_user_email(
-    data: web::Data<ApiData>,
+    data: web::Data<Data>,
     access_token: &str,
     service_id: i64,
-) -> impl Future<Item = (web::Data<ApiData>, String, i64), Error = ApiError> {
+) -> impl Future<Item = (web::Data<Data>, String, i64), Error = Error> {
     let client = actix_web::client::Client::new();
     let authorisation_header = format!("token {}", access_token);
     client
@@ -95,21 +94,21 @@ fn github_api_user_email(
         .header(header::CONTENT_TYPE, ContentType::json())
         .header(header::USER_AGENT, data.user_agent())
         .send()
-        .map_err(|_e| ApiError::Unwrap("failed to client.request"))
+        .map_err(|_e| Error::Unwrap("failed to client.request"))
         .and_then(|response| match response.status() {
             StatusCode::OK => future::ok(response),
-            _ => future::err(ApiError::Unwrap("failed to receive ok response")),
+            _ => future::err(Error::Unwrap("failed to receive ok response")),
         })
         .and_then(|mut response| {
             response
                 .json::<GithubUser>()
-                .map_err(|_e| ApiError::Unwrap("failed to parse json"))
+                .map_err(|_e| Error::Unwrap("failed to parse json"))
         })
         .map(move |response| (data, response.email, service_id))
 }
 
-fn github_client(provider: Option<&ApiConfigOauth2Provider>) -> Result<BasicClient, ApiError> {
-    let provider = provider.ok_or(ApiError::InvalidOauth2Provider)?;
+fn github_client(provider: Option<&ApiConfigOauth2Provider>) -> Result<BasicClient, Error> {
+    let provider = provider.ok_or(Error::InvalidOauth2Provider)?;
 
     let github_client_id = ClientId::new(provider.client_id.to_owned());
     let github_client_secret = ClientSecret::new(provider.client_secret.to_owned());

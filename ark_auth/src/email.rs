@@ -6,6 +6,8 @@ use lettre::{ClientSecurity, ClientTlsParameters, SmtpClient, Transport};
 use lettre_email::Email;
 use native_tls::{Protocol, TlsConnector};
 
+// TODO(implement): Implement this.
+
 pub fn send_reset_password(
     smtp: Option<&ApiConfigSmtp>,
     user: &AuthUser,

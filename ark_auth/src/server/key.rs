@@ -1,14 +1,13 @@
-//! # User
+//! # Key
 use crate::{
     core,
     server::{
-        auth::{password_meta, PasswordMeta},
-        route_json_config, route_response_empty, route_response_json, validate_name,
-        validate_password, validate_unsigned, Data, Error, ValidateFromValue,
+        route_json_config, route_response_empty, route_response_json, validate_id, validate_name,
+        validate_unsigned, Data, Error, ValidateFromValue,
     },
 };
 use actix_web::{middleware::identity::Identity, web, HttpResponse};
-use futures::{future, Future};
+use futures::Future;
 use validator::Validate;
 
 /// List query.
@@ -35,10 +34,10 @@ pub struct ListMetaResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListResponse {
     pub meta: ListMetaResponse,
-    pub data: Vec<core::User>,
+    pub data: Vec<core::Key>,
 }
 
-/// API version 1 user list route.
+/// API version 1 key list route.
 pub fn api_v1_list(
     data: web::Data<Data>,
     id: Identity,
@@ -60,23 +59,21 @@ fn list_inner(
         core::service_authenticate(data.driver(), id)
             .and_then(|service| {
                 let limit = query.limit.unwrap_or(10);
-                let (gt, lt, users) = match query.lt {
+                let (gt, lt, keys) = match query.lt {
                     Some(lt) => {
-                        let users =
-                            core::user_list_where_id_lt(data.driver(), &service, lt, limit)?;
-                        (None, Some(lt), users)
+                        let keys = core::key_list_where_id_lt(data.driver(), &service, lt, limit)?;
+                        (None, Some(lt), keys)
                     }
                     None => {
                         let gt = query.gt.unwrap_or(0);
-                        let users =
-                            core::user_list_where_id_gt(data.driver(), &service, gt, limit)?;
-                        (Some(gt), None, users)
+                        let keys = core::key_list_where_id_gt(data.driver(), &service, gt, limit)?;
+                        (Some(gt), None, keys)
                     }
                 };
 
                 Ok(ListResponse {
                     meta: ListMetaResponse { gt, lt, limit },
-                    data: users,
+                    data: keys,
                 })
             })
             .map_err(Into::into)
@@ -89,21 +86,18 @@ fn list_inner(
 pub struct CreateBody {
     #[validate(custom = "validate_name")]
     pub name: String,
-    #[validate(email)]
-    pub email: String,
-    #[validate(custom = "validate_password")]
-    pub password: Option<String>,
+    #[validate(custom = "validate_id")]
+    pub user_id: i64,
 }
 
 impl ValidateFromValue<CreateBody> for CreateBody {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateResponse {
-    meta: PasswordMeta,
-    data: core::User,
+    data: core::Key,
 }
 
-/// API version 1 user create route.
+/// API version 1 key create route.
 pub fn api_v1_create(
     data: web::Data<Data>,
     id: Identity,
@@ -126,34 +120,20 @@ fn create_inner(
     web::block(move || {
         core::service_authenticate(data.driver(), id)
             .and_then(|service| {
-                core::user_create(
-                    data.driver(),
-                    &service,
-                    &body.name,
-                    &body.email,
-                    body.password.as_ref().map(|x| &**x),
-                )
+                core::key_create(data.driver(), &service, &body.name, Some(body.user_id))
             })
             .map_err(Into::into)
     })
     .map_err(Into::into)
-    .and_then(move |user| {
-        let password_meta = password_meta(&data1, body1.password.as_ref().map(|x| &**x));
-        let user = future::ok(user);
-        password_meta.join(user)
-    })
-    .map(|(meta, user)| CreateResponse {
-        meta,
-        data: user.into(),
-    })
+    .map(|key| CreateResponse { data: key })
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReadResponse {
-    data: core::User,
+    data: core::Key,
 }
 
-/// API version 1 user read route.
+/// API version 1 key read route.
 pub fn api_v1_read(
     data: web::Data<Data>,
     id: Identity,
@@ -167,15 +147,15 @@ pub fn api_v1_read(
 fn read_inner(
     data: web::Data<Data>,
     id: Option<String>,
-    user_id: i64,
+    key_id: i64,
 ) -> impl Future<Item = ReadResponse, Error = Error> {
     web::block(move || {
         core::service_authenticate(data.driver(), id)
-            .and_then(|service| core::user_read_by_id(data.driver(), &service, user_id))
+            .and_then(|service| core::key_read_by_id(data.driver(), &service, key_id))
             .map_err(Into::into)
     })
     .map_err(Into::into)
-    .map(|user| ReadResponse { data: user })
+    .map(|key| ReadResponse { data: key })
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
@@ -189,10 +169,10 @@ impl ValidateFromValue<UpdateBody> for UpdateBody {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateResponse {
-    data: core::User,
+    data: core::Key,
 }
 
-/// API version 1 user update route.
+/// API version 1 key update route.
 pub fn api_v1_update(
     data: web::Data<Data>,
     id: Identity,
@@ -209,26 +189,26 @@ pub fn api_v1_update(
 fn update_inner(
     data: web::Data<Data>,
     id: Option<String>,
-    user_id: i64,
+    key_id: i64,
     body: UpdateBody,
 ) -> impl Future<Item = UpdateResponse, Error = Error> {
     web::block(move || {
         core::service_authenticate(data.driver(), id)
             .and_then(|service| {
-                core::user_update_by_id(
+                core::key_update_by_id(
                     data.driver(),
                     &service,
-                    user_id,
+                    key_id,
                     body.name.as_ref().map(|x| &**x),
                 )
             })
             .map_err(Into::into)
     })
     .map_err(Into::into)
-    .map(|user| UpdateResponse { data: user })
+    .map(|key| UpdateResponse { data: key })
 }
 
-/// API version 1 user delete route.
+/// API version 1 key delete route.
 pub fn api_v1_delete(
     data: web::Data<Data>,
     id: Identity,
@@ -242,11 +222,11 @@ pub fn api_v1_delete(
 fn delete_inner(
     data: web::Data<Data>,
     id: Option<String>,
-    user_id: i64,
+    key_id: i64,
 ) -> impl Future<Item = usize, Error = Error> {
     web::block(move || {
         core::service_authenticate(data.driver(), id)
-            .and_then(|service| core::user_delete_by_id(data.driver(), &service, user_id))
+            .and_then(|service| core::key_delete_by_id(data.driver(), &service, key_id))
             .map_err(Into::into)
     })
     .map_err(Into::into)
@@ -254,7 +234,7 @@ fn delete_inner(
 
 /// API version 1 service scope.
 pub fn api_v1_scope() -> actix_web::Scope {
-    web::scope("/user")
+    web::scope("/key")
         .service(
             web::resource("")
                 .route(web::get().to_async(api_v1_list))
@@ -265,7 +245,7 @@ pub fn api_v1_scope() -> actix_web::Scope {
                 ),
         )
         .service(
-            web::resource("/{user_id}")
+            web::resource("/{key_id}")
                 .route(web::get().to_async(api_v1_read))
                 .route(
                     web::patch()

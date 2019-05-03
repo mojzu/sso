@@ -9,7 +9,7 @@ use crate::models::{AuthCsrf, AuthKey, AuthService, AuthUser};
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
 
-// TODO(refactor): Diesel query clean up.
+// TODO(refactor): Diesel query clean up, refactor this to driver.
 // TODO(feature): SQLite database support.
 
 #[derive(Fail, Debug)]

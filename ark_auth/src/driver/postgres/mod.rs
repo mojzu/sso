@@ -1,4 +1,5 @@
 //! # PostgreSQL Driver
+mod models;
 mod schema;
 
 use crate::{core, driver};
