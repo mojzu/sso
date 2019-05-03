@@ -4,7 +4,7 @@ use crate::server::{
     auth::{TokenBody, TokenResponse},
     route_json_config, route_response_empty, route_response_json, Data, Error, ValidateFromValue,
 };
-use actix_web::{identity::Identity, HttpResponse};
+use actix_web::{middleware::identity::Identity, web, HttpResponse};
 use futures::Future;
 
 /// API version 1 verify route.

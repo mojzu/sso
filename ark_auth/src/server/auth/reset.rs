@@ -5,7 +5,7 @@ use crate::server::{
     route_json_config, route_response_empty, route_response_json, validate_password,
     validate_token, Data, Error, ValidateFromValue,
 };
-use actix_web::{identity::Identity, HttpResponse};
+use actix_web::{middleware::identity::Identity, web, HttpResponse};
 use futures::Future;
 use validator::Validate;
 
@@ -76,7 +76,7 @@ pub fn api_v1_password_confirm(
 fn password_confirm_inner(
     data: web::Data<Data>,
     id: Option<String>,
-    body: ResetPasswordBody,
+    body: ResetPasswordConfirmBody,
 ) -> impl Future<Item = ResetPasswordConfirmResponse, Error = Error> {
     let (data1, body1) = (data.clone(), body.clone());
 

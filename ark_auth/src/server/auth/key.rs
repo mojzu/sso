@@ -1,8 +1,11 @@
 //! # Key
+use crate::core;
 use crate::server::{
     auth::{KeyBody, KeyResponse},
     route_json_config, route_response_empty, route_response_json, Data, Error, ValidateFromValue,
 };
+use actix_web::{middleware::identity::Identity, web, HttpResponse};
+use futures::Future;
 
 /// API version 1 verify route.
 pub fn api_v1_verify(
@@ -71,7 +74,7 @@ pub fn api_v1_scope() -> actix_web::Scope {
             web::resource("/revoke").route(
                 web::post()
                     .data(route_json_config())
-                    .to_async(api_v1_key_revoke),
+                    .to_async(api_v1_revoke),
             ),
         )
 }

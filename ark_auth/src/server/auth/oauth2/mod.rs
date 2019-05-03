@@ -1,7 +1,10 @@
 pub mod github;
 pub mod microsoft;
 
+use crate::core;
 use crate::server::validate_token;
+use actix_web::{http::header, web, HttpResponse};
+use url::Url;
 use validator::Validate;
 
 // TODO(feature): Other OAuth2 providers support.
@@ -17,6 +20,16 @@ pub struct CallbackQuery {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UrlResponse {
     pub url: String,
+}
+
+pub fn oauth2_redirect(token: core::UserToken, service: core::Service) -> HttpResponse {
+    let mut url = Url::parse(&service.service_url).unwrap();
+    let token_query = format!("token={}", token.token);
+    url.set_query(Some(&token_query));
+
+    HttpResponse::Found()
+        .header(header::LOCATION, url.as_str())
+        .finish()
 }
 
 /// Version 1 API authentication oauth2 scope.

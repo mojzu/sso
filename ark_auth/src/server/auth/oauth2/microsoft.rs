@@ -1,5 +1,9 @@
 //! # Microsoft
-use crate::server::{Data, Error};
+use crate::core;
+use crate::server::{
+    auth::oauth2::{oauth2_redirect, CallbackQuery, UrlResponse},
+    ConfigurationOauth2Provider, Data, Error, route_response_json,
+};
 use actix_http::http::header::ContentType;
 use actix_web::http::{header, StatusCode};
 use actix_web::middleware::identity::Identity;
@@ -24,9 +28,20 @@ pub fn v1(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
-    web::block(move || authenticate(&data, id).and_then(|s| microsoft_authorise(&data, s)))
-        .map_err(Into::into)
-        .map(|x| HttpResponse::build(StatusCode::OK).json(UrlResponse { url: x }))
+    v1_inner(data, id).then(|result| route_response_json(result))
+}
+
+fn v1_inner(
+    data: web::Data<Data>,
+    id: Option<String>,
+) -> impl Future<Item = UrlResponse, Error = Error> {
+    web::block(move || {
+        core::service_authenticate(data.driver(), id)
+            .map_err(Into::into)
+            .and_then(|s| microsoft_authorise(&data, s))
+    })
+    .map_err(Into::into)
+    .map(|url| UrlResponse { url })
 }
 
 pub fn v1_callback(
@@ -39,13 +54,14 @@ pub fn v1_callback(
             microsoft_api_user_email(data, &access_token, service_id)
         })
         .and_then(|(data, email, service_id)| {
-            web::block(move || oauth2_login(&data, &email, service_id)).map_err(Into::into)
+            web::block(move || core::oauth2_login(data.driver(), service_id, &email))
+                .map_err(Into::into)
         })
         .map_err(Into::into)
         .map(|(token, service)| oauth2_redirect(token, service))
 }
 
-fn microsoft_authorise(data: &web::Data<ApiData>, service: AuthService) -> Result<String, Error> {
+fn microsoft_authorise(data: &web::Data<Data>, service: core::Service) -> Result<String, Error> {
     // Microsoft Graph supports Proof Key for Code Exchange (PKCE - https://oauth.net/2/pkce/).
     // Create a PKCE code verifier and SHA-256 encode it as a code challenge.
     let code_verifier = PkceCodeVerifierS256::new_random();
@@ -71,7 +87,7 @@ fn microsoft_callback(
     data: web::Data<Data>,
     code: &str,
     state: &str,
-) -> Result<(web::Data<ApiData>, String, i64), Error> {
+) -> Result<(web::Data<Data>, String, i64), Error> {
     // Read the CSRF key using state value, rebuild code verifier from value.
     let csrf = data.db.csrf_read_by_key(&state).map_err(Error::Db)?;
 
@@ -97,7 +113,7 @@ fn microsoft_api_user_email(
     data: web::Data<Data>,
     access_token: &str,
     service_id: i64,
-) -> impl Future<Item = (web::Data<ApiData>, String, i64), Error = Error> {
+) -> impl Future<Item = (web::Data<Data>, String, i64), Error = Error> {
     let client = actix_web::client::Client::new();
     let authorisation_header = format!("Bearer {}", access_token);
     client
@@ -119,7 +135,7 @@ fn microsoft_api_user_email(
         .map(move |response| (data, response.mail, service_id))
 }
 
-fn microsoft_client(provider: Option<&ApiConfigOauth2Provider>) -> Result<BasicClient, Error> {
+fn microsoft_client(provider: Option<&ConfigurationOauth2Provider>) -> Result<BasicClient, Error> {
     let provider = provider.ok_or(Error::InvalidOauth2Provider)?;
 
     let graph_client_id = ClientId::new(provider.client_id.to_owned());

@@ -1,5 +1,9 @@
 //! # GitHub
-use crate::server::{Data, Error};
+use crate::core;
+use crate::server::{
+    auth::oauth2::{oauth2_redirect, CallbackQuery, UrlResponse},
+    ConfigurationOauth2Provider, Data, Error, route_response_json,
+};
 use actix_http::http::header::ContentType;
 use actix_web::http::{header, StatusCode};
 use actix_web::middleware::identity::Identity;
@@ -24,9 +28,20 @@ pub fn v1(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
-    web::block(move || authenticate(&data, id).and_then(|s| github_authorise(&data, s)))
-        .map_err(Into::into)
-        .map(|x| HttpResponse::build(StatusCode::OK).json(UrlResponse { url: x }))
+    v1_inner(data, id).then(|result| route_response_json(result))
+}
+
+fn v1_inner(
+    data: web::Data<Data>,
+    id: Option<String>,
+) -> impl Future<Item = UrlResponse, Error = Error> {
+    web::block(move || {
+        core::service_authenticate(data.driver(), id)
+            .map_err(Into::into)
+            .and_then(|s| github_authorise(&data, s).map_err(Into::into))
+    })
+    .map_err(Into::into)
+    .map(|url| UrlResponse { url })
 }
 
 pub fn v1_callback(
@@ -39,13 +54,14 @@ pub fn v1_callback(
             github_api_user_email(data, &access_token, service_id)
         })
         .and_then(|(data, email, service_id)| {
-            web::block(move || oauth2_login(&data, &email, service_id)).map_err(Into::into)
+            web::block(move || core::oauth2_login(data.driver(), service_id, &email))
+                .map_err(Into::into)
         })
         .map_err(Into::into)
         .map(|(token, service)| oauth2_redirect(token, service))
 }
 
-fn github_authorise(data: &web::Data<Data>, service: AuthService) -> Result<String, Error> {
+fn github_authorise(data: &web::Data<Data>, service: core::Service) -> Result<String, Error> {
     // Generate the authorization URL to which we'll redirect the user.
     let client = github_client(data.oauth2_github())?;
     let (authorize_url, state) = client.authorize_url(CsrfToken::new_random);
@@ -107,7 +123,7 @@ fn github_api_user_email(
         .map(move |response| (data, response.email, service_id))
 }
 
-fn github_client(provider: Option<&ApiConfigOauth2Provider>) -> Result<BasicClient, Error> {
+fn github_client(provider: Option<&ConfigurationOauth2Provider>) -> Result<BasicClient, Error> {
     let provider = provider.ok_or(Error::InvalidOauth2Provider)?;
 
     let github_client_id = ClientId::new(provider.client_id.to_owned());

@@ -115,8 +115,6 @@ fn create_inner(
     id: Option<String>,
     body: CreateBody,
 ) -> impl Future<Item = CreateResponse, Error = Error> {
-    let (data1, body1) = (data.clone(), body.clone());
-
     web::block(move || {
         core::service_authenticate(data.driver(), id)
             .and_then(|service| {

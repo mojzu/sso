@@ -56,7 +56,7 @@ impl From<core::Error> for Error {
 impl ResponseError for Error {
     fn error_response(&self) -> HttpResponse {
         match self {
-            // TODO(implement): Implement this.
+            // TODO(refactor): Refactor this.
             // ApiError::BadRequest => HttpResponse::BadRequest().finish(),
             // ApiError::Forbidden => HttpResponse::Forbidden().finish(),
             // ApiError::InvalidOauth2Provider => HttpResponse::MethodNotAllowed().finish(),
@@ -338,8 +338,8 @@ pub fn route_response_empty<T: Serialize>(
     result: Result<T, Error>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     match result {
-        Ok(result) => future::ok(HttpResponse::Ok().finish()),
-        Err(error) => future::ok(error.error_response()),
+        Ok(_r) => future::ok(HttpResponse::Ok().finish()),
+        Err(e) => future::ok(e.error_response()),
     }
 }
 
@@ -348,8 +348,8 @@ pub fn route_response_json<T: Serialize>(
     result: Result<T, Error>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     match result {
-        Ok(result) => future::ok(HttpResponse::Ok().json(result)),
-        Err(error) => future::ok(error.error_response()),
+        Ok(r) => future::ok(HttpResponse::Ok().json(r)),
+        Err(e) => future::ok(e.error_response()),
     }
 }
 

@@ -43,6 +43,15 @@ pub fn service_list_where_id_gt(
     unimplemented!();
 }
 
+/// Create service.
+pub fn service_create(
+    driver: &driver::Driver,
+    name: &str,
+    url: &str
+) -> Result<Service, Error> {
+    unimplemented!();
+}
+
 /// Read service by ID.
 /// TODO(refactor): Use Option here?
 pub fn service_read_by_id(
@@ -253,7 +262,7 @@ pub fn auth_reset_password(
     driver: &driver::Driver,
     service: &Service,
     email: &str,
-) -> Result<(), Error> {
+) -> Result<usize, Error> {
     unimplemented!();
 }
 
@@ -263,7 +272,25 @@ pub fn auth_reset_password_confirm(
     service: &Service,
     token: &str,
     password: &str,
-) -> Result<(), Error> {
+) -> Result<usize, Error> {
+    unimplemented!();
+}
+
+/// Verify user key.
+pub fn auth_key_verify(
+    driver: &driver::Driver,
+    service: &Service,
+    key: &str,
+) -> Result<UserKey, Error> {
+    unimplemented!();
+}
+
+/// Revoke user key.
+pub fn auth_key_revoke(
+    driver: &driver::Driver,
+    service: &Service,
+    key: &str,
+) -> Result<usize, Error> {
     unimplemented!();
 }
 
@@ -294,7 +321,16 @@ pub fn auth_token_revoke(
     unimplemented!();
 }
 
-// TODO(implement): Implement this.
+/// OAuth2 user login.
+pub fn oauth2_login(
+    driver: &driver::Driver,
+    service_id: i64,
+    email: &str,
+) -> Result<Service, UserToken> {
+    unimplemented!();
+}
+
+// TODO(refactor): Refactor this.
 // pub fn auth_reset_password() {
 // .and_then(|(service, (user, token_response))| {
 //     // Send user email with reset password confirmation link.
@@ -328,14 +364,4 @@ pub fn auth_token_revoke(
 //         .service_read_by_id(service_id, service_id)
 //         .map_err(ApiError::Db)?;
 //     Ok((token, service))
-// }
-
-// pub fn oauth2_redirect(token: TokenData, service: AuthService) -> HttpResponse {
-//     let mut url = Url::parse(&service.service_url).unwrap();
-//     let token_query = format!("token={}", token.token);
-//     url.set_query(Some(&token_query));
-
-//     HttpResponse::build(StatusCode::FOUND)
-//         .header(header::LOCATION, url.as_str())
-//         .finish()
 // }

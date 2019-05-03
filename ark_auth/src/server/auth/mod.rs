@@ -1,6 +1,6 @@
 //! # Authentication
 pub mod key;
-pub mod oauth2;
+// pub mod oauth2;
 pub mod reset;
 pub mod token;
 
@@ -157,15 +157,14 @@ fn login_inner(
         core::service_authenticate(data.driver(), id)
             .and_then(|service| {
                 core::auth_login(data.driver(), &service, &body.email, &body.password)
-                    // Map invalid password, not found errors to bad request to prevent leakage.
-                    // TODO(feature): Warning logs for bad requests.
-                    .map_err(|e| match e {
-                        // // TODO(implement): Implement this.
-                        // DbError::InvalidPassword | DbError::NotFound => ApiError::BadRequest,
-                        _e => Error::Core(_e),
-                    })
             })
-            .map_err(Into::into)
+            // Map invalid password, not found errors to bad request to prevent leakage.
+            // TODO(feature): Warning logs for bad requests.
+            .map_err(|e| match e {
+                // TODO(refactor): Refactor this.
+                // DbError::InvalidPassword | DbError::NotFound => ApiError::BadRequest,
+                _e => Error::Core(_e),
+            })
     })
     .map_err(Into::into)
     .and_then(move |user_token| {
@@ -186,7 +185,8 @@ pub fn api_v1_scope() -> actix_web::Scope {
             web::resource("/login")
                 .route(web::post().data(route_json_config()).to_async(api_v1_login)),
         )
-        .service(oauth2::api_v1_scope())
+        // TODO(refactor): Refactor this.
+        // .service(oauth2::api_v1_scope())
         .service(key::api_v1_scope())
         .service(reset::api_v1_scope())
         .service(token::api_v1_scope())
