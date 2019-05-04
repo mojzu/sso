@@ -1,5 +1,3 @@
-//! # Server
-//! HTTP server.
 pub mod auth;
 pub mod key;
 pub mod service;
@@ -13,8 +11,7 @@ use actix_web::{
     web, App, HttpResponse, HttpServer, ResponseError,
 };
 use futures::{future, Future};
-use serde::de::DeserializeOwned;
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
 use validator::{Validate, ValidationError};
 
 // TODO(feature): Audit logging, x-forwarded-for header.
@@ -33,6 +30,9 @@ pub enum Error {
     /// Client request error.
     #[fail(display = "ServerError::ApiPwnedPasswords")]
     ApiPwnedPasswords,
+    /// OAuth2 error.
+    #[fail(display = "ServerError::Oauth2")]
+    Oauth2,
     /// Core error wrapper.
     #[fail(display = "ServerError::CoreError {}", _0)]
     Core(#[fail(cause)] core::Error),
@@ -64,8 +64,8 @@ impl ResponseError for Error {
             //     error!("{}", e);
             //     HttpResponse::InternalServerError().finish()
             // }
-            _e => {
-                error!("{}", _e);
+            _err => {
+                error!("{}", _err);
                 HttpResponse::InternalServerError().finish()
             }
         }
@@ -84,9 +84,9 @@ impl From<actix_web::error::BlockingError<Error>> for Error {
 /// OAuth2 provider configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigurationOauth2Provider {
-    pub client_id: String,
-    pub client_secret: String,
-    pub redirect_url: String,
+    client_id: String,
+    client_secret: String,
+    redirect_url: String,
 }
 
 /// OAuth2 configuration.
@@ -99,10 +99,10 @@ pub struct ConfigurationOauth2 {
 /// SMTP configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigurationSmtp {
-    pub host: String,
-    pub port: u16,
-    pub user: String,
-    pub password: String,
+    host: String,
+    port: u16,
+    user: String,
+    password: String,
 }
 
 /// Server configuration.
@@ -284,8 +284,7 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
     }
 }
 
-/// API version 1 ping route.
-pub fn api_v1_ping() -> actix_web::Result<HttpResponse> {
+fn ping_handler() -> actix_web::Result<HttpResponse> {
     let body = r#"pong"#;
     Ok(HttpResponse::Ok().json(body))
 }
@@ -293,7 +292,7 @@ pub fn api_v1_ping() -> actix_web::Result<HttpResponse> {
 /// API version 1 service scope.
 pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/v1")
-        .service(web::resource("/ping").route(web::get().to(api_v1_ping)))
+        .service(web::resource("/ping").route(web::get().to(ping_handler)))
         .service(service::api_v1_scope())
         .service(user::api_v1_scope())
 }
@@ -353,16 +352,15 @@ pub fn route_response_json<T: Serialize>(
     }
 }
 
-// TODO(refactor)
 /// Validate JSON value trait.
 pub trait ValidateFromValue<T: DeserializeOwned + Validate> {
     /// Extract and validate data from JSON value.
     fn from_value(value: serde_json::Value) -> future::FutureResult<T, Error> {
         future::result(
             serde_json::from_value::<T>(value)
-                .map_err(|_e| Error::BadRequest)
+                .map_err(|_err| Error::BadRequest)
                 .and_then(|body| {
-                    body.validate().map_err(|_e| Error::BadRequest)?;
+                    body.validate().map_err(|_err| Error::BadRequest)?;
                     Ok(body)
                 }),
         )

@@ -2,28 +2,30 @@ pub mod github;
 pub mod microsoft;
 
 use crate::core;
-use crate::server::validate_token;
+use crate::server::{validate_token, ValidateFromValue};
 use actix_web::{http::header, web, HttpResponse};
 use url::Url;
 use validator::Validate;
 
-// TODO(feature): Other OAuth2 providers support.
+// TODO(feature): Support more OAuth2 providers (see oauth2 documentation).
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct CallbackQuery {
     #[validate(custom = "validate_token")]
-    pub code: String,
+    code: String,
     #[validate(custom = "validate_token")]
-    pub state: String,
+    state: String,
 }
+
+impl ValidateFromValue<CallbackQuery> for CallbackQuery {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UrlResponse {
-    pub url: String,
+    url: String,
 }
 
-pub fn oauth2_redirect(token: core::UserToken, service: core::Service) -> HttpResponse {
-    let mut url = Url::parse(&service.service_url).unwrap();
+pub fn oauth2_redirect(service: core::Service, token: core::UserToken) -> HttpResponse {
+    let mut url = Url::parse(&service.url).unwrap();
     let token_query = format!("token={}", token.token);
     url.set_query(Some(&token_query));
 
@@ -37,12 +39,12 @@ pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/oauth2")
         .service(
             web::resource("/github")
-                .route(web::post().to_async(github::v1))
-                .route(web::get().to_async(github::v1_callback)),
+                .route(web::post().to_async(github::request_handler))
+                .route(web::get().to_async(github::callback_handler)),
         )
         .service(
             web::resource("/microsoft")
-                .route(web::post().to_async(microsoft::v1))
-                .route(web::get().to_async(microsoft::v1_callback)),
+                .route(web::post().to_async(microsoft::request_handler))
+                .route(web::get().to_async(microsoft::callback_handler)),
         )
 }

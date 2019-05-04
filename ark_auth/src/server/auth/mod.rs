@@ -1,6 +1,5 @@
-//! # Authentication
 pub mod key;
-// pub mod oauth2;
+pub mod oauth2;
 pub mod reset;
 pub mod token;
 
@@ -18,10 +17,10 @@ use futures::{future, Future};
 use sha1::{Digest, Sha1};
 use validator::Validate;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PasswordMeta {
-    pub password_strength: Option<u8>,
-    pub password_pwned: Option<bool>,
+    password_strength: Option<u8>,
+    password_pwned: Option<bool>,
 }
 
 impl Default for PasswordMeta {
@@ -35,7 +34,7 @@ impl Default for PasswordMeta {
 
 /// Returns password strength and pwned checks.
 pub fn password_meta(
-    data: &web::Data<Data>,
+    data: &Data,
     password: Option<&str>,
 ) -> impl Future<Item = PasswordMeta, Error = Error> {
     match password {
@@ -67,10 +66,7 @@ fn password_meta_strength(password: &str) -> impl Future<Item = zxcvbn::Entropy,
 
 /// Returns true if password is present in `Pwned Passwords` index, else false.
 /// <https://haveibeenpwned.com/Passwords>
-fn password_meta_pwned(
-    data: &web::Data<Data>,
-    password: &str,
-) -> impl Future<Item = bool, Error = Error> {
+fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, Error = Error> {
     let password_pwned_enabled = data.configuration().password_pwned_enabled();
     let user_agent = data.configuration().user_agent();
 
@@ -87,7 +83,7 @@ fn password_meta_pwned(
                 .get(url)
                 .header(header::USER_AGENT, user_agent)
                 .send()
-                .map_err(|_e| Error::ApiPwnedPasswords)
+                .map_err(|_err| Error::ApiPwnedPasswords)
                 // Receive OK response and return body as string.
                 .and_then(|response| match response.status() {
                     StatusCode::OK => future::ok(response),
@@ -96,9 +92,9 @@ fn password_meta_pwned(
                 .and_then(|mut response| {
                     response
                         .body()
-                        .map_err(|_e| Error::ApiPwnedPasswords)
+                        .map_err(|_err| Error::ApiPwnedPasswords)
                         .and_then(|b| {
-                            String::from_utf8(b.to_vec()).map_err(|_e| Error::ApiPwnedPasswords)
+                            String::from_utf8(b.to_vec()).map_err(|_err| Error::ApiPwnedPasswords)
                         })
                 })
                 // Compare suffix of hash to lines to determine if password is pwned.
@@ -116,25 +112,24 @@ fn password_meta_pwned(
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-pub struct LoginBody {
+struct LoginBody {
     #[validate(email)]
-    pub email: String,
+    email: String,
     #[validate(custom = "validate_password")]
-    pub password: String,
+    password: String,
 }
 
 impl ValidateFromValue<LoginBody> for LoginBody {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LoginResponse {
-    pub meta: PasswordMeta,
-    pub data: core::UserToken,
+#[derive(Debug, Serialize, Deserialize)]
+struct LoginResponse {
+    meta: PasswordMeta,
+    data: core::UserToken,
 }
 
-/// API version 1 login route.
-pub fn api_v1_login(
+fn login_handler(
     data: web::Data<Data>,
     id: Identity,
     body: web::Json<serde_json::Value>,
@@ -142,51 +137,46 @@ pub fn api_v1_login(
     let id = id.identity();
 
     LoginBody::from_value(body.into_inner())
-        .and_then(|body| login_inner(data, id, body))
-        .then(|result| route_response_json(result))
+        .and_then(|body| {
+            web::block(move || {
+                let user_token = login_inner(data.get_ref(), id, &body)?;
+                Ok((data, body, user_token))
+            })
+            .map_err(Into::into)
+        })
+        .and_then(|(data, body, user_token)| {
+            let password_meta = password_meta(data.get_ref(), Some(&body.password));
+            let user_token = future::ok(user_token);
+            password_meta.join(user_token)
+        })
+        .map(|(meta, user_token)| LoginResponse {
+            meta,
+            data: user_token,
+        })
+        .then(|res| route_response_json(res))
 }
 
 fn login_inner(
-    data: web::Data<Data>,
+    data: &Data,
     id: Option<String>,
-    body: LoginBody,
-) -> impl Future<Item = LoginResponse, Error = Error> {
-    let (data1, body1) = (data.clone(), body.clone());
-
-    web::block(move || {
-        core::service_authenticate(data.driver(), id)
-            .and_then(|service| {
-                core::auth_login(data.driver(), &service, &body.email, &body.password)
-            })
-            // Map invalid password, not found errors to bad request to prevent leakage.
-            // TODO(feature): Warning logs for bad requests.
-            .map_err(|e| match e {
-                // TODO(refactor): Refactor this.
-                // DbError::InvalidPassword | DbError::NotFound => ApiError::BadRequest,
-                _e => Error::Core(_e),
-            })
-    })
-    .map_err(Into::into)
-    .and_then(move |user_token| {
-        let password_meta = password_meta(&data1, Some(&body1.password));
-        let user_token = future::ok(user_token);
-        password_meta.join(user_token)
-    })
-    .map(|(meta, user_token)| LoginResponse {
-        meta,
-        data: user_token,
-    })
+    body: &LoginBody,
+) -> Result<core::UserToken, Error> {
+    core::service::authenticate(data.driver(), id)
+        .and_then(|service| core::auth::login(data.driver(), &service, &body.email, &body.password))
+        .map_err(Into::into)
 }
 
 /// Version 1 API authentication scope.
 pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/auth")
         .service(
-            web::resource("/login")
-                .route(web::post().data(route_json_config()).to_async(api_v1_login)),
+            web::resource("/login").route(
+                web::post()
+                    .data(route_json_config())
+                    .to_async(login_handler),
+            ),
         )
-        // TODO(refactor): Refactor this.
-        // .service(oauth2::api_v1_scope())
+        .service(oauth2::api_v1_scope())
         .service(key::api_v1_scope())
         .service(reset::api_v1_scope())
         .service(token::api_v1_scope())
@@ -196,26 +186,26 @@ pub fn api_v1_scope() -> actix_web::Scope {
 #[serde(deny_unknown_fields)]
 pub struct TokenBody {
     #[validate(custom = "validate_token")]
-    pub token: String,
+    token: String,
 }
 
 impl ValidateFromValue<TokenBody> for TokenBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenResponse {
-    pub data: core::UserToken,
+    data: core::UserToken,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct KeyBody {
     #[validate(custom = "validate_key")]
-    pub key: String,
+    key: String,
 }
 
 impl ValidateFromValue<KeyBody> for KeyBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeyResponse {
-    pub data: core::UserKey,
+    data: core::UserKey,
 }

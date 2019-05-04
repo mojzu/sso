@@ -27,8 +27,8 @@ pub fn command_init(
     name: &str,
     url: &str,
 ) -> Result<(core::Service, core::Key), core::Error> {
-    let service = core::service_create(driver.as_ref(), name, url)?;
-    let key = core::key_create(driver.as_ref(), &service, name, None)?;
+    let service = core::service::create(driver.as_ref(), name, url)?;
+    let key = core::key::create(driver.as_ref(), &service, name, None)?;
     Ok((service, key))
 }
 

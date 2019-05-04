@@ -1,4 +1,3 @@
-//! # Token
 use crate::core;
 use crate::server::{
     auth::{TokenBody, TokenResponse},
@@ -7,8 +6,7 @@ use crate::server::{
 use actix_web::{middleware::identity::Identity, web, HttpResponse};
 use futures::Future;
 
-/// API version 1 verify route.
-pub fn api_v1_verify(
+fn verify_handler(
     data: web::Data<Data>,
     id: Identity,
     body: web::Json<serde_json::Value>,
@@ -16,26 +14,20 @@ pub fn api_v1_verify(
     let id = id.identity();
 
     TokenBody::from_value(body.into_inner())
-        .and_then(|body| verify_inner(data, id, body))
-        .then(|result| route_response_json(result))
+        .and_then(|body| {
+            web::block(move || verify_inner(data.get_ref(), id, &body)).map_err(Into::into)
+        })
+        .then(|res| route_response_json(res))
 }
 
-fn verify_inner(
-    data: web::Data<Data>,
-    id: Option<String>,
-    body: TokenBody,
-) -> impl Future<Item = TokenResponse, Error = Error> {
-    web::block(move || {
-        core::service_authenticate(data.driver(), id)
-            .and_then(|service| core::auth_token_verify(data.driver(), &service, &body.token))
-            .map_err(Into::into)
-    })
-    .map_err(Into::into)
-    .map(|user_token| TokenResponse { data: user_token })
+fn verify_inner(data: &Data, id: Option<String>, body: &TokenBody) -> Result<TokenResponse, Error> {
+    core::service::authenticate(data.driver(), id)
+        .and_then(|service| core::auth::token_verify(data.driver(), &service, &body.token))
+        .map_err(Into::into)
+        .map(|user_token| TokenResponse { data: user_token })
 }
 
-/// API version 1 refresh route.
-pub fn api_v1_refresh(
+fn refresh_handler(
     data: web::Data<Data>,
     id: Identity,
     body: web::Json<serde_json::Value>,
@@ -43,26 +35,24 @@ pub fn api_v1_refresh(
     let id = id.identity();
 
     TokenBody::from_value(body.into_inner())
-        .and_then(|body| refresh_inner(data, id, body))
-        .then(|result| route_response_json(result))
+        .and_then(|body| {
+            web::block(move || refresh_inner(data.get_ref(), id, &body)).map_err(Into::into)
+        })
+        .then(|res| route_response_json(res))
 }
 
 fn refresh_inner(
-    data: web::Data<Data>,
+    data: &Data,
     id: Option<String>,
-    body: TokenBody,
-) -> impl Future<Item = TokenResponse, Error = Error> {
-    web::block(move || {
-        core::service_authenticate(data.driver(), id)
-            .and_then(|service| core::auth_token_refresh(data.driver(), &service, &body.token))
-            .map_err(Into::into)
-    })
-    .map_err(Into::into)
-    .map(|user_token| TokenResponse { data: user_token })
+    body: &TokenBody,
+) -> Result<TokenResponse, Error> {
+    core::service::authenticate(data.driver(), id)
+        .and_then(|service| core::auth::token_refresh(data.driver(), &service, &body.token))
+        .map_err(Into::into)
+        .map(|user_token| TokenResponse { data: user_token })
 }
 
-/// API version 1 revoke route.
-pub fn api_v1_revoke(
+fn revoke_handler(
     data: web::Data<Data>,
     id: Identity,
     body: web::Json<serde_json::Value>,
@@ -70,21 +60,16 @@ pub fn api_v1_revoke(
     let id = id.identity();
 
     TokenBody::from_value(body.into_inner())
-        .and_then(|body| revoke_inner(data, id, body))
-        .then(|result| route_response_empty(result))
+        .and_then(|body| {
+            web::block(move || revoke_inner(data.get_ref(), id, &body)).map_err(Into::into)
+        })
+        .then(|res| route_response_empty(res))
 }
 
-fn revoke_inner(
-    data: web::Data<Data>,
-    id: Option<String>,
-    body: TokenBody,
-) -> impl Future<Item = usize, Error = Error> {
-    web::block(move || {
-        core::service_authenticate(data.driver(), id)
-            .and_then(|service| core::auth_token_revoke(data.driver(), &service, &body.token))
-            .map_err(Into::into)
-    })
-    .map_err(Into::into)
+fn revoke_inner(data: &Data, id: Option<String>, body: &TokenBody) -> Result<usize, Error> {
+    core::service::authenticate(data.driver(), id)
+        .and_then(|service| core::auth::token_revoke(data.driver(), &service, &body.token))
+        .map_err(Into::into)
 }
 
 /// Version 1 API authentication token scope.
@@ -94,21 +79,21 @@ pub fn api_v1_scope() -> actix_web::Scope {
             web::resource("/verify").route(
                 web::post()
                     .data(route_json_config())
-                    .to_async(api_v1_verify),
+                    .to_async(verify_handler),
             ),
         )
         .service(
             web::resource("/refresh").route(
                 web::post()
                     .data(route_json_config())
-                    .to_async(api_v1_refresh),
+                    .to_async(refresh_handler),
             ),
         )
         .service(
             web::resource("/revoke").route(
                 web::post()
                     .data(route_json_config())
-                    .to_async(api_v1_revoke),
+                    .to_async(revoke_handler),
             ),
         )
 }

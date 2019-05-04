@@ -1,73 +1,82 @@
-//! # Microsoft
 use crate::core;
 use crate::server::{
     auth::oauth2::{oauth2_redirect, CallbackQuery, UrlResponse},
-    ConfigurationOauth2Provider, Data, Error, route_response_json,
+    route_response_json, ConfigurationOauth2Provider, Data, Error, ValidateFromValue,
 };
-use actix_http::http::header::ContentType;
-use actix_web::http::{header, StatusCode};
-use actix_web::middleware::identity::Identity;
-use actix_web::{web, HttpResponse};
+use actix_web::{
+    http::{header, StatusCode},
+    middleware::identity::Identity,
+    web, HttpResponse, ResponseError,
+};
 use futures::{future, Future};
-use oauth2::basic::BasicClient;
 use oauth2::prelude::*;
 use oauth2::{
-    AuthType, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, PkceCodeVerifierS256,
-    RedirectUrl, ResponseType, Scope, TokenResponse, TokenUrl,
+    basic::BasicClient, AuthType, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken,
+    PkceCodeVerifierS256, RedirectUrl, ResponseType, Scope, TokenResponse, TokenUrl,
 };
 use url::Url;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct MicrosoftUser {
-    pub mail: String,
+struct MicrosoftUser {
+    mail: String,
 }
 
-pub fn v1(
+pub fn request_handler(
     data: web::Data<Data>,
     id: Identity,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
-    v1_inner(data, id).then(|result| route_response_json(result))
+    web::block(move || request_inner(data.get_ref(), id))
+        .map_err(Into::into)
+        .then(|res| route_response_json(res))
 }
 
-fn v1_inner(
-    data: web::Data<Data>,
-    id: Option<String>,
-) -> impl Future<Item = UrlResponse, Error = Error> {
-    web::block(move || {
-        core::service_authenticate(data.driver(), id)
-            .map_err(Into::into)
-            .and_then(|s| microsoft_authorise(&data, s))
-    })
-    .map_err(Into::into)
-    .map(|url| UrlResponse { url })
+fn request_inner(data: &Data, id: Option<String>) -> Result<UrlResponse, Error> {
+    core::service::authenticate(data.driver(), id)
+        .map_err(Into::into)
+        .and_then(|service| microsoft_authorise(&data, &service).map_err(Into::into))
+        .map(|url| UrlResponse { url })
 }
 
-pub fn v1_callback(
+pub fn callback_handler(
     data: web::Data<Data>,
-    query: web::Query<CallbackQuery>,
+    query: web::Query<serde_json::Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
-    web::block(move || microsoft_callback(data, &query.code, &query.state))
-        .map_err(Into::into)
-        .and_then(move |(data, access_token, service_id)| {
-            microsoft_api_user_email(data, &access_token, service_id)
+    CallbackQuery::from_value(query.into_inner())
+        .and_then(|query| {
+            web::block(move || {
+                let (service_id, access_token) =
+                    microsoft_callback(data.get_ref(), &query.code, &query.state)?;
+                Ok((data, service_id, access_token))
+            })
+            .map_err(Into::into)
         })
-        .and_then(|(data, email, service_id)| {
-            web::block(move || core::oauth2_login(data.driver(), service_id, &email))
-                .map_err(Into::into)
+        .and_then(|(data, service_id, access_token)| {
+            let email = microsoft_api_user_email(data.get_ref(), &access_token);
+            let service_id = future::ok(service_id);
+            let data = future::ok(data);
+            data.join3(service_id, email)
         })
-        .map_err(Into::into)
-        .map(|(token, service)| oauth2_redirect(token, service))
+        .and_then(|(data, service_id, email)| {
+            web::block(move || {
+                core::auth::oauth2::login(data.driver(), service_id, &email).map_err(Into::into)
+            })
+            .map_err(Into::into)
+        })
+        .then(|res| match res {
+            Ok((service, token)) => future::ok(oauth2_redirect(service, token)),
+            Err(err) => future::ok(err.error_response()),
+        })
 }
 
-fn microsoft_authorise(data: &web::Data<Data>, service: core::Service) -> Result<String, Error> {
+fn microsoft_authorise(data: &Data, service: &core::Service) -> Result<String, Error> {
     // Microsoft Graph supports Proof Key for Code Exchange (PKCE - https://oauth.net/2/pkce/).
     // Create a PKCE code verifier and SHA-256 encode it as a code challenge.
     let code_verifier = PkceCodeVerifierS256::new_random();
 
     // Generate the authorisation URL to redirect.
-    let client = microsoft_client(data.oauth2_microsoft())?;
+    let client = microsoft_client(data.configuration().oauth2_microsoft())?;
     let (authorize_url, state) = client.authorize_url_extension(
         &ResponseType::new("code".to_string()),
         CsrfToken::new_random,
@@ -76,67 +85,58 @@ fn microsoft_authorise(data: &web::Data<Data>, service: core::Service) -> Result
     );
 
     // Save the state and code verifier secrets as a CSRF key, value.
-    data.db
-        .csrf_create(&state.secret(), &code_verifier.secret(), service.service_id)
-        .map_err(Error::Db)?;
+    core::csrf::create(
+        data.driver(),
+        service,
+        &state.secret(),
+        &code_verifier.secret(),
+    )
+    .map_err(Error::Core)?;
 
     Ok(authorize_url.to_string())
 }
 
-fn microsoft_callback(
-    data: web::Data<Data>,
-    code: &str,
-    state: &str,
-) -> Result<(web::Data<Data>, String, i64), Error> {
+fn microsoft_callback(data: &Data, code: &str, state: &str) -> Result<(i64, String), Error> {
     // Read the CSRF key using state value, rebuild code verifier from value.
-    let csrf = data.db.csrf_read_by_key(&state).map_err(Error::Db)?;
+    let csrf = core::csrf::read_by_key(data.driver(), &state).map_err(Error::Core)?;
 
     // Send the PKCE code verifier in the token request
-    let params: Vec<(&str, &str)> = vec![("code_verifier", &csrf.csrf_value)];
+    let params: Vec<(&str, &str)> = vec![("code_verifier", &csrf.value)];
 
     // Exchange the code with a token.
-    let client = microsoft_client(data.oauth2_microsoft())?;
+    let client = microsoft_client(data.configuration().oauth2_microsoft())?;
     let code = AuthorizationCode::new(code.to_owned());
     let token = client
         .exchange_code_extension(code, &params)
-        .map_err(|_e| Error::Unwrap("failed to exchange code"))?;
+        .map_err(|_err| Error::Oauth2)?;
 
     // Return access token value.
-    Ok((
-        data,
-        token.access_token().secret().to_owned(),
-        csrf.service_id,
-    ))
+    Ok((csrf.service_id, token.access_token().secret().to_owned()))
 }
 
 fn microsoft_api_user_email(
-    data: web::Data<Data>,
+    data: &Data,
     access_token: &str,
-    service_id: i64,
-) -> impl Future<Item = (web::Data<Data>, String, i64), Error = Error> {
+) -> impl Future<Item = String, Error = Error> {
     let client = actix_web::client::Client::new();
     let authorisation_header = format!("Bearer {}", access_token);
     client
         .get("https://graph.microsoft.com/v1.0/me")
         .header(header::AUTHORIZATION, authorisation_header)
-        .header(header::CONTENT_TYPE, ContentType::json())
-        .header(header::USER_AGENT, data.user_agent())
+        .header(header::CONTENT_TYPE, header::ContentType::json())
+        .header(header::USER_AGENT, data.configuration().user_agent())
         .send()
-        .map_err(|_e| Error::Unwrap("failed to client.request"))
-        .and_then(|response| match response.status() {
-            StatusCode::OK => future::ok(response),
-            _ => future::err(Error::Unwrap("failed to receive ok response")),
+        .map_err(|_err| Error::Oauth2)
+        .and_then(|res| match res.status() {
+            StatusCode::OK => future::ok(res),
+            _ => future::err(Error::Oauth2),
         })
-        .and_then(|mut response| {
-            response
-                .json::<MicrosoftUser>()
-                .map_err(|_e| Error::Unwrap("failed to parse json"))
-        })
-        .map(move |response| (data, response.mail, service_id))
+        .and_then(|mut res| res.json::<MicrosoftUser>().map_err(|_err| Error::Oauth2))
+        .map(|res| res.mail)
 }
 
 fn microsoft_client(provider: Option<&ConfigurationOauth2Provider>) -> Result<BasicClient, Error> {
-    let provider = provider.ok_or(Error::InvalidOauth2Provider)?;
+    let provider = provider.ok_or(Error::Oauth2)?;
 
     let graph_client_id = ClientId::new(provider.client_id.to_owned());
     let graph_client_secret = ClientSecret::new(provider.client_secret.to_owned());

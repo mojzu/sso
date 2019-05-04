@@ -1,4 +1,3 @@
-//! # Reset
 use crate::core;
 use crate::server::{
     auth::{password_meta, PasswordMeta},
@@ -9,92 +8,83 @@ use actix_web::{middleware::identity::Identity, web, HttpResponse};
 use futures::Future;
 use validator::Validate;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-pub struct ResetPasswordBody {
+struct PasswordBody {
     #[validate(email)]
     email: String,
 }
 
-impl ValidateFromValue<ResetPasswordBody> for ResetPasswordBody {}
+impl ValidateFromValue<PasswordBody> for PasswordBody {}
 
-/// API version 1 password route.
-pub fn api_v1_password(
+fn password_handler(
     data: web::Data<Data>,
     id: Identity,
     body: web::Json<serde_json::Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
-    ResetPasswordBody::from_value(body.into_inner())
-        .and_then(|body| password_inner(data, id, body))
-        .then(|result| route_response_empty(result))
+    PasswordBody::from_value(body.into_inner())
+        .and_then(|body| {
+            web::block(move || password_inner(data.get_ref(), id, &body)).map_err(Into::into)
+        })
+        .then(|res| route_response_empty(res))
 }
 
-fn password_inner(
-    data: web::Data<Data>,
-    id: Option<String>,
-    body: ResetPasswordBody,
-) -> impl Future<Item = usize, Error = Error> {
-    web::block(move || {
-        core::service_authenticate(data.driver(), id)
-            .and_then(|service| core::auth_reset_password(data.driver(), &service, &body.email))
-            .map_err(Into::into)
-    })
-    .map_err(Into::into)
+fn password_inner(data: &Data, id: Option<String>, body: &PasswordBody) -> Result<usize, Error> {
+    core::service::authenticate(data.driver(), id)
+        .and_then(|service| core::auth::reset_password(data.driver(), &service, &body.email))
+        .map_err(Into::into)
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-pub struct ResetPasswordConfirmBody {
+struct PasswordConfirmBody {
     #[validate(custom = "validate_token")]
     token: String,
     #[validate(custom = "validate_password")]
     password: String,
 }
 
-impl ValidateFromValue<ResetPasswordConfirmBody> for ResetPasswordConfirmBody {}
+impl ValidateFromValue<PasswordConfirmBody> for PasswordConfirmBody {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResetPasswordConfirmResponse {
-    pub meta: PasswordMeta,
+#[derive(Debug, Serialize, Deserialize)]
+struct ResetPasswordConfirmResponse {
+    meta: PasswordMeta,
 }
 
-/// API version 1 password confirm route.
-pub fn api_v1_password_confirm(
+fn password_confirm_handler(
     data: web::Data<Data>,
     id: Identity,
     body: web::Json<serde_json::Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
-    ResetPasswordConfirmBody::from_value(body.into_inner())
-        .and_then(|body| password_confirm_inner(data, id, body))
-        .then(|result| route_response_json(result))
+    PasswordConfirmBody::from_value(body.into_inner())
+        .and_then(|body| {
+            web::block(move || {
+                let password_confirm = password_confirm_inner(data.get_ref(), id, &body)?;
+                Ok((data, body, password_confirm))
+            })
+            .map_err(Into::into)
+        })
+        .and_then(|(data, body, _password_confirm)| {
+            password_meta(data.get_ref(), Some(&body.password))
+        })
+        .map(|meta| ResetPasswordConfirmResponse { meta })
+        .then(|res| route_response_json(res))
 }
 
 fn password_confirm_inner(
-    data: web::Data<Data>,
+    data: &Data,
     id: Option<String>,
-    body: ResetPasswordConfirmBody,
-) -> impl Future<Item = ResetPasswordConfirmResponse, Error = Error> {
-    let (data1, body1) = (data.clone(), body.clone());
-
-    web::block(move || {
-        core::service_authenticate(data.driver(), id)
-            .and_then(|service| {
-                core::auth_reset_password_confirm(
-                    data.driver(),
-                    &service,
-                    &body.token,
-                    &body.password,
-                )
-            })
-            .map_err(Into::into)
-    })
-    .map_err(Into::into)
-    .and_then(move |_| password_meta(&data1, Some(&body1.password)))
-    .map(|meta| ResetPasswordConfirmResponse { meta })
+    body: &PasswordConfirmBody,
+) -> Result<usize, Error> {
+    core::service::authenticate(data.driver(), id)
+        .and_then(|service| {
+            core::auth::reset_password_confirm(data.driver(), &service, &body.token, &body.password)
+        })
+        .map_err(Into::into)
 }
 
 /// Version 1 API authentication reset scope.
@@ -104,14 +94,14 @@ pub fn api_v1_scope() -> actix_web::Scope {
             web::resource("/password").route(
                 web::post()
                     .data(route_json_config())
-                    .to_async(api_v1_password),
+                    .to_async(password_handler),
             ),
         )
         .service(
             web::resource("/password/confirm").route(
                 web::post()
                     .data(route_json_config())
-                    .to_async(api_v1_password_confirm),
+                    .to_async(password_confirm_handler),
             ),
         )
 }
