@@ -1,5 +1,4 @@
 pub mod auth;
-pub mod csrf;
 pub mod key;
 pub mod service;
 pub mod user;

@@ -34,8 +34,8 @@ pub fn command_init(
 
 /// Start API server.
 pub fn command_start(
-    configuration: server::Configuration,
     driver: Box<driver::Driver>,
+    configuration: server::Configuration,
 ) -> Result<(), server::Error> {
     actix_rt::System::run(move || {
         server::start(configuration, driver).unwrap();

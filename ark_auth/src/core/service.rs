@@ -4,14 +4,10 @@ use crate::driver;
 /// Authenticate service key and return associated service.
 pub fn authenticate(driver: &driver::Driver, key_value: Option<String>) -> Result<Service, Error> {
     match key_value {
-        Some(key_value) => {
-            driver
-                .service_read_by_key_value(&key_value)
-                .map_err(|error| match error {
-                    driver::Error::NotFound => Error::Forbidden,
-                    _ => Error::Driver(error),
-                })
-        }
+        Some(key_value) => driver
+            .service_read_by_key_value(&key_value)
+            .map_err(Error::Driver)
+            .and_then(|service| service.ok_or_else(|| Error::Forbidden)),
         None => Err(Error::Forbidden),
     }
 }

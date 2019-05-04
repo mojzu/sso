@@ -1,3 +1,4 @@
+use crate::core;
 use crate::driver::postgres::schema::auth_csrf;
 use crate::driver::postgres::schema::auth_key;
 use crate::driver::postgres::schema::auth_service;
@@ -103,6 +104,17 @@ pub struct AuthCsrf {
     pub csrf_key: String,
     pub csrf_value: String,
     pub service_id: i64,
+}
+
+impl From<AuthCsrf> for core::Csrf {
+    fn from(csrf: AuthCsrf) -> Self {
+        core::Csrf {
+            created_at: csrf.created_at,
+            key: csrf.csrf_key,
+            value: csrf.csrf_value,
+            service_id: csrf.service_id,
+        }
+    }
 }
 
 #[derive(Debug, Insertable)]
