@@ -12,6 +12,6 @@ pub fn create(
 }
 
 /// Read CSRF by key.
-pub fn read_by_key(driver: &driver::Driver, key: &str) -> Result<Csrf, Error> {
+pub fn read_by_key(driver: &driver::Driver, key: &str) -> Result<Option<Csrf>, Error> {
     unimplemented!();
 }

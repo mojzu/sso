@@ -27,12 +27,16 @@ pub enum Error {
     /// Forbidden, authentication failure.
     #[fail(display = "ServerError::Forbidden")]
     Forbidden,
+    /// Not found.
+    #[fail(display = "ServerError::NotFound")]
+    NotFound,
     /// Client request error.
     #[fail(display = "ServerError::ApiPwnedPasswords")]
     ApiPwnedPasswords,
     /// OAuth2 error.
     #[fail(display = "ServerError::Oauth2")]
     Oauth2,
+
     /// Core error wrapper.
     #[fail(display = "ServerError::CoreError {}", _0)]
     Core(#[fail(cause)] core::Error),

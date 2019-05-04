@@ -99,6 +99,7 @@ fn microsoft_authorise(data: &Data, service: &core::Service) -> Result<String, E
 fn microsoft_callback(data: &Data, code: &str, state: &str) -> Result<(i64, String), Error> {
     // Read the CSRF key using state value, rebuild code verifier from value.
     let csrf = core::csrf::read_by_key(data.driver(), &state).map_err(Error::Core)?;
+    let csrf = csrf.ok_or_else(|| Error::Oauth2)?;
 
     // Send the PKCE code verifier in the token request
     let params: Vec<(&str, &str)> = vec![("code_verifier", &csrf.value)];

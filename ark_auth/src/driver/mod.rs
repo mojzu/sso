@@ -13,6 +13,7 @@ pub enum Error {
     /// Not found.
     #[fail(display = "DriverError::NotFound")]
     NotFound,
+
     /// Diesel migrations error wrapper.
     #[fail(display = "DriverError::DieselMigrations {}", _0)]
     DieselMigrations(#[fail(cause)] diesel_migrations::RunMigrationsError),

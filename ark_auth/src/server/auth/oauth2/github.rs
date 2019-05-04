@@ -85,6 +85,7 @@ fn github_authorise(data: &Data, service: &core::Service) -> Result<String, Erro
 fn github_callback(data: &Data, code: &str, state: &str) -> Result<(i64, String), Error> {
     // Read the CSRF key using state value, rebuild code verifier from value.
     let csrf = core::csrf::read_by_key(data.driver(), &state).map_err(Error::Core)?;
+    let csrf = csrf.ok_or_else(|| Error::Oauth2)?;
 
     // Exchange the code with a token.
     let client = github_client(data.configuration().oauth2_github())?;

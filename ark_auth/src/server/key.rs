@@ -137,6 +137,7 @@ fn read_inner(data: &Data, id: Option<String>, key_id: i64) -> Result<ReadRespon
     core::service::authenticate(data.driver(), id)
         .and_then(|service| core::key::read_by_id(data.driver(), &service, key_id))
         .map_err(Into::into)
+        .and_then(|key| key.ok_or_else(|| Error::NotFound))
         .map(|key| ReadResponse { data: key })
 }
 

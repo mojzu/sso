@@ -42,8 +42,11 @@ pub fn create(driver: &driver::Driver, name: &str, url: &str) -> Result<Service,
 }
 
 /// Read service by ID.
-/// TODO(refactor): Use Option here?
-pub fn read_by_id(driver: &driver::Driver, service: &Service, id: i64) -> Result<Service, Error> {
+pub fn read_by_id(
+    driver: &driver::Driver,
+    service: &Service,
+    id: i64,
+) -> Result<Option<Service>, Error> {
     unimplemented!();
 }
 
