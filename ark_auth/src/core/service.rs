@@ -1,40 +1,27 @@
-use crate::core::{Error, Service};
 use crate::driver;
+use crate::{
+    core,
+    core::{Error, Service},
+};
 
 /// Authenticate service key and return associated service.
 pub fn authenticate(driver: &driver::Driver, key_value: Option<String>) -> Result<Service, Error> {
     match key_value {
-        Some(key_value) => driver
-            .service_read_by_key_value(&key_value)
-            .map_err(Error::Driver)
+        Some(key_value) => core::key::read_by_service_value(driver, &key_value)
+            .and_then(|key| key.ok_or_else(|| Error::Forbidden))
+            .and_then(|key| {
+                driver
+                    .service_read_by_id(key.service_id)
+                    .map_err(Error::Driver)
+            })
             .and_then(|service| service.ok_or_else(|| Error::Forbidden)),
         None => Err(Error::Forbidden),
     }
 }
 
-/// List services where ID is less than.
-pub fn list_where_id_lt(
-    driver: &driver::Driver,
-    service: &Service,
-    lt: i64,
-    limit: i64,
-) -> Result<Vec<Service>, Error> {
-    unimplemented!();
-}
-
-/// List services where ID is greater than.
-pub fn list_where_id_gt(
-    driver: &driver::Driver,
-    service: &Service,
-    gt: i64,
-    limit: i64,
-) -> Result<Vec<Service>, Error> {
-    unimplemented!();
-}
-
 /// Create service.
 pub fn create(driver: &driver::Driver, name: &str, url: &str) -> Result<Service, Error> {
-    unimplemented!();
+    driver.service_create(name, url).map_err(Error::Driver)
 }
 
 /// Read service by ID.
@@ -43,20 +30,20 @@ pub fn read_by_id(
     service: &Service,
     id: i64,
 ) -> Result<Option<Service>, Error> {
-    unimplemented!();
+    driver.service_read_by_id(id).map_err(Error::Driver)
 }
 
 /// Update service by ID.
 pub fn update_by_id(
     driver: &driver::Driver,
-    service: &Service,
+    _service: &Service,
     id: i64,
     name: Option<&str>,
 ) -> Result<Service, Error> {
-    unimplemented!();
+    driver.service_update_by_id(id, name).map_err(Error::Driver)
 }
 
 /// Delete service by ID.
-pub fn delete_by_id(driver: &driver::Driver, service: &Service, id: i64) -> Result<usize, Error> {
-    unimplemented!();
+pub fn delete_by_id(driver: &driver::Driver, _service: &Service, id: i64) -> Result<usize, Error> {
+    driver.service_delete_by_id(id).map_err(Error::Driver)
 }

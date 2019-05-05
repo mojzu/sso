@@ -5,7 +5,7 @@ pub mod postgres;
 #[cfg(feature = "sqlite")]
 pub mod sqlite;
 
-use crate::core::{Csrf, Service};
+use crate::core::{Csrf, Key, Service, User};
 use chrono::{DateTime, Utc};
 
 /// Driver errors.
@@ -27,8 +27,87 @@ pub trait Driver: Send + Sync {
     /// Return a boxed trait containing clone of self.
     fn box_clone(&self) -> Box<Driver>;
 
-    /// Read service by unique key value.
-    fn service_read_by_key_value(&self, key_value: &str) -> Result<Option<Service>, Error>;
+    /// List keys where ID is less than.
+    fn key_list_where_id_lt(&self, service_id: i64, lt: i64, limit: i64)
+        -> Result<Vec<Key>, Error>;
+
+    /// List keys where ID is greater than.
+    fn key_list_where_id_gt(&self, service_id: i64, gt: i64, limit: i64)
+        -> Result<Vec<Key>, Error>;
+
+    /// Create key.
+    fn key_create(
+        &self,
+        name: &str,
+        value: &str,
+        service_id: i64,
+        user_id: Option<i64>,
+    ) -> Result<Key, Error>;
+
+    /// Read key by ID.
+    fn key_read_by_id(&self, id: i64) -> Result<Option<Key>, Error>;
+
+    /// Read key by service key value.
+    fn key_read_by_service_value(&self, value: &str) -> Result<Option<Key>, Error>;
+
+    /// Read key by service ID and user key value.
+    fn key_read_by_user_value(&self, service_id: i64, value: &str) -> Result<Option<Key>, Error>;
+
+    /// Read key by service and user ID.
+    fn key_read_by_user_id(&self, service_id: i64, user_id: i64) -> Result<Option<Key>, Error>;
+
+    /// Update key by ID.
+    fn key_update_by_id(&self, id: i64, name: Option<&str>) -> Result<Key, Error>;
+
+    /// Delete key by ID.
+    fn key_delete_by_id(&self, id: i64) -> Result<usize, Error>;
+
+    /// Create service.
+    fn service_create(&self, name: &str, url: &str) -> Result<Service, Error>;
+
+    /// Read service by ID.
+    fn service_read_by_id(&self, id: i64) -> Result<Option<Service>, Error>;
+
+    /// Update service by ID.
+    fn service_update_by_id(&self, id: i64, name: Option<&str>) -> Result<Service, Error>;
+
+    /// Delete service by ID.
+    fn service_delete_by_id(&self, id: i64) -> Result<usize, Error>;
+
+    /// List users where ID is less than.
+    fn user_list_where_id_lt(&self, lt: i64, limit: i64) -> Result<Vec<User>, Error>;
+
+    /// List users where ID is greater than.
+    fn user_list_where_id_gt(&self, gt: i64, limit: i64) -> Result<Vec<User>, Error>;
+
+    /// Create user.
+    fn user_create(
+        &self,
+        name: &str,
+        email: &str,
+        password_hash: Option<&str>,
+        password_revision: Option<i64>,
+    ) -> Result<User, Error>;
+
+    /// Read user by ID.
+    fn user_read_by_id(&self, id: i64) -> Result<Option<User>, Error>;
+
+    /// Read user by email address.
+    fn user_read_by_email(&self, email: &str) -> Result<Option<User>, Error>;
+
+    /// Update user by ID.
+    fn user_update_by_id(&self, id: i64, name: Option<&str>) -> Result<User, Error>;
+
+    /// Update user password by ID.
+    fn user_update_password_by_id(
+        &self,
+        id: i64,
+        password_hash: &str,
+        password_revision: i64,
+    ) -> Result<usize, Error>;
+
+    /// Delete user by ID.
+    fn user_delete_by_id(&self, id: i64) -> Result<usize, Error>;
 
     /// Create one CSRF key, value pair. Key must be unique.
     fn csrf_create(&self, key: &str, value: &str, service_id: i64) -> Result<Csrf, Error>;

@@ -14,8 +14,22 @@ pub struct AuthUser {
     pub user_id: i64,
     pub user_name: String,
     pub user_email: String,
-    pub user_password: Option<String>,
+    pub user_password_hash: Option<String>,
     pub user_password_revision: Option<i64>,
+}
+
+impl From<AuthUser> for core::User {
+    fn from(user: AuthUser) -> Self {
+        core::User {
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+            id: user.user_id,
+            name: user.user_name,
+            email: user.user_email,
+            password_hash: user.user_password_hash,
+            password_revision: user.user_password_revision,
+        }
+    }
 }
 
 #[derive(Debug, Insertable)]
@@ -23,7 +37,7 @@ pub struct AuthUser {
 pub struct AuthUserInsert<'a> {
     pub user_name: &'a str,
     pub user_email: &'a str,
-    pub user_password: Option<&'a str>,
+    pub user_password_hash: Option<&'a str>,
     pub user_password_revision: Option<i64>,
 }
 
@@ -38,7 +52,7 @@ pub struct AuthUserUpdate<'a> {
 #[table_name = "auth_user"]
 pub struct AuthUserUpdatePassword<'a> {
     pub updated_at: &'a DateTime<Utc>,
-    pub user_password: String,
+    pub user_password_hash: String,
     pub user_password_revision: i64,
 }
 
@@ -51,6 +65,18 @@ pub struct AuthService {
     pub service_id: i64,
     pub service_name: String,
     pub service_url: String,
+}
+
+impl From<AuthService> for core::Service {
+    fn from(service: AuthService) -> Self {
+        core::Service {
+            created_at: service.created_at,
+            updated_at: service.updated_at,
+            id: service.service_id,
+            name: service.service_name,
+            url: service.service_url,
+        }
+    }
 }
 
 #[derive(Debug, Insertable)]
@@ -78,6 +104,20 @@ pub struct AuthKey {
     pub key_value: String,
     pub service_id: i64,
     pub user_id: Option<i64>,
+}
+
+impl From<AuthKey> for core::Key {
+    fn from(key: AuthKey) -> Self {
+        core::Key {
+            created_at: key.created_at,
+            updated_at: key.updated_at,
+            id: key.key_id,
+            name: key.key_name,
+            value: key.key_value,
+            service_id: key.service_id,
+            user_id: key.user_id,
+        }
+    }
 }
 
 #[derive(Debug, Insertable)]

@@ -14,6 +14,8 @@ pub struct Driver {
 
 type PooledConnection = r2d2::PooledConnection<ConnectionManager<SqliteCOnnection>>;
 
+// TODO(feature): Implement this.
+
 impl Driver {
     pub fn initialise(database_url: &str) -> Result<Self, driver::Error> {
         let manager = ConnectionManager::<SqliteCOnnection>::new(database_url);

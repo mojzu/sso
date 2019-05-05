@@ -5,7 +5,7 @@ CREATE TABLE auth_user (
     user_id INTEGER PRIMARY KEY NOT NULL,
     user_name TEXT NOT NULL,
     user_email TEXT NOT NULL,
-    user_password TEXT,
+    user_password_hash TEXT,
     user_password_revision INTEGER,
     CONSTRAINT uq_auth_user_email UNIQUE(user_email)
 );
