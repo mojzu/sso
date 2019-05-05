@@ -17,7 +17,7 @@ fn verify_handler(
         .and_then(|body| {
             web::block(move || verify_inner(data.get_ref(), id, &body)).map_err(Into::into)
         })
-        .then(|res| route_response_json(res))
+        .then(route_response_json)
 }
 
 fn verify_inner(data: &Data, id: Option<String>, body: &KeyBody) -> Result<KeyResponse, Error> {
@@ -38,7 +38,7 @@ fn revoke_handler(
         .and_then(|body| {
             web::block(move || revoke_inner(data.get_ref(), id, &body)).map_err(Into::into)
         })
-        .then(|res| route_response_empty(res))
+        .then(route_response_empty)
 }
 
 fn revoke_inner(data: &Data, id: Option<String>, body: &KeyBody) -> Result<usize, Error> {
@@ -51,17 +51,13 @@ fn revoke_inner(data: &Data, id: Option<String>, body: &KeyBody) -> Result<usize
 pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/key")
         .service(
-            web::resource("/verify").route(
-                web::post()
-                    .data(route_json_config())
-                    .to_async(verify_handler),
-            ),
+            web::resource("/verify")
+                .data(route_json_config())
+                .route(web::post().to_async(verify_handler)),
         )
         .service(
-            web::resource("/revoke").route(
-                web::post()
-                    .data(route_json_config())
-                    .to_async(revoke_handler),
-            ),
+            web::resource("/revoke")
+                .data(route_json_config())
+                .route(web::post().to_async(revoke_handler)),
         )
 }

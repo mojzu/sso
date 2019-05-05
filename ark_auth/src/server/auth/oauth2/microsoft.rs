@@ -29,7 +29,7 @@ pub fn request_handler(
 
     web::block(move || request_inner(data.get_ref(), id))
         .map_err(Into::into)
-        .then(|res| route_response_json(res))
+        .then(route_response_json)
 }
 
 fn request_inner(data: &Data, id: Option<String>) -> Result<UrlResponse, Error> {

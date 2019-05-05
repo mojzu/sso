@@ -76,6 +76,21 @@ pub fn update_by_id(
     driver.user_update_by_id(id, name).map_err(Error::Driver)
 }
 
+/// Update user password by ID.
+pub fn update_password_by_id(
+    driver: &driver::Driver,
+    _service: &Service,
+    id: i64,
+    password: &str,
+    password_revision: i64,
+) -> Result<usize, Error> {
+    let password_hash = hash_password(Some(password))?.ok_or_else(|| Error::Forbidden)?;
+    let password_revision = password_revision + 1;
+    driver
+        .user_update_password_by_id(id, &password_hash, password_revision)
+        .map_err(Error::Driver)
+}
+
 /// Delete user by ID.
 pub fn delete_by_id(driver: &driver::Driver, _service: &Service, id: i64) -> Result<usize, Error> {
     driver.user_delete_by_id(id).map_err(Error::Driver)

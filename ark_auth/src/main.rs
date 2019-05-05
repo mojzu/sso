@@ -96,7 +96,6 @@ fn main() {
     let driver = initialise_driver(&configuration.database_url).box_clone();
 
     // Call library functions with command line arguments.
-    // TODO(refactor): Library API, postgres/sqlite drivers.
     let result = match matches.subcommand() {
         (COMMAND_INIT, Some(submatches)) => {
             let name = submatches.value_of(ARG_SERVICE_NAME).unwrap();

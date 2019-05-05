@@ -46,7 +46,7 @@ fn list_handler(
         .and_then(|query| {
             web::block(move || list_inner(data.get_ref(), id, &query)).map_err(Into::into)
         })
-        .then(|res| route_response_json(res))
+        .then(route_response_json)
 }
 
 fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<ListResponse, Error> {
@@ -100,7 +100,7 @@ fn create_handler(
         .and_then(|body| {
             web::block(move || create_inner(data.get_ref(), id, &body)).map_err(Into::into)
         })
-        .then(|res| route_response_json(res))
+        .then(route_response_json)
 }
 
 fn create_inner(
@@ -130,7 +130,7 @@ fn read_handler(
 
     web::block(move || read_inner(data.get_ref(), id, path.0))
         .map_err(Into::into)
-        .then(|res| route_response_json(res))
+        .then(route_response_json)
 }
 
 fn read_inner(data: &Data, id: Option<String>, key_id: i64) -> Result<ReadResponse, Error> {
@@ -167,7 +167,7 @@ fn update_handler(
         .and_then(|body| {
             web::block(move || update_inner(data.get_ref(), id, path.0, &body)).map_err(Into::into)
         })
-        .then(|res| route_response_json(res))
+        .then(route_response_json)
 }
 
 fn update_inner(
@@ -198,7 +198,7 @@ fn delete_handler(
 
     web::block(move || delete_inner(data.get_ref(), id, path.0))
         .map_err(Into::into)
-        .then(|res| route_response_empty(res))
+        .then(route_response_empty)
 }
 
 fn delete_inner(data: &Data, id: Option<String>, key_id: i64) -> Result<usize, Error> {
@@ -212,21 +212,15 @@ pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/key")
         .service(
             web::resource("")
+                .data(route_json_config())
                 .route(web::get().to_async(list_handler))
-                .route(
-                    web::post()
-                        .data(route_json_config())
-                        .to_async(create_handler),
-                ),
+                .route(web::post().to_async(create_handler)),
         )
         .service(
             web::resource("/{key_id}")
+                .data(route_json_config())
                 .route(web::get().to_async(read_handler))
-                .route(
-                    web::patch()
-                        .data(route_json_config())
-                        .to_async(update_handler),
-                )
+                .route(web::patch().to_async(update_handler))
                 .route(web::delete().to_async(delete_handler)),
         )
 }

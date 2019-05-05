@@ -193,7 +193,7 @@ impl Configuration {
 
     /// Get password pwned enabled.
     pub fn password_pwned_enabled(&self) -> bool {
-        self.password_pwned_enabled == true
+        self.password_pwned_enabled
     }
 
     /// Configured SMTP provider.
@@ -250,16 +250,17 @@ pub struct AuthorisationIdentityPolicy {
 }
 
 impl AuthorisationIdentityPolicy {
-    /// Create new identity policy.
-    pub fn new() -> Self {
+    /// Create new identity service.
+    pub fn identity_service() -> IdentityService<Self> {
+        IdentityService::new(AuthorisationIdentityPolicy::default())
+    }
+}
+
+impl Default for AuthorisationIdentityPolicy {
+    fn default() -> Self {
         AuthorisationIdentityPolicy {
             header: "Authorization".to_owned(),
         }
-    }
-
-    /// Create new identity service.
-    pub fn identity_service() -> IdentityService<Self> {
-        IdentityService::new(AuthorisationIdentityPolicy::new())
     }
 }
 

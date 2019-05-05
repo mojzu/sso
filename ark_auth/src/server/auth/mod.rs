@@ -153,7 +153,7 @@ fn login_handler(
             meta,
             data: user_token,
         })
-        .then(|res| route_response_json(res))
+        .then(route_response_json)
 }
 
 fn login_inner(
@@ -170,11 +170,9 @@ fn login_inner(
 pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/auth")
         .service(
-            web::resource("/login").route(
-                web::post()
-                    .data(route_json_config())
-                    .to_async(login_handler),
-            ),
+            web::resource("/login")
+                .data(route_json_config())
+                .route(web::post().to_async(login_handler)),
         )
         .service(oauth2::api_v1_scope())
         .service(key::api_v1_scope())

@@ -42,7 +42,7 @@ use validator::Validate;
 //         .and_then(|query| {
 //             web::block(move || list_inner(data.get_ref(), id, &query)).map_err(Into::into)
 //         })
-//         .then(|res| route_response_json(res))
+//         .then(route_response_json)
 // }
 // fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<ListResponse, Error> {
 //     core::service::authenticate(data.driver(), id)
@@ -94,7 +94,7 @@ fn read_handler(
 
     web::block(move || read_inner(data.get_ref(), id, path.0))
         .map_err(Into::into)
-        .then(|res| route_response_json(res))
+        .then(route_response_json)
 }
 
 fn read_inner(data: &Data, id: Option<String>, service_id: i64) -> Result<ReadResponse, Error> {
@@ -131,7 +131,7 @@ fn update_handler(
         .and_then(|body| {
             web::block(move || update_inner(data.get_ref(), id, path.0, &body)).map_err(Into::into)
         })
-        .then(|res| route_response_json(res))
+        .then(route_response_json)
 }
 
 fn update_inner(
@@ -162,7 +162,7 @@ fn delete_handler(
 
     web::block(move || delete_inner(data.get_ref(), id, path.0))
         .map_err(Into::into)
-        .then(|res| route_response_empty(res))
+        .then(route_response_empty)
 }
 
 fn delete_inner(data: &Data, id: Option<String>, service_id: i64) -> Result<usize, Error> {
@@ -176,6 +176,7 @@ pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/service")
         .service(
             web::resource("")
+                .data(route_json_config())
                 // TODO(feature): List/create new services via API, root keys?
                 // .route(web::get().to_async(list_handler))
                 // .route(
@@ -186,10 +187,10 @@ pub fn api_v1_scope() -> actix_web::Scope {
         )
         .service(
             web::resource("/{service_id}")
+                .data(route_json_config())
                 .route(web::get().to_async(read_handler))
                 .route(
                     web::patch()
-                        .data(route_json_config())
                         .to_async(update_handler),
                 )
                 .route(web::delete().to_async(delete_handler)),

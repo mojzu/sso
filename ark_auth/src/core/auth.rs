@@ -4,6 +4,8 @@ use crate::{
     core::{Error, Service, User, UserKey, UserToken},
 };
 
+// TODO(feature): Warning logs for bad requests.
+
 /// User authentication using email address and password.
 pub fn login(
     driver: &driver::Driver,
@@ -40,7 +42,19 @@ pub fn reset_password_confirm(
     token: &str,
     password: &str,
 ) -> Result<usize, Error> {
-    unimplemented!();
+    // Unsafely decode token to get user identifier, used to read key for safe token decode.
+    let user_id = jwt::decode_unsafe(token, service.id)?;
+    let user = core::user::read_by_id(driver, service, user_id)?.ok_or_else(|| Error::Forbidden)?;
+    let user_password_revision = user.password_revision.ok_or_else(|| Error::Forbidden)?;
+    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::Forbidden)?;
+    let password_revision = jwt::decode_reset_token(service.id, user.id, &key.value, token)?;
+
+    // If password revisions do not match, token has been used or password has been changed.
+    if password_revision != user_password_revision {
+        Err(Error::Forbidden)
+    } else {
+        core::user::update_password_by_id(driver, service, user.id, password, password_revision)
+    }
 }
 
 /// Verify user key.
@@ -56,7 +70,9 @@ pub fn key_verify(driver: &driver::Driver, service: &Service, key: &str) -> Resu
 
 /// Revoke user key.
 pub fn key_revoke(driver: &driver::Driver, service: &Service, key: &str) -> Result<usize, Error> {
-    unimplemented!();
+    let key =
+        core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::Forbidden)?;
+    core::key::delete_by_id(driver, service, key.id)
 }
 
 /// Verify user token.
@@ -65,7 +81,11 @@ pub fn token_verify(
     service: &Service,
     token: &str,
 ) -> Result<UserToken, Error> {
-    unimplemented!();
+    // Unsafely decode token to get user identifier, used to read key for safe token decode.
+    let user_id = jwt::decode_unsafe(token, service.id)?;
+    let user = core::user::read_by_id(driver, service, user_id)?.ok_or_else(|| Error::Forbidden)?;
+    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::Forbidden)?;
+    jwt::decode_user_token(service.id, user.id, &key.value, token)
 }
 
 /// Refresh user token.
@@ -74,7 +94,12 @@ pub fn token_refresh(
     service: &Service,
     token: &str,
 ) -> Result<UserToken, Error> {
-    unimplemented!();
+    // Unsafely decode token to get user identifier, used to read key for safe token decode.
+    let user_id = jwt::decode_unsafe(token, service.id)?;
+    let user = core::user::read_by_id(driver, service, user_id)?.ok_or_else(|| Error::Forbidden)?;
+    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::Forbidden)?;
+    jwt::decode_user_token(service.id, user.id, &key.value, token)?;
+    jwt::encode_user_token(service.id, user.id, &key.value)
 }
 
 /// Revoke user token.
@@ -83,7 +108,11 @@ pub fn token_revoke(
     service: &Service,
     token: &str,
 ) -> Result<usize, Error> {
-    unimplemented!();
+    // Unsafely decode token to get user identifier, used to read key for safe token decode.
+    let user_id = jwt::decode_unsafe(token, service.id)?;
+    let user = core::user::read_by_id(driver, service, user_id)?.ok_or_else(|| Error::Forbidden)?;
+    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::Forbidden)?;
+    core::key::delete_by_id(driver, service, key.id)
 }
 
 /// OAuth2 user login.
@@ -109,7 +138,6 @@ mod jwt {
     use jsonwebtoken::{dangerous_unsafe_decode, decode, encode, Header, Validation};
 
     #[derive(Debug, Serialize, Deserialize)]
-    #[serde(deny_unknown_fields)]
     struct Claims {
         iss: String,
         sub: String,
@@ -137,7 +165,6 @@ mod jwt {
     }
 
     #[derive(Debug, Serialize, Deserialize)]
-    #[serde(deny_unknown_fields)]
     pub struct ResetClaims {
         iss: String,
         sub: String,
@@ -183,6 +210,24 @@ mod jwt {
         })
     }
 
+    /// Safely decodes a user token.
+    pub fn decode_user_token(
+        service_id: i64,
+        user_id: i64,
+        key_value: &str,
+        token: &str,
+    ) -> Result<UserToken, Error> {
+        let validation = Claims::validation(service_id, user_id);
+        let data = decode::<Claims>(token, key_value.as_bytes(), &validation)
+            .map_err(Error::Jsonwebtoken)?;
+
+        Ok(UserToken {
+            user_id,
+            token: token.to_owned(),
+            token_expires: data.claims.exp,
+        })
+    }
+
     pub fn encode_reset_token(
         service_id: i64,
         user_id: i64,
@@ -199,46 +244,33 @@ mod jwt {
             token_expires: claims.exp,
         })
     }
+
+    /// Safely decodes a reset token and returns the password revision.
+    pub fn decode_reset_token(
+        service_id: i64,
+        user_id: i64,
+        key_value: &str,
+        token: &str,
+    ) -> Result<i64, Error> {
+        let validation = ResetClaims::validation(service_id, user_id);
+        let data = decode::<ResetClaims>(token, key_value.as_bytes(), &validation)
+            .map_err(Error::Jsonwebtoken)?;
+        Ok(data.claims.password_revision)
+    }
+
+    /// Unsafely decodes a token, checks if service ID matches `iss` claim.
+    /// If matched, returns the `sub` claim, which may be a user ID.
+    /// The user ID must then be used safely decode the token to proceed.
+    pub fn decode_unsafe(token: &str, service_id: i64) -> Result<i64, Error> {
+        let claims: Claims = dangerous_unsafe_decode(token)
+            .map_err(Error::Jsonwebtoken)?
+            .claims;
+        let issuer = claims.iss.parse::<i64>().map_err(|_err| Error::Forbidden)?;
+        let subject = claims.sub.parse::<i64>().map_err(|_err| Error::Forbidden)?;
+
+        if service_id != issuer {
+            return Err(Error::Forbidden);
+        }
+        Ok(subject)
+    }
 }
-
-// TODO(refactor): Refactor this.
-// pub fn login(
-//     data: &web::Data<ApiData>,
-//     email: &str,
-//     service_id: i64,
-// ) -> Result<(TokenData, AuthService), ApiError> {
-//     let token = data
-//         .db
-//         .login(email, service_id)
-//         .map_err(ApiError::Db)?;
-//     let service = data
-//         .db
-//         .service_read_by_id(service_id, service_id)
-//         .map_err(ApiError::Db)?;
-//     Ok((token, service))
-// }
-
-// TODO(refactor): Refactor this.
-// pub fn reset_password() {
-// .and_then(|(service, (user, token_response))| {
-//     // Send user email with reset password confirmation link.
-//     match email::send_reset_password(
-//         data.smtp(),
-//         &user,
-//         &service,
-//         &token_response.token,
-//     ) {
-//         Ok(_) => Ok(token_response),
-//         // Log warning in case of failure to send email.
-//         Err(e) => {
-//             warn!("Failed to send reset password email ({})", e);
-//             Ok(token_response)
-//         }
-//     }
-// })
-// }
-
-// Map invalid password, not found errors to bad request to prevent leakage.
-// TODO(feature): Warning logs for bad requests.
-// TODO(refactor): Refactor this.
-// DbError::InvalidPassword | DbError::NotFound => ApiError::BadRequest,

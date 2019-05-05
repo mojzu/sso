@@ -29,7 +29,7 @@ fn password_handler(
             web::block(move || password_inner(data.get_ref(), id, &body)).map_err(Into::into)
             // TODO(refactor): Implement email here.
         })
-        .then(|res| route_response_empty(res))
+        .then(route_response_empty)
 }
 
 fn password_inner(
@@ -77,7 +77,7 @@ fn password_confirm_handler(
             password_meta(data.get_ref(), Some(&body.password))
         })
         .map(|meta| ResetPasswordConfirmResponse { meta })
-        .then(|res| route_response_json(res))
+        .then(route_response_json)
 }
 
 fn password_confirm_inner(
@@ -96,17 +96,13 @@ fn password_confirm_inner(
 pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/reset")
         .service(
-            web::resource("/password").route(
-                web::post()
-                    .data(route_json_config())
-                    .to_async(password_handler),
-            ),
+            web::resource("/password")
+                .data(route_json_config())
+                .route(web::post().to_async(password_handler)),
         )
         .service(
-            web::resource("/password/confirm").route(
-                web::post()
-                    .data(route_json_config())
-                    .to_async(password_confirm_handler),
-            ),
+            web::resource("/password/confirm")
+                .data(route_json_config())
+                .route(web::post().to_async(password_confirm_handler)),
         )
 }

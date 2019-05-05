@@ -17,7 +17,7 @@ fn verify_handler(
         .and_then(|body| {
             web::block(move || verify_inner(data.get_ref(), id, &body)).map_err(Into::into)
         })
-        .then(|res| route_response_json(res))
+        .then(route_response_json)
 }
 
 fn verify_inner(data: &Data, id: Option<String>, body: &TokenBody) -> Result<TokenResponse, Error> {
@@ -38,7 +38,7 @@ fn refresh_handler(
         .and_then(|body| {
             web::block(move || refresh_inner(data.get_ref(), id, &body)).map_err(Into::into)
         })
-        .then(|res| route_response_json(res))
+        .then(route_response_json)
 }
 
 fn refresh_inner(
@@ -63,7 +63,7 @@ fn revoke_handler(
         .and_then(|body| {
             web::block(move || revoke_inner(data.get_ref(), id, &body)).map_err(Into::into)
         })
-        .then(|res| route_response_empty(res))
+        .then(route_response_empty)
 }
 
 fn revoke_inner(data: &Data, id: Option<String>, body: &TokenBody) -> Result<usize, Error> {
@@ -76,24 +76,18 @@ fn revoke_inner(data: &Data, id: Option<String>, body: &TokenBody) -> Result<usi
 pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/token")
         .service(
-            web::resource("/verify").route(
-                web::post()
-                    .data(route_json_config())
-                    .to_async(verify_handler),
-            ),
+            web::resource("/verify")
+                .data(route_json_config())
+                .route(web::post().to_async(verify_handler)),
         )
         .service(
-            web::resource("/refresh").route(
-                web::post()
-                    .data(route_json_config())
-                    .to_async(refresh_handler),
-            ),
+            web::resource("/refresh")
+                .data(route_json_config())
+                .route(web::post().to_async(refresh_handler)),
         )
         .service(
-            web::resource("/revoke").route(
-                web::post()
-                    .data(route_json_config())
-                    .to_async(revoke_handler),
-            ),
+            web::resource("/revoke")
+                .data(route_json_config())
+                .route(web::post().to_async(revoke_handler)),
         )
 }
