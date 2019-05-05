@@ -142,12 +142,17 @@
                     <main>
                         <a class="header" href="#introduction" id="introduction"><h1>Introduction</h1></a>
 <p><strong>Warning: The author of this application is not a security expert, nor has the code undergone any kind of review or verification. Use it at your own risk.</strong></p>
-<p>Ark Auth is an authentication server, it is intended to be used as a backend for other services which must authenticate their users requests. The following authentication methods are supported.</p>
+<p>Ark Auth is an authentication server, it is intended to be used as a backend for other services which must authenticate their users requests.</p>
+<ul>
+<li><a href="./guides/index.html">Guides</a></li>
+<li><a href="./api/index.html">API</a></li>
+</ul>
 <a class="header" href="#authentication-methods" id="authentication-methods"><h2>Authentication Methods</h2></a>
+<p>The following user authentication methods are supported.</p>
 <a class="header" href="#password-login" id="password-login"><h3>Password Login</h3></a>
 <ul>
-<li>Users can authenticate to services using a unique email address and password.</li>
-<li>Logins produce a time-limited, revokable json web token which can be used to authenticate requests.</li>
+<li>Users can authenticate to a service using a unique email address and password.</li>
+<li>A successful login produces a time-limited, revokable JSON web token which can be used to authenticate requests.</li>
 <li>User passwords can be reset via email.</li>
 <li>Passwords are stored as <code>bcrypt</code> hashes.</li>
 <li>Password strength is checked by <code>zxcvbn</code>.</li>
@@ -156,15 +161,15 @@
 </ul>
 <a class="header" href="#api-key" id="api-key"><h3>API Key</h3></a>
 <ul>
-<li>API consumers can authenticate requests to services using a unique, random key.</li>
+<li>Users can authenticate requests to a service using a unique, random key.</li>
 <li>Keys are not time-limited but are revokable.</li>
 </ul>
 <a class="header" href="#oauth2" id="oauth2"><h3>OAuth2</h3></a>
 <ul>
-<li>Users can authenticate to services via an OAuth2 provider.</li>
-<li>Authentication produces a time-limited, revokable json web token which can be used to authenticate requests.</li>
+<li>Users can authenticate to services via supported OAuth2 providers.</li>
+<li>Authentication produces a time-limited, revokable JSON web token which can be used to authenticate requests.</li>
 </ul>
-<a class="header" href="#overview" id="overview"><h2>Overview</h2></a>
+<a class="header" href="#service-integration" id="service-integration"><h2>Service Integration</h2></a>
 <p>The following diagram illustrates how services and Ark Auth integrate to authenticate user requests.</p>
 <p><img src="./images/diagram.svg" alt="User request verification" /></p>
 <ol>
@@ -210,6 +215,21 @@
 
         </div>
 
+        
+        <!-- Livereload script (if served using the cli tool) -->
+        <script type="text/javascript">
+            var socket = new WebSocket("ws://localhost:3001");
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload(true); // force reload from server (not from cache)
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
         
 
         

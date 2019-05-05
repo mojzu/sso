@@ -2,14 +2,19 @@
 
 **Warning: The author of this application is not a security expert, nor has the code undergone any kind of review or verification. Use it at your own risk.**
 
-Ark Auth is an authentication server, it is intended to be used as a backend for other services which must authenticate their users requests. The following authentication methods are supported.
+Ark Auth is an authentication server, it is intended to be used as a backend for other services which must authenticate their users requests.
+
+-  [Guides](./guides/index.md)
+-  [API](./api/index.md)
 
 ## Authentication Methods
 
+The following user authentication methods are supported.
+
 ### Password Login
 
-- Users can authenticate to services using a unique email address and password.
-- Logins produce a time-limited, revokable json web token which can be used to authenticate requests.
+- Users can authenticate to a service using a unique email address and password.
+- A successful login produces a time-limited, revokable JSON web token which can be used to authenticate requests.
 - User passwords can be reset via email.
 - Passwords are stored as `bcrypt` hashes.
 - Password strength is checked by `zxcvbn`.
@@ -18,15 +23,15 @@ Ark Auth is an authentication server, it is intended to be used as a backend for
 
 ### API Key
 
-- API consumers can authenticate requests to services using a unique, random key.
+- Users can authenticate requests to a service using a unique, random key.
 - Keys are not time-limited but are revokable.
 
 ### OAuth2
 
-- Users can authenticate to services via an OAuth2 provider.
-- Authentication produces a time-limited, revokable json web token which can be used to authenticate requests.
+- Users can authenticate to services via supported OAuth2 providers.
+- Authentication produces a time-limited, revokable JSON web token which can be used to authenticate requests.
 
-## Overview
+## Service Integration
 
 The following diagram illustrates how services and Ark Auth integrate to authenticate user requests.
 

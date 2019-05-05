@@ -167,8 +167,8 @@ $ docker-compose up
 <p>Export environment variables.</p>
 <pre><code class="language-Shell"># Database connection URL, required.
 $ export DATABASE_URL=&quot;postgres://ark_auth:guest@localhost:5432/ark_auth&quot;
-# Server address, required.
-$ export SERVER_ADDR=&quot;localhost:9000&quot;
+# Server bind, required.
+$ export SERVER_BIND=&quot;localhost:9000&quot;
 # SMTP configured, required for reset password emails.
 $ export SMTP_HOST=&quot;...&quot;
 $ export SMTP_PORT=&quot;...&quot;
@@ -201,7 +201,7 @@ $ cargo run start
 $ rm -rf docs &amp;&amp; mdbook build
 </code></pre>
 <p>Run unit and integration tests.</p>
-<pre><code class="language-Shell">$ diesel database reset --migration-dir migrations/postgres &amp;&amp; cargo test [--test $test_name]
+<pre><code class="language-Shell">$ cargo test [--test $test_name]
 </code></pre>
 
                     </main>
@@ -233,6 +233,21 @@ $ rm -rf docs &amp;&amp; mdbook build
 
         </div>
 
+        
+        <!-- Livereload script (if served using the cli tool) -->
+        <script type="text/javascript">
+            var socket = new WebSocket("ws://localhost:3001");
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload(true); // force reload from server (not from cache)
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
         
 
         

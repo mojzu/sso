@@ -141,7 +141,7 @@
                 <div id="content" class="content">
                     <main>
                         <a class="header" href="#api" id="api"><h1>API</h1></a>
-<p>HTTP endpoints are available at <code>$SERVER_ADDR</code>.</p>
+<p>HTTP endpoints are available at <code>$SERVER_BIND</code>.</p>
 <p>Requests are authenticated using <code>Authorization: $key_value</code> header. Service keys can be created via command line.</p>
 <pre><code class="language-Shell">$ ark_auth init $service_name $service_url
 </code></pre>
@@ -189,6 +189,21 @@
 
         </div>
 
+        
+        <!-- Livereload script (if served using the cli tool) -->
+        <script type="text/javascript">
+            var socket = new WebSocket("ws://localhost:3001");
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload(true); // force reload from server (not from cache)
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
         
 
         
