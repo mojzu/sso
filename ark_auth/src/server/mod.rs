@@ -38,7 +38,7 @@ pub enum Error {
     Oauth2,
 
     /// Core error wrapper.
-    #[fail(display = "ServerError::CoreError {}", _0)]
+    #[fail(display = "ServerError::Core {}", _0)]
     Core(#[fail(cause)] core::Error),
     /// Actix web blocking error cancelled wrapper.
     #[fail(display = "ServerError::ActixWebBlockingCancelled")]

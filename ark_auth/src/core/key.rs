@@ -1,4 +1,4 @@
-use crate::core::{Error, Key, Service};
+use crate::core::{Error, Key, Service, User};
 use crate::driver;
 
 // TODO(refactor): Use service for permissions.
@@ -49,10 +49,32 @@ pub fn read_by_id(
     driver.key_read_by_id(id).map_err(Error::Driver)
 }
 
+/// Read key by user.
+pub fn read_by_user(
+    driver: &driver::Driver,
+    service: &Service,
+    user: &User,
+) -> Result<Option<Key>, Error> {
+    driver
+        .key_read_by_user_id(service.id, user.id)
+        .map_err(Error::Driver)
+}
+
 /// Read key by value (services only).
 pub fn read_by_service_value(driver: &driver::Driver, value: &str) -> Result<Option<Key>, Error> {
     driver
         .key_read_by_service_value(value)
+        .map_err(Error::Driver)
+}
+
+/// Read key by value (users only).
+pub fn read_by_user_value(
+    driver: &driver::Driver,
+    service: &Service,
+    value: &str,
+) -> Result<Option<Key>, Error> {
+    driver
+        .key_read_by_user_value(service.id, value)
         .map_err(Error::Driver)
 }
 

@@ -47,14 +47,14 @@ pub trait Driver: Send + Sync {
     /// Read key by ID.
     fn key_read_by_id(&self, id: i64) -> Result<Option<Key>, Error>;
 
+    /// Read key by service and user ID.
+    fn key_read_by_user_id(&self, service_id: i64, user_id: i64) -> Result<Option<Key>, Error>;
+
     /// Read key by service key value.
     fn key_read_by_service_value(&self, value: &str) -> Result<Option<Key>, Error>;
 
     /// Read key by service ID and user key value.
     fn key_read_by_user_value(&self, service_id: i64, value: &str) -> Result<Option<Key>, Error>;
-
-    /// Read key by service and user ID.
-    fn key_read_by_user_id(&self, service_id: i64, user_id: i64) -> Result<Option<Key>, Error>;
 
     /// Update key by ID.
     fn key_update_by_id(&self, id: i64, name: Option<&str>) -> Result<Key, Error>;

@@ -27,11 +27,16 @@ fn password_handler(
     PasswordBody::from_value(body.into_inner())
         .and_then(|body| {
             web::block(move || password_inner(data.get_ref(), id, &body)).map_err(Into::into)
+            // TODO(refactor): Implement email here.
         })
         .then(|res| route_response_empty(res))
 }
 
-fn password_inner(data: &Data, id: Option<String>, body: &PasswordBody) -> Result<usize, Error> {
+fn password_inner(
+    data: &Data,
+    id: Option<String>,
+    body: &PasswordBody,
+) -> Result<(core::User, core::UserToken), Error> {
     core::service::authenticate(data.driver(), id)
         .and_then(|service| core::auth::reset_password(data.driver(), &service, &body.email))
         .map_err(Into::into)

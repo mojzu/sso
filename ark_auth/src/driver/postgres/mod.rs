@@ -123,6 +123,26 @@ impl driver::Driver for Driver {
             })
     }
 
+    fn key_read_by_user_id(
+        &self,
+        key_service_id: i64,
+        key_user_id: i64,
+    ) -> Result<Option<Key>, Error> {
+        use crate::driver::postgres::schema::auth_key::dsl::*;
+
+        let conn = self.connection()?;
+        auth_key
+            .filter(user_id.eq(key_user_id).and(service_id.eq(key_service_id)))
+            // TODO(refactor): Better method to handle multiple keys?
+            .order(created_at.asc())
+            .get_result::<models::AuthKey>(&conn)
+            .map(|key| Some(key.into()))
+            .or_else(|err| match err {
+                diesel::result::Error::NotFound => Ok(None),
+                _ => Err(Error::Diesel(err)),
+            })
+    }
+
     fn key_read_by_service_value(&self, value: &str) -> Result<Option<Key>, Error> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
@@ -151,26 +171,6 @@ impl driver::Driver for Driver {
                     .eq(value)
                     .and(service_id.eq(key_service_id).and(user_id.is_not_null())),
             )
-            .get_result::<models::AuthKey>(&conn)
-            .map(|key| Some(key.into()))
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(Error::Diesel(err)),
-            })
-    }
-
-    fn key_read_by_user_id(
-        &self,
-        key_service_id: i64,
-        key_user_id: i64,
-    ) -> Result<Option<Key>, Error> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
-        let conn = self.connection()?;
-        auth_key
-            .filter(user_id.eq(key_user_id).and(service_id.eq(key_service_id)))
-            // TODO(refactor): Better method to handle multiple keys?
-            .order(created_at.asc())
             .get_result::<models::AuthKey>(&conn)
             .map(|key| Some(key.into()))
             .or_else(|err| match err {

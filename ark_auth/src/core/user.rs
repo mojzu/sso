@@ -57,6 +57,15 @@ pub fn read_by_id(
     driver.user_read_by_id(id).map_err(Error::Driver)
 }
 
+/// Read user by email.
+pub fn read_by_email(
+    driver: &driver::Driver,
+    _service: &Service,
+    email: &str,
+) -> Result<Option<User>, Error> {
+    driver.user_read_by_email(email).map_err(Error::Driver)
+}
+
 /// Update user by ID.
 pub fn update_by_id(
     driver: &driver::Driver,

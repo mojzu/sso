@@ -18,11 +18,14 @@ pub enum Error {
     PasswordInvalid,
 
     /// Driver error wrapper.
-    #[fail(display = "CoreError::DriverError {}", _0)]
+    #[fail(display = "CoreError::Driver {}", _0)]
     Driver(#[fail(cause)] driver::Error),
     /// Bcrypt error wrapper.
     #[fail(display = "DbError::Bcrypt {}", _0)]
     Bcrypt(#[fail(cause)] bcrypt::BcryptError),
+    /// JSON web token error wrapper.
+    #[fail(display = "DbError::Jsonwebtoken {}", _0)]
+    Jsonwebtoken(#[fail(cause)] jsonwebtoken::errors::Error),
 }
 
 /// Service.
@@ -96,9 +99,9 @@ pub fn hash_password(password: Option<&str>) -> Result<Option<String>, Error> {
 }
 
 /// Check if password string and password bcrypt hash are equal, error is returned for none as user password.
-pub fn check_password(user_password: Option<&str>, check_password: &str) -> Result<(), Error> {
-    match user_password {
-        Some(user_password) => bcrypt::verify(check_password, user_password)
+pub fn check_password(password_hash: Option<&str>, password: &str) -> Result<(), Error> {
+    match password_hash {
+        Some(password_hash) => bcrypt::verify(password, password_hash)
             .map_err(Error::Bcrypt)
             .and_then(|verified| {
                 if verified {

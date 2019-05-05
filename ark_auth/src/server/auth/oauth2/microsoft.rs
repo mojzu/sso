@@ -60,7 +60,7 @@ pub fn callback_handler(
         })
         .and_then(|(data, service_id, email)| {
             web::block(move || {
-                core::auth::oauth2::login(data.driver(), service_id, &email).map_err(Into::into)
+                core::auth::oauth2_login(data.driver(), service_id, &email).map_err(Into::into)
             })
             .map_err(Into::into)
         })
