@@ -27,6 +27,8 @@ fn verify_inner(data: &Data, id: Option<String>, body: &TokenBody) -> Result<Tok
         .map(|user_token| TokenResponse { data: user_token })
 }
 
+// TODO(feature): Refresh counter and configurable limit.
+
 fn refresh_handler(
     data: web::Data<Data>,
     id: Identity,

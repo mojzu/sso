@@ -10,12 +10,12 @@ use chrono::{DateTime, Utc};
 /// Core errors.
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// Bad request.
+    #[fail(display = "CoreError::BadRequest")]
+    BadRequest,
     /// Forbidden, authentication failure.
     #[fail(display = "CoreError::Forbidden")]
     Forbidden,
-    /// Invalid password, password is incorrect or null.
-    #[fail(display = "CoreError::PasswordInvalid")]
-    PasswordInvalid,
 
     /// Driver error wrapper.
     #[fail(display = "CoreError::Driver {}", _0)]
@@ -107,9 +107,9 @@ pub fn check_password(password_hash: Option<&str>, password: &str) -> Result<(),
                 if verified {
                     Ok(())
                 } else {
-                    Err(Error::PasswordInvalid)
+                    Err(Error::BadRequest)
                 }
             }),
-        None => Err(Error::PasswordInvalid),
+        None => Err(Error::BadRequest),
     }
 }

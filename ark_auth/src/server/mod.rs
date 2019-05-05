@@ -52,8 +52,12 @@ pub enum Error {
 }
 
 impl From<core::Error> for Error {
-    fn from(error: core::Error) -> Self {
-        Error::Core(error)
+    fn from(err: core::Error) -> Self {
+        match err {
+            core::Error::BadRequest => Error::BadRequest,
+            core::Error::Forbidden => Error::Forbidden,
+            _ => Error::Core(err)
+        }
     }
 }
 
@@ -61,15 +65,16 @@ impl ResponseError for Error {
     fn error_response(&self) -> HttpResponse {
         match self {
             // TODO(refactor): Refactor this.
-            // ApiError::BadRequest => HttpResponse::BadRequest().finish(),
-            // ApiError::Forbidden => HttpResponse::Forbidden().finish(),
             // ApiError::InvalidOauth2Provider => HttpResponse::MethodNotAllowed().finish(),
             // ApiError::Db(e) => {
             //     error!("{}", e);
             //     HttpResponse::InternalServerError().finish()
             // }
-            _err => {
-                error!("{}", _err);
+            Error::BadRequest => HttpResponse::BadRequest().finish(),
+            Error::Forbidden => HttpResponse::Forbidden().finish(),
+            Error::NotFound => HttpResponse::NotFound().finish(),
+            _ => {
+                error!("{}", self);
                 HttpResponse::InternalServerError().finish()
             }
         }
@@ -298,6 +303,8 @@ fn ping_handler() -> actix_web::Result<HttpResponse> {
 pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/v1")
         .service(web::resource("/ping").route(web::get().to(ping_handler)))
+        .service(auth::api_v1_scope())
+        .service(key::api_v1_scope())
         .service(service::api_v1_scope())
         .service(user::api_v1_scope())
 }
