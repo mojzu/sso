@@ -10,7 +10,7 @@ use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 
 // TODO(feature): Docker image output.
-// TODO(refactor): Clean up unwrap, other possible panics.
+// TODO(refactor): Clean up unwrap, expect, unimplemented, other possible panics.
 
 const COMMAND_INIT: &str = "init";
 const COMMAND_START: &str = "start";

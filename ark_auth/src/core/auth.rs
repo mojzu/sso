@@ -61,7 +61,7 @@ pub fn reset_password_confirm(
 pub fn key_verify(driver: &driver::Driver, service: &Service, key: &str) -> Result<UserKey, Error> {
     let key =
         core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::Forbidden)?;
-    let user_id = key.user_id.unwrap();
+    let user_id = key.user_id.ok_or_else(|| Error::Forbidden)?;
     Ok(UserKey {
         user_id,
         key: key.value,

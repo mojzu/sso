@@ -5,13 +5,15 @@ authors = ["Sam Ward <mail@mojzu.net>"]
 edition = "2018"
 
 [features]
-default = ["postgres"]
+default = ["postgres", "test"]
 postgres = []
 sqlite = []
+test = ["actix-http-test"]
 
 [dependencies]
 actix = "*"
 actix-http = "*"
+actix-http-test = { version = "*", optional = true }
 actix-rt = "*"
 actix-service = "*"
 actix-web = { version = "1.0.0-beta.3", features = ["rust-tls", "client"] }
@@ -43,6 +45,3 @@ time = "*"
 validator = "*"
 validator_derive = "*"
 zxcvbn = "*"
-
-[dev-dependencies]
-actix-http-test = "*"
