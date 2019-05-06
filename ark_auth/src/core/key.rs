@@ -1,7 +1,7 @@
 use crate::core::{Error, Key, Service, User};
 use crate::driver;
 
-// TODO(refactor): Use service for permissions, masking users, keys, etc.
+// TODO(refactor): Use service for permissions, masking users, keys, etc. Add tests for this.
 
 /// List keys where ID is less than.
 pub fn list_where_id_lt(

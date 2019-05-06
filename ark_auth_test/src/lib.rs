@@ -10,8 +10,6 @@ pub mod test_key;
 pub mod test_service;
 pub mod test_user;
 
-// TODO(refactor): Refactor integration tests here.
-
 #[macro_export]
 macro_rules! integration_test {
     ($driver:expr) => {

@@ -121,3 +121,5 @@ pub fn login_test(driver: &Driver, app: &mut TestServerRuntime) {
     assert_eq!(content_length, 0);
     assert_eq!(bytes.len(), 0);
 }
+
+// TODO(test): Authentication tests.
