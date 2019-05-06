@@ -21,9 +21,12 @@ pub struct Driver {
 type PooledConnection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
 
 impl Driver {
-    pub fn initialise(database_url: &str) -> Result<Self, Error> {
+    pub fn initialise(database_url: &str, max_connections: u32) -> Result<Self, Error> {
         let manager = ConnectionManager::<PgConnection>::new(database_url);
-        let pool = r2d2::Pool::builder().build(manager).map_err(Error::R2d2)?;
+        let pool = r2d2::Pool::builder()
+            .max_size(max_connections)
+            .build(manager)
+            .map_err(Error::R2d2)?;
         let driver = Driver { pool };
         driver.run_migrations()?;
         Ok(driver)
@@ -42,6 +45,29 @@ impl Driver {
 impl driver::Driver for Driver {
     fn box_clone(&self) -> Box<driver::Driver> {
         Box::new((*self).clone())
+    }
+
+    fn reset(&self) -> Result<(), Error> {
+        use crate::driver::postgres::schema::auth_csrf::dsl::*;
+        use crate::driver::postgres::schema::auth_key::dsl::*;
+        use crate::driver::postgres::schema::auth_service::dsl::*;
+        use crate::driver::postgres::schema::auth_user::dsl::*;
+
+        let conn = self.connection()?;
+        diesel::delete(auth_csrf)
+            .execute(&conn)
+            .map_err(Error::Diesel)?;
+        diesel::delete(auth_key)
+            .execute(&conn)
+            .map_err(Error::Diesel)?;
+        diesel::delete(auth_service)
+            .execute(&conn)
+            .map_err(Error::Diesel)?;
+        diesel::delete(auth_user)
+            .execute(&conn)
+            .map_err(Error::Diesel)?;
+
+        Ok(())
     }
 
     fn key_list_where_id_lt(

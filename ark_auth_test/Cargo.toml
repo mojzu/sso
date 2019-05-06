@@ -9,3 +9,8 @@ actix-http = "*"
 actix-http-test = "*"
 actix-web = { version = "1.0.0-beta.3", features = ["rust-tls", "client"] }
 ark_auth = { path = "../ark_auth" }
+chrono = { version = "*", features = ["serde"] }
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+uuid = { version = "*", features = ["v4"] }

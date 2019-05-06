@@ -1,14 +1,98 @@
+#[macro_use]
+extern crate serde_derive;
+
 pub mod support;
+pub mod test_auth_key;
 pub mod test_key;
+pub mod test_service;
+pub mod test_user;
+
+// TODO(refactor): Refactor integration tests here.
 
 #[macro_export]
 macro_rules! integration_test {
     ($driver:expr) => {
+        // Authentication key tests.
+        #[test]
+        fn auth_key_verify_authorisation_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_auth_key::verify_authorisation_test(drv.as_ref(), &mut app)
+        }
+        #[test]
+        fn auth_key_verify_body_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_auth_key::verify_body_test(drv.as_ref(), &mut app)
+        }
+        #[test]
+        fn auth_key_verify_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_auth_key::verify_test(drv.as_ref(), &mut app)
+        }
+        #[test]
+        fn auth_key_revoke_authorisation_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_auth_key::revoke_authorisation_test(drv.as_ref(), &mut app)
+        }
+        #[test]
+        fn auth_key_revoke_body_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_auth_key::revoke_body_test(drv.as_ref(), &mut app)
+        }
+        #[test]
+        fn auth_key_revoke_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_auth_key::revoke_test(drv.as_ref(), &mut app)
+        }
+
+        // Key tests.
         #[test]
         fn key_list_authorisation_test() {
-            let (_, mut app) = $crate::support::app($driver);
-            $crate::test_key::list_authorisation_test(&mut app)
-            // TODO(refactor): Refactor integration tests here.
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_key::list_authorisation_test(drv.as_ref(), &mut app)
+        }
+        #[test]
+        fn key_list_query_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_key::list_query_test(drv.as_ref(), &mut app)
+        }
+        #[test]
+        fn key_list_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_key::list_test(drv.as_ref(), &mut app)
+        }
+        #[test]
+        fn key_create_authorisation_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_key::create_authorisation_test(drv.as_ref(), &mut app)
+        }
+        #[test]
+        fn key_read_authorisation_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_key::read_authorisation_test(drv.as_ref(), &mut app)
+        }
+
+        // Service tests.
+        #[test]
+        fn service_read_authorisation_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_service::read_authorisation_test(drv.as_ref(), &mut app)
+        }
+
+        // User tests.
+        #[test]
+        fn user_list_authorisation_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_user::list_authorisation_test(drv.as_ref(), &mut app)
+        }
+        #[test]
+        fn user_create_authorisation_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_user::create_authorisation_test(drv.as_ref(), &mut app)
+        }
+        #[test]
+        fn user_create_test() {
+            let (drv, mut app) = $crate::support::app($driver);
+            $crate::test_user::create_test(drv.as_ref(), &mut app)
         }
     };
 }

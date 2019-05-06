@@ -88,9 +88,9 @@ struct CreateBody {
 impl ValidateFromValue<CreateBody> for CreateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CreateResponse {
-    meta: PasswordMeta,
-    data: core::User,
+pub struct CreateResponse {
+    pub meta: PasswordMeta,
+    pub data: core::User,
 }
 
 fn create_handler(

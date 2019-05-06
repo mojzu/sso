@@ -191,7 +191,7 @@ impl ValidateFromValue<TokenBody> for TokenBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenResponse {
-    data: core::UserToken,
+    pub data: core::UserToken,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -205,5 +205,5 @@ impl ValidateFromValue<KeyBody> for KeyBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeyResponse {
-    data: core::UserKey,
+    pub data: core::UserKey,
 }

@@ -23,16 +23,16 @@ struct ListQuery {
 impl ValidateFromValue<ListQuery> for ListQuery {}
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ListMetaResponse {
-    gt: Option<i64>,
-    lt: Option<i64>,
-    limit: i64,
+pub struct ListMetaResponse {
+    pub gt: Option<i64>,
+    pub lt: Option<i64>,
+    pub limit: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ListResponse {
-    meta: ListMetaResponse,
-    data: Vec<core::Key>,
+pub struct ListResponse {
+    pub meta: ListMetaResponse,
+    pub data: Vec<core::Key>,
 }
 
 fn list_handler(

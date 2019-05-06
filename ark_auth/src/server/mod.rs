@@ -56,7 +56,7 @@ impl From<core::Error> for Error {
         match err {
             core::Error::BadRequest => Error::BadRequest,
             core::Error::Forbidden => Error::Forbidden,
-            _ => Error::Core(err)
+            _ => Error::Core(err),
         }
     }
 }
@@ -349,8 +349,8 @@ pub fn route_response_empty<T: Serialize>(
     result: Result<T, Error>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     match result {
-        Ok(_r) => future::ok(HttpResponse::Ok().finish()),
-        Err(e) => future::ok(e.error_response()),
+        Ok(_res) => future::ok(HttpResponse::Ok().finish()),
+        Err(err) => future::ok(err.error_response()),
     }
 }
 
@@ -359,8 +359,8 @@ pub fn route_response_json<T: Serialize>(
     result: Result<T, Error>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     match result {
-        Ok(r) => future::ok(HttpResponse::Ok().json(r)),
-        Err(e) => future::ok(e.error_response()),
+        Ok(res) => future::ok(HttpResponse::Ok().json(res)),
+        Err(err) => future::ok(err.error_response()),
     }
 }
 

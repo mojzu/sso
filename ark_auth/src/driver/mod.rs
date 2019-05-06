@@ -27,6 +27,9 @@ pub trait Driver: Send + Sync {
     /// Return a boxed trait containing clone of self.
     fn box_clone(&self) -> Box<Driver>;
 
+    /// Reset database (used for integration tests).
+    fn reset(&self) -> Result<(), Error>;
+
     /// List keys where ID is less than.
     fn key_list_where_id_lt(&self, service_id: i64, lt: i64, limit: i64)
         -> Result<Vec<Key>, Error>;
