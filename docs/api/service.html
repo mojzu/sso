@@ -141,17 +141,12 @@
                 <div id="content" class="content">
                     <main>
                         <a class="header" href="#service" id="service"><h1>Service</h1></a>
-<a class="header" href="#collection-v1service" id="collection-v1service"><h2>Collection [/v1/service]</h2></a>
-<a class="header" href="#read-many-get" id="read-many-get"><h3>Read Many [GET]</h3></a>
-<p>TODO(doc)</p>
-<a class="header" href="#create-one-post" id="create-one-post"><h3>Create One [POST]</h3></a>
-<p>TODO(doc)</p>
 <a class="header" href="#service-v1serviceid" id="service-v1serviceid"><h2>Service [/v1/service/{id}]</h2></a>
-<a class="header" href="#read-one-get" id="read-one-get"><h3>Read One [GET]</h3></a>
+<a class="header" href="#read-get" id="read-get"><h3>Read [GET]</h3></a>
 <p>TODO(doc)</p>
-<a class="header" href="#update-one-patch" id="update-one-patch"><h3>Update One [PATCH]</h3></a>
+<a class="header" href="#update-patch" id="update-patch"><h3>Update [PATCH]</h3></a>
 <p>TODO(doc)</p>
-<a class="header" href="#delete-one-delete" id="delete-one-delete"><h3>Delete One [DELETE]</h3></a>
+<a class="header" href="#delete-delete" id="delete-delete"><h3>Delete [DELETE]</h3></a>
 <p>TODO(doc)</p>
 
                     </main>
@@ -191,21 +186,6 @@
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3001");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload(true); // force reload from server (not from cache)
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

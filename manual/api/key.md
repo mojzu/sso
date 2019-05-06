@@ -2,9 +2,9 @@
 
 ## Collection [/v1/key]
 
-### Read Many [GET]
+### List [GET]
 
-Read many keys.
+List keys.
 
 #### Request
 
@@ -49,9 +49,9 @@ Array of read items.
 
 - Authorisation header is invalid.
 
-### Create One [POST]
+### Create [POST]
 
-Create one key.
+Create key.
 
 #### Request
 
@@ -80,14 +80,14 @@ Create one key.
 
 ## Key [/v1/key/{id}]
 
-### Read One [GET]
+### Read [GET]
 
 TODO(doc)
 
-### Update One [PATCH]
+### Update [PATCH]
 
 TODO(doc)
 
-### Delete One [DELETE]
+### Delete [DELETE]
 
 TODO(doc)

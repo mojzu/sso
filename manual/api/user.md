@@ -2,13 +2,13 @@
 
 ## Collection [/v1/user]
 
-### Read Many [GET]
+### List [GET]
 
 TODO(doc)
 
-### Create One [POST]
+### Create [POST]
 
-Create one user.
+Create user.
 
 #### Request
 
@@ -68,14 +68,14 @@ Create one user.
 
 ## User [/v1/user/{id}]
 
-### Read One [GET]
+### Read [GET]
 
 TODO(doc)
 
-### Update One [PATCH]
+### Update [PATCH]
 
 TODO(doc)
 
-### Delete One [DELETE]
+### Delete [DELETE]
 
 TODO(doc)
