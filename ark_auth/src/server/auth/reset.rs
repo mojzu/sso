@@ -32,6 +32,26 @@ fn password_handler(
         .then(route_response_empty)
 }
 
+// TODO(refactor): Refactor this.
+// pub fn reset_password() {
+// .and_then(|(service, (user, token_response))| {
+//     // Send user email with reset password confirmation link.
+//     match email::send_reset_password(
+//         data.smtp(),
+//         &user,
+//         &service,
+//         &token_response.token,
+//     ) {
+//         Ok(_) => Ok(token_response),
+//         // Log warning in case of failure to send email.
+//         Err(e) => {
+//             warn!("Failed to send reset password email ({})", e);
+//             Ok(token_response)
+//         }
+//     }
+// })
+// }
+
 fn password_inner(
     data: &Data,
     id: Option<String>,
@@ -54,8 +74,8 @@ struct PasswordConfirmBody {
 impl ValidateFromValue<PasswordConfirmBody> for PasswordConfirmBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ResetPasswordConfirmResponse {
-    meta: PasswordMeta,
+pub struct PasswordConfirmResponse {
+    pub meta: PasswordMeta,
 }
 
 fn password_confirm_handler(
@@ -76,7 +96,7 @@ fn password_confirm_handler(
         .and_then(|(data, body, _password_confirm)| {
             password_meta(data.get_ref(), Some(&body.password))
         })
-        .map(|meta| ResetPasswordConfirmResponse { meta })
+        .map(|meta| PasswordConfirmResponse { meta })
         .then(route_response_json)
 }
 

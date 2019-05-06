@@ -83,5 +83,5 @@ $ rm -rf docs && mdbook build
 Run unit and integration tests.
 
 ```Shell
-$ cargo test [--test $test_name]
+$ diesel database reset --migration-dir ark_auth/migrations/postgres && cargo test [--test $test_name]
 ```

@@ -14,9 +14,9 @@ pub fn login(
     password: &str,
 ) -> Result<UserToken, Error> {
     let user =
-        core::user::read_by_email(driver, service, email)?.ok_or_else(|| Error::Forbidden)?;
+        core::user::read_by_email(driver, service, email)?.ok_or_else(|| Error::BadRequest)?;
     core::check_password(user.password_hash.as_ref().map(|x| &**x), &password)?;
-    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::Forbidden)?;
+    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
     jwt::encode_user_token(service.id, user.id, &key.value)
 }
 
@@ -27,9 +27,9 @@ pub fn reset_password(
     email: &str,
 ) -> Result<(User, UserToken), Error> {
     let user =
-        core::user::read_by_email(driver, service, email)?.ok_or_else(|| Error::Forbidden)?;
-    let password_revision = user.password_revision.ok_or_else(|| Error::Forbidden)?;
-    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::Forbidden)?;
+        core::user::read_by_email(driver, service, email)?.ok_or_else(|| Error::BadRequest)?;
+    let password_revision = user.password_revision.ok_or_else(|| Error::BadRequest)?;
+    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
 
     let reset_token = jwt::encode_reset_token(service.id, user.id, password_revision, &key.value)?;
     Ok((user, reset_token))
@@ -44,14 +44,15 @@ pub fn reset_password_confirm(
 ) -> Result<usize, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let user_id = jwt::decode_unsafe(token, service.id)?;
-    let user = core::user::read_by_id(driver, service, user_id)?.ok_or_else(|| Error::Forbidden)?;
-    let user_password_revision = user.password_revision.ok_or_else(|| Error::Forbidden)?;
-    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::Forbidden)?;
+    let user =
+        core::user::read_by_id(driver, service, user_id)?.ok_or_else(|| Error::BadRequest)?;
+    let user_password_revision = user.password_revision.ok_or_else(|| Error::BadRequest)?;
+    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
     let password_revision = jwt::decode_reset_token(service.id, user.id, &key.value, token)?;
 
     // If password revisions do not match, token has been used or password has been changed.
     if password_revision != user_password_revision {
-        Err(Error::Forbidden)
+        Err(Error::BadRequest)
     } else {
         core::user::update_password_by_id(driver, service, user.id, password, password_revision)
     }
@@ -60,8 +61,8 @@ pub fn reset_password_confirm(
 /// Verify user key.
 pub fn key_verify(driver: &driver::Driver, service: &Service, key: &str) -> Result<UserKey, Error> {
     let key =
-        core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::Forbidden)?;
-    let user_id = key.user_id.ok_or_else(|| Error::Forbidden)?;
+        core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::BadRequest)?;
+    let user_id = key.user_id.ok_or_else(|| Error::BadRequest)?;
     Ok(UserKey {
         user_id,
         key: key.value,
@@ -71,7 +72,7 @@ pub fn key_verify(driver: &driver::Driver, service: &Service, key: &str) -> Resu
 /// Revoke user key.
 pub fn key_revoke(driver: &driver::Driver, service: &Service, key: &str) -> Result<usize, Error> {
     let key =
-        core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::Forbidden)?;
+        core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::BadRequest)?;
     core::key::delete_by_id(driver, service, key.id)
 }
 
@@ -83,8 +84,9 @@ pub fn token_verify(
 ) -> Result<UserToken, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let user_id = jwt::decode_unsafe(token, service.id)?;
-    let user = core::user::read_by_id(driver, service, user_id)?.ok_or_else(|| Error::Forbidden)?;
-    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::Forbidden)?;
+    let user =
+        core::user::read_by_id(driver, service, user_id)?.ok_or_else(|| Error::BadRequest)?;
+    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
     jwt::decode_user_token(service.id, user.id, &key.value, token)
 }
 
@@ -96,8 +98,9 @@ pub fn token_refresh(
 ) -> Result<UserToken, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let user_id = jwt::decode_unsafe(token, service.id)?;
-    let user = core::user::read_by_id(driver, service, user_id)?.ok_or_else(|| Error::Forbidden)?;
-    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::Forbidden)?;
+    let user =
+        core::user::read_by_id(driver, service, user_id)?.ok_or_else(|| Error::BadRequest)?;
+    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
     jwt::decode_user_token(service.id, user.id, &key.value, token)?;
     jwt::encode_user_token(service.id, user.id, &key.value)
 }
@@ -110,8 +113,9 @@ pub fn token_revoke(
 ) -> Result<usize, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let user_id = jwt::decode_unsafe(token, service.id)?;
-    let user = core::user::read_by_id(driver, service, user_id)?.ok_or_else(|| Error::Forbidden)?;
-    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::Forbidden)?;
+    let user =
+        core::user::read_by_id(driver, service, user_id)?.ok_or_else(|| Error::BadRequest)?;
+    let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
     core::key::delete_by_id(driver, service, key.id)
 }
 
@@ -124,10 +128,10 @@ pub fn oauth2_login(
     let service = driver
         .service_read_by_id(service_id)
         .map_err(Error::Driver)?
-        .ok_or_else(|| Error::Forbidden)?;
+        .ok_or_else(|| Error::BadRequest)?;
     let user =
-        core::user::read_by_email(driver, &service, email)?.ok_or_else(|| Error::Forbidden)?;
-    let key = core::key::read_by_user(driver, &service, &user)?.ok_or_else(|| Error::Forbidden)?;
+        core::user::read_by_email(driver, &service, email)?.ok_or_else(|| Error::BadRequest)?;
+    let key = core::key::read_by_user(driver, &service, &user)?.ok_or_else(|| Error::BadRequest)?;
 
     let user_token = jwt::encode_user_token(service.id, user.id, &key.value)?;
     Ok((service, user_token))
@@ -265,11 +269,17 @@ mod jwt {
         let claims: Claims = dangerous_unsafe_decode(token)
             .map_err(Error::Jsonwebtoken)?
             .claims;
-        let issuer = claims.iss.parse::<i64>().map_err(|_err| Error::Forbidden)?;
-        let subject = claims.sub.parse::<i64>().map_err(|_err| Error::Forbidden)?;
+        let issuer = claims
+            .iss
+            .parse::<i64>()
+            .map_err(|_err| Error::BadRequest)?;
+        let subject = claims
+            .sub
+            .parse::<i64>()
+            .map_err(|_err| Error::BadRequest)?;
 
         if service_id != issuer {
-            return Err(Error::Forbidden);
+            return Err(Error::BadRequest);
         }
         Ok(subject)
     }

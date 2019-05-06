@@ -47,29 +47,6 @@ impl driver::Driver for Driver {
         Box::new((*self).clone())
     }
 
-    fn reset(&self) -> Result<(), Error> {
-        use crate::driver::postgres::schema::auth_csrf::dsl::*;
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-        use crate::driver::postgres::schema::auth_service::dsl::*;
-        use crate::driver::postgres::schema::auth_user::dsl::*;
-
-        let conn = self.connection()?;
-        diesel::delete(auth_csrf)
-            .execute(&conn)
-            .map_err(Error::Diesel)?;
-        diesel::delete(auth_key)
-            .execute(&conn)
-            .map_err(Error::Diesel)?;
-        diesel::delete(auth_service)
-            .execute(&conn)
-            .map_err(Error::Diesel)?;
-        diesel::delete(auth_user)
-            .execute(&conn)
-            .map_err(Error::Diesel)?;
-
-        Ok(())
-    }
-
     fn key_list_where_id_lt(
         &self,
         key_service_id: i64,
