@@ -24,7 +24,6 @@ enum Error {
     /// Command invalid.
     #[fail(display = "MainError::CommandInvalid")]
     CommandInvalid,
-
     /// Core error wrapper.
     #[fail(display = "MainError::Core {}", _0)]
     Core(#[fail(cause)] core::Error),

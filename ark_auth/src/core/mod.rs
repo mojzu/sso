@@ -16,7 +16,6 @@ pub enum Error {
     /// Forbidden, authentication failure.
     #[fail(display = "CoreError::Forbidden")]
     Forbidden,
-
     /// Driver error wrapper.
     #[fail(display = "CoreError::Driver {}", _0)]
     Driver(#[fail(cause)] driver::Error),

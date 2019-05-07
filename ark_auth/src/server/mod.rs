@@ -36,7 +36,6 @@ pub enum Error {
     /// OAuth2 error.
     #[fail(display = "ServerError::Oauth2")]
     Oauth2,
-
     /// Core error wrapper.
     #[fail(display = "ServerError::Core {}", _0)]
     Core(#[fail(cause)] core::Error),
