@@ -21,6 +21,8 @@ pub mod core;
 pub mod driver;
 pub mod server;
 
+// TODO(feature): Replace init with root key create/delete. Update manual.
+
 /// Initialise a new service with name and URL, generates a key for created service.
 pub fn command_init(
     driver: Box<driver::Driver>,

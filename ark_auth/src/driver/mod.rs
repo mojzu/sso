@@ -40,7 +40,7 @@ pub trait Driver: Send + Sync {
         &self,
         name: &str,
         value: &str,
-        service_id: i64,
+        service_id: Option<i64>,
         user_id: Option<i64>,
     ) -> Result<Key, Error>;
 
@@ -49,6 +49,9 @@ pub trait Driver: Send + Sync {
 
     /// Read key by service and user ID.
     fn key_read_by_user_id(&self, service_id: i64, user_id: i64) -> Result<Option<Key>, Error>;
+
+    /// Read key by root key value.
+    fn key_read_by_root_value(&self, value: &str) -> Result<Option<Key>, Error>;
 
     /// Read key by service key value.
     fn key_read_by_service_value(&self, value: &str) -> Result<Option<Key>, Error>;
@@ -61,6 +64,12 @@ pub trait Driver: Send + Sync {
 
     /// Delete key by ID.
     fn key_delete_by_id(&self, id: i64) -> Result<usize, Error>;
+
+    /// List services where ID is less than.
+    fn service_list_where_id_lt(&self, lt: i64, limit: i64) -> Result<Vec<Service>, Error>;
+
+    /// List services where ID is greater than.
+    fn service_list_where_id_gt(&self, gt: i64, limit: i64) -> Result<Vec<Service>, Error>;
 
     /// Create service.
     fn service_create(&self, name: &str, url: &str) -> Result<Service, Error>;

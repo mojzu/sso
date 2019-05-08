@@ -3,6 +3,35 @@ use crate::driver;
 
 // TODO(refactor): Use service for permissions, masking users, keys, etc. Add tests for this.
 
+/// Authenticate root key.
+pub fn authenticate_root(driver: &driver::Driver, key_value: Option<String>) -> Result<(), Error> {
+    match key_value {
+        Some(key_value) => read_by_root_value(driver, &key_value).and_then(|key| {
+            key.ok_or_else(|| Error::Forbidden)?;
+            Ok(())
+        }),
+        None => Err(Error::Forbidden),
+    }
+}
+
+/// Authenticate service key.
+pub fn authenticate_service(
+    driver: &driver::Driver,
+    key_value: Option<String>,
+) -> Result<Service, Error> {
+    match key_value {
+        Some(key_value) => read_by_service_value(driver, &key_value).and_then(|key| {
+            let key = key.ok_or_else(|| Error::Forbidden)?;
+            let service_id = key.service_id.ok_or_else(|| Error::Forbidden)?;
+            let service = driver
+                .service_read_by_id(service_id)
+                .map_err(Error::Driver)?;
+            service.ok_or_else(|| Error::Forbidden)
+        }),
+        None => Err(Error::Forbidden),
+    }
+}
+
 /// List keys where ID is less than.
 pub fn list_where_id_lt(
     driver: &driver::Driver,
@@ -27,6 +56,14 @@ pub fn list_where_id_gt(
         .map_err(Error::Driver)
 }
 
+/// Create root key.
+pub fn create_root(driver: &driver::Driver, name: &str) -> Result<Key, Error> {
+    let value = uuid::Uuid::new_v4().to_simple().to_string();
+    driver
+        .key_create(name, &value, None, None)
+        .map_err(Error::Driver)
+}
+
 /// Create key.
 pub fn create(
     driver: &driver::Driver,
@@ -36,7 +73,7 @@ pub fn create(
 ) -> Result<Key, Error> {
     let value = uuid::Uuid::new_v4().to_simple().to_string();
     driver
-        .key_create(name, &value, service.id, user_id)
+        .key_create(name, &value, Some(service.id), user_id)
         .map_err(Error::Driver)
 }
 
@@ -58,6 +95,11 @@ pub fn read_by_user(
     driver
         .key_read_by_user_id(service.id, user.id)
         .map_err(Error::Driver)
+}
+
+/// Read key by value (root only).
+pub fn read_by_root_value(driver: &driver::Driver, value: &str) -> Result<Option<Key>, Error> {
+    driver.key_read_by_root_value(value).map_err(Error::Driver)
 }
 
 /// Read key by value (services only).

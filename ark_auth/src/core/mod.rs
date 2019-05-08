@@ -45,7 +45,7 @@ pub struct Key {
     pub id: i64,
     pub name: String,
     pub value: String,
-    pub service_id: i64,
+    pub service_id: Option<i64>,
     pub user_id: Option<i64>,
 }
 

@@ -26,7 +26,7 @@ CREATE TABLE auth_key (
     key_id INTEGER PRIMARY KEY NOT NULL,
     key_name TEXT NOT NULL,
     key_value TEXT NOT NULL,
-    service_id INTEGER NOT NULL,
+    service_id INTEGER,
     user_id INTEGER,
     CONSTRAINT uq_auth_key_value UNIQUE(key_value),
     CONSTRAINT fk_auth_key_service

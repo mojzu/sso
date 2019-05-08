@@ -57,6 +57,7 @@ Create database and run migrations.
 
 ```Shell
 $ diesel database reset --migration-dir migrations/postgres
+$ diesel database reset --migration-dir migrations/sqlite
 ```
 
 Build application, initialise database with service, start server.

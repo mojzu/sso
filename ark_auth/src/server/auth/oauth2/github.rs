@@ -33,7 +33,7 @@ pub fn request_handler(
 }
 
 fn request_inner(data: &Data, id: Option<String>) -> Result<UrlResponse, Error> {
-    core::service::authenticate(data.driver(), id)
+    core::key::authenticate_service(data.driver(), id)
         .map_err(Into::into)
         .and_then(|service| github_authorise(&data, &service).map_err(Into::into))
         .map(|url| UrlResponse { url })

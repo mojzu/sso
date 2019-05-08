@@ -51,7 +51,7 @@ fn list_handler(
 }
 
 fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<ListResponse, Error> {
-    core::service::authenticate(data.driver(), id)
+    core::key::authenticate_service(data.driver(), id)
         .and_then(|service| {
             let limit = query.limit.unwrap_or(10);
             let (gt, lt, users) = match query.lt {
@@ -118,7 +118,7 @@ fn create_handler(
 }
 
 fn create_inner(data: &Data, id: Option<String>, body: &CreateBody) -> Result<core::User, Error> {
-    core::service::authenticate(data.driver(), id)
+    core::key::authenticate_service(data.driver(), id)
         .and_then(|service| {
             core::user::create(
                 data.driver(),
@@ -149,7 +149,7 @@ fn read_handler(
 }
 
 fn read_inner(data: &Data, id: Option<String>, user_id: i64) -> Result<ReadResponse, Error> {
-    core::service::authenticate(data.driver(), id)
+    core::key::authenticate_service(data.driver(), id)
         .and_then(|service| core::user::read_by_id(data.driver(), &service, user_id))
         .map_err(Into::into)
         .and_then(|user| user.ok_or_else(|| Error::NotFound))
@@ -191,7 +191,7 @@ fn update_inner(
     user_id: i64,
     body: &UpdateBody,
 ) -> Result<UpdateResponse, Error> {
-    core::service::authenticate(data.driver(), id)
+    core::key::authenticate_service(data.driver(), id)
         .and_then(|service| {
             core::user::update_by_id(
                 data.driver(),
@@ -217,7 +217,7 @@ fn delete_handler(
 }
 
 fn delete_inner(data: &Data, id: Option<String>, user_id: i64) -> Result<usize, Error> {
-    core::service::authenticate(data.driver(), id)
+    core::key::authenticate_service(data.driver(), id)
         .and_then(|service| core::user::delete_by_id(data.driver(), &service, user_id))
         .map_err(Into::into)
 }

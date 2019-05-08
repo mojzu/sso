@@ -21,7 +21,7 @@ fn verify_handler(
 }
 
 fn verify_inner(data: &Data, id: Option<String>, body: &TokenBody) -> Result<TokenResponse, Error> {
-    core::service::authenticate(data.driver(), id)
+    core::key::authenticate_service(data.driver(), id)
         .and_then(|service| core::auth::token_verify(data.driver(), &service, &body.token))
         .map_err(Into::into)
         .map(|user_token| TokenResponse { data: user_token })
@@ -48,7 +48,7 @@ fn refresh_inner(
     id: Option<String>,
     body: &TokenBody,
 ) -> Result<TokenResponse, Error> {
-    core::service::authenticate(data.driver(), id)
+    core::key::authenticate_service(data.driver(), id)
         .and_then(|service| core::auth::token_refresh(data.driver(), &service, &body.token))
         .map_err(Into::into)
         .map(|user_token| TokenResponse { data: user_token })
@@ -69,7 +69,7 @@ fn revoke_handler(
 }
 
 fn revoke_inner(data: &Data, id: Option<String>, body: &TokenBody) -> Result<usize, Error> {
-    core::service::authenticate(data.driver(), id)
+    core::key::authenticate_service(data.driver(), id)
         .and_then(|service| core::auth::token_revoke(data.driver(), &service, &body.token))
         .map_err(Into::into)
 }

@@ -187,6 +187,7 @@ $ export MICROSOFT_REDIRECT_URL=&quot;http://localhost:9000/v1/auth/oauth2/micro
 </code></pre>
 <p>Create database and run migrations.</p>
 <pre><code class="language-Shell">$ diesel database reset --migration-dir migrations/postgres
+$ diesel database reset --migration-dir migrations/sqlite
 </code></pre>
 <p>Build application, initialise database with service, start server.</p>
 <pre><code class="language-Shell">$ cargo build [--release]

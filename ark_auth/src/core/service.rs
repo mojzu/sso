@@ -1,22 +1,26 @@
+use crate::core::{Error, Service};
 use crate::driver;
-use crate::{
-    core,
-    core::{Error, Service},
-};
 
-/// Authenticate service key and return associated service.
-pub fn authenticate(driver: &driver::Driver, key_value: Option<String>) -> Result<Service, Error> {
-    match key_value {
-        Some(key_value) => core::key::read_by_service_value(driver, &key_value)
-            .and_then(|key| key.ok_or_else(|| Error::Forbidden))
-            .and_then(|key| {
-                driver
-                    .service_read_by_id(key.service_id)
-                    .map_err(Error::Driver)
-            })
-            .and_then(|service| service.ok_or_else(|| Error::Forbidden)),
-        None => Err(Error::Forbidden),
-    }
+/// List services where ID is less than.
+pub fn list_where_id_lt(
+    driver: &driver::Driver,
+    lt: i64,
+    limit: i64,
+) -> Result<Vec<Service>, Error> {
+    driver
+        .service_list_where_id_lt(lt, limit)
+        .map_err(Error::Driver)
+}
+
+/// List services where ID is greater than.
+pub fn list_where_id_gt(
+    driver: &driver::Driver,
+    gt: i64,
+    limit: i64,
+) -> Result<Vec<Service>, Error> {
+    driver
+        .service_list_where_id_gt(gt, limit)
+        .map_err(Error::Driver)
 }
 
 /// Create service.

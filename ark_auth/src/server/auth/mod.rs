@@ -17,8 +17,6 @@ use futures::{future, Future};
 use sha1::{Digest, Sha1};
 use validator::Validate;
 
-// TODO(refactor): Clean up public interfaces.
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PasswordMeta {
     pub password_strength: Option<u8>,
@@ -163,7 +161,7 @@ fn login_inner(
     id: Option<String>,
     body: &LoginBody,
 ) -> Result<core::UserToken, Error> {
-    core::service::authenticate(data.driver(), id)
+    core::key::authenticate_service(data.driver(), id)
         .and_then(|service| core::auth::login(data.driver(), &service, &body.email, &body.password))
         .map_err(Into::into)
 }

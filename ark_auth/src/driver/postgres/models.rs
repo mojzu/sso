@@ -102,7 +102,7 @@ pub struct AuthKey {
     pub key_id: i64,
     pub key_name: String,
     pub key_value: String,
-    pub service_id: i64,
+    pub service_id: Option<i64>,
     pub user_id: Option<i64>,
 }
 
@@ -125,7 +125,7 @@ impl From<AuthKey> for core::Key {
 pub struct AuthKeyInsert<'a> {
     pub key_name: &'a str,
     pub key_value: &'a str,
-    pub service_id: i64,
+    pub service_id: Option<i64>,
     pub user_id: Option<i64>,
 }
 

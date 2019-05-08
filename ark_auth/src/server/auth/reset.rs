@@ -57,7 +57,7 @@ fn password_inner(
     id: Option<String>,
     body: &PasswordBody,
 ) -> Result<(core::User, core::UserToken), Error> {
-    core::service::authenticate(data.driver(), id)
+    core::key::authenticate_service(data.driver(), id)
         .and_then(|service| core::auth::reset_password(data.driver(), &service, &body.email))
         .map_err(Into::into)
 }
@@ -105,7 +105,7 @@ fn password_confirm_inner(
     id: Option<String>,
     body: &PasswordConfirmBody,
 ) -> Result<usize, Error> {
-    core::service::authenticate(data.driver(), id)
+    core::key::authenticate_service(data.driver(), id)
         .and_then(|service| {
             core::auth::reset_password_confirm(data.driver(), &service, &body.token, &body.password)
         })

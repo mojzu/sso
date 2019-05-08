@@ -27,7 +27,7 @@ CREATE TABLE auth_key (
     key_id BIGSERIAL PRIMARY KEY NOT NULL,
     key_name VARCHAR NOT NULL,
     key_value VARCHAR NOT NULL,
-    service_id BIGINT NOT NULL,
+    service_id BIGINT,
     user_id BIGINT,
     CONSTRAINT uq_auth_key_value UNIQUE(key_value),
     CONSTRAINT fk_auth_key_service
