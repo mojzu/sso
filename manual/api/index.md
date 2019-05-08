@@ -8,14 +8,8 @@ Requests are authenticated using `Authorization: $key_value` header. Service key
 $ ark_auth init $service_name $service_url
 ```
 
-## Ping [/v1/ping]
-
-### Ping [GET]
-
-Uptime test route, authentication is not required for this route.
-
-#### Response [200, OK]
-
-```JSON
-"pong"
-```
+TODO(doc): Replace index.md with introduction + contents.
+TODO(doc): Tests within documentation.
+<https://rust-lang-nursery.github.io/mdBook/cli/test.html>
+TODO(doc): API documentation consistency.
+TODO(doc): Check and update guides.

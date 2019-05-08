@@ -1,12 +1,8 @@
-# Authentication
-
-## Login [/v1/auth/login]
-
-### Email and Password [POST]
+# Login [POST /v1/auth/login]
 
 Login with email address and password.
 
-#### Request
+## Request
 
 ```JSON
 {
@@ -18,7 +14,7 @@ Login with email address and password.
 - `email`: User email address (required).
 - `password`: User password (required).
 
-#### Response [200, OK]
+## Response [200, OK]
 
 ```JSON
 {
@@ -34,24 +30,24 @@ Login with email address and password.
 }
 ```
 
-##### Meta
+### Meta
 
 - `password_strength`: Password strength score by `zxcvbn`, null if scoring failed.
 - `password_pwned`: True if password detected by `haveibeenpwned.com`, null if request failed or feature disabled.
 
-##### Data
+### Data
 
 - `user_id`: User ID.
 - `token`: JWT authentication token for user.
 - `token_expires`: JWT expiry time, unix timestamp.
 
-#### Response [400, Bad Request]
+## Response [400, Bad Request]
 
 - Request body is invalid.
 - User email address is invalid or unknown.
 - User password is invalid or incorrect or null.
 - User is not assigned key for service.
 
-#### Response [403, Forbidden]
+## Response [403, Forbidden]
 
 - Authorisation header is invalid.

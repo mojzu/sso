@@ -1,16 +1,8 @@
-# User
-
-## Collection [/v1/user]
-
-### List [GET]
-
-TODO(doc)
-
-### Create [POST]
+# Create [POST /v1/user]
 
 Create user.
 
-#### Request
+## Request
 
 ```JSON
 {
@@ -24,7 +16,7 @@ Create user.
 - `email`: User email address, must be unique (required).
 - `password`: User password, optional.
 
-#### Response [200, OK]
+## Response [200, OK]
 
 ```JSON
 {
@@ -42,12 +34,12 @@ Create user.
 }
 ```
 
-##### Meta
+### Meta
 
 - `password_strength`: Password strength score by `zxcvbn`, null if scoring failed or password was not provided.
 - `password_pwned`: True if password detected by `haveibeenpwned.com`, null if request failed, feature disabled or password was not provided.
 
-##### Data
+### Data
 
 - `created_at`: Created time ISO 8601 timestamp.
 - `updated_at`: Updated time ISO 8601 timestamp.
@@ -55,27 +47,13 @@ Create user.
 - `name`: User name.
 - `email`: User email address.
 
-#### Response [400, Bad Request]
+## Response [400, Bad Request]
 
 - Request body is invalid.
 - User name is invalid.
 - User email address is invalid or not unique.
 - User password is invalid.
 
-#### Response [403, Forbidden]
+## Response [403, Forbidden]
 
 - Authorisation header is invalid.
-
-## User [/v1/user/{id}]
-
-### Read [GET]
-
-TODO(doc)
-
-### Update [PATCH]
-
-TODO(doc)
-
-### Delete [DELETE]
-
-TODO(doc)
