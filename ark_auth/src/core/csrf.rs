@@ -35,8 +35,12 @@ pub fn read_by_key(driver: &driver::Driver, key: &str) -> Result<Option<Csrf>, E
 /// Delete many CSRF key, value pairs created more than one hour ago.
 fn delete_by_age(driver: &driver::Driver) -> Result<usize, Error> {
     let previous_hour = Utc::now() - Duration::hours(1);
-    driver
-        .csrf_delete_by_created_at(&previous_hour)
-        .map_err(Error::Driver)
-    // TODO(refactor): Failure here shouldn't cause above functions to fail.
+
+    match driver.csrf_delete_by_created_at(&previous_hour) {
+        Ok(count) => Ok(count),
+        Err(err) => {
+            warn!("{}", Error::Driver(err));
+            Ok(0)
+        }
+    }
 }

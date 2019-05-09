@@ -15,6 +15,8 @@ struct PasswordBody {
     email: String,
 }
 
+// TODO(feature): Optional subject/text for password reset email.
+
 impl ValidateFromValue<PasswordBody> for PasswordBody {}
 
 fn password_handler(

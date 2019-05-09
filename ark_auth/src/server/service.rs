@@ -131,8 +131,8 @@ fn read_handler(
 }
 
 fn read_inner(data: &Data, id: Option<String>, service_id: i64) -> Result<ReadResponse, Error> {
-    core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::service::read_by_id(data.driver(), &service, service_id))
+    core::key::authenticate(data.driver(), id)
+        .and_then(|service| core::service::read_by_id(data.driver(), service.as_ref(), service_id))
         .map_err(Into::into)
         .and_then(|service| service.ok_or_else(|| Error::NotFound))
         .map(|service| ReadResponse { data: service })
@@ -173,11 +173,11 @@ fn update_inner(
     service_id: i64,
     body: &UpdateBody,
 ) -> Result<UpdateResponse, Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate(data.driver(), id)
         .and_then(|service| {
             core::service::update_by_id(
                 data.driver(),
-                &service,
+                service.as_ref(),
                 service_id,
                 body.name.as_ref().map(|x| &**x),
             )
@@ -199,8 +199,10 @@ fn delete_handler(
 }
 
 fn delete_inner(data: &Data, id: Option<String>, service_id: i64) -> Result<usize, Error> {
-    core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::service::delete_by_id(data.driver(), &service, service_id))
+    core::key::authenticate(data.driver(), id)
+        .and_then(|service| {
+            core::service::delete_by_id(data.driver(), service.as_ref(), service_id)
+        })
         .map_err(Into::into)
 }
 

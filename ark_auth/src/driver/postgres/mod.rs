@@ -49,44 +49,58 @@ impl driver::Driver for Driver {
 
     fn key_list_where_id_lt(
         &self,
-        key_service_id: i64,
         lt: i64,
         limit: i64,
+        service_id_mask: Option<i64>,
     ) -> Result<Vec<Key>, Error> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         let conn = self.connection()?;
-        auth_key
-            .filter(service_id.eq(key_service_id).and(key_id.lt(lt)))
-            .limit(limit)
-            .order(key_id.asc())
-            .load::<models::AuthKey>(&conn)
-            .map_err(Error::Diesel)
-            .map(|keys| {
-                let keys: Vec<Key> = keys.into_iter().map(Into::into).collect();
-                keys
-            })
+        match service_id_mask {
+            Some(service_id_mask) => auth_key
+                .filter(service_id.eq(service_id_mask).and(key_id.lt(lt)))
+                .limit(limit)
+                .order(key_id.asc())
+                .load::<models::AuthKey>(&conn),
+            None => auth_key
+                .filter(key_id.lt(lt))
+                .limit(limit)
+                .order(key_id.asc())
+                .load::<models::AuthKey>(&conn),
+        }
+        .map_err(Error::Diesel)
+        .map(|keys| {
+            let keys: Vec<Key> = keys.into_iter().map(Into::into).collect();
+            keys
+        })
     }
 
     fn key_list_where_id_gt(
         &self,
-        key_service_id: i64,
         gt: i64,
         limit: i64,
+        service_id_mask: Option<i64>,
     ) -> Result<Vec<Key>, Error> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         let conn = self.connection()?;
-        auth_key
-            .filter(service_id.eq(key_service_id).and(key_id.gt(gt)))
-            .limit(limit)
-            .order(key_id.asc())
-            .load::<models::AuthKey>(&conn)
-            .map_err(Error::Diesel)
-            .map(|keys| {
-                let keys: Vec<Key> = keys.into_iter().map(Into::into).collect();
-                keys
-            })
+        match service_id_mask {
+            Some(service_id_mask) => auth_key
+                .filter(service_id.eq(service_id_mask).and(key_id.gt(gt)))
+                .limit(limit)
+                .order(key_id.asc())
+                .load::<models::AuthKey>(&conn),
+            None => auth_key
+                .filter(key_id.gt(gt))
+                .limit(limit)
+                .order(key_id.asc())
+                .load::<models::AuthKey>(&conn),
+        }
+        .map_err(Error::Diesel)
+        .map(|keys| {
+            let keys: Vec<Key> = keys.into_iter().map(Into::into).collect();
+            keys
+        })
     }
 
     fn key_create(

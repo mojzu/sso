@@ -28,12 +28,20 @@ pub trait Driver: Send + Sync {
     fn box_clone(&self) -> Box<Driver>;
 
     /// List keys where ID is less than.
-    fn key_list_where_id_lt(&self, service_id: i64, lt: i64, limit: i64)
-        -> Result<Vec<Key>, Error>;
+    fn key_list_where_id_lt(
+        &self,
+        lt: i64,
+        limit: i64,
+        service_id_mask: Option<i64>,
+    ) -> Result<Vec<Key>, Error>;
 
     /// List keys where ID is greater than.
-    fn key_list_where_id_gt(&self, service_id: i64, gt: i64, limit: i64)
-        -> Result<Vec<Key>, Error>;
+    fn key_list_where_id_gt(
+        &self,
+        gt: i64,
+        limit: i64,
+        service_id_mask: Option<i64>,
+    ) -> Result<Vec<Key>, Error>;
 
     /// Create key.
     fn key_create(

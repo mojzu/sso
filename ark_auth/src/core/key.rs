@@ -32,27 +32,42 @@ pub fn authenticate_service(
     }
 }
 
+/// Authenticate root or service key.
+pub fn authenticate(
+    driver: &driver::Driver,
+    key_value: Option<String>,
+) -> Result<Option<Service>, Error> {
+    let key_value_1 = key_value.to_owned();
+
+    authenticate_service(driver, key_value)
+        .map(|service| Some(service))
+        .or_else(move |err| match err {
+            Error::Forbidden => authenticate_root(driver, key_value_1).map(|_| None),
+            _ => Err(err),
+        })
+}
+
 /// List keys where ID is less than.
 pub fn list_where_id_lt(
     driver: &driver::Driver,
-    service: &Service,
+    service_mask: Option<&Service>,
     lt: i64,
     limit: i64,
 ) -> Result<Vec<Key>, Error> {
     driver
-        .key_list_where_id_lt(service.id, lt, limit)
+        .key_list_where_id_lt(lt, limit, service_mask.map(|s| s.id))
         .map_err(Error::Driver)
 }
 
 /// List keys where ID is greater than.
 pub fn list_where_id_gt(
     driver: &driver::Driver,
-    service: &Service,
+    service_mask: Option<&Service>,
     gt: i64,
     limit: i64,
 ) -> Result<Vec<Key>, Error> {
     driver
-        .key_list_where_id_gt(service.id, gt, limit)
+        .key_list_where_id_gt(gt, limit, service_mask.map(|s| s.id))
         .map_err(Error::Driver)
 }
 

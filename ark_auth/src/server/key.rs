@@ -52,17 +52,19 @@ fn list_handler(
 }
 
 fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<ListResponse, Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate(data.driver(), id)
         .and_then(|service| {
             let limit = query.limit.unwrap_or(10);
             let (gt, lt, keys) = match query.lt {
                 Some(lt) => {
-                    let keys = core::key::list_where_id_lt(data.driver(), &service, lt, limit)?;
+                    let keys =
+                        core::key::list_where_id_lt(data.driver(), service.as_ref(), lt, limit)?;
                     (None, Some(lt), keys)
                 }
                 None => {
                     let gt = query.gt.unwrap_or(0);
-                    let keys = core::key::list_where_id_gt(data.driver(), &service, gt, limit)?;
+                    let keys =
+                        core::key::list_where_id_gt(data.driver(), service.as_ref(), gt, limit)?;
                     (Some(gt), None, keys)
                 }
             };
@@ -80,6 +82,8 @@ fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<List
 struct CreateBody {
     #[validate(custom = "validate_name")]
     name: String,
+    // #[validate(custom = "validate_id")]
+    // service_id: Option<i64>,
     #[validate(custom = "validate_id")]
     user_id: i64,
 }
@@ -110,6 +114,19 @@ fn create_inner(
     id: Option<String>,
     body: &CreateBody,
 ) -> Result<CreateResponse, Error> {
+    // TODO(feature): Root keys can create service + user keys, service keys can create user keys.
+    // match body.service_id {
+    //     Some(service_id) => core::key::authenticate_root(data.driver(), id)
+    //         .and_then(|| {
+    //             core::key::create_root(data.driver(), &body.name)
+    //         })
+    //         .map_err(Into::into),
+    //     None => core::key::authenticate_service(data.driver(), id)
+    //         .and_then(|service| {
+    //             core::key::create(data.driver(), &service, &body.name, user_id: Option<i64>)
+    //         })
+    // }
+
     core::key::authenticate_service(data.driver(), id)
         .and_then(|service| {
             core::key::create(data.driver(), &service, &body.name, Some(body.user_id))
