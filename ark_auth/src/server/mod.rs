@@ -396,6 +396,30 @@ pub fn validate_name(name: &str) -> Result<(), ValidationError> {
     }
 }
 
+pub fn validate_email_subject(email_subject: &str) -> Result<(), ValidationError> {
+    if email_subject.is_empty() || email_subject.len() > 200 {
+        Err(ValidationError::new("invalid_email_subject"))
+    } else {
+        Ok(())
+    }
+}
+
+pub fn validate_email_text(email_text: &str) -> Result<(), ValidationError> {
+    if email_text.is_empty() || email_text.len() > 1000 {
+        Err(ValidationError::new("invalid_email_text"))
+    } else {
+        Ok(())
+    }
+}
+
+pub fn validate_email_link_text(email_link_text: &str) -> Result<(), ValidationError> {
+    if email_link_text.is_empty() || email_link_text.len() > 200 {
+        Err(ValidationError::new("invalid_email_link_text"))
+    } else {
+        Ok(())
+    }
+}
+
 pub fn validate_id(id: i64) -> Result<(), ValidationError> {
     if id < 1 {
         Err(ValidationError::new("invalid_id"))
