@@ -73,6 +73,9 @@ pub trait Driver: Send + Sync {
     /// Delete key by ID.
     fn key_delete_by_id(&self, id: i64) -> Result<usize, Error>;
 
+    /// Delete root keys.
+    fn key_delete_root(&self) -> Result<usize, Error>;
+
     /// List services where ID is less than.
     fn service_list_where_id_lt(&self, lt: i64, limit: i64) -> Result<Vec<Service>, Error>;
 

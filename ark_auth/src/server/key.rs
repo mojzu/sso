@@ -82,10 +82,10 @@ fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<List
 struct CreateBody {
     #[validate(custom = "validate_name")]
     name: String,
-    // #[validate(custom = "validate_id")]
-    // service_id: Option<i64>,
     #[validate(custom = "validate_id")]
-    user_id: i64,
+    service_id: Option<i64>,
+    #[validate(custom = "validate_id")]
+    user_id: Option<i64>,
 }
 
 impl ValidateFromValue<CreateBody> for CreateBody {}
@@ -114,25 +114,31 @@ fn create_inner(
     id: Option<String>,
     body: &CreateBody,
 ) -> Result<CreateResponse, Error> {
-    // TODO(feature): Root keys can create service + user keys, service keys can create user keys.
-    // match body.service_id {
-    //     Some(service_id) => core::key::authenticate_root(data.driver(), id)
-    //         .and_then(|| {
-    //             core::key::create_root(data.driver(), &body.name)
-    //         })
-    //         .map_err(Into::into),
-    //     None => core::key::authenticate_service(data.driver(), id)
-    //         .and_then(|service| {
-    //             core::key::create(data.driver(), &service, &body.name, user_id: Option<i64>)
-    //         })
-    // }
-
-    core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| {
-            core::key::create(data.driver(), &service, &body.name, Some(body.user_id))
-        })
-        .map_err(Into::into)
-        .map(|key| CreateResponse { data: key })
+    // If service ID is some, root key is required to create service keys.
+    match body.service_id {
+        Some(service_id) => {
+            core::key::authenticate_root(data.driver(), id).and_then(|_| match body.user_id {
+                // User ID is defined, creating user key for service.
+                Some(user_id) => {
+                    core::key::create_user(data.driver(), &body.name, service_id, user_id)
+                }
+                // Creating service key.
+                None => core::key::create_service(data.driver(), &body.name, service_id),
+            })
+        }
+        None => core::key::authenticate_service(data.driver(), id).and_then(|service| {
+            match body.user_id {
+                // User ID is defined, creating user key for service.
+                Some(user_id) => {
+                    core::key::create_user(data.driver(), &body.name, service.id, user_id)
+                }
+                // Service cannot create service keys.
+                None => Err(core::Error::BadRequest),
+            }
+        }),
+    }
+    .map_err(Into::into)
+    .map(|key| CreateResponse { data: key })
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -153,8 +159,8 @@ fn read_handler(
 }
 
 fn read_inner(data: &Data, id: Option<String>, key_id: i64) -> Result<ReadResponse, Error> {
-    core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::key::read_by_id(data.driver(), &service, key_id))
+    core::key::authenticate(data.driver(), id)
+        .and_then(|service| core::key::read_by_id(data.driver(), service.as_ref(), key_id))
         .map_err(Into::into)
         .and_then(|key| key.ok_or_else(|| Error::NotFound))
         .map(|key| ReadResponse { data: key })
@@ -195,11 +201,11 @@ fn update_inner(
     key_id: i64,
     body: &UpdateBody,
 ) -> Result<UpdateResponse, Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate(data.driver(), id)
         .and_then(|service| {
             core::key::update_by_id(
                 data.driver(),
-                &service,
+                service.as_ref(),
                 key_id,
                 body.name.as_ref().map(|x| &**x),
             )
@@ -221,8 +227,8 @@ fn delete_handler(
 }
 
 fn delete_inner(data: &Data, id: Option<String>, key_id: i64) -> Result<usize, Error> {
-    core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::key::delete_by_id(data.driver(), &service, key_id))
+    core::key::authenticate(data.driver(), id)
+        .and_then(|service| core::key::delete_by_id(data.driver(), service.as_ref(), key_id))
         .map_err(Into::into)
 }
 

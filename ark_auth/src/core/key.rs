@@ -1,7 +1,7 @@
 use crate::core::{Error, Key, Service, User};
 use crate::driver;
 
-// TODO(refactor): Use service for permissions, masking users, keys, etc. Add tests for this.
+// TODO(refactor): Use service mask, masking users, keys, etc. Add tests for this.
 
 /// Authenticate root key.
 pub fn authenticate_root(driver: &driver::Driver, key_value: Option<String>) -> Result<(), Error> {
@@ -79,23 +79,31 @@ pub fn create_root(driver: &driver::Driver, name: &str) -> Result<Key, Error> {
         .map_err(Error::Driver)
 }
 
-/// Create key.
-pub fn create(
+/// Create service key.
+pub fn create_service(driver: &driver::Driver, name: &str, service_id: i64) -> Result<Key, Error> {
+    let value = uuid::Uuid::new_v4().to_simple().to_string();
+    driver
+        .key_create(name, &value, Some(service_id), None)
+        .map_err(Error::Driver)
+}
+
+/// Create user key.
+pub fn create_user(
     driver: &driver::Driver,
-    service: &Service,
     name: &str,
-    user_id: Option<i64>,
+    service_id: i64,
+    user_id: i64,
 ) -> Result<Key, Error> {
     let value = uuid::Uuid::new_v4().to_simple().to_string();
     driver
-        .key_create(name, &value, Some(service.id), user_id)
+        .key_create(name, &value, Some(service_id), Some(user_id))
         .map_err(Error::Driver)
 }
 
 /// Read key by ID.
 pub fn read_by_id(
     driver: &driver::Driver,
-    _service: &Service,
+    service_mask: Option<&Service>,
     id: i64,
 ) -> Result<Option<Key>, Error> {
     driver.key_read_by_id(id).map_err(Error::Driver)
@@ -138,7 +146,7 @@ pub fn read_by_user_value(
 /// Update key by ID.
 pub fn update_by_id(
     driver: &driver::Driver,
-    _service: &Service,
+    service_mask: Option<&Service>,
     id: i64,
     name: Option<&str>,
 ) -> Result<Key, Error> {
@@ -146,6 +154,15 @@ pub fn update_by_id(
 }
 
 /// Delete key by ID.
-pub fn delete_by_id(driver: &driver::Driver, _service: &Service, id: i64) -> Result<usize, Error> {
+pub fn delete_by_id(
+    driver: &driver::Driver,
+    service_mask: Option<&Service>,
+    id: i64,
+) -> Result<usize, Error> {
     driver.key_delete_by_id(id).map_err(Error::Driver)
+}
+
+/// Delete all root keys.
+pub fn delete_root(driver: &driver::Driver) -> Result<usize, Error> {
+    driver.key_delete_root().map_err(Error::Driver)
 }

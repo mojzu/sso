@@ -5,18 +5,20 @@ extern crate failure;
 #[macro_use]
 extern crate log;
 
-use ark_auth::{command_init, command_start, core, driver, driver::Driver, server};
+use ark_auth::{
+    command_create, command_delete, command_start, core, driver, driver::Driver, server,
+};
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 
 // TODO(feature): Docker image output.
 // TODO(refactor): Clean up unwrap, expect, unimplemented, other possible panics.
 
-const COMMAND_INIT: &str = "init";
+const COMMAND_CREATE: &str = "create";
+const COMMAND_DELETE: &str = "delete";
 const COMMAND_START: &str = "start";
 
-const ARG_SERVICE_NAME: &str = "NAME";
-const ARG_SERVICE_URL: &str = "URL";
+const ARG_KEY_NAME: &str = "NAME";
 
 /// Main errors.
 #[derive(Debug, Fail)]
@@ -69,20 +71,20 @@ fn main() {
         .about(crate_description!())
         .author(crate_authors!("\n"))
         .subcommands(vec![
-            SubCommand::with_name(COMMAND_INIT)
+            SubCommand::with_name(COMMAND_CREATE)
                 .version(crate_version!())
-                .about("Initialise new service")
+                .about("Create a root key")
                 .author(crate_authors!("\n"))
-                .args(&[
-                    Arg::with_name(ARG_SERVICE_NAME)
-                        .help("Service name")
+                .arg(
+                    Arg::with_name(ARG_KEY_NAME)
+                        .help("Key name")
                         .required(true)
                         .index(1),
-                    Arg::with_name(ARG_SERVICE_URL)
-                        .help("Service URL")
-                        .required(true)
-                        .index(2),
-                ]),
+                ),
+            SubCommand::with_name(COMMAND_DELETE)
+                .version(crate_version!())
+                .about("Delete all root keys")
+                .author(crate_authors!("\n")),
             SubCommand::with_name(COMMAND_START)
                 .version(crate_version!())
                 .about("Start server")
@@ -96,18 +98,18 @@ fn main() {
 
     // Call library functions with command line arguments.
     let result = match matches.subcommand() {
-        (COMMAND_INIT, Some(submatches)) => {
-            let name = submatches.value_of(ARG_SERVICE_NAME).unwrap();
-            let url = submatches.value_of(ARG_SERVICE_URL).unwrap();
-            command_init(driver, name, url)
+        (COMMAND_CREATE, Some(submatches)) => {
+            let name = submatches.value_of(ARG_KEY_NAME).unwrap();
+            command_create(driver, name)
                 .map_err(Error::Core)
-                .map(|(service, key)| {
-                    println!("service.id: {}", service.id);
-                    println!("service.name: {}", service.name);
+                .map(|key| {
                     println!("key.id: {}", key.id);
                     println!("key.value: {}", key.value);
                     0
                 })
+        }
+        (COMMAND_DELETE, Some(_submatches)) => {
+            command_delete(driver).map_err(Error::Core).map(|_| 0)
         }
         (COMMAND_START, Some(_submatches)) => {
             command_start(driver, configuration.server_configuration)

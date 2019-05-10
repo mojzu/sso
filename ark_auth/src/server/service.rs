@@ -223,5 +223,3 @@ pub fn api_v1_scope() -> actix_web::Scope {
                 .route(web::delete().to_async(delete_handler)),
         )
 }
-
-// TODO(feature): Root key support for methods.

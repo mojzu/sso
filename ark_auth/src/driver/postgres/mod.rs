@@ -245,6 +245,15 @@ impl driver::Driver for Driver {
             .map_err(Error::Diesel)
     }
 
+    fn key_delete_root(&self) -> Result<usize, Error> {
+        use crate::driver::postgres::schema::auth_key::dsl::*;
+
+        let conn = self.connection()?;
+        diesel::delete(auth_key.filter(service_id.is_null().and(user_id.is_null())))
+            .execute(&conn)
+            .map_err(Error::Diesel)
+    }
+
     fn service_list_where_id_lt(&self, lt: i64, limit: i64) -> Result<Vec<Service>, Error> {
         use crate::driver::postgres::schema::auth_service::dsl::*;
 

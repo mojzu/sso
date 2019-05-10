@@ -21,20 +21,19 @@ pub mod core;
 pub mod driver;
 pub mod server;
 
-// TODO(feature): Replace init with root key create/delete. Update manual.
+// TODO(doc): Update manual with init -> create,delete changes.
 
-/// Initialise a new service with name and URL, generates a key for created service.
-pub fn command_init(
-    driver: Box<driver::Driver>,
-    name: &str,
-    url: &str,
-) -> Result<(core::Service, core::Key), core::Error> {
-    let service = core::service::create(driver.as_ref(), name, url)?;
-    let key = core::key::create(driver.as_ref(), &service, name, None)?;
-    Ok((service, key))
+/// Create a root key.
+pub fn command_create(driver: Box<driver::Driver>, name: &str) -> Result<core::Key, core::Error> {
+    core::key::create_root(driver.as_ref(), name)
 }
 
-/// Start API server.
+/// Delete all root keys.
+pub fn command_delete(driver: Box<driver::Driver>) -> Result<usize, core::Error> {
+    core::key::delete_root(driver.as_ref())
+}
+
+/// Start server.
 pub fn command_start(
     driver: Box<driver::Driver>,
     configuration: server::Configuration,

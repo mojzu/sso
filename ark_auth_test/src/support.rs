@@ -122,7 +122,7 @@ pub fn post_authorisation_test<T: Into<actix_http::body::Body> + Clone>(
 pub fn service_key(driver: &driver::Driver) -> (core::Service, core::Key) {
     let random = uuid::Uuid::new_v4().to_simple().to_string();
     let service = core::service::create(driver, &random, "localhost:9001").unwrap();
-    let key = core::key::create(driver, &service, "Key Name", None).unwrap();
+    let key = core::key::create_service(driver, "Key Name", service.id).unwrap();
     (service, key)
 }
 
@@ -133,7 +133,7 @@ pub fn user_key(
 ) -> (core::User, core::Key) {
     let random = uuid::Uuid::new_v4().to_simple().to_string();
     let email = format!("{}@example.com", random);
-    let user = core::user::create(driver, service, "User Name", &email, password).unwrap();
-    let key = core::key::create(driver, service, "Key Name", Some(user.id)).unwrap();
+    let user = core::user::create(driver, Some(service), "User Name", &email, password).unwrap();
+    let key = core::key::create_user(driver, "Key Name", service.id, user.id).unwrap();
     (user, key)
 }

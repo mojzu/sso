@@ -51,17 +51,19 @@ fn list_handler(
 }
 
 fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<ListResponse, Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate(data.driver(), id)
         .and_then(|service| {
             let limit = query.limit.unwrap_or(10);
             let (gt, lt, users) = match query.lt {
                 Some(lt) => {
-                    let users = core::user::list_where_id_lt(data.driver(), &service, lt, limit)?;
+                    let users =
+                        core::user::list_where_id_lt(data.driver(), service.as_ref(), lt, limit)?;
                     (None, Some(lt), users)
                 }
                 None => {
                     let gt = query.gt.unwrap_or(0);
-                    let users = core::user::list_where_id_gt(data.driver(), &service, gt, limit)?;
+                    let users =
+                        core::user::list_where_id_gt(data.driver(), service.as_ref(), gt, limit)?;
                     (Some(gt), None, users)
                 }
             };
@@ -118,11 +120,11 @@ fn create_handler(
 }
 
 fn create_inner(data: &Data, id: Option<String>, body: &CreateBody) -> Result<core::User, Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate(data.driver(), id)
         .and_then(|service| {
             core::user::create(
                 data.driver(),
-                &service,
+                service.as_ref(),
                 &body.name,
                 &body.email,
                 body.password.as_ref().map(|x| &**x),
@@ -149,8 +151,8 @@ fn read_handler(
 }
 
 fn read_inner(data: &Data, id: Option<String>, user_id: i64) -> Result<ReadResponse, Error> {
-    core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::user::read_by_id(data.driver(), &service, user_id))
+    core::key::authenticate(data.driver(), id)
+        .and_then(|service| core::user::read_by_id(data.driver(), service.as_ref(), user_id))
         .map_err(Into::into)
         .and_then(|user| user.ok_or_else(|| Error::NotFound))
         .map(|user| ReadResponse { data: user })
@@ -191,11 +193,11 @@ fn update_inner(
     user_id: i64,
     body: &UpdateBody,
 ) -> Result<UpdateResponse, Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate(data.driver(), id)
         .and_then(|service| {
             core::user::update_by_id(
                 data.driver(),
-                &service,
+                service.as_ref(),
                 user_id,
                 body.name.as_ref().map(|x| &**x),
             )
@@ -217,8 +219,8 @@ fn delete_handler(
 }
 
 fn delete_inner(data: &Data, id: Option<String>, user_id: i64) -> Result<usize, Error> {
-    core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::user::delete_by_id(data.driver(), &service, user_id))
+    core::key::authenticate(data.driver(), id)
+        .and_then(|service| core::user::delete_by_id(data.driver(), service.as_ref(), user_id))
         .map_err(Into::into)
 }
 

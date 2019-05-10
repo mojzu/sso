@@ -72,7 +72,7 @@ pub fn login_test(driver: &Driver, app: &mut TestServerRuntime) {
 
     let user = core::user::create(
         driver,
-        &service,
+        Some(&service),
         "Login",
         "login@example.com",
         Some("guest"),
@@ -88,7 +88,7 @@ pub fn login_test(driver: &Driver, app: &mut TestServerRuntime) {
     assert_eq!(content_length, 0);
     assert_eq!(bytes.len(), 0);
 
-    core::key::create(driver, &service, "login", Some(user.id)).unwrap();
+    core::key::create_user(driver, "login", service.id, user.id).unwrap();
 
     // Key created, incorrect password.
     // 400 BAD REQUEST response.
