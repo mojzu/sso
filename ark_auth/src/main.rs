@@ -5,20 +5,19 @@ extern crate failure;
 #[macro_use]
 extern crate log;
 
-use ark_auth::{
-    command_create, command_delete, command_start, core, driver, driver::Driver, server,
-};
+use ark_auth::{cli, core, driver, driver::Driver, server};
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 
 // TODO(feature): Docker image output.
 // TODO(refactor): Clean up unwrap, expect, unimplemented, other possible panics.
 
-const COMMAND_CREATE: &str = "create";
-const COMMAND_DELETE: &str = "delete";
-const COMMAND_START: &str = "start";
-
-const ARG_KEY_NAME: &str = "NAME";
+const COMMAND_CREATE_ROOT_KEY: &str = "create-root-key";
+const COMMAND_DELETE_ROOT_KEYS: &str = "delete-root-keys";
+const COMMAND_CREATE_SERVICE_WITH_KEY: &str = "create-service-with-key";
+const COMMAND_START_SERVER: &str = "start-server";
+const ARG_NAME: &str = "NAME";
+const ARG_URL: &str = "URL";
 
 /// Main errors.
 #[derive(Debug, Fail)]
@@ -71,21 +70,35 @@ fn main() {
         .about(crate_description!())
         .author(crate_authors!("\n"))
         .subcommands(vec![
-            SubCommand::with_name(COMMAND_CREATE)
+            SubCommand::with_name(COMMAND_CREATE_ROOT_KEY)
                 .version(crate_version!())
                 .about("Create a root key")
                 .author(crate_authors!("\n"))
                 .arg(
-                    Arg::with_name(ARG_KEY_NAME)
+                    Arg::with_name(ARG_NAME)
                         .help("Key name")
                         .required(true)
                         .index(1),
                 ),
-            SubCommand::with_name(COMMAND_DELETE)
+            SubCommand::with_name(COMMAND_DELETE_ROOT_KEYS)
                 .version(crate_version!())
                 .about("Delete all root keys")
                 .author(crate_authors!("\n")),
-            SubCommand::with_name(COMMAND_START)
+            SubCommand::with_name(COMMAND_CREATE_SERVICE_WITH_KEY)
+                .version(crate_version!())
+                .about("Create service with service key")
+                .author(crate_authors!("\n"))
+                .args(&[
+                    Arg::with_name(ARG_NAME)
+                        .help("Service name")
+                        .required(true)
+                        .index(1),
+                    Arg::with_name(ARG_URL)
+                        .help("Service URL")
+                        .required(true)
+                        .index(2),
+                ]),
+            SubCommand::with_name(COMMAND_START_SERVER)
                 .version(crate_version!())
                 .about("Start server")
                 .author(crate_authors!("\n")),
@@ -98,9 +111,9 @@ fn main() {
 
     // Call library functions with command line arguments.
     let result = match matches.subcommand() {
-        (COMMAND_CREATE, Some(submatches)) => {
-            let name = submatches.value_of(ARG_KEY_NAME).unwrap();
-            command_create(driver, name)
+        (COMMAND_CREATE_ROOT_KEY, Some(submatches)) => {
+            let name = submatches.value_of(ARG_NAME).unwrap();
+            cli::create_root_key(driver, name)
                 .map_err(Error::Core)
                 .map(|key| {
                     println!("key.id: {}", key.id);
@@ -108,11 +121,24 @@ fn main() {
                     0
                 })
         }
-        (COMMAND_DELETE, Some(_submatches)) => {
-            command_delete(driver).map_err(Error::Core).map(|_| 0)
+        (COMMAND_DELETE_ROOT_KEYS, Some(_submatches)) => cli::delete_root_keys(driver)
+            .map_err(Error::Core)
+            .map(|_| 0),
+        (COMMAND_CREATE_SERVICE_WITH_KEY, Some(submatches)) => {
+            let name = submatches.value_of(ARG_NAME).unwrap();
+            let url = submatches.value_of(ARG_URL).unwrap();
+            cli::create_service_with_key(driver, name, url)
+                .map_err(Error::Core)
+                .map(|(service, key)| {
+                    println!("service.id: {}", service.id);
+                    println!("service.name: {}", service.name);
+                    println!("key.id: {}", key.id);
+                    println!("key.value: {}", key.value);
+                    0
+                })
         }
-        (COMMAND_START, Some(_submatches)) => {
-            command_start(driver, configuration.server_configuration)
+        (COMMAND_START_SERVER, Some(_submatches)) => {
+            cli::start_server(driver, configuration.server_configuration)
                 .map_err(Error::Server)
                 .map(|_| 0)
         }
