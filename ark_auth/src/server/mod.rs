@@ -63,12 +63,6 @@ impl From<core::Error> for Error {
 impl ResponseError for Error {
     fn error_response(&self) -> HttpResponse {
         match self {
-            // TODO(refactor): Refactor this.
-            // ApiError::InvalidOauth2Provider => HttpResponse::MethodNotAllowed().finish(),
-            // ApiError::Db(e) => {
-            //     error!("{}", e);
-            //     HttpResponse::InternalServerError().finish()
-            // }
             Error::BadRequest => HttpResponse::BadRequest().finish(),
             Error::Forbidden => HttpResponse::Forbidden().finish(),
             Error::NotFound => HttpResponse::NotFound().finish(),

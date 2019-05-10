@@ -1,7 +1,7 @@
 use crate::core::{Error, Key, Service, User};
 use crate::driver;
 
-// TODO(refactor): Use service mask, masking users, keys, etc. Add tests for this.
+// TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
 
 /// Authenticate root key.
 pub fn authenticate_root(driver: &driver::Driver, key_value: Option<String>) -> Result<(), Error> {
@@ -40,7 +40,7 @@ pub fn authenticate(
     let key_value_1 = key_value.to_owned();
 
     authenticate_service(driver, key_value)
-        .map(|service| Some(service))
+        .map(Some)
         .or_else(move |err| match err {
             Error::Forbidden => authenticate_root(driver, key_value_1).map(|_| None),
             _ => Err(err),
@@ -103,7 +103,7 @@ pub fn create_user(
 /// Read key by ID.
 pub fn read_by_id(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     id: i64,
 ) -> Result<Option<Key>, Error> {
     driver.key_read_by_id(id).map_err(Error::Driver)
@@ -146,7 +146,7 @@ pub fn read_by_user_value(
 /// Update key by ID.
 pub fn update_by_id(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     id: i64,
     name: Option<&str>,
 ) -> Result<Key, Error> {
@@ -156,7 +156,7 @@ pub fn update_by_id(
 /// Delete key by ID.
 pub fn delete_by_id(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     id: i64,
 ) -> Result<usize, Error> {
     driver.key_delete_by_id(id).map_err(Error::Driver)

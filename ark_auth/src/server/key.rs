@@ -9,8 +9,6 @@ use actix_web::{middleware::identity::Identity, web, HttpResponse};
 use futures::Future;
 use validator::Validate;
 
-// TODO(feature): Root key support for methods.
-
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 struct ListQuery {

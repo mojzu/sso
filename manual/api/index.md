@@ -5,7 +5,7 @@ HTTP endpoints are available at `$SERVER_BIND`.
 Requests are authenticated using `Authorization: $key_value` header. Service keys can be created via command line.
 
 ```Shell
-$ ark_auth init $service_name $service_url
+$ ark_auth create-service-with-key $service_name $service_url
 ```
 
 TODO(doc): Replace index.md with introduction + contents.

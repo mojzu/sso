@@ -4,7 +4,7 @@ use crate::driver;
 /// List users where ID is less than.
 pub fn list_where_id_lt(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     lt: i64,
     limit: i64,
 ) -> Result<Vec<User>, Error> {
@@ -16,7 +16,7 @@ pub fn list_where_id_lt(
 /// List users where ID is greater than.
 pub fn list_where_id_gt(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     gt: i64,
     limit: i64,
 ) -> Result<Vec<User>, Error> {
@@ -28,7 +28,7 @@ pub fn list_where_id_gt(
 /// Create user.
 pub fn create(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     name: &str,
     email: &str,
     password: Option<&str>,
@@ -51,7 +51,7 @@ pub fn create(
 /// Read user by ID.
 pub fn read_by_id(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     id: i64,
 ) -> Result<Option<User>, Error> {
     driver.user_read_by_id(id).map_err(Error::Driver)
@@ -60,7 +60,7 @@ pub fn read_by_id(
 /// Read user by email.
 pub fn read_by_email(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     email: &str,
 ) -> Result<Option<User>, Error> {
     driver.user_read_by_email(email).map_err(Error::Driver)
@@ -69,7 +69,7 @@ pub fn read_by_email(
 /// Update user by ID.
 pub fn update_by_id(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     id: i64,
     name: Option<&str>,
 ) -> Result<User, Error> {
@@ -79,7 +79,7 @@ pub fn update_by_id(
 /// Update user password by ID.
 pub fn update_password_by_id(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     id: i64,
     password: &str,
     password_revision: i64,
@@ -94,7 +94,7 @@ pub fn update_password_by_id(
 /// Delete user by ID.
 pub fn delete_by_id(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     id: i64,
 ) -> Result<usize, Error> {
     driver.user_delete_by_id(id).map_err(Error::Driver)

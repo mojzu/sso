@@ -41,11 +41,18 @@ pub fn password_meta(
         Some(password) => {
             let password_strength = password_meta_strength(password).then(|r| match r {
                 Ok(entropy) => future::ok(Some(entropy.score)),
-                Err(_e) => future::ok(None),
+                Err(err) => {
+                    warn!("{}", err);
+                    future::ok(None)
+                }
             });
+            // TODO(fix): Check this works.
             let password_pwned = password_meta_pwned(data, password).then(|r| match r {
                 Ok(password_pwned) => future::ok(Some(password_pwned)),
-                Err(_e) => future::ok(None),
+                Err(err) => {
+                    warn!("{}", err);
+                    future::ok(None)
+                }
             });
             future::Either::A(password_strength.join(password_pwned).map(
                 |(password_strength, password_pwned)| PasswordMeta {

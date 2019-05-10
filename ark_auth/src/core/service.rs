@@ -31,7 +31,7 @@ pub fn create(driver: &driver::Driver, name: &str, url: &str) -> Result<Service,
 /// Read service by ID.
 pub fn read_by_id(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     id: i64,
 ) -> Result<Option<Service>, Error> {
     driver.service_read_by_id(id).map_err(Error::Driver)
@@ -40,7 +40,7 @@ pub fn read_by_id(
 /// Update service by ID.
 pub fn update_by_id(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     id: i64,
     name: Option<&str>,
 ) -> Result<Service, Error> {
@@ -50,7 +50,7 @@ pub fn update_by_id(
 /// Delete service by ID.
 pub fn delete_by_id(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     id: i64,
 ) -> Result<usize, Error> {
     driver.service_delete_by_id(id).map_err(Error::Driver)
