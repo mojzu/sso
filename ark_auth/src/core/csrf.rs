@@ -1,5 +1,7 @@
-use crate::core::{Csrf, Error, Service};
-use crate::driver;
+use crate::{
+    core::{Csrf, Error, Service},
+    driver,
+};
 use chrono::Utc;
 use time::Duration;
 

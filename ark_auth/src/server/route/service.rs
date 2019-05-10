@@ -1,8 +1,8 @@
 use crate::{
     core,
     server::{
-        route_json_config, route_response_empty, route_response_json, validate_name,
-        validate_unsigned, Data, Error, ValidateFromValue,
+        route_json_config, route_response_empty, route_response_json, validate, Data, Error,
+        FromJsonValue,
     },
 };
 use actix_web::{middleware::identity::Identity, web, HttpResponse};
@@ -12,15 +12,15 @@ use validator::Validate;
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 struct ListQuery {
-    #[validate(custom = "validate_unsigned")]
+    #[validate(custom = "validate::unsigned")]
     gt: Option<i64>,
-    #[validate(custom = "validate_unsigned")]
+    #[validate(custom = "validate::unsigned")]
     lt: Option<i64>,
-    #[validate(custom = "validate_unsigned")]
+    #[validate(custom = "validate::unsigned")]
     limit: Option<i64>,
 }
 
-impl ValidateFromValue<ListQuery> for ListQuery {}
+impl validate::FromJsonValue<ListQuery> for ListQuery {}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct ListMetaResponse {
@@ -75,13 +75,13 @@ fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<List
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 struct CreateBody {
-    #[validate(custom = "validate_name")]
+    #[validate(custom = "validate::name")]
     name: String,
     #[validate(url)]
     url: String,
 }
 
-impl ValidateFromValue<CreateBody> for CreateBody {}
+impl validate::FromJsonValue<CreateBody> for CreateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CreateResponse {
@@ -141,11 +141,11 @@ fn read_inner(data: &Data, id: Option<String>, service_id: i64) -> Result<ReadRe
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 struct UpdateBody {
-    #[validate(custom = "validate_name")]
+    #[validate(custom = "validate::name")]
     name: Option<String>,
 }
 
-impl ValidateFromValue<UpdateBody> for UpdateBody {}
+impl validate::FromJsonValue<UpdateBody> for UpdateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct UpdateResponse {

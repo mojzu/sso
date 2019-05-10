@@ -1,7 +1,9 @@
-use crate::core;
-use crate::server::{
-    auth::{KeyBody, KeyResponse},
-    route_json_config, route_response_empty, route_response_json, Data, Error, ValidateFromValue,
+use crate::{
+    core,
+    server::{
+        route::auth::{KeyBody, KeyResponse},
+        route_json_config, route_response_empty, route_response_json, Data, Error, FromJsonValue,
+    },
 };
 use actix_web::{middleware::identity::Identity, web, HttpResponse};
 use futures::Future;

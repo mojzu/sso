@@ -21,4 +21,3 @@ pub mod cli;
 pub mod core;
 pub mod driver;
 pub mod server;
-pub mod smtp;

@@ -3,10 +3,9 @@ pub mod oauth2;
 pub mod reset;
 pub mod token;
 
-use crate::core;
-use crate::server::{
-    route_json_config, route_response_json, validate_key, validate_password, validate_token, Data,
-    Error, ValidateFromValue,
+use crate::{
+    core,
+    server::{route_json_config, route_response_json, validate, Data, Error, FromJsonValue},
 };
 use actix_web::{
     http::{header, StatusCode},
@@ -124,11 +123,11 @@ fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, 
 struct LoginBody {
     #[validate(email)]
     email: String,
-    #[validate(custom = "validate_password")]
+    #[validate(custom = "validate::password")]
     password: String,
 }
 
-impl ValidateFromValue<LoginBody> for LoginBody {}
+impl validate::FromJsonValue<LoginBody> for LoginBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct LoginResponse {
@@ -190,11 +189,11 @@ pub fn api_v1_scope() -> actix_web::Scope {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct TokenBody {
-    #[validate(custom = "validate_token")]
+    #[validate(custom = "validate::token")]
     token: String,
 }
 
-impl ValidateFromValue<TokenBody> for TokenBody {}
+impl validate::FromJsonValue<TokenBody> for TokenBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenResponse {
@@ -204,11 +203,11 @@ pub struct TokenResponse {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct KeyBody {
-    #[validate(custom = "validate_key")]
+    #[validate(custom = "validate::key")]
     key: String,
 }
 
-impl ValidateFromValue<KeyBody> for KeyBody {}
+impl validate::FromJsonValue<KeyBody> for KeyBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeyResponse {

@@ -1,8 +1,7 @@
 pub mod github;
 pub mod microsoft;
 
-use crate::core;
-use crate::server::{validate_token, ValidateFromValue};
+use crate::{core, server::validate};
 use actix_web::{http::header, web, HttpResponse};
 use url::Url;
 use validator::Validate;
@@ -11,13 +10,13 @@ use validator::Validate;
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct CallbackQuery {
-    #[validate(custom = "validate_token")]
+    #[validate(custom = "validate::token")]
     code: String,
-    #[validate(custom = "validate_token")]
+    #[validate(custom = "validate::token")]
     state: String,
 }
 
-impl ValidateFromValue<CallbackQuery> for CallbackQuery {}
+impl validate::FromJsonValue<CallbackQuery> for CallbackQuery {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UrlResponse {

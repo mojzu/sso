@@ -1,5 +1,7 @@
-use crate::core::{Error, Key, Service, User};
-use crate::driver;
+use crate::{
+    core::{Error, Key, Service, User},
+    driver,
+};
 
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
 

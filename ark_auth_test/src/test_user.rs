@@ -41,7 +41,7 @@ pub fn create_test(driver: &Driver, app: &mut TestServerRuntime) {
     assert_eq!(res.status(), StatusCode::OK);
 
     let bytes = app.block_on(res.body()).unwrap();
-    let body: server::user::CreateResponse = serde_json::from_slice(&bytes).unwrap();
+    let body: server::route::user::CreateResponse = serde_json::from_slice(&bytes).unwrap();
     assert!(body.data.created_at.gt(&before));
     assert!(body.data.updated_at.gt(&before));
     assert!(body.data.id > 0);

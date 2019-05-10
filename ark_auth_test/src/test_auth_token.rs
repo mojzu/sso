@@ -53,7 +53,7 @@ pub fn verify_test(driver: &Driver, app: &mut TestServerRuntime) {
     assert_eq!(status_code, StatusCode::OK);
     assert_eq!(content_length, bytes.len());
 
-    let body: server::auth::TokenResponse = serde_json::from_slice(&bytes).unwrap();
+    let body: server::route::auth::TokenResponse = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(body.data.user_id, user.id);
     assert_eq!(body.data.token, token.token);
     assert_eq!(body.data.token_expires, token.token_expires);
@@ -112,7 +112,7 @@ pub fn refresh_test(driver: &Driver, app: &mut TestServerRuntime) {
     assert_eq!(status_code, StatusCode::OK);
     assert_eq!(content_length, bytes.len());
 
-    let body: server::auth::TokenResponse = serde_json::from_slice(&bytes).unwrap();
+    let body: server::route::auth::TokenResponse = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(body.data.user_id, user.id);
     assert_ne!(body.data.token, token.token);
     assert!(body.data.token_expires > token.token_expires);

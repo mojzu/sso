@@ -149,7 +149,7 @@ pub fn password_confirm_test(driver: &Driver, app: &mut TestServerRuntime) {
     assert_eq!(status_code, StatusCode::OK);
     assert_eq!(content_length, bytes.len());
 
-    let body: server::auth::reset::PasswordConfirmResponse =
+    let body: server::route::auth::reset::PasswordConfirmResponse =
         serde_json::from_slice(&bytes).unwrap();
     assert!(body.meta.password_strength.is_some());
     assert_eq!(body.meta.password_pwned, None);

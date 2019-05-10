@@ -1,10 +1,11 @@
-use crate::server::{
-    auth::{password_meta, PasswordMeta},
-    route_json_config, route_response_empty, route_response_json, validate_email_link_text,
-    validate_email_subject, validate_email_text, validate_password, validate_token, Data, Error,
-    ValidateFromValue,
+use crate::{
+    core,
+    server::{
+        route::auth::{password_meta, PasswordMeta},
+        route_json_config, route_response_empty, route_response_json, smtp, validate, Data, Error,
+        FromJsonValue,
+    },
 };
-use crate::{core, smtp};
 use actix_web::{middleware::identity::Identity, web, HttpResponse};
 use futures::Future;
 use validator::Validate;
@@ -12,11 +13,11 @@ use validator::Validate;
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct PasswordTemplateBody {
-    #[validate(custom = "validate_email_subject")]
+    #[validate(custom = "validate::email_subject")]
     pub subject: String,
-    #[validate(custom = "validate_email_text")]
+    #[validate(custom = "validate::email_text")]
     pub text: String,
-    #[validate(custom = "validate_email_link_text")]
+    #[validate(custom = "validate::email_link_text")]
     pub link_text: String,
 }
 
@@ -28,7 +29,7 @@ struct PasswordBody {
     template: Option<PasswordTemplateBody>,
 }
 
-impl ValidateFromValue<PasswordBody> for PasswordBody {}
+impl validate::FromJsonValue<PasswordBody> for PasswordBody {}
 
 fn password_handler(
     data: web::Data<Data>,
@@ -69,13 +70,13 @@ fn password_inner(data: &Data, id: Option<String>, body: &PasswordBody) -> Resul
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 struct PasswordConfirmBody {
-    #[validate(custom = "validate_token")]
+    #[validate(custom = "validate::token")]
     token: String,
-    #[validate(custom = "validate_password")]
+    #[validate(custom = "validate::password")]
     password: String,
 }
 
-impl ValidateFromValue<PasswordConfirmBody> for PasswordConfirmBody {}
+impl validate::FromJsonValue<PasswordConfirmBody> for PasswordConfirmBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PasswordConfirmResponse {

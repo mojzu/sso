@@ -45,7 +45,7 @@ pub fn list_test(driver: &Driver, app: &mut TestServerRuntime) {
     assert_eq!(status_code, StatusCode::OK);
     assert_eq!(content_length, bytes.len());
 
-    let body: server::key::ListResponse = serde_json::from_slice(&bytes).unwrap();
+    let body: server::route::key::ListResponse = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(body.meta.gt, Some(0));
     assert_eq!(body.meta.lt, None);
     assert_eq!(body.meta.limit, 10);

@@ -1,7 +1,9 @@
-use crate::core;
-use crate::server::{
-    auth::oauth2::{oauth2_redirect, CallbackQuery, UrlResponse},
-    route_response_json, ConfigurationOauth2Provider, Data, Error, ValidateFromValue,
+use crate::{
+    core,
+    server::{
+        route::auth::oauth2::{oauth2_redirect, CallbackQuery, UrlResponse},
+        route_response_json, ConfigurationOauth2Provider, Data, Error, FromJsonValue,
+    },
 };
 use actix_web::{
     http::{header, StatusCode},

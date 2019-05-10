@@ -1,22 +1,23 @@
-use crate::{core, server, server::ConfigurationSmtp};
-use lettre::smtp::authentication::{Credentials, Mechanism};
-use lettre::smtp::ConnectionReuseParameters;
-use lettre::{ClientSecurity, ClientTlsParameters, SmtpClient, Transport};
-use lettre_email::Email;
-use native_tls::{Protocol, TlsConnector};
-use crate::server::auth::reset::PasswordTemplateBody;
+use crate::{
+    core, server, server::route::auth::reset::PasswordTemplateBody, server::ConfigurationSmtp,
+};
 
 pub fn send_reset_password(
-    smtp: Option<&ConfigurationSmtp>,
-    service: &core::Service,
-    user: &core::User,
-    token: &str,
-    template: Option<&PasswordTemplateBody>,
+    _smtp: Option<&ConfigurationSmtp>,
+    _service: &core::Service,
+    _user: &core::User,
+    _token: &str,
+    _template: Option<&PasswordTemplateBody>,
 ) -> Result<(), server::Error> {
     // TODO(refactor): Implement this.
     unimplemented!();
 }
 
+// use lettre::smtp::authentication::{Credentials, Mechanism};
+// use lettre::smtp::ConnectionReuseParameters;
+// use lettre::{ClientSecurity, ClientTlsParameters, SmtpClient, Transport};
+// use lettre_email::Email;
+// use native_tls::{Protocol, TlsConnector};
 // pub fn send_reset_password(
 //     smtp: Option<&ApiConfigSmtp>,
 //     user: &AuthUser,
@@ -24,7 +25,6 @@ pub fn send_reset_password(
 //     token: &str,
 // ) -> Result<(), ApiError> {
 //     let smtp = smtp.ok_or(ApiError::Unwrap("smtp settings undefined"))?;
-
 //     let email_subject = format!("{}: Reset Password Request", service.service_name);
 //     let email_url = format!(
 //         "{}?email={}&reset_password_token={}",
@@ -39,7 +39,6 @@ pub fn send_reset_password(
 //         .text(email_url)
 //         .build()
 //         .map_err(|_e| ApiError::Unwrap("failed to build email"))?;
-
 //     let mut tls_builder = TlsConnector::builder();
 //     tls_builder.min_protocol_version(Some(Protocol::Tlsv10));
 //     let tls_parameters = ClientTlsParameters::new(
@@ -60,7 +59,6 @@ pub fn send_reset_password(
 //     ))
 //     .connection_reuse(ConnectionReuseParameters::ReuseUnlimited)
 //     .transport();
-
 //     let result = mailer
 //         .send(email.into())
 //         .map_err(|e| {
