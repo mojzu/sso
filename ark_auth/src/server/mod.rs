@@ -1,7 +1,8 @@
-pub mod auth;
-pub mod key;
-pub mod service;
-pub mod user;
+pub mod route;
+pub mod smtp;
+pub mod validate;
+
+pub use validate::FromJsonValue;
 
 use crate::{core, driver};
 use actix_web::{
@@ -11,8 +12,7 @@ use actix_web::{
     web, App, HttpResponse, HttpServer, ResponseError,
 };
 use futures::{future, Future};
-use serde::{de::DeserializeOwned, Serialize};
-use validator::{Validate, ValidationError};
+use serde::Serialize;
 
 // TODO(feature): Audit logging, x-forwarded-for header.
 // TODO(feature): Prometheus metrics.
@@ -296,10 +296,10 @@ fn ping_handler() -> actix_web::Result<HttpResponse> {
 pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/v1")
         .service(web::resource("/ping").route(web::get().to(ping_handler)))
-        .service(auth::api_v1_scope())
-        .service(key::api_v1_scope())
-        .service(service::api_v1_scope())
-        .service(user::api_v1_scope())
+        .service(route::auth::api_v1_scope())
+        .service(route::key::api_v1_scope())
+        .service(route::service::api_v1_scope())
+        .service(route::user::api_v1_scope())
 }
 
 /// Service configuration.
@@ -354,68 +354,5 @@ pub fn route_response_json<T: Serialize>(
     match result {
         Ok(res) => future::ok(HttpResponse::Ok().json(res)),
         Err(err) => future::ok(err.error_response()),
-    }
-}
-
-/// Validate JSON value trait.
-pub trait ValidateFromValue<T: DeserializeOwned + Validate> {
-    /// Extract and validate data from JSON value.
-    fn from_value(value: serde_json::Value) -> future::FutureResult<T, Error> {
-        future::result(
-            serde_json::from_value::<T>(value)
-                .map_err(|_err| Error::BadRequest)
-                .and_then(|body| {
-                    body.validate().map_err(|_err| Error::BadRequest)?;
-                    Ok(body)
-                }),
-        )
-    }
-}
-
-pub fn validate_unsigned(id: i64) -> Result<(), ValidationError> {
-    if id < 0 {
-        Err(ValidationError::new("invalid_unsigned"))
-    } else {
-        Ok(())
-    }
-}
-
-pub fn validate_password(password: &str) -> Result<(), ValidationError> {
-    if password.is_empty() || password.len() > 100 {
-        Err(ValidationError::new("invalid_password"))
-    } else {
-        Ok(())
-    }
-}
-
-pub fn validate_name(name: &str) -> Result<(), ValidationError> {
-    if name.is_empty() || name.len() > 100 {
-        Err(ValidationError::new("invalid_name"))
-    } else {
-        Ok(())
-    }
-}
-
-pub fn validate_id(id: i64) -> Result<(), ValidationError> {
-    if id < 1 {
-        Err(ValidationError::new("invalid_id"))
-    } else {
-        Ok(())
-    }
-}
-
-pub fn validate_token(token: &str) -> Result<(), ValidationError> {
-    if token.is_empty() || token.len() > 1024 {
-        Err(ValidationError::new("invalid_token"))
-    } else {
-        Ok(())
-    }
-}
-
-pub fn validate_key(key: &str) -> Result<(), ValidationError> {
-    if key.is_empty() || key.len() > 32 {
-        Err(ValidationError::new("invalid_key"))
-    } else {
-        Ok(())
     }
 }

@@ -1,7 +1,7 @@
-use crate::driver;
 use crate::{
     core,
     core::{Error, Service, User, UserKey, UserToken},
+    driver,
 };
 
 // TODO(feature): Warning logs for bad requests.

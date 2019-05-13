@@ -1,5 +1,7 @@
-use crate::core::{Error, Service};
-use crate::driver;
+use crate::{
+    core::{Error, Service},
+    driver,
+};
 
 /// List services where ID is less than.
 pub fn list_where_id_lt(
