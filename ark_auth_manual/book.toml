@@ -1,0 +1,13 @@
+[book]
+title = "Ark Auth Manual"
+authors = ["Sam Ward"]
+multilingual = false
+src = "src"
+
+[build]
+build-dir = "../docs"
+create-missing = true
+preprocess = ["links", "index"]
+
+[output.html]
+theme = "theme"
