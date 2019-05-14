@@ -27,4 +27,42 @@ $ curl --header "Content-Type: application/json" \
   $server_url/v1/key
 ```
 
+User makes login request to service, services makes a login request.
+
+```shell
+$ curl --header "Content-Type: application/json" \
+  --header "Authorization: $service_key" \
+  --request POST \
+  --data '{"email":"$user_email","password":"$user_password"}' \
+  $server_url/v1/auth/login
+```
+
+Service receives token response, token can be verified to authenticate requests.
+
+```shell
+$ curl --header "Content-Type: application/json" \
+  --header "Authorization: $service_key" \
+  --request POST \
+  --data '{"token":"$user_token"}' \
+  $server_url/v1/auth/token/verify
+```
+
+## Test
+
+```rust,skt-login
+let (_service, service_key) = service_key_create(&client);
+
+let url = server_url("/v1/user");
+let mut response = client.post(&url)
+    .header("content-type", "application/json")
+    .header("authorization", service_key.value)
+    .json(r#"{}"#)
+    .send()
+    .unwrap();
+```
+
 TODO(doc)
+
+println!("response {:?}", response);
+println!("body {:?}", body);
+let body = response.json::<Value>().unwrap();

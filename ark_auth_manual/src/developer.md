@@ -8,7 +8,7 @@
 - [Docker](https://docs.docker.com/install/)
 - [Docker Compose](https://docs.docker.com/compose/)
 
-```Shell
+```shell
 # Rust installation, updates and utilities.
 $ curl https://sh.rustup.rs -sSf | sh
 $ rustup self update && rustup update && cargo update
@@ -23,7 +23,7 @@ $ docker-compose up
 
 ### Ubuntu
 
-```Shell
+```shell
 $ sudo apt install libpq-dev libsqlite3-dev libssl-dev pkg-config
 ```
 
@@ -31,7 +31,7 @@ $ sudo apt install libpq-dev libsqlite3-dev libssl-dev pkg-config
 
 Replace `...` as required.
 
-```Shell
+```shell
 # Database connection URL, required.
 $ export DATABASE_URL="postgres://ark_auth:guest@localhost:5432/ark_auth"
 # Server bind, required.
@@ -61,34 +61,36 @@ Write export statements to file `env.sh` and run `source env.sh` to export varia
 
 Create database and run migrations.
 
-```Shell
+```shell
 $ diesel database reset --migration-dir ark_auth/migrations/postgres
 $ diesel database reset --migration-dir ark_auth/migrations/sqlite
 ```
 
 Build application, run commands (see help).
 
-```Shell
+```shell
 $ cargo build [--release]
 $ cargo run help
 ```
 
 Format source code and run clippy.
 
-```Shell
+```shell
 $ cargo fmt && cargo clippy
 ```
 
-Run unit and integration tests. Integration tests are run from manual markdown files using `skeptic`, they expect a server instance to be running on `http://localhost:9000`.
+Run unit and integration tests. Integration tests are run from manual markdown files using `skeptic`, which require `TEST_URL` and `TEST_KEY` environment variables to set. In case of dependency resolution problems while compiling, run `cargo clean`.
 
-```Shell
+```shell
+$ export TEST_URL="..."
+$ export TEST_KEY="..."
 $ diesel database reset --migration-dir ark_auth/migrations/postgres
 $ cargo test [--test $test_name]
 ```
 
 Serve and build manual.
 
-```Shell
+```shell
 $ mdbook serve
 $ rm -rf docs && mdbook build
 ```

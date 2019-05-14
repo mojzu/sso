@@ -8,6 +8,8 @@ build = "build.rs"
 [build-dependencies]
 skeptic = "*"
 
-[dev-dependencies]
+[dependencies]
+ark_auth = { path = "../ark_auth" }
 reqwest = "*"
+serde_json = "*"
 skeptic = "*"

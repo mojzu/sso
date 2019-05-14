@@ -77,20 +77,20 @@ fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<List
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-struct CreateBody {
+pub struct CreateBody {
     #[validate(custom = "validate::name")]
-    name: String,
+    pub name: String,
     #[validate(custom = "validate::id")]
-    service_id: Option<i64>,
+    pub service_id: Option<i64>,
     #[validate(custom = "validate::id")]
-    user_id: Option<i64>,
+    pub user_id: Option<i64>,
 }
 
 impl validate::FromJsonValue<CreateBody> for CreateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CreateResponse {
-    data: core::Key,
+pub struct CreateResponse {
+    pub data: core::Key,
 }
 
 fn create_handler(

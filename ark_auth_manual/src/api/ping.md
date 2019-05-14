@@ -9,7 +9,9 @@ Uptime test route, authentication is not required for this route.
 ```
 
 ```rust,skt-ping
-let mut response = reqwest::get("http://localhost:9000/v1/ping").unwrap();
+let url = server_url("/v1/ping");
+let mut response = client.get(&url).send().unwrap();
+
 let body = response.json::<Value>().unwrap();
 let status = response.status();
 let content_length = header_get(&response, "content-length");
