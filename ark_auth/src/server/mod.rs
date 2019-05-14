@@ -33,6 +33,9 @@ pub enum Error {
     /// Client request error.
     #[fail(display = "ServerError::ApiPwnedPasswords")]
     ApiPwnedPasswords,
+    /// SMTP error.
+    #[fail(display = "ServerError::Smtp")]
+    Smtp,
     /// OAuth2 error.
     #[fail(display = "ServerError::Oauth2")]
     Oauth2,
