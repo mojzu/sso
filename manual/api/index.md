@@ -9,7 +9,5 @@ $ ark_auth create-service-with-key $service_name $service_url
 ```
 
 TODO(doc): Replace index.md with introduction + contents.
-TODO(doc): Tests within documentation.
-<https://rust-lang-nursery.github.io/mdBook/cli/test.html>
 TODO(doc): API documentation consistency.
 TODO(doc): Check and update guides.

@@ -1,12 +1,12 @@
 # Developer
 
-## Requirements
+## Tools
 
--   [Rust](https://www.rust-lang.org/)
--   [Diesel](http://diesel.rs/)
--   [mdBook](https://github.com/rust-lang-nursery/mdBook)
--   [Docker](https://docs.docker.com/install/)
--   [Docker Compose](https://docs.docker.com/compose/)
+- [Rust](https://www.rust-lang.org/)
+- [Diesel](http://diesel.rs/)
+- [mdBook](https://github.com/rust-lang-nursery/mdBook)
+- [Docker](https://docs.docker.com/install/)
+- [Docker Compose](https://docs.docker.com/compose/)
 
 ```Shell
 # Rust installation, updates and utilities.
@@ -27,9 +27,9 @@ $ docker-compose up
 $ sudo apt install libpq-dev libsqlite3-dev libssl-dev pkg-config
 ```
 
-## Notes
+## Environment
 
-Export environment variables.
+Replace `...` as required.
 
 ```Shell
 # Database connection URL, required.
@@ -53,19 +53,24 @@ $ export MICROSOFT_CLIENT_SECRET="..."
 $ export MICROSOFT_REDIRECT_URL="http://localhost:9000/v1/auth/oauth2/microsoft"
 ```
 
+### Ubuntu
+
+Write export statements to file `env.sh` and run `source env.sh` to export variables in open terminal.
+
+## Notes
+
 Create database and run migrations.
 
 ```Shell
-$ diesel database reset --migration-dir migrations/postgres
-$ diesel database reset --migration-dir migrations/sqlite
+$ diesel database reset --migration-dir ark_auth/migrations/postgres
+$ diesel database reset --migration-dir ark_auth/migrations/sqlite
 ```
 
-Build application, initialise database with service, start server.
+Build application, run commands (see help).
 
 ```Shell
 $ cargo build [--release]
-$ cargo run init $service_name $service_url
-$ cargo run start
+$ cargo run help
 ```
 
 Format source code and run clippy.
@@ -74,15 +79,16 @@ Format source code and run clippy.
 $ cargo fmt && cargo clippy
 ```
 
+Run unit and integration tests. Integration tests are run from manual markdown files using `skeptic`, they expect a server instance to be running on `http://localhost:9000`.
+
+```Shell
+$ diesel database reset --migration-dir ark_auth/migrations/postgres
+$ cargo test [--test $test_name]
+```
+
 Serve and build manual.
 
 ```Shell
 $ mdbook serve
 $ rm -rf docs && mdbook build
-```
-
-Run unit and integration tests.
-
-```Shell
-$ diesel database reset --migration-dir ark_auth/migrations/postgres && cargo test [--test $test_name] && mdbook test
 ```

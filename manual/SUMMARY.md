@@ -1,6 +1,5 @@
 # Summary
 
-- [Introduction](./introduction.md)
 - [Guides](./guides/index.md)
     - [Deployment](./guides/deployment.md)
     - [Integration](./guides/integration.md)
@@ -37,4 +36,3 @@
         - [Update](./api/key/4_update.md)
         - [Delete](./api/key/5_delete.md)
     - [Ping](./api/1_ping.md)
-- [Developer](./developer.md)

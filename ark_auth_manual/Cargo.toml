@@ -6,7 +6,8 @@ edition = "2018"
 build = "build.rs"
 
 [build-dependencies]
-skeptic = "0.13"
+skeptic = "*"
 
 [dev-dependencies]
-skeptic = "0.13"
+reqwest = "*"
+skeptic = "*"
