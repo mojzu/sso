@@ -1,26 +1,16 @@
-# Update [PATCH /v1/key/{id}]
+# Read [GET /v1/key/{id}]
 
-Update key by ID.
-
-## Request
-
-```JSON
-{
-	"name": "Key Name 2"
-}
-```
-
-- `name`: Key name (optional).
+Read key by ID.
 
 ## Response [200, OK]
 
-```JSON
+```json
 {
     "data": {
         "created_at": "2019...90Z",
-        "updated_at": "2019...28Z",
+        "updated_at": "2019...90Z",
         "id": 1,
-        "name": "Key Name 2",
+        "name": "Key Name",
         "value": "667...35c",
         "service_id": 1,
         "user_id": null
@@ -37,11 +27,6 @@ Update key by ID.
 - `value`: Key value.
 - `service_id`: Key service ID relation.
 - `user_id`: Key user ID relation or null.
-
-## Response [400, Bad Request]
-
-- Request body is invalid.
-- Key name is invalid.
 
 ## Response [403, Forbidden]
 

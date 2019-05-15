@@ -4,7 +4,7 @@ Create user.
 
 ## Request
 
-```JSON
+```json
 {
     "name": "User Name",
     "email": "user@example.com",
@@ -18,7 +18,7 @@ Create user.
 
 ## Response [200, OK]
 
-```JSON
+```json
 {
     "meta": {
         "password_strength": 0,

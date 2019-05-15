@@ -4,7 +4,7 @@ Revoke a user key, any associated tokens will become invalid.
 
 ## Request
 
-```JSON
+```json
 {
     "key": "5a044..4d37c",
 }

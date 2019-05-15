@@ -1,7 +1,5 @@
 use crate::{core, driver, server};
 
-// TODO(doc): Update manual command changes.
-
 /// Create a root key.
 pub fn create_root_key(driver: Box<driver::Driver>, name: &str) -> Result<core::Key, core::Error> {
     core::key::create_root(driver.as_ref(), name)

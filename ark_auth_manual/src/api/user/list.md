@@ -14,7 +14,7 @@ List users.
 
 ## Response [200, OK]
 
-```JSON
+```json
 {
     "meta": {
         "gt": 0,

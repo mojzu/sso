@@ -4,7 +4,7 @@ Verify user key.
 
 ## Request
 
-```JSON
+```json
 {
     "key": "5a044..4d37c",
 }
@@ -14,7 +14,7 @@ Verify user key.
 
 ## Response [200, OK]
 
-```JSON
+```json
 {
     "data": {
         "user_id": 2,

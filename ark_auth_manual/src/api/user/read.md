@@ -1,26 +1,16 @@
-# Update [PATCH /v1/user/{id}]
+# Read [GET /v1/user/{id}]
 
-Update user by ID.
-
-## Request
-
-```JSON
-{
-	"name": "User Name 2"
-}
-```
-
-- `name`: User name (optional).
+Read user by ID.
 
 ## Response [200, OK]
 
-```JSON
+```json
 {
     "data": {
         "created_at": "2019...46Z",
-        "updated_at": "2019...95Z",
+        "updated_at": "2019...46Z",
         "id": 1,
-        "name": "User Name 2",
+        "name": "User Name",
         "email": "user@example.com"
     }
 }
@@ -33,11 +23,6 @@ Update user by ID.
 - `id`: User ID.
 - `name`: User name.
 - `email`: User email address.
-
-## Response [400, Bad Request]
-
-- Request body is invalid.
-- User name is invalid.
 
 ## Response [403, Forbidden]
 

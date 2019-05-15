@@ -4,7 +4,7 @@ Login with email address and password.
 
 ## Request
 
-```JSON
+```json
 {
     "email": "user@example.com",
     "password": "guest"
@@ -16,7 +16,7 @@ Login with email address and password.
 
 ## Response [200, OK]
 
-```JSON
+```json
 {
     "meta": {
         "password_strength": 2,

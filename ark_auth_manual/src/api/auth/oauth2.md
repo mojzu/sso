@@ -8,7 +8,7 @@ Request a authentication redirect URL.
 
 #### Response [200, OK]
 
-```JSON
+```json
 {
     "url": "https://github.com/login/oauth/authorize?...JAMBQ"
 }
@@ -32,7 +32,7 @@ Request a authentication redirect URL.
 
 #### Response [200, OK]
 
-```JSON
+```json
 {
     "url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?...aRgyE"
 }

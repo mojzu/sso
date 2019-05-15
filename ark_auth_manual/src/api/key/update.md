@@ -1,38 +1,34 @@
-# Create [POST /v1/key]
+# Update [PATCH /v1/key/{id}]
 
-Create key.
+Update key by ID.
 
 ## Request
 
-```JSON
+```json
 {
-    "name": "Name",
-    "user_id": 2
+	"name": "Key Name 2"
 }
 ```
 
-- `name`: Key name (required).
-- `user_id`: User ID (required).
+- `name`: Key name (optional).
 
 ## Response [200, OK]
 
-```JSON
+```json
 {
     "data": {
-        "created_at": "2019...92Z",
-        "updated_at": "2019...92Z",
-        "id": 2,
-        "name": "Key Name",
-        "value": "84b...dc6",
+        "created_at": "2019...90Z",
+        "updated_at": "2019...28Z",
+        "id": 1,
+        "name": "Key Name 2",
+        "value": "667...35c",
         "service_id": 1,
-        "user_id": 1
+        "user_id": null
     }
 }
 ```
 
 ### Data
-
-Created key.
 
 - `created_at`: Created time ISO 8601 timestamp.
 - `updated_at`: Updated time ISO 8601 timestamp.
@@ -46,7 +42,6 @@ Created key.
 
 - Request body is invalid.
 - Key name is invalid.
-- User ID is invalid or user does not exist.
 
 ## Response [403, Forbidden]
 
