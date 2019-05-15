@@ -17,6 +17,8 @@ use serde::Serialize;
 // TODO(feature): Audit logging, x-forwarded-for header.
 // TODO(feature): Prometheus metrics.
 // <https://prometheus.io/docs/instrumenting/exposition_formats/>
+// TODO(feature): Webauthn support.
+// <https://webauthn.guide/>
 
 /// Server errors.
 #[derive(Debug, Fail)]

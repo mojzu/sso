@@ -120,19 +120,19 @@ fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, 
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-struct LoginBody {
+pub struct LoginBody {
     #[validate(email)]
-    email: String,
+    pub email: String,
     #[validate(custom = "validate::password")]
-    password: String,
+    pub password: String,
 }
 
 impl validate::FromJsonValue<LoginBody> for LoginBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
-struct LoginResponse {
-    meta: PasswordMeta,
-    data: core::UserToken,
+pub struct LoginResponse {
+    pub meta: PasswordMeta,
+    pub data: core::UserToken,
 }
 
 fn login_handler(
@@ -190,7 +190,7 @@ pub fn api_v1_scope() -> actix_web::Scope {
 #[serde(deny_unknown_fields)]
 pub struct TokenBody {
     #[validate(custom = "validate::token")]
-    token: String,
+    pub token: String,
 }
 
 impl validate::FromJsonValue<TokenBody> for TokenBody {}
@@ -204,7 +204,7 @@ pub struct TokenResponse {
 #[serde(deny_unknown_fields)]
 pub struct KeyBody {
     #[validate(custom = "validate::key")]
-    key: String,
+    pub key: String,
 }
 
 impl validate::FromJsonValue<KeyBody> for KeyBody {}

@@ -23,10 +23,10 @@ pub struct PasswordTemplateBody {
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-struct PasswordBody {
+pub struct PasswordBody {
     #[validate(email)]
-    email: String,
-    template: Option<PasswordTemplateBody>,
+    pub email: String,
+    pub template: Option<PasswordTemplateBody>,
 }
 
 impl validate::FromJsonValue<PasswordBody> for PasswordBody {}

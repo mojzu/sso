@@ -2,13 +2,13 @@
 
 A service integrating with Ark Auth can provide the following HTTPS endpoints.
 
-```Shell
+```shell
 GET $service_url?token=$token
 ```
 
 User is redirected to this URL after successful authentication by an OAuth2 provider. The service can verify the token query parameter to authenticate the user and their requests.
 
-```Shell
+```shell
 GET $service_url?email=$user_email&reset_password_token=$token
 ```
 

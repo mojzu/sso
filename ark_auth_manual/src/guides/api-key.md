@@ -1,4 +1,4 @@
-# Login
+# API Key
 
 Create service with key and start server.
 
@@ -7,13 +7,13 @@ $ ark_auth create-service-with-key $service_name $service_url
 $ ark_auth start-server
 ```
 
-Service creates a user with password.
+Service creates a user without password.
 
 ```shell
 $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"name":"$user_name","email":"$user_email","password":"$user_password"}' \
+  --data '{"name":"$user_name","email":"$user_email"}' \
   $server_url/v1/user
 ```
 
@@ -27,29 +27,19 @@ $ curl --header "Content-Type: application/json" \
   $server_url/v1/key
 ```
 
-User makes login request to service, services makes a login request.
+User makes requests to service with key value, key can be verified to authenticate requests.
 
 ```shell
 $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"email":"$user_email","password":"$user_password"}' \
-  $server_url/v1/auth/login
-```
-
-Service receives token response, token can be verified to authenticate requests.
-
-```shell
-$ curl --header "Content-Type: application/json" \
-  --header "Authorization: $service_key" \
-  --request POST \
-  --data '{"token":"$user_token"}' \
-  $server_url/v1/auth/token/verify
+  --data '{"key":"$user_key"}' \
+  $server_url/v1/auth/key/verify
 ```
 
 ## Test
 
-```rust,skt-login
+```rust,skt-api-key
 let (service, service_key) = service_key_create(&client);
 let user_email = user_email_create();
 
@@ -57,7 +47,7 @@ let url = server_url("/v1/user");
 let request = user::CreateBody {
     name: "User Name".to_owned(),
     email: user_email.clone(),
-    password: Some("guest".to_owned()),
+    password: None,
 };
 let mut response = client
     .post(&url)
@@ -102,10 +92,9 @@ assert_eq!(user_key.name, "Key Name");
 assert_eq!(user_key.service_id.unwrap(), service.id);
 assert_eq!(user_key.user_id.unwrap(), user.id);
 
-let url = server_url("/v1/auth/login");
-let request = auth::LoginBody {
-    email: user_email.clone(),
-    password: "guest".to_owned(),
+let url = server_url("/v1/auth/key/verify");
+let request = auth::KeyBody {
+    key: user_key.value.clone(),
 };
 let mut response = client
     .post(&url)
@@ -115,35 +104,13 @@ let mut response = client
     .send()
     .unwrap();
 
-let body = response.json::<auth::LoginResponse>().unwrap();
-let user_token = body.data;
+let body = response.json::<auth::KeyResponse>().unwrap();
+let user_key_verify = body.data;
 let status = response.status();
 let content_type = header_get(&response, "content-type");
 
 assert_eq!(status, 200);
 assert_eq!(content_type, "application/json");
-assert_eq!(user_token.user_id, user.id);
-
-let url = server_url("/v1/auth/token/verify");
-let request = auth::TokenBody {
-    token: user_token.token.clone(),
-};
-let mut response = client
-    .post(&url)
-    .header("content-type", "application/json")
-    .header("authorization", service_key.value.clone())
-    .json(&request)
-    .send()
-    .unwrap();
-
-let body = response.json::<auth::TokenResponse>().unwrap();
-let user_token_verify = body.data;
-let status = response.status();
-let content_type = header_get(&response, "content-type");
-
-assert_eq!(status, 200);
-assert_eq!(content_type, "application/json");
-assert_eq!(user_token_verify.user_id, user_token.user_id);
-assert_eq!(user_token_verify.token, user_token.token);
-assert_eq!(user_token_verify.token_expires, user_token.token_expires);
+assert_eq!(user_key_verify.user_id, user.id);
+assert_eq!(user_key_verify.key, user_key.value);
 ```

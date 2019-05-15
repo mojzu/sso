@@ -78,13 +78,13 @@ fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<List
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-struct CreateBody {
+pub struct CreateBody {
     #[validate(custom = "validate::name")]
-    name: String,
+    pub name: String,
     #[validate(email)]
-    email: String,
+    pub email: String,
     #[validate(custom = "validate::password")]
-    password: Option<String>,
+    pub password: Option<String>,
 }
 
 impl validate::FromJsonValue<CreateBody> for CreateBody {}

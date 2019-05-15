@@ -13,3 +13,4 @@ ark_auth = { path = "../ark_auth" }
 reqwest = "*"
 serde_json = "*"
 skeptic = "*"
+uuid = { version = "*", features = ["v4"] }

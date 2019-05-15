@@ -1,4 +1,4 @@
-# Login
+# Reset Password
 
 Create service with key and start server.
 
@@ -27,7 +27,29 @@ $ curl --header "Content-Type: application/json" \
   $server_url/v1/key
 ```
 
-User makes login request to service, services makes a login request.
+User makes reset password request to service, services make a reset password request.
+
+```shell
+$ curl --header "Content-Type: application/json" \
+  --header "Authorization: $service_key" \
+  --request POST \
+  --data '{"email":"$user_email"}' \
+  $server_url/v1/auth/reset/password
+```
+
+Email containing URL is send to user email address, URL in format `$service_url?email=$user_email&reset_password_token=$token`.
+
+Server receives token via query parameter and makes reset password confirm request.
+
+```shell
+$ curl --header "Content-Type: application/json" \
+  --header "Authorization: $service_key" \
+  --request POST \
+  --data '{"token":"$token","password":"$user_password"}' \
+  $server_url/v1/auth/reset/password/confirm
+```
+
+User makes login request to service, service makes a login request.
 
 ```shell
 $ curl --header "Content-Type: application/json" \
@@ -37,19 +59,9 @@ $ curl --header "Content-Type: application/json" \
   $server_url/v1/auth/login
 ```
 
-Service receives token response, token can be verified to authenticate requests.
-
-```shell
-$ curl --header "Content-Type: application/json" \
-  --header "Authorization: $service_key" \
-  --request POST \
-  --data '{"token":"$user_token"}' \
-  $server_url/v1/auth/token/verify
-```
-
 ## Test
 
-```rust,skt-login
+```rust,skt-reset-password
 let (service, service_key) = service_key_create(&client);
 let user_email = user_email_create();
 
@@ -102,12 +114,12 @@ assert_eq!(user_key.name, "Key Name");
 assert_eq!(user_key.service_id.unwrap(), service.id);
 assert_eq!(user_key.user_id.unwrap(), user.id);
 
-let url = server_url("/v1/auth/login");
-let request = auth::LoginBody {
+let url = server_url("/v1/auth/reset/password");
+let request = auth::reset::PasswordBody {
     email: user_email.clone(),
-    password: "guest".to_owned(),
+    template: None,
 };
-let mut response = client
+let response = client
     .post(&url)
     .header("content-type", "application/json")
     .header("authorization", service_key.value.clone())
@@ -115,35 +127,11 @@ let mut response = client
     .send()
     .unwrap();
 
-let body = response.json::<auth::LoginResponse>().unwrap();
-let user_token = body.data;
 let status = response.status();
-let content_type = header_get(&response, "content-type");
+let content_length = header_get(&response, "content-length");
 
 assert_eq!(status, 200);
-assert_eq!(content_type, "application/json");
-assert_eq!(user_token.user_id, user.id);
-
-let url = server_url("/v1/auth/token/verify");
-let request = auth::TokenBody {
-    token: user_token.token.clone(),
-};
-let mut response = client
-    .post(&url)
-    .header("content-type", "application/json")
-    .header("authorization", service_key.value.clone())
-    .json(&request)
-    .send()
-    .unwrap();
-
-let body = response.json::<auth::TokenResponse>().unwrap();
-let user_token_verify = body.data;
-let status = response.status();
-let content_type = header_get(&response, "content-type");
-
-assert_eq!(status, 200);
-assert_eq!(content_type, "application/json");
-assert_eq!(user_token_verify.user_id, user_token.user_id);
-assert_eq!(user_token_verify.token, user_token.token);
-assert_eq!(user_token_verify.token_expires, user_token.token_expires);
+assert_eq!(content_length, "0");
 ```
+
+TODO(doc): Test reset password confirm here.
