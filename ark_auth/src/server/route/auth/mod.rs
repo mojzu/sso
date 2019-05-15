@@ -5,7 +5,10 @@ pub mod token;
 
 use crate::{
     core,
-    server::{route_json_config, route_response_json, validate, Data, Error, FromJsonValue},
+    server::{
+        route_json_config, route_response_json, validate, Data, Error, FromJsonValue,
+        PwnedPasswordsError,
+    },
 };
 use actix_web::{
     http::{header, StatusCode},
@@ -88,19 +91,25 @@ fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, 
                 .get(url)
                 .header(header::USER_AGENT, user_agent)
                 .send()
-                // TODO(test): Rustls support broken? Improve error messages.
-                .map_err(|_err| Error::ApiPwnedPasswords)
+                .map_err(|_err| Error::PwnedPasswords(PwnedPasswordsError::ActixClientSendRequest))
                 // Receive OK response and return body as string.
-                .and_then(|response| match response.status() {
-                    StatusCode::OK => future::ok(response),
-                    _ => future::err(Error::ApiPwnedPasswords),
+                .and_then(|response| {
+                    let status = response.status();
+                    match status {
+                        StatusCode::OK => future::ok(response),
+                        _ => future::err(Error::PwnedPasswords(PwnedPasswordsError::StatusCode(
+                            status,
+                        ))),
+                    }
                 })
                 .and_then(|mut response| {
                     response
                         .body()
-                        .map_err(|_err| Error::ApiPwnedPasswords)
+                        .map_err(|_err| Error::PwnedPasswords(PwnedPasswordsError::ActixPayload))
                         .and_then(|b| {
-                            String::from_utf8(b.to_vec()).map_err(|_err| Error::ApiPwnedPasswords)
+                            String::from_utf8(b.to_vec()).map_err(|err| {
+                                Error::PwnedPasswords(PwnedPasswordsError::FromUtf8(err))
+                            })
                         })
                 })
                 // Compare suffix of hash to lines to determine if password is pwned.
@@ -114,7 +123,9 @@ fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, 
                 }),
         )
     } else {
-        future::Either::B(future::err(Error::ApiPwnedPasswords))
+        future::Either::B(future::err(Error::PwnedPasswords(
+            PwnedPasswordsError::Disabled,
+        )))
     }
 }
 

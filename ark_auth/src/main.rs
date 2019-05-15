@@ -202,7 +202,7 @@ fn configuration_from_environment() -> Result<Configuration, Error> {
 
 #[cfg(all(feature = "postgres", not(feature = "sqlite")))]
 fn initialise_driver(database_url: &str) -> impl Driver {
-    // TODO(feature): Configurable number of connections.
+    // TODO(refactor): Configurable number of connections.
     driver::postgres::Driver::initialise(database_url, 10).unwrap()
 }
 

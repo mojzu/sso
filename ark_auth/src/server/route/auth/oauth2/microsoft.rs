@@ -2,7 +2,7 @@ use crate::{
     core,
     server::{
         route::auth::oauth2::{oauth2_redirect, CallbackQuery, UrlResponse},
-        route_response_json, ConfigurationOauth2Provider, Data, Error, FromJsonValue,
+        route_response_json, ConfigurationOauth2Provider, Data, Error, FromJsonValue, Oauth2Error,
     },
 };
 use actix_web::{
@@ -107,7 +107,7 @@ fn microsoft_authorise(data: &Data, service: &core::Service) -> Result<String, E
 fn microsoft_callback(data: &Data, code: &str, state: &str) -> Result<(i64, String), Error> {
     // Read the CSRF key using state value, rebuild code verifier from value.
     let csrf = core::csrf::read_by_key(data.driver(), &state).map_err(Error::Core)?;
-    let csrf = csrf.ok_or_else(|| Error::Oauth2)?;
+    let csrf = csrf.ok_or_else(|| Error::Oauth2(Oauth2Error::Csrf))?;
 
     // Send the PKCE code verifier in the token request
     let params: Vec<(&str, &str)> = vec![("code_verifier", &csrf.value)];
@@ -117,7 +117,7 @@ fn microsoft_callback(data: &Data, code: &str, state: &str) -> Result<(i64, Stri
     let code = AuthorizationCode::new(code.to_owned());
     let token = client
         .exchange_code_extension(code, &params)
-        .map_err(|_err| Error::Oauth2)?;
+        .map_err(|err| Error::Oauth2(Oauth2Error::Oauth2RequestToken(err)))?;
 
     // Return access token value.
     Ok((csrf.service_id, token.access_token().secret().to_owned()))
@@ -135,17 +135,23 @@ fn microsoft_api_user_email(
         .header(header::CONTENT_TYPE, header::ContentType::json())
         .header(header::USER_AGENT, data.configuration().user_agent())
         .send()
-        .map_err(|_err| Error::Oauth2)
-        .and_then(|res| match res.status() {
-            StatusCode::OK => future::ok(res),
-            _ => future::err(Error::Oauth2),
+        .map_err(|_err| Error::Oauth2(Oauth2Error::ActixClientSendRequest))
+        .and_then(|res| {
+            let status = res.status();
+            match res.status() {
+                StatusCode::OK => future::ok(res),
+                _ => future::err(Error::Oauth2(Oauth2Error::StatusCode(status))),
+            }
         })
-        .and_then(|mut res| res.json::<MicrosoftUser>().map_err(|_err| Error::Oauth2))
+        .and_then(|mut res| {
+            res.json::<MicrosoftUser>()
+                .map_err(|_err| Error::Oauth2(Oauth2Error::ActixPayload))
+        })
         .map(|res| res.mail)
 }
 
 fn microsoft_client(provider: Option<&ConfigurationOauth2Provider>) -> Result<BasicClient, Error> {
-    let provider = provider.ok_or(Error::Oauth2)?;
+    let provider = provider.ok_or(Error::Oauth2(Oauth2Error::Disabled))?;
 
     let graph_client_id = ClientId::new(provider.client_id.to_owned());
     let graph_client_secret = ClientSecret::new(provider.client_secret.to_owned());

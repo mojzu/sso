@@ -1,5 +1,8 @@
 use crate::{
-    core, server, server::route::auth::reset::PasswordTemplateBody, server::ConfigurationSmtp,
+    core,
+    server::route::auth::reset::PasswordTemplateBody,
+    server::ConfigurationSmtp,
+    server::{Error, SmtpError},
 };
 use lettre::smtp::authentication::{Credentials, Mechanism};
 use lettre::smtp::ConnectionReuseParameters;
@@ -13,8 +16,8 @@ pub fn send_reset_password(
     user: &core::User,
     token: &str,
     template: Option<&PasswordTemplateBody>,
-) -> Result<(), server::Error> {
-    let smtp = smtp.ok_or(server::Error::Smtp)?;
+) -> Result<(), Error> {
+    let smtp = smtp.ok_or(Error::Smtp(SmtpError::Disabled))?;
 
     let (subject, text) = match template {
         Some(template) => {
@@ -35,19 +38,21 @@ pub fn send_reset_password(
         .subject(subject)
         .text(text)
         .build()
-        .map_err(|_err| server::Error::Smtp)?;
+        .map_err(|err| Error::Smtp(SmtpError::Failure(err)))?;
 
     let mut tls_builder = TlsConnector::builder();
     tls_builder.min_protocol_version(Some(Protocol::Tlsv10));
     let tls_parameters = ClientTlsParameters::new(
         smtp.host.to_owned(),
-        tls_builder.build().map_err(|_err| server::Error::Smtp)?,
+        tls_builder
+            .build()
+            .map_err(|err| Error::Smtp(SmtpError::NativeTls(err)))?,
     );
     let mut mailer = SmtpClient::new(
         (smtp.host.as_ref(), smtp.port),
         ClientSecurity::Required(tls_parameters),
     )
-    .map_err(|_err| server::Error::Smtp)?
+    .map_err(|err| Error::Smtp(SmtpError::Lettre(err)))?
     .authentication_mechanism(Mechanism::Login)
     .credentials(Credentials::new(
         smtp.user.to_owned(),
@@ -55,10 +60,14 @@ pub fn send_reset_password(
     ))
     .connection_reuse(ConnectionReuseParameters::ReuseUnlimited)
     .transport();
+
     let result = mailer
         .send(email.into())
-        .map_err(|_err| server::Error::Smtp)
-        .map(|_res| ());
+        .map_err(|err| Error::Smtp(SmtpError::Lettre(err)))
+        .map(|res| {
+            // TODO(refactor): Check log output.
+            info!("{:?}", res);
+        });
     mailer.close();
     result
 }

@@ -128,4 +128,4 @@ assert_eq!(status, 200);
 assert_eq!(content_length, "0");
 ```
 
-TODO(doc): Test reset password confirm here.
+TODO(test): Test reset password confirm.

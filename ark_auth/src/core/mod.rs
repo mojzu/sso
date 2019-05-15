@@ -7,6 +7,8 @@ pub mod user;
 use crate::driver;
 use chrono::{DateTime, Utc};
 
+// TODO(refactor): Error string descriptions for logs.
+
 /// Core errors.
 #[derive(Debug, Fail)]
 pub enum Error {

@@ -21,6 +21,66 @@ use serde::Serialize;
 // <https://webauthn.guide/>
 // TODO(feature): Constant time to respond depending on route, rolling average?
 
+/// Pwned passwords errors.
+#[derive(Debug, Fail)]
+pub enum PwnedPasswordsError {
+    /// Integration disabled.
+    #[fail(display = "PwnedPasswordsError::Disabled")]
+    Disabled,
+    /// Status code error.
+    #[fail(display = "PwnedPasswordsError::StatusCode {}", _0)]
+    StatusCode(actix_web::http::StatusCode),
+    /// From UTF8 string error.
+    #[fail(display = "PwnedPasswordsError::FromUtf8 {}", _0)]
+    FromUtf8(std::string::FromUtf8Error),
+    /// Client send request error.
+    #[fail(display = "PwnedPasswordsError::ActixClientSendRequest")]
+    ActixClientSendRequest,
+    /// Payload error.
+    #[fail(display = "PwnedPasswordsError::ActixPayload")]
+    ActixPayload,
+}
+
+/// SMTP errors.
+#[derive(Debug, Fail)]
+pub enum SmtpError {
+    /// Integration disabled.
+    #[fail(display = "SmtpError::Disabled")]
+    Disabled,
+    /// Failure error.
+    #[fail(display = "SmtpError::Failure {}", _0)]
+    Failure(failure::Error),
+    /// Native TLS error.
+    #[fail(display = "SmtpError::NativeTls {}", _0)]
+    NativeTls(native_tls::Error),
+    /// Lettre error.
+    #[fail(display = "SmtpError::Lettre {}", _0)]
+    Lettre(lettre::smtp::error::Error),
+}
+
+/// OAuth2 errors.
+#[derive(Debug, Fail)]
+pub enum Oauth2Error {
+    /// Integration disabled.
+    #[fail(display = "Oauth2Error::Disabled")]
+    Disabled,
+    /// CSRF error.
+    #[fail(display = "Oauth2Error::Csrf")]
+    Csrf,
+    /// Status code error.
+    #[fail(display = "Oauth2Error::StatusCode {}", _0)]
+    StatusCode(actix_web::http::StatusCode),
+    /// OAuth2 request token error.
+    #[fail(display = "Oauth2Error::Oauth2RequestToken {}", _0)]
+    Oauth2RequestToken(oauth2::RequestTokenError<oauth2::basic::BasicErrorResponseType>),
+    /// Client send request error.
+    #[fail(display = "Oauth2Error::ActixClientSendRequest")]
+    ActixClientSendRequest,
+    /// Payload error.
+    #[fail(display = "Oauth2Error::ActixPayload")]
+    ActixPayload,
+}
+
 /// Server errors.
 #[derive(Debug, Fail)]
 pub enum Error {
@@ -34,14 +94,14 @@ pub enum Error {
     #[fail(display = "ServerError::NotFound")]
     NotFound,
     /// Client request error.
-    #[fail(display = "ServerError::ApiPwnedPasswords")]
-    ApiPwnedPasswords,
+    #[fail(display = "ServerError::PwnedPasswords {}", _0)]
+    PwnedPasswords(PwnedPasswordsError),
     /// SMTP error.
-    #[fail(display = "ServerError::Smtp")]
-    Smtp,
+    #[fail(display = "ServerError::Smtp {}", _0)]
+    Smtp(SmtpError),
     /// OAuth2 error.
-    #[fail(display = "ServerError::Oauth2")]
-    Oauth2,
+    #[fail(display = "ServerError::Oauth2 {}", _0)]
+    Oauth2(Oauth2Error),
     /// Core error wrapper.
     #[fail(display = "ServerError::Core {}", _0)]
     Core(#[fail(cause)] core::Error),
