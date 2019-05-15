@@ -48,7 +48,12 @@ fn password_handler(
 fn password_inner(data: &Data, id: Option<String>, body: &PasswordBody) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), id)
         .and_then(|service| {
-            let (user, token) = core::auth::reset_password(data.driver(), &service, &body.email)?;
+            let (user, token) = core::auth::reset_password(
+                data.driver(),
+                &service,
+                &body.email,
+                data.configuration().token_exp(),
+            )?;
             Ok((service, body, user, token))
         })
         .map_err(Into::into)

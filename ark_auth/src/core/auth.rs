@@ -12,12 +12,13 @@ pub fn login(
     service: &Service,
     email: &str,
     password: &str,
+    token_exp: i64,
 ) -> Result<UserToken, Error> {
     let user = core::user::read_by_email(driver, Some(service), email)?
         .ok_or_else(|| Error::BadRequest)?;
     core::check_password(user.password_hash.as_ref().map(|x| &**x), &password)?;
     let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
-    jwt::encode_user_token(service.id, user.id, &key.value)
+    jwt::encode_user_token(service.id, user.id, &key.value, token_exp)
 }
 
 /// User reset password request.
@@ -25,13 +26,20 @@ pub fn reset_password(
     driver: &driver::Driver,
     service: &Service,
     email: &str,
+    token_exp: i64,
 ) -> Result<(User, UserToken), Error> {
     let user = core::user::read_by_email(driver, Some(service), email)?
         .ok_or_else(|| Error::BadRequest)?;
     let password_revision = user.password_revision.ok_or_else(|| Error::BadRequest)?;
     let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
 
-    let reset_token = jwt::encode_reset_token(service.id, user.id, password_revision, &key.value)?;
+    let reset_token = jwt::encode_reset_token(
+        service.id,
+        user.id,
+        password_revision,
+        &key.value,
+        token_exp,
+    )?;
     Ok((user, reset_token))
 }
 
@@ -101,6 +109,7 @@ pub fn token_refresh(
     driver: &driver::Driver,
     service: &Service,
     token: &str,
+    token_exp: i64,
 ) -> Result<UserToken, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let user_id = jwt::decode_unsafe(token, service.id)?;
@@ -108,7 +117,7 @@ pub fn token_refresh(
         core::user::read_by_id(driver, Some(service), user_id)?.ok_or_else(|| Error::BadRequest)?;
     let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
     jwt::decode_user_token(service.id, user.id, &key.value, token)?;
-    jwt::encode_user_token(service.id, user.id, &key.value)
+    jwt::encode_user_token(service.id, user.id, &key.value, token_exp)
 }
 
 /// Revoke user token.
@@ -130,6 +139,7 @@ pub fn oauth2_login(
     driver: &driver::Driver,
     service_id: i64,
     email: &str,
+    token_exp: i64,
 ) -> Result<(Service, UserToken), Error> {
     let service = driver
         .service_read_by_id(service_id)
@@ -139,7 +149,7 @@ pub fn oauth2_login(
         .ok_or_else(|| Error::BadRequest)?;
     let key = core::key::read_by_user(driver, &service, &user)?.ok_or_else(|| Error::BadRequest)?;
 
-    let user_token = jwt::encode_user_token(service.id, user.id, &key.value)?;
+    let user_token = jwt::encode_user_token(service.id, user.id, &key.value, token_exp)?;
     Ok((service, user_token))
 }
 
@@ -207,9 +217,10 @@ mod jwt {
         service_id: i64,
         user_id: i64,
         key_value: &str,
+        exp: i64,
     ) -> Result<UserToken, Error> {
-        // TODO(feature): Configurable expiry, limit refreshes.
-        let claims = Claims::new(service_id, user_id, 3600);
+        // TODO(feature): Limit refreshes via counter.
+        let claims = Claims::new(service_id, user_id, exp);
         let token = encode(&Header::default(), &claims, key_value.as_bytes())
             .map_err(Error::Jsonwebtoken)?;
 
@@ -243,8 +254,9 @@ mod jwt {
         user_id: i64,
         password_revision: i64,
         key_value: &str,
+        exp: i64,
     ) -> Result<UserToken, Error> {
-        let claims = ResetClaims::new(service_id, user_id, 3600, password_revision);
+        let claims = ResetClaims::new(service_id, user_id, exp, password_revision);
         let token = encode(&Header::default(), &claims, key_value.as_bytes())
             .map_err(Error::Jsonwebtoken)?;
 

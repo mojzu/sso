@@ -168,7 +168,15 @@ fn login_inner(
     body: &LoginBody,
 ) -> Result<core::UserToken, Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::auth::login(data.driver(), &service, &body.email, &body.password))
+        .and_then(|service| {
+            core::auth::login(
+                data.driver(),
+                &service,
+                &body.email,
+                &body.password,
+                data.configuration().token_exp(),
+            )
+        })
         .map_err(Into::into)
 }
 

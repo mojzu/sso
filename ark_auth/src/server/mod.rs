@@ -117,6 +117,7 @@ pub struct ConfigurationSmtp {
 pub struct Configuration {
     bind: String,
     user_agent: String,
+    token_exp: i64,
     password_pwned_enabled: bool,
     smtp: Option<ConfigurationSmtp>,
     oauth2: ConfigurationOauth2,
@@ -128,6 +129,7 @@ impl Configuration {
         Configuration {
             bind,
             user_agent: Configuration::default_user_agent(),
+            token_exp: 3600,
             password_pwned_enabled: false,
             smtp: None,
             oauth2: ConfigurationOauth2 {
@@ -135,6 +137,12 @@ impl Configuration {
                 microsoft: None,
             },
         }
+    }
+
+    /// Set token expiry time in seconds (defaults to 1 hour).
+    pub fn set_token_exp(mut self, value: i64) -> Self {
+        self.token_exp = value;
+        self
     }
 
     /// Set password pwned enabled.
@@ -192,6 +200,11 @@ impl Configuration {
     /// Configured user agent.
     pub fn user_agent(&self) -> &str {
         &self.user_agent
+    }
+
+    /// Get token expiry.
+    pub fn token_exp(&self) -> i64 {
+        self.token_exp
     }
 
     /// Get password pwned enabled.

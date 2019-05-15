@@ -51,7 +51,14 @@ fn refresh_inner(
     body: &TokenBody,
 ) -> Result<TokenResponse, Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::auth::token_refresh(data.driver(), &service, &body.token))
+        .and_then(|service| {
+            core::auth::token_refresh(
+                data.driver(),
+                &service,
+                &body.token,
+                data.configuration().token_exp(),
+            )
+        })
         .map_err(Into::into)
         .map(|user_token| TokenResponse { data: user_token })
 }
