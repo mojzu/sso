@@ -58,6 +58,77 @@ Array of read items.
 
 - Request query is invalid.
 
+```rust,skt-list
+let (_service, service_key) = service_key_create(&client);
+let url = server_url("/v1/key");
+
+let response = client
+    .get(&url)
+    .header("content-type", "application/json")
+    .header("authorization", service_key.value.clone())
+    .query(&[("gt", "-1")])
+    .send()
+    .unwrap();
+
+let status = response.status();
+let content_length = header_get(&response, "content-length");
+assert_eq!(status, 400);
+assert_eq!(content_length, "0");
+
+let response = client
+    .get(&url)
+    .header("content-type", "application/json")
+    .header("authorization", service_key.value.clone())
+    .query(&[("lt", "-1")])
+    .send()
+    .unwrap();
+
+let status = response.status();
+let content_length = header_get(&response, "content-length");
+assert_eq!(status, 400);
+assert_eq!(content_length, "0");
+
+let response = client
+    .get(&url)
+    .header("content-type", "application/json")
+    .header("authorization", service_key.value.clone())
+    .query(&[("limit", "-1")])
+    .send()
+    .unwrap();
+
+let status = response.status();
+let content_length = header_get(&response, "content-length");
+assert_eq!(status, 400);
+assert_eq!(content_length, "0");
+```
+
 ## Response [403, Forbidden]
 
-- Authorisation header is invalid.
+- Authorisation header is missing or invalid.
+
+```rust,skt-list
+let url = server_url("/v1/key");
+
+let response = client
+    .get(&url)
+    .header("content-type", "application/json")
+    .send()
+    .unwrap();
+
+let status = response.status();
+let content_length = header_get(&response, "content-length");
+assert_eq!(status, 403);
+assert_eq!(content_length, "0");
+
+let response = client
+    .get(&url)
+    .header("content-type", "application/json")
+    .header("authorization", "some-invalid-key")
+    .send()
+    .unwrap();
+
+let status = response.status();
+let content_length = header_get(&response, "content-length");
+assert_eq!(status, 403);
+assert_eq!(content_length, "0");
+```

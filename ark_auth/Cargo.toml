@@ -14,7 +14,7 @@ actix = "*"
 actix-http = "*"
 actix-rt = "*"
 actix-service = "*"
-actix-web = { version = "1.0.0-beta.5", features = ["rust-tls", "client"] }
+actix-web = { version = "1.0.0-beta.5", features = ["ssl", "client"] }
 bcrypt = "*"
 clap = "*"
 chrono = { version = "*", features = ["serde"] }
@@ -26,9 +26,8 @@ futures = "*"
 jsonwebtoken = "*"
 lettre = "*"
 lettre_email = "*"
-# TODO(refactor): Remove native-tls dependency (replace lettre with new-tokio-smtp?).
-native-tls = "*"
 log = { version = "*", features = ["max_level_trace", "release_max_level_info"] }
+native-tls = "*"
 r2d2 = "*"
 oauth2 = "2.0.0-beta.2"
 sentry = "*"

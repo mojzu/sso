@@ -89,6 +89,7 @@ fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, 
                 .get(url)
                 .header(header::USER_AGENT, user_agent)
                 .send()
+                // TODO(test): Rustls support broken? Improve error messages.
                 .map_err(|_err| Error::ApiPwnedPasswords)
                 // Receive OK response and return body as string.
                 .and_then(|response| match response.status() {

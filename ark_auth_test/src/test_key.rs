@@ -3,38 +3,6 @@ use actix_http_test::TestServerRuntime;
 use actix_web::http::StatusCode;
 use ark_auth::{driver::Driver, server};
 
-pub fn list_authorisation_test(_driver: &Driver, app: &mut TestServerRuntime) {
-    support::get_authorisation_test(app, "/v1/key")
-}
-
-pub fn list_query_test(driver: &Driver, app: &mut TestServerRuntime) {
-    let (_service, key) = support::service_key(driver);
-
-    // Invalid query (invalid gt).
-    // 400 BAD REQUEST response.
-    let uri = format!("/v1/key?gt=-1");
-    let (status_code, content_length, bytes) = support::app_get(app, &uri, Some(&key.value));
-    assert_eq!(status_code, StatusCode::BAD_REQUEST);
-    assert_eq!(content_length, 0);
-    assert_eq!(bytes.len(), 0);
-
-    // Invalid query (invalid lt).
-    // 400 BAD REQUEST response.
-    let uri = format!("/v1/key?lt=-1");
-    let (status_code, content_length, bytes) = support::app_get(app, &uri, Some(&key.value));
-    assert_eq!(status_code, StatusCode::BAD_REQUEST);
-    assert_eq!(content_length, 0);
-    assert_eq!(bytes.len(), 0);
-
-    // Invalid query (invalid limit).
-    // 400 BAD REQUEST response.
-    let uri = format!("/v1/key?limit=-1");
-    let (status_code, content_length, bytes) = support::app_get(app, &uri, Some(&key.value));
-    assert_eq!(status_code, StatusCode::BAD_REQUEST);
-    assert_eq!(content_length, 0);
-    assert_eq!(bytes.len(), 0);
-}
-
 pub fn list_test(driver: &Driver, app: &mut TestServerRuntime) {
     let (_service, key) = support::service_key(driver);
 
