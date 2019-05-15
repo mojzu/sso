@@ -26,8 +26,9 @@ pub fn start_server(
     driver: Box<driver::Driver>,
     configuration: server::Configuration,
 ) -> Result<(), server::Error> {
-    actix_rt::System::run(move || {
-        server::start(configuration, driver).unwrap();
-    })
-    .map_err(server::Error::StdIo)
+    let system = actix_rt::System::new(crate_name!());
+
+    server::start(configuration, driver)?;
+
+    system.run().map_err(server::Error::StdIo)
 }

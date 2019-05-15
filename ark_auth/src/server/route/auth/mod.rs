@@ -45,7 +45,6 @@ pub fn password_meta(
                     future::ok(None)
                 }
             });
-            // TODO(fix): Check this works.
             let password_pwned = password_meta_pwned(data, password).then(|r| match r {
                 Ok(password_pwned) => future::ok(Some(password_pwned)),
                 Err(err) => {

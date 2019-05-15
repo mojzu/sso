@@ -143,12 +143,14 @@ fn microsoft_client(provider: Option<&ConfigurationOauth2Provider>) -> Result<Ba
 
     let graph_client_id = ClientId::new(provider.client_id.to_owned());
     let graph_client_secret = ClientSecret::new(provider.client_secret.to_owned());
-    let auth_url = AuthUrl::new(
-        Url::parse("https://login.microsoftonline.com/common/oauth2/v2.0/authorize").unwrap(),
-    );
-    let token_url = TokenUrl::new(
-        Url::parse("https://login.microsoftonline.com/common/oauth2/v2.0/token").unwrap(),
-    );
+
+    // Safe to unwrap here, known valid URLs.
+    let auth_url =
+        Url::parse("https://login.microsoftonline.com/common/oauth2/v2.0/authorize").unwrap();
+    let auth_url = AuthUrl::new(auth_url);
+    let token_url =
+        Url::parse("https://login.microsoftonline.com/common/oauth2/v2.0/token").unwrap();
+    let token_url = TokenUrl::new(token_url);
 
     Ok(BasicClient::new(
         graph_client_id,
@@ -161,6 +163,7 @@ fn microsoft_client(provider: Option<&ConfigurationOauth2Provider>) -> Result<Ba
     ))
     .set_auth_type(AuthType::RequestBody)
     .set_redirect_url(RedirectUrl::new(
+        // TODO(refactor): Parse URLs on input for validity, handle errors here.
         Url::parse(&provider.redirect_url).unwrap(),
     )))
 }

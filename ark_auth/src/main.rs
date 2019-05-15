@@ -10,7 +10,6 @@ use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 
 // TODO(feature): Docker image output.
-// TODO(refactor): Clean up unwrap, expect, unimplemented, other possible panics.
 
 const COMMAND_CREATE_ROOT_KEY: &str = "create-root-key";
 const COMMAND_DELETE_ROOT_KEYS: &str = "delete-root-keys";
