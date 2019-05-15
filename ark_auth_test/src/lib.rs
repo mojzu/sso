@@ -6,7 +6,6 @@ pub mod test_auth;
 pub mod test_auth_key;
 pub mod test_auth_reset;
 pub mod test_auth_token;
-pub mod test_key;
 pub mod test_service;
 pub mod test_user;
 

@@ -78,12 +78,10 @@ let mut response = client
     .json(&request)
     .send()
     .unwrap();
-
 let body = response.json::<user::CreateResponse>().unwrap();
 let user = body.data;
 let status = response.status();
 let content_type = header_get(&response, "content-type");
-
 assert_eq!(status, 200);
 assert_eq!(content_type, "application/json");
 assert_eq!(user.name, "User Name");
@@ -102,12 +100,10 @@ let mut response = client
     .json(&request)
     .send()
     .unwrap();
-
 let body = response.json::<key::CreateResponse>().unwrap();
 let user_key = body.data;
 let status = response.status();
 let content_type = header_get(&response, "content-type");
-
 assert_eq!(status, 200);
 assert_eq!(content_type, "application/json");
 assert_eq!(user_key.name, "Key Name");
@@ -126,10 +122,8 @@ let response = client
     .json(&request)
     .send()
     .unwrap();
-
 let status = response.status();
 let content_length = header_get(&response, "content-length");
-
 assert_eq!(status, 200);
 assert_eq!(content_length, "0");
 ```

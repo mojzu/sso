@@ -4,9 +4,7 @@ List keys.
 
 ## Request
 
-```
-?gt=X&lt=Y&limit=Z
-```
+Query parameters: `?gt=X&lt=Y&limit=Z`
 
 - `gt`: Greater than ID (optional).
 - `lt`: Less than ID (optional).
@@ -39,7 +37,7 @@ List keys.
 ### Meta
 
 - `gt`: Greater than ID, or null.
-- `lt`: Greater than ID, or null.
+- `lt`: Less than ID, or null.
 - `limit`: Returned items limit.
 
 ### Data
@@ -51,14 +49,50 @@ Array of read items.
 - `id`: Key ID.
 - `name`: Key name.
 - `value`: Key value.
-- `service_id`: Key service ID relation.
+- `service_id`: Key service ID relation or null.
 - `user_id`: Key user ID relation or null.
+
+### Test
+
+```rust,skt-list-ok
+let (_service, service_key) = service_key_create(&client);
+let url = server_url("/v1/key");
+
+let mut response = client
+    .get(&url)
+    .header("content-type", "application/json")
+    .header("authorization", service_key.value.clone())
+    .send()
+    .unwrap();
+let body = response.json::<key::ListResponse>().unwrap();
+let meta = body.meta;
+let data = body.data;
+let status = response.status();
+let content_type = header_get(&response, "content-type");
+assert_eq!(status, 200);
+assert_eq!(content_type, "application/json");
+assert_eq!(meta.gt, Some(0));
+assert_eq!(meta.lt, None);
+assert_eq!(meta.limit, 10);
+assert_eq!(data.len(), 1);
+
+let body_key = &data[0];
+assert!(body_key.created_at.eq(&service_key.created_at));
+assert!(body_key.updated_at.eq(&service_key.updated_at));
+assert_eq!(body_key.id, service_key.id);
+assert_eq!(body_key.name, service_key.name);
+assert_eq!(body_key.value, service_key.value);
+assert_eq!(body_key.service_id, service_key.service_id);
+assert_eq!(body_key.user_id, service_key.user_id);
+```
 
 ## Response [400, Bad Request]
 
 - Request query is invalid.
 
-```rust,skt-list
+### Test
+
+```rust,skt-list-bad-request
 let (_service, service_key) = service_key_create(&client);
 let url = server_url("/v1/key");
 
@@ -69,7 +103,6 @@ let response = client
     .query(&[("gt", "-1")])
     .send()
     .unwrap();
-
 let status = response.status();
 let content_length = header_get(&response, "content-length");
 assert_eq!(status, 400);
@@ -82,7 +115,6 @@ let response = client
     .query(&[("lt", "-1")])
     .send()
     .unwrap();
-
 let status = response.status();
 let content_length = header_get(&response, "content-length");
 assert_eq!(status, 400);
@@ -95,7 +127,6 @@ let response = client
     .query(&[("limit", "-1")])
     .send()
     .unwrap();
-
 let status = response.status();
 let content_length = header_get(&response, "content-length");
 assert_eq!(status, 400);
@@ -106,7 +137,9 @@ assert_eq!(content_length, "0");
 
 - Authorisation header is missing or invalid.
 
-```rust,skt-list
+### Test
+
+```rust,skt-list-forbidden
 let url = server_url("/v1/key");
 
 let response = client
@@ -114,7 +147,6 @@ let response = client
     .header("content-type", "application/json")
     .send()
     .unwrap();
-
 let status = response.status();
 let content_length = header_get(&response, "content-length");
 assert_eq!(status, 403);
@@ -126,7 +158,6 @@ let response = client
     .header("authorization", "some-invalid-key")
     .send()
     .unwrap();
-
 let status = response.status();
 let content_length = header_get(&response, "content-length");
 assert_eq!(status, 403);

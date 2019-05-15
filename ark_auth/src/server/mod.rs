@@ -19,6 +19,7 @@ use serde::Serialize;
 // <https://prometheus.io/docs/instrumenting/exposition_formats/>
 // TODO(feature): Webauthn support.
 // <https://webauthn.guide/>
+// TODO(feature): Constant time to respond depending on route, rolling average?
 
 /// Server errors.
 #[derive(Debug, Fail)]
