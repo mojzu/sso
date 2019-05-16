@@ -1,6 +1,8 @@
 # Summary
 
 - [Introduction](./introduction.md)
+- [Changelog](./changelog.md)
+- [Developer](./developer.md)
 - [Guides](./introduction.md)
     - [Deployment](./guides/deployment.md)
     - [Integration](./guides/integration.md)
@@ -43,4 +45,3 @@
         - [Read](./api/user/read.md)
         - [Update](./api/user/update.md)
         - [Delete](./api/user/delete.md)
-- [Developer](./developer.md)

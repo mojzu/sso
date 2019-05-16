@@ -6,7 +6,7 @@ use actix_web::{http::header, web, HttpResponse};
 use url::Url;
 use validator::Validate;
 
-// TODO(feature): Support more OAuth2 providers (see oauth2 documentation).
+// TODO(feature): Support more OAuth2 providers.
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct CallbackQuery {
