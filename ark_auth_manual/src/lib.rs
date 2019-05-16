@@ -53,6 +53,10 @@ pub fn user_email_create() -> String {
     format!("{}@example.com", random)
 }
 
+pub fn json_value(src: &str) -> serde_json::Value {
+    serde_json::from_str(src).unwrap()
+}
+
 pub fn header_get<'a>(response: &'a reqwest::Response, name: &str) -> &'a str {
     response.headers().get(name).unwrap().to_str().unwrap()
 }

@@ -54,7 +54,7 @@ Created key.
 
 ### Test
 
-```rust,skt-list
+```rust,skt-create-forbidden
 let url = server_url("/v1/key");
 let request = key::CreateBody {
     name: "Key Name".to_owned(),

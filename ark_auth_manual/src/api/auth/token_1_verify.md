@@ -1,55 +1,38 @@
-# Login
+# Verify Token [POST /v1/auth/token/verify]
 
-Create service with key and start server.
+Verify user token.
 
-```shell
-$ ark_auth create-service-with-key $service_name $service_url
-$ ark_auth start-server
+## Request
+
+```json
+{
+  "token": "eyJ0e...Dlgu4"
+}
 ```
 
-Service creates a user with password.
+- `token`: JWT authentication token for user (required).
 
-```shell
-$ curl --header "Content-Type: application/json" \
-  --header "Authorization: $service_key" \
-  --request POST \
-  --data '{"name":"$user_name","email":"$user_email","password":"$user_password"}' \
-  $server_url/v1/user
+## Response [200, OK]
+
+```json
+{
+  "data": {
+    "user_id": 3,
+    "token": "eyJ0e...Dlgu4",
+    "token_expires": 1555957164
+  }
+}
 ```
 
-Service creates a key for user.
+### Data
 
-```shell
-$ curl --header "Content-Type: application/json" \
-  --header "Authorization: $service_key" \
-  --request POST \
-  --data '{"name":"$key_name","user_id":$user_id}' \
-  $server_url/v1/key
-```
+- `user_id`: User ID.
+- `token`: JWT authentication token for user.
+- `token_expires`: JWT expiry time, unix timestamp.
 
-User makes login request to service, services makes a login request.
+### Test
 
-```shell
-$ curl --header "Content-Type: application/json" \
-  --header "Authorization: $service_key" \
-  --request POST \
-  --data '{"email":"$user_email","password":"$user_password"}' \
-  $server_url/v1/auth/login
-```
-
-Service receives token response, token can be verified to authenticate requests.
-
-```shell
-$ curl --header "Content-Type: application/json" \
-  --header "Authorization: $service_key" \
-  --request POST \
-  --data '{"token":"$user_token"}' \
-  $server_url/v1/auth/token/verify
-```
-
-## Test
-
-```rust,skt-login
+```rust,skt-verify-ok
 let (service, service_key) = service_key_create(&client);
 let user_email = user_email_create();
 
@@ -121,7 +104,25 @@ assert_eq!(status, 200);
 assert_eq!(content_type, "application/json");
 assert_eq!(user_token.user_id, user.id);
 
+// Service 2 cannot verify token.
 let url = server_url("/v1/auth/token/verify");
+let (_service2, service2_key) = service_key_create(&client);
+let request = auth::TokenBody {
+    token: user_token.token.clone(),
+};
+let response = client
+    .post(&url)
+    .header("content-type", "application/json")
+    .header("authorization", service2_key.value.clone())
+    .json(&request)
+    .send()
+    .unwrap();
+let status = response.status();
+let content_length = header_get(&response, "content-length");
+assert_eq!(status, 400);
+assert_eq!(content_length, "0");
+
+// Service verifies token.
 let request = auth::TokenBody {
     token: user_token.token.clone(),
 };
@@ -141,4 +142,81 @@ assert_eq!(content_type, "application/json");
 assert_eq!(user_token_verify.user_id, user_token.user_id);
 assert_eq!(user_token_verify.token, user_token.token);
 assert_eq!(user_token_verify.token_expires, user_token.token_expires);
+```
+
+## Response [400, Bad Request]
+
+- Request body is invalid.
+- Token is invalid.
+- Token is not for authorised service.
+
+### Test
+
+```rust,skt-verify-bad-request
+let (_service, service_key) = service_key_create(&client);
+let url = server_url("/v1/auth/token/verify");
+
+// Invalid body (missing token property).
+let request = json_value(r#"{}"#);
+let response = client
+    .post(&url)
+    .header("content-type", "application/json")
+    .header("authorization", service_key.value.clone())
+    .json(&request)
+    .send()
+    .unwrap();
+let status = response.status();
+let content_length = header_get(&response, "content-length");
+assert_eq!(status, 400);
+assert_eq!(content_length, "0");
+
+// Invalid body (invalid token property).
+let request = json_value(r#"{ "token": "" }"#);
+let response = client
+    .post(&url)
+    .header("content-type", "application/json")
+    .header("authorization", service_key.value.clone())
+    .json(&request)
+    .send()
+    .unwrap();
+let status = response.status();
+let content_length = header_get(&response, "content-length");
+assert_eq!(status, 400);
+assert_eq!(content_length, "0");
+```
+
+## Response [403, Forbidden]
+
+- Authorisation header is invalid.
+
+### Test
+
+```rust,skt-verify-forbidden
+let url = server_url("/v1/auth/token/verify");
+let request = auth::TokenBody {
+    token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9".to_owned(),
+};
+
+let response = client
+    .post(&url)
+    .header("content-type", "application/json")
+    .json(&request)
+    .send()
+    .unwrap();
+let status = response.status();
+let content_length = header_get(&response, "content-length");
+assert_eq!(status, 403);
+assert_eq!(content_length, "0");
+
+let response = client
+    .post(&url)
+    .header("content-type", "application/json")
+    .header("authorization", "some-invalid-key")
+    .json(&request)
+    .send()
+    .unwrap();
+let status = response.status();
+let content_length = header_get(&response, "content-length");
+assert_eq!(status, 403);
+assert_eq!(content_length, "0");
 ```

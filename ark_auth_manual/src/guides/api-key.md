@@ -62,8 +62,11 @@ let status = response.status();
 let content_type = header_get(&response, "content-type");
 assert_eq!(status, 200);
 assert_eq!(content_type, "application/json");
+assert!(user.id > 0);
 assert_eq!(user.name, "User Name");
 assert_eq!(user.email, user_email);
+assert!(user.password_hash.is_none());
+assert!(user.password_revision.is_none());
 
 let url = server_url("/v1/key");
 let request = key::CreateBody {

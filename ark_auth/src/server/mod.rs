@@ -14,7 +14,7 @@ use actix_web::{
 use futures::{future, Future};
 use serde::Serialize;
 
-// TODO(feature): Audit logging, x-forwarded-for header.
+// TODO(feature): Audit logging, x-real-ip, x-forwarded-for headers.
 // TODO(feature): Prometheus metrics.
 // <https://prometheus.io/docs/instrumenting/exposition_formats/>
 // TODO(feature): Webauthn support.

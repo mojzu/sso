@@ -5,7 +5,7 @@ multilingual = false
 src = "src"
 
 [build]
-build-dir = "../target/manual"
+build-dir = "../docs"
 create-missing = true
 preprocess = ["links", "index"]
 

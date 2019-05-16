@@ -65,20 +65,20 @@ fn password_inner(data: &Data, id: Option<String>, body: &PasswordBody) -> Resul
                 &token.token,
                 body.template.as_ref(),
             )
-        })
-        .or_else(|err| {
-            warn!("{}", err);
-            Ok(())
+            .or_else(|err| {
+                warn!("{}", err);
+                Ok(())
+            })
         })
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-struct PasswordConfirmBody {
+pub struct PasswordConfirmBody {
     #[validate(custom = "validate::token")]
-    token: String,
+    pub token: String,
     #[validate(custom = "validate::password")]
-    password: String,
+    pub password: String,
 }
 
 impl validate::FromJsonValue<PasswordConfirmBody> for PasswordConfirmBody {}

@@ -219,7 +219,6 @@ mod jwt {
         key_value: &str,
         exp: i64,
     ) -> Result<UserToken, Error> {
-        // TODO(feature): Limit refreshes via counter.
         let claims = Claims::new(service_id, user_id, exp);
         let token = encode(&Header::default(), &claims, key_value.as_bytes())
             .map_err(Error::Jsonwebtoken)?;

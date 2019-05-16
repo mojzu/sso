@@ -34,7 +34,7 @@ Read key by ID.
 
 ### Test
 
-```rust,skt-list
+```rust,skt-read-forbidden
 let url = server_url("/v1/key/1");
 
 let response = client
