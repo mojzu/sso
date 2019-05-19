@@ -4,10 +4,12 @@ services:
     # # Ark Auth service.
     # ark_auth:
     #     build: ark_auth
+    #     depends_on:
+    #         - postgres
     #     restart: always
     #     environment:
     #         DATABASE_URL: "postgres://ark_auth:guest@postgres:5432/ark_auth"
-    #         SERVER_BIND: "localhost:9000"
+    #         SERVER_BIND: "0.0.0.0:9000"
     #     ports:
     #         - "9000:9000"
 
