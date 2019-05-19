@@ -1,7 +1,12 @@
 [package]
 name = "ark_auth"
 version = "0.1.0"
+description = "Authentication server"
 authors = ["Sam Ward <mail@mojzu.net>"]
+license = "Unlicense"
+readme = "README.md"
+homepage = "https://mojzu.net/ark_auth/"
+repository = "https://github.com/mojzu/ark_auth"
 edition = "2018"
 
 [features]
