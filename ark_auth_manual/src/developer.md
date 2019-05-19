@@ -95,3 +95,10 @@ $ cd ark_auth_manual
 $ mdbook serve
 $ rm -rf ../docs && mdbook build
 ```
+
+Build docker image.
+
+```Shell
+$ cd ark_auth
+$ docker-compose build
+```

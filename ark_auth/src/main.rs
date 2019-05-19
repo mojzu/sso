@@ -9,8 +9,6 @@ use ark_auth::{cli, core, driver, driver::Driver, server};
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 
-// TODO(feature): Docker image output.
-
 const COMMAND_CREATE_ROOT_KEY: &str = "create-root-key";
 const COMMAND_DELETE_ROOT_KEYS: &str = "delete-root-keys";
 const COMMAND_CREATE_SERVICE_WITH_KEY: &str = "create-service-with-key";

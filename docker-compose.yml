@@ -1,11 +1,22 @@
 version: '3'
 
 services:
-  db:
-    image: postgres
-    restart: always
-    environment:
-      POSTGRES_USER: ark_auth
-      POSTGRES_PASSWORD: guest
-    ports:
-      - "5432:5432"
+    # # Ark Auth service.
+    # ark_auth:
+    #     build: ark_auth
+    #     restart: always
+    #     environment:
+    #         DATABASE_URL: "postgres://ark_auth:guest@postgres:5432/ark_auth"
+    #         SERVER_BIND: "localhost:9000"
+    #     ports:
+    #         - "9000:9000"
+
+    # Postgres database service.
+    postgres:
+        image: postgres
+        restart: always
+        environment:
+            POSTGRES_USER: ark_auth
+            POSTGRES_PASSWORD: guest
+        ports:
+            - "5432:5432"
