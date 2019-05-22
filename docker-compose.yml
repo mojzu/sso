@@ -13,9 +13,9 @@ services:
     #     ports:
     #         - "9000:9000"
 
-    # Postgres database service.
+    # PostgreSQL service.
     postgres:
-        image: postgres
+        image: postgres:11.3
         restart: always
         environment:
             POSTGRES_USER: ark_auth
