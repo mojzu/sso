@@ -262,7 +262,7 @@ $ diesel database reset --migration-dir ark_auth/migrations/postgres
 $ cargo test [--test $test_name]
 </code></pre>
 <p>Serve and build manual.</p>
-<pre><code class="language-shell">$ cd ark_auth_manual
+<pre><code class="language-shell">$ cd manual
 $ mdbook serve
 $ rm -rf ../docs &amp;&amp; mdbook build
 </code></pre>
@@ -270,6 +270,8 @@ $ rm -rf ../docs &amp;&amp; mdbook build
 <pre><code class="language-Shell">$ cd ark_auth
 $ docker-compose build
 </code></pre>
+<p>TODO(feature): Cross compilation.
+<a href="https://github.com/rust-embedded/cross">https://github.com/rust-embedded/cross</a></p>
 <a class="header" href="#introduction-1" id="introduction-1"><h1>Introduction</h1></a>
 <p><strong>Warning: The author of this application is not a security expert, nor has the code undergone any kind of review or verification. Use it at your own risk.</strong></p>
 <p>Ark Auth is an authentication server, it is intended to be used as a backend for other services which must authenticate their users requests.</p>
@@ -322,7 +324,7 @@ $ docker-compose build
 <a class="header" href="#token-1" id="token-1"><h3>Token</h3></a>
 <p>JSON web tokens used for time-limited authentication, generated for users from a user key. Revoking the key used to generate a token also revokes the token.</p>
 <a class="header" href="#deployment" id="deployment"><h1>Deployment</h1></a>
-<p>TODO(manual): How to deploy the Ark Auth.</p>
+<p>TODO(manual): How to deploy Ark Auth server.</p>
 <a class="header" href="#nginx" id="nginx"><h2>Nginx</h2></a>
 <p>Example <a href="https://www.nginx.com/">nginx</a> configuration.</p>
 <pre><code class="language-nginx">http {

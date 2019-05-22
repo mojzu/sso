@@ -1,6 +1,6 @@
 # Deployment
 
-TODO(manual): How to deploy the Ark Auth.
+TODO(manual): How to deploy Ark Auth server.
 
 ## Nginx
 

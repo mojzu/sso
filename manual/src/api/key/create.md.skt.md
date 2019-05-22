@@ -1,5 +1,5 @@
 ```rust,skt-create-forbidden
-use ark_auth_manual::*;
+use manual::*;
 use ark_auth::server::route::key;
 
 fn main() {{

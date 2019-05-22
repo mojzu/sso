@@ -1,5 +1,5 @@
-```rust,skt-revoke-ok
-use ark_auth_manual::*;
+```rust,skt-password-confirm-ok
+use manual::*;
 use ark_auth::server::route::auth;
 use ark_auth::server::route::user;
 use ark_auth::server::route::key;
@@ -11,8 +11,8 @@ fn main() {{
 }}
 ```
 
-```rust,skt-revoke-bad-request
-use ark_auth_manual::*;
+```rust,skt-password-confirm-bad-request
+use manual::*;
 
 fn main() {{
     let client = reqwest::Client::new();
@@ -21,8 +21,8 @@ fn main() {{
 }}
 ```
 
-```rust,skt-revoke-forbidden
-use ark_auth_manual::*;
+```rust,skt-password-confirm-forbidden
+use manual::*;
 use ark_auth::server::route::auth;
 
 fn main() {{

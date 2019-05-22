@@ -1,5 +1,5 @@
-```rust,skt-login
-use ark_auth_manual::*;
+```rust,skt-reset-password
+use manual::*;
 use ark_auth::server::route::auth;
 use ark_auth::server::route::user;
 use ark_auth::server::route::key;

@@ -206,7 +206,7 @@ $ diesel database reset --migration-dir ark_auth/migrations/postgres
 $ cargo test [--test $test_name]
 </code></pre>
 <p>Serve and build manual.</p>
-<pre><code class="language-shell">$ cd ark_auth_manual
+<pre><code class="language-shell">$ cd manual
 $ mdbook serve
 $ rm -rf ../docs &amp;&amp; mdbook build
 </code></pre>
@@ -214,6 +214,8 @@ $ rm -rf ../docs &amp;&amp; mdbook build
 <pre><code class="language-Shell">$ cd ark_auth
 $ docker-compose build
 </code></pre>
+<p>TODO(feature): Cross compilation.
+<a href="https://github.com/rust-embedded/cross">https://github.com/rust-embedded/cross</a></p>
 
                     </main>
 

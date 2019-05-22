@@ -1,8 +1,9 @@
 [package]
-name = "ark_auth_manual"
+name = "manual"
 version = "0.1.0"
 authors = ["Sam Ward <mail@mojzu.net>"]
 edition = "2018"
+publish = false
 build = "build.rs"
 
 [build-dependencies]

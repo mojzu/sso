@@ -1,5 +1,5 @@
 ```rust,skt-list-ok
-use ark_auth_manual::*;
+use manual::*;
 use ark_auth::server::route::key;
 
 fn main() {{
@@ -10,7 +10,7 @@ fn main() {{
 ```
 
 ```rust,skt-list-bad-request
-use ark_auth_manual::*;
+use manual::*;
 
 fn main() {{
     let client = reqwest::Client::new();
@@ -20,7 +20,7 @@ fn main() {{
 ```
 
 ```rust,skt-list-forbidden
-use ark_auth_manual::*;
+use manual::*;
 
 fn main() {{
     let client = reqwest::Client::new();

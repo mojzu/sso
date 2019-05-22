@@ -91,7 +91,7 @@ $ cargo test [--test $test_name]
 Serve and build manual.
 
 ```shell
-$ cd ark_auth_manual
+$ cd manual
 $ mdbook serve
 $ rm -rf ../docs && mdbook build
 ```

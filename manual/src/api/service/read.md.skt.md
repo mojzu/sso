@@ -1,5 +1,5 @@
 ```rust,skt-read-forbidden
-use ark_auth_manual::*;
+use manual::*;
 
 fn main() {{
     let client = reqwest::Client::new();

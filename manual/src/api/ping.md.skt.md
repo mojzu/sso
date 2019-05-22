@@ -1,5 +1,5 @@
 ```rust,skt-ping
-use ark_auth_manual::*;
+use manual::*;
 use serde_json::Value;
 
 fn main() {{
