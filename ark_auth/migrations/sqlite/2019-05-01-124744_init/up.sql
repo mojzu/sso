@@ -1,4 +1,3 @@
--- Authentication users table.
 CREATE TABLE auth_user (
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
@@ -10,7 +9,6 @@ CREATE TABLE auth_user (
     CONSTRAINT uq_auth_user_email UNIQUE(user_email)
 );
 
--- Authentication services table.
 CREATE TABLE auth_service (
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
@@ -19,7 +17,6 @@ CREATE TABLE auth_service (
     service_url TEXT NOT NULL
 );
 
--- Authentication keys table.
 CREATE TABLE auth_key (
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
@@ -39,7 +36,6 @@ CREATE TABLE auth_key (
         ON DELETE RESTRICT
 );
 
--- Authentication csrf table.
 CREATE TABLE auth_csrf (
     created_at TEXT NOT NULL,
     csrf_key TEXT PRIMARY KEY NOT NULL,
