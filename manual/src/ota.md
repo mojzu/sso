@@ -70,3 +70,5 @@ $ ark_ota start --auto-update
 # ark_ota commits change to lock file if process runs for X time or exits with code 0
 # ark_ota reverts change to lock file if process exits with error code, starts process of previous version
 ```
+
+- <https://tools.ietf.org/html/draft-ietf-suit-architecture-00>
