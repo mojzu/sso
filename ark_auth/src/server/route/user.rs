@@ -83,6 +83,7 @@ pub struct CreateBody {
     pub name: String,
     #[validate(email)]
     pub email: String,
+    pub active: bool,
     #[validate(custom = "validate::password")]
     pub password: Option<String>,
 }
@@ -127,6 +128,7 @@ fn create_inner(data: &Data, id: Option<String>, body: &CreateBody) -> Result<co
                 service.as_ref(),
                 &body.name,
                 &body.email,
+                body.active,
                 body.password.as_ref().map(|x| &**x),
             )
         })
@@ -163,6 +165,7 @@ fn read_inner(data: &Data, id: Option<String>, user_id: i64) -> Result<ReadRespo
 struct UpdateBody {
     #[validate(custom = "validate::name")]
     name: Option<String>,
+    active: Option<bool>,
 }
 
 impl validate::FromJsonValue<UpdateBody> for UpdateBody {}
@@ -200,6 +203,7 @@ fn update_inner(
                 service.as_ref(),
                 user_id,
                 body.name.as_ref().map(|x| &**x),
+                body.active,
             )
         })
         .map_err(Into::into)

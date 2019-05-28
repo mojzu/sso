@@ -105,6 +105,7 @@ pub trait Driver: Send + Sync {
         &self,
         name: &str,
         email: &str,
+        active: bool,
         password_hash: Option<&str>,
         password_revision: Option<i64>,
     ) -> Result<User, Error>;
@@ -116,7 +117,12 @@ pub trait Driver: Send + Sync {
     fn user_read_by_email(&self, email: &str) -> Result<Option<User>, Error>;
 
     /// Update user by ID.
-    fn user_update_by_id(&self, id: i64, name: Option<&str>) -> Result<User, Error>;
+    fn user_update_by_id(
+        &self,
+        id: i64,
+        name: Option<&str>,
+        active: Option<bool>,
+    ) -> Result<User, Error>;
 
     /// Update user password by ID.
     fn user_update_password_by_id(

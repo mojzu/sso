@@ -113,7 +113,10 @@ impl driver::Driver for Driver {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         let conn = self.connection()?;
+        let now = Utc::now();
         let value = models::AuthKeyInsert {
+            created_at: &now,
+            updated_at: &now,
             key_name: name,
             key_value: value,
             service_id: key_service_id,
@@ -224,9 +227,9 @@ impl driver::Driver for Driver {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         let conn = self.connection()?;
-        let key_updated_at = chrono::Utc::now();
+        let now = chrono::Utc::now();
         let value = models::AuthKeyUpdate {
-            updated_at: &key_updated_at,
+            updated_at: &now,
             key_name: name,
         };
         diesel::update(auth_key.filter(key_id.eq(id)))
@@ -290,7 +293,10 @@ impl driver::Driver for Driver {
         use crate::driver::postgres::schema::auth_service::dsl::*;
 
         let conn = self.connection()?;
+        let now = Utc::now();
         let value = models::AuthServiceInsert {
+            created_at: &now,
+            updated_at: &now,
             service_name: name,
             service_url: url,
         };
@@ -319,9 +325,9 @@ impl driver::Driver for Driver {
         use crate::driver::postgres::schema::auth_service::dsl::*;
 
         let conn = self.connection()?;
-        let service_updated_at = chrono::Utc::now();
+        let now = chrono::Utc::now();
         let value = models::AuthServiceUpdate {
-            updated_at: &service_updated_at,
+            updated_at: &now,
             service_name: name,
         };
         diesel::update(auth_service.filter(service_id.eq(id)))
@@ -376,14 +382,19 @@ impl driver::Driver for Driver {
         &self,
         name: &str,
         email: &str,
+        active: bool,
         password_hash: Option<&str>,
         password_revision: Option<i64>,
     ) -> Result<User, Error> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         let conn = self.connection()?;
+        let now = Utc::now();
         let value = models::AuthUserInsert {
+            created_at: &now,
+            updated_at: &now,
             user_name: name,
+            user_active: active,
             user_email: email,
             user_password_hash: password_hash,
             user_password_revision: password_revision,
@@ -423,14 +434,20 @@ impl driver::Driver for Driver {
             })
     }
 
-    fn user_update_by_id(&self, id: i64, name: Option<&str>) -> Result<User, Error> {
+    fn user_update_by_id(
+        &self,
+        id: i64,
+        name: Option<&str>,
+        active: Option<bool>,
+    ) -> Result<User, Error> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         let conn = self.connection()?;
-        let user_updated_at = chrono::Utc::now();
+        let now = chrono::Utc::now();
         let value = models::AuthUserUpdate {
-            updated_at: &user_updated_at,
+            updated_at: &now,
             user_name: name,
+            user_active: active,
         };
         diesel::update(auth_user.filter(user_id.eq(id)))
             .set(&value)
@@ -448,10 +465,10 @@ impl driver::Driver for Driver {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         let conn = self.connection()?;
-        let user_updated_at = chrono::Utc::now();
+        let now = chrono::Utc::now();
         diesel::update(auth_user.filter(user_id.eq(id)))
             .set((
-                updated_at.eq(user_updated_at),
+                updated_at.eq(now),
                 user_password_hash.eq(password_hash),
                 user_password_revision.eq(password_revision),
             ))
@@ -472,7 +489,9 @@ impl driver::Driver for Driver {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
         let conn = self.connection()?;
+        let now = Utc::now();
         let value = models::AuthCsrfInsert {
+            created_at: &now,
             csrf_key: key,
             csrf_value: value,
             service_id: csrf_service_id,

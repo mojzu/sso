@@ -13,6 +13,7 @@ pub struct AuthUser {
     pub user_id: i64,
     pub user_name: String,
     pub user_email: String,
+    pub user_active: bool,
     pub user_password_hash: Option<String>,
     pub user_password_revision: Option<i64>,
 }
@@ -25,6 +26,7 @@ impl From<AuthUser> for core::User {
             id: user.user_id,
             name: user.user_name,
             email: user.user_email,
+            active: user.user_active,
             password_hash: user.user_password_hash,
             password_revision: user.user_password_revision,
         }
@@ -34,8 +36,11 @@ impl From<AuthUser> for core::User {
 #[derive(Debug, Insertable)]
 #[table_name = "auth_user"]
 pub struct AuthUserInsert<'a> {
+    pub created_at: &'a DateTime<Utc>,
+    pub updated_at: &'a DateTime<Utc>,
     pub user_name: &'a str,
     pub user_email: &'a str,
+    pub user_active: bool,
     pub user_password_hash: Option<&'a str>,
     pub user_password_revision: Option<i64>,
 }
@@ -45,6 +50,7 @@ pub struct AuthUserInsert<'a> {
 pub struct AuthUserUpdate<'a> {
     pub updated_at: &'a DateTime<Utc>,
     pub user_name: Option<&'a str>,
+    pub user_active: Option<bool>,
 }
 
 #[derive(AsChangeset)]
@@ -81,6 +87,8 @@ impl From<AuthService> for core::Service {
 #[derive(Debug, Insertable)]
 #[table_name = "auth_service"]
 pub struct AuthServiceInsert<'a> {
+    pub created_at: &'a DateTime<Utc>,
+    pub updated_at: &'a DateTime<Utc>,
     pub service_name: &'a str,
     pub service_url: &'a str,
 }
@@ -122,6 +130,8 @@ impl From<AuthKey> for core::Key {
 #[derive(Debug, Insertable)]
 #[table_name = "auth_key"]
 pub struct AuthKeyInsert<'a> {
+    pub created_at: &'a DateTime<Utc>,
+    pub updated_at: &'a DateTime<Utc>,
     pub key_name: &'a str,
     pub key_value: &'a str,
     pub service_id: Option<i64>,
@@ -159,6 +169,7 @@ impl From<AuthCsrf> for core::Csrf {
 #[derive(Debug, Insertable)]
 #[table_name = "auth_csrf"]
 pub struct AuthCsrfInsert<'a> {
+    pub created_at: &'a DateTime<Utc>,
     pub csrf_key: &'a str,
     pub csrf_value: &'a str,
     pub service_id: i64,

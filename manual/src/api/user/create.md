@@ -58,6 +58,7 @@ let before = Utc::now();
 let request = user::CreateBody {
     name: "User Name".to_owned(),
     email: user_email.clone(),
+    active: true,
     password: Some("guest".to_owned()),
 };
 let mut response = client
@@ -100,6 +101,7 @@ let user_email = user_email_create();
 let request = user::CreateBody {
     name: "User Name".to_owned(),
     email: user_email.clone(),
+    active: true,
     password: None,
 };
 let mut response = client
@@ -147,6 +149,7 @@ let url = server_url("/v1/user");
 let request = user::CreateBody {
     name: "User Name".to_owned(),
     email: user_email_create(),
+    active: true,
     password: None,
 };
 

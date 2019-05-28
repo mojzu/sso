@@ -2,6 +2,7 @@
 
 ## 0.2.0 (unreleased)
 
+- Add active flag to users.
 - Validate service URLs before save using URL parse, improved URL error handling.
 - Fix inconsistent core error display strings.
 - Fix duplicate user email address returned internal server error code.

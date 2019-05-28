@@ -71,6 +71,7 @@ let user_url = server_url("/v1/user");
 let request = user::CreateBody {
     name: "User Name".to_owned(),
     email: user_email.clone(),
+    active: true,
     password: Some(user_password.clone()),
 };
 let mut response = client
@@ -199,7 +200,7 @@ assert!(user_token.token_expires > 0);
 ### Test
 
 ```rust,skt-login-bad-request
-let (_service, service_key) = service_key_create(&client);
+let (service, service_key) = service_key_create(&client);
 let url = server_url("/v1/auth/login");
 
 // Invalid body (missing properties).
@@ -271,6 +272,12 @@ let status = response.status();
 let content_length = header_get(&response, "content-length");
 assert_eq!(status, 400);
 assert_eq!(content_length, "0");
+
+// Inactive user.
+let user_email = user_email_create();
+let user = user_post_200(&service_key, "User Name", &user_email, false, Some("guest"));
+key_post_user_200(&service, &service_key, &user, "Key Name");
+auth_login_post_400(&service_key, &user_email, "guest");
 ```
 
 ## Response [403, Forbidden]

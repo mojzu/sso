@@ -102,6 +102,3 @@ Build docker image.
 $ cd ark_auth
 $ docker-compose build
 ```
-
-TODO(feature): Cross compilation.
-<https://github.com/rust-embedded/cross>

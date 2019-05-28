@@ -58,6 +58,7 @@ pub struct User {
     pub updated_at: DateTime<Utc>,
     pub id: i64,
     pub name: String,
+    pub active: bool,
     pub email: String,
     #[serde(skip)]
     pub password_hash: Option<String>,

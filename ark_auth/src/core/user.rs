@@ -34,6 +34,7 @@ pub fn create(
     service_mask: Option<&Service>,
     name: &str,
     email: &str,
+    active: bool,
     password: Option<&str>,
 ) -> Result<User, Error> {
     let user = read_by_email(driver, service_mask, email)?;
@@ -50,6 +51,7 @@ pub fn create(
         .user_create(
             name,
             email,
+            active,
             password_hash.as_ref().map(|x| &**x),
             password_revision,
         )
@@ -80,8 +82,11 @@ pub fn update_by_id(
     _service_mask: Option<&Service>,
     id: i64,
     name: Option<&str>,
+    active: Option<bool>,
 ) -> Result<User, Error> {
-    driver.user_update_by_id(id, name).map_err(Error::Driver)
+    driver
+        .user_update_by_id(id, name, active)
+        .map_err(Error::Driver)
 }
 
 /// Update user password by ID.

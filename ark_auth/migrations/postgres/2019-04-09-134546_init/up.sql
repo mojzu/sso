@@ -1,19 +1,19 @@
 CREATE TABLE auth_user (
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     user_id BIGSERIAL NOT NULL,
     user_name VARCHAR NOT NULL,
     user_email VARCHAR NOT NULL,
+    user_active BOOLEAN NOT NULL,
     user_password_hash VARCHAR,
     user_password_revision BIGINT,
-    -- TODO(feature): Reset required column.
     PRIMARY KEY (user_id),
     CONSTRAINT uq_auth_user_email UNIQUE(user_email)
 );
 
 CREATE TABLE auth_service (
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     service_id BIGSERIAL NOT NULL,
     service_name VARCHAR NOT NULL,
     service_url VARCHAR NOT NULL,
@@ -21,8 +21,8 @@ CREATE TABLE auth_service (
 );
 
 CREATE TABLE auth_key (
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     key_id BIGSERIAL NOT NULL,
     key_name VARCHAR NOT NULL,
     key_value VARCHAR NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE auth_key (
 );
 
 CREATE TABLE auth_csrf (
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL,
     csrf_key VARCHAR NOT NULL,
     csrf_value VARCHAR NOT NULL,
     service_id BIGINT NOT NULL,

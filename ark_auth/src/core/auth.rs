@@ -14,8 +14,7 @@ pub fn login(
     password: &str,
     token_exp: i64,
 ) -> Result<UserToken, Error> {
-    let user = core::user::read_by_email(driver, Some(service), email)?
-        .ok_or_else(|| Error::BadRequest)?;
+    let user = user_read_by_email(driver, Some(service), email)?;
     core::check_password(user.password_hash.as_ref().map(|x| &**x), &password)?;
     let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
     jwt::encode_user_token(service.id, user.id, &key.value, token_exp)
@@ -28,8 +27,7 @@ pub fn reset_password(
     email: &str,
     token_exp: i64,
 ) -> Result<(User, UserToken), Error> {
-    let user = core::user::read_by_email(driver, Some(service), email)?
-        .ok_or_else(|| Error::BadRequest)?;
+    let user = user_read_by_email(driver, Some(service), email)?;
     let password_revision = user.password_revision.ok_or_else(|| Error::BadRequest)?;
     let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
 
@@ -145,12 +143,26 @@ pub fn oauth2_login(
         .service_read_by_id(service_id)
         .map_err(Error::Driver)?
         .ok_or_else(|| Error::BadRequest)?;
-    let user = core::user::read_by_email(driver, Some(&service), email)?
-        .ok_or_else(|| Error::BadRequest)?;
+    let user = user_read_by_email(driver, Some(&service), email)?;
     let key = core::key::read_by_user(driver, &service, &user)?.ok_or_else(|| Error::BadRequest)?;
 
     let user_token = jwt::encode_user_token(service.id, user.id, &key.value, token_exp)?;
     Ok((service, user_token))
+}
+
+/// Read user by email address.
+/// Also checks user is active, returns bad request if inactive.
+fn user_read_by_email(
+    driver: &driver::Driver,
+    service_mask: Option<&Service>,
+    email: &str,
+) -> Result<User, Error> {
+    let user =
+        core::user::read_by_email(driver, service_mask, email)?.ok_or_else(|| Error::BadRequest)?;
+    if !user.active {
+        return Err(Error::BadRequest);
+    }
+    Ok(user)
 }
 
 mod jwt {
