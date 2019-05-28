@@ -48,6 +48,8 @@ Created key.
 - Key name is invalid.
 - User ID is invalid or user does not exist.
 
+TODO(test): Test user create bad requests.
+
 ## Response [403, Forbidden]
 
 - Authorisation header is invalid.

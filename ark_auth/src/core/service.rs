@@ -1,7 +1,6 @@
-use crate::{
-    core::{Error, Service},
-    driver,
-};
+use crate::core::{Error, Service};
+use crate::driver;
+use url::Url;
 
 /// List services where ID is less than.
 pub fn list_where_id_lt(
@@ -27,6 +26,7 @@ pub fn list_where_id_gt(
 
 /// Create service.
 pub fn create(driver: &driver::Driver, name: &str, url: &str) -> Result<Service, Error> {
+    Url::parse(url).map_err(|_err| Error::BadRequest)?;
     driver.service_create(name, url).map_err(Error::Driver)
 }
 

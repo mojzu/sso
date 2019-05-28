@@ -105,6 +105,9 @@ pub enum Error {
     /// Core error wrapper.
     #[fail(display = "ServerError::Core {}", _0)]
     Core(#[fail(cause)] core::Error),
+    /// URL parse error.
+    #[fail(display = "ServerError::UrlParse {}", _0)]
+    UrlParse(#[fail(cause)] url::ParseError),
     /// Actix web blocking error cancelled wrapper.
     #[fail(display = "ServerError::ActixWebBlockingCancelled")]
     ActixWebBlockingCancelled,

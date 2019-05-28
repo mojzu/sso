@@ -89,6 +89,53 @@ assert!(user.password_revision.is_none());
 - User email address is invalid or not unique.
 - User password is invalid.
 
+### Test
+
+```rust,skt-create-bad-request
+let (_service, service_key) = service_key_create(&client);
+let url = server_url("/v1/user");
+
+// Duplicate user email address.
+let user_email = user_email_create();
+let request = user::CreateBody {
+    name: "User Name".to_owned(),
+    email: user_email.clone(),
+    password: None,
+};
+let mut response = client
+    .post(&url)
+    .header("content-type", "application/json")
+    .header("authorization", service_key.value.clone())
+    .json(&request)
+    .send()
+    .unwrap();
+let body = response.json::<user::CreateResponse>().unwrap();
+let user = body.data;
+let status = response.status();
+let content_type = header_get(&response, "content-type");
+assert_eq!(status, 200);
+assert_eq!(content_type, "application/json");
+assert!(user.id > 0);
+assert_eq!(user.name, "User Name");
+assert_eq!(user.email, user_email);
+assert!(user.password_hash.is_none());
+assert!(user.password_revision.is_none());
+
+let response = client
+    .post(&url)
+    .header("content-type", "application/json")
+    .header("authorization", service_key.value.clone())
+    .json(&request)
+    .send()
+    .unwrap();
+let status = response.status();
+let content_length = header_get(&response, "content-length");
+assert_eq!(status, 400);
+assert_eq!(content_length, "0");
+```
+
+TODO(test): Create user bad requests.
+
 ## Response [403, Forbidden]
 
 - Authorisation header is invalid.

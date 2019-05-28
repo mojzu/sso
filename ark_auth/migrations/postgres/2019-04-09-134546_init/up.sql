@@ -1,32 +1,34 @@
 CREATE TABLE auth_user (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    user_id BIGSERIAL PRIMARY KEY NOT NULL,
+    user_id BIGSERIAL NOT NULL,
     user_name VARCHAR NOT NULL,
     user_email VARCHAR NOT NULL,
     user_password_hash VARCHAR,
     user_password_revision BIGINT,
     -- TODO(feature): Reset required column.
-    -- PRIMARY KEY (user_id),
+    PRIMARY KEY (user_id),
     CONSTRAINT uq_auth_user_email UNIQUE(user_email)
 );
 
 CREATE TABLE auth_service (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    service_id BIGSERIAL PRIMARY KEY NOT NULL,
+    service_id BIGSERIAL NOT NULL,
     service_name VARCHAR NOT NULL,
-    service_url VARCHAR NOT NULL
+    service_url VARCHAR NOT NULL,
+    PRIMARY KEY (service_id)
 );
 
 CREATE TABLE auth_key (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    key_id BIGSERIAL PRIMARY KEY NOT NULL,
+    key_id BIGSERIAL NOT NULL,
     key_name VARCHAR NOT NULL,
     key_value VARCHAR NOT NULL,
     service_id BIGINT,
     user_id BIGINT,
+    PRIMARY KEY (key_id),
     CONSTRAINT uq_auth_key_value UNIQUE(key_value),
     CONSTRAINT fk_auth_key_service
         FOREIGN KEY (service_id)
@@ -40,9 +42,10 @@ CREATE TABLE auth_key (
 
 CREATE TABLE auth_csrf (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    csrf_key VARCHAR PRIMARY KEY NOT NULL,
+    csrf_key VARCHAR NOT NULL,
     csrf_value VARCHAR NOT NULL,
     service_id BIGINT NOT NULL,
+    PRIMARY KEY (csrf_key),
     CONSTRAINT fk_auth_csrf_service
         FOREIGN KEY (service_id)
         REFERENCES auth_service(service_id)

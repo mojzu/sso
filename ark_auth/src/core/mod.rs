@@ -22,10 +22,10 @@ pub enum Error {
     #[fail(display = "CoreError::Driver {}", _0)]
     Driver(#[fail(cause)] driver::Error),
     /// Bcrypt error wrapper.
-    #[fail(display = "DbError::Bcrypt {}", _0)]
+    #[fail(display = "CoreError::Bcrypt {}", _0)]
     Bcrypt(#[fail(cause)] bcrypt::BcryptError),
     /// JSON web token error wrapper.
-    #[fail(display = "DbError::Jsonwebtoken {}", _0)]
+    #[fail(display = "CoreError::Jsonwebtoken {}", _0)]
     Jsonwebtoken(#[fail(cause)] jsonwebtoken::errors::Error),
 }
 

@@ -68,10 +68,7 @@ pub fn send_reset_password(
     let result = mailer
         .send(email.into())
         .map_err(|err| Error::Smtp(SmtpError::Lettre(err)))
-        .map(|res| {
-            // TODO(refactor): Check log output.
-            info!("{:?}", res);
-        });
+        .map(|res| ());
     mailer.close();
     result
 }

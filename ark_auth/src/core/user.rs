@@ -28,13 +28,19 @@ pub fn list_where_id_gt(
 }
 
 /// Create user.
+/// Returns bad request if email address is not unique.
 pub fn create(
     driver: &driver::Driver,
-    _service_mask: Option<&Service>,
+    service_mask: Option<&Service>,
     name: &str,
     email: &str,
     password: Option<&str>,
 ) -> Result<User, Error> {
+    let user = read_by_email(driver, service_mask, email)?;
+    if user.is_some() {
+        return Err(Error::BadRequest);
+    }
+
     let password_hash = hash_password(password)?;
     let password_revision = match password_hash {
         Some(_) => Some(1),

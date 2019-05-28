@@ -145,6 +145,7 @@ fn github_client(provider: Option<&ConfigurationOauth2Provider>) -> Result<Basic
     let token_url = Url::parse("https://github.com/login/oauth/access_token").unwrap();
     let token_url = TokenUrl::new(token_url);
 
+    let redirect_url = Url::parse(&provider.redirect_url).map_err(Error::UrlParse)?;
     Ok(BasicClient::new(
         github_client_id,
         Some(github_client_secret),
@@ -152,8 +153,5 @@ fn github_client(provider: Option<&ConfigurationOauth2Provider>) -> Result<Basic
         Some(token_url),
     )
     .add_scope(Scope::new("user:email".to_string()))
-    .set_redirect_url(RedirectUrl::new(
-        // TODO(refactor): Parse URLs on input for validity, handle errors here.
-        Url::parse(&provider.redirect_url).unwrap(),
-    )))
+    .set_redirect_url(RedirectUrl::new(redirect_url)))
 }

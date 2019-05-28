@@ -20,11 +20,10 @@ impl validate::FromJsonValue<CallbackQuery> for CallbackQuery {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UrlResponse {
-    url: String,
+    pub url: String,
 }
 
 pub fn oauth2_redirect(service: core::Service, token: core::UserToken) -> HttpResponse {
-    // TODO(refactor): Handle url parse error.
     let mut url = Url::parse(&service.url).unwrap();
     let token_query = format!("token={}", token.token);
     url.set_query(Some(&token_query));
