@@ -194,6 +194,7 @@ let before = Utc::now();
 let request = user::CreateBody {
     name: &quot;User Name&quot;.to_owned(),
     email: user_email.clone(),
+    active: true,
     password: Some(&quot;guest&quot;.to_owned()),
 };
 let mut response = client
@@ -224,11 +225,58 @@ assert!(user.password_revision.is_none());
 <li>User email address is invalid or not unique.</li>
 <li>User password is invalid.</li>
 </ul>
+<a class="header" href="#test-1" id="test-1"><h3>Test</h3></a>
+<pre><pre class="playpen"><code class="language-rust skt-create-bad-request">
+# #![allow(unused_variables)]
+#fn main() {
+let (_service, service_key) = service_key_create(&amp;client);
+let url = server_url(&quot;/v1/user&quot;);
+
+// Duplicate user email address.
+let user_email = user_email_create();
+let request = user::CreateBody {
+    name: &quot;User Name&quot;.to_owned(),
+    email: user_email.clone(),
+    active: true,
+    password: None,
+};
+let mut response = client
+    .post(&amp;url)
+    .header(&quot;content-type&quot;, &quot;application/json&quot;)
+    .header(&quot;authorization&quot;, service_key.value.clone())
+    .json(&amp;request)
+    .send()
+    .unwrap();
+let body = response.json::&lt;user::CreateResponse&gt;().unwrap();
+let user = body.data;
+let status = response.status();
+let content_type = header_get(&amp;response, &quot;content-type&quot;);
+assert_eq!(status, 200);
+assert_eq!(content_type, &quot;application/json&quot;);
+assert!(user.id &gt; 0);
+assert_eq!(user.name, &quot;User Name&quot;);
+assert_eq!(user.email, user_email);
+assert!(user.password_hash.is_none());
+assert!(user.password_revision.is_none());
+
+let response = client
+    .post(&amp;url)
+    .header(&quot;content-type&quot;, &quot;application/json&quot;)
+    .header(&quot;authorization&quot;, service_key.value.clone())
+    .json(&amp;request)
+    .send()
+    .unwrap();
+let status = response.status();
+let content_length = header_get(&amp;response, &quot;content-length&quot;);
+assert_eq!(status, 400);
+assert_eq!(content_length, &quot;0&quot;);
+#}</code></pre></pre>
+<p>TODO(test): Create user bad requests.</p>
 <a class="header" href="#response-403-forbidden" id="response-403-forbidden"><h2>Response [403, Forbidden]</h2></a>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-1" id="test-1"><h3>Test</h3></a>
+<a class="header" href="#test-2" id="test-2"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-create-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -236,6 +284,7 @@ let url = server_url(&quot;/v1/user&quot;);
 let request = user::CreateBody {
     name: &quot;User Name&quot;.to_owned(),
     email: user_email_create(),
+    active: true,
     password: None,
 };
 

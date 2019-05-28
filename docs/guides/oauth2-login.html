@@ -176,6 +176,78 @@ $ ark_auth start-server
   --data '{&quot;token&quot;:&quot;$user_token&quot;}' \
   $server_url/v1/auth/token/verify
 </code></pre>
+<a class="header" href="#test" id="test"><h2>Test</h2></a>
+<pre><pre class="playpen"><code class="language-rust skt-oauth2-login">
+# #![allow(unused_variables)]
+#fn main() {
+let (service, service_key) = service_key_create(&amp;client);
+let user_email = user_email_create();
+
+let url = server_url(&quot;/v1/user&quot;);
+let request = user::CreateBody {
+    name: &quot;User Name&quot;.to_owned(),
+    email: user_email.clone(),
+    active: true,
+    password: None,
+};
+let mut response = client
+    .post(&amp;url)
+    .header(&quot;content-type&quot;, &quot;application/json&quot;)
+    .header(&quot;authorization&quot;, service_key.value.clone())
+    .json(&amp;request)
+    .send()
+    .unwrap();
+let body = response.json::&lt;user::CreateResponse&gt;().unwrap();
+let user = body.data;
+let status = response.status();
+let content_type = header_get(&amp;response, &quot;content-type&quot;);
+assert_eq!(status, 200);
+assert_eq!(content_type, &quot;application/json&quot;);
+assert!(user.id &gt; 0);
+assert_eq!(user.name, &quot;User Name&quot;);
+assert_eq!(user.email, user_email);
+assert!(user.password_hash.is_none());
+assert!(user.password_revision.is_none());
+
+let url = server_url(&quot;/v1/key&quot;);
+let request = key::CreateBody {
+    name: &quot;Key Name&quot;.to_owned(),
+    service_id: None,
+    user_id: Some(user.id),
+};
+let mut response = client
+    .post(&amp;url)
+    .header(&quot;content-type&quot;, &quot;application/json&quot;)
+    .header(&quot;authorization&quot;, service_key.value.clone())
+    .json(&amp;request)
+    .send()
+    .unwrap();
+let body = response.json::&lt;key::CreateResponse&gt;().unwrap();
+let user_key = body.data;
+let status = response.status();
+let content_type = header_get(&amp;response, &quot;content-type&quot;);
+assert_eq!(status, 200);
+assert_eq!(content_type, &quot;application/json&quot;);
+assert_eq!(user_key.name, &quot;Key Name&quot;);
+assert_eq!(user_key.service_id.unwrap(), service.id);
+assert_eq!(user_key.user_id.unwrap(), user.id);
+
+let url = server_url(&quot;/v1/auth/oauth2/microsoft&quot;);
+let mut response = client
+    .post(&amp;url)
+    .header(&quot;content-type&quot;, &quot;application/json&quot;)
+    .header(&quot;authorization&quot;, service_key.value.clone())
+    .send()
+    .unwrap();
+let body = response.json::&lt;auth::oauth2::UrlResponse&gt;().unwrap();
+let redirect_url = body.url;
+let status = response.status();
+let content_type = header_get(&amp;response, &quot;content-type&quot;);
+assert_eq!(status, 200);
+assert_eq!(content_type, &quot;application/json&quot;);
+assert!(redirect_url.len() &gt; 0);
+#}</code></pre></pre>
+<p>TODO(test): Test OAuth2 flow, user email in initial request?</p>
 
                     </main>
 

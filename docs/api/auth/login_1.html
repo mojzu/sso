@@ -207,6 +207,7 @@ let user_url = server_url(&quot;/v1/user&quot;);
 let request = user::CreateBody {
     name: &quot;User Name&quot;.to_owned(),
     email: user_email.clone(),
+    active: true,
     password: Some(user_password.clone()),
 };
 let mut response = client
@@ -335,7 +336,7 @@ assert!(user_token.token_expires &gt; 0);
 <pre><pre class="playpen"><code class="language-rust skt-login-bad-request">
 # #![allow(unused_variables)]
 #fn main() {
-let (_service, service_key) = service_key_create(&amp;client);
+let (service, service_key) = service_key_create(&amp;client);
 let url = server_url(&quot;/v1/auth/login&quot;);
 
 // Invalid body (missing properties).
@@ -407,6 +408,12 @@ let status = response.status();
 let content_length = header_get(&amp;response, &quot;content-length&quot;);
 assert_eq!(status, 400);
 assert_eq!(content_length, &quot;0&quot;);
+
+// Inactive user.
+let user_email = user_email_create();
+let user = user_post_200(&amp;service_key, &quot;User Name&quot;, &amp;user_email, false, Some(&quot;guest&quot;));
+key_post_user_200(&amp;service, &amp;service_key, &amp;user, &quot;Key Name&quot;);
+auth_login_post_400(&amp;service_key, &amp;user_email, &quot;guest&quot;);
 #}</code></pre></pre>
 <a class="header" href="#response-403-forbidden" id="response-403-forbidden"><h2>Response [403, Forbidden]</h2></a>
 <ul>

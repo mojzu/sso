@@ -162,6 +162,7 @@ let url = server_url(&quot;/v1/user&quot;);
 let request = user::CreateBody {
     name: &quot;User Name&quot;.to_owned(),
     email: user_email.clone(),
+    active: true,
     password: None,
 };
 let mut response = client
