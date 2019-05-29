@@ -51,18 +51,16 @@ fn main() {
         .version(crate_version!())
         .about(crate_description!())
         .author(crate_authors!("\n"))
-        .subcommands(vec![
-            SubCommand::with_name(COMMAND_CREATE_KEY)
-                .version(crate_version!())
-                .about("Create key")
-                .author(crate_authors!("\n"))
-                .arg(
-                    Arg::with_name(ARG_NAME)
-                        .help("Key name")
-                        .required(true)
-                        .index(1),
-                ),
-        ])
+        .subcommands(vec![SubCommand::with_name(COMMAND_CREATE_KEY)
+            .version(crate_version!())
+            .about("Create key")
+            .author(crate_authors!("\n"))
+            .arg(
+                Arg::with_name(ARG_NAME)
+                    .help("Key name")
+                    .required(true)
+                    .index(1),
+            )])
         .get_matches();
 
     // Initialise core.

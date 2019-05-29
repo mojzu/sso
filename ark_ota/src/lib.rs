@@ -8,5 +8,5 @@ extern crate log;
 #[macro_use]
 extern crate serde_derive;
 
-pub mod core;
 pub mod cli;
+pub mod core;
