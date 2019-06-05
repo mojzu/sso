@@ -19,7 +19,7 @@ actix = "*"
 actix-http = "*"
 actix-rt = "*"
 actix-service = "*"
-actix-web = { version = "1.0.0-rc", features = ["ssl", "client"] }
+actix-web = { version = "*", features = ["ssl", "client"] }
 bcrypt = "*"
 clap = "*"
 chrono = { version = "*", features = ["serde"] }
