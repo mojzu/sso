@@ -32,7 +32,7 @@ pub struct ListMetaResponse {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListResponse {
     pub meta: ListMetaResponse,
-    pub data: Vec<core::Key>,
+    pub data: Vec<i64>,
 }
 
 fn list_handler(

@@ -33,7 +33,7 @@ pub trait Driver: Send + Sync {
         lt: i64,
         limit: i64,
         service_id_mask: Option<i64>,
-    ) -> Result<Vec<Key>, Error>;
+    ) -> Result<Vec<i64>, Error>;
 
     /// List keys where ID is greater than.
     fn key_list_where_id_gt(
@@ -41,7 +41,7 @@ pub trait Driver: Send + Sync {
         gt: i64,
         limit: i64,
         service_id_mask: Option<i64>,
-    ) -> Result<Vec<Key>, Error>;
+    ) -> Result<Vec<i64>, Error>;
 
     /// Create key.
     fn key_create(
@@ -77,10 +77,10 @@ pub trait Driver: Send + Sync {
     fn key_delete_root(&self) -> Result<usize, Error>;
 
     /// List services where ID is less than.
-    fn service_list_where_id_lt(&self, lt: i64, limit: i64) -> Result<Vec<Service>, Error>;
+    fn service_list_where_id_lt(&self, lt: i64, limit: i64) -> Result<Vec<i64>, Error>;
 
     /// List services where ID is greater than.
-    fn service_list_where_id_gt(&self, gt: i64, limit: i64) -> Result<Vec<Service>, Error>;
+    fn service_list_where_id_gt(&self, gt: i64, limit: i64) -> Result<Vec<i64>, Error>;
 
     /// Create service.
     fn service_create(&self, name: &str, url: &str) -> Result<Service, Error>;
@@ -95,10 +95,10 @@ pub trait Driver: Send + Sync {
     fn service_delete_by_id(&self, id: i64) -> Result<usize, Error>;
 
     /// List users where ID is less than.
-    fn user_list_where_id_lt(&self, lt: i64, limit: i64) -> Result<Vec<User>, Error>;
+    fn user_list_where_id_lt(&self, lt: i64, limit: i64) -> Result<Vec<i64>, Error>;
 
     /// List users where ID is greater than.
-    fn user_list_where_id_gt(&self, gt: i64, limit: i64) -> Result<Vec<User>, Error>;
+    fn user_list_where_id_gt(&self, gt: i64, limit: i64) -> Result<Vec<i64>, Error>;
 
     /// Create user.
     fn user_create(

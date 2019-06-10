@@ -3,22 +3,14 @@ use crate::driver;
 use url::Url;
 
 /// List services where ID is less than.
-pub fn list_where_id_lt(
-    driver: &driver::Driver,
-    lt: i64,
-    limit: i64,
-) -> Result<Vec<Service>, Error> {
+pub fn list_where_id_lt(driver: &driver::Driver, lt: i64, limit: i64) -> Result<Vec<i64>, Error> {
     driver
         .service_list_where_id_lt(lt, limit)
         .map_err(Error::Driver)
 }
 
 /// List services where ID is greater than.
-pub fn list_where_id_gt(
-    driver: &driver::Driver,
-    gt: i64,
-    limit: i64,
-) -> Result<Vec<Service>, Error> {
+pub fn list_where_id_gt(driver: &driver::Driver, gt: i64, limit: i64) -> Result<Vec<i64>, Error> {
     driver
         .service_list_where_id_gt(gt, limit)
         .map_err(Error::Driver)

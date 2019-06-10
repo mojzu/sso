@@ -32,7 +32,7 @@ struct ListMetaResponse {
 #[derive(Debug, Serialize, Deserialize)]
 struct ListResponse {
     meta: ListMetaResponse,
-    data: Vec<core::Service>,
+    data: Vec<i64>,
 }
 
 fn list_handler(

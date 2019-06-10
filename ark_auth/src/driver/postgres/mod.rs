@@ -52,27 +52,25 @@ impl driver::Driver for Driver {
         lt: i64,
         limit: i64,
         service_id_mask: Option<i64>,
-    ) -> Result<Vec<Key>, Error> {
+    ) -> Result<Vec<i64>, Error> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         let conn = self.connection()?;
         match service_id_mask {
             Some(service_id_mask) => auth_key
+                .select(key_id)
                 .filter(service_id.eq(service_id_mask).and(key_id.lt(lt)))
                 .limit(limit)
                 .order(key_id.asc())
-                .load::<models::AuthKey>(&conn),
+                .load::<i64>(&conn),
             None => auth_key
+                .select(key_id)
                 .filter(key_id.lt(lt))
                 .limit(limit)
                 .order(key_id.asc())
-                .load::<models::AuthKey>(&conn),
+                .load::<i64>(&conn),
         }
         .map_err(Error::Diesel)
-        .map(|keys| {
-            let keys: Vec<Key> = keys.into_iter().map(Into::into).collect();
-            keys
-        })
     }
 
     fn key_list_where_id_gt(
@@ -80,27 +78,25 @@ impl driver::Driver for Driver {
         gt: i64,
         limit: i64,
         service_id_mask: Option<i64>,
-    ) -> Result<Vec<Key>, Error> {
+    ) -> Result<Vec<i64>, Error> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         let conn = self.connection()?;
         match service_id_mask {
             Some(service_id_mask) => auth_key
+                .select(key_id)
                 .filter(service_id.eq(service_id_mask).and(key_id.gt(gt)))
                 .limit(limit)
                 .order(key_id.asc())
-                .load::<models::AuthKey>(&conn),
+                .load::<i64>(&conn),
             None => auth_key
+                .select(key_id)
                 .filter(key_id.gt(gt))
                 .limit(limit)
                 .order(key_id.asc())
-                .load::<models::AuthKey>(&conn),
+                .load::<i64>(&conn),
         }
         .map_err(Error::Diesel)
-        .map(|keys| {
-            let keys: Vec<Key> = keys.into_iter().map(Into::into).collect();
-            keys
-        })
     }
 
     fn key_create(
@@ -257,36 +253,30 @@ impl driver::Driver for Driver {
             .map_err(Error::Diesel)
     }
 
-    fn service_list_where_id_lt(&self, lt: i64, limit: i64) -> Result<Vec<Service>, Error> {
+    fn service_list_where_id_lt(&self, lt: i64, limit: i64) -> Result<Vec<i64>, Error> {
         use crate::driver::postgres::schema::auth_service::dsl::*;
 
         let conn = self.connection()?;
         auth_service
+            .select(service_id)
             .filter(service_id.lt(lt))
             .limit(limit)
             .order(service_id.asc())
-            .load::<models::AuthService>(&conn)
+            .load::<i64>(&conn)
             .map_err(Error::Diesel)
-            .map(|services| {
-                let services: Vec<Service> = services.into_iter().map(Into::into).collect();
-                services
-            })
     }
 
-    fn service_list_where_id_gt(&self, gt: i64, limit: i64) -> Result<Vec<Service>, Error> {
+    fn service_list_where_id_gt(&self, gt: i64, limit: i64) -> Result<Vec<i64>, Error> {
         use crate::driver::postgres::schema::auth_service::dsl::*;
 
         let conn = self.connection()?;
         auth_service
+            .select(service_id)
             .filter(service_id.gt(gt))
             .limit(limit)
             .order(service_id.asc())
-            .load::<models::AuthService>(&conn)
+            .load::<i64>(&conn)
             .map_err(Error::Diesel)
-            .map(|services| {
-                let services: Vec<Service> = services.into_iter().map(Into::into).collect();
-                services
-            })
     }
 
     fn service_create(&self, name: &str, url: &str) -> Result<Service, Error> {
@@ -346,36 +336,30 @@ impl driver::Driver for Driver {
             .map_err(Error::Diesel)
     }
 
-    fn user_list_where_id_lt(&self, lt: i64, limit: i64) -> Result<Vec<User>, Error> {
+    fn user_list_where_id_lt(&self, lt: i64, limit: i64) -> Result<Vec<i64>, Error> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         let conn = self.connection()?;
         auth_user
+            .select(user_id)
             .filter(user_id.lt(lt))
             .limit(limit)
             .order(user_id.asc())
-            .load::<models::AuthUser>(&conn)
+            .load::<i64>(&conn)
             .map_err(Error::Diesel)
-            .map(|users| {
-                let users: Vec<User> = users.into_iter().map(Into::into).collect();
-                users
-            })
     }
 
-    fn user_list_where_id_gt(&self, gt: i64, limit: i64) -> Result<Vec<User>, Error> {
+    fn user_list_where_id_gt(&self, gt: i64, limit: i64) -> Result<Vec<i64>, Error> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         let conn = self.connection()?;
         auth_user
+            .select(user_id)
             .filter(user_id.gt(gt))
             .limit(limit)
             .order(user_id.asc())
-            .load::<models::AuthUser>(&conn)
+            .load::<i64>(&conn)
             .map_err(Error::Diesel)
-            .map(|users| {
-                let users: Vec<User> = users.into_iter().map(Into::into).collect();
-                users
-            })
     }
 
     fn user_create(

@@ -55,7 +55,7 @@ pub fn list_where_id_lt(
     service_mask: Option<&Service>,
     lt: i64,
     limit: i64,
-) -> Result<Vec<Key>, Error> {
+) -> Result<Vec<i64>, Error> {
     driver
         .key_list_where_id_lt(lt, limit, service_mask.map(|s| s.id))
         .map_err(Error::Driver)
@@ -67,7 +67,7 @@ pub fn list_where_id_gt(
     service_mask: Option<&Service>,
     gt: i64,
     limit: i64,
-) -> Result<Vec<Key>, Error> {
+) -> Result<Vec<i64>, Error> {
     driver
         .key_list_where_id_gt(gt, limit, service_mask.map(|s| s.id))
         .map_err(Error::Driver)

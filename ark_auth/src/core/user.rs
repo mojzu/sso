@@ -9,7 +9,7 @@ pub fn list_where_id_lt(
     _service_mask: Option<&Service>,
     lt: i64,
     limit: i64,
-) -> Result<Vec<User>, Error> {
+) -> Result<Vec<i64>, Error> {
     driver
         .user_list_where_id_lt(lt, limit)
         .map_err(Error::Driver)
@@ -21,7 +21,7 @@ pub fn list_where_id_gt(
     _service_mask: Option<&Service>,
     gt: i64,
     limit: i64,
-) -> Result<Vec<User>, Error> {
+) -> Result<Vec<i64>, Error> {
     driver
         .user_list_where_id_gt(gt, limit)
         .map_err(Error::Driver)

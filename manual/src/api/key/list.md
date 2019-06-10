@@ -20,15 +20,7 @@ Query parameters: `?gt=X&lt=Y&limit=Z`
         "limit": 10
     },
     "data": [
-        {
-            "created_at": "2019...90Z",
-            "updated_at": "2019...90Z",
-            "id": 1,
-            "name": "Key Name",
-            "value": "667...35c",
-            "service_id": 1,
-            "user_id": null
-        },
+        1,
         ...
     ]
 }
@@ -42,15 +34,7 @@ Query parameters: `?gt=X&lt=Y&limit=Z`
 
 ### Data
 
-Array of read items.
-
-- `created_at`: Created time ISO 8601 timestamp.
-- `updated_at`: Updated time ISO 8601 timestamp.
-- `id`: Key ID.
-- `name`: Key name.
-- `value`: Key value.
-- `service_id`: Key service ID relation or null.
-- `user_id`: Key user ID relation or null.
+Array of IDs.
 
 ### Test
 
@@ -75,15 +59,7 @@ assert_eq!(meta.gt, Some(0));
 assert_eq!(meta.lt, None);
 assert_eq!(meta.limit, 10);
 assert_eq!(data.len(), 1);
-
-let body_key = &data[0];
-assert!(body_key.created_at.eq(&service_key.created_at));
-assert!(body_key.updated_at.eq(&service_key.updated_at));
-assert_eq!(body_key.id, service_key.id);
-assert_eq!(body_key.name, service_key.name);
-assert_eq!(body_key.value, service_key.value);
-assert_eq!(body_key.service_id, service_key.service_id);
-assert_eq!(body_key.user_id, service_key.user_id);
+assert_eq!(data[0], service_key.id);
 ```
 
 ## Response [400, Bad Request]
