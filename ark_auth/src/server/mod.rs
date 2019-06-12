@@ -5,12 +5,9 @@ pub mod validate;
 pub use validate::FromJsonValue;
 
 use crate::{core, driver};
-use actix_web::{
-    dev::{ServiceRequest, ServiceResponse},
-    middleware,
-    middleware::identity::{IdentityPolicy, IdentityService},
-    web, App, HttpResponse, HttpServer, ResponseError,
-};
+use actix_web::dev::{ServiceRequest, ServiceResponse};
+use actix_web::middleware::identity::{IdentityPolicy, IdentityService};
+use actix_web::{middleware, web, App, HttpResponse, HttpServer, ResponseError};
 use futures::{future, Future};
 use serde::Serialize;
 
@@ -376,7 +373,11 @@ fn ping_handler() -> actix_web::Result<HttpResponse> {
 /// API version 1 service scope.
 pub fn api_v1_scope() -> actix_web::Scope {
     web::scope("/v1")
-        .service(web::resource("/ping").route(web::get().to(ping_handler)))
+        .service(
+            web::resource("/ping")
+                .data(route_json_config())
+                .route(web::get().to(ping_handler)),
+        )
         .service(route::auth::api_v1_scope())
         .service(route::key::api_v1_scope())
         .service(route::service::api_v1_scope())

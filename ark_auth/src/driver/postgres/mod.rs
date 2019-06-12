@@ -2,11 +2,9 @@
 mod models;
 mod schema;
 
-use crate::{
-    core::{Csrf, Key, Service, User},
-    driver,
-    driver::Error,
-};
+use crate::core::{Csrf, Key, Service, User};
+use crate::driver;
+use crate::driver::Error;
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;

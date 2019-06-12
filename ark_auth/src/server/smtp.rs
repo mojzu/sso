@@ -1,9 +1,6 @@
-use crate::{
-    core,
-    server::route::auth::reset::PasswordTemplateBody,
-    server::ConfigurationSmtp,
-    server::{Error, SmtpError},
-};
+use crate::core;
+use crate::server::route::auth::reset::PasswordTemplateBody;
+use crate::server::{ConfigurationSmtp, Error, SmtpError};
 use lettre::smtp::authentication::{Credentials, Mechanism};
 use lettre::smtp::ConnectionReuseParameters;
 use lettre::{ClientSecurity, ClientTlsParameters, SmtpClient, Transport};
