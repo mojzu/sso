@@ -157,15 +157,7 @@
         &quot;limit&quot;: 10
     },
     &quot;data&quot;: [
-        {
-            &quot;created_at&quot;: &quot;2019...90Z&quot;,
-            &quot;updated_at&quot;: &quot;2019...90Z&quot;,
-            &quot;id&quot;: 1,
-            &quot;name&quot;: &quot;Key Name&quot;,
-            &quot;value&quot;: &quot;667...35c&quot;,
-            &quot;service_id&quot;: 1,
-            &quot;user_id&quot;: null
-        },
+        1,
         ...
     ]
 }
@@ -177,16 +169,7 @@
 <li><code>limit</code>: Returned items limit.</li>
 </ul>
 <a class="header" href="#data" id="data"><h3>Data</h3></a>
-<p>Array of read items.</p>
-<ul>
-<li><code>created_at</code>: Created time ISO 8601 timestamp.</li>
-<li><code>updated_at</code>: Updated time ISO 8601 timestamp.</li>
-<li><code>id</code>: Key ID.</li>
-<li><code>name</code>: Key name.</li>
-<li><code>value</code>: Key value.</li>
-<li><code>service_id</code>: Key service ID relation or null.</li>
-<li><code>user_id</code>: Key user ID relation or null.</li>
-</ul>
+<p>Array of IDs.</p>
 <a class="header" href="#test" id="test"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-list-ok">
 # #![allow(unused_variables)]
@@ -211,15 +194,7 @@ assert_eq!(meta.gt, Some(0));
 assert_eq!(meta.lt, None);
 assert_eq!(meta.limit, 10);
 assert_eq!(data.len(), 1);
-
-let body_key = &amp;data[0];
-assert!(body_key.created_at.eq(&amp;service_key.created_at));
-assert!(body_key.updated_at.eq(&amp;service_key.updated_at));
-assert_eq!(body_key.id, service_key.id);
-assert_eq!(body_key.name, service_key.name);
-assert_eq!(body_key.value, service_key.value);
-assert_eq!(body_key.service_id, service_key.service_id);
-assert_eq!(body_key.user_id, service_key.user_id);
+assert_eq!(data[0], service_key.id);
 #}</code></pre></pre>
 <a class="header" href="#response-400-bad-request" id="response-400-bad-request"><h2>Response [400, Bad Request]</h2></a>
 <ul>
