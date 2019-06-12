@@ -18,6 +18,7 @@ extern crate serde_derive;
 extern crate validator_derive;
 
 pub mod cli;
+pub mod client;
 pub mod core;
 pub mod driver;
 pub mod server;

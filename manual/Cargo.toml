@@ -12,6 +12,7 @@ skeptic = "*"
 [dependencies]
 ark_auth = { path = "../ark_auth" }
 chrono = { version = "*", features = ["serde"] }
+futures = "*"
 reqwest = "*"
 serde_json = "*"
 skeptic = "*"

@@ -11,28 +11,28 @@ use validator::Validate;
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-struct ListQuery {
+pub struct ListQuery {
     #[validate(custom = "validate::unsigned")]
-    gt: Option<i64>,
+    pub gt: Option<i64>,
     #[validate(custom = "validate::unsigned")]
-    lt: Option<i64>,
+    pub lt: Option<i64>,
     #[validate(custom = "validate::unsigned")]
-    limit: Option<i64>,
+    pub limit: Option<i64>,
 }
 
 impl validate::FromJsonValue<ListQuery> for ListQuery {}
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ListMetaResponse {
-    gt: Option<i64>,
-    lt: Option<i64>,
-    limit: i64,
+pub struct ListMetaResponse {
+    pub gt: Option<i64>,
+    pub lt: Option<i64>,
+    pub limit: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ListResponse {
-    meta: ListMetaResponse,
-    data: Vec<i64>,
+pub struct ListResponse {
+    pub meta: ListMetaResponse,
+    pub data: Vec<i64>,
 }
 
 fn list_handler(
