@@ -1,7 +1,5 @@
-use crate::{
-    core::{hash_password, Error, Service, User},
-    driver,
-};
+use crate::core::{hash_password, Error, Service, User};
+use crate::driver;
 
 /// List users where ID is less than.
 pub fn list_where_id_lt(

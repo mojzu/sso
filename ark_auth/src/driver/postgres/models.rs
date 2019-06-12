@@ -1,7 +1,5 @@
-use crate::{
-    core,
-    driver::postgres::schema::{auth_csrf, auth_key, auth_service, auth_user},
-};
+use crate::core;
+use crate::driver::postgres::schema::{auth_csrf, auth_key, auth_service, auth_user};
 use chrono::{DateTime, Utc};
 
 #[derive(Debug, Identifiable, Queryable)]
