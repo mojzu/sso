@@ -32,7 +32,7 @@ The following user authentication methods are supported.
 
 The following diagram illustrates how services and Ark Auth integrate to authenticate user requests.
 
-![User request verification](./files/diagram.svg)
+![User request verification](../assets/diagram.svg)
 
 1. User with token or key acquired by authentication method sends HTTP request to service.
 2. Service sends HTTP request to Ark Auth with its own service key, and the users token or key.

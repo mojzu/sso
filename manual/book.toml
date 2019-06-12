@@ -2,7 +2,7 @@
 title = "Ark Auth Manual"
 authors = ["Sam Ward"]
 multilingual = false
-src = "src"
+src = "md"
 
 [build]
 build-dir = "../docs"
