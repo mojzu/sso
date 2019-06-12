@@ -42,7 +42,7 @@ pub fn send_reset_password(
         .subject(subject)
         .text(text)
         .build()
-        .map_err(|err| Error::Smtp(SmtpError::Failure(err)))?;
+        .map_err(|err| Error::Smtp(SmtpError::LettreEmail(err)))?;
 
     let mut tls_builder = TlsConnector::builder();
     tls_builder.min_protocol_version(Some(Protocol::Tlsv10));

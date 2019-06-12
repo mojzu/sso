@@ -7,6 +7,7 @@
 - Validate service URLs before save using URL parse, improved URL error handling.
 - Fix inconsistent core error display strings.
 - Fix duplicate user email address returned internal server error code.
+- Fix Lettre email error type handling.
 
 ---
 

@@ -19,7 +19,6 @@ use serde::Serialize;
 // <https://prometheus.io/docs/instrumenting/exposition_formats/>
 // TODO(feature): Webauthn support.
 // <https://webauthn.guide/>
-// TODO(feature): Constant time to respond depending on route, rolling average?
 
 /// Pwned passwords errors.
 #[derive(Debug, Fail)]
@@ -47,12 +46,12 @@ pub enum SmtpError {
     /// Integration disabled.
     #[fail(display = "SmtpError::Disabled")]
     Disabled,
-    /// Failure error.
-    #[fail(display = "SmtpError::Failure {}", _0)]
-    Failure(failure::Error),
     /// Native TLS error.
     #[fail(display = "SmtpError::NativeTls {}", _0)]
     NativeTls(native_tls::Error),
+    /// Lettre email error.
+    #[fail(display = "SmtpError::LettreEmail {}", _0)]
+    LettreEmail(lettre_email::error::Error),
     /// Lettre error.
     #[fail(display = "SmtpError::Lettre {}", _0)]
     Lettre(lettre::smtp::error::Error),
