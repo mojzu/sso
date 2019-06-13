@@ -31,11 +31,11 @@ pub struct Client {
 }
 
 impl ClientOptions {
-    pub fn new(url: &str, user_agent: String, authorisation: String) -> Self {
+    pub fn new(url: &str, user_agent: &str, authorisation: &str) -> Self {
         ClientOptions {
             url: Url::parse(url).unwrap(),
-            user_agent,
-            authorisation,
+            user_agent: user_agent.to_owned(),
+            authorisation: authorisation.to_owned(),
         }
     }
 }
@@ -46,8 +46,8 @@ impl Client {
         Client { options, client }
     }
 
-    pub fn set_authorisation(mut self, authorisation: String) -> Self {
-        self.options.authorisation = authorisation;
+    pub fn set_authorisation(mut self, authorisation: &str) -> Self {
+        self.options.authorisation = authorisation.to_owned();
         self
     }
 

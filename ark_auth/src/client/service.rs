@@ -1,5 +1,7 @@
 use crate::client::{Client, ClientError};
-use crate::server;
+use crate::server::route::service::{
+    CreateBody, CreateResponse, ListQuery, ListResponse, ReadResponse,
+};
 use actix_web::http::StatusCode;
 use futures::{future, Future};
 
@@ -9,8 +11,8 @@ impl Client {
         gt: Option<i64>,
         lt: Option<i64>,
         limit: Option<i64>,
-    ) -> impl Future<Item = server::route::service::ListResponse, Error = ClientError> {
-        let query = server::route::service::ListQuery { gt, lt, limit };
+    ) -> impl Future<Item = ListResponse, Error = ClientError> {
+        let query = ListQuery { gt, lt, limit };
 
         self.get_query("/v1/service", query)
             .send()
@@ -20,17 +22,20 @@ impl Client {
                 _ => future::err(ClientError::Unwrap),
             })
             .and_then(|mut res| {
-                res.json::<server::route::service::ListResponse>()
+                res.json::<ListResponse>()
                     .map_err(|_err| ClientError::Unwrap)
             })
     }
 
     pub fn service_create(
         &self,
-        name: String,
-        url: String,
-    ) -> impl Future<Item = server::route::service::CreateResponse, Error = ClientError> {
-        let body = server::route::service::CreateBody { name, url };
+        name: &str,
+        url: &str,
+    ) -> impl Future<Item = CreateResponse, Error = ClientError> {
+        let body = CreateBody {
+            name: name.to_owned(),
+            url: url.to_owned(),
+        };
 
         self.post("/v1/service")
             .send_json(&body)
@@ -40,15 +45,12 @@ impl Client {
                 _ => future::err(ClientError::Unwrap),
             })
             .and_then(|mut res| {
-                res.json::<server::route::service::CreateResponse>()
+                res.json::<CreateResponse>()
                     .map_err(|_err| ClientError::Unwrap)
             })
     }
 
-    pub fn service_read(
-        &self,
-        id: i64,
-    ) -> impl Future<Item = server::route::service::ReadResponse, Error = ClientError> {
+    pub fn service_read(&self, id: i64) -> impl Future<Item = ReadResponse, Error = ClientError> {
         let path = format!("/v1/service/{}", id);
 
         self.get(&path)
@@ -59,7 +61,7 @@ impl Client {
                 _ => future::err(ClientError::Unwrap),
             })
             .and_then(|mut res| {
-                res.json::<server::route::service::ReadResponse>()
+                res.json::<ReadResponse>()
                     .map_err(|_err| ClientError::Unwrap)
             })
     }

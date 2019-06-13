@@ -1,21 +1,21 @@
 use crate::client::{Client, ClientError};
-use crate::server;
+use crate::server::route::user::{CreateBody, CreateResponse};
 use actix_web::http::StatusCode;
 use futures::{future, Future};
 
 impl Client {
     pub fn user_create(
         &self,
-        name: String,
-        email: String,
+        name: &str,
+        email: &str,
         active: bool,
-        password: Option<String>,
-    ) -> impl Future<Item = server::route::user::CreateResponse, Error = ClientError> {
-        let body = server::route::user::CreateBody {
-            name,
-            email,
+        password: Option<&str>,
+    ) -> impl Future<Item = CreateResponse, Error = ClientError> {
+        let body = CreateBody {
+            name: name.to_owned(),
+            email: email.to_owned(),
             active,
-            password,
+            password: password.map(String::from),
         };
 
         self.post("/v1/user")
@@ -26,7 +26,7 @@ impl Client {
                 _ => future::err(ClientError::Unwrap),
             })
             .and_then(|mut res| {
-                res.json::<server::route::user::CreateResponse>()
+                res.json::<CreateResponse>()
                     .map_err(|_err| ClientError::Unwrap)
             })
     }
