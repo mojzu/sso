@@ -117,7 +117,7 @@ let mut response = client
     .header("authorization", service_key.value.clone())
     .send()
     .unwrap();
-let body = response.json::<auth::oauth2::UrlResponse>().unwrap();
+let body = response.json::<auth::provider::Oauth2UrlResponse>().unwrap();
 let redirect_url = body.url;
 let status = response.status();
 let content_type = header_get(&response, "content-type");
