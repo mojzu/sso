@@ -1,39 +1,16 @@
-use ark_auth::client::{Client, ClientOptions};
+mod lib2;
+
 use ark_auth::core::{Key, Service, User};
 use ark_auth::server::route::{auth, key, user};
-use futures::Future;
+pub use lib2::*;
 
 pub fn server_url(uri: &str) -> String {
     let test_url = std::env::var("TEST_URL").unwrap();
     format!("{}{}", test_url, uri)
 }
 
-pub fn server_url2() -> String {
-    std::env::var("TEST_URL").unwrap()
-}
-
 pub fn root_key() -> String {
     std::env::var("TEST_KEY").unwrap()
-}
-
-pub fn service_key_create2() -> (Service, Key) {
-    let url = server_url2();
-    let options = ClientOptions::new(&url, "test".to_owned(), root_key());
-    let client = Client::new(options);
-
-    let create = client
-        .service_create("test".to_owned(), "http://localhost".to_owned())
-        .wait()
-        .unwrap();
-    let service = create.data;
-
-    let create = client
-        .key_create("test".to_owned(), Some(service.id), None)
-        .wait()
-        .unwrap();
-    let key = create.data;
-
-    (service, key)
 }
 
 pub fn service_key_create(client: &reqwest::Client) -> (Service, Key) {

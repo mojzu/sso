@@ -10,6 +10,7 @@ build = "build.rs"
 skeptic = "*"
 
 [dependencies]
+actix-rt = "*"
 ark_auth = { path = "../ark_auth" }
 chrono = { version = "*", features = ["serde"] }
 futures = "*"

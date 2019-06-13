@@ -39,76 +39,23 @@ $ curl --header "Content-Type: application/json" \
 
 ## Test
 
-```rust,skt-api-key
-let (service, service_key) = service_key_create(&client);
-let user_email = user_email_create();
+```rust
+let mut client = create_client();
+let (_service, service_key) = create_service_key(&client);
+let user_email = create_user_email();
 
-let url = server_url("/v1/user");
-let request = user::CreateBody {
-    name: "User Name".to_owned(),
-    email: user_email.clone(),
-    active: true,
-    password: None,
-};
-let mut response = client
-    .post(&url)
-    .header("content-type", "application/json")
-    .header("authorization", service_key.value.clone())
-    .json(&request)
-    .send()
-    .unwrap();
-let body = response.json::<user::CreateResponse>().unwrap();
-let user = body.data;
-let status = response.status();
-let content_type = header_get(&response, "content-type");
-assert_eq!(status, 200);
-assert_eq!(content_type, "application/json");
-assert!(user.id > 0);
-assert_eq!(user.name, "User Name");
-assert_eq!(user.email, user_email);
-assert!(user.password_hash.is_none());
-assert!(user.password_revision.is_none());
+client = client.set_authorisation(&service_key.value);
+let user = create_user(&client, "User Name", &user_email, true, None);
+let user_key = create_user_key(&client, "Key Name", user.id);
 
-let url = server_url("/v1/key");
-let request = key::CreateBody {
-    name: "Key Name".to_owned(),
-    service_id: None,
-    user_id: Some(user.id),
-};
-let mut response = client
-    .post(&url)
-    .header("content-type", "application/json")
-    .header("authorization", service_key.value.clone())
-    .json(&request)
-    .send()
-    .unwrap();
-let body = response.json::<key::CreateResponse>().unwrap();
-let user_key = body.data;
-let status = response.status();
-let content_type = header_get(&response, "content-type");
-assert_eq!(status, 200);
-assert_eq!(content_type, "application/json");
-assert_eq!(user_key.name, "Key Name");
-assert_eq!(user_key.service_id.unwrap(), service.id);
-assert_eq!(user_key.user_id.unwrap(), user.id);
+verify_user_key(&client, user.id, &user_key.value);
+```
 
-let url = server_url("/v1/auth/key/verify");
-let request = auth::KeyBody {
-    key: user_key.value.clone(),
-};
-let mut response = client
-    .post(&url)
-    .header("content-type", "application/json")
-    .header("authorization", service_key.value.clone())
-    .json(&request)
-    .send()
-    .unwrap();
-let body = response.json::<auth::KeyResponse>().unwrap();
-let user_key_verify = body.data;
-let status = response.status();
-let content_type = header_get(&response, "content-type");
-assert_eq!(status, 200);
-assert_eq!(content_type, "application/json");
-assert_eq!(user_key_verify.user_id, user.id);
-assert_eq!(user_key_verify.key, user_key.value);
+```rust,skeptic-template
+use manual::*;
+fn main() {{
+    actix_rt::System::run(|| {{
+        {}
+    }}).unwrap();
+}}
 ```
