@@ -9,17 +9,17 @@ use validator::Validate;
 // TODO(feature): Support more OAuth2 providers.
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
-pub struct CallbackQuery {
+pub struct Oauth2CallbackQuery {
     #[validate(custom = "validate::token")]
     code: String,
     #[validate(custom = "validate::token")]
     state: String,
 }
 
-impl validate::FromJsonValue<CallbackQuery> for CallbackQuery {}
+impl validate::FromJsonValue<Oauth2CallbackQuery> for Oauth2CallbackQuery {}
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct UrlResponse {
+pub struct Oauth2UrlResponse {
     pub url: String,
 }
 
@@ -33,17 +33,9 @@ pub fn oauth2_redirect(service: core::Service, token: core::UserToken) -> HttpRe
         .finish()
 }
 
-/// Version 1 API authentication oauth2 scope.
+/// Version 1 API authentication provider scope.
 pub fn api_v1_scope() -> actix_web::Scope {
-    web::scope("/oauth2")
-        .service(
-            web::resource("/github")
-                .route(web::post().to_async(github::request_handler))
-                .route(web::get().to_async(github::callback_handler)),
-        )
-        .service(
-            web::resource("/microsoft")
-                .route(web::post().to_async(microsoft::request_handler))
-                .route(web::get().to_async(microsoft::callback_handler)),
-        )
+    web::scope("/provider")
+        .service(github::api_v1_scope())
+        .service(microsoft::api_v1_scope())
 }

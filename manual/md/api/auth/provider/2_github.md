@@ -1,4 +1,4 @@
-# GitHub Request [POST /v1/auth/oauth2/github]
+# GitHub Request [POST /v1/auth/provider/github/oauth2]
 
 Request a authentication redirect URL.
 
@@ -16,6 +16,6 @@ Request a authentication redirect URL.
 
 - Authorisation header is invalid.
 
-# GitHub Callback [GET /v1/auth/oauth2/github]
+# GitHub Callback [GET /v1/auth/provider/github/oauth2]
 
 Used by GitHub OAuth2 provider.

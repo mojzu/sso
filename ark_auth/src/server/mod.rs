@@ -148,19 +148,25 @@ impl From<actix_web::error::BlockingError<Error>> for Error {
     }
 }
 
-/// OAuth2 provider configuration.
+/// Provider OAuth2 configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigurationOauth2Provider {
+pub struct ConfigurationProviderOauth2 {
     client_id: String,
     client_secret: String,
     redirect_url: String,
 }
 
-/// OAuth2 configuration.
+/// Provider configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigurationOauth2 {
-    github: Option<ConfigurationOauth2Provider>,
-    microsoft: Option<ConfigurationOauth2Provider>,
+pub struct ConfigurationProvider {
+    oauth2: Option<ConfigurationProviderOauth2>,
+}
+
+// Provider group configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigurationProviderGroup {
+    github: ConfigurationProvider,
+    microsoft: ConfigurationProvider,
 }
 
 /// SMTP configuration.
@@ -177,10 +183,10 @@ pub struct ConfigurationSmtp {
 pub struct Configuration {
     bind: String,
     user_agent: String,
-    token_exp: i64,
+    token_expiration_time: i64,
     password_pwned_enabled: bool,
     smtp: Option<ConfigurationSmtp>,
-    oauth2: ConfigurationOauth2,
+    provider: ConfigurationProviderGroup,
 }
 
 impl Configuration {
@@ -189,19 +195,19 @@ impl Configuration {
         Configuration {
             bind,
             user_agent: Configuration::default_user_agent(),
-            token_exp: 3600,
+            token_expiration_time: 3600,
             password_pwned_enabled: false,
             smtp: None,
-            oauth2: ConfigurationOauth2 {
-                github: None,
-                microsoft: None,
+            provider: ConfigurationProviderGroup {
+                github: ConfigurationProvider { oauth2: None },
+                microsoft: ConfigurationProvider { oauth2: None },
             },
         }
     }
 
     /// Set token expiry time in seconds (defaults to 1 hour).
-    pub fn set_token_exp(mut self, value: i64) -> Self {
-        self.token_exp = value;
+    pub fn set_token_expiration_time(mut self, value: i64) -> Self {
+        self.token_expiration_time = value;
         self
     }
 
@@ -222,14 +228,14 @@ impl Configuration {
         self
     }
 
-    /// Set GitHub OAuth2 provider.
-    pub fn set_oauth2_github(
+    /// Set provider GitHub OAuth2.
+    pub fn set_provider_github_oauth2(
         mut self,
         client_id: String,
         client_secret: String,
         redirect_url: String,
     ) -> Self {
-        self.oauth2.github = Some(ConfigurationOauth2Provider {
+        self.provider.github.oauth2 = Some(ConfigurationProviderOauth2 {
             client_id,
             client_secret,
             redirect_url,
@@ -237,14 +243,14 @@ impl Configuration {
         self
     }
 
-    /// Set Microsoft OAuth2 provider.
-    pub fn set_oauth2_microsoft(
+    /// Set provider Microsoft OAuth2.
+    pub fn set_provider_microsoft_oauth2(
         mut self,
         client_id: String,
         client_secret: String,
         redirect_url: String,
     ) -> Self {
-        self.oauth2.microsoft = Some(ConfigurationOauth2Provider {
+        self.provider.microsoft.oauth2 = Some(ConfigurationProviderOauth2 {
             client_id,
             client_secret,
             redirect_url,
@@ -263,8 +269,8 @@ impl Configuration {
     }
 
     /// Get token expiry.
-    pub fn token_exp(&self) -> i64 {
-        self.token_exp
+    pub fn token_expiration_time(&self) -> i64 {
+        self.token_expiration_time
     }
 
     /// Get password pwned enabled.
@@ -277,14 +283,14 @@ impl Configuration {
         self.smtp.as_ref()
     }
 
-    /// Configured GitHub OAuth2 provider.
-    pub fn oauth2_github(&self) -> Option<&ConfigurationOauth2Provider> {
-        self.oauth2.github.as_ref()
+    /// Configured provider GitHub OAuth2.
+    pub fn provider_github_oauth2(&self) -> Option<&ConfigurationProviderOauth2> {
+        self.provider.github.oauth2.as_ref()
     }
 
-    /// Configured Microsoft OAuth2 provider.
-    pub fn oauth2_microsoft(&self) -> Option<&ConfigurationOauth2Provider> {
-        self.oauth2.microsoft.as_ref()
+    /// Configured provider Microsoft OAuth2.
+    pub fn provider_microsoft_oauth2(&self) -> Option<&ConfigurationProviderOauth2> {
+        self.provider.microsoft.oauth2.as_ref()
     }
 
     /// Default user agent constructed from crate name and version.

@@ -56,7 +56,7 @@ fn refresh_inner(
                 data.driver(),
                 &service,
                 &body.token,
-                data.configuration().token_exp(),
+                data.configuration().token_expiration_time(),
             )
         })
         .map_err(Into::into)

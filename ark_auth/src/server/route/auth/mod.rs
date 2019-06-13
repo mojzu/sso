@@ -1,5 +1,5 @@
 pub mod key;
-pub mod oauth2;
+pub mod provider;
 pub mod reset;
 pub mod token;
 
@@ -185,7 +185,7 @@ fn login_inner(
                 &service,
                 &body.email,
                 &body.password,
-                data.configuration().token_exp(),
+                data.configuration().token_expiration_time(),
             )
         })
         .map_err(Into::into)
@@ -199,7 +199,7 @@ pub fn api_v1_scope() -> actix_web::Scope {
                 .data(route_json_config())
                 .route(web::post().to_async(login_handler)),
         )
-        .service(oauth2::api_v1_scope())
+        .service(provider::api_v1_scope())
         .service(key::api_v1_scope())
         .service(reset::api_v1_scope())
         .service(token::api_v1_scope())

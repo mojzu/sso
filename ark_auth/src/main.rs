@@ -174,7 +174,7 @@ fn configuration_from_environment() -> Result<Configuration, Error> {
     let gh_client_secret = std::env::var("GITHUB_CLIENT_SECRET").map_err(Error::StdEnvVar);
     let gh_redirect_url = std::env::var("GITHUB_REDIRECT_URL").map_err(Error::StdEnvVar);
     if gh_client_id.is_ok() || gh_client_secret.is_ok() || gh_redirect_url.is_ok() {
-        server_configuration = server_configuration.set_oauth2_github(
+        server_configuration = server_configuration.set_provider_github_oauth2(
             gh_client_id?,
             gh_client_secret?,
             gh_redirect_url?,
@@ -185,7 +185,7 @@ fn configuration_from_environment() -> Result<Configuration, Error> {
     let ms_client_secret = std::env::var("MICROSOFT_CLIENT_SECRET").map_err(Error::StdEnvVar);
     let ms_redirect_url = std::env::var("MICROSOFT_REDIRECT_URL").map_err(Error::StdEnvVar);
     if ms_client_id.is_ok() || ms_client_secret.is_ok() || ms_redirect_url.is_ok() {
-        server_configuration = server_configuration.set_oauth2_microsoft(
+        server_configuration = server_configuration.set_provider_microsoft_oauth2(
             ms_client_id?,
             ms_client_secret?,
             ms_redirect_url?,

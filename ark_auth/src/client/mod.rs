@@ -45,7 +45,12 @@ impl Client {
         Client { options, client }
     }
 
-    pub fn build_client(options: &ClientOptions) -> actix_web::client::Client {
+    pub fn set_authorisation(mut self, authorisation: String) -> Self {
+        self.options.authorisation = authorisation;
+        self
+    }
+
+    fn build_client(options: &ClientOptions) -> actix_web::client::Client {
         actix_web::client::Client::build()
             .header(header::CONTENT_TYPE, header::ContentType::json())
             .header(header::USER_AGENT, options.user_agent.to_owned())

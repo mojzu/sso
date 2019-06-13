@@ -46,11 +46,11 @@ $ export SENTRY_URL="..."
 # GitHub OAuth2 support, optional.
 $ export GITHUB_CLIENT_ID="..."
 $ export GITHUB_CLIENT_SECRET="..."
-$ export GITHUB_REDIRECT_URL="http://localhost:9000/v1/auth/oauth2/github"
+$ export GITHUB_REDIRECT_URL="http://localhost:9000/v1/auth/provider/github/oauth2"
 # Microsoft OAuth2 support, optional.
 $ export MICROSOFT_CLIENT_ID="..."
 $ export MICROSOFT_CLIENT_SECRET="..."
-$ export MICROSOFT_REDIRECT_URL="http://localhost:9000/v1/auth/oauth2/microsoft"
+$ export MICROSOFT_REDIRECT_URL="http://localhost:9000/v1/auth/provider/microsoft/oauth2"
 ```
 
 ### Ubuntu

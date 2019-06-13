@@ -1,4 +1,4 @@
-# Microsoft Request [POST /v1/auth/oauth2/microsoft]
+# Microsoft Request [POST /v1/auth/provider/microsoft/oauth2]
 
 Request a authentication redirect URL.
 
@@ -16,6 +16,6 @@ Request a authentication redirect URL.
 
 - Authorisation header is invalid.
 
-# Microsoft Callback [GET /v1/auth/oauth2/microsoft]
+# Microsoft Callback [GET /v1/auth/provider/microsoft/oauth2]
 
 Used by Microsoft OAuth2 provider.

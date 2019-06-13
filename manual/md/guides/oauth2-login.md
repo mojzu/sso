@@ -34,12 +34,12 @@ Service requests a redirect URL for OAuth2 provider, supported providers are `gi
 ```shell
 $ curl --header "Authorization: $service_key" \
   --request POST \
-  $server_url/v1/auth/oauth2/$oauth2_provider
+  $server_url/v1/auth/provider/$oauth2_provider/oauth2
 ```
 
 Service redirects user to returned URL, OAuth2 provider authentication occurs.
 
-If successful, OAuth2 provider redirects user to `$server_url/v1/auth/oauth2/$oauth2_provider` with required query parameters.
+If successful, OAuth2 provider redirects user to `$server_url/v1/auth/provider/$oauth2_provider/oauth2` with required query parameters.
 
 Query parameters are exchanged for API access token, authenticated email address is requested from OAuth2 provider APIs.
 
@@ -110,7 +110,7 @@ assert_eq!(user_key.name, "Key Name");
 assert_eq!(user_key.service_id.unwrap(), service.id);
 assert_eq!(user_key.user_id.unwrap(), user.id);
 
-let url = server_url("/v1/auth/oauth2/microsoft");
+let url = server_url("/v1/auth/provider/microsoft/oauth2");
 let mut response = client
     .post(&url)
     .header("content-type", "application/json")

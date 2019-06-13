@@ -52,7 +52,7 @@ fn password_inner(data: &Data, id: Option<String>, body: &PasswordBody) -> Resul
                 data.driver(),
                 &service,
                 &body.email,
-                data.configuration().token_exp(),
+                data.configuration().token_expiration_time(),
             )?;
             Ok((service, body, user, token))
         })

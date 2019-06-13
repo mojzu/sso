@@ -1,15 +1,13 @@
-use crate::{
-    core,
-    server::{
-        route::auth::oauth2::{oauth2_redirect, CallbackQuery, UrlResponse},
-        route_response_json, ConfigurationOauth2Provider, Data, Error, FromJsonValue, Oauth2Error,
-    },
+use crate::core;
+use crate::server::route::auth::provider::{
+    oauth2_redirect, Oauth2CallbackQuery, Oauth2UrlResponse,
 };
-use actix_web::{
-    http::{header, StatusCode},
-    middleware::identity::Identity,
-    web, HttpResponse, ResponseError,
+use crate::server::{
+    route_response_json, ConfigurationProviderOauth2, Data, Error, FromJsonValue, Oauth2Error,
 };
+use actix_web::http::{header, StatusCode};
+use actix_web::middleware::identity::Identity;
+use actix_web::{web, HttpResponse, ResponseError};
 use futures::{future, Future};
 use oauth2::prelude::*;
 use oauth2::{
@@ -23,7 +21,7 @@ struct GithubUser {
     email: String,
 }
 
-pub fn request_handler(
+fn oauth2_request_handler(
     data: web::Data<Data>,
     id: Identity,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
@@ -34,18 +32,18 @@ pub fn request_handler(
         .then(route_response_json)
 }
 
-fn request_inner(data: &Data, id: Option<String>) -> Result<UrlResponse, Error> {
+fn request_inner(data: &Data, id: Option<String>) -> Result<Oauth2UrlResponse, Error> {
     core::key::authenticate_service(data.driver(), id)
         .map_err(Into::into)
         .and_then(|service| github_authorise(&data, &service).map_err(Into::into))
-        .map(|url| UrlResponse { url })
+        .map(|url| Oauth2UrlResponse { url })
 }
 
-pub fn callback_handler(
+fn oauth2_callback_handler(
     data: web::Data<Data>,
     query: web::Query<serde_json::Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
-    CallbackQuery::from_value(query.into_inner())
+    Oauth2CallbackQuery::from_value(query.into_inner())
         .and_then(|query| {
             web::block(move || {
                 let (service_id, access_token) =
@@ -66,7 +64,7 @@ pub fn callback_handler(
                     data.driver(),
                     service_id,
                     &email,
-                    data.configuration().token_exp(),
+                    data.configuration().token_expiration_time(),
                 )
                 .map_err(Into::into)
             })
@@ -80,7 +78,7 @@ pub fn callback_handler(
 
 fn github_authorise(data: &Data, service: &core::Service) -> Result<String, Error> {
     // Generate the authorization URL to which we'll redirect the user.
-    let client = github_client(data.configuration().oauth2_github())?;
+    let client = github_client(data.configuration().provider_github_oauth2())?;
     let (authorize_url, state) = client.authorize_url(CsrfToken::new_random);
 
     // Save the state and code verifier secrets as a CSRF key, value.
@@ -96,7 +94,7 @@ fn github_callback(data: &Data, code: &str, state: &str) -> Result<(i64, String)
     let csrf = csrf.ok_or_else(|| Error::Oauth2(Oauth2Error::Csrf))?;
 
     // Exchange the code with a token.
-    let client = github_client(data.configuration().oauth2_github())?;
+    let client = github_client(data.configuration().provider_github_oauth2())?;
     let code = AuthorizationCode::new(code.to_owned());
     let token = client
         .exchange_code(code)
@@ -133,7 +131,7 @@ fn github_api_user_email(
         .map(|res| res.email)
 }
 
-fn github_client(provider: Option<&ConfigurationOauth2Provider>) -> Result<BasicClient, Error> {
+fn github_client(provider: Option<&ConfigurationProviderOauth2>) -> Result<BasicClient, Error> {
     let provider = provider.ok_or(Error::Oauth2(Oauth2Error::Disabled))?;
 
     let github_client_id = ClientId::new(provider.client_id.to_owned());
@@ -154,4 +152,13 @@ fn github_client(provider: Option<&ConfigurationOauth2Provider>) -> Result<Basic
     )
     .add_scope(Scope::new("user:email".to_string()))
     .set_redirect_url(RedirectUrl::new(redirect_url)))
+}
+
+/// Version 1 API authentication oauth2 scope.
+pub fn api_v1_scope() -> actix_web::Scope {
+    web::scope("/github").service(
+        web::resource("/oauth2")
+            .route(web::post().to_async(oauth2_request_handler))
+            .route(web::get().to_async(oauth2_callback_handler)),
+    )
 }
