@@ -74,6 +74,9 @@ request_password_reset(&client, &user_email);
 // TODO(test): Test reset password confirm, how to get reset password token.
 ```
 
+TODO(test): Fix these tests run forever.
+<https://github.com/actix/actix-web/issues/485>
+
 ```rust,skeptic-template
 use manual::*;
 fn main() {{
