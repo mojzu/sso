@@ -114,8 +114,8 @@ fn create_inner(
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ReadResponse {
-    data: core::Service,
+pub struct ReadResponse {
+    pub data: core::Service,
 }
 
 fn read_handler(

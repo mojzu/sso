@@ -1,3 +1,4 @@
+mod auth;
 mod key;
 mod service;
 mod user;
