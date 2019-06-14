@@ -3,7 +3,8 @@ mod key;
 mod service;
 mod user;
 
-use actix_web::http::header;
+use actix_web::http::{header, StatusCode};
+use futures::{future, Future};
 use serde::ser::Serialize;
 use url::Url;
 
@@ -49,6 +50,16 @@ impl Client {
     pub fn set_authorisation(mut self, authorisation: &str) -> Self {
         self.options.authorisation = authorisation.to_owned();
         self
+    }
+
+    pub fn ping(&self) -> impl Future<Item = (), Error = ClientError> {
+        self.get("/v1/ping")
+            .send()
+            .map_err(|_err| ClientError::Unwrap)
+            .and_then(|res| match res.status() {
+                StatusCode::OK => future::ok(()),
+                _ => future::err(ClientError::Unwrap),
+            })
     }
 
     fn build_client(options: &ClientOptions) -> actix_web::client::Client {
