@@ -1,4 +1,3 @@
-use actix_web::test::block_on;
 use ark_auth::client::{Client, ClientOptions};
 use ark_auth::core::{Key, Service, User, UserKey};
 use futures::Future;
@@ -9,6 +8,13 @@ pub fn env_test_url() -> String {
 
 pub fn env_test_key() -> String {
     std::env::var("TEST_KEY").unwrap()
+}
+
+pub fn block_on_lazy<F, I, E>(fut: F) -> Result<I, E>
+where
+    F: Future<Item = I, Error = E>,
+{
+    actix_web::test::block_on(futures::future::lazy(|| fut))
 }
 
 pub fn create_user_email() -> String {
@@ -24,10 +30,10 @@ pub fn create_client() -> Client {
 }
 
 pub fn create_service_key(client: &Client) -> (Service, Key) {
-    let create = block_on(client.service_create("test", "http://localhost")).unwrap();
+    let create = block_on_lazy(client.service_create("test", "http://localhost")).unwrap();
     let service = create.data;
 
-    let create = block_on(client.key_create("test", Some(service.id), None)).unwrap();
+    let create = block_on_lazy(client.key_create("test", Some(service.id), None)).unwrap();
     let key = create.data;
 
     (service, key)
@@ -40,7 +46,7 @@ pub fn create_user(
     active: bool,
     password: Option<&str>,
 ) -> User {
-    let create = block_on(client.user_create(name, email, active, password)).unwrap();
+    let create = block_on_lazy(client.user_create(name, email, active, password)).unwrap();
     let user = create.data;
     assert!(user.id > 0);
     assert_eq!(user.name, name);
@@ -52,7 +58,7 @@ pub fn create_user(
 }
 
 pub fn create_user_key(client: &Client, name: &str, user_id: i64) -> Key {
-    let create = block_on(client.key_create(name, None, Some(user_id))).unwrap();
+    let create = block_on_lazy(client.key_create(name, None, Some(user_id))).unwrap();
     let key = create.data;
     assert_eq!(key.name, "Key Name");
     assert!(key.service_id.is_none());
@@ -61,7 +67,7 @@ pub fn create_user_key(client: &Client, name: &str, user_id: i64) -> Key {
 }
 
 pub fn verify_user_key(client: &Client, user_id: i64, key: &str) -> UserKey {
-    let verify = block_on(client.auth_key_verify(key)).unwrap();
+    let verify = block_on_lazy(client.auth_key_verify(key)).unwrap();
     let user_key = verify.data;
     assert_eq!(user_key.user_id, user_id);
     assert_eq!(user_key.key, key);
@@ -69,5 +75,5 @@ pub fn verify_user_key(client: &Client, user_id: i64, key: &str) -> UserKey {
 }
 
 pub fn request_password_reset(client: &Client, email: &str) -> () {
-    block_on(client.auth_reset_password(email)).unwrap()
+    block_on_lazy(client.auth_reset_password(email)).unwrap()
 }
