@@ -54,8 +54,6 @@ verify_user_key(&client, user.id, &user_key.value);
 ```rust,skeptic-template
 use manual::*;
 fn main() {{
-    actix_rt::System::run(|| {{
-        {}
-    }}).unwrap();
+    {}
 }}
 ```

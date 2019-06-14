@@ -80,8 +80,6 @@ TODO(test): Fix these tests run forever.
 ```rust,skeptic-template
 use manual::*;
 fn main() {{
-    actix_rt::System::run(|| {{
-        {}
-    }}).unwrap();
+    {}
 }}
 ```
