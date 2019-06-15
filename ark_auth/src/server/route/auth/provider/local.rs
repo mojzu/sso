@@ -6,6 +6,28 @@ use actix_web::{middleware::identity::Identity, web, HttpResponse};
 use futures::{future, Future};
 use validator::Validate;
 
+pub fn route_v1_scope() -> actix_web::Scope {
+    web::scope("/local")
+        .service(
+            web::resource("/login")
+                .data(route_json_config())
+                .route(web::post().to_async(login_handler)),
+        )
+        .service(
+            web::scope("/reset")
+                .service(
+                    web::resource("/password")
+                        .data(route_json_config())
+                        .route(web::post().to_async(reset_password_handler)),
+                )
+                .service(
+                    web::resource("/password/confirm")
+                        .data(route_json_config())
+                        .route(web::post().to_async(reset_password_confirm_handler)),
+                ),
+        )
+}
+
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct LoginBody {
@@ -182,27 +204,4 @@ fn reset_password_confirm_inner(
             core::auth::reset_password_confirm(data.driver(), &service, &body.token, &body.password)
         })
         .map_err(Into::into)
-}
-
-/// Route version 1 authentication local scope.
-pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope("/auth")
-        .service(
-            web::resource("/login")
-                .data(route_json_config())
-                .route(web::post().to_async(login_handler)),
-        )
-        .service(
-            web::scope("/reset")
-                .service(
-                    web::resource("/password")
-                        .data(route_json_config())
-                        .route(web::post().to_async(reset_password_handler)),
-                )
-                .service(
-                    web::resource("/password/confirm")
-                        .data(route_json_config())
-                        .route(web::post().to_async(reset_password_confirm_handler)),
-                ),
-        )
 }

@@ -34,6 +34,7 @@ lettre_email = "*"
 log = { version = "*", features = ["max_level_trace", "release_max_level_info"] }
 native-tls = "*"
 r2d2 = "*"
+reqwest = "*"
 oauth2 = "2.0.0-beta.2"
 sentry = "*"
 sentry-actix = "*"
