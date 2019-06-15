@@ -2,14 +2,12 @@ pub mod route;
 pub mod smtp;
 pub mod validate;
 
-pub use validate::FromJsonValue;
-
 use crate::{core, driver};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::middleware::identity::{IdentityPolicy, IdentityService};
 use actix_web::{middleware, web, App, HttpResponse, HttpServer, ResponseError};
-use futures::{future, Future};
 use serde::Serialize;
+pub use validate::FromJsonValue;
 
 // TODO(feature): Audit logging, x-real-ip, x-forwarded-for headers.
 // TODO(feature): Prometheus metrics.
@@ -371,30 +369,6 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
     }
 }
 
-fn ping_handler() -> actix_web::Result<HttpResponse> {
-    let body = r#"pong"#;
-    Ok(HttpResponse::Ok().json(body))
-}
-
-/// API version 1 service scope.
-pub fn api_v1_scope() -> actix_web::Scope {
-    web::scope("/v1")
-        .service(
-            web::resource("/ping")
-                .data(route_json_config())
-                .route(web::get().to(ping_handler)),
-        )
-        .service(route::auth::api_v1_scope())
-        .service(route::key::api_v1_scope())
-        .service(route::service::api_v1_scope())
-        .service(route::user::api_v1_scope())
-}
-
-/// Service configuration.
-pub fn api_service(configuration: &mut web::ServiceConfig) {
-    configuration.service(api_v1_scope());
-}
-
 /// Start HTTP server.
 pub fn start(configuration: Configuration, driver: Box<driver::Driver>) -> Result<(), Error> {
     let bind = configuration.bind().to_owned();
@@ -408,8 +382,8 @@ pub fn start(configuration: Configuration, driver: Box<driver::Driver>) -> Resul
             // TODO(refactor): Sentry middleware support.
             // Authorisation header identity service.
             .wrap(AuthorisationIdentityPolicy::identity_service())
-            // API service.
-            .configure(api_service)
+            // Route service.
+            .configure(route::route_service)
             // Default route (method not allowed).
             .default_service(web::route().to(HttpResponse::MethodNotAllowed))
     })
@@ -418,29 +392,4 @@ pub fn start(configuration: Configuration, driver: Box<driver::Driver>) -> Resul
 
     server.start();
     Ok(())
-}
-
-/// Route JSON size limit configuration.
-pub fn route_json_config() -> web::JsonConfig {
-    web::JsonConfig::default().limit(1024)
-}
-
-/// Route response empty handler.
-pub fn route_response_empty<T: Serialize>(
-    result: Result<T, Error>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
-    match result {
-        Ok(_res) => future::ok(HttpResponse::Ok().finish()),
-        Err(err) => future::ok(err.error_response()),
-    }
-}
-
-/// Route response handler.
-pub fn route_response_json<T: Serialize>(
-    result: Result<T, Error>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
-    match result {
-        Ok(res) => future::ok(HttpResponse::Ok().json(res)),
-        Err(err) => future::ok(err.error_response()),
-    }
 }

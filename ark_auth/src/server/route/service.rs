@@ -1,13 +1,26 @@
-use crate::{
-    core,
-    server::{
-        route_json_config, route_response_empty, route_response_json, validate, Data, Error,
-        FromJsonValue,
-    },
-};
+use crate::core;
+use crate::server::route::{route_json_config, route_response_empty, route_response_json};
+use crate::server::{validate, Data, Error, FromJsonValue};
 use actix_web::{middleware::identity::Identity, web, HttpResponse};
 use futures::Future;
 use validator::Validate;
+
+pub fn route_v1_scope() -> actix_web::Scope {
+    web::scope("/service")
+        .service(
+            web::resource("")
+                .data(route_json_config())
+                .route(web::get().to_async(list_handler))
+                .route(web::post().to_async(create_handler)),
+        )
+        .service(
+            web::resource("/{service_id}")
+                .data(route_json_config())
+                .route(web::get().to_async(read_handler))
+                .route(web::patch().to_async(update_handler))
+                .route(web::delete().to_async(delete_handler)),
+        )
+}
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
@@ -20,7 +33,7 @@ pub struct ListQuery {
     pub limit: Option<i64>,
 }
 
-impl validate::FromJsonValue<ListQuery> for ListQuery {}
+impl FromJsonValue<ListQuery> for ListQuery {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListMetaResponse {
@@ -81,7 +94,7 @@ pub struct CreateBody {
     pub url: String,
 }
 
-impl validate::FromJsonValue<CreateBody> for CreateBody {}
+impl FromJsonValue<CreateBody> for CreateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateResponse {
@@ -140,16 +153,16 @@ fn read_inner(data: &Data, id: Option<String>, service_id: i64) -> Result<ReadRe
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-struct UpdateBody {
+pub struct UpdateBody {
     #[validate(custom = "validate::name")]
-    name: Option<String>,
+    pub name: Option<String>,
 }
 
-impl validate::FromJsonValue<UpdateBody> for UpdateBody {}
+impl FromJsonValue<UpdateBody> for UpdateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
-struct UpdateResponse {
-    data: core::Service,
+pub struct UpdateResponse {
+    pub data: core::Service,
 }
 
 fn update_handler(
@@ -204,22 +217,4 @@ fn delete_inner(data: &Data, id: Option<String>, service_id: i64) -> Result<usiz
             core::service::delete_by_id(data.driver(), service.as_ref(), service_id)
         })
         .map_err(Into::into)
-}
-
-/// API version 1 service scope.
-pub fn api_v1_scope() -> actix_web::Scope {
-    web::scope("/service")
-        .service(
-            web::resource("")
-                .data(route_json_config())
-                .route(web::get().to_async(list_handler))
-                .route(web::post().to_async(create_handler)),
-        )
-        .service(
-            web::resource("/{service_id}")
-                .data(route_json_config())
-                .route(web::get().to_async(read_handler))
-                .route(web::patch().to_async(update_handler))
-                .route(web::delete().to_async(delete_handler)),
-        )
 }

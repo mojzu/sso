@@ -1,5 +1,5 @@
 use crate::core;
-use crate::server::route::auth::reset::PasswordTemplateBody;
+use crate::server::route::auth::provider::local::ResetPasswordTemplateBody;
 use crate::server::{ConfigurationSmtp, Error, SmtpError};
 use lettre::smtp::authentication::{Credentials, Mechanism};
 use lettre::smtp::ConnectionReuseParameters;
@@ -16,7 +16,7 @@ pub fn send_reset_password(
     service: &core::Service,
     user: &core::User,
     token: &str,
-    template: Option<&PasswordTemplateBody>,
+    template: Option<&ResetPasswordTemplateBody>,
 ) -> Result<(), Error> {
     let smtp = smtp.ok_or(Error::Smtp(SmtpError::Disabled))?;
 

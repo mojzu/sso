@@ -1,12 +1,28 @@
-use crate::{
-    core,
-    server::{
-        route::auth::{TokenBody, TokenResponse},
-        route_json_config, route_response_empty, route_response_json, Data, Error, FromJsonValue,
-    },
-};
+use crate::core;
+use crate::server::route::auth::{TokenBody, TokenResponse};
+use crate::server::route::{route_json_config, route_response_empty, route_response_json};
+use crate::server::{Data, Error, FromJsonValue};
 use actix_web::{middleware::identity::Identity, web, HttpResponse};
 use futures::Future;
+
+pub fn route_v1_scope() -> actix_web::Scope {
+    web::scope("/token")
+        .service(
+            web::resource("/verify")
+                .data(route_json_config())
+                .route(web::post().to_async(verify_handler)),
+        )
+        .service(
+            web::resource("/refresh")
+                .data(route_json_config())
+                .route(web::post().to_async(refresh_handler)),
+        )
+        .service(
+            web::resource("/revoke")
+                .data(route_json_config())
+                .route(web::post().to_async(revoke_handler)),
+        )
+}
 
 fn verify_handler(
     data: web::Data<Data>,
@@ -81,24 +97,4 @@ fn revoke_inner(data: &Data, id: Option<String>, body: &TokenBody) -> Result<usi
     core::key::authenticate_service(data.driver(), id)
         .and_then(|service| core::auth::token_revoke(data.driver(), &service, &body.token))
         .map_err(Into::into)
-}
-
-/// Version 1 API authentication token scope.
-pub fn api_v1_scope() -> actix_web::Scope {
-    web::scope("/token")
-        .service(
-            web::resource("/verify")
-                .data(route_json_config())
-                .route(web::post().to_async(verify_handler)),
-        )
-        .service(
-            web::resource("/refresh")
-                .data(route_json_config())
-                .route(web::post().to_async(refresh_handler)),
-        )
-        .service(
-            web::resource("/revoke")
-                .data(route_json_config())
-                .route(web::post().to_async(revoke_handler)),
-        )
 }

@@ -1,26 +1,39 @@
-use crate::{
-    core,
-    server::{
-        route_json_config, route_response_empty, route_response_json, validate, Data, Error,
-        FromJsonValue,
-    },
-};
+use crate::core;
+use crate::server::route::{route_json_config, route_response_empty, route_response_json};
+use crate::server::{validate, Data, Error, FromJsonValue};
 use actix_web::{middleware::identity::Identity, web, HttpResponse};
 use futures::Future;
 use validator::Validate;
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-struct ListQuery {
-    #[validate(custom = "validate::unsigned")]
-    gt: Option<i64>,
-    #[validate(custom = "validate::unsigned")]
-    lt: Option<i64>,
-    #[validate(custom = "validate::unsigned")]
-    limit: Option<i64>,
+pub fn route_v1_scope() -> actix_web::Scope {
+    web::scope("/key")
+        .service(
+            web::resource("")
+                .data(route_json_config())
+                .route(web::get().to_async(list_handler))
+                .route(web::post().to_async(create_handler)),
+        )
+        .service(
+            web::resource("/{key_id}")
+                .data(route_json_config())
+                .route(web::get().to_async(read_handler))
+                .route(web::patch().to_async(update_handler))
+                .route(web::delete().to_async(delete_handler)),
+        )
 }
 
-impl validate::FromJsonValue<ListQuery> for ListQuery {}
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct ListQuery {
+    #[validate(custom = "validate::unsigned")]
+    pub gt: Option<i64>,
+    #[validate(custom = "validate::unsigned")]
+    pub lt: Option<i64>,
+    #[validate(custom = "validate::unsigned")]
+    pub limit: Option<i64>,
+}
+
+impl FromJsonValue<ListQuery> for ListQuery {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListMetaResponse {
@@ -86,7 +99,7 @@ pub struct CreateBody {
     pub user_id: Option<i64>,
 }
 
-impl validate::FromJsonValue<CreateBody> for CreateBody {}
+impl FromJsonValue<CreateBody> for CreateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateResponse {
@@ -140,8 +153,8 @@ fn create_inner(
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ReadResponse {
-    data: core::Key,
+pub struct ReadResponse {
+    pub data: core::Key,
 }
 
 fn read_handler(
@@ -166,16 +179,16 @@ fn read_inner(data: &Data, id: Option<String>, key_id: i64) -> Result<ReadRespon
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-struct UpdateBody {
+pub struct UpdateBody {
     #[validate(custom = "validate::name")]
-    name: Option<String>,
+    pub name: Option<String>,
 }
 
-impl validate::FromJsonValue<UpdateBody> for UpdateBody {}
+impl FromJsonValue<UpdateBody> for UpdateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
-struct UpdateResponse {
-    data: core::Key,
+pub struct UpdateResponse {
+    pub data: core::Key,
 }
 
 fn update_handler(
@@ -228,22 +241,4 @@ fn delete_inner(data: &Data, id: Option<String>, key_id: i64) -> Result<usize, E
     core::key::authenticate(data.driver(), id)
         .and_then(|service| core::key::delete_by_id(data.driver(), service.as_ref(), key_id))
         .map_err(Into::into)
-}
-
-/// API version 1 key scope.
-pub fn api_v1_scope() -> actix_web::Scope {
-    web::scope("/key")
-        .service(
-            web::resource("")
-                .data(route_json_config())
-                .route(web::get().to_async(list_handler))
-                .route(web::post().to_async(create_handler)),
-        )
-        .service(
-            web::resource("/{key_id}")
-                .data(route_json_config())
-                .route(web::get().to_async(read_handler))
-                .route(web::patch().to_async(update_handler))
-                .route(web::delete().to_async(delete_handler)),
-        )
 }

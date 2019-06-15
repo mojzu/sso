@@ -1,23 +1,49 @@
 pub mod key;
 pub mod provider;
-pub mod reset;
 pub mod token;
 
-use crate::{
-    core,
-    server::{
-        route_json_config, route_response_json, validate, Data, Error, FromJsonValue,
-        PwnedPasswordsError,
-    },
-};
-use actix_web::{
-    http::{header, StatusCode},
-    middleware::identity::Identity,
-    web, HttpResponse,
-};
+use crate::core;
+use crate::server::{validate, Data, Error, FromJsonValue, PwnedPasswordsError};
+use actix_web::http::{header, StatusCode};
+use actix_web::web;
 use futures::{future, Future};
 use sha1::{Digest, Sha1};
 use validator::Validate;
+
+pub fn route_v1_scope() -> actix_web::Scope {
+    web::scope("/auth")
+        .service(provider::route_v1_scope())
+        .service(key::route_v1_scope())
+        .service(token::route_v1_scope())
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct TokenBody {
+    #[validate(custom = "validate::token")]
+    pub token: String,
+}
+
+impl FromJsonValue<TokenBody> for TokenBody {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TokenResponse {
+    pub data: core::UserToken,
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct KeyBody {
+    #[validate(custom = "validate::key")]
+    pub key: String,
+}
+
+impl FromJsonValue<KeyBody> for KeyBody {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct KeyResponse {
+    pub data: core::UserKey,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PasswordMeta {
@@ -127,108 +153,4 @@ fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, 
             PwnedPasswordsError::Disabled,
         )))
     }
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct LoginBody {
-    #[validate(email)]
-    pub email: String,
-    #[validate(custom = "validate::password")]
-    pub password: String,
-}
-
-impl validate::FromJsonValue<LoginBody> for LoginBody {}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct LoginResponse {
-    pub meta: PasswordMeta,
-    pub data: core::UserToken,
-}
-
-fn login_handler(
-    data: web::Data<Data>,
-    id: Identity,
-    body: web::Json<serde_json::Value>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
-    let id = id.identity();
-
-    LoginBody::from_value(body.into_inner())
-        .and_then(|body| {
-            web::block(move || {
-                let user_token = login_inner(data.get_ref(), id, &body)?;
-                Ok((data, body, user_token))
-            })
-            .map_err(Into::into)
-        })
-        .and_then(|(data, body, user_token)| {
-            let password_meta = password_meta(data.get_ref(), Some(&body.password));
-            let user_token = future::ok(user_token);
-            password_meta.join(user_token)
-        })
-        .map(|(meta, user_token)| LoginResponse {
-            meta,
-            data: user_token,
-        })
-        .then(route_response_json)
-}
-
-fn login_inner(
-    data: &Data,
-    id: Option<String>,
-    body: &LoginBody,
-) -> Result<core::UserToken, Error> {
-    core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| {
-            core::auth::login(
-                data.driver(),
-                &service,
-                &body.email,
-                &body.password,
-                data.configuration().token_expiration_time(),
-            )
-        })
-        .map_err(Into::into)
-}
-
-/// Version 1 API authentication scope.
-pub fn api_v1_scope() -> actix_web::Scope {
-    web::scope("/auth")
-        .service(
-            web::resource("/login")
-                .data(route_json_config())
-                .route(web::post().to_async(login_handler)),
-        )
-        .service(provider::api_v1_scope())
-        .service(key::api_v1_scope())
-        .service(reset::api_v1_scope())
-        .service(token::api_v1_scope())
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct TokenBody {
-    #[validate(custom = "validate::token")]
-    pub token: String,
-}
-
-impl validate::FromJsonValue<TokenBody> for TokenBody {}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TokenResponse {
-    pub data: core::UserToken,
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct KeyBody {
-    #[validate(custom = "validate::key")]
-    pub key: String,
-}
-
-impl validate::FromJsonValue<KeyBody> for KeyBody {}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct KeyResponse {
-    pub data: core::UserKey,
 }

@@ -1,12 +1,11 @@
 use crate::client::{Client, ClientError};
-use crate::server::route::auth::reset::PasswordBody;
+use crate::server::route::auth::provider::local::{LoginBody, LoginResponse, ResetPasswordBody};
 use crate::server::route::auth::{KeyBody, KeyResponse};
-use crate::server::route::auth::{LoginBody, LoginResponse};
 use actix_web::http::StatusCode;
 use futures::{future, Future};
 
 impl Client {
-    pub fn auth_login(
+    pub fn auth_local_login(
         &self,
         email: &str,
         password: &str,
@@ -16,7 +15,7 @@ impl Client {
             password: password.to_owned(),
         };
 
-        self.post("/v1/auth/login")
+        self.post("/v1/auth/provider/local/login")
             .send_json(&body)
             .map_err(|_err| ClientError::Unwrap)
             .and_then(|res| match res.status() {
@@ -29,13 +28,16 @@ impl Client {
             })
     }
 
-    pub fn auth_reset_password(&self, email: &str) -> impl Future<Item = (), Error = ClientError> {
-        let body = PasswordBody {
+    pub fn auth_local_reset_password(
+        &self,
+        email: &str,
+    ) -> impl Future<Item = (), Error = ClientError> {
+        let body = ResetPasswordBody {
             email: email.to_owned(),
             template: None,
         };
 
-        self.post("/v1/auth/reset/password")
+        self.post("/v1/auth/provider/local/reset/password")
             .send_json(&body)
             .map_err(|_err| ClientError::Unwrap)
             .and_then(|res| match res.status() {

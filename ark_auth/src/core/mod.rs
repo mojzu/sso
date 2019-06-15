@@ -130,7 +130,7 @@ pub fn check_password(password_hash: Option<&str>, password: &str) -> Result<(),
 //     );
 //     let (status_code, content_length, bytes) = support::app_post(
 //         app,
-//         "/v1/auth/reset/password/confirm",
+//         "/v1/auth/provider/local/reset/password/confirm",
 //         Some(&key2.value),
 //         payload,
 //     );
@@ -145,7 +145,7 @@ pub fn check_password(password_hash: Option<&str>, password: &str) -> Result<(),
 //     );
 //     let (status_code, content_length, bytes) = support::app_post(
 //         app,
-//         "/v1/auth/reset/password/confirm",
+//         "/v1/auth/provider/local/reset/password/confirm",
 //         Some(&key.value),
 //         payload,
 //     );
@@ -162,14 +162,14 @@ pub fn check_password(password_hash: Option<&str>, password: &str) -> Result<(),
 //         &user.email
 //     );
 //     let (status_code, _content_length, _bytes) =
-//         support::app_post(app, "/v1/auth/login", Some(&key.value), payload);
+//         support::app_post(app, "/v1/auth/provider/local/login", Some(&key.value), payload);
 //     assert_eq!(status_code, StatusCode::OK);
 //     // Cannot reuse token.
 //     // 400 BAD REQUEST response.
 //     let payload = format!(r#"{{"token": "{}", "password": "guest"}}"#, &token.token);
 //     let (status_code, content_length, bytes) = support::app_post(
 //         app,
-//         "/v1/auth/reset/password/confirm",
+//         "/v1/auth/provider/local/reset/password/confirm",
 //         Some(&key.value),
 //         payload,
 //     );

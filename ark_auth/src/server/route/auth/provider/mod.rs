@@ -1,10 +1,18 @@
 pub mod github;
+pub mod local;
 pub mod microsoft;
 
 use crate::{core, server::validate};
 use actix_web::{http::header, web, HttpResponse};
 use url::Url;
 use validator::Validate;
+
+pub fn route_v1_scope() -> actix_web::Scope {
+    web::scope("/provider")
+        .service(local::route_v1_scope())
+        .service(github::route_v1_scope())
+        .service(microsoft::route_v1_scope())
+}
 
 // TODO(feature): Support more OAuth2 providers.
 
@@ -31,11 +39,4 @@ pub fn oauth2_redirect(service: core::Service, token: core::UserToken) -> HttpRe
     HttpResponse::Found()
         .header(header::LOCATION, url.as_str())
         .finish()
-}
-
-/// Version 1 API authentication provider scope.
-pub fn api_v1_scope() -> actix_web::Scope {
-    web::scope("/provider")
-        .service(github::api_v1_scope())
-        .service(microsoft::api_v1_scope())
 }

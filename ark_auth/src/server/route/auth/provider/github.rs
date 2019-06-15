@@ -2,9 +2,8 @@ use crate::core;
 use crate::server::route::auth::provider::{
     oauth2_redirect, Oauth2CallbackQuery, Oauth2UrlResponse,
 };
-use crate::server::{
-    route_response_json, ConfigurationProviderOauth2, Data, Error, FromJsonValue, Oauth2Error,
-};
+use crate::server::route::route_response_json;
+use crate::server::{ConfigurationProviderOauth2, Data, Error, FromJsonValue, Oauth2Error};
 use actix_web::http::{header, StatusCode};
 use actix_web::middleware::identity::Identity;
 use actix_web::{web, HttpResponse, ResponseError};
@@ -15,6 +14,14 @@ use oauth2::{
     Scope, TokenResponse, TokenUrl,
 };
 use url::Url;
+
+pub fn route_v1_scope() -> actix_web::Scope {
+    web::scope("/github").service(
+        web::resource("/oauth2")
+            .route(web::post().to_async(oauth2_request_handler))
+            .route(web::get().to_async(oauth2_callback_handler)),
+    )
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct GithubUser {
@@ -152,13 +159,4 @@ fn github_client(provider: Option<&ConfigurationProviderOauth2>) -> Result<Basic
     )
     .add_scope(Scope::new("user:email".to_string()))
     .set_redirect_url(RedirectUrl::new(redirect_url)))
-}
-
-/// Version 1 API authentication oauth2 scope.
-pub fn api_v1_scope() -> actix_web::Scope {
-    web::scope("/github").service(
-        web::resource("/oauth2")
-            .route(web::post().to_async(oauth2_request_handler))
-            .route(web::get().to_async(oauth2_callback_handler)),
-    )
 }

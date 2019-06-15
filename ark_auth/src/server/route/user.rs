@@ -1,39 +1,52 @@
-use crate::{
-    core,
-    server::{
-        route::auth::{password_meta, PasswordMeta},
-        route_json_config, route_response_empty, route_response_json, validate, Data, Error,
-        FromJsonValue,
-    },
-};
+use crate::core;
+use crate::server::route::auth::{password_meta, PasswordMeta};
+use crate::server::route::{route_json_config, route_response_empty, route_response_json};
+use crate::server::{validate, Data, Error, FromJsonValue};
 use actix_web::{middleware::identity::Identity, web, HttpResponse};
 use futures::{future, Future};
 use validator::Validate;
 
+pub fn route_v1_scope() -> actix_web::Scope {
+    web::scope("/user")
+        .service(
+            web::resource("")
+                .data(route_json_config())
+                .route(web::get().to_async(list_handler))
+                .route(web::post().to_async(create_handler)),
+        )
+        .service(
+            web::resource("/{user_id}")
+                .data(route_json_config())
+                .route(web::get().to_async(read_handler))
+                .route(web::patch().to_async(update_handler))
+                .route(web::delete().to_async(delete_handler)),
+        )
+}
+
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-struct ListQuery {
+pub struct ListQuery {
     #[validate(custom = "validate::unsigned")]
-    gt: Option<i64>,
+    pub gt: Option<i64>,
     #[validate(custom = "validate::unsigned")]
-    lt: Option<i64>,
+    pub lt: Option<i64>,
     #[validate(custom = "validate::unsigned")]
-    limit: Option<i64>,
+    pub limit: Option<i64>,
 }
 
-impl validate::FromJsonValue<ListQuery> for ListQuery {}
+impl FromJsonValue<ListQuery> for ListQuery {}
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ListMetaResponse {
-    gt: Option<i64>,
-    lt: Option<i64>,
-    limit: i64,
+pub struct ListMetaResponse {
+    pub gt: Option<i64>,
+    pub lt: Option<i64>,
+    pub limit: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ListResponse {
-    meta: ListMetaResponse,
-    data: Vec<i64>,
+pub struct ListResponse {
+    pub meta: ListMetaResponse,
+    pub data: Vec<i64>,
 }
 
 fn list_handler(
@@ -88,7 +101,7 @@ pub struct CreateBody {
     pub password: Option<String>,
 }
 
-impl validate::FromJsonValue<CreateBody> for CreateBody {}
+impl FromJsonValue<CreateBody> for CreateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateResponse {
@@ -136,8 +149,8 @@ fn create_inner(data: &Data, id: Option<String>, body: &CreateBody) -> Result<co
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ReadResponse {
-    data: core::User,
+pub struct ReadResponse {
+    pub data: core::User,
 }
 
 fn read_handler(
@@ -162,17 +175,17 @@ fn read_inner(data: &Data, id: Option<String>, user_id: i64) -> Result<ReadRespo
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-struct UpdateBody {
+pub struct UpdateBody {
     #[validate(custom = "validate::name")]
-    name: Option<String>,
-    active: Option<bool>,
+    pub name: Option<String>,
+    pub active: Option<bool>,
 }
 
-impl validate::FromJsonValue<UpdateBody> for UpdateBody {}
+impl FromJsonValue<UpdateBody> for UpdateBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
-struct UpdateResponse {
-    data: core::User,
+pub struct UpdateResponse {
+    pub data: core::User,
 }
 
 fn update_handler(
@@ -226,22 +239,4 @@ fn delete_inner(data: &Data, id: Option<String>, user_id: i64) -> Result<usize, 
     core::key::authenticate(data.driver(), id)
         .and_then(|service| core::user::delete_by_id(data.driver(), service.as_ref(), user_id))
         .map_err(Into::into)
-}
-
-/// API version 1 user scope.
-pub fn api_v1_scope() -> actix_web::Scope {
-    web::scope("/user")
-        .service(
-            web::resource("")
-                .data(route_json_config())
-                .route(web::get().to_async(list_handler))
-                .route(web::post().to_async(create_handler)),
-        )
-        .service(
-            web::resource("/{user_id}")
-                .data(route_json_config())
-                .route(web::get().to_async(read_handler))
-                .route(web::patch().to_async(update_handler))
-                .route(web::delete().to_async(delete_handler)),
-        )
 }
