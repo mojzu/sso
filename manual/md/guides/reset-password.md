@@ -34,7 +34,7 @@ $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"email":"$user_email"}' \
-  $server_url/v1/auth/reset/password
+  $server_url/v1/auth/provider/local/reset/password
 ```
 
 Email containing URL is send to user email address, URL in format `$service_url?email=$user_email&reset_password_token=$token`.
@@ -46,7 +46,7 @@ $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"token":"$token","password":"$user_password"}' \
-  $server_url/v1/auth/reset/password/confirm
+  $server_url/v1/auth/provider/local/reset/password/confirm
 ```
 
 User makes login request to service, service makes a login request.
@@ -56,7 +56,7 @@ $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"email":"$user_email","password":"$user_password"}' \
-  $server_url/v1/auth/login
+  $server_url/v1/auth/provider/local/login
 ```
 
 ## Test

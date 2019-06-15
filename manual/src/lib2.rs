@@ -75,5 +75,5 @@ pub fn verify_user_key(client: &Client, user_id: i64, key: &str) -> UserKey {
 }
 
 pub fn request_password_reset(client: &Client, email: &str) -> () {
-    block_on_lazy(client.auth_reset_password(email)).unwrap()
+    block_on_lazy(client.auth_local_reset_password(email)).unwrap()
 }

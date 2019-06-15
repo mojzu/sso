@@ -1,6 +1,6 @@
-# Verify Token [POST /v1/auth/token/verify]
+# Refresh Token [POST /v1/auth/token/refresh]
 
-Verify user token.
+Refresh user token, creates new token with updated expiry time.
 
 ## Request
 
@@ -18,8 +18,8 @@ Verify user token.
 {
   "data": {
     "user_id": 3,
-    "token": "eyJ0e...Dlgu4",
-    "token_expires": 1555957164
+    "token": "eyJ0e...0ZT7k",
+    "token_expires": 1555957470
   }
 }
 ```
@@ -32,7 +32,7 @@ Verify user token.
 
 ### Test
 
-```rust,skt-verify-ok
+```rust,skt-refresh-ok
 let (service, service_key) = service_key_create(&client);
 let user_email = user_email_create();
 
@@ -85,7 +85,7 @@ assert_eq!(user_key.name, "Key Name");
 assert_eq!(user_key.service_id.unwrap(), service.id);
 assert_eq!(user_key.user_id.unwrap(), user.id);
 
-let url = server_url("/v1/auth/login");
+let url = server_url("/v1/auth/provider/local/login");
 let request = auth::LoginBody {
     email: user_email.clone(),
     password: "guest".to_owned(),
@@ -105,8 +105,11 @@ assert_eq!(status, 200);
 assert_eq!(content_type, "application/json");
 assert_eq!(user_token.user_id, user.id);
 
-// Service 2 cannot verify token.
-let url = server_url("/v1/auth/token/verify");
+// Sleep to ensure refreshed tokens have different expiry time.
+std::thread::sleep(std::time::Duration::from_secs(1));
+
+// Service 2 cannot refresh token.
+let url = server_url("/v1/auth/token/refresh");
 let (_service2, service2_key) = service_key_create(&client);
 let request = auth::TokenBody {
     token: user_token.token.clone(),
@@ -123,7 +126,7 @@ let content_length = header_get(&response, "content-length");
 assert_eq!(status, 400);
 assert_eq!(content_length, "0");
 
-// Service verifies token.
+// Service refreshes token.
 let request = auth::TokenBody {
     token: user_token.token.clone(),
 };
@@ -135,14 +138,14 @@ let mut response = client
     .send()
     .unwrap();
 let body = response.json::<auth::TokenResponse>().unwrap();
-let user_token_verify = body.data;
+let refresh_user_token = body.data;
 let status = response.status();
 let content_type = header_get(&response, "content-type");
 assert_eq!(status, 200);
 assert_eq!(content_type, "application/json");
-assert_eq!(user_token_verify.user_id, user_token.user_id);
-assert_eq!(user_token_verify.token, user_token.token);
-assert_eq!(user_token_verify.token_expires, user_token.token_expires);
+assert_eq!(refresh_user_token.user_id, user.id);
+assert_ne!(refresh_user_token.token, user_token.token);
+assert!(refresh_user_token.token_expires > user_token.token_expires);
 ```
 
 ## Response [400, Bad Request]
@@ -153,9 +156,9 @@ assert_eq!(user_token_verify.token_expires, user_token.token_expires);
 
 ### Test
 
-```rust,skt-verify-bad-request
+```rust,skt-refresh-bad-request
 let (_service, service_key) = service_key_create(&client);
-let url = server_url("/v1/auth/token/verify");
+let url = server_url("/v1/auth/token/refresh");
 
 // Invalid body (missing token property).
 let request = json_value(r#"{}"#);
@@ -186,14 +189,14 @@ assert_eq!(status, 400);
 assert_eq!(content_length, "0");
 ```
 
-## Response [403, Forbidden]
+#### Response [403, Forbidden]
 
 - Authorisation header is invalid.
 
 ### Test
 
-```rust,skt-verify-forbidden
-let url = server_url("/v1/auth/token/verify");
+```rust,skt-refresh-forbidden
+let url = server_url("/v1/auth/token/refresh");
 let request = auth::TokenBody {
     token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9".to_owned(),
 };

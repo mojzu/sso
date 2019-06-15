@@ -1,4 +1,4 @@
-# Reset Password [POST /v1/auth/reset/password]
+# Reset Password [POST /v1/auth/provider/local/reset/password]
 
 Reset password request for email address.
 
@@ -70,7 +70,7 @@ assert_eq!(user_key.service_id.unwrap(), service.id);
 assert_eq!(user_key.user_id.unwrap(), user.id);
 
 // Unknown email address.
-let url = server_url("/v1/auth/reset/password");
+let url = server_url("/v1/auth/provider/local/reset/password");
 let request = auth::reset::PasswordBody {
     email: user_email_create(),
     template: None,
@@ -135,7 +135,7 @@ assert_eq!(content_length, "0");
 
 ```rust,skt-password-bad-request
 let (_service, service_key) = service_key_create(&client);
-let url = server_url("/v1/auth/reset/password");
+let url = server_url("/v1/auth/provider/local/reset/password");
 
 // Invalid body (missing key property).
 let request = json_value(r#"{}"#);
@@ -173,7 +173,7 @@ assert_eq!(content_length, "0");
 ### Test
 
 ```rust,skt-password-forbidden
-let url = server_url("/v1/auth/reset/password");
+let url = server_url("/v1/auth/provider/local/reset/password");
 let request = auth::reset::PasswordBody {
     email: user_email_create(),
     template: None,

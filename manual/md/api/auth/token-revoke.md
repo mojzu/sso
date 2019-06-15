@@ -69,7 +69,7 @@ assert_eq!(user_key.name, "Key Name");
 assert_eq!(user_key.service_id.unwrap(), service.id);
 assert_eq!(user_key.user_id.unwrap(), user.id);
 
-let url = server_url("/v1/auth/login");
+let url = server_url("/v1/auth/provider/local/login");
 let request = auth::LoginBody {
     email: user_email.clone(),
     password: "guest".to_owned(),

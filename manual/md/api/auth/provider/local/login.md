@@ -1,4 +1,4 @@
-# Login [POST /v1/auth/login]
+# Login [POST /v1/auth/provider/local/login]
 
 Login with email address and password.
 
@@ -45,7 +45,7 @@ Login with email address and password.
 
 ```rust,skt-login-ok
 let (service, service_key) = service_key_create(&client);
-let url = server_url("/v1/auth/login");
+let url = server_url("/v1/auth/provider/local/login");
 
 // User not created, unknown email address.
 let user_email = user_email_create();
@@ -201,7 +201,7 @@ assert!(user_token.token_expires > 0);
 
 ```rust,skt-login-bad-request
 let (service, service_key) = service_key_create(&client);
-let url = server_url("/v1/auth/login");
+let url = server_url("/v1/auth/provider/local/login");
 
 // Invalid body (missing properties).
 let request = json_value(r#"{}"#);
@@ -287,7 +287,7 @@ auth_login_post_400(&service_key, &user_email, "guest");
 ### Test
 
 ```rust,skt-login-forbidden
-let url = server_url("/v1/auth/login");
+let url = server_url("/v1/auth/provider/local/login");
 let request = auth::LoginBody {
     email: user_email_create(),
     password: "guest".to_owned(),

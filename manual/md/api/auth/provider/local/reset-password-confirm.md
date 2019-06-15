@@ -1,4 +1,4 @@
-# Reset Password Confirm [POST /v1/auth/reset/password/confirm]
+# Reset Password Confirm [POST /v1/auth/provider/local/reset/password/confirm]
 
 Confirm reset password request.
 
@@ -41,7 +41,7 @@ Confirm reset password request.
 
 ```rust,skt-password-confirm-bad-request
 let (_service, service_key) = service_key_create(&client);
-let url = server_url("/v1/auth/reset/password/confirm");
+let url = server_url("/v1/auth/provider/local/reset/password/confirm");
 
 // Invalid body (missing properties).
 let request = json_value(r#"{}"#);
@@ -93,7 +93,7 @@ assert_eq!(content_length, "0");
 ### Test
 
 ```rust,skt-password-confirm-forbidden
-let url = server_url("/v1/auth/reset/password/confirm");
+let url = server_url("/v1/auth/provider/local/reset/password/confirm");
 let request = auth::reset::PasswordConfirmBody {
     token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9".to_owned(),
     password: "guest".to_owned(),

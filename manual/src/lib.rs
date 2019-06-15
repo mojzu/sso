@@ -131,11 +131,11 @@ pub fn key_post_user_200(service: &Service, service_key: &Key, user: &User, name
 
 pub fn auth_login_post_400(service_key: &Key, email: &str, password: &str) -> () {
     let client = reqwest::Client::new();
-    let request = auth::LoginBody {
+    let request = auth::provider::local::LoginBody {
         email: email.to_owned(),
         password: password.to_owned(),
     };
-    let url = server_url("/v1/auth/login");
+    let url = server_url("/v1/auth/provider/local/login");
     let response = client
         .post(&url)
         .header("content-type", "application/json")

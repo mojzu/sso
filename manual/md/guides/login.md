@@ -34,7 +34,7 @@ $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"email":"$user_email","password":"$user_password"}' \
-  $server_url/v1/auth/login
+  $server_url/v1/auth/provider/local/login
 ```
 
 Service receives token response, token can be verified to authenticate requests.
@@ -102,7 +102,7 @@ assert_eq!(user_key.name, "Key Name");
 assert_eq!(user_key.service_id.unwrap(), service.id);
 assert_eq!(user_key.user_id.unwrap(), user.id);
 
-let url = server_url("/v1/auth/login");
+let url = server_url("/v1/auth/provider/local/login");
 let request = auth::LoginBody {
     email: user_email.clone(),
     password: "guest".to_owned(),
