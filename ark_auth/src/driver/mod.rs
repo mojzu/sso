@@ -100,6 +100,9 @@ pub trait Driver: Send + Sync {
     /// List users where ID is greater than.
     fn user_list_where_id_gt(&self, gt: i64, limit: i64) -> Result<Vec<i64>, Error>;
 
+    /// List users where email is equal.
+    fn user_list_where_email_eq(&self, email_eq: &str, limit: i64) -> Result<Vec<i64>, Error>;
+
     /// Create user.
     fn user_create(
         &self,

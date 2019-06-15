@@ -6,6 +6,7 @@
 
 - Add active flag to users.
 - Add synchronous and asynchronous clients.
+- Add `email_eq` query option to user list route.
 
 ### Changed
 

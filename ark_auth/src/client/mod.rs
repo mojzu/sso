@@ -5,8 +5,8 @@ pub use crate::client::async_impl::AsyncClient;
 pub use crate::client::sync_impl::SyncClient;
 use crate::crate_user_agent;
 use serde::ser::Serialize;
-use url::{Url};
-use std::error::{Error as StdError};
+use std::error::Error as StdError;
+use url::Url;
 
 // TODO(feature): Client methods.
 

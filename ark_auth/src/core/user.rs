@@ -25,6 +25,18 @@ pub fn list_where_id_gt(
         .map_err(Error::Driver)
 }
 
+/// List users where email is equal.
+pub fn list_where_email_eq(
+    driver: &driver::Driver,
+    _service_mask: Option<&Service>,
+    email_eq: &str,
+    limit: i64,
+) -> Result<Vec<i64>, Error> {
+    driver
+        .user_list_where_email_eq(email_eq, limit)
+        .map_err(Error::Driver)
+}
+
 /// Create user.
 /// Returns bad request if email address is not unique.
 pub fn create(

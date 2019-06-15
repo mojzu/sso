@@ -360,6 +360,19 @@ impl driver::Driver for Driver {
             .map_err(Error::Diesel)
     }
 
+    fn user_list_where_email_eq(&self, email_eq: &str, limit: i64) -> Result<Vec<i64>, Error> {
+        use crate::driver::postgres::schema::auth_user::dsl::*;
+
+        let conn = self.connection()?;
+        auth_user
+            .select(user_id)
+            .filter(user_email.eq(email_eq))
+            .limit(limit)
+            .order(user_id.asc())
+            .load::<i64>(&conn)
+            .map_err(Error::Diesel)
+    }
+
     fn user_create(
         &self,
         name: &str,

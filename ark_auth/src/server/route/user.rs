@@ -32,6 +32,8 @@ pub struct ListQuery {
     pub lt: Option<i64>,
     #[validate(custom = "validate::unsigned")]
     pub limit: Option<i64>,
+    #[validate(email)]
+    pub email_eq: Option<String>,
 }
 
 impl FromJsonValue<ListQuery> for ListQuery {}
@@ -41,6 +43,7 @@ pub struct ListMetaResponse {
     pub gt: Option<i64>,
     pub lt: Option<i64>,
     pub limit: i64,
+    pub email_eq: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -66,6 +69,21 @@ fn list_handler(
 fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<ListResponse, Error> {
     core::key::authenticate(data.driver(), id)
         .and_then(|service| {
+            if let Some(email_eq) = &query.email_eq {
+                let users =
+                    core::user::list_where_email_eq(data.driver(), service.as_ref(), &email_eq, 1)?;
+                return Ok(ListResponse {
+                    meta: ListMetaResponse {
+                        gt: None,
+                        lt: None,
+                        limit: 1,
+                        email_eq: Some(email_eq.to_owned()),
+                    },
+                    data: users,
+                });
+            }
+
+            // TODO(refactor): Configurable default/max limits.
             let limit = query.limit.unwrap_or(10);
             let (gt, lt, users) = match query.lt {
                 Some(lt) => {
@@ -80,9 +98,13 @@ fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<List
                     (Some(gt), None, users)
                 }
             };
-
             Ok(ListResponse {
-                meta: ListMetaResponse { gt, lt, limit },
+                meta: ListMetaResponse {
+                    gt,
+                    lt,
+                    limit,
+                    email_eq: None,
+                },
                 data: users,
             })
         })

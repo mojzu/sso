@@ -18,7 +18,7 @@ pub fn create_user_email() -> String {
 pub fn create_client() -> SyncClient {
     let url = env_test_url();
     let key = env_test_key();
-    let options = ClientOptions::new(&url, "test", &key);
+    let options = ClientOptions::new(&url, &key).unwrap();
     SyncClient::new(options)
 }
 
