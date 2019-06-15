@@ -63,19 +63,16 @@ $ curl --header "Content-Type: application/json" \
 
 ```rust
 let mut client = create_client();
-let (_service, service_key) = create_service_key(&client);
+let (service, service_key) = create_service_key(&client);
 let user_email = create_user_email();
 
-client = client.set_authorisation(&service_key.value);
+client.options.set_authorisation(&service_key.value);
 let user = create_user(&client, "User Name", &user_email, true, Some("guest"));
-let _user_key = create_user_key(&client, "Key Name", user.id);
+let _user_key = create_user_key(&client, "Key Name", service.id, user.id);
 
-request_password_reset(&client, &user_email);
+local_password_reset(&client, &user_email);
 // TODO(test): Test reset password confirm, how to get reset password token.
 ```
-
-TODO(test): Fix these tests run forever.
-<https://github.com/actix/actix-web/issues/485>
 
 ```rust,skeptic-template
 use manual::*;

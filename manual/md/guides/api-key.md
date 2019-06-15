@@ -41,14 +41,14 @@ $ curl --header "Content-Type: application/json" \
 
 ```rust
 let mut client = create_client();
-let (_service, service_key) = create_service_key(&client);
+let (service, service_key) = create_service_key(&client);
 let user_email = create_user_email();
 
-client = client.set_authorisation(&service_key.value);
+client.options.set_authorisation(&service_key.value);
 let user = create_user(&client, "User Name", &user_email, true, None);
-let user_key = create_user_key(&client, "Key Name", user.id);
+let user_key = create_user_key(&client, "Key Name", service.id, user.id);
 
-verify_user_key(&client, user.id, &user_key.value);
+verify_user_key(&client, &user_key);
 ```
 
 ```rust,skeptic-template

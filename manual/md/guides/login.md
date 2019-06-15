@@ -49,97 +49,22 @@ $ curl --header "Content-Type: application/json" \
 
 ## Test
 
-```rust,skt-login
-let (service, service_key) = service_key_create(&client);
-let user_email = user_email_create();
+```rust
+let mut client = create_client();
+let (service, service_key) = create_service_key(&client);
+let user_email = create_user_email();
 
-let url = server_url("/v1/user");
-let request = user::CreateBody {
-    name: "User Name".to_owned(),
-    email: user_email.clone(),
-    active: true,
-    password: Some("guest".to_owned()),
-};
-let mut response = client
-    .post(&url)
-    .header("content-type", "application/json")
-    .header("authorization", service_key.value.clone())
-    .json(&request)
-    .send()
-    .unwrap();
-let body = response.json::<user::CreateResponse>().unwrap();
-let user = body.data;
-let status = response.status();
-let content_type = header_get(&response, "content-type");
-assert_eq!(status, 200);
-assert_eq!(content_type, "application/json");
-assert!(user.id > 0);
-assert_eq!(user.name, "User Name");
-assert_eq!(user.email, user_email);
-assert!(user.password_hash.is_none());
-assert!(user.password_revision.is_none());
+client.options.set_authorisation(&service_key.value);
+let user = create_user(&client, "User Name", &user_email, true, Some("guest"));
+let _user_key = create_user_key(&client, "Key Name", service.id, user.id);
 
-let url = server_url("/v1/key");
-let request = key::CreateBody {
-    name: "Key Name".to_owned(),
-    service_id: None,
-    user_id: Some(user.id),
-};
-let mut response = client
-    .post(&url)
-    .header("content-type", "application/json")
-    .header("authorization", service_key.value.clone())
-    .json(&request)
-    .send()
-    .unwrap();
-let body = response.json::<key::CreateResponse>().unwrap();
-let user_key = body.data;
-let status = response.status();
-let content_type = header_get(&response, "content-type");
-assert_eq!(status, 200);
-assert_eq!(content_type, "application/json");
-assert_eq!(user_key.name, "Key Name");
-assert_eq!(user_key.service_id.unwrap(), service.id);
-assert_eq!(user_key.user_id.unwrap(), user.id);
+let user_token = local_login(&client, user.id, &user_email, "guest");
+verify_user_token(&client, &user_token);
+```
 
-let url = server_url("/v1/auth/provider/local/login");
-let request = auth::LoginBody {
-    email: user_email.clone(),
-    password: "guest".to_owned(),
-};
-let mut response = client
-    .post(&url)
-    .header("content-type", "application/json")
-    .header("authorization", service_key.value.clone())
-    .json(&request)
-    .send()
-    .unwrap();
-let body = response.json::<auth::LoginResponse>().unwrap();
-let user_token = body.data;
-let status = response.status();
-let content_type = header_get(&response, "content-type");
-assert_eq!(status, 200);
-assert_eq!(content_type, "application/json");
-assert_eq!(user_token.user_id, user.id);
-
-let url = server_url("/v1/auth/token/verify");
-let request = auth::TokenBody {
-    token: user_token.token.clone(),
-};
-let mut response = client
-    .post(&url)
-    .header("content-type", "application/json")
-    .header("authorization", service_key.value.clone())
-    .json(&request)
-    .send()
-    .unwrap();
-let body = response.json::<auth::TokenResponse>().unwrap();
-let user_token_verify = body.data;
-let status = response.status();
-let content_type = header_get(&response, "content-type");
-assert_eq!(status, 200);
-assert_eq!(content_type, "application/json");
-assert_eq!(user_token_verify.user_id, user_token.user_id);
-assert_eq!(user_token_verify.token, user_token.token);
-assert_eq!(user_token_verify.token_expires, user_token.token_expires);
+```rust,skeptic-template
+use manual::*;
+fn main() {{
+    {}
+}}
 ```
