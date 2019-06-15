@@ -1,6 +1,6 @@
 use crate::client::async_impl::AsyncClient;
 use crate::client::Error;
-use crate::core::{UserToken, UserKey};
+use crate::core::{UserKey, UserToken};
 use crate::server::route::auth::provider::local::{LoginBody, LoginResponse, ResetPasswordBody};
 use crate::server::route::auth::{KeyBody, KeyResponse, TokenBody, TokenResponse};
 use actix_web::http::StatusCode;
@@ -57,7 +57,10 @@ impl AsyncClient {
             .and_then(|mut res| res.json::<KeyResponse>().map_err(|_err| Error::Unwrap))
     }
 
-    pub fn auth_token_verify(&self, token: &UserToken) -> impl Future<Item = TokenResponse, Error = Error> {
+    pub fn auth_token_verify(
+        &self,
+        token: &UserToken,
+    ) -> impl Future<Item = TokenResponse, Error = Error> {
         let body = TokenBody {
             token: token.token.to_owned(),
         };

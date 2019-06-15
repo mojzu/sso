@@ -1,9 +1,9 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
-use crate::core::{UserToken, UserKey};
+use crate::core::{UserKey, UserToken};
 use crate::server::route::auth::provider::local::{LoginBody, LoginResponse, ResetPasswordBody};
-use crate::server::route::auth::provider::{Oauth2UrlResponse};
-use crate::server::route::auth::{KeyBody, KeyResponse, TokenResponse, TokenBody};
+use crate::server::route::auth::provider::Oauth2UrlResponse;
+use crate::server::route::auth::{KeyBody, KeyResponse, TokenBody, TokenResponse};
 use actix_web::http::StatusCode;
 
 impl SyncClient {
@@ -46,7 +46,10 @@ impl SyncClient {
                 StatusCode::OK => Ok(res),
                 _ => Err(Error::Unwrap),
             })
-            .and_then(|mut res| res.json::<Oauth2UrlResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| {
+                res.json::<Oauth2UrlResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 
     pub fn auth_key_verify(&self, key: &UserKey) -> Result<KeyResponse, Error> {
