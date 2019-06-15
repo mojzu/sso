@@ -3,6 +3,7 @@ mod sync_impl;
 
 pub use crate::client::async_impl::AsyncClient;
 pub use crate::client::sync_impl::SyncClient;
+use crate::crate_user_agent;
 use serde::ser::Serialize;
 use url::Url;
 
@@ -17,6 +18,7 @@ pub enum Error {
 }
 
 /// Client options.
+#[derive(Debug, Clone)]
 pub struct ClientOptions {
     url: Url,
     user_agent: String,
@@ -24,12 +26,16 @@ pub struct ClientOptions {
 }
 
 impl ClientOptions {
-    pub fn new(url: &str, user_agent: &str, authorisation: &str) -> Self {
+    pub fn new(url: &str, authorisation: &str) -> Self {
         ClientOptions {
             url: Url::parse(url).unwrap(),
-            user_agent: user_agent.to_owned(),
+            user_agent: crate_user_agent(),
             authorisation: authorisation.to_owned(),
         }
+    }
+
+    pub fn set_user_agent(&mut self, user_agent: &str) {
+        self.user_agent = user_agent.to_owned();
     }
 
     pub fn set_authorisation(&mut self, authorisation: &str) {

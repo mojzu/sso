@@ -22,3 +22,8 @@ pub mod client;
 pub mod core;
 pub mod driver;
 pub mod server;
+
+/// User agent constructed from crate name and version.
+pub fn crate_user_agent() -> String {
+    format!("{}/{}", crate_name!(), crate_version!())
+}

@@ -2,6 +2,7 @@ pub mod route;
 pub mod smtp;
 pub mod validate;
 
+use crate::crate_user_agent;
 use crate::{core, driver};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::middleware::identity::{IdentityPolicy, IdentityService};
@@ -192,7 +193,7 @@ impl Configuration {
     pub fn new(bind: String) -> Self {
         Configuration {
             bind,
-            user_agent: Configuration::default_user_agent(),
+            user_agent: crate_user_agent(),
             token_expiration_time: 3600,
             password_pwned_enabled: false,
             smtp: None,
@@ -289,11 +290,6 @@ impl Configuration {
     /// Configured provider Microsoft OAuth2.
     pub fn provider_microsoft_oauth2(&self) -> Option<&ConfigurationProviderOauth2> {
         self.provider.microsoft.oauth2.as_ref()
-    }
-
-    /// Default user agent constructed from crate name and version.
-    fn default_user_agent() -> String {
-        format!("{}/{}", crate_name!(), crate_version!())
     }
 }
 
