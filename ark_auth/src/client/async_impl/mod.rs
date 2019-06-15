@@ -35,21 +35,21 @@ impl AsyncClient {
     }
 
     fn get(&self, path: &str) -> actix_web::client::ClientRequest {
-        let url = self.options.url_path(path);
+        let url = self.options.url_path(path).unwrap();
         self.client
             .get(url.to_string())
             .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
     }
 
     fn get_query<T: Serialize>(&self, path: &str, query: T) -> actix_web::client::ClientRequest {
-        let url = self.options.url_path_query(path, query);
+        let url = self.options.url_path_query(path, query).unwrap();
         self.client
             .get(url.to_string())
             .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
     }
 
     fn post(&self, path: &str) -> actix_web::client::ClientRequest {
-        let url = self.options.url_path(path);
+        let url = self.options.url_path(path).unwrap();
         self.client
             .post(url.to_string())
             .header(header::AUTHORIZATION, self.options.authorisation.to_owned())

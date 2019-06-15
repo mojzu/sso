@@ -38,28 +38,28 @@ impl SyncClient {
     }
 
     fn get(&self, path: &str) -> reqwest::RequestBuilder {
-        let url = self.options.url_path(path);
+        let url = self.options.url_path(path).unwrap();
         self.client
             .get(url)
             .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
     }
 
     fn get_query<T: Serialize>(&self, path: &str, query: T) -> reqwest::RequestBuilder {
-        let url = self.options.url_path_query(path, query);
+        let url = self.options.url_path_query(path, query).unwrap();
         self.client
             .get(url)
             .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
     }
 
     fn post(&self, path: &str) -> reqwest::RequestBuilder {
-        let url = self.options.url_path(path);
+        let url = self.options.url_path(path).unwrap();
         self.client
             .post(url)
             .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
     }
 
     fn post_json<T: Serialize>(&self, path: &str, body: &T) -> reqwest::RequestBuilder {
-        let url = self.options.url_path(path);
+        let url = self.options.url_path(path).unwrap();
         self.client
             .post(url)
             .header(header::AUTHORIZATION, self.options.authorisation.to_owned())

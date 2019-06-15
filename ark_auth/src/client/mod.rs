@@ -5,7 +5,8 @@ pub use crate::client::async_impl::AsyncClient;
 pub use crate::client::sync_impl::SyncClient;
 use crate::crate_user_agent;
 use serde::ser::Serialize;
-use url::Url;
+use url::{Url};
+use std::error::{Error as StdError};
 
 // TODO(feature): Client methods.
 
@@ -15,6 +16,18 @@ pub enum Error {
     /// TODO(refactor): Error type improvements.
     #[fail(display = "ClientError::Unwrap")]
     Unwrap,
+    /// Url error wrapper.
+    #[fail(display = "ClientError::Url {}", _0)]
+    Url(String),
+    /// Serde URL encoded serialise error wrapper.
+    #[fail(display = "ClientError::SerdeUrlencodedSer {}", _0)]
+    SerdeUrlencodedSer(#[fail(cause)] serde_urlencoded::ser::Error),
+}
+
+impl Error {
+    pub fn url(err: &StdError) -> Error {
+        Error::Url(err.description().to_owned())
+    }
 }
 
 /// Client options.
@@ -26,12 +39,13 @@ pub struct ClientOptions {
 }
 
 impl ClientOptions {
-    pub fn new(url: &str, authorisation: &str) -> Self {
-        ClientOptions {
-            url: Url::parse(url).unwrap(),
+    pub fn new(url: &str, authorisation: &str) -> Result<Self, Error> {
+        let url = Url::parse(url).map_err(|err| Error::url(&err))?;
+        Ok(ClientOptions {
+            url,
             user_agent: crate_user_agent(),
             authorisation: authorisation.to_owned(),
-        }
+        })
     }
 
     pub fn set_user_agent(&mut self, user_agent: &str) {
@@ -42,15 +56,15 @@ impl ClientOptions {
         self.authorisation = authorisation.to_owned();
     }
 
-    pub fn url_path(&self, path: &str) -> Url {
-        self.url.join(path).unwrap()
+    pub fn url_path(&self, path: &str) -> Result<Url, Error> {
+        self.url.join(path).map_err(|err| Error::url(&err))
     }
 
-    pub fn url_path_query<T: Serialize>(&self, path: &str, query: T) -> Url {
-        let mut url = self.url_path(path);
-        let query = serde_urlencoded::to_string(query).unwrap();
+    pub fn url_path_query<T: Serialize>(&self, path: &str, query: T) -> Result<Url, Error> {
+        let mut url = self.url_path(path)?;
+        let query = serde_urlencoded::to_string(query).map_err(Error::SerdeUrlencodedSer)?;
         url.set_query(Some(&query));
-        url
+        Ok(url)
     }
 }
 
