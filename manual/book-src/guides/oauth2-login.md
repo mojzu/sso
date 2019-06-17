@@ -13,7 +13,7 @@ Service creates a user with email address matching OAuth2 provider.
 $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"name":"$user_name","email":"$user_email"}' \
+  --data '{"name":"$user_name","email":"$user_email","active":true}' \
   $server_url/v1/user
 ```
 

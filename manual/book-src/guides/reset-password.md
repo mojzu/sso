@@ -13,7 +13,7 @@ Service creates a user with password.
 $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"name":"$user_name","email":"$user_email","password":"$user_password"}' \
+  --data '{"name":"$user_name","email":"$user_email","password":"$user_password","active":true}' \
   $server_url/v1/user
 ```
 
