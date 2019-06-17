@@ -4,8 +4,8 @@ use crate::server::route::auth::provider::{
 };
 use crate::server::route::route_response_json;
 use crate::server::{ConfigurationProviderOauth2, Data, Error, FromJsonValue, Oauth2Error};
+use actix_identity::Identity;
 use actix_web::http::{header, StatusCode};
-use actix_web::middleware::identity::Identity;
 use actix_web::{web, HttpResponse, ResponseError};
 use futures::{future, Future};
 use oauth2::prelude::*;

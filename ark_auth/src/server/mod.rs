@@ -4,8 +4,8 @@ pub mod validate;
 
 use crate::crate_user_agent;
 use crate::{core, driver};
+use actix_identity::{IdentityPolicy, IdentityService};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
-use actix_web::middleware::identity::{IdentityPolicy, IdentityService};
 use actix_web::{middleware, web, App, HttpResponse, HttpServer, ResponseError};
 use serde::Serialize;
 pub use validate::FromJsonValue;

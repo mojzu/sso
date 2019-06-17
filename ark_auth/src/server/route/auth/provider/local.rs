@@ -2,7 +2,8 @@ use crate::core;
 use crate::server::route::auth::{password_meta, PasswordMeta};
 use crate::server::route::{route_json_config, route_response_empty, route_response_json};
 use crate::server::{smtp, validate, Data, Error, FromJsonValue};
-use actix_web::{middleware::identity::Identity, web, HttpResponse};
+use actix_identity::Identity;
+use actix_web::{web, HttpResponse};
 use futures::{future, Future};
 use validator::Validate;
 

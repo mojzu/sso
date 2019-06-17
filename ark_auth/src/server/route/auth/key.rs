@@ -2,7 +2,8 @@ use crate::core;
 use crate::server::route::auth::{KeyBody, KeyResponse};
 use crate::server::route::{route_json_config, route_response_empty, route_response_json};
 use crate::server::{Data, Error, FromJsonValue};
-use actix_web::{middleware::identity::Identity, web, HttpResponse};
+use actix_identity::Identity;
+use actix_web::{web, HttpResponse};
 use futures::Future;
 
 pub fn route_v1_scope() -> actix_web::Scope {
