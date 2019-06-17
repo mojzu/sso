@@ -8,7 +8,7 @@ use actix_identity::Identity;
 use actix_web::http::{header, StatusCode};
 use actix_web::{web, HttpResponse, ResponseError};
 use futures::{future, Future};
-use oauth2::prelude::*;
+use oauth2::curl::http_client;
 use oauth2::{
     basic::BasicClient, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl,
     Scope, TokenResponse, TokenUrl,
@@ -86,13 +86,21 @@ fn oauth2_callback_handler(
 fn github_authorise(data: &Data, service: &core::Service) -> Result<String, Error> {
     // Generate the authorization URL to which we'll redirect the user.
     let client = github_client(data.configuration().provider_github_oauth2())?;
-    let (authorize_url, state) = client.authorize_url(CsrfToken::new_random);
+    let (authorise_url, csrf_state) = client
+        .authorize_url(CsrfToken::new_random)
+        .add_scope(Scope::new("user:email".to_string()))
+        .url();
 
     // Save the state and code verifier secrets as a CSRF key, value.
-    core::csrf::create(data.driver(), service, &state.secret(), &state.secret())
-        .map_err(Error::Core)?;
+    core::csrf::create(
+        data.driver(),
+        service,
+        &csrf_state.secret(),
+        &csrf_state.secret(),
+    )
+    .map_err(Error::Core)?;
 
-    Ok(authorize_url.to_string())
+    Ok(authorise_url.to_string())
 }
 
 fn github_callback(data: &Data, code: &str, state: &str) -> Result<(i64, String), Error> {
@@ -101,11 +109,13 @@ fn github_callback(data: &Data, code: &str, state: &str) -> Result<(i64, String)
     let csrf = csrf.ok_or_else(|| Error::Oauth2(Oauth2Error::Csrf))?;
 
     // Exchange the code with a token.
+    // TODO(refactor): Use async client.
     let client = github_client(data.configuration().provider_github_oauth2())?;
     let code = AuthorizationCode::new(code.to_owned());
     let token = client
         .exchange_code(code)
-        .map_err(|err| Error::Oauth2(Oauth2Error::Oauth2RequestToken(err)))?;
+        .request(http_client)
+        .map_err(|err| Error::Oauth2(Oauth2Error::Oauth2Request(err.into())))?;
 
     // Return access token value.
     Ok((csrf.service_id, token.access_token().secret().to_owned()))
@@ -157,6 +167,5 @@ fn github_client(provider: Option<&ConfigurationProviderOauth2>) -> Result<Basic
         auth_url,
         Some(token_url),
     )
-    .add_scope(Scope::new("user:email".to_string()))
     .set_redirect_url(RedirectUrl::new(redirect_url)))
 }

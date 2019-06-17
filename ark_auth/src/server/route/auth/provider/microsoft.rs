@@ -8,10 +8,10 @@ use actix_identity::Identity;
 use actix_web::http::{header, StatusCode};
 use actix_web::{web, HttpResponse, ResponseError};
 use futures::{future, Future};
-use oauth2::prelude::*;
+use oauth2::curl::http_client;
 use oauth2::{
     basic::BasicClient, AuthType, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken,
-    PkceCodeVerifierS256, RedirectUrl, ResponseType, Scope, TokenResponse, TokenUrl,
+    PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, Scope, TokenResponse, TokenUrl,
 };
 use url::Url;
 
@@ -86,23 +86,24 @@ fn oauth2_callback_handler(
 fn microsoft_authorise(data: &Data, service: &core::Service) -> Result<String, Error> {
     // Microsoft Graph supports Proof Key for Code Exchange (PKCE - https://oauth.net/2/pkce/).
     // Create a PKCE code verifier and SHA-256 encode it as a code challenge.
-    let code_verifier = PkceCodeVerifierS256::new_random();
+    let (pkce_code_challenge, pkce_code_verifier) = PkceCodeChallenge::new_random_sha256();
 
     // Generate the authorisation URL to redirect.
     let client = microsoft_client(data.configuration().provider_microsoft_oauth2())?;
-    let (authorize_url, state) = client.authorize_url_extension(
-        &ResponseType::new("code".to_string()),
-        CsrfToken::new_random,
-        // Send the PKCE code challenge in the authorisation request
-        &code_verifier.authorize_url_params(),
-    );
+    let (authorize_url, csrf_state) = client
+        .authorize_url(CsrfToken::new_random)
+        .add_scope(Scope::new(
+            "https://graph.microsoft.com/User.Read".to_string(),
+        ))
+        .set_pkce_challenge(pkce_code_challenge)
+        .url();
 
     // Save the state and code verifier secrets as a CSRF key, value.
     core::csrf::create(
         data.driver(),
         service,
-        &state.secret(),
-        &code_verifier.secret(),
+        &csrf_state.secret(),
+        &pkce_code_verifier.secret(),
     )
     .map_err(Error::Core)?;
 
@@ -114,15 +115,16 @@ fn microsoft_callback(data: &Data, code: &str, state: &str) -> Result<(i64, Stri
     let csrf = core::csrf::read_by_key(data.driver(), &state).map_err(Error::Core)?;
     let csrf = csrf.ok_or_else(|| Error::Oauth2(Oauth2Error::Csrf))?;
 
-    // Send the PKCE code verifier in the token request
-    let params: Vec<(&str, &str)> = vec![("code_verifier", &csrf.value)];
-
     // Exchange the code with a token.
+    // TODO(refactor): Use async client.
     let client = microsoft_client(data.configuration().provider_microsoft_oauth2())?;
     let code = AuthorizationCode::new(code.to_owned());
+    let pkce_code_verifier = PkceCodeVerifier::new(csrf.value);
     let token = client
-        .exchange_code_extension(code, &params)
-        .map_err(|err| Error::Oauth2(Oauth2Error::Oauth2RequestToken(err)))?;
+        .exchange_code(code)
+        .set_pkce_verifier(pkce_code_verifier)
+        .request(http_client)
+        .map_err(|err| Error::Oauth2(Oauth2Error::Oauth2Request(err.into())))?;
 
     // Return access token value.
     Ok((csrf.service_id, token.access_token().secret().to_owned()))
@@ -176,9 +178,6 @@ fn microsoft_client(provider: Option<&ConfigurationProviderOauth2>) -> Result<Ba
         auth_url,
         Some(token_url),
     )
-    .add_scope(Scope::new(
-        "https://graph.microsoft.com/User.Read".to_string(),
-    ))
     .set_auth_type(AuthType::RequestBody)
     .set_redirect_url(RedirectUrl::new(redirect_url)))
 }

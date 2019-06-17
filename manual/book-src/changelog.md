@@ -13,6 +13,7 @@
 - Changed list route endpoints to return data ID arrays.
 - Reorganise OAuth2 routes into provider groups.
 - Reorganise login, reset routes into local provider group.
+- Upgrade to version 3 of `oauth2` library.
 
 ### Fixed
 

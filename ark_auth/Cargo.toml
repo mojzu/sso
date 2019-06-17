@@ -36,8 +36,7 @@ log = { version = "*", features = ["max_level_trace", "release_max_level_info"] 
 native-tls = "*"
 r2d2 = "*"
 reqwest = "*"
-# TODO(refactor): Version 3 upgrade.
-oauth2 = "^2.0.0-beta.2"
+oauth2 = "^3.0.0-alpha.2"
 sentry = "*"
 sentry-actix = "*"
 serde = "*"

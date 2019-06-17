@@ -66,8 +66,8 @@ pub enum Oauth2Error {
     #[fail(display = "Oauth2Error::StatusCode {}", _0)]
     StatusCode(actix_web::http::StatusCode),
     /// OAuth2 request token error.
-    #[fail(display = "Oauth2Error::Oauth2RequestToken {}", _0)]
-    Oauth2RequestToken(oauth2::RequestTokenError<oauth2::basic::BasicErrorResponseType>),
+    #[fail(display = "Oauth2Error::Oauth2Request {}", _0)]
+    Oauth2Request(failure::Error),
     /// Client send request error.
     #[fail(display = "Oauth2Error::ActixClientSendRequest")]
     ActixClientSendRequest,
