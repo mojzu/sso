@@ -11,7 +11,7 @@ skeptic = "*"
 
 [dependencies]
 actix-rt = "*"
-actix-web = { version = "*", features = ["ssl", "client"] }
+actix-web = { version = "^1.0.2", features = ["ssl", "client"] }
 ark_auth = { path = "../ark_auth" }
 chrono = { version = "*", features = ["serde"] }
 futures = "*"
