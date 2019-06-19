@@ -1,6 +1,5 @@
 use crate::client::async_impl::AsyncClient;
 use crate::client::Error;
-use crate::core::{UserKey, UserToken};
 use crate::server::route::auth::provider::local::{LoginBody, LoginResponse, ResetPasswordBody};
 use crate::server::route::auth::{KeyBody, KeyResponse, TokenBody, TokenResponse};
 use actix_web::http::StatusCode;
@@ -42,9 +41,9 @@ impl AsyncClient {
             })
     }
 
-    pub fn auth_key_verify(&self, key: &UserKey) -> impl Future<Item = KeyResponse, Error = Error> {
+    pub fn auth_key_verify(&self, key: &str) -> impl Future<Item = KeyResponse, Error = Error> {
         let body = KeyBody {
-            key: key.key.to_owned(),
+            key: key.to_owned(),
         };
 
         self.post("/v1/auth/key/verify")
@@ -59,10 +58,10 @@ impl AsyncClient {
 
     pub fn auth_token_verify(
         &self,
-        token: &UserToken,
+        token: &str,
     ) -> impl Future<Item = TokenResponse, Error = Error> {
         let body = TokenBody {
-            token: token.token.to_owned(),
+            token: token.to_owned(),
         };
 
         self.post("/v1/auth/token/verify")
