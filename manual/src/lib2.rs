@@ -1,6 +1,7 @@
-use ark_auth::client::{Client, ClientOptions, SyncClient};
+use ark_auth::client::{Client, ClientOptions, Error, RequestError, SyncClient};
 use ark_auth::core::{Key, Service, User, UserKey, UserToken};
 use ark_auth::server::route::auth::provider::Oauth2UrlResponse;
+use chrono::Utc;
 
 pub fn env_test_url() -> String {
     std::env::var("TEST_URL").unwrap()
@@ -42,8 +43,11 @@ pub fn create_user(
     active: bool,
     password: Option<&str>,
 ) -> User {
+    let before = Utc::now();
     let create = client.user_create(name, email, active, password).unwrap();
     let user = create.data;
+    assert!(user.created_at.gt(&before));
+    assert!(user.updated_at.gt(&before));
     assert!(user.id > 0);
     assert_eq!(user.name, name);
     assert_eq!(user.email, email);
@@ -51,6 +55,32 @@ pub fn create_user(
     assert!(user.password_hash.is_none());
     assert!(user.password_revision.is_none());
     user
+}
+
+pub fn create_user_duplicate_email(
+    client: &SyncClient,
+    name: &str,
+    email: &str,
+    active: bool,
+    password: Option<&str>,
+) {
+    let create = client
+        .user_create(name, email, active, password)
+        .unwrap_err();
+    assert_eq!(create, Error::Request(RequestError::BadRequest));
+}
+
+pub fn create_user_forbidden(
+    client: &SyncClient,
+    name: &str,
+    email: &str,
+    active: bool,
+    password: Option<&str>,
+) {
+    let create = client
+        .user_create(name, email, active, password)
+        .unwrap_err();
+    assert_eq!(create, Error::Request(RequestError::Forbidden));
 }
 
 pub fn create_user_key(client: &SyncClient, name: &str, service_id: i64, user_id: i64) -> UserKey {
@@ -89,12 +119,12 @@ pub fn local_login(client: &SyncClient, user_id: i64, email: &str, password: &st
     user_token
 }
 
-pub fn local_password_reset(client: &SyncClient, email: &str) -> () {
+pub fn local_password_reset(client: &SyncClient, email: &str) {
     client.auth_local_reset_password(email).unwrap()
 }
 
 pub fn microsoft_oauth2_request(client: &SyncClient) -> Oauth2UrlResponse {
     let response = client.auth_microsoft_oauth2_request().unwrap();
-    assert!(response.url.len() > 0);
+    assert!(!response.url.is_empty());
     response
 }
