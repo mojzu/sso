@@ -3,7 +3,7 @@ mod key;
 mod service;
 mod user;
 
-use crate::client::{Client, ClientOptions, Error};
+use crate::client::{Client, ClientOptions, Error, RequestError};
 use actix_web::http::{header, StatusCode};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -19,10 +19,7 @@ impl SyncClient {
         self.get("/v1/ping")
             .send()
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => Ok(res),
-                _ => Err(Error::Unwrap),
-            })
+            .and_then(SyncClient::match_status_code)
             .and_then(|mut res| res.json::<Value>().map_err(|_err| Error::Unwrap))
     }
 
@@ -64,6 +61,15 @@ impl SyncClient {
             .post(url)
             .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
             .json(&body)
+    }
+
+    fn match_status_code(response: reqwest::Response) -> Result<reqwest::Response, Error> {
+        match response.status() {
+            StatusCode::OK => Ok(response),
+            StatusCode::BAD_REQUEST => Err(Error::Request(RequestError::BadRequest)),
+            StatusCode::FORBIDDEN => Err(Error::Request(RequestError::Forbidden)),
+            _ => Err(Error::Unwrap),
+        }
     }
 }
 

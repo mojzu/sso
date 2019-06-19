@@ -10,12 +10,25 @@ use url::Url;
 
 // TODO(feature): Client methods.
 
+#[derive(Debug, Fail, PartialEq)]
+pub enum RequestError {
+    /// Bad request error.
+    #[fail(display = "RequestError::BadRequest")]
+    BadRequest,
+    /// Forbidden error.
+    #[fail(display = "RequestError::Forbidden")]
+    Forbidden,
+}
+
 /// Client errors.
-#[derive(Debug, Fail)]
+#[derive(Debug, Fail, PartialEq)]
 pub enum Error {
     /// TODO(refactor): Error type improvements.
     #[fail(display = "ClientError::Unwrap")]
     Unwrap,
+    /// Request error.
+    #[fail(display = "ClientError::Request {}", _0)]
+    Request(RequestError),
     /// Url error wrapper.
     #[fail(display = "ClientError::Url {}", _0)]
     Url(String),

@@ -16,10 +16,7 @@ impl SyncClient {
         self.post_json("/v1/auth/provider/local/login", &body)
             .send()
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => Ok(res),
-                _ => Err(Error::Unwrap),
-            })
+            .and_then(SyncClient::match_status_code)
             .and_then(|mut res| res.json::<LoginResponse>().map_err(|_err| Error::Unwrap))
     }
 
@@ -42,10 +39,7 @@ impl SyncClient {
         self.post("/v1/auth/provider/microsoft/oauth2")
             .send()
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => Ok(res),
-                _ => Err(Error::Unwrap),
-            })
+            .and_then(SyncClient::match_status_code)
             .and_then(|mut res| {
                 res.json::<Oauth2UrlResponse>()
                     .map_err(|_err| Error::Unwrap)
@@ -60,10 +54,7 @@ impl SyncClient {
         self.post_json("/v1/auth/key/verify", &body)
             .send()
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => Ok(res),
-                _ => Err(Error::Unwrap),
-            })
+            .and_then(SyncClient::match_status_code)
             .and_then(|mut res| res.json::<KeyResponse>().map_err(|_err| Error::Unwrap))
     }
 
@@ -75,10 +66,7 @@ impl SyncClient {
         self.post_json("/v1/auth/token/verify", &body)
             .send()
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => Ok(res),
-                _ => Err(Error::Unwrap),
-            })
+            .and_then(SyncClient::match_status_code)
             .and_then(|mut res| res.json::<TokenResponse>().map_err(|_err| Error::Unwrap))
     }
 }

@@ -2,8 +2,7 @@ use crate::client::async_impl::AsyncClient;
 use crate::client::Error;
 use crate::server::route::auth::provider::local::{LoginBody, LoginResponse, ResetPasswordBody};
 use crate::server::route::auth::{KeyBody, KeyResponse, TokenBody, TokenResponse};
-use actix_web::http::StatusCode;
-use futures::{future, Future};
+use futures::Future;
 
 impl AsyncClient {
     pub fn auth_local_login(
@@ -19,10 +18,7 @@ impl AsyncClient {
         self.post("/v1/auth/provider/local/login")
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => future::ok(res),
-                _ => future::err(Error::Unwrap),
-            })
+            .and_then(AsyncClient::match_status_code)
             .and_then(|mut res| res.json::<LoginResponse>().map_err(|_err| Error::Unwrap))
     }
 
@@ -35,10 +31,8 @@ impl AsyncClient {
         self.post("/v1/auth/provider/local/reset/password")
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => future::ok(()),
-                _ => future::err(Error::Unwrap),
-            })
+            .and_then(AsyncClient::match_status_code)
+            .map(|_res| ())
     }
 
     pub fn auth_key_verify(&self, key: &str) -> impl Future<Item = KeyResponse, Error = Error> {
@@ -49,10 +43,7 @@ impl AsyncClient {
         self.post("/v1/auth/key/verify")
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => future::ok(res),
-                _ => future::err(Error::Unwrap),
-            })
+            .and_then(AsyncClient::match_status_code)
             .and_then(|mut res| res.json::<KeyResponse>().map_err(|_err| Error::Unwrap))
     }
 
@@ -64,10 +55,8 @@ impl AsyncClient {
         self.post("/v1/auth/key/revoke")
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => future::ok(()),
-                _ => future::err(Error::Unwrap),
-            })
+            .and_then(AsyncClient::match_status_code)
+            .map(|_res| ())
     }
 
     pub fn auth_token_verify(
@@ -81,10 +70,7 @@ impl AsyncClient {
         self.post("/v1/auth/token/verify")
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => future::ok(res),
-                _ => future::err(Error::Unwrap),
-            })
+            .and_then(AsyncClient::match_status_code)
             .and_then(|mut res| res.json::<TokenResponse>().map_err(|_err| Error::Unwrap))
     }
 
@@ -99,10 +85,7 @@ impl AsyncClient {
         self.post("/v1/auth/token/refresh")
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => future::ok(res),
-                _ => future::err(Error::Unwrap),
-            })
+            .and_then(AsyncClient::match_status_code)
             .and_then(|mut res| res.json::<TokenResponse>().map_err(|_err| Error::Unwrap))
     }
 
@@ -114,9 +97,7 @@ impl AsyncClient {
         self.post("/v1/auth/token/revoke")
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => future::ok(()),
-                _ => future::err(Error::Unwrap),
-            })
+            .and_then(AsyncClient::match_status_code)
+            .map(|_res| ())
     }
 }

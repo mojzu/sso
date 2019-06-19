@@ -3,8 +3,10 @@ mod key;
 mod service;
 mod user;
 
-use crate::client::{Client, ClientOptions, Error};
+use crate::client::{Client, ClientOptions, Error, RequestError};
+use actix_web::client::ClientResponse;
 use actix_web::http::{header, StatusCode};
+use futures::stream::Stream;
 use futures::{future, Future};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -20,10 +22,7 @@ impl AsyncClient {
         self.get("/v1/ping")
             .send()
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => future::ok(res),
-                _ => future::err(Error::Unwrap),
-            })
+            .and_then(AsyncClient::match_status_code)
             .and_then(|mut res| res.json::<Value>().map_err(|_err| Error::Unwrap))
     }
 
@@ -53,6 +52,17 @@ impl AsyncClient {
         self.client
             .post(url.to_string())
             .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+    }
+
+    fn match_status_code<T: Stream>(
+        response: ClientResponse<T>,
+    ) -> impl Future<Item = ClientResponse<T>, Error = Error> {
+        match response.status() {
+            StatusCode::OK => future::ok(response),
+            StatusCode::BAD_REQUEST => future::err(Error::Request(RequestError::BadRequest)),
+            StatusCode::FORBIDDEN => future::err(Error::Request(RequestError::Forbidden)),
+            _ => future::err(Error::Unwrap),
+        }
     }
 }
 
