@@ -8,12 +8,14 @@ Create user.
 {
   "name": "User Name",
   "email": "user@example.com",
+  "active": true,
   "password": "guest"
 }
 ```
 
 - `name`: User name (required).
 - `email`: User email address, must be unique (required).
+- `active`: User is active flag (required).
 - `password`: User password, optional.
 
 ## Response [200, OK]
@@ -29,7 +31,8 @@ Create user.
     "updated_at": "2019...04Z",
     "id": 10,
     "name": "User Name",
-    "email": "user@example.com"
+    "email": "user@example.com",
+    "active": true
   }
 }
 ```
@@ -46,6 +49,7 @@ Create user.
 - `id`: User ID.
 - `name`: User name.
 - `email`: User email address.
+- `active`: User is active flag.
 
 ## Response [400, Bad Request]
 
