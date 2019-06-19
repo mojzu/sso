@@ -58,25 +58,3 @@ $ curl --header "Content-Type: application/json" \
   --data '{"email":"$user_email","password":"$user_password"}' \
   $server_url/v1/auth/provider/local/login
 ```
-
-## Test
-
-```rust
-let mut client = create_client();
-let (service, service_key) = create_service_key(&client);
-let user_email = create_user_email();
-
-client.options.set_authorisation(&service_key.value);
-let user = create_user(&client, "User Name", &user_email, true, Some("guest"));
-let _user_key = create_user_key(&client, "Key Name", service.id, user.id);
-
-local_password_reset(&client, &user_email);
-// TODO(test): Test reset password confirm, how to get reset password token.
-```
-
-```rust,skeptic-template
-use manual::*;
-fn main() {{
-    {}
-}}
-```

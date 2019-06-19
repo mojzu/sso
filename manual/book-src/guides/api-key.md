@@ -36,24 +36,3 @@ $ curl --header "Content-Type: application/json" \
   --data '{"key":"$user_key"}' \
   $server_url/v1/auth/key/verify
 ```
-
-## Test
-
-```rust
-let mut client = create_client();
-let (service, service_key) = create_service_key(&client);
-let user_email = create_user_email();
-
-client.options.set_authorisation(&service_key.value);
-let user = create_user(&client, "User Name", &user_email, true, None);
-let user_key = create_user_key(&client, "Key Name", service.id, user.id);
-
-verify_user_key(&client, &user_key);
-```
-
-```rust,skeptic-template
-use manual::*;
-fn main() {{
-    {}
-}}
-```

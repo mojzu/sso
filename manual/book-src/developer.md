@@ -79,7 +79,7 @@ Format source code and run clippy.
 $ cargo fmt && cargo clippy
 ```
 
-Run unit and integration tests. Integration tests are run from manual markdown files using `skeptic`, which require `TEST_URL` and `TEST_KEY` environment variables to set. In case of dependency resolution problems while compiling, run `cargo clean`.
+Run unit and integration tests. Tests require `TEST_URL` and `TEST_KEY` environment variables to set.
 
 ```shell
 $ export TEST_URL="..."

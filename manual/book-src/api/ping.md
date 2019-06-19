@@ -7,17 +7,3 @@ Uptime test route, authentication is not required for this route.
 ```json
 "pong"
 ```
-
-### Test
-
-```rust
-let client = create_client();
-ping_server(&client);
-```
-
-```rust,skeptic-template
-use manual::*;
-fn main() {{
-    {}
-}}
-```
