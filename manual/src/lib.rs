@@ -129,7 +129,7 @@ pub fn key_post_user_200(service: &Service, service_key: &Key, user: &User, name
     user_key
 }
 
-pub fn auth_login_post_400(service_key: &Key, email: &str, password: &str) -> () {
+pub fn auth_login_post_400(service_key: &Key, email: &str, password: &str) {
     let client = reqwest::Client::new();
     let request = auth::provider::local::LoginBody {
         email: email.to_owned(),
