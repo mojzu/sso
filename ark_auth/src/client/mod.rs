@@ -81,8 +81,15 @@ mod tests {
     #[test]
     fn adds_serialised_query_to_url() {
         let options = ClientOptions::new("http://localhost:9000", "authorisation-key").unwrap();
-        let query = ListQuery { gt: Some(0), lt: None, limit: Some(10) };
+        let query = ListQuery {
+            gt: Some(0),
+            lt: None,
+            limit: Some(10),
+        };
         let url = options.url_path_query("/v1/service/", &query).unwrap();
-        assert_eq!(url.to_string(), "http://localhost:9000/v1/service/?gt=0&limit=10");
+        assert_eq!(
+            url.to_string(),
+            "http://localhost:9000/v1/service/?gt=0&limit=10"
+        );
     }
 }
