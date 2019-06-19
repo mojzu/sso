@@ -56,6 +56,20 @@ impl AsyncClient {
             .and_then(|mut res| res.json::<KeyResponse>().map_err(|_err| Error::Unwrap))
     }
 
+    pub fn auth_key_revoke(&self, key: &str) -> impl Future<Item = (), Error = Error> {
+        let body = KeyBody {
+            key: key.to_owned(),
+        };
+
+        self.post("/v1/auth/key/revoke")
+            .send_json(&body)
+            .map_err(|_err| Error::Unwrap)
+            .and_then(|res| match res.status() {
+                StatusCode::OK => future::ok(()),
+                _ => future::err(Error::Unwrap),
+            })
+    }
+
     pub fn auth_token_verify(
         &self,
         token: &str,
@@ -72,5 +86,37 @@ impl AsyncClient {
                 _ => future::err(Error::Unwrap),
             })
             .and_then(|mut res| res.json::<TokenResponse>().map_err(|_err| Error::Unwrap))
+    }
+
+    pub fn auth_token_refresh(
+        &self,
+        token: &str,
+    ) -> impl Future<Item = TokenResponse, Error = Error> {
+        let body = TokenBody {
+            token: token.to_owned(),
+        };
+
+        self.post("/v1/auth/token/refresh")
+            .send_json(&body)
+            .map_err(|_err| Error::Unwrap)
+            .and_then(|res| match res.status() {
+                StatusCode::OK => future::ok(res),
+                _ => future::err(Error::Unwrap),
+            })
+            .and_then(|mut res| res.json::<TokenResponse>().map_err(|_err| Error::Unwrap))
+    }
+
+    pub fn auth_token_revoke(&self, token: &str) -> impl Future<Item = (), Error = Error> {
+        let body = TokenBody {
+            token: token.to_owned(),
+        };
+
+        self.post("/v1/auth/token/revoke")
+            .send_json(&body)
+            .map_err(|_err| Error::Unwrap)
+            .and_then(|res| match res.status() {
+                StatusCode::OK => future::ok(()),
+                _ => future::err(Error::Unwrap),
+            })
     }
 }

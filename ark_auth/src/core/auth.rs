@@ -127,6 +127,7 @@ pub fn token_revoke(
     let user =
         core::user::read_by_id(driver, Some(service), user_id)?.ok_or_else(|| Error::BadRequest)?;
     let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
+    jwt::decode_user_token(service.id, user.id, &key.value, token)?;
     core::key::delete_by_id(driver, Some(service), key.id)
 }
 
