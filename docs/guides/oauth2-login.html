@@ -176,26 +176,6 @@ $ ark_auth start-server
   --data '{&quot;token&quot;:&quot;$user_token&quot;}' \
   $server_url/v1/auth/token/verify
 </code></pre>
-<a class="header" href="#test" id="test"><h2>Test</h2></a>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-let mut client = create_client();
-let (service, service_key) = create_service_key(&amp;client);
-let user_email = create_user_email();
-
-client.options.set_authorisation(&amp;service_key.value);
-let user = create_user(&amp;client, &quot;User Name&quot;, &amp;user_email, true, Some(&quot;guest&quot;));
-let _user_key = create_user_key(&amp;client, &quot;Key Name&quot;, service.id, user.id);
-
-microsoft_oauth2_request(&amp;client);
-// TODO(test): Test OAuth2 flow, user email in initial request?
-#}</code></pre></pre>
-<pre><pre class="playpen"><code class="language-rust skeptic-template">use manual::*;
-fn main() {{
-    {}
-}}
-</code></pre></pre>
 
                     </main>
 

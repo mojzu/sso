@@ -166,25 +166,6 @@ $ ark_auth start-server
   --data '{&quot;key&quot;:&quot;$user_key&quot;}' \
   $server_url/v1/auth/key/verify
 </code></pre>
-<a class="header" href="#test" id="test"><h2>Test</h2></a>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-let mut client = create_client();
-let (service, service_key) = create_service_key(&amp;client);
-let user_email = create_user_email();
-
-client.options.set_authorisation(&amp;service_key.value);
-let user = create_user(&amp;client, &quot;User Name&quot;, &amp;user_email, true, None);
-let user_key = create_user_key(&amp;client, &quot;Key Name&quot;, service.id, user.id);
-
-verify_user_key(&amp;client, &amp;user_key);
-#}</code></pre></pre>
-<pre><pre class="playpen"><code class="language-rust skeptic-template">use manual::*;
-fn main() {{
-    {}
-}}
-</code></pre></pre>
 
                     </main>
 

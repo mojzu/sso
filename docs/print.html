@@ -205,6 +205,7 @@
 <li>Reorganise OAuth2 routes into provider groups.</li>
 <li>Reorganise login, reset routes into local provider group.</li>
 <li>Upgrade to version 3 of <code>oauth2</code> library.</li>
+<li>Removed <code>skeptic</code> from tests, use Cargo test runner.</li>
 </ul>
 <a class="header" href="#fixed" id="fixed"><h3>Fixed</h3></a>
 <ul>
@@ -277,7 +278,7 @@ $ cargo run help
 <p>Format source code and run clippy.</p>
 <pre><code class="language-shell">$ cargo fmt &amp;&amp; cargo clippy
 </code></pre>
-<p>Run unit and integration tests. Integration tests are run from manual markdown files using <code>skeptic</code>, which require <code>TEST_URL</code> and <code>TEST_KEY</code> environment variables to set. In case of dependency resolution problems while compiling, run <code>cargo clean</code>.</p>
+<p>Run unit and integration tests. Tests require <code>TEST_URL</code> and <code>TEST_KEY</code> environment variables to set.</p>
 <pre><code class="language-shell">$ export TEST_URL=&quot;...&quot;
 $ export TEST_KEY=&quot;...&quot;
 $ diesel database reset --migration-dir ark_auth/migrations/postgres
@@ -408,26 +409,6 @@ $ ark_auth start-server
   --data '{&quot;token&quot;:&quot;$user_token&quot;}' \
   $server_url/v1/auth/token/verify
 </code></pre>
-<a class="header" href="#test" id="test"><h2>Test</h2></a>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-let mut client = create_client();
-let (service, service_key) = create_service_key(&amp;client);
-let user_email = create_user_email();
-
-client.options.set_authorisation(&amp;service_key.value);
-let user = create_user(&amp;client, &quot;User Name&quot;, &amp;user_email, true, Some(&quot;guest&quot;));
-let _user_key = create_user_key(&amp;client, &quot;Key Name&quot;, service.id, user.id);
-
-let user_token = local_login(&amp;client, user.id, &amp;user_email, &quot;guest&quot;);
-verify_user_token(&amp;client, &amp;user_token);
-#}</code></pre></pre>
-<pre><pre class="playpen"><code class="language-rust skeptic-template">use manual::*;
-fn main() {{
-    {}
-}}
-</code></pre></pre>
 <a class="header" href="#reset-password" id="reset-password"><h1>Reset Password</h1></a>
 <p>Create service with key and start server.</p>
 <pre><code class="language-shell">$ ark_auth create-service-with-key $service_name $service_url
@@ -469,26 +450,6 @@ $ ark_auth start-server
   --data '{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
   $server_url/v1/auth/provider/local/login
 </code></pre>
-<a class="header" href="#test-1" id="test-1"><h2>Test</h2></a>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-let mut client = create_client();
-let (service, service_key) = create_service_key(&amp;client);
-let user_email = create_user_email();
-
-client.options.set_authorisation(&amp;service_key.value);
-let user = create_user(&amp;client, &quot;User Name&quot;, &amp;user_email, true, Some(&quot;guest&quot;));
-let _user_key = create_user_key(&amp;client, &quot;Key Name&quot;, service.id, user.id);
-
-local_password_reset(&amp;client, &amp;user_email);
-// TODO(test): Test reset password confirm, how to get reset password token.
-#}</code></pre></pre>
-<pre><pre class="playpen"><code class="language-rust skeptic-template">use manual::*;
-fn main() {{
-    {}
-}}
-</code></pre></pre>
 <a class="header" href="#api-key-2" id="api-key-2"><h1>API Key</h1></a>
 <p>Create service with key and start server.</p>
 <pre><code class="language-shell">$ ark_auth create-service-with-key $service_name $service_url
@@ -515,25 +476,6 @@ $ ark_auth start-server
   --data '{&quot;key&quot;:&quot;$user_key&quot;}' \
   $server_url/v1/auth/key/verify
 </code></pre>
-<a class="header" href="#test-2" id="test-2"><h2>Test</h2></a>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-let mut client = create_client();
-let (service, service_key) = create_service_key(&amp;client);
-let user_email = create_user_email();
-
-client.options.set_authorisation(&amp;service_key.value);
-let user = create_user(&amp;client, &quot;User Name&quot;, &amp;user_email, true, None);
-let user_key = create_user_key(&amp;client, &quot;Key Name&quot;, service.id, user.id);
-
-verify_user_key(&amp;client, &amp;user_key);
-#}</code></pre></pre>
-<pre><pre class="playpen"><code class="language-rust skeptic-template">use manual::*;
-fn main() {{
-    {}
-}}
-</code></pre></pre>
 <a class="header" href="#oauth2-login" id="oauth2-login"><h1>OAuth2 Login</h1></a>
 <p>Create service with key and start server.</p>
 <pre><code class="language-shell">$ ark_auth create-service-with-key $service_name $service_url
@@ -570,26 +512,6 @@ $ ark_auth start-server
   --data '{&quot;token&quot;:&quot;$user_token&quot;}' \
   $server_url/v1/auth/token/verify
 </code></pre>
-<a class="header" href="#test-3" id="test-3"><h2>Test</h2></a>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-let mut client = create_client();
-let (service, service_key) = create_service_key(&amp;client);
-let user_email = create_user_email();
-
-client.options.set_authorisation(&amp;service_key.value);
-let user = create_user(&amp;client, &quot;User Name&quot;, &amp;user_email, true, Some(&quot;guest&quot;));
-let _user_key = create_user_key(&amp;client, &quot;Key Name&quot;, service.id, user.id);
-
-microsoft_oauth2_request(&amp;client);
-// TODO(test): Test OAuth2 flow, user email in initial request?
-#}</code></pre></pre>
-<pre><pre class="playpen"><code class="language-rust skeptic-template">use manual::*;
-fn main() {{
-    {}
-}}
-</code></pre></pre>
 <a class="header" href="#introduction-2" id="introduction-2"><h1>Introduction</h1></a>
 <p><strong>Warning: The author of this application is not a security expert, nor has the code undergone any kind of review or verification. Use it at your own risk.</strong></p>
 <p>Ark Auth is an authentication server, it is intended to be used as a backend for other services which must authenticate their users requests.</p>
@@ -646,18 +568,6 @@ fn main() {{
 <a class="header" href="#response-200-ok" id="response-200-ok"><h2>Response [200, OK]</h2></a>
 <pre><code class="language-json">&quot;pong&quot;
 </code></pre>
-<a class="header" href="#test-4" id="test-4"><h3>Test</h3></a>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-let client = create_client();
-ping_server(&amp;client);
-#}</code></pre></pre>
-<pre><pre class="playpen"><code class="language-rust skeptic-template">use manual::*;
-fn main() {{
-    {}
-}}
-</code></pre></pre>
 <a class="header" href="#introduction-3" id="introduction-3"><h1>Introduction</h1></a>
 <p><strong>Warning: The author of this application is not a security expert, nor has the code undergone any kind of review or verification. Use it at your own risk.</strong></p>
 <p>Ark Auth is an authentication server, it is intended to be used as a backend for other services which must authenticate their users requests.</p>
@@ -847,7 +757,7 @@ fn main() {{
 <li><code>token</code>: JWT authentication token for user.</li>
 <li><code>token_expires</code>: JWT expiry time, unix timestamp.</li>
 </ul>
-<a class="header" href="#test-5" id="test-5"><h3>Test</h3></a>
+<a class="header" href="#test" id="test"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-login-ok">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1003,7 +913,7 @@ assert!(user_token.token_expires &gt; 0);
 <li>User password is invalid or incorrect or null.</li>
 <li>User is not assigned key for service.</li>
 </ul>
-<a class="header" href="#test-6" id="test-6"><h3>Test</h3></a>
+<a class="header" href="#test-1" id="test-1"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-login-bad-request">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1090,7 +1000,7 @@ auth_login_post_400(&amp;service_key, &amp;user_email, &quot;guest&quot;);
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-7" id="test-7"><h3>Test</h3></a>
+<a class="header" href="#test-2" id="test-2"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-login-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1134,7 +1044,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <li><code>email</code>: User email address (required).</li>
 </ul>
 <a class="header" href="#response-200-ok-2" id="response-200-ok-2"><h2>Response [200, OK]</h2></a>
-<a class="header" href="#test-8" id="test-8"><h3>Test</h3></a>
+<a class="header" href="#test-3" id="test-3"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-password-ok">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1251,7 +1161,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <li>User password is null.</li>
 <li>Unable to send password reset email.</li>
 </ul>
-<a class="header" href="#test-9" id="test-9"><h3>Test</h3></a>
+<a class="header" href="#test-4" id="test-4"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-password-bad-request">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1290,7 +1200,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-10" id="test-10"><h3>Test</h3></a>
+<a class="header" href="#test-5" id="test-5"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-password-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1355,7 +1265,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <li>User password is invalid.</li>
 <li>User is not assigned key for service.</li>
 </ul>
-<a class="header" href="#test-11" id="test-11"><h3>Test</h3></a>
+<a class="header" href="#test-6" id="test-6"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-password-confirm-bad-request">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1408,7 +1318,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-12" id="test-12"><h3>Test</h3></a>
+<a class="header" href="#test-7" id="test-7"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-password-confirm-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1547,7 +1457,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <li><code>user_id</code>: User ID.</li>
 <li><code>key</code>: User key.</li>
 </ul>
-<a class="header" href="#test-13" id="test-13"><h3>Test</h3></a>
+<a class="header" href="#test-8" id="test-8"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-verify-ok">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1663,7 +1573,7 @@ assert_eq!(verify_user_key.key, user_key.value);
 <li>Key is invalid.</li>
 <li>Key is for a service.</li>
 </ul>
-<a class="header" href="#test-14" id="test-14"><h3>Test</h3></a>
+<a class="header" href="#test-9" id="test-9"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-verify-bad-request">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1702,7 +1612,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-15" id="test-15"><h3>Test</h3></a>
+<a class="header" href="#test-10" id="test-10"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-verify-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1745,7 +1655,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <li><code>key</code>: User key (required).</li>
 </ul>
 <a class="header" href="#response-200-ok-7" id="response-200-ok-7"><h2>Response [200, OK]</h2></a>
-<a class="header" href="#test-16" id="test-16"><h3>Test</h3></a>
+<a class="header" href="#test-11" id="test-11"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-revoke-ok">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1874,7 +1784,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <li>Key is invalid.</li>
 <li>Key is for a service.</li>
 </ul>
-<a class="header" href="#test-17" id="test-17"><h3>Test</h3></a>
+<a class="header" href="#test-12" id="test-12"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-revoke-bad-request">
 # #![allow(unused_variables)]
 #fn main() {
@@ -1913,7 +1823,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-18" id="test-18"><h3>Test</h3></a>
+<a class="header" href="#test-13" id="test-13"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-revoke-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2021,7 +1931,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <li><code>token</code>: JWT authentication token for user.</li>
 <li><code>token_expires</code>: JWT expiry time, unix timestamp.</li>
 </ul>
-<a class="header" href="#test-19" id="test-19"><h3>Test</h3></a>
+<a class="header" href="#test-14" id="test-14"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-verify-ok">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2142,7 +2052,7 @@ assert_eq!(user_token_verify.token_expires, user_token.token_expires);
 <li>Token is invalid.</li>
 <li>Token is not for authorised service.</li>
 </ul>
-<a class="header" href="#test-20" id="test-20"><h3>Test</h3></a>
+<a class="header" href="#test-15" id="test-15"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-verify-bad-request">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2181,7 +2091,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-21" id="test-21"><h3>Test</h3></a>
+<a class="header" href="#test-16" id="test-16"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-verify-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2238,7 +2148,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <li><code>token</code>: JWT authentication token for user.</li>
 <li><code>token_expires</code>: JWT expiry time, unix timestamp.</li>
 </ul>
-<a class="header" href="#test-22" id="test-22"><h3>Test</h3></a>
+<a class="header" href="#test-17" id="test-17"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-refresh-ok">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2362,7 +2272,7 @@ assert!(refresh_user_token.token_expires &gt; user_token.token_expires);
 <li>Token is invalid.</li>
 <li>Token is not for authorised service.</li>
 </ul>
-<a class="header" href="#test-23" id="test-23"><h3>Test</h3></a>
+<a class="header" href="#test-18" id="test-18"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-refresh-bad-request">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2401,7 +2311,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-24" id="test-24"><h3>Test</h3></a>
+<a class="header" href="#test-19" id="test-19"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-refresh-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2444,7 +2354,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <li><code>token</code>: JWT authentication token for user (required).</li>
 </ul>
 <a class="header" href="#response-200-ok-10" id="response-200-ok-10"><h2>Response [200, OK]</h2></a>
-<a class="header" href="#test-25" id="test-25"><h3>Test</h3></a>
+<a class="header" href="#test-20" id="test-20"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-revoke-ok">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2577,7 +2487,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <li>Token is invalid.</li>
 <li>Token is not for authorised service.</li>
 </ul>
-<a class="header" href="#test-26" id="test-26"><h3>Test</h3></a>
+<a class="header" href="#test-21" id="test-21"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-revoke-bad-request">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2616,7 +2526,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-27" id="test-27"><h3>Test</h3></a>
+<a class="header" href="#test-22" id="test-22"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-revoke-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2729,7 +2639,7 @@ assert_eq!(content_length, &quot;0&quot;);
 </ul>
 <a class="header" href="#data-4" id="data-4"><h3>Data</h3></a>
 <p>Array of IDs.</p>
-<a class="header" href="#test-28" id="test-28"><h3>Test</h3></a>
+<a class="header" href="#test-23" id="test-23"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-list-ok">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2759,7 +2669,7 @@ assert_eq!(data[0], service_key.id);
 <ul>
 <li>Request query is invalid.</li>
 </ul>
-<a class="header" href="#test-29" id="test-29"><h3>Test</h3></a>
+<a class="header" href="#test-24" id="test-24"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-list-bad-request">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2806,7 +2716,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <ul>
 <li>Authorisation header is missing or invalid.</li>
 </ul>
-<a class="header" href="#test-30" id="test-30"><h3>Test</h3></a>
+<a class="header" href="#test-25" id="test-25"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-list-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2880,7 +2790,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-31" id="test-31"><h3>Test</h3></a>
+<a class="header" href="#test-26" id="test-26"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-create-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -2943,7 +2853,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-32" id="test-32"><h3>Test</h3></a>
+<a class="header" href="#test-27" id="test-27"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-read-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -3101,7 +3011,7 @@ assert_eq!(content_length, &quot;0&quot;);
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-33" id="test-33"><h3>Test</h3></a>
+<a class="header" href="#test-28" id="test-28"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-read-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -3222,7 +3132,7 @@ TODO(test): Finish, improve manual tests.</p>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-34" id="test-34"><h3>Test</h3></a>
+<a class="header" href="#test-29" id="test-29"><h3>Test</h3></a>
 <pre><pre class="playpen"><code class="language-rust skt-list-forbidden">
 # #![allow(unused_variables)]
 #fn main() {
@@ -3255,12 +3165,14 @@ assert_eq!(content_length, &quot;0&quot;);
 <pre><code class="language-json">{
   &quot;name&quot;: &quot;User Name&quot;,
   &quot;email&quot;: &quot;user@example.com&quot;,
+  &quot;active&quot;: true,
   &quot;password&quot;: &quot;guest&quot;
 }
 </code></pre>
 <ul>
 <li><code>name</code>: User name (required).</li>
 <li><code>email</code>: User email address, must be unique (required).</li>
+<li><code>active</code>: User is active flag (required).</li>
 <li><code>password</code>: User password, optional.</li>
 </ul>
 <a class="header" href="#response-200-ok-18" id="response-200-ok-18"><h2>Response [200, OK]</h2></a>
@@ -3274,7 +3186,8 @@ assert_eq!(content_length, &quot;0&quot;);
     &quot;updated_at&quot;: &quot;2019...04Z&quot;,
     &quot;id&quot;: 10,
     &quot;name&quot;: &quot;User Name&quot;,
-    &quot;email&quot;: &quot;user@example.com&quot;
+    &quot;email&quot;: &quot;user@example.com&quot;,
+    &quot;active&quot;: true
   }
 }
 </code></pre>
@@ -3290,43 +3203,8 @@ assert_eq!(content_length, &quot;0&quot;);
 <li><code>id</code>: User ID.</li>
 <li><code>name</code>: User name.</li>
 <li><code>email</code>: User email address.</li>
+<li><code>active</code>: User is active flag.</li>
 </ul>
-<a class="header" href="#test-35" id="test-35"><h3>Test</h3></a>
-<pre><pre class="playpen"><code class="language-rust skt-create-ok">
-# #![allow(unused_variables)]
-#fn main() {
-let (_service, service_key) = service_key_create(&amp;client);
-let url = server_url(&quot;/v1/user&quot;);
-let user_email = user_email_create();
-let before = Utc::now();
-
-let request = user::CreateBody {
-    name: &quot;User Name&quot;.to_owned(),
-    email: user_email.clone(),
-    active: true,
-    password: Some(&quot;guest&quot;.to_owned()),
-};
-let mut response = client
-    .post(&amp;url)
-    .header(&quot;content-type&quot;, &quot;application/json&quot;)
-    .header(&quot;authorization&quot;, service_key.value.clone())
-    .json(&amp;request)
-    .send()
-    .unwrap();
-let body = response.json::&lt;user::CreateResponse&gt;().unwrap();
-let user = body.data;
-let status = response.status();
-let content_type = header_get(&amp;response, &quot;content-type&quot;);
-assert_eq!(status, 200);
-assert_eq!(content_type, &quot;application/json&quot;);
-assert!(user.created_at.gt(&amp;before));
-assert!(user.updated_at.gt(&amp;before));
-assert!(user.id &gt; 0);
-assert_eq!(user.name, &quot;User Name&quot;);
-assert_eq!(user.email, user_email);
-assert!(user.password_hash.is_none());
-assert!(user.password_revision.is_none());
-#}</code></pre></pre>
 <a class="header" href="#response-400-bad-request-13" id="response-400-bad-request-13"><h2>Response [400, Bad Request]</h2></a>
 <ul>
 <li>Request body is invalid.</li>
@@ -3334,92 +3212,10 @@ assert!(user.password_revision.is_none());
 <li>User email address is invalid or not unique.</li>
 <li>User password is invalid.</li>
 </ul>
-<a class="header" href="#test-36" id="test-36"><h3>Test</h3></a>
-<pre><pre class="playpen"><code class="language-rust skt-create-bad-request">
-# #![allow(unused_variables)]
-#fn main() {
-let (_service, service_key) = service_key_create(&amp;client);
-let url = server_url(&quot;/v1/user&quot;);
-
-// Duplicate user email address.
-let user_email = user_email_create();
-let request = user::CreateBody {
-    name: &quot;User Name&quot;.to_owned(),
-    email: user_email.clone(),
-    active: true,
-    password: None,
-};
-let mut response = client
-    .post(&amp;url)
-    .header(&quot;content-type&quot;, &quot;application/json&quot;)
-    .header(&quot;authorization&quot;, service_key.value.clone())
-    .json(&amp;request)
-    .send()
-    .unwrap();
-let body = response.json::&lt;user::CreateResponse&gt;().unwrap();
-let user = body.data;
-let status = response.status();
-let content_type = header_get(&amp;response, &quot;content-type&quot;);
-assert_eq!(status, 200);
-assert_eq!(content_type, &quot;application/json&quot;);
-assert!(user.id &gt; 0);
-assert_eq!(user.name, &quot;User Name&quot;);
-assert_eq!(user.email, user_email);
-assert!(user.password_hash.is_none());
-assert!(user.password_revision.is_none());
-
-let response = client
-    .post(&amp;url)
-    .header(&quot;content-type&quot;, &quot;application/json&quot;)
-    .header(&quot;authorization&quot;, service_key.value.clone())
-    .json(&amp;request)
-    .send()
-    .unwrap();
-let status = response.status();
-let content_length = header_get(&amp;response, &quot;content-length&quot;);
-assert_eq!(status, 400);
-assert_eq!(content_length, &quot;0&quot;);
-#}</code></pre></pre>
-<p>TODO(test): Create user bad requests.</p>
 <a class="header" href="#response-403-forbidden-17" id="response-403-forbidden-17"><h2>Response [403, Forbidden]</h2></a>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-37" id="test-37"><h3>Test</h3></a>
-<pre><pre class="playpen"><code class="language-rust skt-create-forbidden">
-# #![allow(unused_variables)]
-#fn main() {
-let url = server_url(&quot;/v1/user&quot;);
-let request = user::CreateBody {
-    name: &quot;User Name&quot;.to_owned(),
-    email: user_email_create(),
-    active: true,
-    password: None,
-};
-
-let response = client
-    .post(&amp;url)
-    .header(&quot;content-type&quot;, &quot;application/json&quot;)
-    .json(&amp;request)
-    .send()
-    .unwrap();
-let status = response.status();
-let content_length = header_get(&amp;response, &quot;content-length&quot;);
-assert_eq!(status, 403);
-assert_eq!(content_length, &quot;0&quot;);
-
-let response = client
-    .post(&amp;url)
-    .header(&quot;content-type&quot;, &quot;application/json&quot;)
-    .header(&quot;authorization&quot;, &quot;some-invalid-key&quot;)
-    .json(&amp;request)
-    .send()
-    .unwrap();
-let status = response.status();
-let content_length = header_get(&amp;response, &quot;content-length&quot;);
-assert_eq!(status, 403);
-assert_eq!(content_length, &quot;0&quot;);
-#}</code></pre></pre>
 <a class="header" href="#read-get-v1userid" id="read-get-v1userid"><h1>Read [GET /v1/user/{id}]</h1></a>
 <p>Read user by ID.</p>
 <a class="header" href="#response-200-ok-19" id="response-200-ok-19"><h2>Response [200, OK]</h2></a>

@@ -199,7 +199,7 @@ $ cargo run help
 <p>Format source code and run clippy.</p>
 <pre><code class="language-shell">$ cargo fmt &amp;&amp; cargo clippy
 </code></pre>
-<p>Run unit and integration tests. Integration tests are run from manual markdown files using <code>skeptic</code>, which require <code>TEST_URL</code> and <code>TEST_KEY</code> environment variables to set. In case of dependency resolution problems while compiling, run <code>cargo clean</code>.</p>
+<p>Run unit and integration tests. Tests require <code>TEST_URL</code> and <code>TEST_KEY</code> environment variables to set.</p>
 <pre><code class="language-shell">$ export TEST_URL=&quot;...&quot;
 $ export TEST_KEY=&quot;...&quot;
 $ diesel database reset --migration-dir ark_auth/migrations/postgres

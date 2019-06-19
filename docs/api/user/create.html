@@ -146,12 +146,14 @@
 <pre><code class="language-json">{
   &quot;name&quot;: &quot;User Name&quot;,
   &quot;email&quot;: &quot;user@example.com&quot;,
+  &quot;active&quot;: true,
   &quot;password&quot;: &quot;guest&quot;
 }
 </code></pre>
 <ul>
 <li><code>name</code>: User name (required).</li>
 <li><code>email</code>: User email address, must be unique (required).</li>
+<li><code>active</code>: User is active flag (required).</li>
 <li><code>password</code>: User password, optional.</li>
 </ul>
 <a class="header" href="#response-200-ok" id="response-200-ok"><h2>Response [200, OK]</h2></a>
@@ -165,7 +167,8 @@
     &quot;updated_at&quot;: &quot;2019...04Z&quot;,
     &quot;id&quot;: 10,
     &quot;name&quot;: &quot;User Name&quot;,
-    &quot;email&quot;: &quot;user@example.com&quot;
+    &quot;email&quot;: &quot;user@example.com&quot;,
+    &quot;active&quot;: true
   }
 }
 </code></pre>
@@ -181,43 +184,8 @@
 <li><code>id</code>: User ID.</li>
 <li><code>name</code>: User name.</li>
 <li><code>email</code>: User email address.</li>
+<li><code>active</code>: User is active flag.</li>
 </ul>
-<a class="header" href="#test" id="test"><h3>Test</h3></a>
-<pre><pre class="playpen"><code class="language-rust skt-create-ok">
-# #![allow(unused_variables)]
-#fn main() {
-let (_service, service_key) = service_key_create(&amp;client);
-let url = server_url(&quot;/v1/user&quot;);
-let user_email = user_email_create();
-let before = Utc::now();
-
-let request = user::CreateBody {
-    name: &quot;User Name&quot;.to_owned(),
-    email: user_email.clone(),
-    active: true,
-    password: Some(&quot;guest&quot;.to_owned()),
-};
-let mut response = client
-    .post(&amp;url)
-    .header(&quot;content-type&quot;, &quot;application/json&quot;)
-    .header(&quot;authorization&quot;, service_key.value.clone())
-    .json(&amp;request)
-    .send()
-    .unwrap();
-let body = response.json::&lt;user::CreateResponse&gt;().unwrap();
-let user = body.data;
-let status = response.status();
-let content_type = header_get(&amp;response, &quot;content-type&quot;);
-assert_eq!(status, 200);
-assert_eq!(content_type, &quot;application/json&quot;);
-assert!(user.created_at.gt(&amp;before));
-assert!(user.updated_at.gt(&amp;before));
-assert!(user.id &gt; 0);
-assert_eq!(user.name, &quot;User Name&quot;);
-assert_eq!(user.email, user_email);
-assert!(user.password_hash.is_none());
-assert!(user.password_revision.is_none());
-#}</code></pre></pre>
 <a class="header" href="#response-400-bad-request" id="response-400-bad-request"><h2>Response [400, Bad Request]</h2></a>
 <ul>
 <li>Request body is invalid.</li>
@@ -225,92 +193,10 @@ assert!(user.password_revision.is_none());
 <li>User email address is invalid or not unique.</li>
 <li>User password is invalid.</li>
 </ul>
-<a class="header" href="#test-1" id="test-1"><h3>Test</h3></a>
-<pre><pre class="playpen"><code class="language-rust skt-create-bad-request">
-# #![allow(unused_variables)]
-#fn main() {
-let (_service, service_key) = service_key_create(&amp;client);
-let url = server_url(&quot;/v1/user&quot;);
-
-// Duplicate user email address.
-let user_email = user_email_create();
-let request = user::CreateBody {
-    name: &quot;User Name&quot;.to_owned(),
-    email: user_email.clone(),
-    active: true,
-    password: None,
-};
-let mut response = client
-    .post(&amp;url)
-    .header(&quot;content-type&quot;, &quot;application/json&quot;)
-    .header(&quot;authorization&quot;, service_key.value.clone())
-    .json(&amp;request)
-    .send()
-    .unwrap();
-let body = response.json::&lt;user::CreateResponse&gt;().unwrap();
-let user = body.data;
-let status = response.status();
-let content_type = header_get(&amp;response, &quot;content-type&quot;);
-assert_eq!(status, 200);
-assert_eq!(content_type, &quot;application/json&quot;);
-assert!(user.id &gt; 0);
-assert_eq!(user.name, &quot;User Name&quot;);
-assert_eq!(user.email, user_email);
-assert!(user.password_hash.is_none());
-assert!(user.password_revision.is_none());
-
-let response = client
-    .post(&amp;url)
-    .header(&quot;content-type&quot;, &quot;application/json&quot;)
-    .header(&quot;authorization&quot;, service_key.value.clone())
-    .json(&amp;request)
-    .send()
-    .unwrap();
-let status = response.status();
-let content_length = header_get(&amp;response, &quot;content-length&quot;);
-assert_eq!(status, 400);
-assert_eq!(content_length, &quot;0&quot;);
-#}</code></pre></pre>
-<p>TODO(test): Create user bad requests.</p>
 <a class="header" href="#response-403-forbidden" id="response-403-forbidden"><h2>Response [403, Forbidden]</h2></a>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<a class="header" href="#test-2" id="test-2"><h3>Test</h3></a>
-<pre><pre class="playpen"><code class="language-rust skt-create-forbidden">
-# #![allow(unused_variables)]
-#fn main() {
-let url = server_url(&quot;/v1/user&quot;);
-let request = user::CreateBody {
-    name: &quot;User Name&quot;.to_owned(),
-    email: user_email_create(),
-    active: true,
-    password: None,
-};
-
-let response = client
-    .post(&amp;url)
-    .header(&quot;content-type&quot;, &quot;application/json&quot;)
-    .json(&amp;request)
-    .send()
-    .unwrap();
-let status = response.status();
-let content_length = header_get(&amp;response, &quot;content-length&quot;);
-assert_eq!(status, 403);
-assert_eq!(content_length, &quot;0&quot;);
-
-let response = client
-    .post(&amp;url)
-    .header(&quot;content-type&quot;, &quot;application/json&quot;)
-    .header(&quot;authorization&quot;, &quot;some-invalid-key&quot;)
-    .json(&amp;request)
-    .send()
-    .unwrap();
-let status = response.status();
-let content_length = header_get(&amp;response, &quot;content-length&quot;);
-assert_eq!(status, 403);
-assert_eq!(content_length, &quot;0&quot;);
-#}</code></pre></pre>
 
                     </main>
 
