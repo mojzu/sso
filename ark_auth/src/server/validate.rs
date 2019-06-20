@@ -1,12 +1,13 @@
 use crate::server::Error;
 use futures::future;
 use serde::de::DeserializeOwned;
+use serde_json::Value;
 use validator::{Validate, ValidationError};
 
 /// Validate JSON value trait.
 pub trait FromJsonValue<T: DeserializeOwned + Validate> {
     /// Extract and validate data from JSON value.
-    fn from_value(value: serde_json::Value) -> future::FutureResult<T, Error> {
+    fn from_value(value: Value) -> future::FutureResult<T, Error> {
         future::result(
             serde_json::from_value::<T>(value)
                 .map_err(|_err| Error::BadRequest)

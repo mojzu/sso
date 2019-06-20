@@ -4,6 +4,7 @@ use crate::server::{validate, Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpResponse};
 use futures::Future;
+use serde_json::Value;
 use validator::Validate;
 
 pub fn route_v1_scope() -> actix_web::Scope {
@@ -52,7 +53,7 @@ pub struct ListResponse {
 fn list_handler(
     data: web::Data<Data>,
     id: Identity,
-    query: web::Query<serde_json::Value>,
+    query: web::Query<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
@@ -105,7 +106,7 @@ pub struct CreateResponse {
 fn create_handler(
     data: web::Data<Data>,
     id: Identity,
-    body: web::Json<serde_json::Value>,
+    body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
@@ -170,7 +171,7 @@ fn update_handler(
     data: web::Data<Data>,
     id: Identity,
     path: web::Path<(i64,)>,
-    body: web::Json<serde_json::Value>,
+    body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 

@@ -5,6 +5,7 @@ use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpResponse};
 use futures::Future;
+use serde_json::Value;
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/token")
@@ -28,7 +29,7 @@ pub fn route_v1_scope() -> actix_web::Scope {
 fn verify_handler(
     data: web::Data<Data>,
     id: Identity,
-    body: web::Json<serde_json::Value>,
+    body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
@@ -51,7 +52,7 @@ fn verify_inner(data: &Data, id: Option<String>, body: &TokenBody) -> Result<Tok
 fn refresh_handler(
     data: web::Data<Data>,
     id: Identity,
-    body: web::Json<serde_json::Value>,
+    body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
@@ -83,7 +84,7 @@ fn refresh_inner(
 fn revoke_handler(
     data: web::Data<Data>,
     id: Identity,
-    body: web::Json<serde_json::Value>,
+    body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 

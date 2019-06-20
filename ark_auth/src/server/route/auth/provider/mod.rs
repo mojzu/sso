@@ -19,9 +19,9 @@ pub fn route_v1_scope() -> actix_web::Scope {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct Oauth2CallbackQuery {
     #[validate(custom = "validate::token")]
-    code: String,
+    pub code: String,
     #[validate(custom = "validate::token")]
-    state: String,
+    pub state: String,
 }
 
 impl validate::FromJsonValue<Oauth2CallbackQuery> for Oauth2CallbackQuery {}

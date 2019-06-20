@@ -1,6 +1,10 @@
 use crate::client::async_impl::AsyncClient;
 use crate::client::Error;
-use crate::server::route::auth::provider::local::{LoginBody, LoginResponse, ResetPasswordBody};
+use crate::server::route::auth::provider::local::{
+    LoginBody, LoginResponse, ResetPasswordBody, ResetPasswordConfirmBody,
+    ResetPasswordConfirmResponse,
+};
+use crate::server::route::auth::provider::Oauth2UrlResponse;
 use crate::server::route::auth::{KeyBody, KeyResponse, TokenBody, TokenResponse};
 use futures::Future;
 
@@ -33,6 +37,39 @@ impl AsyncClient {
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
             .map(|_res| ())
+    }
+
+    pub fn auth_local_reset_password_confirm(
+        &self,
+        token: &str,
+        password: &str,
+    ) -> impl Future<Item = ResetPasswordConfirmResponse, Error = Error> {
+        let body = ResetPasswordConfirmBody {
+            token: token.to_owned(),
+            password: password.to_owned(),
+        };
+
+        self.post("/v1/auth/provider/local/reset/password/confirm")
+            .send_json(&body)
+            .map_err(|_err| Error::Unwrap)
+            .and_then(AsyncClient::match_status_code)
+            .and_then(|mut res| {
+                res.json::<ResetPasswordConfirmResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
+    }
+
+    pub fn auth_microsoft_oauth2_request(
+        &self,
+    ) -> impl Future<Item = Oauth2UrlResponse, Error = Error> {
+        self.post("/v1/auth/provider/microsoft/oauth2")
+            .send()
+            .map_err(|_err| Error::Unwrap)
+            .and_then(AsyncClient::match_status_code)
+            .and_then(|mut res| {
+                res.json::<Oauth2UrlResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 
     pub fn auth_key_verify(&self, key: &str) -> impl Future<Item = KeyResponse, Error = Error> {

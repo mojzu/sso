@@ -5,6 +5,7 @@ use crate::server::{smtp, validate, Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpResponse};
 use futures::{future, Future};
+use serde_json::Value;
 use validator::Validate;
 
 pub fn route_v1_scope() -> actix_web::Scope {
@@ -49,7 +50,7 @@ pub struct LoginResponse {
 fn login_handler(
     data: web::Data<Data>,
     id: Identity,
-    body: web::Json<serde_json::Value>,
+    body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
@@ -115,7 +116,7 @@ impl FromJsonValue<ResetPasswordBody> for ResetPasswordBody {}
 fn reset_password_handler(
     data: web::Data<Data>,
     id: Identity,
-    body: web::Json<serde_json::Value>,
+    body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
@@ -176,7 +177,7 @@ pub struct ResetPasswordConfirmResponse {
 fn reset_password_confirm_handler(
     data: web::Data<Data>,
     id: Identity,
-    body: web::Json<serde_json::Value>,
+    body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 

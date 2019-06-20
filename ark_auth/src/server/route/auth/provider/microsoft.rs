@@ -13,6 +13,7 @@ use oauth2::{
     basic::BasicClient, AuthType, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken,
     PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, Scope, TokenResponse, TokenUrl,
 };
+use serde_json::Value;
 use url::Url;
 
 pub fn route_v1_scope() -> actix_web::Scope {
@@ -48,7 +49,7 @@ fn request_inner(data: &Data, id: Option<String>) -> Result<Oauth2UrlResponse, E
 
 fn oauth2_callback_handler(
     data: web::Data<Data>,
-    query: web::Query<serde_json::Value>,
+    query: web::Query<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     Oauth2CallbackQuery::from_value(query.into_inner())
         .and_then(|query| {

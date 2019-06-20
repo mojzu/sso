@@ -1,18 +1,20 @@
-use crate::{core, driver, server};
+use crate::driver::Driver;
+use crate::{core, server};
+use actix_rt::System;
 
 /// Create a root key.
-pub fn create_root_key(driver: Box<driver::Driver>, name: &str) -> Result<core::Key, core::Error> {
+pub fn create_root_key(driver: Box<Driver>, name: &str) -> Result<core::Key, core::Error> {
     core::key::create_root(driver.as_ref(), name)
 }
 
 /// Delete all root keys.
-pub fn delete_root_keys(driver: Box<driver::Driver>) -> Result<usize, core::Error> {
+pub fn delete_root_keys(driver: Box<Driver>) -> Result<usize, core::Error> {
     core::key::delete_root(driver.as_ref())
 }
 
 /// Create a service with service key.
 pub fn create_service_with_key(
-    driver: Box<driver::Driver>,
+    driver: Box<Driver>,
     name: &str,
     url: &str,
 ) -> Result<(core::Service, core::Key), core::Error> {
@@ -23,10 +25,10 @@ pub fn create_service_with_key(
 
 /// Start server.
 pub fn start_server(
-    driver: Box<driver::Driver>,
+    driver: Box<Driver>,
     configuration: server::Configuration,
 ) -> Result<(), server::Error> {
-    let system = actix_rt::System::new(crate_name!());
+    let system = System::new(crate_name!());
 
     server::start(configuration, driver)?;
 
