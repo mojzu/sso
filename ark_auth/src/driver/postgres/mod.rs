@@ -1,5 +1,5 @@
 //! # PostgreSQL Driver
-mod models;
+mod model;
 mod schema;
 
 use crate::core::{Audit, Csrf, Key, Service, User};
@@ -115,7 +115,7 @@ impl driver::Driver for Driver {
         let conn = self.connection()?;
         let now = Utc::now();
         let id = Driver::uuid();
-        let value = models::AuthKeyInsert {
+        let value = model::AuthKeyInsert {
             created_at: &now,
             updated_at: &now,
             key_id: &id,
@@ -127,7 +127,7 @@ impl driver::Driver for Driver {
         };
         diesel::insert_into(auth_key)
             .values(&value)
-            .get_result::<models::AuthKey>(&conn)
+            .get_result::<model::AuthKey>(&conn)
             .map_err(Error::Diesel)
             .map(Into::into)
     }
@@ -138,7 +138,7 @@ impl driver::Driver for Driver {
         let conn = self.connection()?;
         auth_key
             .filter(key_id.eq(id))
-            .get_result::<models::AuthKey>(&conn)
+            .get_result::<model::AuthKey>(&conn)
             .map(|key| Some(key.into()))
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
@@ -158,7 +158,7 @@ impl driver::Driver for Driver {
             .filter(user_id.eq(key_user_id).and(service_id.eq(key_service_id)))
             // TODO(refactor): Better method to handle multiple keys?
             .order(created_at.asc())
-            .get_result::<models::AuthKey>(&conn)
+            .get_result::<model::AuthKey>(&conn)
             .map(|key| Some(key.into()))
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
@@ -177,7 +177,7 @@ impl driver::Driver for Driver {
                     .and(service_id.is_null())
                     .and(user_id.is_null()),
             )
-            .get_result::<models::AuthKey>(&conn)
+            .get_result::<model::AuthKey>(&conn)
             .map(|key| Some(key.into()))
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
@@ -196,7 +196,7 @@ impl driver::Driver for Driver {
                     .and(service_id.is_not_null())
                     .and(user_id.is_null()),
             )
-            .get_result::<models::AuthKey>(&conn)
+            .get_result::<model::AuthKey>(&conn)
             .map(|key| Some(key.into()))
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
@@ -218,7 +218,7 @@ impl driver::Driver for Driver {
                     .eq(value)
                     .and(service_id.eq(key_service_id).and(user_id.is_not_null())),
             )
-            .get_result::<models::AuthKey>(&conn)
+            .get_result::<model::AuthKey>(&conn)
             .map(|key| Some(key.into()))
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
@@ -236,14 +236,14 @@ impl driver::Driver for Driver {
 
         let conn = self.connection()?;
         let now = chrono::Utc::now();
-        let value = models::AuthKeyUpdate {
+        let value = model::AuthKeyUpdate {
             updated_at: &now,
             key_is_active: is_active,
             key_name: name,
         };
         diesel::update(auth_key.filter(key_id.eq(id)))
             .set(&value)
-            .get_result::<models::AuthKey>(&conn)
+            .get_result::<model::AuthKey>(&conn)
             .map_err(Error::Diesel)
             .map(Into::into)
     }
@@ -298,7 +298,7 @@ impl driver::Driver for Driver {
         let conn = self.connection()?;
         let now = Utc::now();
         let id = Driver::uuid();
-        let value = models::AuthServiceInsert {
+        let value = model::AuthServiceInsert {
             created_at: &now,
             updated_at: &now,
             service_id: &id,
@@ -308,7 +308,7 @@ impl driver::Driver for Driver {
         };
         diesel::insert_into(auth_service)
             .values(&value)
-            .get_result::<models::AuthService>(&conn)
+            .get_result::<model::AuthService>(&conn)
             .map_err(Error::Diesel)
             .map(Into::into)
     }
@@ -319,7 +319,7 @@ impl driver::Driver for Driver {
         let conn = self.connection()?;
         auth_service
             .filter(service_id.eq(id))
-            .get_result::<models::AuthService>(&conn)
+            .get_result::<model::AuthService>(&conn)
             .map(|service| Some(service.into()))
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
@@ -337,14 +337,14 @@ impl driver::Driver for Driver {
 
         let conn = self.connection()?;
         let now = chrono::Utc::now();
-        let value = models::AuthServiceUpdate {
+        let value = model::AuthServiceUpdate {
             updated_at: &now,
             service_is_active: is_active,
             service_name: name,
         };
         diesel::update(auth_service.filter(service_id.eq(id)))
             .set(&value)
-            .get_result::<models::AuthService>(&conn)
+            .get_result::<model::AuthService>(&conn)
             .map_err(Error::Diesel)
             .map(Into::into)
     }
@@ -409,7 +409,7 @@ impl driver::Driver for Driver {
         let conn = self.connection()?;
         let now = Utc::now();
         let id = Driver::uuid();
-        let value = models::AuthUserInsert {
+        let value = model::AuthUserInsert {
             created_at: &now,
             updated_at: &now,
             user_id: &id,
@@ -420,7 +420,7 @@ impl driver::Driver for Driver {
         };
         diesel::insert_into(auth_user)
             .values(&value)
-            .get_result::<models::AuthUser>(&conn)
+            .get_result::<model::AuthUser>(&conn)
             .map_err(Error::Diesel)
             .map(Into::into)
     }
@@ -431,7 +431,7 @@ impl driver::Driver for Driver {
         let conn = self.connection()?;
         auth_user
             .filter(user_id.eq(id))
-            .get_result::<models::AuthUser>(&conn)
+            .get_result::<model::AuthUser>(&conn)
             .map(|user| Some(user.into()))
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
@@ -445,7 +445,7 @@ impl driver::Driver for Driver {
         let conn = self.connection()?;
         auth_user
             .filter(user_email.eq(email))
-            .get_result::<models::AuthUser>(&conn)
+            .get_result::<model::AuthUser>(&conn)
             .map(|user| Some(user.into()))
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
@@ -463,14 +463,14 @@ impl driver::Driver for Driver {
 
         let conn = self.connection()?;
         let now = chrono::Utc::now();
-        let value = models::AuthUserUpdate {
+        let value = model::AuthUserUpdate {
             updated_at: &now,
             user_is_active: is_active,
             user_name: name,
         };
         diesel::update(auth_user.filter(user_id.eq(id)))
             .set(&value)
-            .get_result::<models::AuthUser>(&conn)
+            .get_result::<model::AuthUser>(&conn)
             .map_err(Error::Diesel)
             .map(Into::into)
     }
@@ -500,7 +500,7 @@ impl driver::Driver for Driver {
 
         let conn = self.connection()?;
         let now = Utc::now();
-        let value = models::AuthCsrfInsert {
+        let value = model::AuthCsrfInsert {
             created_at: &now,
             csrf_key: key,
             csrf_value: value,
@@ -508,7 +508,7 @@ impl driver::Driver for Driver {
         };
         diesel::insert_into(auth_csrf)
             .values(&value)
-            .get_result::<models::AuthCsrf>(&conn)
+            .get_result::<model::AuthCsrf>(&conn)
             .map_err(Error::Diesel)
             .map(Into::into)
     }
@@ -519,7 +519,7 @@ impl driver::Driver for Driver {
         let conn = self.connection()?;
         auth_csrf
             .filter(csrf_key.eq(key))
-            .get_result::<models::AuthCsrf>(&conn)
+            .get_result::<model::AuthCsrf>(&conn)
             .map(|csrf| Some(csrf.into()))
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),

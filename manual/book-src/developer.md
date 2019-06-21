@@ -64,6 +64,7 @@ Create database and run migrations.
 ```shell
 $ cd ark_auth
 $ diesel database reset --migration-dir migrations/postgres
+$ export DATABASE_URL="db.sqlite3"
 $ diesel database reset --migration-dir migrations/sqlite
 ```
 

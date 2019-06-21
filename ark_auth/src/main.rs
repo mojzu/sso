@@ -102,9 +102,8 @@ fn main() {
         ])
         .get_matches();
 
-    // Build configuration from environment and initialise driver.
-    let configuration = configuration_from_environment().unwrap();
-    let driver = initialise_driver(&configuration.database_url).box_clone();
+    // Build configuration and driver from environment.
+    let (configuration, driver) = configuration_from_environment().unwrap();
 
     // Call library functions with command line arguments.
     let result = match matches.subcommand() {
@@ -153,7 +152,7 @@ fn main() {
 }
 
 /// Build configuration from environment.
-fn configuration_from_environment() -> Result<Configuration, Error> {
+fn configuration_from_environment() -> Result<(Configuration, Box<Driver>), Error> {
     // TODO(refactor): Clean this up.
     let database_url = std::env::var("DATABASE_URL").unwrap();
     let server_bind = std::env::var("SERVER_BIND").unwrap();
@@ -192,19 +191,22 @@ fn configuration_from_environment() -> Result<Configuration, Error> {
         );
     }
 
-    Ok(Configuration {
+    let configuration = Configuration {
         database_url,
         server_configuration,
-    })
-}
+    };
 
-#[cfg(all(feature = "postgres", not(feature = "sqlite")))]
-fn initialise_driver(database_url: &str) -> impl Driver {
     // TODO(refactor): Configurable number of connections.
-    driver::postgres::Driver::initialise(database_url, 10).unwrap()
-}
+    let driver = if configuration.database_url.starts_with("postgres") {
+        driver::postgres::Driver::initialise(&configuration.database_url, 10)
+            .unwrap()
+            .box_clone()
+    } else {
+        // driver::sqlite::Driver::initialise(&configuration.database_url, 10)
+        //     .unwrap()
+        //     .box_clone()
+        unimplemented!();
+    };
 
-#[cfg(all(feature = "sqlite", not(feature = "postgres")))]
-fn initialise_driver(database_url: &str) -> impl Driver {
-    driver::sqlite::Driver::initialise(database_url).unwrap()
+    Ok((configuration, driver))
 }
