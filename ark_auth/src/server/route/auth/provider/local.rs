@@ -28,6 +28,7 @@ pub fn route_v1_scope() -> actix_web::Scope {
                         .route(web::post().to_async(reset_password_confirm_handler)),
                 ),
         )
+    // TODO(refactor): Update email/password routes.
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]

@@ -150,6 +150,8 @@ fn user_read_by_email(
 }
 
 // TODO(refactor): Check is_active flag here.
+// TODO(refactor): Improve handling of decode errors.
+// ServerError::Core CoreError::Jsonwebtoken invalid signature
 
 mod jwt {
     use crate::core::{Error, UserToken};

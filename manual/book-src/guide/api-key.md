@@ -13,7 +13,7 @@ Service creates a user without password.
 $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"name":"$user_name","email":"$user_email","active":true}' \
+  --data '{"is_active":true,"name":"$user_name","email":"$user_email"}' \
   $server_url/v1/user
 ```
 
@@ -23,7 +23,7 @@ Service creates a key for user.
 $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"name":"$key_name","user_id":$user_id}' \
+  --data '{"is_active":true,"name":"$key_name","user_id":"$user_id"}' \
   $server_url/v1/key
 ```
 
