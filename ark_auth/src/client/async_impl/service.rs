@@ -8,11 +8,15 @@ use futures::Future;
 impl AsyncClient {
     pub fn service_list(
         &self,
-        gt: Option<i64>,
-        lt: Option<i64>,
+        gt: Option<&str>,
+        lt: Option<&str>,
         limit: Option<i64>,
     ) -> impl Future<Item = ListResponse, Error = Error> {
-        let query = ListQuery { gt, lt, limit };
+        let query = ListQuery {
+            gt: gt.map(|x| x.to_owned()),
+            lt: lt.map(|x| x.to_owned()),
+            limit,
+        };
 
         self.get_query("/v1/service", query)
             .send()
@@ -23,10 +27,12 @@ impl AsyncClient {
 
     pub fn service_create(
         &self,
+        is_active: bool,
         name: &str,
         url: &str,
     ) -> impl Future<Item = CreateResponse, Error = Error> {
         let body = CreateBody {
+            is_active,
             name: name.to_owned(),
             url: url.to_owned(),
         };
@@ -38,7 +44,7 @@ impl AsyncClient {
             .and_then(|mut res| res.json::<CreateResponse>().map_err(|_err| Error::Unwrap))
     }
 
-    pub fn service_read(&self, id: i64) -> impl Future<Item = ReadResponse, Error = Error> {
+    pub fn service_read(&self, id: &str) -> impl Future<Item = ReadResponse, Error = Error> {
         let path = format!("/v1/service/{}", id);
 
         self.get(&path)

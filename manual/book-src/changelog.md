@@ -10,9 +10,10 @@
 
 ### Changed
 
+- Changed database schema to use strings as IDs.
 - Changed list route endpoints to return data ID arrays.
-- Reorganise OAuth2 routes into provider groups.
-- Reorganise login, reset routes into local provider group.
+- Moved OAuth2 routes into provider groups.
+- Moved login, reset routes into local provider group.
 - Upgrade to version 3 of `oauth2` library.
 - Removed `skeptic` from tests, use Cargo test runner.
 

@@ -6,15 +6,15 @@ use futures::Future;
 impl AsyncClient {
     pub fn user_create(
         &self,
+        is_active: bool,
         name: &str,
         email: &str,
-        active: bool,
         password: Option<&str>,
     ) -> impl Future<Item = CreateResponse, Error = Error> {
         let body = CreateBody {
+            is_active,
             name: name.to_owned(),
             email: email.to_owned(),
-            active,
             password: password.map(String::from),
         };
 

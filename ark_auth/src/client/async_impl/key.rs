@@ -6,14 +6,16 @@ use futures::Future;
 impl AsyncClient {
     pub fn key_create(
         &self,
+        is_active: bool,
         name: &str,
-        service_id: Option<i64>,
-        user_id: Option<i64>,
+        service_id: Option<&str>,
+        user_id: Option<&str>,
     ) -> impl Future<Item = CreateResponse, Error = Error> {
         let body = CreateBody {
+            is_active,
             name: name.to_owned(),
-            service_id,
-            user_id,
+            service_id: service_id.map(|x| x.to_owned()),
+            user_id: user_id.map(|x| x.to_owned()),
         };
 
         self.post("/v1/key")

@@ -13,7 +13,7 @@ pub fn create(
     delete_by_age(driver)?;
 
     driver
-        .csrf_create(key, value, service.id)
+        .csrf_create(key, value, &service.id)
         .map_err(Error::Driver)
 }
 

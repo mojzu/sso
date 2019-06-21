@@ -19,9 +19,9 @@ pub trait FromJsonValue<T: DeserializeOwned + Validate> {
     }
 }
 
-pub fn unsigned(id: i64) -> Result<(), ValidationError> {
-    if id < 0 {
-        Err(ValidationError::new("invalid_unsigned"))
+pub fn limit(limit: i64) -> Result<(), ValidationError> {
+    if limit < 0 {
+        Err(ValidationError::new("invalid_limit"))
     } else {
         Ok(())
     }
@@ -67,8 +67,8 @@ pub fn email_link_text(email_link_text: &str) -> Result<(), ValidationError> {
     }
 }
 
-pub fn id(id: i64) -> Result<(), ValidationError> {
-    if id < 1 {
+pub fn id(id: &str) -> Result<(), ValidationError> {
+    if id.is_empty() || id.len() > 32 {
         Err(ValidationError::new("invalid_id"))
     } else {
         Ok(())

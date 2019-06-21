@@ -7,11 +7,15 @@ use crate::server::route::service::{
 impl SyncClient {
     pub fn service_list(
         &self,
-        gt: Option<i64>,
-        lt: Option<i64>,
+        gt: Option<&str>,
+        lt: Option<&str>,
         limit: Option<i64>,
     ) -> Result<ListResponse, Error> {
-        let query = ListQuery { gt, lt, limit };
+        let query = ListQuery {
+            gt: gt.map(|x| x.to_owned()),
+            lt: lt.map(|x| x.to_owned()),
+            limit,
+        };
 
         self.get_query("/v1/service", query)
             .send()
@@ -20,8 +24,14 @@ impl SyncClient {
             .and_then(|mut res| res.json::<ListResponse>().map_err(|_err| Error::Unwrap))
     }
 
-    pub fn service_create(&self, name: &str, url: &str) -> Result<CreateResponse, Error> {
+    pub fn service_create(
+        &self,
+        is_active: bool,
+        name: &str,
+        url: &str,
+    ) -> Result<CreateResponse, Error> {
         let body = CreateBody {
+            is_active,
             name: name.to_owned(),
             url: url.to_owned(),
         };
@@ -33,7 +43,7 @@ impl SyncClient {
             .and_then(|mut res| res.json::<CreateResponse>().map_err(|_err| Error::Unwrap))
     }
 
-    pub fn service_read(&self, id: i64) -> Result<ReadResponse, Error> {
+    pub fn service_read(&self, id: &str) -> Result<ReadResponse, Error> {
         let path = format!("/v1/service/{}", id);
 
         self.get(&path)

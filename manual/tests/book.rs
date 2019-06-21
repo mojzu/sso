@@ -15,7 +15,7 @@ fn api_user_create_ok() {
     let user_email = create_user_email();
 
     client.options.set_authorisation(&service_key.value);
-    create_user(&client, "User Name", &user_email, true, None);
+    create_user(&client, true, "User Name", &user_email, None);
 }
 
 #[test]
@@ -25,9 +25,9 @@ fn api_user_create_bad_request_duplicate_user_email() {
     let user_email = create_user_email();
 
     client.options.set_authorisation(&service_key.value);
-    create_user(&client, "User Name", &user_email, true, None);
+    create_user(&client, true, "User Name", &user_email, None);
 
-    create_user_duplicate_email(&client, "User Name", &user_email, true, None);
+    create_user_duplicate_email(&client, true, "User Name", &user_email, None);
 }
 
 // TODO(test): Create user bad requests.
@@ -38,7 +38,7 @@ fn api_user_create_forbidden() {
     let user_email = create_user_email();
 
     client.options.set_authorisation("invalid-service-key");
-    create_user_forbidden(&client, "User Name", &user_email, true, None);
+    create_user_forbidden(&client, true, "User Name", &user_email, None);
 }
 
 // #[test]
@@ -58,8 +58,8 @@ fn guide_api_key() {
     let user_email = create_user_email();
 
     client.options.set_authorisation(&service_key.value);
-    let user = create_user(&client, "User Name", &user_email, true, None);
-    let user_key = create_user_key(&client, "Key Name", service.id, user.id);
+    let user = create_user(&client, true, "User Name", &user_email, None);
+    let user_key = create_user_key(&client, "Key Name", &service.id, &user.id);
 
     verify_user_key(&client, &user_key);
 }
@@ -71,10 +71,10 @@ fn guide_login() {
     let user_email = create_user_email();
 
     client.options.set_authorisation(&service_key.value);
-    let user = create_user(&client, "User Name", &user_email, true, Some("guest"));
-    let _user_key = create_user_key(&client, "Key Name", service.id, user.id);
+    let user = create_user(&client, true, "User Name", &user_email, Some("guest"));
+    let _user_key = create_user_key(&client, "Key Name", &service.id, &user.id);
 
-    let user_token = local_login(&client, user.id, &user_email, "guest");
+    let user_token = local_login(&client, &user.id, &user_email, "guest");
     verify_user_token(&client, &user_token);
 }
 
@@ -85,8 +85,8 @@ fn guide_oauth2_login() {
     let user_email = create_user_email();
 
     client.options.set_authorisation(&service_key.value);
-    let user = create_user(&client, "User Name", &user_email, true, Some("guest"));
-    let _user_key = create_user_key(&client, "Key Name", service.id, user.id);
+    let user = create_user(&client, true, "User Name", &user_email, Some("guest"));
+    let _user_key = create_user_key(&client, "Key Name", &service.id, &user.id);
 
     microsoft_oauth2_request(&client);
 }
@@ -98,8 +98,8 @@ fn guide_reset_password() {
     let user_email = create_user_email();
 
     client.options.set_authorisation(&service_key.value);
-    let user = create_user(&client, "User Name", &user_email, true, Some("guest"));
-    let _user_key = create_user_key(&client, "Key Name", service.id, user.id);
+    let user = create_user(&client, true, "User Name", &user_email, Some("guest"));
+    let _user_key = create_user_key(&client, "Key Name", &service.id, &user.id);
 
     local_password_reset(&client, &user_email);
 }

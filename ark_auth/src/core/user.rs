@@ -5,9 +5,9 @@ use crate::driver;
 pub fn list_where_id_lt(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
-    lt: i64,
+    lt: &str,
     limit: i64,
-) -> Result<Vec<i64>, Error> {
+) -> Result<Vec<String>, Error> {
     driver
         .user_list_where_id_lt(lt, limit)
         .map_err(Error::Driver)
@@ -17,9 +17,9 @@ pub fn list_where_id_lt(
 pub fn list_where_id_gt(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
-    gt: i64,
+    gt: &str,
     limit: i64,
-) -> Result<Vec<i64>, Error> {
+) -> Result<Vec<String>, Error> {
     driver
         .user_list_where_id_gt(gt, limit)
         .map_err(Error::Driver)
@@ -31,7 +31,7 @@ pub fn list_where_email_eq(
     _service_mask: Option<&Service>,
     email_eq: &str,
     limit: i64,
-) -> Result<Vec<i64>, Error> {
+) -> Result<Vec<String>, Error> {
     driver
         .user_list_where_email_eq(email_eq, limit)
         .map_err(Error::Driver)
@@ -42,9 +42,9 @@ pub fn list_where_email_eq(
 pub fn create(
     driver: &driver::Driver,
     service_mask: Option<&Service>,
+    is_active: bool,
     name: &str,
     email: &str,
-    active: bool,
     password: Option<&str>,
 ) -> Result<User, Error> {
     let user = read_by_email(driver, service_mask, email)?;
@@ -53,18 +53,8 @@ pub fn create(
     }
 
     let password_hash = hash_password(password)?;
-    let password_revision = match password_hash {
-        Some(_) => Some(1),
-        None => None,
-    };
     driver
-        .user_create(
-            name,
-            email,
-            active,
-            password_hash.as_ref().map(|x| &**x),
-            password_revision,
-        )
+        .user_create(is_active, name, email, password_hash.as_ref().map(|x| &**x))
         .map_err(Error::Driver)
 }
 
@@ -72,7 +62,7 @@ pub fn create(
 pub fn read_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
-    id: i64,
+    id: &str,
 ) -> Result<Option<User>, Error> {
     driver.user_read_by_id(id).map_err(Error::Driver)
 }
@@ -90,12 +80,12 @@ pub fn read_by_email(
 pub fn update_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
-    id: i64,
+    id: &str,
+    is_active: Option<bool>,
     name: Option<&str>,
-    active: Option<bool>,
 ) -> Result<User, Error> {
     driver
-        .user_update_by_id(id, name, active)
+        .user_update_by_id(id, is_active, name)
         .map_err(Error::Driver)
 }
 
@@ -103,14 +93,12 @@ pub fn update_by_id(
 pub fn update_password_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
-    id: i64,
+    id: &str,
     password: &str,
-    password_revision: i64,
 ) -> Result<usize, Error> {
     let password_hash = hash_password(Some(password))?.ok_or_else(|| Error::Forbidden)?;
-    let password_revision = password_revision + 1;
     driver
-        .user_update_password_by_id(id, &password_hash, password_revision)
+        .user_update_password_by_id(id, &password_hash)
         .map_err(Error::Driver)
 }
 
@@ -118,7 +106,7 @@ pub fn update_password_by_id(
 pub fn delete_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
-    id: i64,
+    id: &str,
 ) -> Result<usize, Error> {
     driver.user_delete_by_id(id).map_err(Error::Driver)
 }

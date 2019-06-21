@@ -6,6 +6,7 @@ pub mod user;
 
 use crate::driver;
 use chrono::{DateTime, Utc};
+use serde_json::Value;
 
 // TODO(refactor): Error string descriptions for logs.
 
@@ -34,21 +35,10 @@ pub enum Error {
 pub struct Service {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
-    pub id: i64,
+    pub id: String,
+    pub is_active: bool,
     pub name: String,
     pub url: String,
-}
-
-/// Key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Key {
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-    pub id: i64,
-    pub name: String,
-    pub value: String,
-    pub service_id: Option<i64>,
-    pub user_id: Option<i64>,
 }
 
 /// User.
@@ -56,20 +46,31 @@ pub struct Key {
 pub struct User {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
-    pub id: i64,
+    pub id: String,
+    pub is_active: bool,
     pub name: String,
-    pub active: bool,
     pub email: String,
     #[serde(skip)]
     pub password_hash: Option<String>,
-    #[serde(skip)]
-    pub password_revision: Option<i64>,
+}
+
+/// Key.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Key {
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    pub id: String,
+    pub is_active: bool,
+    pub name: String,
+    pub value: String,
+    pub service_id: Option<String>,
+    pub user_id: Option<String>,
 }
 
 /// User token.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserToken {
-    pub user_id: i64,
+    pub user_id: String,
     pub token: String,
     pub token_expires: usize,
 }
@@ -77,16 +78,33 @@ pub struct UserToken {
 /// User key.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserKey {
-    pub user_id: i64,
+    pub user_id: String,
     pub key: String,
 }
 
 /// CSRF.
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Csrf {
     pub created_at: DateTime<Utc>,
     pub key: String,
     pub value: String,
-    pub service_id: i64,
+    pub service_id: String,
+}
+
+/// Audit.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Audit {
+    pub created_at: DateTime<Utc>,
+    pub id: String,
+    pub user_agent: String,
+    pub remote: String,
+    pub forwarded_for: Option<String>,
+    pub key: String,
+    pub data: Value,
+    pub key_id: String,
+    pub service_id: Option<String>,
+    pub user_id: Option<String>,
+    pub user_key_id: Option<String>,
 }
 
 /// Hash password string using bcrypt, none is returned for none as input.

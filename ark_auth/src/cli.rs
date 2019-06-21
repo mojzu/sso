@@ -4,7 +4,7 @@ use actix_rt::System;
 
 /// Create a root key.
 pub fn create_root_key(driver: Box<Driver>, name: &str) -> Result<core::Key, core::Error> {
-    core::key::create_root(driver.as_ref(), name)
+    core::key::create_root(driver.as_ref(), true, name)
 }
 
 /// Delete all root keys.
@@ -18,8 +18,8 @@ pub fn create_service_with_key(
     name: &str,
     url: &str,
 ) -> Result<(core::Service, core::Key), core::Error> {
-    let service = core::service::create(driver.as_ref(), name, url)?;
-    let key = core::key::create_service(driver.as_ref(), name, service.id)?;
+    let service = core::service::create(driver.as_ref(), true, name, url)?;
+    let key = core::key::create_service(driver.as_ref(), true, name, &service.id)?;
     Ok((service, key))
 }
 

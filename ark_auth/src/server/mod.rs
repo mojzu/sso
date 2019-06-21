@@ -182,7 +182,7 @@ pub struct ConfigurationSmtp {
 pub struct Configuration {
     bind: String,
     user_agent: String,
-    token_expiration_time: i64,
+    token_expiration_time: usize,
     password_pwned_enabled: bool,
     smtp: Option<ConfigurationSmtp>,
     provider: ConfigurationProviderGroup,
@@ -205,7 +205,7 @@ impl Configuration {
     }
 
     /// Set token expiry time in seconds (defaults to 1 hour).
-    pub fn set_token_expiration_time(mut self, value: i64) -> Self {
+    pub fn set_token_expiration_time(mut self, value: usize) -> Self {
         self.token_expiration_time = value;
         self
     }
@@ -268,7 +268,7 @@ impl Configuration {
     }
 
     /// Get token expiry.
-    pub fn token_expiration_time(&self) -> i64 {
+    pub fn token_expiration_time(&self) -> usize {
         self.token_expiration_time
     }
 

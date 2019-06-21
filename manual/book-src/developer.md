@@ -62,8 +62,9 @@ Write export statements to file `env.sh` and run `source env.sh` to export varia
 Create database and run migrations.
 
 ```shell
-$ diesel database reset --migration-dir ark_auth/migrations/postgres
-$ diesel database reset --migration-dir ark_auth/migrations/sqlite
+$ cd ark_auth
+$ diesel database reset --migration-dir migrations/postgres
+$ diesel database reset --migration-dir migrations/sqlite
 ```
 
 Build application, run commands (see help).

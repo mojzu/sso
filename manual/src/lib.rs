@@ -1,150 +1,138 @@
-mod lib2;
+use ark_auth::client::{Client, ClientOptions, Error, RequestError, SyncClient};
+use ark_auth::core::{Key, Service, User, UserKey, UserToken};
+use ark_auth::server::route::auth::provider::Oauth2UrlResponse;
+use chrono::Utc;
 
-use ark_auth::core::{Key, Service, User};
-use ark_auth::server::route::{auth, key, user};
-pub use lib2::*;
-
-pub fn server_url(uri: &str) -> String {
-    let test_url = std::env::var("TEST_URL").unwrap();
-    format!("{}{}", test_url, uri)
+pub fn env_test_url() -> String {
+    std::env::var("TEST_URL").unwrap()
 }
 
-pub fn root_key() -> String {
+pub fn env_test_key() -> String {
     std::env::var("TEST_KEY").unwrap()
 }
 
-pub fn service_key_create(client: &reqwest::Client) -> (Service, Key) {
-    let url = server_url("/v1/service");
-    let request = ark_auth::server::route::service::CreateBody {
-        name: "test".to_owned(),
-        url: "http://localhost".to_owned(),
-    };
-    let mut response = client
-        .post(&url)
-        .header("content-type", "application/json")
-        .header("authorization", root_key())
-        .json(&request)
-        .send()
-        .unwrap();
-    let response = response
-        .json::<ark_auth::server::route::service::CreateResponse>()
-        .unwrap();
-    let service = response.data;
-
-    let url = server_url("/v1/key");
-    let request = ark_auth::server::route::key::CreateBody {
-        name: "test".to_owned(),
-        service_id: Some(service.id),
-        user_id: None,
-    };
-    let mut response = client
-        .post(&url)
-        .header("content-type", "application/json")
-        .header("authorization", root_key())
-        .json(&request)
-        .send()
-        .unwrap();
-    let response = response
-        .json::<ark_auth::server::route::key::CreateResponse>()
-        .unwrap();
-    let key = response.data;
-
-    (service, key)
-}
-
-pub fn user_email_create() -> String {
+pub fn create_user_email() -> String {
     let random = uuid::Uuid::new_v4().to_simple().to_string();
     format!("{}@example.com", random)
 }
 
-pub fn json_value(src: &str) -> serde_json::Value {
-    serde_json::from_str(src).unwrap()
+pub fn create_client() -> SyncClient {
+    let url = env_test_url();
+    let key = env_test_key();
+    let options = ClientOptions::new(&url, &key).unwrap();
+    SyncClient::new(options)
 }
 
-pub fn header_get<'a>(response: &'a reqwest::Response, name: &str) -> &'a str {
-    response.headers().get(name).unwrap().to_str().unwrap()
+pub fn ping_server(client: &SyncClient) {
+    let pong = client.ping().unwrap();
+    assert_eq!(pong, serde_json::Value::String("pong".to_owned()));
 }
 
-pub fn user_post_200(
-    service_key: &Key,
+pub fn create_service_key(client: &SyncClient) -> (Service, Key) {
+    let create_service = client
+        .service_create(true, "test", "http://localhost")
+        .unwrap();
+    let create_key = client
+        .key_create(true, "test", Some(&create_service.data.id), None)
+        .unwrap();
+    (create_service.data, create_key.data)
+}
+
+pub fn create_user(
+    client: &SyncClient,
+    is_active: bool,
     name: &str,
     email: &str,
-    active: bool,
     password: Option<&str>,
 ) -> User {
-    let client = reqwest::Client::new();
-    let request = user::CreateBody {
-        name: name.to_owned(),
-        email: email.to_owned(),
-        active,
-        password: password.map(String::from),
-    };
-    let url = server_url("/v1/user");
-    let mut response = client
-        .post(&url)
-        .header("content-type", "application/json")
-        .header("authorization", service_key.value.clone())
-        .json(&request)
-        .send()
+    let before = Utc::now();
+    let create = client
+        .user_create(is_active, name, email, password)
         .unwrap();
-    let body = response.json::<user::CreateResponse>().unwrap();
-    let user = body.data;
-    let status = response.status();
-    let content_type = header_get(&response, "content-type");
-    assert_eq!(status, 200);
-    assert_eq!(content_type, "application/json");
-    assert!(user.id > 0);
-    assert_eq!(user.name, "User Name");
+    let user = create.data;
+    assert!(user.created_at.gt(&before));
+    assert!(user.updated_at.gt(&before));
+    assert!(!user.id.is_empty());
+    assert_eq!(user.is_active, is_active);
+    assert_eq!(user.name, name);
     assert_eq!(user.email, email);
-    assert_eq!(user.active, active);
     assert!(user.password_hash.is_none());
-    assert!(user.password_revision.is_none());
     user
 }
 
-pub fn key_post_user_200(service: &Service, service_key: &Key, user: &User, name: &str) -> Key {
-    let client = reqwest::Client::new();
-    let request = key::CreateBody {
-        name: name.to_owned(),
-        service_id: None,
-        user_id: Some(user.id),
-    };
-    let url = server_url("/v1/key");
-    let mut response = client
-        .post(&url)
-        .header("content-type", "application/json")
-        .header("authorization", service_key.value.clone())
-        .json(&request)
-        .send()
-        .unwrap();
-    let body = response.json::<key::CreateResponse>().unwrap();
-    let user_key = body.data;
-    let status = response.status();
-    let content_type = header_get(&response, "content-type");
-    assert_eq!(status, 200);
-    assert_eq!(content_type, "application/json");
-    assert_eq!(user_key.name, "Key Name");
-    assert_eq!(user_key.service_id.unwrap(), service.id);
-    assert_eq!(user_key.user_id.unwrap(), user.id);
+pub fn create_user_duplicate_email(
+    client: &SyncClient,
+    is_active: bool,
+    name: &str,
+    email: &str,
+    password: Option<&str>,
+) {
+    let create = client
+        .user_create(is_active, name, email, password)
+        .unwrap_err();
+    assert_eq!(create, Error::Request(RequestError::BadRequest));
+}
+
+pub fn create_user_forbidden(
+    client: &SyncClient,
+    is_active: bool,
+    name: &str,
+    email: &str,
+    password: Option<&str>,
+) {
+    let create = client
+        .user_create(is_active, name, email, password)
+        .unwrap_err();
+    assert_eq!(create, Error::Request(RequestError::Forbidden));
+}
+
+pub fn create_user_key(
+    client: &SyncClient,
+    name: &str,
+    service_id: &str,
+    user_id: &str,
+) -> UserKey {
+    let create = client.key_create(true, name, None, Some(user_id)).unwrap();
+    let key = create.data;
+    assert_eq!(key.name, "Key Name");
+    assert_eq!(key.service_id.unwrap(), service_id);
+    assert_eq!(key.user_id.unwrap(), user_id);
+    UserKey {
+        user_id: user_id.to_owned(),
+        key: key.value.to_owned(),
+    }
+}
+
+pub fn verify_user_key(client: &SyncClient, key: &UserKey) -> UserKey {
+    let verify = client.auth_key_verify(key).unwrap();
+    let user_key = verify.data;
+    assert_eq!(user_key.user_id, key.user_id);
+    assert_eq!(user_key.key, key.key);
     user_key
 }
 
-pub fn auth_login_post_400(service_key: &Key, email: &str, password: &str) {
-    let client = reqwest::Client::new();
-    let request = auth::provider::local::LoginBody {
-        email: email.to_owned(),
-        password: password.to_owned(),
-    };
-    let url = server_url("/v1/auth/provider/local/login");
-    let response = client
-        .post(&url)
-        .header("content-type", "application/json")
-        .header("authorization", service_key.value.clone())
-        .json(&request)
-        .send()
-        .unwrap();
-    let status = response.status();
-    let content_length = header_get(&response, "content-length");
-    assert_eq!(status, 400);
-    assert_eq!(content_length, "0");
+pub fn verify_user_token(client: &SyncClient, token: &UserToken) -> UserToken {
+    let verify = client.auth_token_verify(token).unwrap();
+    let user_token = verify.data;
+    assert_eq!(user_token.user_id, token.user_id);
+    assert_eq!(user_token.token, token.token);
+    assert_eq!(user_token.token_expires, token.token_expires);
+    user_token
+}
+
+pub fn local_login(client: &SyncClient, user_id: &str, email: &str, password: &str) -> UserToken {
+    let login = client.auth_local_login(email, password).unwrap();
+    let user_token = login.data;
+    assert_eq!(user_token.user_id, user_id);
+    user_token
+}
+
+pub fn local_password_reset(client: &SyncClient, email: &str) {
+    client.auth_local_reset_password(email).unwrap()
+}
+
+pub fn microsoft_oauth2_request(client: &SyncClient) -> Oauth2UrlResponse {
+    let response = client.auth_microsoft_oauth2_request().unwrap();
+    assert!(!response.url.is_empty());
+    response
 }

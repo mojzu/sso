@@ -1,5 +1,6 @@
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305;
 use std::path::Path;
+use std::str::FromStr;
 
 /// Core errors.
 #[derive(Debug, Fail)]
@@ -29,11 +30,6 @@ impl Key {
             sk: sk.0.to_vec(),
             pk: pk.0.to_vec(),
         }
-    }
-
-    /// Return key deserialised from string reference.
-    pub fn from_str(input: &str) -> Result<Self, Error> {
-        serde_json::from_str(input).map_err(|_err| Error::Unwrap)
     }
 
     /// Read key from file at path.
@@ -73,6 +69,14 @@ impl Key {
         file.write_all(data.as_bytes())
             .map_err(|_err| Error::Unwrap)?;
         Ok(self)
+    }
+}
+
+impl FromStr for Key {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        serde_json::from_str(s).map_err(|_err| Error::Unwrap)
     }
 }
 

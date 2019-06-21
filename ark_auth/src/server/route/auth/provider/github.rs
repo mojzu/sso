@@ -70,7 +70,7 @@ fn oauth2_callback_handler(
             web::block(move || {
                 core::auth::oauth2_login(
                     data.driver(),
-                    service_id,
+                    &service_id,
                     &email,
                     data.configuration().token_expiration_time(),
                 )
@@ -104,7 +104,7 @@ fn github_authorise(data: &Data, service: &core::Service) -> Result<String, Erro
     Ok(authorise_url.to_string())
 }
 
-fn github_callback(data: &Data, code: &str, state: &str) -> Result<(i64, String), Error> {
+fn github_callback(data: &Data, code: &str, state: &str) -> Result<(String, String), Error> {
     // Read the CSRF key using state value, rebuild code verifier from value.
     let csrf = core::csrf::read_by_key(data.driver(), &state).map_err(Error::Core)?;
     let csrf = csrf.ok_or_else(|| Error::Oauth2(Oauth2Error::Csrf))?;

@@ -24,7 +24,7 @@ pub fn authenticate_service(
             let key = key.ok_or_else(|| Error::Forbidden)?;
             let service_id = key.service_id.ok_or_else(|| Error::Forbidden)?;
             let service = driver
-                .service_read_by_id(service_id)
+                .service_read_by_id(&service_id)
                 .map_err(Error::Driver)?;
             service.ok_or_else(|| Error::Forbidden)
         }),
@@ -51,11 +51,11 @@ pub fn authenticate(
 pub fn list_where_id_lt(
     driver: &driver::Driver,
     service_mask: Option<&Service>,
-    lt: i64,
+    lt: &str,
     limit: i64,
-) -> Result<Vec<i64>, Error> {
+) -> Result<Vec<String>, Error> {
     driver
-        .key_list_where_id_lt(lt, limit, service_mask.map(|s| s.id))
+        .key_list_where_id_lt(lt, limit, service_mask.map(|s| s.id.as_ref()))
         .map_err(Error::Driver)
 }
 
@@ -63,40 +63,46 @@ pub fn list_where_id_lt(
 pub fn list_where_id_gt(
     driver: &driver::Driver,
     service_mask: Option<&Service>,
-    gt: i64,
+    gt: &str,
     limit: i64,
-) -> Result<Vec<i64>, Error> {
+) -> Result<Vec<String>, Error> {
     driver
-        .key_list_where_id_gt(gt, limit, service_mask.map(|s| s.id))
+        .key_list_where_id_gt(gt, limit, service_mask.map(|s| s.id.as_ref()))
         .map_err(Error::Driver)
 }
 
 /// Create root key.
-pub fn create_root(driver: &driver::Driver, name: &str) -> Result<Key, Error> {
+pub fn create_root(driver: &driver::Driver, is_active: bool, name: &str) -> Result<Key, Error> {
     let value = uuid::Uuid::new_v4().to_simple().to_string();
     driver
-        .key_create(name, &value, None, None)
+        .key_create(is_active, name, &value, None, None)
         .map_err(Error::Driver)
 }
 
 /// Create service key.
-pub fn create_service(driver: &driver::Driver, name: &str, service_id: i64) -> Result<Key, Error> {
+pub fn create_service(
+    driver: &driver::Driver,
+    is_active: bool,
+    name: &str,
+    service_id: &str,
+) -> Result<Key, Error> {
     let value = uuid::Uuid::new_v4().to_simple().to_string();
     driver
-        .key_create(name, &value, Some(service_id), None)
+        .key_create(is_active, name, &value, Some(service_id), None)
         .map_err(Error::Driver)
 }
 
 /// Create user key.
 pub fn create_user(
     driver: &driver::Driver,
+    is_active: bool,
     name: &str,
-    service_id: i64,
-    user_id: i64,
+    service_id: &str,
+    user_id: &str,
 ) -> Result<Key, Error> {
     let value = uuid::Uuid::new_v4().to_simple().to_string();
     driver
-        .key_create(name, &value, Some(service_id), Some(user_id))
+        .key_create(is_active, name, &value, Some(service_id), Some(user_id))
         .map_err(Error::Driver)
 }
 
@@ -104,7 +110,7 @@ pub fn create_user(
 pub fn read_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
-    id: i64,
+    id: &str,
 ) -> Result<Option<Key>, Error> {
     driver.key_read_by_id(id).map_err(Error::Driver)
 }
@@ -116,7 +122,7 @@ pub fn read_by_user(
     user: &User,
 ) -> Result<Option<Key>, Error> {
     driver
-        .key_read_by_user_id(service.id, user.id)
+        .key_read_by_user_id(&service.id, &user.id)
         .map_err(Error::Driver)
 }
 
@@ -139,7 +145,7 @@ pub fn read_by_user_value(
     value: &str,
 ) -> Result<Option<Key>, Error> {
     driver
-        .key_read_by_user_value(service.id, value)
+        .key_read_by_user_value(&service.id, value)
         .map_err(Error::Driver)
 }
 
@@ -147,17 +153,20 @@ pub fn read_by_user_value(
 pub fn update_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
-    id: i64,
+    id: &str,
+    is_active: Option<bool>,
     name: Option<&str>,
 ) -> Result<Key, Error> {
-    driver.key_update_by_id(id, name).map_err(Error::Driver)
+    driver
+        .key_update_by_id(id, is_active, name)
+        .map_err(Error::Driver)
 }
 
 /// Delete key by ID.
 pub fn delete_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
-    id: i64,
+    id: &str,
 ) -> Result<usize, Error> {
     driver.key_delete_by_id(id).map_err(Error::Driver)
 }

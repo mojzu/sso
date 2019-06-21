@@ -27,11 +27,11 @@ pub fn route_v1_scope() -> actix_web::Scope {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct ListQuery {
-    #[validate(custom = "validate::unsigned")]
-    pub gt: Option<i64>,
-    #[validate(custom = "validate::unsigned")]
-    pub lt: Option<i64>,
-    #[validate(custom = "validate::unsigned")]
+    #[validate(custom = "validate::id")]
+    pub gt: Option<String>,
+    #[validate(custom = "validate::id")]
+    pub lt: Option<String>,
+    #[validate(custom = "validate::limit")]
     pub limit: Option<i64>,
 }
 
@@ -39,15 +39,15 @@ impl FromJsonValue<ListQuery> for ListQuery {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListMetaResponse {
-    pub gt: Option<i64>,
-    pub lt: Option<i64>,
+    pub gt: Option<String>,
+    pub lt: Option<String>,
     pub limit: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListResponse {
     pub meta: ListMetaResponse,
-    pub data: Vec<i64>,
+    pub data: Vec<String>,
 }
 
 fn list_handler(
@@ -59,23 +59,23 @@ fn list_handler(
 
     ListQuery::from_value(query.into_inner())
         .and_then(|query| {
-            web::block(move || list_inner(data.get_ref(), id, &query)).map_err(Into::into)
+            web::block(move || list_inner(data.get_ref(), id, query)).map_err(Into::into)
         })
         .then(route_response_json)
 }
 
-fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<ListResponse, Error> {
+fn list_inner(data: &Data, id: Option<String>, query: ListQuery) -> Result<ListResponse, Error> {
     core::key::authenticate_root(data.driver(), id)
         .and_then(|_| {
             let limit = query.limit.unwrap_or(10);
             let (gt, lt, services) = match query.lt {
                 Some(lt) => {
-                    let services = core::service::list_where_id_lt(data.driver(), lt, limit)?;
+                    let services = core::service::list_where_id_lt(data.driver(), &lt, limit)?;
                     (None, Some(lt), services)
                 }
                 None => {
-                    let gt = query.gt.unwrap_or(0);
-                    let services = core::service::list_where_id_gt(data.driver(), gt, limit)?;
+                    let gt = query.gt.unwrap_or_else(|| "".to_owned());
+                    let services = core::service::list_where_id_gt(data.driver(), &gt, limit)?;
                     (Some(gt), None, services)
                 }
             };
@@ -90,6 +90,7 @@ fn list_inner(data: &Data, id: Option<String>, query: &ListQuery) -> Result<List
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct CreateBody {
+    pub is_active: bool,
     #[validate(custom = "validate::name")]
     pub name: String,
     #[validate(url)]
@@ -123,7 +124,7 @@ fn create_inner(
     body: &CreateBody,
 ) -> Result<CreateResponse, Error> {
     core::key::authenticate_root(data.driver(), id)
-        .and_then(|_| core::service::create(data.driver(), &body.name, &body.url))
+        .and_then(|_| core::service::create(data.driver(), body.is_active, &body.name, &body.url))
         .map_err(Into::into)
         .map(|service| CreateResponse { data: service })
 }
@@ -136,16 +137,16 @@ pub struct ReadResponse {
 fn read_handler(
     data: web::Data<Data>,
     id: Identity,
-    path: web::Path<(i64,)>,
+    path: web::Path<(String,)>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
-    web::block(move || read_inner(data.get_ref(), id, path.0))
+    web::block(move || read_inner(data.get_ref(), id, &path.0))
         .map_err(Into::into)
         .then(route_response_json)
 }
 
-fn read_inner(data: &Data, id: Option<String>, service_id: i64) -> Result<ReadResponse, Error> {
+fn read_inner(data: &Data, id: Option<String>, service_id: &str) -> Result<ReadResponse, Error> {
     core::key::authenticate(data.driver(), id)
         .and_then(|service| core::service::read_by_id(data.driver(), service.as_ref(), service_id))
         .map_err(Into::into)
@@ -156,6 +157,7 @@ fn read_inner(data: &Data, id: Option<String>, service_id: i64) -> Result<ReadRe
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct UpdateBody {
+    pub is_active: Option<bool>,
     #[validate(custom = "validate::name")]
     pub name: Option<String>,
 }
@@ -170,14 +172,14 @@ pub struct UpdateResponse {
 fn update_handler(
     data: web::Data<Data>,
     id: Identity,
-    path: web::Path<(i64,)>,
+    path: web::Path<(String,)>,
     body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
     UpdateBody::from_value(body.into_inner())
         .and_then(|body| {
-            web::block(move || update_inner(data.get_ref(), id, path.0, &body)).map_err(Into::into)
+            web::block(move || update_inner(data.get_ref(), id, &path.0, &body)).map_err(Into::into)
         })
         .then(route_response_json)
 }
@@ -185,7 +187,7 @@ fn update_handler(
 fn update_inner(
     data: &Data,
     id: Option<String>,
-    service_id: i64,
+    service_id: &str,
     body: &UpdateBody,
 ) -> Result<UpdateResponse, Error> {
     core::key::authenticate(data.driver(), id)
@@ -194,6 +196,7 @@ fn update_inner(
                 data.driver(),
                 service.as_ref(),
                 service_id,
+                body.is_active,
                 body.name.as_ref().map(|x| &**x),
             )
         })
@@ -204,16 +207,16 @@ fn update_inner(
 fn delete_handler(
     data: web::Data<Data>,
     id: Identity,
-    path: web::Path<(i64,)>,
+    path: web::Path<(String,)>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
-    web::block(move || delete_inner(data.get_ref(), id, path.0))
+    web::block(move || delete_inner(data.get_ref(), id, &path.0))
         .map_err(Into::into)
         .then(route_response_empty)
 }
 
-fn delete_inner(data: &Data, id: Option<String>, service_id: i64) -> Result<usize, Error> {
+fn delete_inner(data: &Data, id: Option<String>, service_id: &str) -> Result<usize, Error> {
     core::key::authenticate(data.driver(), id)
         .and_then(|service| {
             core::service::delete_by_id(data.driver(), service.as_ref(), service_id)
