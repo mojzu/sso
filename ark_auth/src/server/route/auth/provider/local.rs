@@ -28,7 +28,29 @@ pub fn route_v1_scope() -> actix_web::Scope {
                         .route(web::post().to_async(reset_password_confirm_handler)),
                 ),
         )
-    // TODO(refactor): Update email/password routes.
+        .service(
+            web::scope("/update")
+                .service(
+                    web::resource("/email")
+                        .data(route_json_config())
+                        .route(web::post().to_async(update_email_handler)),
+                )
+                .service(
+                    web::resource("/email/revoke")
+                        .data(route_json_config())
+                        .route(web::post().to_async(update_email_revoke_handler)),
+                )
+                .service(
+                    web::resource("/password")
+                        .data(route_json_config())
+                        .route(web::post().to_async(update_password_handler)),
+                )
+                .service(
+                    web::resource("/password/revoke")
+                        .data(route_json_config())
+                        .route(web::post().to_async(update_password_revoke_handler)),
+                ),
+        )
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -205,6 +227,234 @@ fn reset_password_confirm_inner(
     core::key::authenticate_service(data.driver(), id)
         .and_then(|service| {
             core::auth::reset_password_confirm(data.driver(), &service, &body.token, &body.password)
+        })
+        .map_err(Into::into)
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct UpdateEmailTemplateBody {
+    #[validate(custom = "validate::email_subject")]
+    pub subject: String,
+    #[validate(custom = "validate::email_text")]
+    pub text: String,
+    #[validate(custom = "validate::email_link_text")]
+    pub link_text: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct UpdateEmailBody {
+    #[validate(custom = "validate::token")]
+    pub token: Option<String>,
+    #[validate(custom = "validate::key")]
+    pub key: Option<String>,
+    #[validate(email)]
+    pub email: String,
+    pub template: Option<UpdateEmailTemplateBody>,
+}
+
+impl FromJsonValue<UpdateEmailBody> for UpdateEmailBody {}
+
+fn update_email_handler(
+    data: web::Data<Data>,
+    id: Identity,
+    body: web::Json<Value>,
+) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+    let id = id.identity();
+
+    UpdateEmailBody::from_value(body.into_inner())
+        .and_then(|body| {
+            web::block(move || update_email_inner(data.get_ref(), id, &body)).map_err(Into::into)
+        })
+        .then(route_response_empty)
+}
+
+fn update_email_inner(
+    data: &Data,
+    id: Option<String>,
+    body: &UpdateEmailBody,
+) -> Result<(), Error> {
+    core::key::authenticate_service(data.driver(), id)
+        .and_then(|service| {
+            let (user, old_email, token) = core::auth::update_email(
+                data.driver(),
+                &service,
+                body.token.as_ref().map(|x| &**x),
+                body.key.as_ref().map(|x| &**x),
+                &body.email,
+                data.configuration().token_expiration_time(),
+            )?;
+            Ok((service, body, user, old_email, token))
+        })
+        .map_err(Into::into)
+        .and_then(|(service, body, user, old_email, token)| {
+            smtp::send_update_email(
+                data.configuration().smtp(),
+                &service,
+                &user,
+                &old_email,
+                &token,
+                body.template.as_ref(),
+            )
+            .or_else(|err| {
+                warn!("{}", err);
+                Ok(())
+            })
+        })
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct UpdateEmailRevokeBody {
+    #[validate(custom = "validate::token")]
+    pub token: String,
+}
+
+impl FromJsonValue<UpdateEmailRevokeBody> for UpdateEmailRevokeBody {}
+
+fn update_email_revoke_handler(
+    data: web::Data<Data>,
+    id: Identity,
+    body: web::Json<Value>,
+) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+    let id = id.identity();
+
+    UpdateEmailRevokeBody::from_value(body.into_inner())
+        .and_then(|body| {
+            web::block(move || update_email_revoke_inner(data.get_ref(), id, &body))
+                .map_err(Into::into)
+        })
+        .then(route_response_empty)
+}
+
+fn update_email_revoke_inner(
+    data: &Data,
+    id: Option<String>,
+    body: &UpdateEmailRevokeBody,
+) -> Result<(), Error> {
+    core::key::authenticate_service(data.driver(), id)
+        .and_then(|service| core::auth::update_email_revoke(data.driver(), &service, &body.token))
+        .map_err(Into::into)
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct UpdatePasswordTemplateBody {
+    #[validate(custom = "validate::email_subject")]
+    pub subject: String,
+    #[validate(custom = "validate::email_text")]
+    pub text: String,
+    #[validate(custom = "validate::email_link_text")]
+    pub link_text: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct UpdatePasswordBody {
+    #[validate(custom = "validate::token")]
+    pub token: Option<String>,
+    #[validate(custom = "validate::key")]
+    pub key: Option<String>,
+    #[validate(custom = "validate::password")]
+    pub password: String,
+    pub template: Option<UpdatePasswordTemplateBody>,
+}
+
+impl FromJsonValue<UpdatePasswordBody> for UpdatePasswordBody {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UpdatePasswordResponse {
+    pub meta: PasswordMeta,
+}
+
+fn update_password_handler(
+    data: web::Data<Data>,
+    id: Identity,
+    body: web::Json<Value>,
+) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+    let id = id.identity();
+
+    UpdatePasswordBody::from_value(body.into_inner())
+        .and_then(|body| {
+            web::block(move || {
+                let update_password = update_password_inner(data.get_ref(), id, &body)?;
+                Ok((data, body, update_password))
+            })
+            .map_err(Into::into)
+        })
+        .and_then(|(data, body, _update_password)| {
+            password_meta(data.get_ref(), Some(&body.password))
+        })
+        .map(|meta| UpdatePasswordResponse { meta })
+        .then(route_response_json)
+}
+
+fn update_password_inner(
+    data: &Data,
+    id: Option<String>,
+    body: &UpdatePasswordBody,
+) -> Result<(), Error> {
+    core::key::authenticate_service(data.driver(), id)
+        .and_then(|service| {
+            let (user, token) = core::auth::update_password(
+                data.driver(),
+                &service,
+                body.token.as_ref().map(|x| &**x),
+                body.key.as_ref().map(|x| &**x),
+                &body.password,
+                data.configuration().token_expiration_time(),
+            )?;
+            Ok((service, body, user, token))
+        })
+        .map_err(Into::into)
+        .and_then(|(service, body, user, token)| {
+            smtp::send_update_password(
+                data.configuration().smtp(),
+                &service,
+                &user,
+                &token,
+                body.template.as_ref(),
+            )
+            .or_else(|err| {
+                warn!("{}", err);
+                Ok(())
+            })
+        })
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct UpdatePasswordRevokeBody {
+    #[validate(custom = "validate::token")]
+    pub token: String,
+}
+
+impl FromJsonValue<UpdatePasswordRevokeBody> for UpdatePasswordRevokeBody {}
+
+fn update_password_revoke_handler(
+    data: web::Data<Data>,
+    id: Identity,
+    body: web::Json<Value>,
+) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+    let id = id.identity();
+
+    UpdatePasswordRevokeBody::from_value(body.into_inner())
+        .and_then(|body| {
+            web::block(move || update_password_revoke_inner(data.get_ref(), id, &body))
+                .map_err(Into::into)
+        })
+        .then(route_response_empty)
+}
+
+fn update_password_revoke_inner(
+    data: &Data,
+    id: Option<String>,
+    body: &UpdatePasswordRevokeBody,
+) -> Result<(), Error> {
+    core::key::authenticate_service(data.driver(), id)
+        .and_then(|service| {
+            core::auth::update_password_revoke(data.driver(), &service, &body.token)
         })
         .map_err(Into::into)
 }

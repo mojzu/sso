@@ -1,12 +1,12 @@
 use crate::core;
 use crate::core::{Error, Service, User, UserKey, UserToken};
-use crate::driver;
+use crate::driver::Driver;
 
 // TODO(feature): Warning logs for bad requests.
 
 /// User authentication using email address and password.
 pub fn login(
-    driver: &driver::Driver,
+    driver: &Driver,
     service: &Service,
     email: &str,
     password: &str,
@@ -20,7 +20,7 @@ pub fn login(
 
 /// User reset password request.
 pub fn reset_password(
-    driver: &driver::Driver,
+    driver: &Driver,
     service: &Service,
     email: &str,
     token_expires: usize,
@@ -37,7 +37,7 @@ pub fn reset_password(
 
 /// User reset password confirm.
 pub fn reset_password_confirm(
-    driver: &driver::Driver,
+    driver: &Driver,
     service: &Service,
     token: &str,
     password: &str,
@@ -53,8 +53,48 @@ pub fn reset_password_confirm(
     core::user::update_password_by_id(driver, Some(service), &user.id, password)
 }
 
+/// User update email request.
+pub fn update_email(
+    driver: &Driver,
+    service: &Service,
+    token: Option<&str>,
+    key: Option<&str>,
+    email: &str,
+    token_expires: usize,
+) -> Result<(User, String, String), Error> {
+    let user_id = key_or_token_verify(driver, service, key, token)?;
+    unimplemented!();
+}
+
+/// User update email revoke request.
+pub fn update_email_revoke(driver: &Driver, service: &Service, token: &str) -> Result<(), Error> {
+    unimplemented!();
+}
+
+/// User update password request.
+pub fn update_password(
+    driver: &Driver,
+    service: &Service,
+    token: Option<&str>,
+    key: Option<&str>,
+    password: &str,
+    token_expires: usize,
+) -> Result<(User, String), Error> {
+    let user_id = key_or_token_verify(driver, service, key, token)?;
+    unimplemented!();
+}
+
+/// User update password revoke request.
+pub fn update_password_revoke(
+    driver: &Driver,
+    service: &Service,
+    token: &str,
+) -> Result<(), Error> {
+    unimplemented!();
+}
+
 /// Verify user key.
-pub fn key_verify(driver: &driver::Driver, service: &Service, key: &str) -> Result<UserKey, Error> {
+pub fn key_verify(driver: &Driver, service: &Service, key: &str) -> Result<UserKey, Error> {
     let key =
         core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::BadRequest)?;
     let user_id = key.user_id.ok_or_else(|| Error::BadRequest)?;
@@ -65,18 +105,14 @@ pub fn key_verify(driver: &driver::Driver, service: &Service, key: &str) -> Resu
 }
 
 /// Revoke user key.
-pub fn key_revoke(driver: &driver::Driver, service: &Service, key: &str) -> Result<usize, Error> {
+pub fn key_revoke(driver: &Driver, service: &Service, key: &str) -> Result<usize, Error> {
     let key =
         core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::BadRequest)?;
     core::key::delete_by_id(driver, Some(service), &key.id)
 }
 
 /// Verify user token.
-pub fn token_verify(
-    driver: &driver::Driver,
-    service: &Service,
-    token: &str,
-) -> Result<UserToken, Error> {
+pub fn token_verify(driver: &Driver, service: &Service, token: &str) -> Result<UserToken, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let user_id = jwt::decode_unsafe(token, &service.id)?;
     let user = core::user::read_by_id(driver, Some(service), &user_id)?
@@ -87,7 +123,7 @@ pub fn token_verify(
 
 /// Refresh user token.
 pub fn token_refresh(
-    driver: &driver::Driver,
+    driver: &Driver,
     service: &Service,
     token: &str,
     token_expires: usize,
@@ -102,11 +138,7 @@ pub fn token_refresh(
 }
 
 /// Revoke user token.
-pub fn token_revoke(
-    driver: &driver::Driver,
-    service: &Service,
-    token: &str,
-) -> Result<usize, Error> {
+pub fn token_revoke(driver: &Driver, service: &Service, token: &str) -> Result<usize, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let user_id = jwt::decode_unsafe(token, &service.id)?;
     let user = core::user::read_by_id(driver, Some(service), &user_id)?
@@ -118,7 +150,7 @@ pub fn token_revoke(
 
 /// OAuth2 user login.
 pub fn oauth2_login(
-    driver: &driver::Driver,
+    driver: &Driver,
     service_id: &str,
     email: &str,
     token_expires: usize,
@@ -137,7 +169,7 @@ pub fn oauth2_login(
 /// Read user by email address.
 /// Also checks user is active, returns bad request if inactive.
 fn user_read_by_email(
-    driver: &driver::Driver,
+    driver: &Driver,
     service_mask: Option<&Service>,
     email: &str,
 ) -> Result<User, Error> {
@@ -147,6 +179,28 @@ fn user_read_by_email(
         return Err(Error::BadRequest);
     }
     Ok(user)
+}
+
+/// Get user ID from valid key or token.
+fn key_or_token_verify(
+    driver: &Driver,
+    service: &Service,
+    key: Option<&str>,
+    token: Option<&str>,
+) -> Result<String, Error> {
+    match key {
+        Some(key) => {
+            let user_key = key_verify(driver, service, key)?;
+            Ok(user_key.user_id)
+        }
+        None => match token {
+            Some(token) => {
+                let user_token = token_verify(driver, service, token)?;
+                Ok(user_token.user_id)
+            }
+            None => Err(Error::Forbidden),
+        },
+    }
 }
 
 // TODO(refactor): Check is_active flag here.

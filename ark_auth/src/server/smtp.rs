@@ -1,5 +1,7 @@
 use crate::core;
-use crate::server::route::auth::provider::local::ResetPasswordTemplateBody;
+use crate::server::route::auth::provider::local::{
+    ResetPasswordTemplateBody, UpdateEmailTemplateBody, UpdatePasswordTemplateBody,
+};
 use crate::server::{ConfigurationSmtp, Error, SmtpError};
 use lettre::smtp::authentication::{Credentials, Mechanism};
 use lettre::smtp::ConnectionReuseParameters;
@@ -18,8 +20,6 @@ pub fn send_reset_password(
     token: &str,
     template: Option<&ResetPasswordTemplateBody>,
 ) -> Result<(), Error> {
-    let smtp = smtp.ok_or(Error::Smtp(SmtpError::Disabled))?;
-
     let (subject, text) = match template {
         Some(template) => {
             (template.subject.to_owned(), template.text.to_owned())
@@ -33,8 +33,91 @@ pub fn send_reset_password(
         "{}\r\n\r\n{}?email={}&reset_password_token={}",
         text, service.url, &user.email, token,
     );
+
+    send(
+        smtp,
+        service,
+        user.email.to_owned(),
+        user.name.to_owned(),
+        subject,
+        text,
+    )
+}
+
+pub fn send_update_email(
+    smtp: Option<&ConfigurationSmtp>,
+    service: &core::Service,
+    user: &core::User,
+    old_email: &str,
+    token: &str,
+    template: Option<&UpdateEmailTemplateBody>,
+) -> Result<(), Error> {
+    let (subject, text) = match template {
+        Some(template) => {
+            (template.subject.to_owned(), template.text.to_owned())
+        }
+        None => (
+            format!("{}: Update Email Request", service.name),
+            format!("An update email request for your user has been made to {}. If you did not make this request, follow the link below.", service.name),
+        )
+    };
+    let text = format!(
+        "{}\r\n\r\n{}?email={}&old_email={}&update_email_token={}",
+        text, service.url, &user.email, &old_email, token,
+    );
+
+    send(
+        smtp,
+        service,
+        old_email.to_owned(),
+        user.name.to_owned(),
+        subject,
+        text,
+    )
+}
+
+pub fn send_update_password(
+    smtp: Option<&ConfigurationSmtp>,
+    service: &core::Service,
+    user: &core::User,
+    token: &str,
+    template: Option<&UpdatePasswordTemplateBody>,
+) -> Result<(), Error> {
+    let (subject, text) = match template {
+        Some(template) => {
+            (template.subject.to_owned(), template.text.to_owned())
+        }
+        None => (
+            format!("{}: Update Password Request", service.name),
+            format!("An update password request for your user has been made to {}. If you did not make this request, follow the link below.", service.name),
+        )
+    };
+    let text = format!(
+        "{}\r\n\r\n{}?email={}&update_password_token={}",
+        text, service.url, &user.email, token,
+    );
+
+    send(
+        smtp,
+        service,
+        user.email.to_owned(),
+        user.name.to_owned(),
+        subject,
+        text,
+    )
+}
+
+fn send(
+    smtp: Option<&ConfigurationSmtp>,
+    service: &core::Service,
+    to: String,
+    name: String,
+    subject: String,
+    text: String,
+) -> Result<(), Error> {
+    let smtp = smtp.ok_or(Error::Smtp(SmtpError::Disabled))?;
     let email = Email::builder()
-        .to((user.email.to_owned(), user.name.to_owned()))
+        .to((to, name))
         .from((smtp.user.to_owned(), service.name.to_owned()))
         .subject(subject)
         .text(text)
