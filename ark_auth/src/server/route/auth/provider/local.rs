@@ -249,8 +249,10 @@ pub struct UpdateEmailBody {
     pub token: Option<String>,
     #[validate(custom = "validate::key")]
     pub key: Option<String>,
+    #[validate(custom = "validate::password")]
+    pub password: String,
     #[validate(email)]
-    pub email: String,
+    pub new_email: String,
     pub template: Option<UpdateEmailTemplateBody>,
 }
 
@@ -282,7 +284,8 @@ fn update_email_inner(
                 &service,
                 body.token.as_ref().map(|x| &**x),
                 body.key.as_ref().map(|x| &**x),
-                &body.email,
+                &body.password,
+                &body.new_email,
                 data.configuration().token_expiration_time(),
             )?;
             Ok((service, body, user, old_email, token))
@@ -358,6 +361,8 @@ pub struct UpdatePasswordBody {
     pub key: Option<String>,
     #[validate(custom = "validate::password")]
     pub password: String,
+    #[validate(custom = "validate::password")]
+    pub new_password: String,
     pub template: Option<UpdatePasswordTemplateBody>,
 }
 
@@ -403,6 +408,7 @@ fn update_password_inner(
                 body.token.as_ref().map(|x| &**x),
                 body.key.as_ref().map(|x| &**x),
                 &body.password,
+                &body.new_password,
                 data.configuration().token_expiration_time(),
             )?;
             Ok((service, body, user, token))

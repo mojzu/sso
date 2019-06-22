@@ -59,7 +59,8 @@ pub fn update_email(
     service: &Service,
     token: Option<&str>,
     key: Option<&str>,
-    email: &str,
+    password: &str,
+    new_email: &str,
     token_expires: usize,
 ) -> Result<(User, String, String), Error> {
     let user_id = key_or_token_verify(driver, service, key, token)?;
@@ -78,6 +79,7 @@ pub fn update_password(
     token: Option<&str>,
     key: Option<&str>,
     password: &str,
+    new_password: &str,
     token_expires: usize,
 ) -> Result<(User, String), Error> {
     let user_id = key_or_token_verify(driver, service, key, token)?;
