@@ -144,9 +144,10 @@
 <a class="header" href="#020-unreleased" id="020-unreleased"><h2>0.2.0 (unreleased)</h2></a>
 <a class="header" href="#added" id="added"><h3>Added</h3></a>
 <ul>
-<li>Add active flag to users.</li>
-<li>Add synchronous and asynchronous clients.</li>
-<li>Add <code>email_eq</code> query option to user list route.</li>
+<li>Added is active flag to services, users and keys.</li>
+<li>Added synchronous and asynchronous clients.</li>
+<li>Added <code>email_eq</code> query option to user list route.</li>
+<li>Added local provider update user email, password routes.</li>
 </ul>
 <a class="header" href="#changed" id="changed"><h3>Changed</h3></a>
 <ul>
@@ -154,15 +155,15 @@
 <li>Changed list route endpoints to return data ID arrays.</li>
 <li>Moved OAuth2 routes into provider groups.</li>
 <li>Moved login, reset routes into local provider group.</li>
-<li>Upgrade to version 3 of <code>oauth2</code> library.</li>
+<li>Upgraded to version 3 of <code>oauth2</code> library.</li>
 <li>Removed <code>skeptic</code> from tests, use Cargo test runner.</li>
 </ul>
 <a class="header" href="#fixed" id="fixed"><h3>Fixed</h3></a>
 <ul>
-<li>Validate service URLs before save using URL parse, improved URL error handling.</li>
-<li>Fix inconsistent core error display strings.</li>
-<li>Fix duplicate user email address returned internal server error code.</li>
-<li>Fix Lettre email error type handling.</li>
+<li>Fixed not validating service URLs before save using URL parse, improved URL error handling.</li>
+<li>Fixed inconsistent core error display strings.</li>
+<li>Fixed duplicate user email address returned internal server error code.</li>
+<li>Fixed Lettre email error type handling.</li>
 </ul>
 <hr />
 <a class="header" href="#010-2019-05-16" id="010-2019-05-16"><h2>0.1.0 (2019-05-16)</h2></a>

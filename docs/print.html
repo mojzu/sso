@@ -195,9 +195,10 @@
 <a class="header" href="#020-unreleased" id="020-unreleased"><h2>0.2.0 (unreleased)</h2></a>
 <a class="header" href="#added" id="added"><h3>Added</h3></a>
 <ul>
-<li>Add active flag to users.</li>
-<li>Add synchronous and asynchronous clients.</li>
-<li>Add <code>email_eq</code> query option to user list route.</li>
+<li>Added is active flag to services, users and keys.</li>
+<li>Added synchronous and asynchronous clients.</li>
+<li>Added <code>email_eq</code> query option to user list route.</li>
+<li>Added local provider update user email, password routes.</li>
 </ul>
 <a class="header" href="#changed" id="changed"><h3>Changed</h3></a>
 <ul>
@@ -205,15 +206,15 @@
 <li>Changed list route endpoints to return data ID arrays.</li>
 <li>Moved OAuth2 routes into provider groups.</li>
 <li>Moved login, reset routes into local provider group.</li>
-<li>Upgrade to version 3 of <code>oauth2</code> library.</li>
+<li>Upgraded to version 3 of <code>oauth2</code> library.</li>
 <li>Removed <code>skeptic</code> from tests, use Cargo test runner.</li>
 </ul>
 <a class="header" href="#fixed" id="fixed"><h3>Fixed</h3></a>
 <ul>
-<li>Validate service URLs before save using URL parse, improved URL error handling.</li>
-<li>Fix inconsistent core error display strings.</li>
-<li>Fix duplicate user email address returned internal server error code.</li>
-<li>Fix Lettre email error type handling.</li>
+<li>Fixed not validating service URLs before save using URL parse, improved URL error handling.</li>
+<li>Fixed inconsistent core error display strings.</li>
+<li>Fixed duplicate user email address returned internal server error code.</li>
+<li>Fixed Lettre email error type handling.</li>
 </ul>
 <hr />
 <a class="header" href="#010-2019-05-16" id="010-2019-05-16"><h2>0.1.0 (2019-05-16)</h2></a>
@@ -375,10 +376,16 @@ $ docker-compose build
 <p>A service integrating with Ark Auth can provide the following HTTPS endpoints.</p>
 <pre><code class="language-shell">GET $service_url?token=$token
 </code></pre>
-<p>User is redirected to this URL after successful authentication by an OAuth2 provider. The service can verify the token query parameter to authenticate the user and their requests.</p>
-<pre><code class="language-shell">GET $service_url?email=$user_email&amp;reset_password_token=$token
+<p>User is redirected to this URL after successful authentication by an OAuth2 provider. The service can verify the <code>token</code> query parameter to authenticate the user and their requests.</p>
+<pre><code class="language-shell">GET $service_url?email=$email&amp;reset_password_token=$token
 </code></pre>
-<p>User requests this URL by clicking reset password email link. The service can take password input from the user and the make a reset password confirm request with the reset password token query parameter.</p>
+<p>User requests this URL by clicking reset password email link. The service can take password input from the user, and then make a reset password confirm request with the <code>reset_password_token</code> query parameter.</p>
+<pre><code class="language-shell">GET $service_url?email=$email&amp;old_email=$email&amp;update_email_token=$token
+</code></pre>
+<p>User requests this URL by clicking update email link. The service can present the user information on securing their account, and then make an update email revoke request with the <code>update_email_token</code> query parameter. This will disable all user keys.</p>
+<pre><code class="language-shell">GET $service_url?email=$email&amp;update_password_token=$token
+</code></pre>
+<p>User requests this URL by clicking update password link. The service can present the user information on securing their account, and then make an update password revoke request with the <code>update_password_token</code> query parameter. This will disable all user keys.</p>
 <a class="header" href="#login" id="login"><h1>Login</h1></a>
 <p>Create service with key and start server.</p>
 <pre><code class="language-shell">$ ark_auth create-service-with-key $service_name $service_url
