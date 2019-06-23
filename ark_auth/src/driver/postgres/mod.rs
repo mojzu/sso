@@ -594,7 +594,7 @@ impl driver::Driver for Driver {
         _user_agent: &str,
         _remote: &str,
         _forwarded_for: Option<&str>,
-        _key: &str,
+        _path: &str,
         _data: &Value,
         _key_id: &str,
         _service_id: Option<&str>,

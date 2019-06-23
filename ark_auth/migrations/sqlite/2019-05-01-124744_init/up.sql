@@ -60,7 +60,7 @@ CREATE TABLE auth_audit (
     audit_user_agent TEXT NOT NULL,
     audit_remote TEXT NOT NULL,
     audit_forwarded_for TEXT,
-    audit_key TEXT NOT NULL,
+    audit_path TEXT NOT NULL,
     audit_data BLOB NOT NULL,
     key_id TEXT NOT NULL,
     service_id TEXT,

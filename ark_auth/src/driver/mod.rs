@@ -179,7 +179,7 @@ pub trait Driver: Send + Sync {
         user_agent: &str,
         remote: &str,
         forwarded_for: Option<&str>,
-        key: &str,
+        path: &str,
         data: &Value,
         key_id: &str,
         service_id: Option<&str>,

@@ -1,3 +1,4 @@
+pub mod audit;
 pub mod auth;
 pub mod csrf;
 pub mod jwt;
@@ -111,12 +112,20 @@ pub struct Audit {
     pub user_agent: String,
     pub remote: String,
     pub forwarded_for: Option<String>,
-    pub key: String,
+    pub path: String,
     pub data: Value,
     pub key_id: String,
     pub service_id: Option<String>,
     pub user_id: Option<String>,
     pub user_key_id: Option<String>,
+}
+
+/// Audit meta.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditMeta {
+    pub user_agent: String,
+    pub remote: String,
+    pub forwarded_for: Option<String>,
 }
 
 /// Hash password string using bcrypt, none is returned for none as input.
