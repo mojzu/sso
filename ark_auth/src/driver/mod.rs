@@ -75,6 +75,7 @@ pub trait Driver: Send + Sync {
         &self,
         id: &str,
         is_enabled: Option<bool>,
+        is_revoked: Option<bool>,
         name: Option<&str>,
     ) -> Result<Key, Error>;
 
@@ -83,6 +84,7 @@ pub trait Driver: Send + Sync {
         &self,
         user_id: &str,
         is_enabled: Option<bool>,
+        is_revoked: Option<bool>,
         name: Option<&str>,
     ) -> Result<usize, Error>;
 

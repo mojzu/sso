@@ -1,5 +1,5 @@
 use crate::core;
-use crate::server::route::{route_json_config, route_response_empty, route_response_json};
+use crate::server::route::{route_response_empty, route_response_json};
 use crate::server::{validate, Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpResponse};
@@ -11,13 +11,11 @@ pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/key")
         .service(
             web::resource("")
-                .data(route_json_config())
                 .route(web::get().to_async(list_handler))
                 .route(web::post().to_async(create_handler)),
         )
         .service(
             web::resource("/{key_id}")
-                .data(route_json_config())
                 .route(web::get().to_async(read_handler))
                 .route(web::patch().to_async(update_handler))
                 .route(web::delete().to_async(delete_handler)),
@@ -66,7 +64,7 @@ fn list_handler(
 
 fn list_inner(data: &Data, id: Option<String>, query: ListQuery) -> Result<ListResponse, Error> {
     core::key::authenticate(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             let limit = query.limit.unwrap_or(10);
             let (gt, lt, keys) = match query.lt {
                 Some(lt) => {
@@ -151,7 +149,7 @@ fn create_inner(
                 }
             })
         }
-        None => core::key::authenticate_service(data.driver(), id).and_then(|service| {
+        None => core::key::authenticate_service(data.driver(), id).and_then(|(service, _)| {
             match body.user_id.as_ref() {
                 // User ID is defined, creating user key for service.
                 Some(user_id) => core::key::create_user(
@@ -189,7 +187,7 @@ fn read_handler(
 
 fn read_inner(data: &Data, id: Option<String>, key_id: &str) -> Result<ReadResponse, Error> {
     core::key::authenticate(data.driver(), id)
-        .and_then(|service| core::key::read_by_id(data.driver(), service.as_ref(), key_id))
+        .and_then(|(service, _)| core::key::read_by_id(data.driver(), service.as_ref(), key_id))
         .map_err(Into::into)
         .and_then(|key| key.ok_or_else(|| Error::NotFound))
         .map(|key| ReadResponse { data: key })
@@ -232,12 +230,13 @@ fn update_inner(
     body: &UpdateBody,
 ) -> Result<UpdateResponse, Error> {
     core::key::authenticate(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             core::key::update_by_id(
                 data.driver(),
                 service.as_ref(),
                 key_id,
                 body.is_enabled,
+                None,
                 body.name.as_ref().map(|x| &**x),
             )
         })
@@ -259,6 +258,6 @@ fn delete_handler(
 
 fn delete_inner(data: &Data, id: Option<String>, key_id: &str) -> Result<usize, Error> {
     core::key::authenticate(data.driver(), id)
-        .and_then(|service| core::key::delete_by_id(data.driver(), service.as_ref(), key_id))
+        .and_then(|(service, _)| core::key::delete_by_id(data.driver(), service.as_ref(), key_id))
         .map_err(Into::into)
 }

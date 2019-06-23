@@ -1,5 +1,5 @@
 use crate::core;
-use crate::server::route::{route_json_config, route_response_empty, route_response_json};
+use crate::server::route::{route_response_empty, route_response_json};
 use crate::server::{validate, Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpResponse};
@@ -11,13 +11,11 @@ pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/service")
         .service(
             web::resource("")
-                .data(route_json_config())
                 .route(web::get().to_async(list_handler))
                 .route(web::post().to_async(create_handler)),
         )
         .service(
             web::resource("/{service_id}")
-                .data(route_json_config())
                 .route(web::get().to_async(read_handler))
                 .route(web::patch().to_async(update_handler))
                 .route(web::delete().to_async(delete_handler)),
@@ -148,7 +146,9 @@ fn read_handler(
 
 fn read_inner(data: &Data, id: Option<String>, service_id: &str) -> Result<ReadResponse, Error> {
     core::key::authenticate(data.driver(), id)
-        .and_then(|service| core::service::read_by_id(data.driver(), service.as_ref(), service_id))
+        .and_then(|(service, _)| {
+            core::service::read_by_id(data.driver(), service.as_ref(), service_id)
+        })
         .map_err(Into::into)
         .and_then(|service| service.ok_or_else(|| Error::NotFound))
         .map(|service| ReadResponse { data: service })
@@ -191,7 +191,7 @@ fn update_inner(
     body: &UpdateBody,
 ) -> Result<UpdateResponse, Error> {
     core::key::authenticate(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             core::service::update_by_id(
                 data.driver(),
                 service.as_ref(),
@@ -218,7 +218,7 @@ fn delete_handler(
 
 fn delete_inner(data: &Data, id: Option<String>, service_id: &str) -> Result<usize, Error> {
     core::key::authenticate(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             core::service::delete_by_id(data.driver(), service.as_ref(), service_id)
         })
         .map_err(Into::into)

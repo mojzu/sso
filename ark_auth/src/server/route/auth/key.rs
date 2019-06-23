@@ -1,6 +1,6 @@
 use crate::core;
 use crate::server::route::auth::{KeyBody, KeyResponse};
-use crate::server::route::{route_json_config, route_response_empty, route_response_json};
+use crate::server::route::{route_response_empty, route_response_json};
 use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpResponse};
@@ -9,16 +9,8 @@ use serde_json::Value;
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/key")
-        .service(
-            web::resource("/verify")
-                .data(route_json_config())
-                .route(web::post().to_async(verify_handler)),
-        )
-        .service(
-            web::resource("/revoke")
-                .data(route_json_config())
-                .route(web::post().to_async(revoke_handler)),
-        )
+        .service(web::resource("/verify").route(web::post().to_async(verify_handler)))
+        .service(web::resource("/revoke").route(web::post().to_async(revoke_handler)))
 }
 
 fn verify_handler(
@@ -37,7 +29,7 @@ fn verify_handler(
 
 fn verify_inner(data: &Data, id: Option<String>, body: &KeyBody) -> Result<KeyResponse, Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::auth::key_verify(data.driver(), &service, &body.key))
+        .and_then(|(service, _)| core::auth::key_verify(data.driver(), &service, &body.key))
         .map_err(Into::into)
         .map(|user_key| KeyResponse { data: user_key })
 }
@@ -58,6 +50,6 @@ fn revoke_handler(
 
 fn revoke_inner(data: &Data, id: Option<String>, body: &KeyBody) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::auth::key_revoke(data.driver(), &service, &body.key))
+        .and_then(|(service, _)| core::auth::key_revoke(data.driver(), &service, &body.key))
         .map_err(Into::into)
 }

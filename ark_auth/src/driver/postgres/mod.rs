@@ -238,6 +238,7 @@ impl driver::Driver for Driver {
         &self,
         id: &str,
         is_enabled: Option<bool>,
+        is_revoked: Option<bool>,
         name: Option<&str>,
     ) -> Result<Key, Error> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
@@ -247,6 +248,7 @@ impl driver::Driver for Driver {
         let value = model::AuthKeyUpdate {
             updated_at: &now,
             key_is_enabled: is_enabled,
+            key_is_revoked: is_revoked,
             key_name: name,
         };
         diesel::update(auth_key.filter(key_id.eq(id)))
@@ -260,6 +262,7 @@ impl driver::Driver for Driver {
         &self,
         key_user_id: &str,
         is_enabled: Option<bool>,
+        is_revoked: Option<bool>,
         name: Option<&str>,
     ) -> Result<usize, Error> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
@@ -269,6 +272,7 @@ impl driver::Driver for Driver {
         let value = model::AuthKeyUpdate {
             updated_at: &now,
             key_is_enabled: is_enabled,
+            key_is_revoked: is_revoked,
             key_name: name,
         };
         diesel::update(auth_key.filter(user_id.eq(key_user_id)))
@@ -594,17 +598,39 @@ impl driver::Driver for Driver {
 
     fn audit_create(
         &self,
-        _user_agent: &str,
-        _remote: &str,
-        _forwarded_for: Option<&str>,
-        _path: &str,
-        _data: &Value,
-        _key_id: &str,
-        _service_id: Option<&str>,
-        _user_id: Option<&str>,
-        _user_key_id: Option<&str>,
+        user_agent: &str,
+        remote: &str,
+        forwarded_for: Option<&str>,
+        path: &str,
+        data: &Value,
+        audit_key_id: &str,
+        audit_service_id: Option<&str>,
+        audit_user_id: Option<&str>,
+        audit_user_key_id: Option<&str>,
     ) -> Result<Audit, Error> {
-        unimplemented!();
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        let now = Utc::now();
+        let id = Driver::uuid();
+        let value = model::AuthAuditInsert {
+            created_at: &now,
+            audit_id: &id,
+            audit_user_agent: user_agent,
+            audit_remote: remote,
+            audit_forwarded_for: forwarded_for,
+            audit_path: path,
+            audit_data: data,
+            key_id: audit_key_id,
+            service_id: audit_service_id,
+            user_id: audit_user_id,
+            user_key_id: audit_user_key_id,
+        };
+        diesel::insert_into(auth_audit)
+            .values(&value)
+            .get_result::<model::AuthAudit>(&conn)
+            .map_err(Error::Diesel)
+            .map(Into::into)
     }
 
     fn audit_delete_by_created_at(&self, _created_at: &DateTime<Utc>) -> Result<usize, Error> {

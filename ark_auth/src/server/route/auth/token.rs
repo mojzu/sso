@@ -1,6 +1,6 @@
 use crate::core;
 use crate::server::route::auth::{TokenBody, TokenPartialResponse, TokenResponse};
-use crate::server::route::{route_json_config, route_response_empty, route_response_json};
+use crate::server::route::{route_response_empty, route_response_json};
 use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpResponse};
@@ -9,21 +9,9 @@ use serde_json::Value;
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/token")
-        .service(
-            web::resource("/verify")
-                .data(route_json_config())
-                .route(web::post().to_async(verify_handler)),
-        )
-        .service(
-            web::resource("/refresh")
-                .data(route_json_config())
-                .route(web::post().to_async(refresh_handler)),
-        )
-        .service(
-            web::resource("/revoke")
-                .data(route_json_config())
-                .route(web::post().to_async(revoke_handler)),
-        )
+        .service(web::resource("/verify").route(web::post().to_async(verify_handler)))
+        .service(web::resource("/refresh").route(web::post().to_async(refresh_handler)))
+        .service(web::resource("/revoke").route(web::post().to_async(revoke_handler)))
 }
 
 fn verify_handler(
@@ -46,7 +34,7 @@ fn verify_inner(
     body: &TokenBody,
 ) -> Result<TokenPartialResponse, Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::auth::token_verify(data.driver(), &service, &body.token))
+        .and_then(|(service, _)| core::auth::token_verify(data.driver(), &service, &body.token))
         .map_err(Into::into)
         .map(|user_token| TokenPartialResponse { data: user_token })
 }
@@ -71,7 +59,7 @@ fn refresh_inner(
     body: &TokenBody,
 ) -> Result<TokenResponse, Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             core::auth::token_refresh(
                 data.driver(),
                 &service,
@@ -100,6 +88,6 @@ fn revoke_handler(
 
 fn revoke_inner(data: &Data, id: Option<String>, body: &TokenBody) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::auth::token_revoke(data.driver(), &service, &body.token))
+        .and_then(|(service, _)| core::auth::token_revoke(data.driver(), &service, &body.token))
         .map_err(Into::into)
 }

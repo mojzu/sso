@@ -1,53 +1,38 @@
 use crate::core;
 use crate::server::route::auth::{password_meta, PasswordMeta};
-use crate::server::route::{route_json_config, route_response_empty, route_response_json};
+use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
 use crate::server::{smtp, validate, Data, Error, FromJsonValue};
 use actix_identity::Identity;
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use futures::{future, Future};
 use serde_json::Value;
 use validator::Validate;
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/local")
-        .service(
-            web::resource("/login")
-                .data(route_json_config())
-                .route(web::post().to_async(login_handler)),
-        )
+        .service(web::resource("/login").route(web::post().to_async(login_handler)))
         .service(
             web::scope("/reset")
                 .service(
-                    web::resource("/password")
-                        .data(route_json_config())
-                        .route(web::post().to_async(reset_password_handler)),
+                    web::resource("/password").route(web::post().to_async(reset_password_handler)),
                 )
                 .service(
                     web::resource("/password/confirm")
-                        .data(route_json_config())
                         .route(web::post().to_async(reset_password_confirm_handler)),
                 ),
         )
         .service(
             web::scope("/update")
-                .service(
-                    web::resource("/email")
-                        .data(route_json_config())
-                        .route(web::post().to_async(update_email_handler)),
-                )
+                .service(web::resource("/email").route(web::post().to_async(update_email_handler)))
                 .service(
                     web::resource("/email/revoke")
-                        .data(route_json_config())
                         .route(web::post().to_async(update_email_revoke_handler)),
                 )
                 .service(
-                    web::resource("/password")
-                        .data(route_json_config())
-                        .route(web::post().to_async(update_password_handler)),
+                    web::resource("/password").route(web::post().to_async(update_password_handler)),
                 )
                 .service(
                     web::resource("/password/revoke")
-                        .data(route_json_config())
                         .route(web::post().to_async(update_password_revoke_handler)),
                 ),
         )
@@ -72,15 +57,19 @@ pub struct LoginResponse {
 
 fn login_handler(
     data: web::Data<Data>,
+    req: HttpRequest,
     id: Identity,
     body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
+    let audit_meta = request_audit_meta(&req);
+    let body = LoginBody::from_value(body.into_inner());
 
-    LoginBody::from_value(body.into_inner())
-        .and_then(|body| {
+    audit_meta
+        .join(body)
+        .and_then(|(audit_meta, body)| {
             web::block(move || {
-                let user_token = login_inner(data.get_ref(), id, &body)?;
+                let user_token = login_inner(data.get_ref(), id, &audit_meta, &body)?;
                 Ok((data, body, user_token))
             })
             .map_err(Into::into)
@@ -100,13 +89,16 @@ fn login_handler(
 fn login_inner(
     data: &Data,
     id: Option<String>,
+    audit_meta: &core::AuditMeta,
     body: &LoginBody,
 ) -> Result<core::UserToken, Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, service_key)| {
             core::auth::login(
                 data.driver(),
                 &service,
+                &service_key,
+                audit_meta,
                 &body.email,
                 &body.password,
                 data.configuration().core_access_token_expires(),
@@ -157,7 +149,7 @@ fn reset_password_inner(
     body: &ResetPasswordBody,
 ) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             let (user, token) = core::auth::reset_password(
                 data.driver(),
                 &service,
@@ -226,7 +218,7 @@ fn reset_password_confirm_inner(
     body: &ResetPasswordConfirmBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             core::auth::reset_password_confirm(data.driver(), &service, &body.token, &body.password)
         })
         .map_err(Into::into)
@@ -279,7 +271,7 @@ fn update_email_inner(
     body: &UpdateEmailBody,
 ) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             let (user, old_email, token) = core::auth::update_email(
                 data.driver(),
                 &service,
@@ -338,7 +330,9 @@ fn update_email_revoke_inner(
     body: &UpdateEmailRevokeBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| core::auth::update_email_revoke(data.driver(), &service, &body.token))
+        .and_then(|(service, _)| {
+            core::auth::update_email_revoke(data.driver(), &service, &body.token)
+        })
         .map_err(Into::into)
 }
 
@@ -400,7 +394,7 @@ fn update_password_inner(
     body: &UpdatePasswordBody,
 ) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             let (user, token) = core::auth::update_password(
                 data.driver(),
                 &service,
@@ -458,7 +452,7 @@ fn update_password_revoke_inner(
     body: &UpdatePasswordRevokeBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             core::auth::update_password_revoke(data.driver(), &service, &body.token)
         })
         .map_err(Into::into)

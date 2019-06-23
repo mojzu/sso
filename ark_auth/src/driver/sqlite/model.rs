@@ -157,6 +157,7 @@ pub struct AuthKeyInsert<'a> {
 pub struct AuthKeyUpdate<'a> {
     pub updated_at: &'a str,
     pub key_is_enabled: Option<bool>,
+    pub key_is_revoked: Option<bool>,
     pub key_name: Option<&'a str>,
 }
 

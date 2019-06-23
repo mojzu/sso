@@ -43,7 +43,7 @@ fn oauth2_request_handler(
 fn request_inner(data: &Data, id: Option<String>) -> Result<Oauth2UrlResponse, Error> {
     core::key::authenticate_service(data.driver(), id)
         .map_err(Into::into)
-        .and_then(|service| microsoft_authorise(&data, &service).map_err(Into::into))
+        .and_then(|(service, _)| microsoft_authorise(&data, &service).map_err(Into::into))
         .map(|url| Oauth2UrlResponse { url })
 }
 

@@ -1,6 +1,6 @@
 use crate::core;
 use crate::server::route::auth::{password_meta, PasswordMeta};
-use crate::server::route::{route_json_config, route_response_empty, route_response_json};
+use crate::server::route::{route_response_empty, route_response_json};
 use crate::server::{validate, Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpResponse};
@@ -12,13 +12,11 @@ pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/user")
         .service(
             web::resource("")
-                .data(route_json_config())
                 .route(web::get().to_async(list_handler))
                 .route(web::post().to_async(create_handler)),
         )
         .service(
             web::resource("/{user_id}")
-                .data(route_json_config())
                 .route(web::get().to_async(read_handler))
                 .route(web::patch().to_async(update_handler))
                 .route(web::delete().to_async(delete_handler)),
@@ -70,7 +68,7 @@ fn list_handler(
 
 fn list_inner(data: &Data, id: Option<String>, query: ListQuery) -> Result<ListResponse, Error> {
     core::key::authenticate(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             if let Some(email_eq) = &query.email_eq {
                 let users =
                     core::user::list_where_email_eq(data.driver(), service.as_ref(), &email_eq, 1)?;
@@ -159,7 +157,7 @@ fn create_handler(
 
 fn create_inner(data: &Data, id: Option<String>, body: &CreateBody) -> Result<core::User, Error> {
     core::key::authenticate(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             core::user::create(
                 data.driver(),
                 service.as_ref(),
@@ -191,7 +189,7 @@ fn read_handler(
 
 fn read_inner(data: &Data, id: Option<String>, user_id: &str) -> Result<ReadResponse, Error> {
     core::key::authenticate(data.driver(), id)
-        .and_then(|service| core::user::read_by_id(data.driver(), service.as_ref(), user_id))
+        .and_then(|(service, _)| core::user::read_by_id(data.driver(), service.as_ref(), user_id))
         .map_err(Into::into)
         .and_then(|user| user.ok_or_else(|| Error::NotFound))
         .map(|user| ReadResponse { data: user })
@@ -234,7 +232,7 @@ fn update_inner(
     body: &UpdateBody,
 ) -> Result<UpdateResponse, Error> {
     core::key::authenticate(data.driver(), id)
-        .and_then(|service| {
+        .and_then(|(service, _)| {
             core::user::update_by_id(
                 data.driver(),
                 service.as_ref(),
@@ -261,6 +259,6 @@ fn delete_handler(
 
 fn delete_inner(data: &Data, id: Option<String>, user_id: &str) -> Result<usize, Error> {
     core::key::authenticate(data.driver(), id)
-        .and_then(|service| core::user::delete_by_id(data.driver(), service.as_ref(), user_id))
+        .and_then(|(service, _)| core::user::delete_by_id(data.driver(), service.as_ref(), user_id))
         .map_err(Into::into)
 }

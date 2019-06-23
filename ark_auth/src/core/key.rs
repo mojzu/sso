@@ -4,12 +4,10 @@ use crate::driver;
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
 
 /// Authenticate root key.
-pub fn authenticate_root(driver: &driver::Driver, key_value: Option<String>) -> Result<(), Error> {
+pub fn authenticate_root(driver: &driver::Driver, key_value: Option<String>) -> Result<Key, Error> {
     match key_value {
-        Some(key_value) => read_by_root_value(driver, &key_value).and_then(|key| {
-            key.ok_or_else(|| Error::Forbidden)?;
-            Ok(())
-        }),
+        Some(key_value) => read_by_root_value(driver, &key_value)
+            .and_then(|key| key.ok_or_else(|| Error::Forbidden)),
         None => Err(Error::Forbidden),
     }
 }
@@ -18,31 +16,34 @@ pub fn authenticate_root(driver: &driver::Driver, key_value: Option<String>) -> 
 pub fn authenticate_service(
     driver: &driver::Driver,
     key_value: Option<String>,
-) -> Result<Service, Error> {
+) -> Result<(Service, Key), Error> {
     match key_value {
         Some(key_value) => read_by_service_value(driver, &key_value).and_then(|key| {
             let key = key.ok_or_else(|| Error::Forbidden)?;
-            let service_id = key.service_id.ok_or_else(|| Error::Forbidden)?;
+            let service_id = key.service_id.clone().ok_or_else(|| Error::Forbidden)?;
             let service = driver
                 .service_read_by_id(&service_id)
-                .map_err(Error::Driver)?;
-            service.ok_or_else(|| Error::Forbidden)
+                .map_err(Error::Driver)?
+                .ok_or_else(|| Error::Forbidden)?;
+            Ok((service, key))
         }),
         None => Err(Error::Forbidden),
     }
 }
 
-/// Authenticate root or service key.
+/// Authenticate service or root key.
 pub fn authenticate(
     driver: &driver::Driver,
     key_value: Option<String>,
-) -> Result<Option<Service>, Error> {
+) -> Result<(Option<Service>, Key), Error> {
     let key_value_1 = key_value.to_owned();
 
     authenticate_service(driver, key_value)
-        .map(Some)
+        .map(|(service, service_key)| (Some(service), service_key))
         .or_else(move |err| match err {
-            Error::Forbidden => authenticate_root(driver, key_value_1).map(|_| None),
+            Error::Forbidden => {
+                authenticate_root(driver, key_value_1).map(|root_key| (None, root_key))
+            }
             _ => Err(err),
         })
 }
@@ -162,10 +163,11 @@ pub fn update_by_id(
     _service_mask: Option<&Service>,
     id: &str,
     is_enabled: Option<bool>,
+    is_revoked: Option<bool>,
     name: Option<&str>,
 ) -> Result<Key, Error> {
     driver
-        .key_update_by_id(id, is_enabled, name)
+        .key_update_by_id(id, is_enabled, is_revoked, name)
         .map_err(Error::Driver)
 }
 
@@ -175,10 +177,11 @@ pub fn update_many_by_user_id(
     _service_mask: Option<&Service>,
     user_id: &str,
     is_enabled: Option<bool>,
+    is_revoked: Option<bool>,
     name: Option<&str>,
 ) -> Result<usize, Error> {
     driver
-        .key_update_many_by_user_id(user_id, is_enabled, name)
+        .key_update_many_by_user_id(user_id, is_enabled, is_revoked, name)
         .map_err(Error::Driver)
 }
 

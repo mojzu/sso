@@ -389,6 +389,8 @@ pub fn start(configuration: Configuration, driver: Box<driver::Driver>) -> Resul
         App::new()
             // Shared data.
             .data(Data::new(configuration.clone(), driver.clone()))
+            // Global JSON configuration.
+            .data(web::JsonConfig::default().limit(1024))
             // Logger middleware.
             .wrap(middleware::Logger::default())
             // TODO(refactor): Sentry middleware support.
