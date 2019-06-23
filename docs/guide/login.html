@@ -166,12 +166,26 @@ $ ark_auth start-server
   --data '{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
   $server_url/v1/auth/provider/local/login
 </code></pre>
-<p>Service receives token response, token can be verified to authenticate requests.</p>
+<p>Service receives token response, access token can be verified to authenticate requests.</p>
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;token&quot;:&quot;$user_token&quot;}' \
+  --data '{&quot;token&quot;:&quot;$access_token&quot;}' \
   $server_url/v1/auth/token/verify
+</code></pre>
+<p>Refresh token can be used to refresh token.</p>
+<pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data '{&quot;token&quot;:&quot;$refresh_token&quot;}' \
+  $server_url/v1/auth/token/refresh
+</code></pre>
+<p>Access or refresh token can be revoked, this will disable the key created earlier and prevent verify and refresh.</p>
+<pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data '{&quot;token&quot;:&quot;$token&quot;}' \
+  $server_url/v1/auth/token/revoke
 </code></pre>
 
                     </main>
