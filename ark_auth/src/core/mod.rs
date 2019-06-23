@@ -38,7 +38,7 @@ pub struct Service {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub id: String,
-    pub is_active: bool,
+    pub is_enabled: bool,
     pub name: String,
     pub url: String,
 }
@@ -49,7 +49,7 @@ pub struct User {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub id: String,
-    pub is_active: bool,
+    pub is_enabled: bool,
     pub name: String,
     pub email: String,
     #[serde(skip)]
@@ -62,7 +62,8 @@ pub struct Key {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub id: String,
-    pub is_active: bool,
+    pub is_enabled: bool,
+    pub is_revoked: bool,
     pub name: String,
     pub value: String,
     pub service_id: Option<String>,

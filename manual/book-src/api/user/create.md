@@ -6,16 +6,16 @@ Create user.
 
 ```json
 {
+  "is_enabled": true,
   "name": "User Name",
   "email": "user@example.com",
-  "active": true,
   "password": "guest"
 }
 ```
 
+- `is_enabled`: User is enabled flag (required).
 - `name`: User name (required).
 - `email`: User email address, must be unique (required).
-- `active`: User is active flag (required).
 - `password`: User password, optional.
 
 ## Response [200, OK]
@@ -30,9 +30,9 @@ Create user.
     "created_at": "2019...04Z",
     "updated_at": "2019...04Z",
     "id": 10,
+    "is_enabled": true,
     "name": "User Name",
-    "email": "user@example.com",
-    "active": true
+    "email": "user@example.com"
   }
 }
 ```
@@ -47,9 +47,9 @@ Create user.
 - `created_at`: Created time ISO 8601 timestamp.
 - `updated_at`: Updated time ISO 8601 timestamp.
 - `id`: User ID.
+- `is_enabled`: User is enabled flag.
 - `name`: User name.
 - `email`: User email address.
-- `active`: User is active flag.
 
 ## Response [400, Bad Request]
 

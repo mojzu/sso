@@ -27,13 +27,13 @@ pub fn list_where_id_gt(
 /// Create service.
 pub fn create(
     driver: &driver::Driver,
-    is_active: bool,
+    is_enabled: bool,
     name: &str,
     url: &str,
 ) -> Result<Service, Error> {
     Url::parse(url).map_err(|_err| Error::BadRequest)?;
     driver
-        .service_create(is_active, name, url)
+        .service_create(is_enabled, name, url)
         .map_err(Error::Driver)
 }
 
@@ -51,11 +51,11 @@ pub fn update_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
     id: &str,
-    is_active: Option<bool>,
+    is_enabled: Option<bool>,
     name: Option<&str>,
 ) -> Result<Service, Error> {
     driver
-        .service_update_by_id(id, is_active, name)
+        .service_update_by_id(id, is_enabled, name)
         .map_err(Error::Driver)
 }
 

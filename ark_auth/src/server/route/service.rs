@@ -90,7 +90,7 @@ fn list_inner(data: &Data, id: Option<String>, query: ListQuery) -> Result<ListR
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct CreateBody {
-    pub is_active: bool,
+    pub is_enabled: bool,
     #[validate(custom = "validate::name")]
     pub name: String,
     #[validate(url)]
@@ -124,7 +124,7 @@ fn create_inner(
     body: &CreateBody,
 ) -> Result<CreateResponse, Error> {
     core::key::authenticate_root(data.driver(), id)
-        .and_then(|_| core::service::create(data.driver(), body.is_active, &body.name, &body.url))
+        .and_then(|_| core::service::create(data.driver(), body.is_enabled, &body.name, &body.url))
         .map_err(Into::into)
         .map(|service| CreateResponse { data: service })
 }
@@ -157,7 +157,7 @@ fn read_inner(data: &Data, id: Option<String>, service_id: &str) -> Result<ReadR
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct UpdateBody {
-    pub is_active: Option<bool>,
+    pub is_enabled: Option<bool>,
     #[validate(custom = "validate::name")]
     pub name: Option<String>,
 }
@@ -196,7 +196,7 @@ fn update_inner(
                 data.driver(),
                 service.as_ref(),
                 service_id,
-                body.is_active,
+                body.is_enabled,
                 body.name.as_ref().map(|x| &**x),
             )
         })

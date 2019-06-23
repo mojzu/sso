@@ -10,7 +10,7 @@ pub struct AuthService {
     pub created_at: String,
     pub updated_at: String,
     pub service_id: String,
-    pub service_is_active: bool,
+    pub service_is_enabled: bool,
     pub service_name: String,
     pub service_url: String,
 }
@@ -23,7 +23,7 @@ impl From<AuthService> for core::Service {
             created_at,
             updated_at,
             id: service.service_id,
-            is_active: service.service_is_active,
+            is_enabled: service.service_is_enabled,
             name: service.service_name,
             url: service.service_url,
         }
@@ -36,7 +36,7 @@ pub struct AuthServiceInsert<'a> {
     pub created_at: &'a str,
     pub updated_at: &'a str,
     pub service_id: &'a str,
-    pub service_is_active: bool,
+    pub service_is_enabled: bool,
     pub service_name: &'a str,
     pub service_url: &'a str,
 }
@@ -45,7 +45,7 @@ pub struct AuthServiceInsert<'a> {
 #[table_name = "auth_service"]
 pub struct AuthServiceUpdate<'a> {
     pub updated_at: &'a str,
-    pub service_is_active: Option<bool>,
+    pub service_is_enabled: Option<bool>,
     pub service_name: Option<&'a str>,
 }
 
@@ -56,7 +56,7 @@ pub struct AuthUser {
     pub created_at: String,
     pub updated_at: String,
     pub user_id: String,
-    pub user_is_active: bool,
+    pub user_is_enabled: bool,
     pub user_name: String,
     pub user_email: String,
     pub user_password_hash: Option<String>,
@@ -70,7 +70,7 @@ impl From<AuthUser> for core::User {
             created_at,
             updated_at,
             id: user.user_id,
-            is_active: user.user_is_active,
+            is_enabled: user.user_is_enabled,
             name: user.user_name,
             email: user.user_email,
             password_hash: user.user_password_hash,
@@ -84,7 +84,7 @@ pub struct AuthUserInsert<'a> {
     pub created_at: &'a str,
     pub updated_at: &'a str,
     pub user_id: &'a str,
-    pub user_is_active: bool,
+    pub user_is_enabled: bool,
     pub user_name: &'a str,
     pub user_email: &'a str,
     pub user_password_hash: Option<&'a str>,
@@ -94,7 +94,7 @@ pub struct AuthUserInsert<'a> {
 #[table_name = "auth_user"]
 pub struct AuthUserUpdate<'a> {
     pub updated_at: &'a str,
-    pub user_is_active: Option<bool>,
+    pub user_is_enabled: Option<bool>,
     pub user_name: Option<&'a str>,
 }
 
@@ -112,7 +112,8 @@ pub struct AuthKey {
     pub created_at: String,
     pub updated_at: String,
     pub key_id: String,
-    pub key_is_active: bool,
+    pub key_is_enabled: bool,
+    pub key_is_revoked: bool,
     pub key_name: String,
     pub key_value: String,
     pub service_id: Option<String>,
@@ -127,7 +128,8 @@ impl From<AuthKey> for core::Key {
             created_at,
             updated_at,
             id: key.key_id,
-            is_active: key.key_is_active,
+            is_enabled: key.key_is_enabled,
+            is_revoked: key.key_is_revoked,
             name: key.key_name,
             value: key.key_value,
             service_id: key.service_id,
@@ -142,7 +144,8 @@ pub struct AuthKeyInsert<'a> {
     pub created_at: &'a str,
     pub updated_at: &'a str,
     pub key_id: &'a str,
-    pub key_is_active: bool,
+    pub key_is_enabled: bool,
+    pub key_is_revoked: bool,
     pub key_name: &'a str,
     pub key_value: &'a str,
     pub service_id: Option<&'a str>,
@@ -153,7 +156,7 @@ pub struct AuthKeyInsert<'a> {
 #[table_name = "auth_key"]
 pub struct AuthKeyUpdate<'a> {
     pub updated_at: &'a str,
-    pub key_is_active: Option<bool>,
+    pub key_is_enabled: Option<bool>,
     pub key_name: Option<&'a str>,
 }
 

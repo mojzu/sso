@@ -72,37 +72,44 @@ pub fn list_where_id_gt(
 }
 
 /// Create root key.
-pub fn create_root(driver: &driver::Driver, is_active: bool, name: &str) -> Result<Key, Error> {
+pub fn create_root(driver: &driver::Driver, is_enabled: bool, name: &str) -> Result<Key, Error> {
     let value = uuid::Uuid::new_v4().to_simple().to_string();
     driver
-        .key_create(is_active, name, &value, None, None)
+        .key_create(is_enabled, false, name, &value, None, None)
         .map_err(Error::Driver)
 }
 
 /// Create service key.
 pub fn create_service(
     driver: &driver::Driver,
-    is_active: bool,
+    is_enabled: bool,
     name: &str,
     service_id: &str,
 ) -> Result<Key, Error> {
     let value = uuid::Uuid::new_v4().to_simple().to_string();
     driver
-        .key_create(is_active, name, &value, Some(service_id), None)
+        .key_create(is_enabled, false, name, &value, Some(service_id), None)
         .map_err(Error::Driver)
 }
 
 /// Create user key.
 pub fn create_user(
     driver: &driver::Driver,
-    is_active: bool,
+    is_enabled: bool,
     name: &str,
     service_id: &str,
     user_id: &str,
 ) -> Result<Key, Error> {
     let value = uuid::Uuid::new_v4().to_simple().to_string();
     driver
-        .key_create(is_active, name, &value, Some(service_id), Some(user_id))
+        .key_create(
+            is_enabled,
+            false,
+            name,
+            &value,
+            Some(service_id),
+            Some(user_id),
+        )
         .map_err(Error::Driver)
 }
 
@@ -154,11 +161,11 @@ pub fn update_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
     id: &str,
-    is_active: Option<bool>,
+    is_enabled: Option<bool>,
     name: Option<&str>,
 ) -> Result<Key, Error> {
     driver
-        .key_update_by_id(id, is_active, name)
+        .key_update_by_id(id, is_enabled, name)
         .map_err(Error::Driver)
 }
 
@@ -167,11 +174,11 @@ pub fn update_many_by_user_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
     user_id: &str,
-    is_active: Option<bool>,
+    is_enabled: Option<bool>,
     name: Option<&str>,
 ) -> Result<usize, Error> {
     driver
-        .key_update_many_by_user_id(user_id, is_active, name)
+        .key_update_many_by_user_id(user_id, is_enabled, name)
         .map_err(Error::Driver)
 }
 

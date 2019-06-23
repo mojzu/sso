@@ -68,7 +68,7 @@ impl driver::Driver for Driver {
 
     fn key_create(
         &self,
-        is_active: bool,
+        is_enabled: bool,
         name: &str,
         value: &str,
         service_id: Option<&str>,
@@ -100,7 +100,7 @@ impl driver::Driver for Driver {
     fn key_update_by_id(
         &self,
         id: &str,
-        is_active: Option<bool>,
+        is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<Key, Error> {
         unimplemented!();
@@ -122,7 +122,7 @@ impl driver::Driver for Driver {
         unimplemented!();
     }
 
-    fn service_create(&self, is_active: bool, name: &str, url: &str) -> Result<Service, Error> {
+    fn service_create(&self, is_enabled: bool, name: &str, url: &str) -> Result<Service, Error> {
         unimplemented!();
     }
 
@@ -133,7 +133,7 @@ impl driver::Driver for Driver {
     fn service_update_by_id(
         &self,
         id: &str,
-        is_active: Option<bool>,
+        is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<Service, Error> {
         unimplemented!();
@@ -157,7 +157,7 @@ impl driver::Driver for Driver {
 
     fn user_create(
         &self,
-        is_active: bool,
+        is_enabled: bool,
         name: &str,
         email: &str,
         password_hash: Option<&str>,
@@ -176,7 +176,7 @@ impl driver::Driver for Driver {
     fn user_update_by_id(
         &self,
         id: &str,
-        is_active: Option<bool>,
+        is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<User, Error> {
         unimplemented!();

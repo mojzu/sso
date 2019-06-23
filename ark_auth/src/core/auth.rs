@@ -13,7 +13,7 @@ pub fn login(
     access_token_expires: i64,
     refresh_token_expires: i64,
 ) -> Result<UserToken, Error> {
-    // Get user and key using email, check is active and password match.
+    // Get user and key using email, check is enabled/not revoked and password match.
     let user = user_read_by_email(driver, Some(service), email)?;
     let key = key_read_by_user(driver, service, &user)?;
     core::check_password(user.password_hash.as_ref().map(|x| &**x), &password)?;
@@ -37,7 +37,7 @@ pub fn reset_password(
     email: &str,
     token_expires: i64,
 ) -> Result<(User, String), Error> {
-    // Get user and key using email, check is active.
+    // Get user and key using email, check is enabled/not revoked.
     let user = user_read_by_email(driver, Some(service), email)?;
     let key = key_read_by_user(driver, service, &user)?;
 
@@ -66,7 +66,7 @@ pub fn reset_password_confirm(
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
 
-    // Get user and key, check is active.
+    // Get user and key, check is enabled/not revoked.
     let user = user_read_by_id(driver, Some(service), &user_id)?;
     let key = key_read_by_user(driver, service, &user)?;
 
@@ -95,7 +95,7 @@ pub fn update_email(
     new_email: &str,
     revoke_token_expires: i64,
 ) -> Result<(User, String, String), Error> {
-    // Get user and key using verified token or key, check is active and password match.
+    // Get user and key using verified token or key, check is enabled/not revoked and password match.
     let user_id = key_or_token_verify(driver, service, key, token)?;
     let user = user_read_by_id(driver, Some(service), &user_id)?;
     let key = key_read_by_user(driver, service, &user)?;
@@ -128,7 +128,7 @@ pub fn update_email_revoke(
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
 
-    // Get user and key, do not check is active.
+    // Get user and key, do not check is enabled/not revoked.
     let user = core::user::read_by_id(driver, Some(service), &user_id)?
         .ok_or_else(|| Error::BadRequest)?;
     let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
@@ -161,7 +161,7 @@ pub fn update_password(
     new_password: &str,
     revoke_token_expires: i64,
 ) -> Result<(User, String), Error> {
-    // Get user and key using verified token or key, check is active and password match.
+    // Get user and key using verified token or key, check is enabled/not revoked and password match.
     let user_id = key_or_token_verify(driver, service, key, token)?;
     let user = user_read_by_id(driver, Some(service), &user_id)?;
     let key = key_read_by_user(driver, service, &user)?;
@@ -193,7 +193,7 @@ pub fn update_password_revoke(
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
 
-    // Get user and key, do not check is active.
+    // Get user and key, do not check is enabled/not revoked.
     let user = core::user::read_by_id(driver, Some(service), &user_id)?
         .ok_or_else(|| Error::BadRequest)?;
     let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
@@ -218,7 +218,7 @@ pub fn update_password_revoke(
 
 /// Verify user key.
 pub fn key_verify(driver: &Driver, service: &Service, key: &str) -> Result<UserKey, Error> {
-    // Get key, check is active and associated with user.
+    // Get key, check is enabled/not revoked and associated with user.
     let key = key_read_by_user_value(driver, service, key)?;
     let user_id = key.user_id.ok_or_else(|| Error::BadRequest)?;
 
@@ -231,7 +231,7 @@ pub fn key_verify(driver: &Driver, service: &Service, key: &str) -> Result<UserK
 
 /// Revoke user key.
 pub fn key_revoke(driver: &Driver, service: &Service, key: &str) -> Result<usize, Error> {
-    // Get key, do not check is active.
+    // Get key, do not check is enabled/not revoked.
     let key =
         core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::BadRequest)?;
 
@@ -249,7 +249,7 @@ pub fn token_verify(
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
 
-    // Get user and key, check is active.
+    // Get user and key, check is enabled/not revoked.
     let user = user_read_by_id(driver, Some(service), &user_id)?;
     let key = key_read_by_user(driver, service, &user)?;
 
@@ -281,7 +281,7 @@ pub fn token_refresh(
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
 
-    // Get user and key, check is active.
+    // Get user and key, check is enabled/not revoked.
     let user = user_read_by_id(driver, Some(service), &user_id)?;
     let key = key_read_by_user(driver, service, &user)?;
 
@@ -312,7 +312,7 @@ pub fn token_revoke(driver: &Driver, service: &Service, token: &str) -> Result<u
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, token_type) = core::jwt::decode_unsafe(token, &service.id)?;
 
-    // Get user and key, do not check is active.
+    // Get user and key, do not check is enabled/not revoked.
     let user = core::user::read_by_id(driver, Some(service), &user_id)?
         .ok_or_else(|| Error::BadRequest)?;
     let key = core::key::read_by_user(driver, service, &user)?.ok_or_else(|| Error::BadRequest)?;
@@ -336,7 +336,7 @@ pub fn oauth2_login(
     access_token_expires: i64,
     refresh_token_expires: i64,
 ) -> Result<(Service, UserToken), Error> {
-    // Get service, user and key, check is active.
+    // Get service, user and key, check is enabled/not revoked.
     let service = service_read_by_id(driver, service_id)?;
     let user = user_read_by_email(driver, Some(&service), email)?;
     let key = key_read_by_user(driver, &service, &user)?;
@@ -356,20 +356,20 @@ pub fn oauth2_login(
 }
 
 /// Read service by ID.
-/// Also checks service is active, returns bad request if inactive.
+/// Also checks service is enabled, returns bad request if disabled.
 fn service_read_by_id(driver: &Driver, service_id: &str) -> Result<Service, Error> {
     let service = driver
         .service_read_by_id(service_id)
         .map_err(Error::Driver)?
         .ok_or_else(|| Error::BadRequest)?;
-    if !service.is_active {
+    if !service.is_enabled {
         return Err(Error::BadRequest);
     }
     Ok(service)
 }
 
 /// Read user by ID.
-/// Also checks user is active, returns bad request if inactive.
+/// Also checks user is eanbled, returns bad request if disabled.
 fn user_read_by_id(
     driver: &Driver,
     service_mask: Option<&Service>,
@@ -377,14 +377,14 @@ fn user_read_by_id(
 ) -> Result<User, Error> {
     let user =
         core::user::read_by_id(driver, service_mask, id)?.ok_or_else(|| Error::BadRequest)?;
-    if !user.is_active {
+    if !user.is_enabled {
         return Err(Error::BadRequest);
     }
     Ok(user)
 }
 
 /// Read user by email address.
-/// Also checks user is active, returns bad request if inactive.
+/// Also checks user is enabled, returns bad request if disabled.
 fn user_read_by_email(
     driver: &Driver,
     service_mask: Option<&Service>,
@@ -392,28 +392,28 @@ fn user_read_by_email(
 ) -> Result<User, Error> {
     let user =
         core::user::read_by_email(driver, service_mask, email)?.ok_or_else(|| Error::BadRequest)?;
-    if !user.is_active {
+    if !user.is_enabled {
         return Err(Error::BadRequest);
     }
     Ok(user)
 }
 
 /// Read key by user reference.
-/// Also checks key is active, returns bad request if inactive.
+/// Also checks key is enabled and not revoked, returns bad request if disabled.
 fn key_read_by_user(driver: &Driver, service: &Service, user: &User) -> Result<Key, Error> {
     let key = core::key::read_by_user(driver, &service, &user)?.ok_or_else(|| Error::BadRequest)?;
-    if !key.is_active {
+    if !key.is_enabled || key.is_revoked {
         return Err(Error::BadRequest);
     }
     Ok(key)
 }
 
 /// Read key by user value.
-/// Also checks key is active, returns bad request if inactive.
+/// Also checks key is enabled and not revoked, returns bad request if disabled.
 fn key_read_by_user_value(driver: &Driver, service: &Service, key: &str) -> Result<Key, Error> {
     let key =
         core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::BadRequest)?;
-    if !key.is_active {
+    if !key.is_enabled || key.is_revoked {
         return Err(Error::BadRequest);
     }
     Ok(key)

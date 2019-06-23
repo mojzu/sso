@@ -71,7 +71,6 @@ let user_url = server_url("/v1/user");
 let request = user::CreateBody {
     name: "User Name".to_owned(),
     email: user_email.clone(),
-    active: true,
     password: Some(user_password.clone()),
 };
 let mut response = client
@@ -273,7 +272,7 @@ let content_length = header_get(&response, "content-length");
 assert_eq!(status, 400);
 assert_eq!(content_length, "0");
 
-// Inactive user.
+// Disabled user.
 let user_email = user_email_create();
 let user = user_post_200(&service_key, "User Name", &user_email, false, Some("guest"));
 key_post_user_200(&service, &service_key, &user, "Key Name");

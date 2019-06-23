@@ -5,13 +5,13 @@ use crate::server::route::key::{CreateBody, CreateResponse};
 impl SyncClient {
     pub fn key_create(
         &self,
-        is_active: bool,
+        is_enabled: bool,
         name: &str,
         service_id: Option<&str>,
         user_id: Option<&str>,
     ) -> Result<CreateResponse, Error> {
         let body = CreateBody {
-            is_active,
+            is_enabled,
             name: name.to_owned(),
             service_id: service_id.map(|x| x.to_owned()),
             user_id: user_id.map(|x| x.to_owned()),

@@ -4,7 +4,7 @@
 
 ### Added
 
-- Added is active flag to services, users and keys.
+- Added is enabled flag to services, users and keys, added is revoked flag to keys.
 - Added synchronous and asynchronous clients.
 - Added `email_eq` query option to user list route.
 - Added local provider update user email, password routes.

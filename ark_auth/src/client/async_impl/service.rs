@@ -27,12 +27,12 @@ impl AsyncClient {
 
     pub fn service_create(
         &self,
-        is_active: bool,
+        is_enabled: bool,
         name: &str,
         url: &str,
     ) -> impl Future<Item = CreateResponse, Error = Error> {
         let body = CreateBody {
-            is_active,
+            is_enabled,
             name: name.to_owned(),
             url: url.to_owned(),
         };

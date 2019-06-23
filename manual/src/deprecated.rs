@@ -69,14 +69,12 @@ pub fn user_post_200(
     service_key: &Key,
     name: &str,
     email: &str,
-    active: bool,
     password: Option<&str>,
 ) -> User {
     let client = reqwest::Client::new();
     let request = user::CreateBody {
         name: name.to_owned(),
         email: email.to_owned(),
-        active,
         password: password.map(String::from),
     };
     let url = server_url("/v1/user");
@@ -96,7 +94,6 @@ pub fn user_post_200(
     assert!(user.id > 0);
     assert_eq!(user.name, "User Name");
     assert_eq!(user.email, email);
-    assert_eq!(user.active, active);
     assert!(user.password_hash.is_none());
     assert!(user.password_revision.is_none());
     user

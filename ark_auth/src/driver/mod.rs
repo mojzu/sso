@@ -47,7 +47,8 @@ pub trait Driver: Send + Sync {
     /// Create key.
     fn key_create(
         &self,
-        is_active: bool,
+        is_enabled: bool,
+        is_revoked: bool,
         name: &str,
         value: &str,
         service_id: Option<&str>,
@@ -73,7 +74,7 @@ pub trait Driver: Send + Sync {
     fn key_update_by_id(
         &self,
         id: &str,
-        is_active: Option<bool>,
+        is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<Key, Error>;
 
@@ -81,7 +82,7 @@ pub trait Driver: Send + Sync {
     fn key_update_many_by_user_id(
         &self,
         user_id: &str,
-        is_active: Option<bool>,
+        is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<usize, Error>;
 
@@ -98,7 +99,7 @@ pub trait Driver: Send + Sync {
     fn service_list_where_id_gt(&self, gt: &str, limit: i64) -> Result<Vec<String>, Error>;
 
     /// Create service.
-    fn service_create(&self, is_active: bool, name: &str, url: &str) -> Result<Service, Error>;
+    fn service_create(&self, is_enabled: bool, name: &str, url: &str) -> Result<Service, Error>;
 
     /// Read service by ID.
     fn service_read_by_id(&self, id: &str) -> Result<Option<Service>, Error>;
@@ -107,7 +108,7 @@ pub trait Driver: Send + Sync {
     fn service_update_by_id(
         &self,
         id: &str,
-        is_active: Option<bool>,
+        is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<Service, Error>;
 
@@ -126,7 +127,7 @@ pub trait Driver: Send + Sync {
     /// Create user.
     fn user_create(
         &self,
-        is_active: bool,
+        is_enabled: bool,
         name: &str,
         email: &str,
         password_hash: Option<&str>,
@@ -142,7 +143,7 @@ pub trait Driver: Send + Sync {
     fn user_update_by_id(
         &self,
         id: &str,
-        is_active: Option<bool>,
+        is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<User, Error>;
 

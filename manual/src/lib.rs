@@ -40,20 +40,20 @@ pub fn create_service_key(client: &SyncClient) -> (Service, Key) {
 
 pub fn create_user(
     client: &SyncClient,
-    is_active: bool,
+    is_enabled: bool,
     name: &str,
     email: &str,
     password: Option<&str>,
 ) -> User {
     let before = Utc::now();
     let create = client
-        .user_create(is_active, name, email, password)
+        .user_create(is_enabled, name, email, password)
         .unwrap();
     let user = create.data;
     assert!(user.created_at.gt(&before));
     assert!(user.updated_at.gt(&before));
     assert!(!user.id.is_empty());
-    assert_eq!(user.is_active, is_active);
+    assert_eq!(user.is_enabled, is_enabled);
     assert_eq!(user.name, name);
     assert_eq!(user.email, email);
     assert!(user.password_hash.is_none());
@@ -62,26 +62,26 @@ pub fn create_user(
 
 pub fn create_user_duplicate_email(
     client: &SyncClient,
-    is_active: bool,
+    is_enabled: bool,
     name: &str,
     email: &str,
     password: Option<&str>,
 ) {
     let create = client
-        .user_create(is_active, name, email, password)
+        .user_create(is_enabled, name, email, password)
         .unwrap_err();
     assert_eq!(create, Error::Request(RequestError::BadRequest));
 }
 
 pub fn create_user_forbidden(
     client: &SyncClient,
-    is_active: bool,
+    is_enabled: bool,
     name: &str,
     email: &str,
     password: Option<&str>,
 ) {
     let create = client
-        .user_create(is_active, name, email, password)
+        .user_create(is_enabled, name, email, password)
         .unwrap_err();
     assert_eq!(create, Error::Request(RequestError::Forbidden));
 }

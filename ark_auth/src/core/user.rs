@@ -42,7 +42,7 @@ pub fn list_where_email_eq(
 pub fn create(
     driver: &driver::Driver,
     service_mask: Option<&Service>,
-    is_active: bool,
+    is_enabled: bool,
     name: &str,
     email: &str,
     password: Option<&str>,
@@ -54,7 +54,12 @@ pub fn create(
 
     let password_hash = hash_password(password)?;
     driver
-        .user_create(is_active, name, email, password_hash.as_ref().map(|x| &**x))
+        .user_create(
+            is_enabled,
+            name,
+            email,
+            password_hash.as_ref().map(|x| &**x),
+        )
         .map_err(Error::Driver)
 }
 
@@ -81,11 +86,11 @@ pub fn update_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
     id: &str,
-    is_active: Option<bool>,
+    is_enabled: Option<bool>,
     name: Option<&str>,
 ) -> Result<User, Error> {
     driver
-        .user_update_by_id(id, is_active, name)
+        .user_update_by_id(id, is_enabled, name)
         .map_err(Error::Driver)
 }
 

@@ -93,7 +93,7 @@ fn list_inner(data: &Data, id: Option<String>, query: ListQuery) -> Result<ListR
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct CreateBody {
-    pub is_active: bool,
+    pub is_enabled: bool,
     #[validate(custom = "validate::name")]
     pub name: String,
     #[validate(custom = "validate::id")]
@@ -136,7 +136,7 @@ fn create_inner(
                     // User ID is defined, creating user key for service.
                     Some(user_id) => core::key::create_user(
                         data.driver(),
-                        body.is_active,
+                        body.is_enabled,
                         &body.name,
                         &service_id,
                         &user_id,
@@ -144,7 +144,7 @@ fn create_inner(
                     // Creating service key.
                     None => core::key::create_service(
                         data.driver(),
-                        body.is_active,
+                        body.is_enabled,
                         &body.name,
                         &service_id,
                     ),
@@ -156,7 +156,7 @@ fn create_inner(
                 // User ID is defined, creating user key for service.
                 Some(user_id) => core::key::create_user(
                     data.driver(),
-                    body.is_active,
+                    body.is_enabled,
                     &body.name,
                     &service.id,
                     &user_id,
@@ -198,7 +198,7 @@ fn read_inner(data: &Data, id: Option<String>, key_id: &str) -> Result<ReadRespo
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct UpdateBody {
-    pub is_active: Option<bool>,
+    pub is_enabled: Option<bool>,
     #[validate(custom = "validate::name")]
     pub name: Option<String>,
 }
@@ -237,7 +237,7 @@ fn update_inner(
                 data.driver(),
                 service.as_ref(),
                 key_id,
-                body.is_active,
+                body.is_enabled,
                 body.name.as_ref().map(|x| &**x),
             )
         })

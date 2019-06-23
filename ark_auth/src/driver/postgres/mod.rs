@@ -104,7 +104,8 @@ impl driver::Driver for Driver {
 
     fn key_create(
         &self,
-        is_active: bool,
+        is_enabled: bool,
+        is_revoked: bool,
         name: &str,
         value: &str,
         key_service_id: Option<&str>,
@@ -119,7 +120,8 @@ impl driver::Driver for Driver {
             created_at: &now,
             updated_at: &now,
             key_id: &id,
-            key_is_active: is_active,
+            key_is_enabled: is_enabled,
+            key_is_revoked: is_revoked,
             key_name: name,
             key_value: value,
             service_id: key_service_id,
@@ -160,7 +162,8 @@ impl driver::Driver for Driver {
                 user_id
                     .eq(key_user_id)
                     .and(service_id.eq(key_service_id))
-                    .and(key_is_active.eq(true)),
+                    .and(key_is_enabled.eq(true))
+                    .and(key_is_revoked.eq(false)),
             )
             .order(created_at.asc())
             .get_result::<model::AuthKey>(&conn)
@@ -234,7 +237,7 @@ impl driver::Driver for Driver {
     fn key_update_by_id(
         &self,
         id: &str,
-        is_active: Option<bool>,
+        is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<Key, Error> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
@@ -243,7 +246,7 @@ impl driver::Driver for Driver {
         let now = chrono::Utc::now();
         let value = model::AuthKeyUpdate {
             updated_at: &now,
-            key_is_active: is_active,
+            key_is_enabled: is_enabled,
             key_name: name,
         };
         diesel::update(auth_key.filter(key_id.eq(id)))
@@ -256,7 +259,7 @@ impl driver::Driver for Driver {
     fn key_update_many_by_user_id(
         &self,
         key_user_id: &str,
-        is_active: Option<bool>,
+        is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<usize, Error> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
@@ -265,7 +268,7 @@ impl driver::Driver for Driver {
         let now = chrono::Utc::now();
         let value = model::AuthKeyUpdate {
             updated_at: &now,
-            key_is_active: is_active,
+            key_is_enabled: is_enabled,
             key_name: name,
         };
         diesel::update(auth_key.filter(user_id.eq(key_user_id)))
@@ -318,7 +321,7 @@ impl driver::Driver for Driver {
             .map_err(Error::Diesel)
     }
 
-    fn service_create(&self, is_active: bool, name: &str, url: &str) -> Result<Service, Error> {
+    fn service_create(&self, is_enabled: bool, name: &str, url: &str) -> Result<Service, Error> {
         use crate::driver::postgres::schema::auth_service::dsl::*;
 
         let conn = self.connection()?;
@@ -328,7 +331,7 @@ impl driver::Driver for Driver {
             created_at: &now,
             updated_at: &now,
             service_id: &id,
-            service_is_active: is_active,
+            service_is_enabled: is_enabled,
             service_name: name,
             service_url: url,
         };
@@ -356,7 +359,7 @@ impl driver::Driver for Driver {
     fn service_update_by_id(
         &self,
         id: &str,
-        is_active: Option<bool>,
+        is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<Service, Error> {
         use crate::driver::postgres::schema::auth_service::dsl::*;
@@ -365,7 +368,7 @@ impl driver::Driver for Driver {
         let now = chrono::Utc::now();
         let value = model::AuthServiceUpdate {
             updated_at: &now,
-            service_is_active: is_active,
+            service_is_enabled: is_enabled,
             service_name: name,
         };
         diesel::update(auth_service.filter(service_id.eq(id)))
@@ -425,7 +428,7 @@ impl driver::Driver for Driver {
 
     fn user_create(
         &self,
-        is_active: bool,
+        is_enabled: bool,
         name: &str,
         email: &str,
         password_hash: Option<&str>,
@@ -439,7 +442,7 @@ impl driver::Driver for Driver {
             created_at: &now,
             updated_at: &now,
             user_id: &id,
-            user_is_active: is_active,
+            user_is_enabled: is_enabled,
             user_name: name,
             user_email: email,
             user_password_hash: password_hash,
@@ -482,7 +485,7 @@ impl driver::Driver for Driver {
     fn user_update_by_id(
         &self,
         id: &str,
-        is_active: Option<bool>,
+        is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<User, Error> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
@@ -491,7 +494,7 @@ impl driver::Driver for Driver {
         let now = chrono::Utc::now();
         let value = model::AuthUserUpdate {
             updated_at: &now,
-            user_is_active: is_active,
+            user_is_enabled: is_enabled,
             user_name: name,
         };
         diesel::update(auth_user.filter(user_id.eq(id)))

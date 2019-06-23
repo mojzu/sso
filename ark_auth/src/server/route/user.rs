@@ -116,7 +116,7 @@ fn list_inner(data: &Data, id: Option<String>, query: ListQuery) -> Result<ListR
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct CreateBody {
-    pub is_active: bool,
+    pub is_enabled: bool,
     #[validate(custom = "validate::name")]
     pub name: String,
     #[validate(email)]
@@ -163,7 +163,7 @@ fn create_inner(data: &Data, id: Option<String>, body: &CreateBody) -> Result<co
             core::user::create(
                 data.driver(),
                 service.as_ref(),
-                body.is_active,
+                body.is_enabled,
                 &body.name,
                 &body.email,
                 body.password.as_ref().map(|x| &**x),
@@ -200,7 +200,7 @@ fn read_inner(data: &Data, id: Option<String>, user_id: &str) -> Result<ReadResp
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct UpdateBody {
-    pub is_active: Option<bool>,
+    pub is_enabled: Option<bool>,
     #[validate(custom = "validate::name")]
     pub name: Option<String>,
 }
@@ -239,7 +239,7 @@ fn update_inner(
                 data.driver(),
                 service.as_ref(),
                 user_id,
-                body.is_active,
+                body.is_enabled,
                 body.name.as_ref().map(|x| &**x),
             )
         })
