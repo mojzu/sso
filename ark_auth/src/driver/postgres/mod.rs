@@ -495,7 +495,13 @@ impl driver::Driver for Driver {
             .map_err(Error::Diesel)
     }
 
-    fn csrf_create(&self, key: &str, value: &str, csrf_service_id: &str) -> Result<Csrf, Error> {
+    fn csrf_create(
+        &self,
+        key: &str,
+        value: &str,
+        ttl: &DateTime<Utc>,
+        csrf_service_id: &str,
+    ) -> Result<Csrf, Error> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
         let conn = self.connection()?;
@@ -504,6 +510,7 @@ impl driver::Driver for Driver {
             created_at: &now,
             csrf_key: key,
             csrf_value: value,
+            csrf_ttl: ttl,
             service_id: csrf_service_id,
         };
         diesel::insert_into(auth_csrf)
@@ -536,11 +543,11 @@ impl driver::Driver for Driver {
             .map_err(Error::Diesel)
     }
 
-    fn csrf_delete_by_created_at(&self, csrf_created_at: &DateTime<Utc>) -> Result<usize, Error> {
+    fn csrf_delete_by_ttl(&self, now: &DateTime<Utc>) -> Result<usize, Error> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
         let conn = self.connection()?;
-        diesel::delete(auth_csrf.filter(created_at.le(csrf_created_at)))
+        diesel::delete(auth_csrf.filter(csrf_ttl.le(now)))
             .execute(&conn)
             .map_err(Error::Diesel)
     }

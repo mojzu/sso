@@ -144,8 +144,14 @@ pub trait Driver: Send + Sync {
     /// Delete user by ID.
     fn user_delete_by_id(&self, id: &str) -> Result<usize, Error>;
 
-    /// Create one CSRF key, value pair. Key must be unique.
-    fn csrf_create(&self, key: &str, value: &str, service_id: &str) -> Result<Csrf, Error>;
+    /// Create one CSRF key, value pair with time to live in seconds. Key must be unique.
+    fn csrf_create(
+        &self,
+        key: &str,
+        value: &str,
+        ttl: &DateTime<Utc>,
+        service_id: &str,
+    ) -> Result<Csrf, Error>;
 
     /// Read one CSRF key, value pair.
     fn csrf_read_by_key(&self, key: &str) -> Result<Option<Csrf>, Error>;
@@ -153,8 +159,8 @@ pub trait Driver: Send + Sync {
     /// Delete one CSRF key, value pair.
     fn csrf_delete_by_key(&self, key: &str) -> Result<usize, Error>;
 
-    /// Delete many CSRF key, value pairs by created at time.
-    fn csrf_delete_by_created_at(&self, created_at: &DateTime<Utc>) -> Result<usize, Error>;
+    /// Delete many CSRF key, value pairs by time to live timestamp.
+    fn csrf_delete_by_ttl(&self, now: &DateTime<Utc>) -> Result<usize, Error>;
 
     /// Create audit log.
     fn audit_create(

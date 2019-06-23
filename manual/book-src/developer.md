@@ -98,6 +98,12 @@ $ mdbook serve
 $ rm -rf ../docs && mdbook build
 ```
 
+Build documentation.
+
+```shell
+$ cargo doc --no-deps --open
+```
+
 Build docker image.
 
 ```Shell

@@ -45,6 +45,7 @@ CREATE TABLE auth_csrf (
     created_at TIMESTAMPTZ NOT NULL,
     csrf_key VARCHAR NOT NULL,
     csrf_value VARCHAR NOT NULL,
+    csrf_ttl TIMESTAMPTZ NOT NULL,
     service_id VARCHAR NOT NULL,
     PRIMARY KEY (csrf_key),
     CONSTRAINT fk_auth_csrf_service

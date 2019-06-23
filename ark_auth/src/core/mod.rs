@@ -88,6 +88,7 @@ pub struct Csrf {
     pub created_at: DateTime<Utc>,
     pub key: String,
     pub value: String,
+    pub ttl: DateTime<Utc>,
     pub service_id: String,
 }
 

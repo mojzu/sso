@@ -164,16 +164,19 @@ pub struct AuthCsrf {
     pub created_at: String,
     pub csrf_key: String,
     pub csrf_value: String,
+    pub csrf_ttl: String,
     pub service_id: String,
 }
 
 impl From<AuthCsrf> for core::Csrf {
     fn from(csrf: AuthCsrf) -> Self {
         let created_at = csrf.created_at.parse::<DateTime<Utc>>().unwrap();
+        let ttl = csrf.csrf_ttl.parse::<DateTime<Utc>>().unwrap();
         core::Csrf {
             created_at,
             key: csrf.csrf_key,
             value: csrf.csrf_value,
+            ttl,
             service_id: csrf.service_id,
         }
     }
@@ -185,6 +188,7 @@ pub struct AuthCsrfInsert<'a> {
     pub created_at: &'a str,
     pub csrf_key: &'a str,
     pub csrf_value: &'a str,
+    pub csrf_ttl: &'a str,
     pub service_id: &'a str,
 }
 
