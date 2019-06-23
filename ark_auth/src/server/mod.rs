@@ -204,9 +204,9 @@ impl Configuration {
             user_agent: crate_user_agent(),
             password_pwned_enabled: false,
             core: ConfigurationCore {
-                access_token_expires: 3600,
-                refresh_token_expires: 86400,
-                revoke_token_expires: 604800,
+                access_token_expires: 3_600,
+                refresh_token_expires: 86_400,
+                revoke_token_expires: 604_800,
             },
             smtp: None,
             provider: ConfigurationProviderGroup {

@@ -266,7 +266,7 @@ pub fn token_verify(
     Ok(UserTokenPartial {
         user_id: user.id.to_owned(),
         access_token: token.to_owned(),
-        access_token_expires: access_token_expires,
+        access_token_expires,
     })
 }
 

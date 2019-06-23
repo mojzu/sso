@@ -384,14 +384,12 @@ fn update_password_handler(
     UpdatePasswordBody::from_value(body.into_inner())
         .and_then(|body| {
             web::block(move || {
-                let update_password = update_password_inner(data.get_ref(), id, &body)?;
-                Ok((data, body, update_password))
+                update_password_inner(data.get_ref(), id, &body)?;
+                Ok((data, body))
             })
             .map_err(Into::into)
         })
-        .and_then(|(data, body, _update_password)| {
-            password_meta(data.get_ref(), Some(&body.password))
-        })
+        .and_then(|(data, body)| password_meta(data.get_ref(), Some(&body.password)))
         .map(|meta| UpdatePasswordResponse { meta })
         .then(route_response_json)
 }
