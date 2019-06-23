@@ -89,6 +89,18 @@ pub fn update_by_id(
         .map_err(Error::Driver)
 }
 
+/// Update user email by ID.
+pub fn update_email_by_id(
+    driver: &driver::Driver,
+    _service_mask: Option<&Service>,
+    id: &str,
+    email: &str,
+) -> Result<usize, Error> {
+    driver
+        .user_update_email_by_id(id, email)
+        .map_err(Error::Driver)
+}
+
 /// Update user password by ID.
 pub fn update_password_by_id(
     driver: &driver::Driver,

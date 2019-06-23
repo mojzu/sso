@@ -14,6 +14,7 @@
 - Changed database schema to use strings as IDs.
 - Changed list route endpoints to return data ID arrays.
 - Changed CSRF key, value pairs to use TTL in seconds.
+- Changed token type handling, user token split into access and refresh tokens.
 - Moved OAuth2 routes into provider groups.
 - Moved login, reset routes into local provider group.
 - Upgraded to version 3 of `oauth2` library.

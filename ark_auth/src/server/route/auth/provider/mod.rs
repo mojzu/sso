@@ -33,7 +33,10 @@ pub struct Oauth2UrlResponse {
 
 pub fn oauth2_redirect(service: core::Service, token: core::UserToken) -> HttpResponse {
     let mut url = Url::parse(&service.url).unwrap();
-    let token_query = format!("token={}", token.token);
+    let token_query = format!(
+        "access_token={}&refresh_token={}",
+        token.access_token, token.refresh_token
+    );
     url.set_query(Some(&token_query));
 
     HttpResponse::Found()

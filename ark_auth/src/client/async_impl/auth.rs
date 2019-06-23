@@ -5,7 +5,9 @@ use crate::server::route::auth::provider::local::{
     ResetPasswordConfirmResponse,
 };
 use crate::server::route::auth::provider::Oauth2UrlResponse;
-use crate::server::route::auth::{KeyBody, KeyResponse, TokenBody, TokenResponse};
+use crate::server::route::auth::{
+    KeyBody, KeyResponse, TokenBody, TokenPartialResponse, TokenResponse,
+};
 use futures::Future;
 
 impl AsyncClient {
@@ -99,7 +101,7 @@ impl AsyncClient {
     pub fn auth_token_verify(
         &self,
         token: &str,
-    ) -> impl Future<Item = TokenResponse, Error = Error> {
+    ) -> impl Future<Item = TokenPartialResponse, Error = Error> {
         let body = TokenBody {
             token: token.to_owned(),
         };
@@ -108,7 +110,10 @@ impl AsyncClient {
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| res.json::<TokenResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| {
+                res.json::<TokenPartialResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 
     pub fn auth_token_refresh(

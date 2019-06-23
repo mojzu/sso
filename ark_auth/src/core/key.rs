@@ -162,6 +162,19 @@ pub fn update_by_id(
         .map_err(Error::Driver)
 }
 
+/// Update many keys by user ID.
+pub fn update_many_by_user_id(
+    driver: &driver::Driver,
+    _service_mask: Option<&Service>,
+    user_id: &str,
+    is_active: Option<bool>,
+    name: Option<&str>,
+) -> Result<usize, Error> {
+    driver
+        .key_update_many_by_user_id(user_id, is_active, name)
+        .map_err(Error::Driver)
+}
+
 /// Delete key by ID.
 pub fn delete_by_id(
     driver: &driver::Driver,

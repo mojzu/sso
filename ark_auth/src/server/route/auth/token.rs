@@ -1,5 +1,5 @@
 use crate::core;
-use crate::server::route::auth::{TokenBody, TokenResponse};
+use crate::server::route::auth::{TokenBody, TokenPartialResponse, TokenResponse};
 use crate::server::route::{route_json_config, route_response_empty, route_response_json};
 use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
@@ -40,14 +40,16 @@ fn verify_handler(
         .then(route_response_json)
 }
 
-fn verify_inner(data: &Data, id: Option<String>, body: &TokenBody) -> Result<TokenResponse, Error> {
+fn verify_inner(
+    data: &Data,
+    id: Option<String>,
+    body: &TokenBody,
+) -> Result<TokenPartialResponse, Error> {
     core::key::authenticate_service(data.driver(), id)
         .and_then(|service| core::auth::token_verify(data.driver(), &service, &body.token))
         .map_err(Into::into)
-        .map(|user_token| TokenResponse { data: user_token })
+        .map(|user_token| TokenPartialResponse { data: user_token })
 }
-
-// TODO(feature): Refresh counter and configurable limit, or separate refresh tokens.
 
 fn refresh_handler(
     data: web::Data<Data>,
@@ -74,7 +76,8 @@ fn refresh_inner(
                 data.driver(),
                 &service,
                 &body.token,
-                data.configuration().token_expiration_time(),
+                data.configuration().core_access_token_expires(),
+                data.configuration().core_refresh_token_expires(),
             )
         })
         .map_err(Into::into)

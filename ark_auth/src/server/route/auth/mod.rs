@@ -31,6 +31,11 @@ pub struct TokenResponse {
     pub data: core::UserToken,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TokenPartialResponse {
+    pub data: core::UserTokenPartial,
+}
+
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct KeyBody {

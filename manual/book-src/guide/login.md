@@ -37,12 +37,32 @@ $ curl --header "Content-Type: application/json" \
   $server_url/v1/auth/provider/local/login
 ```
 
-Service receives token response, token can be verified to authenticate requests.
+Service receives token response, access token can be verified to authenticate requests.
 
 ```shell
 $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"token":"$user_token"}' \
+  --data '{"token":"$access_token"}' \
   $server_url/v1/auth/token/verify
+```
+
+Refresh token can be used to refresh token.
+
+```shell
+$ curl --header "Content-Type: application/json" \
+  --header "Authorization: $service_key" \
+  --request POST \
+  --data '{"token":"$refresh_token"}' \
+  $server_url/v1/auth/token/refresh
+```
+
+Access or refresh token can be revoked, this will disable the key created earlier and prevent verify and refresh.
+
+```shell
+$ curl --header "Content-Type: application/json" \
+  --header "Authorization: $service_key" \
+  --request POST \
+  --data '{"token":"$token"}' \
+  $server_url/v1/auth/token/revoke
 ```

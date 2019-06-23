@@ -72,7 +72,8 @@ fn oauth2_callback_handler(
                     data.driver(),
                     &service_id,
                     &email,
-                    data.configuration().token_expiration_time(),
+                    data.configuration().core_access_token_expires(),
+                    data.configuration().core_refresh_token_expires(),
                 )
                 .map_err(Into::into)
             })
@@ -105,6 +106,7 @@ fn microsoft_authorise(data: &Data, service: &core::Service) -> Result<String, E
         service,
         &csrf_state.secret(),
         &pkce_code_verifier.secret(),
+        data.configuration().core_access_token_expires(),
     )
     .map_err(Error::Core)?;
 

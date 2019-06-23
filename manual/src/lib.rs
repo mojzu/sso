@@ -1,5 +1,5 @@
 use ark_auth::client::{Client, ClientOptions, Error, RequestError, SyncClient};
-use ark_auth::core::{Key, Service, User, UserKey, UserToken};
+use ark_auth::core::{Key, Service, User, UserKey, UserToken, UserTokenPartial};
 use ark_auth::server::route::auth::provider::Oauth2UrlResponse;
 use chrono::Utc;
 
@@ -111,12 +111,12 @@ pub fn verify_user_key(client: &SyncClient, key: &UserKey) -> UserKey {
     user_key
 }
 
-pub fn verify_user_token(client: &SyncClient, token: &UserToken) -> UserToken {
-    let verify = client.auth_token_verify(token).unwrap();
+pub fn verify_user_token(client: &SyncClient, token: &UserToken) -> UserTokenPartial {
+    let verify = client.auth_token_verify(&token.access_token).unwrap();
     let user_token = verify.data;
     assert_eq!(user_token.user_id, token.user_id);
-    assert_eq!(user_token.token, token.token);
-    assert_eq!(user_token.token_expires, token.token_expires);
+    assert_eq!(user_token.access_token, token.access_token);
+    assert_eq!(user_token.access_token_expires, token.access_token_expires);
     user_token
 }
 

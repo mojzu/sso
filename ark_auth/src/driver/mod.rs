@@ -77,6 +77,14 @@ pub trait Driver: Send + Sync {
         name: Option<&str>,
     ) -> Result<Key, Error>;
 
+    /// Update many keys by user ID.
+    fn key_update_many_by_user_id(
+        &self,
+        user_id: &str,
+        is_active: Option<bool>,
+        name: Option<&str>,
+    ) -> Result<usize, Error>;
+
     /// Delete key by ID.
     fn key_delete_by_id(&self, id: &str) -> Result<usize, Error>;
 
@@ -137,6 +145,9 @@ pub trait Driver: Send + Sync {
         is_active: Option<bool>,
         name: Option<&str>,
     ) -> Result<User, Error>;
+
+    /// Update user email by ID.
+    fn user_update_email_by_id(&self, id: &str, email: &str) -> Result<usize, Error>;
 
     /// Update user password by ID.
     fn user_update_password_by_id(&self, id: &str, password_hash: &str) -> Result<usize, Error>;

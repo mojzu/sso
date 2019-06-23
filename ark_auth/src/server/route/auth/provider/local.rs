@@ -109,7 +109,8 @@ fn login_inner(
                 &service,
                 &body.email,
                 &body.password,
-                data.configuration().token_expiration_time(),
+                data.configuration().core_access_token_expires(),
+                data.configuration().core_refresh_token_expires(),
             )
         })
         .map_err(Into::into)
@@ -161,7 +162,7 @@ fn reset_password_inner(
                 data.driver(),
                 &service,
                 &body.email,
-                data.configuration().token_expiration_time(),
+                data.configuration().core_access_token_expires(),
             )?;
             Ok((service, body, user, token))
         })
@@ -171,7 +172,7 @@ fn reset_password_inner(
                 data.configuration().smtp(),
                 &service,
                 &user,
-                &token.token,
+                &token,
                 body.template.as_ref(),
             )
             .or_else(|err| {
@@ -245,10 +246,10 @@ pub struct UpdateEmailTemplateBody {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct UpdateEmailBody {
-    #[validate(custom = "validate::token")]
-    pub token: Option<String>,
     #[validate(custom = "validate::key")]
     pub key: Option<String>,
+    #[validate(custom = "validate::token")]
+    pub token: Option<String>,
     #[validate(custom = "validate::password")]
     pub password: String,
     #[validate(email)]
@@ -282,11 +283,11 @@ fn update_email_inner(
             let (user, old_email, token) = core::auth::update_email(
                 data.driver(),
                 &service,
-                body.token.as_ref().map(|x| &**x),
                 body.key.as_ref().map(|x| &**x),
+                body.token.as_ref().map(|x| &**x),
                 &body.password,
                 &body.new_email,
-                data.configuration().token_expiration_time(),
+                data.configuration().core_revoke_token_expires(),
             )?;
             Ok((service, body, user, old_email, token))
         })
@@ -335,7 +336,7 @@ fn update_email_revoke_inner(
     data: &Data,
     id: Option<String>,
     body: &UpdateEmailRevokeBody,
-) -> Result<(), Error> {
+) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), id)
         .and_then(|service| core::auth::update_email_revoke(data.driver(), &service, &body.token))
         .map_err(Into::into)
@@ -355,10 +356,10 @@ pub struct UpdatePasswordTemplateBody {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct UpdatePasswordBody {
-    #[validate(custom = "validate::token")]
-    pub token: Option<String>,
     #[validate(custom = "validate::key")]
     pub key: Option<String>,
+    #[validate(custom = "validate::token")]
+    pub token: Option<String>,
     #[validate(custom = "validate::password")]
     pub password: String,
     #[validate(custom = "validate::password")]
@@ -405,11 +406,11 @@ fn update_password_inner(
             let (user, token) = core::auth::update_password(
                 data.driver(),
                 &service,
-                body.token.as_ref().map(|x| &**x),
                 body.key.as_ref().map(|x| &**x),
+                body.token.as_ref().map(|x| &**x),
                 &body.password,
                 &body.new_password,
-                data.configuration().token_expiration_time(),
+                data.configuration().core_revoke_token_expires(),
             )?;
             Ok((service, body, user, token))
         })
@@ -457,7 +458,7 @@ fn update_password_revoke_inner(
     data: &Data,
     id: Option<String>,
     body: &UpdatePasswordRevokeBody,
-) -> Result<(), Error> {
+) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), id)
         .and_then(|service| {
             core::auth::update_password_revoke(data.driver(), &service, &body.token)

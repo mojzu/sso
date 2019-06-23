@@ -155,8 +155,13 @@ impl driver::Driver for Driver {
 
         let conn = self.connection()?;
         auth_key
-            .filter(user_id.eq(key_user_id).and(service_id.eq(key_service_id)))
             // TODO(refactor): Better method to handle multiple keys?
+            .filter(
+                user_id
+                    .eq(key_user_id)
+                    .and(service_id.eq(key_service_id))
+                    .and(key_is_active.eq(true)),
+            )
             .order(created_at.asc())
             .get_result::<model::AuthKey>(&conn)
             .map(|key| Some(key.into()))
@@ -246,6 +251,27 @@ impl driver::Driver for Driver {
             .get_result::<model::AuthKey>(&conn)
             .map_err(Error::Diesel)
             .map(Into::into)
+    }
+
+    fn key_update_many_by_user_id(
+        &self,
+        key_user_id: &str,
+        is_active: Option<bool>,
+        name: Option<&str>,
+    ) -> Result<usize, Error> {
+        use crate::driver::postgres::schema::auth_key::dsl::*;
+
+        let conn = self.connection()?;
+        let now = chrono::Utc::now();
+        let value = model::AuthKeyUpdate {
+            updated_at: &now,
+            key_is_active: is_active,
+            key_name: name,
+        };
+        diesel::update(auth_key.filter(user_id.eq(key_user_id)))
+            .set(&value)
+            .execute(&conn)
+            .map_err(Error::Diesel)
     }
 
     fn key_delete_by_id(&self, id: &str) -> Result<usize, Error> {
@@ -473,6 +499,17 @@ impl driver::Driver for Driver {
             .get_result::<model::AuthUser>(&conn)
             .map_err(Error::Diesel)
             .map(Into::into)
+    }
+
+    fn user_update_email_by_id(&self, id: &str, email: &str) -> Result<usize, Error> {
+        use crate::driver::postgres::schema::auth_user::dsl::*;
+
+        let conn = self.connection()?;
+        let now = chrono::Utc::now();
+        diesel::update(auth_user.filter(user_id.eq(id)))
+            .set((updated_at.eq(now), user_email.eq(email)))
+            .execute(&conn)
+            .map_err(Error::Diesel)
     }
 
     fn user_update_password_by_id(&self, id: &str, password_hash: &str) -> Result<usize, Error> {

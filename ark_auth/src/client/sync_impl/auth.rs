@@ -1,9 +1,9 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
-use crate::core::{UserKey, UserToken};
+use crate::core::UserKey;
 use crate::server::route::auth::provider::local::{LoginBody, LoginResponse, ResetPasswordBody};
 use crate::server::route::auth::provider::Oauth2UrlResponse;
-use crate::server::route::auth::{KeyBody, KeyResponse, TokenBody, TokenResponse};
+use crate::server::route::auth::{KeyBody, KeyResponse, TokenBody, TokenPartialResponse};
 use actix_web::http::StatusCode;
 
 impl SyncClient {
@@ -58,15 +58,18 @@ impl SyncClient {
             .and_then(|mut res| res.json::<KeyResponse>().map_err(|_err| Error::Unwrap))
     }
 
-    pub fn auth_token_verify(&self, token: &UserToken) -> Result<TokenResponse, Error> {
+    pub fn auth_token_verify(&self, token: &str) -> Result<TokenPartialResponse, Error> {
         let body = TokenBody {
-            token: token.token.to_owned(),
+            token: token.to_owned(),
         };
 
         self.post_json("/v1/auth/token/verify", &body)
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| res.json::<TokenResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| {
+                res.json::<TokenPartialResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 }

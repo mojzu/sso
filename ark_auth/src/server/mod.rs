@@ -177,13 +177,21 @@ pub struct ConfigurationSmtp {
     password: String,
 }
 
+/// Core configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigurationCore {
+    access_token_expires: i64,
+    refresh_token_expires: i64,
+    revoke_token_expires: i64,
+}
+
 /// Server configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Configuration {
     bind: String,
     user_agent: String,
-    token_expiration_time: usize,
     password_pwned_enabled: bool,
+    core: ConfigurationCore,
     smtp: Option<ConfigurationSmtp>,
     provider: ConfigurationProviderGroup,
 }
@@ -194,20 +202,18 @@ impl Configuration {
         Configuration {
             bind,
             user_agent: crate_user_agent(),
-            token_expiration_time: 3600,
             password_pwned_enabled: false,
+            core: ConfigurationCore {
+                access_token_expires: 3600,
+                refresh_token_expires: 86400,
+                revoke_token_expires: 604800,
+            },
             smtp: None,
             provider: ConfigurationProviderGroup {
                 github: ConfigurationProvider { oauth2: None },
                 microsoft: ConfigurationProvider { oauth2: None },
             },
         }
-    }
-
-    /// Set token expiry time in seconds (defaults to 1 hour).
-    pub fn set_token_expiration_time(mut self, value: usize) -> Self {
-        self.token_expiration_time = value;
-        self
     }
 
     /// Set password pwned enabled.
@@ -267,14 +273,24 @@ impl Configuration {
         &self.user_agent
     }
 
-    /// Get token expiry.
-    pub fn token_expiration_time(&self) -> usize {
-        self.token_expiration_time
-    }
-
     /// Get password pwned enabled.
     pub fn password_pwned_enabled(&self) -> bool {
         self.password_pwned_enabled
+    }
+
+    /// Get access token expiry.
+    pub fn core_access_token_expires(&self) -> i64 {
+        self.core.access_token_expires
+    }
+
+    /// Get refresh token expiry.
+    pub fn core_refresh_token_expires(&self) -> i64 {
+        self.core.refresh_token_expires
+    }
+
+    /// Get revoke token expiry.
+    pub fn core_revoke_token_expires(&self) -> i64 {
+        self.core.revoke_token_expires
     }
 
     /// Configured SMTP provider.
