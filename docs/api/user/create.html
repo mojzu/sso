@@ -144,16 +144,16 @@
 <p>Create user.</p>
 <a class="header" href="#request" id="request"><h2>Request</h2></a>
 <pre><code class="language-json">{
+  &quot;is_enabled&quot;: true,
   &quot;name&quot;: &quot;User Name&quot;,
   &quot;email&quot;: &quot;user@example.com&quot;,
-  &quot;active&quot;: true,
   &quot;password&quot;: &quot;guest&quot;
 }
 </code></pre>
 <ul>
+<li><code>is_enabled</code>: User is enabled flag (required).</li>
 <li><code>name</code>: User name (required).</li>
 <li><code>email</code>: User email address, must be unique (required).</li>
-<li><code>active</code>: User is active flag (required).</li>
 <li><code>password</code>: User password, optional.</li>
 </ul>
 <a class="header" href="#response-200-ok" id="response-200-ok"><h2>Response [200, OK]</h2></a>
@@ -166,9 +166,9 @@
     &quot;created_at&quot;: &quot;2019...04Z&quot;,
     &quot;updated_at&quot;: &quot;2019...04Z&quot;,
     &quot;id&quot;: 10,
+    &quot;is_enabled&quot;: true,
     &quot;name&quot;: &quot;User Name&quot;,
-    &quot;email&quot;: &quot;user@example.com&quot;,
-    &quot;active&quot;: true
+    &quot;email&quot;: &quot;user@example.com&quot;
   }
 }
 </code></pre>
@@ -182,9 +182,9 @@
 <li><code>created_at</code>: Created time ISO 8601 timestamp.</li>
 <li><code>updated_at</code>: Updated time ISO 8601 timestamp.</li>
 <li><code>id</code>: User ID.</li>
+<li><code>is_enabled</code>: User is enabled flag.</li>
 <li><code>name</code>: User name.</li>
 <li><code>email</code>: User email address.</li>
-<li><code>active</code>: User is active flag.</li>
 </ul>
 <a class="header" href="#response-400-bad-request" id="response-400-bad-request"><h2>Response [400, Bad Request]</h2></a>
 <ul>

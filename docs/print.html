@@ -186,7 +186,7 @@
 <a class="header" href="#020-unreleased" id="020-unreleased"><h2>0.2.0 (unreleased)</h2></a>
 <a class="header" href="#added" id="added"><h3>Added</h3></a>
 <ul>
-<li>Added is active flag to services, users and keys.</li>
+<li>Added is enabled flag to services, users and keys, added is revoked flag to keys.</li>
 <li>Added synchronous and asynchronous clients.</li>
 <li>Added <code>email_eq</code> query option to user list route.</li>
 <li>Added local provider update user email, password routes.</li>
@@ -392,14 +392,14 @@ $ ark_auth start-server
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;is_active&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
+  --data '{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
   $server_url/v1/user
 </code></pre>
 <p>Service creates a key for user.</p>
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;is_active&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}' \
+  --data '{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}' \
   $server_url/v1/key
 </code></pre>
 <p>User makes login request to service, services makes a login request.</p>
@@ -439,14 +439,14 @@ $ ark_auth start-server
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;is_active&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
+  --data '{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
   $server_url/v1/user
 </code></pre>
 <p>Service creates a key for user.</p>
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;is_active&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}' \
+  --data '{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}' \
   $server_url/v1/key
 </code></pre>
 <p>User makes reset password request to service, service makes a reset password request.</p>
@@ -480,14 +480,14 @@ $ ark_auth start-server
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;is_active&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
+  --data '{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
   $server_url/v1/user
 </code></pre>
 <p>Service creates a key for user.</p>
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;is_active&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}' \
+  --data '{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}' \
   $server_url/v1/key
 </code></pre>
 <p>User makes update email request to service, service makes an update email request.</p>
@@ -521,14 +521,14 @@ $ ark_auth start-server
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;is_active&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
+  --data '{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}' \
   $server_url/v1/user
 </code></pre>
 <p>Service creates a key for user.</p>
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;is_active&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}' \
+  --data '{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}' \
   $server_url/v1/key
 </code></pre>
 <p>User makes update password request to service, service makes an update password request.</p>
@@ -562,14 +562,14 @@ $ ark_auth start-server
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;is_active&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}' \
+  --data '{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}' \
   $server_url/v1/user
 </code></pre>
 <p>Service creates a key for user.</p>
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;is_active&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}' \
+  --data '{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}' \
   $server_url/v1/key
 </code></pre>
 <p>User makes requests to service with key value, key can be verified to authenticate requests.</p>
@@ -595,14 +595,14 @@ $ ark_auth start-server
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;is_active&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}' \
+  --data '{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}' \
   $server_url/v1/user
 </code></pre>
 <p>Service creates a key for user.</p>
 <pre><code class="language-shell">$ curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data '{&quot;is_active&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}' \
+  --data '{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}' \
   $server_url/v1/key
 </code></pre>
 <p>User makes OAuth2 login request to service.</p>
@@ -876,7 +876,6 @@ let user_url = server_url(&quot;/v1/user&quot;);
 let request = user::CreateBody {
     name: &quot;User Name&quot;.to_owned(),
     email: user_email.clone(),
-    active: true,
     password: Some(user_password.clone()),
 };
 let mut response = client
@@ -1078,7 +1077,7 @@ let content_length = header_get(&amp;response, &quot;content-length&quot;);
 assert_eq!(status, 400);
 assert_eq!(content_length, &quot;0&quot;);
 
-// Inactive user.
+// Disabled user.
 let user_email = user_email_create();
 let user = user_post_200(&amp;service_key, &quot;User Name&quot;, &amp;user_email, false, Some(&quot;guest&quot;));
 key_post_user_200(&amp;service, &amp;service_key, &amp;user, &quot;Key Name&quot;);
@@ -1143,7 +1142,6 @@ let url = server_url(&quot;/v1/user&quot;);
 let request = user::CreateBody {
     name: &quot;User Name&quot;.to_owned(),
     email: user_email.clone(),
-    active: true,
     password: Some(&quot;guest&quot;.to_owned()),
 };
 let mut response = client
@@ -1555,7 +1553,6 @@ let url = server_url(&quot;/v1/user&quot;);
 let request = user::CreateBody {
     name: &quot;User Name&quot;.to_owned(),
     email: user_email.clone(),
-    active: true,
     password: None,
 };
 let mut response = client
@@ -1753,7 +1750,6 @@ let url = server_url(&quot;/v1/user&quot;);
 let request = user::CreateBody {
     name: &quot;User Name&quot;.to_owned(),
     email: user_email.clone(),
-    active: true,
     password: None,
 };
 let mut response = client
@@ -2020,7 +2016,6 @@ let url = server_url(&quot;/v1/user&quot;);
 let request = user::CreateBody {
     name: &quot;User Name&quot;.to_owned(),
     email: user_email.clone(),
-    active: true,
     password: Some(&quot;guest&quot;.to_owned()),
 };
 let mut response = client
@@ -2237,7 +2232,6 @@ let url = server_url(&quot;/v1/user&quot;);
 let request = user::CreateBody {
     name: &quot;User Name&quot;.to_owned(),
     email: user_email.clone(),
-    active: true,
     password: Some(&quot;guest&quot;.to_owned()),
 };
 let mut response = client
@@ -2443,7 +2437,6 @@ let url = server_url(&quot;/v1/user&quot;);
 let request = user::CreateBody {
     name: &quot;User Name&quot;.to_owned(),
     email: user_email.clone(),
-    active: true,
     password: Some(&quot;guest&quot;.to_owned()),
 };
 let mut response = client
@@ -3213,16 +3206,16 @@ assert_eq!(content_length, &quot;0&quot;);
 <p>Create user.</p>
 <a class="header" href="#request-12" id="request-12"><h2>Request</h2></a>
 <pre><code class="language-json">{
+  &quot;is_enabled&quot;: true,
   &quot;name&quot;: &quot;User Name&quot;,
   &quot;email&quot;: &quot;user@example.com&quot;,
-  &quot;active&quot;: true,
   &quot;password&quot;: &quot;guest&quot;
 }
 </code></pre>
 <ul>
+<li><code>is_enabled</code>: User is enabled flag (required).</li>
 <li><code>name</code>: User name (required).</li>
 <li><code>email</code>: User email address, must be unique (required).</li>
-<li><code>active</code>: User is active flag (required).</li>
 <li><code>password</code>: User password, optional.</li>
 </ul>
 <a class="header" href="#response-200-ok-18" id="response-200-ok-18"><h2>Response [200, OK]</h2></a>
@@ -3235,9 +3228,9 @@ assert_eq!(content_length, &quot;0&quot;);
     &quot;created_at&quot;: &quot;2019...04Z&quot;,
     &quot;updated_at&quot;: &quot;2019...04Z&quot;,
     &quot;id&quot;: 10,
+    &quot;is_enabled&quot;: true,
     &quot;name&quot;: &quot;User Name&quot;,
-    &quot;email&quot;: &quot;user@example.com&quot;,
-    &quot;active&quot;: true
+    &quot;email&quot;: &quot;user@example.com&quot;
   }
 }
 </code></pre>
@@ -3251,9 +3244,9 @@ assert_eq!(content_length, &quot;0&quot;);
 <li><code>created_at</code>: Created time ISO 8601 timestamp.</li>
 <li><code>updated_at</code>: Updated time ISO 8601 timestamp.</li>
 <li><code>id</code>: User ID.</li>
+<li><code>is_enabled</code>: User is enabled flag.</li>
 <li><code>name</code>: User name.</li>
 <li><code>email</code>: User email address.</li>
-<li><code>active</code>: User is active flag.</li>
 </ul>
 <a class="header" href="#response-400-bad-request-13" id="response-400-bad-request-13"><h2>Response [400, Bad Request]</h2></a>
 <ul>
