@@ -46,7 +46,7 @@ pub fn reset_password(
     let (token, _) = core::jwt::encode_token(
         &service.id,
         &user.id,
-        core::jwt::ClaimsType::UpdatePasswordRevokeToken,
+        core::jwt::ClaimsType::ResetPasswordToken,
         Some(&csrf.key),
         &key.value,
         token_expires,

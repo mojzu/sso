@@ -62,6 +62,8 @@ fn guide_api_key() {
     let user_key = create_user_key(&client, "Key Name", &service.id, &user.id);
 
     verify_user_key(&client, &user_key);
+    revoke_user_key(&client, &user_key.key);
+    verify_user_key_bad_request(&client, &user_key.key);
 }
 
 #[test]
@@ -76,6 +78,9 @@ fn guide_login() {
 
     let user_token = local_login(&client, &user.id, &user_email, "guest");
     verify_user_token(&client, &user_token);
+    let user_token = refresh_user_token(&client, &user_token);
+    revoke_user_token(&client, &user_token.access_token);
+    verify_user_token_bad_request(&client, &user_token.refresh_token);
 }
 
 #[test]
@@ -103,3 +108,5 @@ fn guide_reset_password() {
 
     local_password_reset(&client, &user_email);
 }
+
+// TODO(test): Update email/password guide tests.

@@ -54,7 +54,7 @@ pub fn service_key_create(client: &reqwest::Client) -> (Service, Key) {
 
 pub fn user_email_create() -> String {
     let random = uuid::Uuid::new_v4().to_simple().to_string();
-    format!("{}@example.com", random)
+    format!("{}@test.com", random)
 }
 
 pub fn json_value(src: &str) -> serde_json::Value {

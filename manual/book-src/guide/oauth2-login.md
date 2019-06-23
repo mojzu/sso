@@ -43,14 +43,34 @@ If successful, OAuth2 provider redirects user to `$server_url/v1/auth/provider/$
 
 Query parameters are exchanged for API access token, authenticated email address is requested from OAuth2 provider APIs.
 
-If authenticated email returned by API matches a user email address, and user has key for specified service, a user authentication token is generated and the user is redirected to `$service_url?token=$token`.
+If authenticated email returned by API matches a user email address, and user has key for specified service, a user token is produced and the user is redirected to `$service_url?access_token=$token&refresh_token=$token`.
 
-Service receives token via query parameter and verifies it to authenticate requests.
+Service receives access token and refresh token via query parameters. Service can verify access token to authenticate requests.
 
 ```shell
 $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"token":"$user_token"}' \
+  --data '{"token":"$access_token"}' \
   $server_url/v1/auth/token/verify
+```
+
+Refresh token can be used to refresh token.
+
+```shell
+$ curl --header "Content-Type: application/json" \
+  --header "Authorization: $service_key" \
+  --request POST \
+  --data '{"token":"$refresh_token"}' \
+  $server_url/v1/auth/token/refresh
+```
+
+Access or refresh token can be revoked, this will disable the key created earlier and prevent verify and refresh.
+
+```shell
+$ curl --header "Content-Type: application/json" \
+  --header "Authorization: $service_key" \
+  --request POST \
+  --data '{"token":"$token"}' \
+  $server_url/v1/auth/token/revoke
 ```

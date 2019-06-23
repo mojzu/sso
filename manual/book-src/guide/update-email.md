@@ -1,4 +1,4 @@
-# Reset Password
+# Update Email
 
 Create service with key and start server.
 
@@ -27,26 +27,14 @@ $ curl --header "Content-Type: application/json" \
   $server_url/v1/key
 ```
 
-User makes reset password request to service, service makes a reset password request.
+User makes update email request to service, service makes an update email request.
 
 ```shell
 $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"email":"$user_email"}' \
-  $server_url/v1/auth/provider/local/reset/password
-```
-
-Email containing URL is sent to user email address, URL in format `$service_url?email=$user_email&reset_password_token=$token`.
-
-Service receives token via query parameter and makes reset password confirm request.
-
-```shell
-$ curl --header "Content-Type: application/json" \
-  --header "Authorization: $service_key" \
-  --request POST \
-  --data '{"token":"$token","password":"$user_password"}' \
-  $server_url/v1/auth/provider/local/reset/password/confirm
+  --data '{"key":"$user_key","password":"$user_password","new_email":"$new_user_email"}' \
+  $server_url/v1/auth/provider/local/update/email
 ```
 
 User makes login request to service, service makes a login request.
@@ -55,6 +43,18 @@ User makes login request to service, service makes a login request.
 $ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"email":"$user_email","password":"$user_password"}' \
+  --data '{"email":"$new_user_email","password":"$user_password"}' \
   $server_url/v1/auth/provider/local/login
+```
+
+After successful update, an email containing URL is sent to the old user email address, URL in format: `$service_url?email=$email&update_email_token=$token`.
+
+If user opens URL, service receives token via query parameter and makes update email revoke request, this will disable user and all linked keys and prevent login.
+
+```shell
+$ curl --header "Content-Type: application/json" \
+  --header "Authorization: $service_key" \
+  --request POST \
+  --data '{"token":"$token"}' \
+  $server_url/v1/auth/provider/local/update/email/revoke
 ```

@@ -8,6 +8,8 @@
     - [Integration](./guide/integration.md)
     - [Login](./guide/login.md)
     - [Reset Password](./guide/reset-password.md)
+    - [Update Email](./guide/update-email.md)
+    - [Update Password](./guide/update-password.md)
     - [API Key](./guide/api-key.md)
     - [OAuth2 Login](./guide/oauth2-login.md)
 - [API](./introduction.md)

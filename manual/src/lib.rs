@@ -13,7 +13,7 @@ pub fn env_test_key() -> String {
 
 pub fn create_user_email() -> String {
     let random = uuid::Uuid::new_v4().to_simple().to_string();
-    format!("{}@example.com", random)
+    format!("{}@test.com", random)
 }
 
 pub fn create_client() -> SyncClient {
@@ -104,11 +104,20 @@ pub fn create_user_key(
 }
 
 pub fn verify_user_key(client: &SyncClient, key: &UserKey) -> UserKey {
-    let verify = client.auth_key_verify(key).unwrap();
+    let verify = client.auth_key_verify(&key.key).unwrap();
     let user_key = verify.data;
     assert_eq!(user_key.user_id, key.user_id);
     assert_eq!(user_key.key, key.key);
     user_key
+}
+
+pub fn verify_user_key_bad_request(client: &SyncClient, key: &str) {
+    let err = client.auth_key_verify(key).unwrap_err();
+    assert_eq!(err, Error::Request(RequestError::BadRequest));
+}
+
+pub fn revoke_user_key(client: &SyncClient, key: &str) {
+    client.auth_key_revoke(key).unwrap();
 }
 
 pub fn verify_user_token(client: &SyncClient, token: &UserToken) -> UserTokenPartial {
@@ -118,6 +127,27 @@ pub fn verify_user_token(client: &SyncClient, token: &UserToken) -> UserTokenPar
     assert_eq!(user_token.access_token, token.access_token);
     assert_eq!(user_token.access_token_expires, token.access_token_expires);
     user_token
+}
+
+pub fn verify_user_token_bad_request(client: &SyncClient, token: &str) {
+    let err = client.auth_token_verify(token).unwrap_err();
+    assert_eq!(err, Error::Request(RequestError::BadRequest));
+}
+
+pub fn refresh_user_token(client: &SyncClient, token: &UserToken) -> UserToken {
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    let refresh = client.auth_token_refresh(&token.refresh_token).unwrap();
+    let user_token = refresh.data;
+    assert_eq!(user_token.user_id, token.user_id);
+    assert_ne!(user_token.access_token, token.access_token);
+    assert_ne!(user_token.access_token_expires, token.access_token_expires);
+    assert_ne!(user_token.access_token, token.access_token);
+    assert_ne!(user_token.access_token_expires, token.access_token_expires);
+    user_token
+}
+
+pub fn revoke_user_token(client: &SyncClient, token: &str) {
+    client.auth_token_revoke(token).unwrap();
 }
 
 pub fn local_login(client: &SyncClient, user_id: &str, email: &str, password: &str) -> UserToken {

@@ -36,3 +36,13 @@ $ curl --header "Content-Type: application/json" \
   --data '{"key":"$user_key"}' \
   $server_url/v1/auth/key/verify
 ```
+
+Key can be revoked, this will disable the key created earlier and prevent verify.
+
+```shell
+$ curl --header "Content-Type: application/json" \
+  --header "Authorization: $service_key" \
+  --request POST \
+  --data '{"key":"$user_key"}' \
+  $server_url/v1/auth/key/revoke
+```
