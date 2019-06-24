@@ -1,11 +1,12 @@
 use crate::core;
-use crate::core::audit::{AuditLoginError, AuditPath};
+use crate::core::audit::{AuditBuilder, AuditLoginError, AuditPath, ToAuditMessage};
 use crate::core::{
     AuditMeta, Csrf, Error, Key, Service, User, UserKey, UserToken, UserTokenPartial,
 };
 use crate::driver::Driver;
 
 // TODO(feature): Warning logs for bad requests.
+// TODO(refactor): AuditMessage type improvements
 
 /// User authentication using email address and password.
 pub fn login(
@@ -18,46 +19,43 @@ pub fn login(
     access_token_expires: i64,
     refresh_token_expires: i64,
 ) -> Result<UserToken, Error> {
-    // TODO(refactor): Improve audit, write audit builder?
-    // Get user and key using email, check is enabled/not revoked and password match.
-    let user = user_read_by_email(driver, Some(service), email).map_err(|(err, user)| {
-        core::audit::create_warn(
-            driver,
-            audit_meta,
-            AuditPath::LoginError(AuditLoginError::UserNotFoundOrDisabled),
-            service_key,
-            Some(service),
-            user.as_ref(),
-            None,
-        );
-        err
-    })?;
-    let key = key_read_by_user(driver, service, &user).map_err(|(err, key)| {
-        core::audit::create_warn(
-            driver,
-            audit_meta,
-            AuditPath::LoginError(AuditLoginError::KeyNotFoundOrDisabled),
-            service_key,
-            Some(service),
-            Some(&user),
-            key.as_ref(),
-        );
-        err
-    })?;
-    core::check_password(user.password_hash.as_ref().map(|x| &**x), &password).map_err(|err| {
-        core::audit::create_warn(
-            driver,
-            audit_meta,
-            AuditPath::LoginError(AuditLoginError::PasswordIncorrect),
-            service_key,
-            Some(service),
-            Some(&user),
-            Some(&key),
-        );
-        err
-    })?;
+    let mut audit = AuditBuilder::new(driver, audit_meta, service_key).set_service(Some(service));
 
-    // Encode user token containing access token and refresh token.
+    // Get user using email, check is enabled.
+    let user = match user_read_by_email(driver, Some(service), email) {
+        Ok(user) => user,
+        Err((err, user)) => {
+            audit.set_user(user.as_ref()).create(AuditPath::LoginError(
+                AuditLoginError::UserNotFoundOrDisabled.to_audit_message(),
+            ));
+            return Err(err);
+        }
+    };
+    audit = audit.set_user(Some(&user));
+
+    // Get key with user, check is enabled and not revoked.
+    let key = match key_read_by_user(driver, service, &user) {
+        Ok(key) => key,
+        Err((err, key)) => {
+            audit
+                .set_user_key(key.as_ref())
+                .create(AuditPath::LoginError(
+                    AuditLoginError::KeyNotFoundOrDisabled.to_audit_message(),
+                ));
+            return Err(err);
+        }
+    };
+    audit = audit.set_user_key(Some(&key));
+
+    // Check user password match.
+    if let Err(err) = core::check_password(user.password_hash.as_ref().map(|x| &**x), &password) {
+        audit.create(AuditPath::LoginError(
+            AuditLoginError::PasswordIncorrect.to_audit_message(),
+        ));
+        return Err(err);
+    }
+
+    // Successful login.
     let user_token = encode_user_token(
         driver,
         &service,
@@ -66,15 +64,7 @@ pub fn login(
         access_token_expires,
         refresh_token_expires,
     )?;
-    core::audit::create_warn(
-        driver,
-        audit_meta,
-        AuditPath::Login,
-        service_key,
-        Some(service),
-        Some(&user),
-        Some(&key),
-    );
+    audit.create(AuditPath::Login);
     Ok(user_token)
 }
 
