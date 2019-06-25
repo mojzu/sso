@@ -1,5 +1,5 @@
 use crate::core;
-use crate::core::audit::{AuditBuilder, AuditLoginError, AuditPath, ToAuditMessage};
+use crate::core::audit::{AuditBuilder, AuditMessage, AuditPath};
 use crate::core::{
     AuditMeta, Csrf, Error, Key, Service, User, UserKey, UserToken, UserTokenPartial,
 };
@@ -26,7 +26,7 @@ pub fn login(
         Ok(user) => user,
         Err((err, user)) => {
             audit.set_user(user.as_ref()).create(AuditPath::LoginError(
-                AuditLoginError::UserNotFoundOrDisabled.to_audit_message(),
+                AuditMessage::UserNotFoundOrDisabled.into(),
             ));
             return Err(err);
         }
@@ -40,7 +40,7 @@ pub fn login(
             audit
                 .set_user_key(key.as_ref())
                 .create(AuditPath::LoginError(
-                    AuditLoginError::KeyNotFoundOrDisabled.to_audit_message(),
+                    AuditMessage::KeyNotFoundOrDisabled.into(),
                 ));
             return Err(err);
         }
@@ -50,7 +50,7 @@ pub fn login(
     // Check user password match.
     if let Err(err) = core::check_password(user.password_hash.as_ref().map(|x| &**x), &password) {
         audit.create(AuditPath::LoginError(
-            AuditLoginError::PasswordIncorrect.to_audit_message(),
+            AuditMessage::PasswordIncorrect.into(),
         ));
         return Err(err);
     }
@@ -64,7 +64,7 @@ pub fn login(
         access_token_expires,
         refresh_token_expires,
     )?;
-    audit.create(AuditPath::Login);
+    audit.create(AuditPath::Login(AuditMessage::Login.into()));
     Ok(user_token)
 }
 

@@ -8,46 +8,44 @@ use time::Duration;
 /// Audit paths.
 pub enum AuditPath {
     // TODO(refactor): Login type/provider.
-    Login,
-    LoginError(AuditMessage<AuditLoginError>),
-}
-
-/// Audit data message container.
-#[derive(Debug, Serialize)]
-pub struct AuditMessage<T: Serialize> {
-    pub message: T,
-}
-
-/// Audit message generic trait.
-pub trait ToAuditMessage<T: Serialize> {
-    /// Convert type to serialisable audit message.
-    fn to_audit_message(self) -> AuditMessage<T>;
-}
-
-/// Audit login error messages.
-#[derive(Debug, Serialize)]
-pub enum AuditLoginError {
-    UserNotFoundOrDisabled,
-    KeyNotFoundOrDisabled,
-    PasswordIncorrect,
-}
-
-impl ToAuditMessage<AuditLoginError> for AuditLoginError {
-    fn to_audit_message(self) -> AuditMessage<AuditLoginError> {
-        AuditMessage { message: self }
-    }
+    Login(AuditMessageObject<AuditMessage>),
+    LoginError(AuditMessageObject<AuditMessage>),
 }
 
 impl AuditPath {
     /// Return string representation and JSON value of key.
     pub fn to_path_data(&self) -> (String, Value) {
         match self {
-            AuditPath::Login => ("ark_auth/login".to_owned(), Value::default()),
+            AuditPath::Login(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/login".to_owned(), value)
+            }
             AuditPath::LoginError(message) => {
                 let value = serde_json::to_value(message).unwrap();
                 ("ark_auth/login_error".to_owned(), value)
             }
         }
+    }
+}
+
+/// Audit login messages.
+#[derive(Debug, Serialize)]
+pub enum AuditMessage {
+    UserNotFoundOrDisabled,
+    KeyNotFoundOrDisabled,
+    PasswordIncorrect,
+    Login,
+}
+
+/// Audit data message container.
+#[derive(Debug, Serialize)]
+pub struct AuditMessageObject<T: Serialize> {
+    pub message: T,
+}
+
+impl From<AuditMessage> for AuditMessageObject<AuditMessage> {
+    fn from(message: AuditMessage) -> AuditMessageObject<AuditMessage> {
+        AuditMessageObject { message }
     }
 }
 
