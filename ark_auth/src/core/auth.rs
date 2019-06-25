@@ -1,57 +1,50 @@
 use crate::core;
 use crate::core::audit::{AuditBuilder, AuditMessage, AuditPath};
-use crate::core::{
-    AuditMeta, Csrf, Error, Key, Service, User, UserKey, UserToken, UserTokenPartial,
-};
+use crate::core::{Csrf, Error, Key, Service, User, UserKey, UserToken, UserTokenPartial};
 use crate::driver::Driver;
-
-// TODO(feature): Warning logs for bad requests.
-// TODO(refactor): AuditMessage type improvements
 
 /// User authentication using email address and password.
 pub fn login(
     driver: &Driver,
     service: &Service,
-    mut audit: AuditBuilder,
+    audit: AuditBuilder,
     email: &str,
     password: &str,
     access_token_expires: i64,
     refresh_token_expires: i64,
 ) -> Result<UserToken, Error> {
-    // TODO(refactor): Use argument audit log.
-    // let mut audit = AuditBuilder::new(driver, audit_meta, service_key).set_service(Some(service));
-
     // Get user using email, check is enabled.
     let user = match user_read_by_email(driver, Some(service), email) {
         Ok(user) => user,
         Err((err, user)) => {
-            audit.set_user(user.as_ref()).create(AuditPath::LoginError(
-                AuditMessage::UserNotFoundOrDisabled.into(),
-            ));
+            audit.set_user(user.as_ref()).create(
+                driver,
+                AuditPath::LoginError(AuditMessage::UserNotFoundOrDisabled.into()),
+            );
             return Err(err);
         }
     };
-    audit = audit.set_user(Some(&user));
+    audit.set_user(Some(&user));
 
     // Get key with user, check is enabled and not revoked.
     let key = match key_read_by_user(driver, service, &user) {
         Ok(key) => key,
         Err((err, key)) => {
-            audit
-                .set_user_key(key.as_ref())
-                .create(AuditPath::LoginError(
-                    AuditMessage::KeyNotFoundOrDisabled.into(),
-                ));
+            audit.set_user_key(key.as_ref()).create(
+                driver,
+                AuditPath::LoginError(AuditMessage::KeyNotFoundOrDisabled.into()),
+            );
             return Err(err);
         }
     };
-    audit = audit.set_user_key(Some(&key));
+    audit.set_user_key(Some(&key));
 
     // Check user password match.
     if let Err(err) = core::check_password(user.password_hash.as_ref().map(|x| &**x), &password) {
-        audit.create(AuditPath::LoginError(
-            AuditMessage::PasswordIncorrect.into(),
-        ));
+        audit.create(
+            driver,
+            AuditPath::LoginError(AuditMessage::PasswordIncorrect.into()),
+        );
         return Err(err);
     }
 
@@ -64,7 +57,7 @@ pub fn login(
         access_token_expires,
         refresh_token_expires,
     )?;
-    audit.create(AuditPath::Login(AuditMessage::Login.into()));
+    audit.create(driver, AuditPath::Login(AuditMessage::Login.into()));
     Ok(user_token)
 }
 

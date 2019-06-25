@@ -1,4 +1,5 @@
 use crate::core;
+use crate::core::audit::AuditMeta;
 use crate::server::route::auth::{password_meta, PasswordMeta};
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
 use crate::server::{smtp, validate, Data, Error, FromJsonValue};
@@ -69,7 +70,7 @@ fn login_handler(
         .join(body)
         .and_then(|(audit_meta, body)| {
             web::block(move || {
-                let user_token = login_inner(data.get_ref(), id, &audit_meta, &body)?;
+                let user_token = login_inner(data.get_ref(), audit_meta, id, &body)?;
                 Ok((data, body, user_token))
             })
             .map_err(Into::into)
@@ -88,11 +89,11 @@ fn login_handler(
 
 fn login_inner(
     data: &Data,
+    audit_meta: AuditMeta,
     id: Option<String>,
-    audit_meta: &core::AuditMeta,
     body: &LoginBody,
 ) -> Result<core::UserToken, Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, audit)| {
             core::auth::login(
                 data.driver(),
@@ -130,24 +131,30 @@ impl FromJsonValue<ResetPasswordBody> for ResetPasswordBody {}
 
 fn reset_password_handler(
     data: web::Data<Data>,
+    req: HttpRequest,
     id: Identity,
     body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
+    let audit_meta = request_audit_meta(&req);
+    let body = ResetPasswordBody::from_value(body.into_inner());
 
-    ResetPasswordBody::from_value(body.into_inner())
-        .and_then(|body| {
-            web::block(move || reset_password_inner(data.get_ref(), id, &body)).map_err(Into::into)
+    audit_meta
+        .join(body)
+        .and_then(|(audit_meta, body)| {
+            web::block(move || reset_password_inner(data.get_ref(), audit_meta, id, &body))
+                .map_err(Into::into)
         })
         .then(route_response_empty)
 }
 
 fn reset_password_inner(
     data: &Data,
+    audit_meta: AuditMeta,
     id: Option<String>,
     body: &ResetPasswordBody,
 ) -> Result<(), Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, _)| {
             let (user, token) = core::auth::reset_password(
                 data.driver(),
@@ -191,15 +198,20 @@ pub struct ResetPasswordConfirmResponse {
 
 fn reset_password_confirm_handler(
     data: web::Data<Data>,
+    req: HttpRequest,
     id: Identity,
     body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
+    let audit_meta = request_audit_meta(&req);
+    let body = ResetPasswordConfirmBody::from_value(body.into_inner());
 
-    ResetPasswordConfirmBody::from_value(body.into_inner())
-        .and_then(|body| {
+    audit_meta
+        .join(body)
+        .and_then(|(audit_meta, body)| {
             web::block(move || {
-                let password_confirm = reset_password_confirm_inner(data.get_ref(), id, &body)?;
+                let password_confirm =
+                    reset_password_confirm_inner(data.get_ref(), audit_meta, id, &body)?;
                 Ok((data, body, password_confirm))
             })
             .map_err(Into::into)
@@ -213,10 +225,11 @@ fn reset_password_confirm_handler(
 
 fn reset_password_confirm_inner(
     data: &Data,
+    audit_meta: AuditMeta,
     id: Option<String>,
     body: &ResetPasswordConfirmBody,
 ) -> Result<usize, Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, _)| {
             core::auth::reset_password_confirm(data.driver(), &service, &body.token, &body.password)
         })
@@ -252,24 +265,30 @@ impl FromJsonValue<UpdateEmailBody> for UpdateEmailBody {}
 
 fn update_email_handler(
     data: web::Data<Data>,
+    req: HttpRequest,
     id: Identity,
     body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
+    let audit_meta = request_audit_meta(&req);
+    let body = UpdateEmailBody::from_value(body.into_inner());
 
-    UpdateEmailBody::from_value(body.into_inner())
-        .and_then(|body| {
-            web::block(move || update_email_inner(data.get_ref(), id, &body)).map_err(Into::into)
+    audit_meta
+        .join(body)
+        .and_then(|(audit_meta, body)| {
+            web::block(move || update_email_inner(data.get_ref(), audit_meta, id, &body))
+                .map_err(Into::into)
         })
         .then(route_response_empty)
 }
 
 fn update_email_inner(
     data: &Data,
+    audit_meta: AuditMeta,
     id: Option<String>,
     body: &UpdateEmailBody,
 ) -> Result<(), Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, _)| {
             let (user, old_email, token) = core::auth::update_email(
                 data.driver(),
@@ -310,14 +329,18 @@ impl FromJsonValue<UpdateEmailRevokeBody> for UpdateEmailRevokeBody {}
 
 fn update_email_revoke_handler(
     data: web::Data<Data>,
+    req: HttpRequest,
     id: Identity,
     body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
+    let audit_meta = request_audit_meta(&req);
+    let body = UpdateEmailRevokeBody::from_value(body.into_inner());
 
-    UpdateEmailRevokeBody::from_value(body.into_inner())
-        .and_then(|body| {
-            web::block(move || update_email_revoke_inner(data.get_ref(), id, &body))
+    audit_meta
+        .join(body)
+        .and_then(|(audit_meta, body)| {
+            web::block(move || update_email_revoke_inner(data.get_ref(), audit_meta, id, &body))
                 .map_err(Into::into)
         })
         .then(route_response_empty)
@@ -325,10 +348,11 @@ fn update_email_revoke_handler(
 
 fn update_email_revoke_inner(
     data: &Data,
+    audit_meta: AuditMeta,
     id: Option<String>,
     body: &UpdateEmailRevokeBody,
 ) -> Result<usize, Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, _)| {
             core::auth::update_email_revoke(data.driver(), &service, &body.token)
         })
@@ -369,15 +393,19 @@ pub struct UpdatePasswordResponse {
 
 fn update_password_handler(
     data: web::Data<Data>,
+    req: HttpRequest,
     id: Identity,
     body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
+    let audit_meta = request_audit_meta(&req);
+    let body = UpdatePasswordBody::from_value(body.into_inner());
 
-    UpdatePasswordBody::from_value(body.into_inner())
-        .and_then(|body| {
+    audit_meta
+        .join(body)
+        .and_then(|(audit_meta, body)| {
             web::block(move || {
-                update_password_inner(data.get_ref(), id, &body)?;
+                update_password_inner(data.get_ref(), audit_meta, id, &body)?;
                 Ok((data, body))
             })
             .map_err(Into::into)
@@ -389,10 +417,11 @@ fn update_password_handler(
 
 fn update_password_inner(
     data: &Data,
+    audit_meta: AuditMeta,
     id: Option<String>,
     body: &UpdatePasswordBody,
 ) -> Result<(), Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, _)| {
             let (user, token) = core::auth::update_password(
                 data.driver(),
@@ -432,14 +461,18 @@ impl FromJsonValue<UpdatePasswordRevokeBody> for UpdatePasswordRevokeBody {}
 
 fn update_password_revoke_handler(
     data: web::Data<Data>,
+    req: HttpRequest,
     id: Identity,
     body: web::Json<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
+    let audit_meta = request_audit_meta(&req);
+    let body = UpdatePasswordRevokeBody::from_value(body.into_inner());
 
-    UpdatePasswordRevokeBody::from_value(body.into_inner())
-        .and_then(|body| {
-            web::block(move || update_password_revoke_inner(data.get_ref(), id, &body))
+    audit_meta
+        .join(body)
+        .and_then(|(audit_meta, body)| {
+            web::block(move || update_password_revoke_inner(data.get_ref(), audit_meta, id, &body))
                 .map_err(Into::into)
         })
         .then(route_response_empty)
@@ -447,10 +480,11 @@ fn update_password_revoke_handler(
 
 fn update_password_revoke_inner(
     data: &Data,
+    audit_meta: AuditMeta,
     id: Option<String>,
     body: &UpdatePasswordRevokeBody,
 ) -> Result<usize, Error> {
-    core::key::authenticate_service(data.driver(), id)
+    core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, _)| {
             core::auth::update_password_revoke(data.driver(), &service, &body.token)
         })

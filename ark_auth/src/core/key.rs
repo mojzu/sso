@@ -1,14 +1,22 @@
+use crate::core::audit::{AuditBuilder, AuditMeta};
 use crate::core::{Error, Key, Service, User};
-use crate::core::audit::AuditBuilder;
 use crate::driver;
 
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
 
 /// Authenticate root key.
-pub fn authenticate_root(driver: &driver::Driver, key_value: Option<String>) -> Result<Key, Error> {
+pub fn authenticate_root(
+    driver: &driver::Driver,
+    audit_meta: AuditMeta,
+    key_value: Option<String>,
+) -> Result<AuditBuilder, Error> {
+    // TODO(refactor): Audit forbidden requests.
+    let audit = AuditBuilder::new(audit_meta);
+
     match key_value {
         Some(key_value) => read_by_root_value(driver, &key_value)
-            .and_then(|key| key.ok_or_else(|| Error::Forbidden)),
+            .and_then(|key| key.ok_or_else(|| Error::Forbidden))
+            .map(|key| audit.set_key(Some(&key))),
         None => Err(Error::Forbidden),
     }
 }
@@ -16,19 +24,25 @@ pub fn authenticate_root(driver: &driver::Driver, key_value: Option<String>) -> 
 /// Authenticate service key.
 pub fn authenticate_service(
     driver: &driver::Driver,
+    audit_meta: AuditMeta,
     key_value: Option<String>,
-) -> Result<(Service, Key), Error> {
-    // // TODO(refactor): Build audit log here.
-    // let audit = AuditBuilder::new(data.driver(), audit_meta, &service_key).set_service(Some(&service));
+) -> Result<(Service, AuditBuilder), Error> {
+    // TODO(refactor): Build audit log here.
+    let audit = AuditBuilder::new(audit_meta);
+    // .set_service(Some(&service))
     match key_value {
         Some(key_value) => read_by_service_value(driver, &key_value).and_then(|key| {
             let key = key.ok_or_else(|| Error::Forbidden)?;
+            audit.set_key(Some(&key));
+
             let service_id = key.service_id.clone().ok_or_else(|| Error::Forbidden)?;
             let service = driver
                 .service_read_by_id(&service_id)
                 .map_err(Error::Driver)?
                 .ok_or_else(|| Error::Forbidden)?;
-            Ok((service, key))
+            audit.set_service(Some(&service));
+
+            Ok((service, audit))
         }),
         None => Err(Error::Forbidden),
     }
@@ -37,15 +51,16 @@ pub fn authenticate_service(
 /// Authenticate service or root key.
 pub fn authenticate(
     driver: &driver::Driver,
+    audit_meta: AuditMeta,
     key_value: Option<String>,
-) -> Result<(Option<Service>, Key), Error> {
+) -> Result<(Option<Service>, AuditBuilder), Error> {
     let key_value_1 = key_value.to_owned();
 
-    authenticate_service(driver, key_value)
-        .map(|(service, service_key)| (Some(service), service_key))
+    authenticate_service(driver, audit_meta, key_value)
+        .map(|(service, audit)| (Some(service), audit))
         .or_else(move |err| match err {
             Error::Forbidden => {
-                authenticate_root(driver, key_value_1).map(|root_key| (None, root_key))
+                authenticate_root(driver, audit_meta, key_value_1).map(|audit| (None, audit))
             }
             _ => Err(err),
         })

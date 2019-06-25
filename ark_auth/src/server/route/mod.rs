@@ -3,7 +3,7 @@ pub mod key;
 pub mod service;
 pub mod user;
 
-use crate::core::AuditMeta;
+use crate::core::audit::AuditMeta;
 use crate::server::Error;
 use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
 use futures::{future, Future};

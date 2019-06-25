@@ -603,7 +603,7 @@ impl driver::Driver for Driver {
         forwarded_for: Option<&str>,
         path: &str,
         data: &Value,
-        audit_key_id: &str,
+        audit_key_id: Option<&str>,
         audit_service_id: Option<&str>,
         audit_user_id: Option<&str>,
         audit_user_key_id: Option<&str>,

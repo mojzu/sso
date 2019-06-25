@@ -272,10 +272,4 @@ joinable!(auth_csrf -> auth_service (service_id));
 joinable!(auth_key -> auth_service (service_id));
 joinable!(auth_key -> auth_user (user_id));
 
-allow_tables_to_appear_in_same_query!(
-    auth_audit,
-    auth_csrf,
-    auth_key,
-    auth_service,
-    auth_user,
-);
+allow_tables_to_appear_in_same_query!(auth_audit, auth_csrf, auth_key, auth_service, auth_user,);

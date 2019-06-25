@@ -1,12 +1,13 @@
 use crate::core;
+use crate::core::audit::AuditMeta;
 use crate::server::route::auth::provider::{
     oauth2_redirect, Oauth2CallbackQuery, Oauth2UrlResponse,
 };
-use crate::server::route::route_response_json;
+use crate::server::route::{request_audit_meta, route_response_json};
 use crate::server::{ConfigurationProviderOauth2, Data, Error, FromJsonValue, Oauth2Error};
 use actix_identity::Identity;
 use actix_web::http::{header, StatusCode};
-use actix_web::{web, HttpResponse, ResponseError};
+use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
 use futures::{future, Future};
 use oauth2::curl::http_client;
 use oauth2::{
@@ -31,17 +32,24 @@ struct MicrosoftUser {
 
 fn oauth2_request_handler(
     data: web::Data<Data>,
+    req: HttpRequest,
     id: Identity,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
 
-    web::block(move || request_inner(data.get_ref(), id))
-        .map_err(Into::into)
+    request_audit_meta(&req)
+        .and_then(|audit_meta| {
+            web::block(move || request_inner(data.get_ref(), audit_meta, id)).map_err(Into::into)
+        })
         .then(route_response_json)
 }
 
-fn request_inner(data: &Data, id: Option<String>) -> Result<Oauth2UrlResponse, Error> {
-    core::key::authenticate_service(data.driver(), id)
+fn request_inner(
+    data: &Data,
+    audit_meta: AuditMeta,
+    id: Option<String>,
+) -> Result<Oauth2UrlResponse, Error> {
+    core::key::authenticate_service(data.driver(), audit_meta, id)
         .map_err(Into::into)
         .and_then(|(service, _)| microsoft_authorise(&data, &service).map_err(Into::into))
         .map(|url| Oauth2UrlResponse { url })
@@ -51,6 +59,7 @@ fn oauth2_callback_handler(
     data: web::Data<Data>,
     query: web::Query<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+    // TODO(refactor): Audit builder support.
     Oauth2CallbackQuery::from_value(query.into_inner())
         .and_then(|query| {
             web::block(move || {
