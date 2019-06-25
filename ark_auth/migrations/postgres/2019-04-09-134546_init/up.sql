@@ -63,7 +63,7 @@ CREATE TABLE auth_audit (
     audit_forwarded_for VARCHAR,
     audit_path VARCHAR NOT NULL,
     audit_data JSONB NOT NULL,
-    key_id VARCHAR NOT NULL,
+    key_id VARCHAR,
     service_id VARCHAR,
     user_id VARCHAR,
     user_key_id VARCHAR,

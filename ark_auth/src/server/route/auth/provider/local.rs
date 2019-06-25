@@ -93,12 +93,11 @@ fn login_inner(
     body: &LoginBody,
 ) -> Result<core::UserToken, Error> {
     core::key::authenticate_service(data.driver(), id)
-        .and_then(|(service, service_key)| {
+        .and_then(|(service, audit)| {
             core::auth::login(
                 data.driver(),
                 &service,
-                &service_key,
-                audit_meta,
+                audit,
                 &body.email,
                 &body.password,
                 data.configuration().core_access_token_expires(),

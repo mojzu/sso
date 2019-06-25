@@ -1,4 +1,5 @@
 use crate::core::{Error, Key, Service, User};
+use crate::core::audit::AuditBuilder;
 use crate::driver;
 
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
@@ -17,6 +18,8 @@ pub fn authenticate_service(
     driver: &driver::Driver,
     key_value: Option<String>,
 ) -> Result<(Service, Key), Error> {
+    // // TODO(refactor): Build audit log here.
+    // let audit = AuditBuilder::new(data.driver(), audit_meta, &service_key).set_service(Some(&service));
     match key_value {
         Some(key_value) => read_by_service_value(driver, &key_value).and_then(|key| {
             let key = key.ok_or_else(|| Error::Forbidden)?;

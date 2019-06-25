@@ -12,14 +12,14 @@ use crate::driver::Driver;
 pub fn login(
     driver: &Driver,
     service: &Service,
-    service_key: &Key,
-    audit_meta: &AuditMeta,
+    mut audit: AuditBuilder,
     email: &str,
     password: &str,
     access_token_expires: i64,
     refresh_token_expires: i64,
 ) -> Result<UserToken, Error> {
-    let mut audit = AuditBuilder::new(driver, audit_meta, service_key).set_service(Some(service));
+    // TODO(refactor): Use argument audit log.
+    // let mut audit = AuditBuilder::new(driver, audit_meta, service_key).set_service(Some(service));
 
     // Get user using email, check is enabled.
     let user = match user_read_by_email(driver, Some(service), email) {
