@@ -10,14 +10,18 @@ use time::Duration;
 pub struct AuditMeta {
     pub user_agent: String,
     pub remote: String,
+    // TODO(refactor): Use X-Real-IP header?
     pub forwarded_for: Option<String>,
 }
 
 /// Audit paths.
 pub enum AuditPath {
-    // TODO(refactor): Login type/provider.
     Login(AuditMessageObject<AuditMessage>),
     LoginError(AuditMessageObject<AuditMessage>),
+    ResetPassword(AuditMessageObject<AuditMessage>),
+    ResetPasswordError(AuditMessageObject<AuditMessage>),
+    ResetPasswordConfirm(AuditMessageObject<AuditMessage>),
+    ResetPasswordConfirmError(AuditMessageObject<AuditMessage>),
 }
 
 impl AuditPath {
@@ -30,19 +34,39 @@ impl AuditPath {
             }
             AuditPath::LoginError(message) => {
                 let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/login_error".to_owned(), value)
+                ("ark_auth/error/login".to_owned(), value)
+            }
+            AuditPath::ResetPassword(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/reset_password".to_owned(), value)
+            }
+            AuditPath::ResetPasswordError(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/error/reset_password".to_owned(), value)
+            }
+            AuditPath::ResetPasswordConfirm(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/reset_password_confirm".to_owned(), value)
+            }
+            AuditPath::ResetPasswordConfirmError(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/error/reset_password_confirm".to_owned(), value)
             }
         }
     }
 }
 
-/// Audit login messages.
+/// Audit messages.
 #[derive(Debug, Serialize)]
 pub enum AuditMessage {
     UserNotFoundOrDisabled,
     KeyNotFoundOrDisabled,
     PasswordNotSetOrIncorrect,
     Login,
+    ResetPassword,
+    TokenInvalidOrExpired,
+    CsrfNotFoundOrUsed,
+    ResetPasswordConfirm,
 }
 
 /// Audit data message container.
@@ -78,22 +102,22 @@ impl AuditBuilder {
         }
     }
 
-    pub fn set_key(mut self, key: Option<&Key>) -> Self {
+    pub fn set_key(&mut self, key: Option<&Key>) -> &mut Self {
         self.key = key.map(|x| x.id.to_owned());
         self
     }
 
-    pub fn set_service(mut self, service: Option<&Service>) -> Self {
+    pub fn set_service(&mut self, service: Option<&Service>) -> &mut Self {
         self.service = service.map(|x| x.id.to_owned());
         self
     }
 
-    pub fn set_user(mut self, user: Option<&User>) -> Self {
+    pub fn set_user(&mut self, user: Option<&User>) -> &mut Self {
         self.user = user.map(|x| x.id.to_owned());
         self
     }
 
-    pub fn set_user_key(mut self, key: Option<&Key>) -> Self {
+    pub fn set_user_key(&mut self, key: Option<&Key>) -> &mut Self {
         self.user_key = key.map(|x| x.id.to_owned());
         self
     }

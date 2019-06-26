@@ -10,8 +10,6 @@ use crate::driver;
 use chrono::{DateTime, Utc};
 use serde_json::Value;
 
-// TODO(refactor): Error string descriptions for logs.
-
 /// Core errors.
 #[derive(Debug, Fail)]
 pub enum Error {

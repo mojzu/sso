@@ -158,6 +158,7 @@ impl driver::Driver for Driver {
         let conn = self.connection()?;
         auth_key
             // TODO(refactor): Better method to handle multiple keys?
+            // Allow or require specifying key ID via argument?
             .filter(
                 user_id
                     .eq(key_user_id)

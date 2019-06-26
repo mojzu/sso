@@ -72,7 +72,7 @@ pub fn encode_token(
     Ok((token, claims.exp))
 }
 
-/// Safely decodes a token, returns token and expiry time.
+/// Safely decodes a token, returns expiry time and optional CSRF key.
 pub fn decode_token(
     service_id: &str,
     user_id: &str,

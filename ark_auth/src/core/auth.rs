@@ -7,16 +7,16 @@ use crate::driver::Driver;
 pub fn login(
     driver: &Driver,
     service: &Service,
-    audit: AuditBuilder,
+    mut audit: AuditBuilder,
     email: &str,
     password: &str,
     access_token_expires: i64,
     refresh_token_expires: i64,
 ) -> Result<UserToken, Error> {
     // Get user using email, check is enabled.
-    let (user, audit) = match user_read_by_email(driver, Some(service), audit, email) {
+    let user = match user_read_by_email(driver, Some(service), &mut audit, email) {
         Ok(user) => user,
-        Err((err, audit)) => {
+        Err(err) => {
             audit.create(
                 driver,
                 AuditPath::LoginError(AuditMessage::UserNotFoundOrDisabled.into()),
@@ -26,9 +26,9 @@ pub fn login(
     };
 
     // Get key with user, check is enabled and not revoked.
-    let (key, audit) = match key_read_by_user(driver, service, audit, &user) {
+    let key = match key_read_by_user(driver, service, &mut audit, &user) {
         Ok(key) => key,
-        Err((err, audit)) => {
+        Err(err) => {
             audit.create(
                 driver,
                 AuditPath::LoginError(AuditMessage::KeyNotFoundOrDisabled.into()),
@@ -63,16 +63,35 @@ pub fn login(
 pub fn reset_password(
     driver: &Driver,
     service: &Service,
-    audit: AuditBuilder,
+    mut audit: AuditBuilder,
     email: &str,
     token_expires: i64,
 ) -> Result<(User, String), Error> {
-    // Get user and key using email, check is enabled/not revoked.
-    let (user, audit) =
-        user_read_by_email(driver, Some(service), audit, email).map_err(|(err, _)| err)?;
-    let (key, _audit) = key_read_by_user(driver, service, audit, &user).map_err(|(err, _)| err)?;
+    // Get user using email, check is enabled.
+    let user = match user_read_by_email(driver, Some(service), &mut audit, email) {
+        Ok(user) => user,
+        Err(err) => {
+            audit.create(
+                driver,
+                AuditPath::ResetPasswordError(AuditMessage::UserNotFoundOrDisabled.into()),
+            );
+            return Err(err);
+        }
+    };
 
-    // Encode token.
+    // Get key with user, check is enabled and not revoked.
+    let key = match key_read_by_user(driver, service, &mut audit, &user) {
+        Ok(key) => key,
+        Err(err) => {
+            audit.create(
+                driver,
+                AuditPath::ResetPasswordError(AuditMessage::KeyNotFoundOrDisabled.into()),
+            );
+            return Err(err);
+        }
+    };
+
+    // Successful reset password, encode reset token.
     let csrf = csrf_create(driver, service, token_expires)?;
     let (token, _) = core::jwt::encode_token(
         &service.id,
@@ -82,8 +101,10 @@ pub fn reset_password(
         &key.value,
         token_expires,
     )?;
-
-    // Return user and token.
+    audit.create(
+        driver,
+        AuditPath::ResetPassword(AuditMessage::ResetPassword.into()),
+    );
     Ok((user, token))
 }
 
@@ -91,31 +112,78 @@ pub fn reset_password(
 pub fn reset_password_confirm(
     driver: &Driver,
     service: &Service,
-    audit: AuditBuilder,
+    mut audit: AuditBuilder,
     token: &str,
     password: &str,
 ) -> Result<usize, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
 
-    // Get user and key, check is enabled/not revoked.
-    let (user, audit) =
-        user_read_by_id(driver, Some(service), audit, &user_id).map_err(|(err, _)| err)?;
-    let (key, _audit) = key_read_by_user(driver, service, audit, &user).map_err(|(err, _)| err)?;
+    // Get user using email, check is enabled.
+    let user = match user_read_by_id(driver, Some(service), &mut audit, &user_id) {
+        Ok(user) => user,
+        Err(err) => {
+            audit.create(
+                driver,
+                AuditPath::ResetPasswordConfirmError(AuditMessage::UserNotFoundOrDisabled.into()),
+            );
+            return Err(err);
+        }
+    };
 
-    // Safely decode token with user key, check type and csrf value.
-    let (_, csrf_key) = core::jwt::decode_token(
+    // Get key with user, check is enabled and not revoked.
+    let key = match key_read_by_user(driver, service, &mut audit, &user) {
+        Ok(key) => key,
+        Err(err) => {
+            audit.create(
+                driver,
+                AuditPath::ResetPasswordConfirmError(AuditMessage::KeyNotFoundOrDisabled.into()),
+            );
+            return Err(err);
+        }
+    };
+
+    // Safely decode token with user key, this checks the type.
+    let decoded = core::jwt::decode_token(
         &service.id,
         &user.id,
         core::jwt::ClaimsType::ResetPasswordToken,
         &key.value,
         token,
-    )?;
-    let csrf_key = csrf_key.ok_or_else(|| Error::BadRequest)?;
-    csrf_check(driver, &csrf_key)?;
+    );
+    let csrf_key = match decoded {
+        Ok((_, csrf_key)) => {
+            let csrf_key = csrf_key.ok_or_else(|| Error::BadRequest)?;
+            csrf_key
+        }
+        Err(err) => {
+            audit.create(
+                driver,
+                AuditPath::ResetPasswordConfirmError(AuditMessage::TokenInvalidOrExpired.into()),
+            );
+            return Err(err);
+        }
+    };
 
-    // Update user password.
-    core::user::update_password_by_id(driver, Some(service), &user.id, password)
+    // Check the CSRF key to prevent reuse.
+    let _ = match csrf_check(driver, &csrf_key) {
+        Ok(checked) => checked,
+        Err(err) => {
+            audit.create(
+                driver,
+                AuditPath::ResetPasswordConfirmError(AuditMessage::CsrfNotFoundOrUsed.into()),
+            );
+            return Err(err);
+        }
+    };
+
+    // Sucessful reset password confirm, update user password.
+    let count = core::user::update_password_by_id(driver, Some(service), &user.id, password)?;
+    audit.create(
+        driver,
+        AuditPath::ResetPasswordConfirm(AuditMessage::ResetPasswordConfirm.into()),
+    );
+    Ok(count)
 }
 
 /// User update email request.
@@ -130,10 +198,9 @@ pub fn update_email(
     revoke_token_expires: i64,
 ) -> Result<(User, String, String), Error> {
     // Get user and key using verified token or key, check is enabled/not revoked and password match.
-    let (user_id, audit) = key_or_token_verify(driver, service, audit, key, token)?;
-    let (user, audit) =
-        user_read_by_id(driver, Some(service), audit, &user_id).map_err(|(err, _)| err)?;
-    let (key, audit) = key_read_by_user(driver, service, audit, &user).map_err(|(err, _)| err)?;
+    let (user_id, mut audit) = key_or_token_verify(driver, service, audit, key, token)?;
+    let user = user_read_by_id(driver, Some(service), &mut audit, &user_id)?;
+    let key = key_read_by_user(driver, service, &mut audit, &user)?;
     core::check_password(user.password_hash.as_ref().map(|x| &**x), &password)?;
     let old_email = user.email.to_owned();
 
@@ -150,8 +217,7 @@ pub fn update_email(
 
     // Update user email and reread from driver.
     core::user::update_email_by_id(driver, Some(service), &user.id, new_email)?;
-    let (user, _audit) =
-        user_read_by_id(driver, Some(service), audit, &user_id).map_err(|(err, _)| err)?;
+    let user = user_read_by_id(driver, Some(service), &mut audit, &user_id)?;
     Ok((user, old_email, revoke_token))
 }
 
@@ -206,10 +272,9 @@ pub fn update_password(
     revoke_token_expires: i64,
 ) -> Result<(User, String), Error> {
     // Get user and key using verified token or key, check is enabled/not revoked and password match.
-    let (user_id, audit) = key_or_token_verify(driver, service, audit, key, token)?;
-    let (user, audit) =
-        user_read_by_id(driver, Some(service), audit, &user_id).map_err(|(err, _)| err)?;
-    let (key, audit) = key_read_by_user(driver, service, audit, &user).map_err(|(err, _)| err)?;
+    let (user_id, mut audit) = key_or_token_verify(driver, service, audit, key, token)?;
+    let user = user_read_by_id(driver, Some(service), &mut audit, &user_id)?;
+    let key = key_read_by_user(driver, service, &mut audit, &user)?;
     core::check_password(user.password_hash.as_ref().map(|x| &**x), &password)?;
 
     // Encode revoke token.
@@ -225,8 +290,7 @@ pub fn update_password(
 
     // Update user password and reread from driver.
     core::user::update_password_by_id(driver, Some(service), &user.id, new_password)?;
-    let (user, _audit) =
-        user_read_by_id(driver, Some(service), audit, &user_id).map_err(|(err, _)| err)?;
+    let user = user_read_by_id(driver, Some(service), &mut audit, &user_id)?;
     Ok((user, revoke_token))
 }
 
@@ -273,11 +337,11 @@ pub fn update_password_revoke(
 pub fn key_verify(
     driver: &Driver,
     service: &Service,
-    audit: AuditBuilder,
+    mut audit: AuditBuilder,
     key: &str,
 ) -> Result<(UserKey, AuditBuilder), Error> {
     // Get key, check is enabled/not revoked and associated with user.
-    let key = key_read_by_user_value(driver, service, key)?;
+    let key = key_read_by_user_value(driver, service, &mut audit, key)?;
     let user_id = key.user_id.ok_or_else(|| Error::BadRequest)?;
 
     // Return key.
@@ -315,16 +379,15 @@ pub fn key_revoke(
 pub fn token_verify(
     driver: &Driver,
     service: &Service,
-    audit: AuditBuilder,
+    mut audit: AuditBuilder,
     token: &str,
 ) -> Result<(UserTokenPartial, AuditBuilder), Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
 
     // Get user and key, check is enabled/not revoked.
-    let (user, audit) =
-        user_read_by_id(driver, Some(service), audit, &user_id).map_err(|(err, _)| err)?;
-    let (key, audit) = key_read_by_user(driver, service, audit, &user).map_err(|(err, _)| err)?;
+    let user = user_read_by_id(driver, Some(service), &mut audit, &user_id)?;
+    let key = key_read_by_user(driver, service, &mut audit, &user)?;
 
     // Safely decode token with user key, check type.
     let (access_token_expires, _) = core::jwt::decode_token(
@@ -348,7 +411,7 @@ pub fn token_verify(
 pub fn token_refresh(
     driver: &Driver,
     service: &Service,
-    audit: AuditBuilder,
+    mut audit: AuditBuilder,
     token: &str,
     access_token_expires: i64,
     refresh_token_expires: i64,
@@ -357,9 +420,8 @@ pub fn token_refresh(
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
 
     // Get user and key, check is enabled/not revoked.
-    let (user, audit) =
-        user_read_by_id(driver, Some(service), audit, &user_id).map_err(|(err, _)| err)?;
-    let (key, _audit) = key_read_by_user(driver, service, audit, &user).map_err(|(err, _)| err)?;
+    let user = user_read_by_id(driver, Some(service), &mut audit, &user_id)?;
+    let key = key_read_by_user(driver, service, &mut audit, &user)?;
 
     // Safely decode token with user key, check type and csrf value.
     let (_, csrf_key) = core::jwt::decode_token(
@@ -420,16 +482,15 @@ pub fn token_revoke(
 pub fn oauth2_login(
     driver: &Driver,
     service_id: &str,
-    audit: AuditBuilder,
+    mut audit: AuditBuilder,
     email: &str,
     access_token_expires: i64,
     refresh_token_expires: i64,
 ) -> Result<(Service, UserToken), Error> {
     // Get service, user and key, check is enabled/not revoked.
     let service = service_read_by_id(driver, service_id)?;
-    let (user, audit) =
-        user_read_by_email(driver, Some(&service), audit, email).map_err(|(err, _)| err)?;
-    let (key, _audit) = key_read_by_user(driver, &service, audit, &user).map_err(|(err, _)| err)?;
+    let user = user_read_by_email(driver, Some(&service), &mut audit, email)?;
+    let key = key_read_by_user(driver, &service, &mut audit, &user)?;
 
     // Encode user token containing access token and refresh token.
     let user_token = encode_user_token(
@@ -463,28 +524,17 @@ fn service_read_by_id(driver: &Driver, service_id: &str) -> Result<Service, Erro
 fn user_read_by_id(
     driver: &Driver,
     service_mask: Option<&Service>,
-    audit: AuditBuilder,
+    audit: &mut AuditBuilder,
     id: &str,
-) -> Result<(User, AuditBuilder), (Error, AuditBuilder)> {
-    let user = core::user::read_by_id(driver, service_mask, id);
-    let user = match user {
-        Ok(user) => user,
-        Err(err) => {
-            return Err((err, audit));
-        }
-    };
-    let user = match user {
-        Some(user) => user,
-        None => {
-            return Err((Error::BadRequest, audit));
-        }
-    };
+) -> Result<User, Error> {
+    let user =
+        core::user::read_by_id(driver, service_mask, id)?.ok_or_else(|| Error::BadRequest)?;
 
-    let audit = audit.set_user(Some(&user));
+    audit.set_user(Some(&user));
     if !user.is_enabled {
-        return Err((Error::BadRequest, audit));
+        return Err(Error::BadRequest);
     }
-    Ok((user, audit))
+    Ok(user)
 }
 
 /// Read user by email address.
@@ -492,28 +542,17 @@ fn user_read_by_id(
 fn user_read_by_email(
     driver: &Driver,
     service_mask: Option<&Service>,
-    audit: AuditBuilder,
+    audit: &mut AuditBuilder,
     email: &str,
-) -> Result<(User, AuditBuilder), (Error, AuditBuilder)> {
-    let user = core::user::read_by_email(driver, service_mask, email);
-    let user = match user {
-        Ok(user) => user,
-        Err(err) => {
-            return Err((err, audit));
-        }
-    };
-    let user = match user {
-        Some(user) => user,
-        None => {
-            return Err((Error::BadRequest, audit));
-        }
-    };
+) -> Result<User, Error> {
+    let user =
+        core::user::read_by_email(driver, service_mask, email)?.ok_or_else(|| Error::BadRequest)?;
 
-    let audit = audit.set_user(Some(&user));
+    audit.set_user(Some(&user));
     if !user.is_enabled {
-        return Err((Error::BadRequest, audit));
+        return Err(Error::BadRequest);
     }
-    Ok((user, audit))
+    Ok(user)
 }
 
 /// Read key by user reference.
@@ -521,35 +560,30 @@ fn user_read_by_email(
 fn key_read_by_user(
     driver: &Driver,
     service: &Service,
-    audit: AuditBuilder,
+    audit: &mut AuditBuilder,
     user: &User,
-) -> Result<(Key, AuditBuilder), (Error, AuditBuilder)> {
-    let key = core::key::read_by_user(driver, &service, &user);
-    let key = match key {
-        Ok(key) => key,
-        Err(err) => {
-            return Err((err, audit));
-        }
-    };
-    let key = match key {
-        Some(key) => key,
-        None => {
-            return Err((Error::BadRequest, audit));
-        }
-    };
+) -> Result<Key, Error> {
+    let key = core::key::read_by_user(driver, &service, &user)?.ok_or_else(|| Error::BadRequest)?;
 
-    let audit = audit.set_user_key(Some(&key));
+    audit.set_user_key(Some(&key));
     if !key.is_enabled || key.is_revoked {
-        return Err((Error::BadRequest, audit));
+        return Err(Error::BadRequest);
     }
-    Ok((key, audit))
+    Ok(key)
 }
 
 /// Read key by user value.
 /// Also checks key is enabled and not revoked, returns bad request if disabled.
-fn key_read_by_user_value(driver: &Driver, service: &Service, key: &str) -> Result<Key, Error> {
+fn key_read_by_user_value(
+    driver: &Driver,
+    service: &Service,
+    audit: &mut AuditBuilder,
+    key: &str,
+) -> Result<Key, Error> {
     let key =
         core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::BadRequest)?;
+
+    audit.set_user_key(Some(&key));
     if !key.is_enabled || key.is_revoked {
         return Err(Error::BadRequest);
     }
@@ -579,6 +613,7 @@ fn key_or_token_verify(
     }
 }
 
+/// Build user token by encoding access and refresh tokens.
 fn encode_user_token(
     driver: &Driver,
     service: &Service,
@@ -613,11 +648,13 @@ fn encode_user_token(
     })
 }
 
+/// Create a new CSRF key, value pair using random UUID.
 fn csrf_create(driver: &Driver, service: &Service, token_expires: i64) -> Result<Csrf, Error> {
     let csrf_key = uuid::Uuid::new_v4().to_simple().to_string();
     core::csrf::create(driver, service, &csrf_key, &csrf_key, token_expires)
 }
 
+/// Check a CSRF key is valid by reading it, this will also delete the key.
 fn csrf_check(driver: &Driver, csrf_key: &str) -> Result<(), Error> {
     core::csrf::read_by_key(driver, csrf_key)?
         .ok_or_else(|| Error::BadRequest)

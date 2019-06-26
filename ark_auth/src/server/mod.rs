@@ -10,7 +10,6 @@ use actix_web::{middleware, web, App, HttpResponse, HttpServer, ResponseError};
 use serde::Serialize;
 pub use validate::FromJsonValue;
 
-// TODO(feature): Audit logging, x-real-ip, x-forwarded-for headers.
 // TODO(feature): Prometheus metrics.
 // <https://prometheus.io/docs/instrumenting/exposition_formats/>
 // TODO(feature): Webauthn support.

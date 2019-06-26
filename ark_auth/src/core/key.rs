@@ -3,7 +3,7 @@ use crate::core::{Error, Key, Service, User};
 use crate::driver;
 
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
-// TODO(refactor): Use _audit unused.
+// TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
 
 /// Authenticate root key.
 pub fn authenticate_root(
@@ -12,12 +12,15 @@ pub fn authenticate_root(
     key_value: Option<String>,
 ) -> Result<AuditBuilder, Error> {
     // TODO(refactor): Audit forbidden requests.
-    let audit = AuditBuilder::new(audit_meta);
+    let mut audit = AuditBuilder::new(audit_meta);
 
     match key_value {
         Some(key_value) => read_by_root_value(driver, &key_value)
             .and_then(|key| key.ok_or_else(|| Error::Forbidden))
-            .map(|key| audit.set_key(Some(&key))),
+            .map(|key| {
+                audit.set_key(Some(&key));
+                audit
+            }),
         None => Err(Error::Forbidden),
     }
 }
@@ -28,18 +31,18 @@ pub fn authenticate_service(
     audit_meta: AuditMeta,
     key_value: Option<String>,
 ) -> Result<(Service, AuditBuilder), Error> {
-    let audit = AuditBuilder::new(audit_meta);
+    let mut audit = AuditBuilder::new(audit_meta);
     match key_value {
         Some(key_value) => read_by_service_value(driver, &key_value).and_then(|key| {
             let key = key.ok_or_else(|| Error::Forbidden)?;
-            let audit = audit.set_key(Some(&key));
+            audit.set_key(Some(&key));
 
             let service_id_copy = key.service_id.clone().ok_or_else(|| Error::Forbidden)?;
             let service = driver
                 .service_read_by_id(&service_id_copy)
                 .map_err(Error::Driver)?
                 .ok_or_else(|| Error::Forbidden)?;
-            let audit = audit.set_service(Some(&service));
+            audit.set_service(Some(&service));
 
             Ok((service, audit))
         }),
