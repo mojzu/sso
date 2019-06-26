@@ -41,7 +41,7 @@ impl AuditPath {
 pub enum AuditMessage {
     UserNotFoundOrDisabled,
     KeyNotFoundOrDisabled,
-    PasswordIncorrect,
+    PasswordNotSetOrIncorrect,
     Login,
 }
 

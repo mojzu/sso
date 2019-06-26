@@ -206,7 +206,7 @@ fn read_handler(
             web::block(move || read_inner(data.get_ref(), audit_meta, id, &path.0))
                 .map_err(Into::into)
         })
-        .then(route_response_empty)
+        .then(route_response_json)
 }
 
 fn read_inner(

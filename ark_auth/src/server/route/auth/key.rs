@@ -40,9 +40,11 @@ fn verify_inner(
     body: &KeyBody,
 ) -> Result<KeyResponse, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, _)| core::auth::key_verify(data.driver(), &service, &body.key))
+        .and_then(|(service, audit)| {
+            core::auth::key_verify(data.driver(), &service, audit, &body.key)
+        })
         .map_err(Into::into)
-        .map(|user_key| KeyResponse { data: user_key })
+        .map(|(user_key, _)| KeyResponse { data: user_key })
 }
 
 fn revoke_handler(
@@ -71,6 +73,8 @@ fn revoke_inner(
     body: &KeyBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, _)| core::auth::key_revoke(data.driver(), &service, &body.key))
+        .and_then(|(service, audit)| {
+            core::auth::key_revoke(data.driver(), &service, audit, &body.key)
+        })
         .map_err(Into::into)
 }

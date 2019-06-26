@@ -41,9 +41,11 @@ fn verify_inner(
     body: &TokenBody,
 ) -> Result<TokenPartialResponse, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, _)| core::auth::token_verify(data.driver(), &service, &body.token))
+        .and_then(|(service, audit)| {
+            core::auth::token_verify(data.driver(), &service, audit, &body.token)
+        })
         .map_err(Into::into)
-        .map(|user_token| TokenPartialResponse { data: user_token })
+        .map(|(user_token, _)| TokenPartialResponse { data: user_token })
 }
 
 fn refresh_handler(
@@ -72,10 +74,11 @@ fn refresh_inner(
     body: &TokenBody,
 ) -> Result<TokenResponse, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, _)| {
+        .and_then(|(service, audit)| {
             core::auth::token_refresh(
                 data.driver(),
                 &service,
+                audit,
                 &body.token,
                 data.configuration().core_access_token_expires(),
                 data.configuration().core_refresh_token_expires(),
@@ -111,6 +114,8 @@ fn revoke_inner(
     body: &TokenBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, _)| core::auth::token_revoke(data.driver(), &service, &body.token))
+        .and_then(|(service, audit)| {
+            core::auth::token_revoke(data.driver(), &service, audit, &body.token)
+        })
         .map_err(Into::into)
 }

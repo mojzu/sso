@@ -155,10 +155,11 @@ fn reset_password_inner(
     body: &ResetPasswordBody,
 ) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, _)| {
+        .and_then(|(service, audit)| {
             let (user, token) = core::auth::reset_password(
                 data.driver(),
                 &service,
+                audit,
                 &body.email,
                 data.configuration().core_access_token_expires(),
             )?;
@@ -230,8 +231,14 @@ fn reset_password_confirm_inner(
     body: &ResetPasswordConfirmBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, _)| {
-            core::auth::reset_password_confirm(data.driver(), &service, &body.token, &body.password)
+        .and_then(|(service, audit)| {
+            core::auth::reset_password_confirm(
+                data.driver(),
+                &service,
+                audit,
+                &body.token,
+                &body.password,
+            )
         })
         .map_err(Into::into)
 }
@@ -289,10 +296,11 @@ fn update_email_inner(
     body: &UpdateEmailBody,
 ) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, _)| {
+        .and_then(|(service, audit)| {
             let (user, old_email, token) = core::auth::update_email(
                 data.driver(),
                 &service,
+                audit,
                 body.key.as_ref().map(|x| &**x),
                 body.token.as_ref().map(|x| &**x),
                 &body.password,
@@ -353,8 +361,8 @@ fn update_email_revoke_inner(
     body: &UpdateEmailRevokeBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, _)| {
-            core::auth::update_email_revoke(data.driver(), &service, &body.token)
+        .and_then(|(service, audit)| {
+            core::auth::update_email_revoke(data.driver(), &service, audit, &body.token)
         })
         .map_err(Into::into)
 }
@@ -422,10 +430,11 @@ fn update_password_inner(
     body: &UpdatePasswordBody,
 ) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, _)| {
+        .and_then(|(service, audit)| {
             let (user, token) = core::auth::update_password(
                 data.driver(),
                 &service,
+                audit,
                 body.key.as_ref().map(|x| &**x),
                 body.token.as_ref().map(|x| &**x),
                 &body.password,
@@ -485,8 +494,8 @@ fn update_password_revoke_inner(
     body: &UpdatePasswordRevokeBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, _)| {
-            core::auth::update_password_revoke(data.driver(), &service, &body.token)
+        .and_then(|(service, audit)| {
+            core::auth::update_password_revoke(data.driver(), &service, audit, &body.token)
         })
         .map_err(Into::into)
 }

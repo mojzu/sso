@@ -3,6 +3,7 @@ use crate::core::{Error, Key, Service, User};
 use crate::driver;
 
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
+// TODO(refactor): Use _audit unused.
 
 /// Authenticate root key.
 pub fn authenticate_root(
@@ -27,20 +28,18 @@ pub fn authenticate_service(
     audit_meta: AuditMeta,
     key_value: Option<String>,
 ) -> Result<(Service, AuditBuilder), Error> {
-    // TODO(refactor): Build audit log here.
     let audit = AuditBuilder::new(audit_meta);
-    // .set_service(Some(&service))
     match key_value {
         Some(key_value) => read_by_service_value(driver, &key_value).and_then(|key| {
             let key = key.ok_or_else(|| Error::Forbidden)?;
-            audit.set_key(Some(&key));
+            let audit = audit.set_key(Some(&key));
 
-            let service_id = key.service_id.clone().ok_or_else(|| Error::Forbidden)?;
+            let service_id_copy = key.service_id.clone().ok_or_else(|| Error::Forbidden)?;
             let service = driver
-                .service_read_by_id(&service_id)
+                .service_read_by_id(&service_id_copy)
                 .map_err(Error::Driver)?
                 .ok_or_else(|| Error::Forbidden)?;
-            audit.set_service(Some(&service));
+            let audit = audit.set_service(Some(&service));
 
             Ok((service, audit))
         }),
@@ -55,12 +54,13 @@ pub fn authenticate(
     key_value: Option<String>,
 ) -> Result<(Option<Service>, AuditBuilder), Error> {
     let key_value_1 = key_value.to_owned();
+    let audit_meta_copy = audit_meta.clone();
 
     authenticate_service(driver, audit_meta, key_value)
         .map(|(service, audit)| (Some(service), audit))
         .or_else(move |err| match err {
             Error::Forbidden => {
-                authenticate_root(driver, audit_meta, key_value_1).map(|audit| (None, audit))
+                authenticate_root(driver, audit_meta_copy, key_value_1).map(|audit| (None, audit))
             }
             _ => Err(err),
         })

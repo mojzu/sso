@@ -1,5 +1,5 @@
 use crate::core;
-use crate::core::audit::AuditMeta;
+use crate::core::audit::{AuditBuilder, AuditMeta};
 use crate::server::route::auth::provider::{
     oauth2_redirect, Oauth2CallbackQuery, Oauth2UrlResponse,
 };
@@ -57,29 +57,34 @@ fn request_inner(
 
 fn oauth2_callback_handler(
     data: web::Data<Data>,
+    req: HttpRequest,
     query: web::Query<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
-    // TODO(refactor): Audit builder support.
-    Oauth2CallbackQuery::from_value(query.into_inner())
-        .and_then(|query| {
+    let audit_meta = request_audit_meta(&req);
+    let query = Oauth2CallbackQuery::from_value(query.into_inner());
+
+    audit_meta
+        .join(query)
+        .and_then(|(audit_meta, query)| {
             web::block(move || {
                 let (service_id, access_token) =
                     github_callback(data.get_ref(), &query.code, &query.state)?;
-                Ok((data, service_id, access_token))
+                Ok((data, audit_meta, service_id, access_token))
             })
             .map_err(Into::into)
         })
-        .and_then(|(data, service_id, access_token)| {
+        .and_then(|(data, audit_meta, service_id, access_token)| {
             let email = github_api_user_email(data.get_ref(), &access_token);
-            let service_id = future::ok(service_id);
-            let data = future::ok(data);
-            data.join3(service_id, email)
+            let args = future::ok((data, audit_meta, service_id));
+            email.join(args)
         })
-        .and_then(|(data, service_id, email)| {
+        .and_then(|(email, (data, audit_meta, service_id))| {
             web::block(move || {
+                let audit = AuditBuilder::new(audit_meta);
                 core::auth::oauth2_login(
                     data.driver(),
                     &service_id,
+                    audit,
                     &email,
                     data.configuration().core_access_token_expires(),
                     data.configuration().core_refresh_token_expires(),
