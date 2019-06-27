@@ -68,6 +68,14 @@ pub struct Key {
     pub user_id: Option<String>,
 }
 
+/// Key query.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct KeyQuery {
+    pub gt: Option<String>,
+    pub lt: Option<String>,
+    pub limit: i64,
+}
+
 /// User token.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserToken {
@@ -117,6 +125,23 @@ pub struct Audit {
     pub service_id: Option<String>,
     pub user_id: Option<String>,
     pub user_key_id: Option<String>,
+}
+
+/// Audit meta.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditMeta {
+    pub user_agent: String,
+    pub remote: String,
+    // TODO(refactor): Use X-Real-IP header?
+    pub forwarded_for: Option<String>,
+}
+
+/// Audit list query.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AuditQuery {
+    pub gt: Option<String>,
+    pub lt: Option<String>,
+    pub limit: i64,
 }
 
 /// Hash password string using bcrypt, none is returned for none as input.

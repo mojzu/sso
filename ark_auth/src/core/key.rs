@@ -1,5 +1,5 @@
-use crate::core::audit::{AuditBuilder, AuditMeta};
-use crate::core::{Error, Key, Service, User};
+use crate::core::audit::AuditBuilder;
+use crate::core::{AuditMeta, Error, Key, KeyQuery, Service, User};
 use crate::driver;
 
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
@@ -69,28 +69,27 @@ pub fn authenticate(
         })
 }
 
-/// List keys where ID is less than.
-pub fn list_where_id_lt(
-    driver: &driver::Driver,
-    service_mask: Option<&Service>,
-    lt: &str,
-    limit: i64,
-) -> Result<Vec<String>, Error> {
-    driver
-        .key_list_where_id_lt(lt, limit, service_mask.map(|s| s.id.as_ref()))
-        .map_err(Error::Driver)
-}
+// TODO(refactor): Consistent list interface, improve/check queries.
 
-/// List keys where ID is greater than.
-pub fn list_where_id_gt(
+/// List keys using query.
+pub fn list(
     driver: &driver::Driver,
     service_mask: Option<&Service>,
-    gt: &str,
-    limit: i64,
+    query: &KeyQuery,
 ) -> Result<Vec<String>, Error> {
-    driver
-        .key_list_where_id_gt(gt, limit, service_mask.map(|s| s.id.as_ref()))
-        .map_err(Error::Driver)
+    match &query.lt {
+        Some(lt) => driver
+            .key_list_where_id_lt(lt, query.limit, service_mask.map(|s| s.id.as_ref()))
+            .map_err(Error::Driver),
+        None => match &query.gt {
+            Some(gt) => driver
+                .key_list_where_id_gt(gt, query.limit, service_mask.map(|s| s.id.as_ref()))
+                .map_err(Error::Driver),
+            None => driver
+                .key_list_where_id_gt("", query.limit, service_mask.map(|s| s.id.as_ref()))
+                .map_err(Error::Driver),
+        },
+    }
 }
 
 /// Create root key.

@@ -1,5 +1,5 @@
 use crate::core;
-use crate::core::audit::AuditMeta;
+use crate::core::AuditMeta;
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
 use crate::server::{validate, Data, Error, FromJsonValue};
 use actix_identity::Identity;

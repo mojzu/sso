@@ -2,8 +2,7 @@
 mod model;
 mod schema;
 
-use crate::core::audit::AuditMeta;
-use crate::core::{Audit, Csrf, Key, Service, User};
+use crate::core::{Audit, AuditMeta, Csrf, Key, Service, User};
 use crate::driver;
 use crate::driver::Error;
 use chrono::{DateTime, Utc};

@@ -5,8 +5,7 @@ pub mod postgres;
 #[cfg(feature = "sqlite")]
 pub mod sqlite;
 
-use crate::core::audit::AuditMeta;
-use crate::core::{Audit, Csrf, Key, Service, User};
+use crate::core::{Audit, AuditMeta, Csrf, Key, Service, User};
 use chrono::{DateTime, Utc};
 use serde_json::Value;
 

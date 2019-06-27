@@ -1,5 +1,6 @@
 use crate::core;
-use crate::core::audit::{AuditBuilder, AuditMeta};
+use crate::core::audit::AuditBuilder;
+use crate::core::AuditMeta;
 use crate::server::route::auth::provider::{
     oauth2_redirect, Oauth2CallbackQuery, Oauth2UrlResponse,
 };

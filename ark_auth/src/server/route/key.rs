@@ -1,5 +1,5 @@
 use crate::core;
-use crate::core::audit::AuditMeta;
+use crate::core::{AuditMeta, KeyQuery};
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
 use crate::server::{validate, Data, Error, FromJsonValue};
 use actix_identity::Identity;
@@ -36,16 +36,23 @@ pub struct ListQuery {
 
 impl FromJsonValue<ListQuery> for ListQuery {}
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ListMetaResponse {
-    pub gt: Option<String>,
-    pub lt: Option<String>,
-    pub limit: i64,
+impl From<ListQuery> for KeyQuery {
+    fn from(query: ListQuery) -> Self {
+        let (gt, lt) = match query.lt {
+            Some(lt) => (None, Some(lt)),
+            None => {
+                let gt = query.gt.unwrap_or_else(|| "".to_owned());
+                (Some(gt), None)
+            }
+        };
+        let limit = query.limit.unwrap_or(10);
+        KeyQuery { gt, lt, limit }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListResponse {
-    pub meta: ListMetaResponse,
+    pub meta: KeyQuery,
     pub data: Vec<String>,
 }
 
@@ -76,23 +83,10 @@ fn list_inner(
 ) -> Result<ListResponse, Error> {
     core::key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, _)| {
-            let limit = query.limit.unwrap_or(10);
-            let (gt, lt, keys) = match query.lt {
-                Some(lt) => {
-                    let keys =
-                        core::key::list_where_id_lt(data.driver(), service.as_ref(), &lt, limit)?;
-                    (None, Some(lt), keys)
-                }
-                None => {
-                    let gt = query.gt.unwrap_or_else(|| "".to_owned());
-                    let keys =
-                        core::key::list_where_id_gt(data.driver(), service.as_ref(), &gt, limit)?;
-                    (Some(gt), None, keys)
-                }
-            };
-
+            let query: KeyQuery = query.into();
+            let keys = core::key::list(data.driver(), service.as_ref(), &query)?;
             Ok(ListResponse {
-                meta: ListMetaResponse { gt, lt, limit },
+                meta: query,
                 data: keys,
             })
         })

@@ -1,18 +1,9 @@
-use crate::core::{Audit, Error, Key, Service, User};
+use crate::core::{Audit, AuditMeta, Error, Key, Service, User};
 use crate::driver;
 use chrono::Utc;
 use serde::ser::Serialize;
 use serde_json::Value;
 use time::Duration;
-
-/// Audit meta.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditMeta {
-    pub user_agent: String,
-    pub remote: String,
-    // TODO(refactor): Use X-Real-IP header?
-    pub forwarded_for: Option<String>,
-}
 
 /// Audit paths.
 pub enum AuditPath {
