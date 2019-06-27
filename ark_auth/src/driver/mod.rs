@@ -5,6 +5,7 @@ pub mod postgres;
 #[cfg(feature = "sqlite")]
 pub mod sqlite;
 
+use crate::core::audit::AuditMeta;
 use crate::core::{Audit, Csrf, Key, Service, User};
 use chrono::{DateTime, Utc};
 use serde_json::Value;
@@ -179,9 +180,7 @@ pub trait Driver: Send + Sync {
     /// Create audit log.
     fn audit_create(
         &self,
-        user_agent: &str,
-        remote: &str,
-        forwarded_for: Option<&str>,
+        meta: &AuditMeta,
         path: &str,
         data: &Value,
         key_id: Option<&str>,

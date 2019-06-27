@@ -2,6 +2,7 @@
 mod model;
 mod schema;
 
+use crate::core::audit::AuditMeta;
 use crate::core::{Audit, Csrf, Key, Service, User};
 use crate::driver;
 use crate::driver::Error;
@@ -599,9 +600,7 @@ impl driver::Driver for Driver {
 
     fn audit_create(
         &self,
-        user_agent: &str,
-        remote: &str,
-        forwarded_for: Option<&str>,
+        meta: &AuditMeta,
         path: &str,
         data: &Value,
         audit_key_id: Option<&str>,
@@ -617,9 +616,9 @@ impl driver::Driver for Driver {
         let value = model::AuthAuditInsert {
             created_at: &now,
             audit_id: &id,
-            audit_user_agent: user_agent,
-            audit_remote: remote,
-            audit_forwarded_for: forwarded_for,
+            audit_user_agent: &meta.user_agent,
+            audit_remote: &meta.remote,
+            audit_forwarded_for: meta.forwarded_for.as_ref().map(|x| &**x),
             audit_path: path,
             audit_data: data,
             key_id: audit_key_id,

@@ -22,6 +22,14 @@ pub enum AuditPath {
     ResetPasswordError(AuditMessageObject<AuditMessage>),
     ResetPasswordConfirm(AuditMessageObject<AuditMessage>),
     ResetPasswordConfirmError(AuditMessageObject<AuditMessage>),
+    UpdateEmail(AuditMessageObject<AuditMessage>),
+    UpdateEmailError(AuditMessageObject<AuditMessage>),
+    UpdateEmailRevoke(AuditMessageObject<AuditMessage>),
+    UpdateEmailRevokeError(AuditMessageObject<AuditMessage>),
+    UpdatePassword(AuditMessageObject<AuditMessage>),
+    UpdatePasswordError(AuditMessageObject<AuditMessage>),
+    UpdatePasswordRevoke(AuditMessageObject<AuditMessage>),
+    UpdatePasswordRevokeError(AuditMessageObject<AuditMessage>),
 }
 
 impl AuditPath {
@@ -52,6 +60,38 @@ impl AuditPath {
                 let value = serde_json::to_value(message).unwrap();
                 ("ark_auth/error/reset_password_confirm".to_owned(), value)
             }
+            AuditPath::UpdateEmail(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/update_email".to_owned(), value)
+            }
+            AuditPath::UpdateEmailError(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/error/update_email".to_owned(), value)
+            }
+            AuditPath::UpdateEmailRevoke(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/update_email_revoke".to_owned(), value)
+            }
+            AuditPath::UpdateEmailRevokeError(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/error/update_email_revoke".to_owned(), value)
+            }
+            AuditPath::UpdatePassword(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/update_password".to_owned(), value)
+            }
+            AuditPath::UpdatePasswordError(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/error/update_password".to_owned(), value)
+            }
+            AuditPath::UpdatePasswordRevoke(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/update_password_revoke".to_owned(), value)
+            }
+            AuditPath::UpdatePasswordRevokeError(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/error/update_password_revoke".to_owned(), value)
+            }
         }
     }
 }
@@ -67,6 +107,10 @@ pub enum AuditMessage {
     TokenInvalidOrExpired,
     CsrfNotFoundOrUsed,
     ResetPasswordConfirm,
+    UpdateEmail,
+    UpdateEmailRevoke,
+    UpdatePassword,
+    UpdatePasswordRevoke,
 }
 
 /// Audit data message container.
@@ -155,17 +199,7 @@ pub fn create(
 ) -> Result<Audit, Error> {
     let (path, data) = path.to_path_data();
     driver
-        .audit_create(
-            &meta.user_agent,
-            &meta.remote,
-            meta.forwarded_for.as_ref().map(|x| &**x),
-            &path,
-            &data,
-            key,
-            service,
-            user,
-            user_key,
-        )
+        .audit_create(meta, &path, &data, key, service, user, user_key)
         .map_err(Error::Driver)
 }
 
