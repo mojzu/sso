@@ -6,6 +6,7 @@ use serde_json::Value;
 use time::Duration;
 
 /// Audit paths.
+/// TODO(refactor): Split message type out to reduce repetition in auth module.
 pub enum AuditPath {
     Login(AuditMessageObject<AuditMessage>),
     LoginError(AuditMessageObject<AuditMessage>),
@@ -21,6 +22,16 @@ pub enum AuditPath {
     UpdatePasswordError(AuditMessageObject<AuditMessage>),
     UpdatePasswordRevoke(AuditMessageObject<AuditMessage>),
     UpdatePasswordRevokeError(AuditMessageObject<AuditMessage>),
+    Oauth2Login(AuditMessageObject<AuditMessage>),
+    Oauth2LoginError(AuditMessageObject<AuditMessage>),
+    KeyVerifyError(AuditMessageObject<AuditMessage>),
+    KeyRevoke(AuditMessageObject<AuditMessage>),
+    KeyRevokeError(AuditMessageObject<AuditMessage>),
+    TokenVerifyError(AuditMessageObject<AuditMessage>),
+    TokenRefresh(AuditMessageObject<AuditMessage>),
+    TokenRefreshError(AuditMessageObject<AuditMessage>),
+    TokenRevoke(AuditMessageObject<AuditMessage>),
+    TokenRevokeError(AuditMessageObject<AuditMessage>),
 }
 
 impl AuditPath {
@@ -83,6 +94,46 @@ impl AuditPath {
                 let value = serde_json::to_value(message).unwrap();
                 ("ark_auth/error/update_password_revoke".to_owned(), value)
             }
+            AuditPath::Oauth2Login(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/oauth2_login".to_owned(), value)
+            }
+            AuditPath::Oauth2LoginError(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/error/oauth2_login".to_owned(), value)
+            }
+            AuditPath::KeyVerifyError(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/error/key_verify".to_owned(), value)
+            }
+            AuditPath::KeyRevoke(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/key_revoke".to_owned(), value)
+            }
+            AuditPath::KeyRevokeError(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/error/key_revoke".to_owned(), value)
+            }
+            AuditPath::TokenVerifyError(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/error/token_verify".to_owned(), value)
+            }
+            AuditPath::TokenRefresh(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/token_refresh".to_owned(), value)
+            }
+            AuditPath::TokenRefreshError(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/error/token_refresh".to_owned(), value)
+            }
+            AuditPath::TokenRevoke(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/token_revoke".to_owned(), value)
+            }
+            AuditPath::TokenRevokeError(message) => {
+                let value = serde_json::to_value(message).unwrap();
+                ("ark_auth/error/token_revoke".to_owned(), value)
+            }
         }
     }
 }
@@ -90,6 +141,7 @@ impl AuditPath {
 /// Audit messages.
 #[derive(Debug, Serialize)]
 pub enum AuditMessage {
+    ServiceNotFoundOrDisabled,
     UserNotFoundOrDisabled,
     KeyNotFoundOrDisabled,
     PasswordNotSetOrIncorrect,
@@ -102,6 +154,10 @@ pub enum AuditMessage {
     UpdateEmailRevoke,
     UpdatePassword,
     UpdatePasswordRevoke,
+    Oauth2Login,
+    KeyRevoke,
+    TokenRefresh,
+    TokenRevoke,
 }
 
 /// Audit data message container.
