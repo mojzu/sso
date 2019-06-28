@@ -2,148 +2,83 @@ use crate::core::{Audit, AuditMeta, Error, Key, Service, User};
 use crate::driver;
 use chrono::Utc;
 use serde::ser::Serialize;
-use serde_json::Value;
 use time::Duration;
 
 /// Audit paths.
-/// TODO(refactor): Split message type out to reduce repetition in auth module.
+#[derive(Debug, Serialize, Deserialize)]
 pub enum AuditPath {
-    Login(AuditMessageObject<AuditMessage>),
-    LoginError(AuditMessageObject<AuditMessage>),
-    ResetPassword(AuditMessageObject<AuditMessage>),
-    ResetPasswordError(AuditMessageObject<AuditMessage>),
-    ResetPasswordConfirm(AuditMessageObject<AuditMessage>),
-    ResetPasswordConfirmError(AuditMessageObject<AuditMessage>),
-    UpdateEmail(AuditMessageObject<AuditMessage>),
-    UpdateEmailError(AuditMessageObject<AuditMessage>),
-    UpdateEmailRevoke(AuditMessageObject<AuditMessage>),
-    UpdateEmailRevokeError(AuditMessageObject<AuditMessage>),
-    UpdatePassword(AuditMessageObject<AuditMessage>),
-    UpdatePasswordError(AuditMessageObject<AuditMessage>),
-    UpdatePasswordRevoke(AuditMessageObject<AuditMessage>),
-    UpdatePasswordRevokeError(AuditMessageObject<AuditMessage>),
-    Oauth2Login(AuditMessageObject<AuditMessage>),
-    Oauth2LoginError(AuditMessageObject<AuditMessage>),
-    KeyVerifyError(AuditMessageObject<AuditMessage>),
-    KeyRevoke(AuditMessageObject<AuditMessage>),
-    KeyRevokeError(AuditMessageObject<AuditMessage>),
-    TokenVerifyError(AuditMessageObject<AuditMessage>),
-    TokenRefresh(AuditMessageObject<AuditMessage>),
-    TokenRefreshError(AuditMessageObject<AuditMessage>),
-    TokenRevoke(AuditMessageObject<AuditMessage>),
-    TokenRevokeError(AuditMessageObject<AuditMessage>),
+    Login,
+    LoginError,
+    ResetPassword,
+    ResetPasswordError,
+    ResetPasswordConfirm,
+    ResetPasswordConfirmError,
+    UpdateEmail,
+    UpdateEmailError,
+    UpdateEmailRevoke,
+    UpdateEmailRevokeError,
+    UpdatePassword,
+    UpdatePasswordError,
+    UpdatePasswordRevoke,
+    UpdatePasswordRevokeError,
+    Oauth2Login,
+    Oauth2LoginError,
+    KeyVerifyError,
+    KeyRevoke,
+    KeyRevokeError,
+    TokenVerifyError,
+    TokenRefresh,
+    TokenRefreshError,
+    TokenRevoke,
+    TokenRevokeError,
 }
 
 impl AuditPath {
     /// Return string representation and JSON value of key.
-    pub fn to_path_data(&self) -> (String, Value) {
+    pub fn to_string(&self) -> String {
+        let prefix = format!("{}", crate_name!());
         match self {
-            AuditPath::Login(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/login".to_owned(), value)
+            AuditPath::Login => format!("{}/login", prefix),
+            AuditPath::LoginError => format!("{}/error/login", prefix),
+            AuditPath::ResetPassword => format!("{}/reset_password", prefix),
+            AuditPath::ResetPasswordError => format!("{}/error/reset_password", prefix),
+            AuditPath::ResetPasswordConfirm => format!("{}/reset_password_confirm", prefix),
+            AuditPath::ResetPasswordConfirmError => {
+                format!("{}/error/reset_password_confirm", prefix)
             }
-            AuditPath::LoginError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/login".to_owned(), value)
+            AuditPath::UpdateEmail => format!("{}/update_email", prefix),
+            AuditPath::UpdateEmailError => format!("{}/error/update_email", prefix),
+            AuditPath::UpdateEmailRevoke => format!("{}/update_email_revoke", prefix),
+            AuditPath::UpdateEmailRevokeError => format!("{}/error/update_email_revoke", prefix),
+            AuditPath::UpdatePassword => format!("{}/update_password", prefix),
+            AuditPath::UpdatePasswordError => format!("{}/error/update_password", prefix),
+            AuditPath::UpdatePasswordRevoke => format!("{}/update_password_revoke", prefix),
+            AuditPath::UpdatePasswordRevokeError => {
+                format!("{}/error/update_password_revoke", prefix)
             }
-            AuditPath::ResetPassword(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/reset_password".to_owned(), value)
-            }
-            AuditPath::ResetPasswordError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/reset_password".to_owned(), value)
-            }
-            AuditPath::ResetPasswordConfirm(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/reset_password_confirm".to_owned(), value)
-            }
-            AuditPath::ResetPasswordConfirmError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/reset_password_confirm".to_owned(), value)
-            }
-            AuditPath::UpdateEmail(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/update_email".to_owned(), value)
-            }
-            AuditPath::UpdateEmailError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/update_email".to_owned(), value)
-            }
-            AuditPath::UpdateEmailRevoke(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/update_email_revoke".to_owned(), value)
-            }
-            AuditPath::UpdateEmailRevokeError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/update_email_revoke".to_owned(), value)
-            }
-            AuditPath::UpdatePassword(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/update_password".to_owned(), value)
-            }
-            AuditPath::UpdatePasswordError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/update_password".to_owned(), value)
-            }
-            AuditPath::UpdatePasswordRevoke(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/update_password_revoke".to_owned(), value)
-            }
-            AuditPath::UpdatePasswordRevokeError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/update_password_revoke".to_owned(), value)
-            }
-            AuditPath::Oauth2Login(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/oauth2_login".to_owned(), value)
-            }
-            AuditPath::Oauth2LoginError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/oauth2_login".to_owned(), value)
-            }
-            AuditPath::KeyVerifyError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/key_verify".to_owned(), value)
-            }
-            AuditPath::KeyRevoke(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/key_revoke".to_owned(), value)
-            }
-            AuditPath::KeyRevokeError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/key_revoke".to_owned(), value)
-            }
-            AuditPath::TokenVerifyError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/token_verify".to_owned(), value)
-            }
-            AuditPath::TokenRefresh(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/token_refresh".to_owned(), value)
-            }
-            AuditPath::TokenRefreshError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/token_refresh".to_owned(), value)
-            }
-            AuditPath::TokenRevoke(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/token_revoke".to_owned(), value)
-            }
-            AuditPath::TokenRevokeError(message) => {
-                let value = serde_json::to_value(message).unwrap();
-                ("ark_auth/error/token_revoke".to_owned(), value)
-            }
+            AuditPath::Oauth2Login => format!("{}/oauth2_login", prefix),
+            AuditPath::Oauth2LoginError => format!("{}/error/oauth2_login", prefix),
+            AuditPath::KeyVerifyError => format!("{}/error/key_verify", prefix),
+            AuditPath::KeyRevoke => format!("{}/key_revoke", prefix),
+            AuditPath::KeyRevokeError => format!("{}/error/key_revoke", prefix),
+            AuditPath::TokenVerifyError => format!("{}/error/token_verify", prefix),
+            AuditPath::TokenRefresh => format!("{}/token_refresh", prefix),
+            AuditPath::TokenRefreshError => format!("{}/error/token_refresh", prefix),
+            AuditPath::TokenRevoke => format!("{}/token_revoke", prefix),
+            AuditPath::TokenRevokeError => format!("{}/error/token_revoke", prefix),
         }
     }
 }
 
 /// Audit messages.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum AuditMessage {
-    ServiceNotFoundOrDisabled,
-    UserNotFoundOrDisabled,
-    KeyNotFoundOrDisabled,
+    ServiceNotFound,
+    ServiceDisabled,
+    UserNotFound,
+    UserDisabled,
+    KeyNotFound,
+    KeyDisabledOrRevoked,
     PasswordNotSetOrIncorrect,
     Login,
     ResetPassword,
@@ -215,11 +150,17 @@ impl AuditBuilder {
 
     /// Create audit log from internal parameters.
     /// In case of error, log as warning and return None.
-    pub fn create(&self, driver: &driver::Driver, path: AuditPath) -> Option<Audit> {
+    pub fn create(
+        &self,
+        driver: &driver::Driver,
+        path: AuditPath,
+        data: AuditMessage,
+    ) -> Option<Audit> {
         match create(
             driver,
             &self.meta,
             path,
+            data,
             self.key.as_ref().map(|x| &**x),
             self.service.as_ref().map(|x| &**x),
             self.user.as_ref().map(|x| &**x),
@@ -239,12 +180,15 @@ pub fn create(
     driver: &driver::Driver,
     meta: &AuditMeta,
     path: AuditPath,
+    data: AuditMessage,
     key: Option<&str>,
     service: Option<&str>,
     user: Option<&str>,
     user_key: Option<&str>,
 ) -> Result<Audit, Error> {
-    let (path, data) = path.to_path_data();
+    let path = path.to_string();
+    let data: AuditMessageObject<AuditMessage> = data.into();
+    let data = serde_json::to_value(data).unwrap();
     driver
         .audit_create(meta, &path, &data, key, service, user, user_key)
         .map_err(Error::Driver)

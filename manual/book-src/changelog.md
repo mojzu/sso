@@ -4,7 +4,7 @@
 
 ### Added
 
-- Added audit logging.
+- Added audit logging to authentication routes.
 - Added is enabled flag to services, users and keys, added is revoked flag to keys.
 - Added synchronous and asynchronous clients.
 - Added `email_eq` query option to user list route.
