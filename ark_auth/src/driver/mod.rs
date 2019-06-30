@@ -28,6 +28,42 @@ pub trait Driver: Send + Sync {
     /// Return a boxed trait containing clone of self.
     fn box_clone(&self) -> Box<Driver>;
 
+    /// Create one audit log.
+    fn audit_create(
+        &self,
+        meta: &AuditMeta,
+        path: &str,
+        data: &Value,
+        key_id: Option<&str>,
+        service_id: Option<&str>,
+        user_id: Option<&str>,
+        user_key_id: Option<&str>,
+    ) -> Result<Audit, Error>;
+
+    /// Read one audit log by ID.
+    fn audit_read_by_id(&self, id: &str) -> Result<Option<Audit>, Error>;
+
+    /// Delete many audit logs by created at time.
+    fn audit_delete_by_created_at(&self, created_at: &DateTime<Utc>) -> Result<usize, Error>;
+
+    /// Create one CSRF key, value pair with time to live in seconds. Key must be unique.
+    fn csrf_create(
+        &self,
+        key: &str,
+        value: &str,
+        ttl: &DateTime<Utc>,
+        service_id: &str,
+    ) -> Result<Csrf, Error>;
+
+    /// Read one CSRF key, value pair.
+    fn csrf_read_by_key(&self, key: &str) -> Result<Option<Csrf>, Error>;
+
+    /// Delete one CSRF key, value pair.
+    fn csrf_delete_by_key(&self, key: &str) -> Result<usize, Error>;
+
+    /// Delete many CSRF key, value pairs by time to live timestamp.
+    fn csrf_delete_by_ttl(&self, now: &DateTime<Utc>) -> Result<usize, Error>;
+
     /// List keys where ID is less than.
     fn key_list_where_id_lt(
         &self,
@@ -157,39 +193,6 @@ pub trait Driver: Send + Sync {
 
     /// Delete user by ID.
     fn user_delete_by_id(&self, id: &str) -> Result<usize, Error>;
-
-    /// Create one CSRF key, value pair with time to live in seconds. Key must be unique.
-    fn csrf_create(
-        &self,
-        key: &str,
-        value: &str,
-        ttl: &DateTime<Utc>,
-        service_id: &str,
-    ) -> Result<Csrf, Error>;
-
-    /// Read one CSRF key, value pair.
-    fn csrf_read_by_key(&self, key: &str) -> Result<Option<Csrf>, Error>;
-
-    /// Delete one CSRF key, value pair.
-    fn csrf_delete_by_key(&self, key: &str) -> Result<usize, Error>;
-
-    /// Delete many CSRF key, value pairs by time to live timestamp.
-    fn csrf_delete_by_ttl(&self, now: &DateTime<Utc>) -> Result<usize, Error>;
-
-    /// Create audit log.
-    fn audit_create(
-        &self,
-        meta: &AuditMeta,
-        path: &str,
-        data: &Value,
-        key_id: Option<&str>,
-        service_id: Option<&str>,
-        user_id: Option<&str>,
-        user_key_id: Option<&str>,
-    ) -> Result<Audit, Error>;
-
-    /// Delete many audit logs by created at time.
-    fn audit_delete_by_created_at(&self, created_at: &DateTime<Utc>) -> Result<usize, Error>;
 }
 
 impl Clone for Box<Driver> {

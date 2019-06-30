@@ -23,7 +23,7 @@ pub fn login(
 
     // Check user password matches password hash.
     if let Err(err) = core::check_password(user.password_hash.as_ref().map(|x| &**x), &password) {
-        audit.create(
+        audit.create_internal(
             driver,
             AuditPath::LoginError,
             AuditMessage::PasswordNotSetOrIncorrect,
@@ -41,7 +41,7 @@ pub fn login(
         refresh_token_expires,
     )?;
 
-    audit.create(driver, AuditPath::Login, AuditMessage::Login);
+    audit.create_internal(driver, AuditPath::Login, AuditMessage::Login);
     Ok(user_token)
 }
 
@@ -78,7 +78,7 @@ pub fn reset_password(
         token_expires,
     )?;
 
-    audit.create(
+    audit.create_internal(
         driver,
         AuditPath::ResetPassword,
         AuditMessage::ResetPassword,
@@ -122,7 +122,7 @@ pub fn reset_password_confirm(
     let csrf_key = match decoded {
         Ok((_, csrf_key)) => csrf_key.ok_or_else(|| Error::BadRequest)?,
         Err(err) => {
-            audit.create(
+            audit.create_internal(
                 driver,
                 AuditPath::ResetPasswordConfirmError,
                 AuditMessage::TokenInvalidOrExpired,
@@ -142,7 +142,7 @@ pub fn reset_password_confirm(
     // Sucessful reset password confirm, update user password.
     let count = core::user::update_password_by_id(driver, Some(service), &user.id, password)?;
 
-    audit.create(
+    audit.create_internal(
         driver,
         AuditPath::ResetPasswordConfirm,
         AuditMessage::ResetPasswordConfirm,
@@ -181,7 +181,7 @@ pub fn update_email(
 
     // Check user password matches password hash.
     if let Err(err) = core::check_password(user.password_hash.as_ref().map(|x| &**x), &password) {
-        audit.create(
+        audit.create_internal(
             driver,
             AuditPath::UpdateEmailError,
             AuditMessage::PasswordNotSetOrIncorrect,
@@ -210,7 +210,7 @@ pub fn update_email(
         &user_id,
     )?;
 
-    audit.create(driver, AuditPath::UpdateEmail, AuditMessage::UpdateEmail);
+    audit.create_internal(driver, AuditPath::UpdateEmail, AuditMessage::UpdateEmail);
     Ok((user, old_email, revoke_token))
 }
 
@@ -250,7 +250,7 @@ pub fn update_email_revoke(
     let csrf_key = match decoded {
         Ok((_, csrf_key)) => csrf_key.ok_or_else(|| Error::BadRequest)?,
         Err(err) => {
-            audit.create(
+            audit.create_internal(
                 driver,
                 AuditPath::UpdateEmailRevokeError,
                 AuditMessage::TokenInvalidOrExpired,
@@ -263,7 +263,14 @@ pub fn update_email_revoke(
     csrf_check(driver, &csrf_key, &audit, AuditPath::UpdateEmailRevokeError)?;
 
     // Successful update email revoke, disable user and disable and revoke all keys associated with user.
-    core::user::update_by_id(driver, Some(service), &user.id, Some(false), None)?;
+    core::user::update_by_id(
+        driver,
+        Some(service),
+        &mut audit,
+        &user.id,
+        Some(false),
+        None,
+    )?;
     let count = core::key::update_many_by_user_id(
         driver,
         Some(service),
@@ -273,7 +280,7 @@ pub fn update_email_revoke(
         None,
     )?;
 
-    audit.create(
+    audit.create_internal(
         driver,
         AuditPath::UpdateEmailRevoke,
         AuditMessage::UpdateEmailRevoke,
@@ -311,7 +318,7 @@ pub fn update_password(
 
     // Check user password matches password hash.
     if let Err(err) = core::check_password(user.password_hash.as_ref().map(|x| &**x), &password) {
-        audit.create(
+        audit.create_internal(
             driver,
             AuditPath::UpdatePasswordError,
             AuditMessage::PasswordNotSetOrIncorrect,
@@ -340,7 +347,7 @@ pub fn update_password(
         &user_id,
     )?;
 
-    audit.create(
+    audit.create_internal(
         driver,
         AuditPath::UpdatePassword,
         AuditMessage::UpdatePassword,
@@ -384,7 +391,7 @@ pub fn update_password_revoke(
     let csrf_key = match decoded {
         Ok((_, csrf_key)) => csrf_key.ok_or_else(|| Error::BadRequest)?,
         Err(err) => {
-            audit.create(
+            audit.create_internal(
                 driver,
                 AuditPath::UpdatePasswordRevokeError,
                 AuditMessage::TokenInvalidOrExpired,
@@ -402,7 +409,14 @@ pub fn update_password_revoke(
     )?;
 
     // Successful update password revoke, disable user and disable and revoke all keys associated with user.
-    core::user::update_by_id(driver, Some(service), &user.id, Some(false), None)?;
+    core::user::update_by_id(
+        driver,
+        Some(service),
+        &mut audit,
+        &user.id,
+        Some(false),
+        None,
+    )?;
     let count = core::key::update_many_by_user_id(
         driver,
         Some(service),
@@ -412,7 +426,7 @@ pub fn update_password_revoke(
         None,
     )?;
 
-    audit.create(
+    audit.create_internal(
         driver,
         AuditPath::UpdatePasswordRevoke,
         AuditMessage::UpdatePasswordRevoke,
@@ -432,7 +446,7 @@ pub fn key_verify(
     let user_id = match key.user_id.ok_or_else(|| Error::BadRequest) {
         Ok(user_id) => user_id,
         Err(err) => {
-            audit.create(driver, AuditPath::KeyVerifyError, AuditMessage::KeyNotFound);
+            audit.create_internal(driver, AuditPath::KeyVerifyError, AuditMessage::KeyNotFound);
             return Err(err);
         }
     };
@@ -465,13 +479,14 @@ pub fn key_revoke(
     core::key::update_by_id(
         driver,
         Some(service),
+        &mut audit,
         &key.id,
         Some(false),
         Some(true),
         None,
     )?;
 
-    audit.create(driver, AuditPath::KeyRevoke, AuditMessage::KeyRevoke);
+    audit.create_internal(driver, AuditPath::KeyRevoke, AuditMessage::KeyRevoke);
     Ok(1)
 }
 
@@ -510,7 +525,7 @@ pub fn token_verify(
     let access_token_expires = match decoded {
         Ok((access_token_expires, _)) => access_token_expires,
         Err(err) => {
-            audit.create(
+            audit.create_internal(
                 driver,
                 AuditPath::TokenVerifyError,
                 AuditMessage::TokenInvalidOrExpired,
@@ -566,7 +581,7 @@ pub fn token_refresh(
     let csrf_key = match decoded {
         Ok((_, csrf_key)) => csrf_key.ok_or_else(|| Error::BadRequest)?,
         Err(err) => {
-            audit.create(
+            audit.create_internal(
                 driver,
                 AuditPath::TokenRefreshError,
                 AuditMessage::TokenInvalidOrExpired,
@@ -588,7 +603,7 @@ pub fn token_refresh(
         refresh_token_expires,
     )?;
 
-    audit.create(driver, AuditPath::TokenRefresh, AuditMessage::TokenRefresh);
+    audit.create_internal(driver, AuditPath::TokenRefresh, AuditMessage::TokenRefresh);
     Ok(user_token)
 }
 
@@ -622,7 +637,7 @@ pub fn token_revoke(
         match core::jwt::decode_token(&service.id, &user.id, token_type, &key.value, token) {
             Ok((_, csrf_key)) => csrf_key,
             Err(err) => {
-                audit.create(
+                audit.create_internal(
                     driver,
                     AuditPath::TokenRevokeError,
                     AuditMessage::TokenInvalidOrExpired,
@@ -640,13 +655,14 @@ pub fn token_revoke(
     core::key::update_by_id(
         driver,
         Some(service),
+        &mut audit,
         &key.id,
         Some(false),
         Some(true),
         None,
     )?;
 
-    audit.create(driver, AuditPath::TokenRevoke, AuditMessage::TokenRevoke);
+    audit.create_internal(driver, AuditPath::TokenRevoke, AuditMessage::TokenRevoke);
     Ok(1)
 }
 
@@ -685,7 +701,7 @@ pub fn oauth2_login(
         refresh_token_expires,
     )?;
 
-    audit.create(driver, AuditPath::Oauth2Login, AuditMessage::Oauth2Login);
+    audit.create_internal(driver, AuditPath::Oauth2Login, AuditMessage::Oauth2Login);
     Ok((service, user_token))
 }
 
@@ -705,13 +721,13 @@ fn service_read_by_id(
         Ok(service) => {
             audit.set_service(Some(&service));
             if !service.is_enabled {
-                audit.create(driver, audit_path, AuditMessage::ServiceDisabled);
+                audit.create_internal(driver, audit_path, AuditMessage::ServiceDisabled);
                 return Err(Error::BadRequest);
             }
             Ok(service)
         }
         Err(err) => {
-            audit.create(driver, audit_path, AuditMessage::ServiceNotFound);
+            audit.create_internal(driver, audit_path, AuditMessage::ServiceNotFound);
             return Err(err);
         }
     }
@@ -726,17 +742,18 @@ fn user_read_by_id(
     audit_path: AuditPath,
     id: &str,
 ) -> Result<User, Error> {
-    match core::user::read_by_id(driver, service_mask, id)?.ok_or_else(|| Error::BadRequest) {
+    match core::user::read_by_id(driver, service_mask, audit, id)?.ok_or_else(|| Error::BadRequest)
+    {
         Ok(user) => {
             audit.set_user(Some(&user));
             if !user.is_enabled {
-                audit.create(driver, audit_path, AuditMessage::UserDisabled);
+                audit.create_internal(driver, audit_path, AuditMessage::UserDisabled);
                 return Err(Error::BadRequest);
             }
             Ok(user)
         }
         Err(err) => {
-            audit.create(driver, audit_path, AuditMessage::UserNotFound);
+            audit.create_internal(driver, audit_path, AuditMessage::UserNotFound);
             return Err(err);
         }
     }
@@ -751,13 +768,14 @@ fn user_read_by_id_unchecked(
     audit_path: AuditPath,
     id: &str,
 ) -> Result<User, Error> {
-    match core::user::read_by_id(driver, service_mask, id)?.ok_or_else(|| Error::BadRequest) {
+    match core::user::read_by_id(driver, service_mask, audit, id)?.ok_or_else(|| Error::BadRequest)
+    {
         Ok(user) => {
             audit.set_user(Some(&user));
             Ok(user)
         }
         Err(err) => {
-            audit.create(driver, audit_path, AuditMessage::UserNotFound);
+            audit.create_internal(driver, audit_path, AuditMessage::UserNotFound);
             return Err(err);
         }
     }
@@ -776,13 +794,13 @@ fn user_read_by_email(
         Ok(user) => {
             audit.set_user(Some(&user));
             if !user.is_enabled {
-                audit.create(driver, audit_path, AuditMessage::UserDisabled);
+                audit.create_internal(driver, audit_path, AuditMessage::UserDisabled);
                 return Err(Error::BadRequest);
             }
             Ok(user)
         }
         Err(err) => {
-            audit.create(driver, audit_path, AuditMessage::UserNotFound);
+            audit.create_internal(driver, audit_path, AuditMessage::UserNotFound);
             return Err(err);
         }
     }
@@ -801,13 +819,13 @@ fn key_read_by_user(
         Ok(key) => {
             audit.set_user_key(Some(&key));
             if !key.is_enabled || key.is_revoked {
-                audit.create(driver, audit_path, AuditMessage::KeyDisabledOrRevoked);
+                audit.create_internal(driver, audit_path, AuditMessage::KeyDisabledOrRevoked);
                 return Err(Error::BadRequest);
             }
             Ok(key)
         }
         Err(err) => {
-            audit.create(driver, audit_path, AuditMessage::KeyNotFound);
+            audit.create_internal(driver, audit_path, AuditMessage::KeyNotFound);
             return Err(err);
         }
     }
@@ -828,7 +846,7 @@ fn key_read_by_user_unchecked(
             Ok(key)
         }
         Err(err) => {
-            audit.create(driver, audit_path, AuditMessage::KeyNotFound);
+            audit.create_internal(driver, audit_path, AuditMessage::KeyNotFound);
             return Err(err);
         }
     }
@@ -847,13 +865,13 @@ fn key_read_by_user_value(
         Ok(key) => {
             audit.set_user_key(Some(&key));
             if !key.is_enabled || key.is_revoked {
-                audit.create(driver, audit_path, AuditMessage::KeyDisabledOrRevoked);
+                audit.create_internal(driver, audit_path, AuditMessage::KeyDisabledOrRevoked);
                 return Err(Error::BadRequest);
             }
             Ok(key)
         }
         Err(err) => {
-            audit.create(driver, audit_path, AuditMessage::KeyNotFound);
+            audit.create_internal(driver, audit_path, AuditMessage::KeyNotFound);
             return Err(err);
         }
     }
@@ -874,7 +892,7 @@ fn key_read_by_user_value_unchecked(
             Ok(key)
         }
         Err(err) => {
-            audit.create(driver, audit_path, AuditMessage::KeyNotFound);
+            audit.create_internal(driver, audit_path, AuditMessage::KeyNotFound);
             return Err(err);
         }
     }
@@ -958,7 +976,7 @@ fn csrf_check(
     match res {
         Ok(checked) => Ok(checked),
         Err(err) => {
-            audit.create(driver, audit_path, AuditMessage::CsrfNotFoundOrUsed);
+            audit.create_internal(driver, audit_path, AuditMessage::CsrfNotFoundOrUsed);
             return Err(err);
         }
     }

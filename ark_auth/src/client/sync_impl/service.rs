@@ -1,7 +1,7 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
-use crate::server::route::service::{
-    CreateBody, CreateResponse, ListQuery, ListResponse, ReadResponse,
+use crate::server::api::{
+    ServiceCreateBody, ServiceListQuery, ServiceListResponse, ServiceReadResponse,
 };
 
 impl SyncClient {
@@ -10,8 +10,8 @@ impl SyncClient {
         gt: Option<&str>,
         lt: Option<&str>,
         limit: Option<i64>,
-    ) -> Result<ListResponse, Error> {
-        let query = ListQuery {
+    ) -> Result<ServiceListResponse, Error> {
+        let query = ServiceListQuery {
             gt: gt.map(|x| x.to_owned()),
             lt: lt.map(|x| x.to_owned()),
             limit,
@@ -21,7 +21,10 @@ impl SyncClient {
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| res.json::<ListResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| {
+                res.json::<ServiceListResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 
     pub fn service_create(
@@ -29,8 +32,8 @@ impl SyncClient {
         is_enabled: bool,
         name: &str,
         url: &str,
-    ) -> Result<CreateResponse, Error> {
-        let body = CreateBody {
+    ) -> Result<ServiceReadResponse, Error> {
+        let body = ServiceCreateBody {
             is_enabled,
             name: name.to_owned(),
             url: url.to_owned(),
@@ -40,16 +43,22 @@ impl SyncClient {
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| res.json::<CreateResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| {
+                res.json::<ServiceReadResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 
-    pub fn service_read(&self, id: &str) -> Result<ReadResponse, Error> {
+    pub fn service_read(&self, id: &str) -> Result<ServiceReadResponse, Error> {
         let path = format!("/v1/service/{}", id);
 
         self.get(&path)
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| res.json::<ReadResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| {
+                res.json::<ServiceReadResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 }

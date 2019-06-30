@@ -50,6 +50,106 @@ impl driver::Driver for Driver {
         Box::new((*self).clone())
     }
 
+    fn csrf_create(
+        &self,
+        key: &str,
+        value: &str,
+        ttl: &DateTime<Utc>,
+        csrf_service_id: &str,
+    ) -> Result<Csrf, Error> {
+        use crate::driver::postgres::schema::auth_csrf::dsl::*;
+
+        let conn = self.connection()?;
+        let now = Utc::now();
+        let value = model::AuthCsrfInsert {
+            created_at: &now,
+            csrf_key: key,
+            csrf_value: value,
+            csrf_ttl: ttl,
+            service_id: csrf_service_id,
+        };
+        diesel::insert_into(auth_csrf)
+            .values(&value)
+            .get_result::<model::AuthCsrf>(&conn)
+            .map_err(Error::Diesel)
+            .map(Into::into)
+    }
+
+    fn csrf_read_by_key(&self, key: &str) -> Result<Option<Csrf>, Error> {
+        use crate::driver::postgres::schema::auth_csrf::dsl::*;
+
+        let conn = self.connection()?;
+        auth_csrf
+            .filter(csrf_key.eq(key))
+            .get_result::<model::AuthCsrf>(&conn)
+            .map(|csrf| Some(csrf.into()))
+            .or_else(|err| match err {
+                diesel::result::Error::NotFound => Ok(None),
+                _ => Err(Error::Diesel(err)),
+            })
+    }
+
+    fn csrf_delete_by_key(&self, key: &str) -> Result<usize, Error> {
+        use crate::driver::postgres::schema::auth_csrf::dsl::*;
+
+        let conn = self.connection()?;
+        diesel::delete(auth_csrf.filter(csrf_key.eq(key)))
+            .execute(&conn)
+            .map_err(Error::Diesel)
+    }
+
+    fn csrf_delete_by_ttl(&self, now: &DateTime<Utc>) -> Result<usize, Error> {
+        use crate::driver::postgres::schema::auth_csrf::dsl::*;
+
+        let conn = self.connection()?;
+        diesel::delete(auth_csrf.filter(csrf_ttl.le(now)))
+            .execute(&conn)
+            .map_err(Error::Diesel)
+    }
+
+    fn audit_create(
+        &self,
+        meta: &AuditMeta,
+        path: &str,
+        data: &Value,
+        audit_key_id: Option<&str>,
+        audit_service_id: Option<&str>,
+        audit_user_id: Option<&str>,
+        audit_user_key_id: Option<&str>,
+    ) -> Result<Audit, Error> {
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        let now = Utc::now();
+        let id = Driver::uuid();
+        let value = model::AuthAuditInsert {
+            created_at: &now,
+            audit_id: &id,
+            audit_user_agent: &meta.user_agent,
+            audit_remote: &meta.remote,
+            audit_forwarded_for: meta.forwarded_for.as_ref().map(|x| &**x),
+            audit_path: path,
+            audit_data: data,
+            key_id: audit_key_id,
+            service_id: audit_service_id,
+            user_id: audit_user_id,
+            user_key_id: audit_user_key_id,
+        };
+        diesel::insert_into(auth_audit)
+            .values(&value)
+            .get_result::<model::AuthAudit>(&conn)
+            .map_err(Error::Diesel)
+            .map(Into::into)
+    }
+
+    fn audit_read_by_id(&self, _id: &str) -> Result<Option<Audit>, Error> {
+        unimplemented!();
+    }
+
+    fn audit_delete_by_created_at(&self, _created_at: &DateTime<Utc>) -> Result<usize, Error> {
+        unimplemented!();
+    }
+
     fn key_list_where_id_lt(
         &self,
         lt: &str,
@@ -538,101 +638,5 @@ impl driver::Driver for Driver {
         diesel::delete(auth_user.filter(user_id.eq(id)))
             .execute(&conn)
             .map_err(Error::Diesel)
-    }
-
-    fn csrf_create(
-        &self,
-        key: &str,
-        value: &str,
-        ttl: &DateTime<Utc>,
-        csrf_service_id: &str,
-    ) -> Result<Csrf, Error> {
-        use crate::driver::postgres::schema::auth_csrf::dsl::*;
-
-        let conn = self.connection()?;
-        let now = Utc::now();
-        let value = model::AuthCsrfInsert {
-            created_at: &now,
-            csrf_key: key,
-            csrf_value: value,
-            csrf_ttl: ttl,
-            service_id: csrf_service_id,
-        };
-        diesel::insert_into(auth_csrf)
-            .values(&value)
-            .get_result::<model::AuthCsrf>(&conn)
-            .map_err(Error::Diesel)
-            .map(Into::into)
-    }
-
-    fn csrf_read_by_key(&self, key: &str) -> Result<Option<Csrf>, Error> {
-        use crate::driver::postgres::schema::auth_csrf::dsl::*;
-
-        let conn = self.connection()?;
-        auth_csrf
-            .filter(csrf_key.eq(key))
-            .get_result::<model::AuthCsrf>(&conn)
-            .map(|csrf| Some(csrf.into()))
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(Error::Diesel(err)),
-            })
-    }
-
-    fn csrf_delete_by_key(&self, key: &str) -> Result<usize, Error> {
-        use crate::driver::postgres::schema::auth_csrf::dsl::*;
-
-        let conn = self.connection()?;
-        diesel::delete(auth_csrf.filter(csrf_key.eq(key)))
-            .execute(&conn)
-            .map_err(Error::Diesel)
-    }
-
-    fn csrf_delete_by_ttl(&self, now: &DateTime<Utc>) -> Result<usize, Error> {
-        use crate::driver::postgres::schema::auth_csrf::dsl::*;
-
-        let conn = self.connection()?;
-        diesel::delete(auth_csrf.filter(csrf_ttl.le(now)))
-            .execute(&conn)
-            .map_err(Error::Diesel)
-    }
-
-    fn audit_create(
-        &self,
-        meta: &AuditMeta,
-        path: &str,
-        data: &Value,
-        audit_key_id: Option<&str>,
-        audit_service_id: Option<&str>,
-        audit_user_id: Option<&str>,
-        audit_user_key_id: Option<&str>,
-    ) -> Result<Audit, Error> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
-        let conn = self.connection()?;
-        let now = Utc::now();
-        let id = Driver::uuid();
-        let value = model::AuthAuditInsert {
-            created_at: &now,
-            audit_id: &id,
-            audit_user_agent: &meta.user_agent,
-            audit_remote: &meta.remote,
-            audit_forwarded_for: meta.forwarded_for.as_ref().map(|x| &**x),
-            audit_path: path,
-            audit_data: data,
-            key_id: audit_key_id,
-            service_id: audit_service_id,
-            user_id: audit_user_id,
-            user_key_id: audit_user_key_id,
-        };
-        diesel::insert_into(auth_audit)
-            .values(&value)
-            .get_result::<model::AuthAudit>(&conn)
-            .map_err(Error::Diesel)
-            .map(Into::into)
-    }
-
-    fn audit_delete_by_created_at(&self, _created_at: &DateTime<Utc>) -> Result<usize, Error> {
-        unimplemented!();
     }
 }

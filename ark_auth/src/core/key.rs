@@ -75,25 +75,43 @@ pub fn authenticate(
 pub fn list(
     driver: &driver::Driver,
     service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     query: &KeyQuery,
 ) -> Result<Vec<String>, Error> {
     match &query.lt {
         Some(lt) => driver
-            .key_list_where_id_lt(lt, query.limit, service_mask.map(|s| s.id.as_ref()))
+            .key_list_where_id_lt(
+                lt,
+                query.limit.unwrap(),
+                service_mask.map(|s| s.id.as_ref()),
+            )
             .map_err(Error::Driver),
         None => match &query.gt {
             Some(gt) => driver
-                .key_list_where_id_gt(gt, query.limit, service_mask.map(|s| s.id.as_ref()))
+                .key_list_where_id_gt(
+                    gt,
+                    query.limit.unwrap(),
+                    service_mask.map(|s| s.id.as_ref()),
+                )
                 .map_err(Error::Driver),
             None => driver
-                .key_list_where_id_gt("", query.limit, service_mask.map(|s| s.id.as_ref()))
+                .key_list_where_id_gt(
+                    "",
+                    query.limit.unwrap(),
+                    service_mask.map(|s| s.id.as_ref()),
+                )
                 .map_err(Error::Driver),
         },
     }
 }
 
 /// Create root key.
-pub fn create_root(driver: &driver::Driver, is_enabled: bool, name: &str) -> Result<Key, Error> {
+pub fn create_root(
+    driver: &driver::Driver,
+    _audit: &mut AuditBuilder,
+    is_enabled: bool,
+    name: &str,
+) -> Result<Key, Error> {
     let value = uuid::Uuid::new_v4().to_simple().to_string();
     driver
         .key_create(is_enabled, false, name, &value, None, None)
@@ -103,6 +121,7 @@ pub fn create_root(driver: &driver::Driver, is_enabled: bool, name: &str) -> Res
 /// Create service key.
 pub fn create_service(
     driver: &driver::Driver,
+    _audit: &mut AuditBuilder,
     is_enabled: bool,
     name: &str,
     service_id: &str,
@@ -116,6 +135,7 @@ pub fn create_service(
 /// Create user key.
 pub fn create_user(
     driver: &driver::Driver,
+    _audit: &mut AuditBuilder,
     is_enabled: bool,
     name: &str,
     service_id: &str,
@@ -138,6 +158,7 @@ pub fn create_user(
 pub fn read_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     id: &str,
 ) -> Result<Option<Key>, Error> {
     driver.key_read_by_id(id).map_err(Error::Driver)
@@ -181,6 +202,7 @@ pub fn read_by_user_value(
 pub fn update_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     id: &str,
     is_enabled: Option<bool>,
     is_revoked: Option<bool>,
@@ -209,12 +231,13 @@ pub fn update_many_by_user_id(
 pub fn delete_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     id: &str,
 ) -> Result<usize, Error> {
     driver.key_delete_by_id(id).map_err(Error::Driver)
 }
 
 /// Delete all root keys.
-pub fn delete_root(driver: &driver::Driver) -> Result<usize, Error> {
+pub fn delete_root(driver: &driver::Driver, _audit: &mut AuditBuilder) -> Result<usize, Error> {
     driver.key_delete_root().map_err(Error::Driver)
 }

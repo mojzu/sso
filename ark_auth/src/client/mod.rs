@@ -89,12 +89,12 @@ pub trait Client {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::server::route::service::ListQuery;
+    use crate::server::api::ServiceListQuery;
 
     #[test]
     fn adds_serialised_query_to_url() {
         let options = ClientOptions::new("http://localhost:9000", "authorisation-key").unwrap();
-        let query = ListQuery {
+        let query = ServiceListQuery {
             gt: Some("".to_owned()),
             lt: None,
             limit: Some(10),

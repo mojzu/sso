@@ -1,5 +1,16 @@
-use crate::core::{hash_password, Error, Service, User};
+use crate::core::audit::AuditBuilder;
+use crate::core::{hash_password, Error, Service, User, UserQuery};
 use crate::driver;
+
+/// List users using query.
+pub fn list(
+    driver: &driver::Driver,
+    service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
+    query: &UserQuery,
+) -> Result<Vec<String>, Error> {
+    unimplemented!();
+}
 
 /// List users where ID is less than.
 pub fn list_where_id_lt(
@@ -42,6 +53,7 @@ pub fn list_where_email_eq(
 pub fn create(
     driver: &driver::Driver,
     service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     is_enabled: bool,
     name: &str,
     email: &str,
@@ -67,6 +79,7 @@ pub fn create(
 pub fn read_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     id: &str,
 ) -> Result<Option<User>, Error> {
     driver.user_read_by_id(id).map_err(Error::Driver)
@@ -85,6 +98,7 @@ pub fn read_by_email(
 pub fn update_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     id: &str,
     is_enabled: Option<bool>,
     name: Option<&str>,
@@ -123,6 +137,7 @@ pub fn update_password_by_id(
 pub fn delete_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     id: &str,
 ) -> Result<usize, Error> {
     driver.user_delete_by_id(id).map_err(Error::Driver)

@@ -3,6 +3,7 @@ pub mod provider;
 pub mod token;
 
 use crate::core;
+use crate::server::api::AuthPasswordMeta;
 use crate::server::{validate, Data, Error, FromJsonValue, PwnedPasswordsError};
 use actix_web::http::{header, StatusCode};
 use actix_web::web;
@@ -50,26 +51,11 @@ pub struct KeyResponse {
     pub data: core::UserKey,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PasswordMeta {
-    pub password_strength: Option<u8>,
-    pub password_pwned: Option<bool>,
-}
-
-impl Default for PasswordMeta {
-    fn default() -> Self {
-        PasswordMeta {
-            password_strength: None,
-            password_pwned: None,
-        }
-    }
-}
-
 /// Returns password strength and pwned checks.
 pub fn password_meta(
     data: &Data,
     password: Option<&str>,
-) -> impl Future<Item = PasswordMeta, Error = Error> {
+) -> impl Future<Item = AuthPasswordMeta, Error = Error> {
     match password {
         Some(password) => {
             let password_strength = password_meta_strength(password).then(|r| match r {
@@ -87,13 +73,13 @@ pub fn password_meta(
                 }
             });
             future::Either::A(password_strength.join(password_pwned).map(
-                |(password_strength, password_pwned)| PasswordMeta {
+                |(password_strength, password_pwned)| AuthPasswordMeta {
                     password_strength,
                     password_pwned,
                 },
             ))
         }
-        None => future::Either::B(future::ok(PasswordMeta::default())),
+        None => future::Either::B(future::ok(AuthPasswordMeta::default())),
     }
 }
 

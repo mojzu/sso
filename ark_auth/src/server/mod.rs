@@ -1,3 +1,4 @@
+pub mod api;
 pub mod route;
 pub mod smtp;
 pub mod validate;
@@ -14,6 +15,7 @@ pub use validate::FromJsonValue;
 // <https://prometheus.io/docs/instrumenting/exposition_formats/>
 // TODO(feature): Webauthn support.
 // <https://webauthn.guide/>
+// <https://webauthn.org/>
 
 /// Pwned passwords errors.
 #[derive(Debug, Fail)]

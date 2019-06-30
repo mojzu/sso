@@ -1,4 +1,4 @@
-// pub mod audit;
+pub mod audit;
 pub mod auth;
 pub mod key;
 pub mod service;
@@ -13,7 +13,7 @@ use serde::Serialize;
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/v1")
         .service(web::resource("/ping").route(web::get().to(ping_handler)))
-        // .service(audit::route_v1_scope())
+        .service(audit::route_v1_scope())
         .service(auth::route_v1_scope())
         .service(key::route_v1_scope())
         .service(service::route_v1_scope())

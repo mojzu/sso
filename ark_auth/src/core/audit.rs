@@ -1,7 +1,8 @@
-use crate::core::{Audit, AuditMeta, Error, Key, Service, User};
+use crate::core::{Audit, AuditMeta, AuditQuery, Error, Key, Service, User};
 use crate::driver;
 use chrono::Utc;
 use serde::ser::Serialize;
+use serde_json::Value;
 use time::Duration;
 
 /// Audit paths.
@@ -143,20 +144,49 @@ impl AuditBuilder {
         self
     }
 
+    pub fn set_user_id(&mut self, user: Option<String>) -> &mut Self {
+        self.user = user.map(|x| x.to_owned());
+        self
+    }
+
     pub fn set_user_key(&mut self, key: Option<&Key>) -> &mut Self {
         self.user_key = key.map(|x| x.id.to_owned());
         self
     }
 
+    pub fn set_user_key_id(&mut self, key: Option<String>) -> &mut Self {
+        self.user_key = key.map(|x| x.to_owned());
+        self
+    }
+
+    /// Create audit log from internal parameters.
+    pub fn create(
+        &self,
+        driver: &driver::Driver,
+        path: &str,
+        data: &Value,
+    ) -> Result<Audit, Error> {
+        create(
+            driver,
+            &self.meta,
+            path,
+            data,
+            self.key.as_ref().map(|x| &**x),
+            self.service.as_ref().map(|x| &**x),
+            self.user.as_ref().map(|x| &**x),
+            self.user_key.as_ref().map(|x| &**x),
+        )
+    }
+
     /// Create audit log from internal parameters.
     /// In case of error, log as warning and return None.
-    pub fn create(
+    pub fn create_internal(
         &self,
         driver: &driver::Driver,
         path: AuditPath,
         data: AuditMessage,
     ) -> Option<Audit> {
-        match create(
+        match create_internal(
             driver,
             &self.meta,
             path,
@@ -175,8 +205,34 @@ impl AuditBuilder {
     }
 }
 
+/// List audit IDs.
+pub fn list(
+    _driver: &driver::Driver,
+    _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
+    _query: &AuditQuery,
+) -> Result<Vec<String>, Error> {
+    unimplemented!();
+}
+
 /// Create one audit log.
 pub fn create(
+    driver: &driver::Driver,
+    meta: &AuditMeta,
+    path: &str,
+    data: &Value,
+    key: Option<&str>,
+    service: Option<&str>,
+    user: Option<&str>,
+    user_key: Option<&str>,
+) -> Result<Audit, Error> {
+    driver
+        .audit_create(meta, path, data, key, service, user, user_key)
+        .map_err(Error::Driver)
+}
+
+/// Create one audit log.
+pub fn create_internal(
     driver: &driver::Driver,
     meta: &AuditMeta,
     path: AuditPath,
@@ -192,6 +248,16 @@ pub fn create(
     driver
         .audit_create(meta, &path, &data, key, service, user, user_key)
         .map_err(Error::Driver)
+}
+
+/// Read audit by ID.
+pub fn read_by_id(
+    _driver: &driver::Driver,
+    _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
+    _id: &str,
+) -> Result<Option<Audit>, Error> {
+    unimplemented!();
 }
 
 /// Delete many audit logs older than days.

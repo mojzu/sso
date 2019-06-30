@@ -1,7 +1,7 @@
 use crate::client::async_impl::AsyncClient;
 use crate::client::Error;
-use crate::server::route::service::{
-    CreateBody, CreateResponse, ListQuery, ListResponse, ReadResponse,
+use crate::server::api::{
+    ServiceCreateBody, ServiceListQuery, ServiceListResponse, ServiceReadResponse,
 };
 use futures::Future;
 
@@ -11,8 +11,8 @@ impl AsyncClient {
         gt: Option<&str>,
         lt: Option<&str>,
         limit: Option<i64>,
-    ) -> impl Future<Item = ListResponse, Error = Error> {
-        let query = ListQuery {
+    ) -> impl Future<Item = ServiceListResponse, Error = Error> {
+        let query = ServiceListQuery {
             gt: gt.map(|x| x.to_owned()),
             lt: lt.map(|x| x.to_owned()),
             limit,
@@ -22,7 +22,10 @@ impl AsyncClient {
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| res.json::<ListResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| {
+                res.json::<ServiceListResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 
     pub fn service_create(
@@ -30,8 +33,8 @@ impl AsyncClient {
         is_enabled: bool,
         name: &str,
         url: &str,
-    ) -> impl Future<Item = CreateResponse, Error = Error> {
-        let body = CreateBody {
+    ) -> impl Future<Item = ServiceReadResponse, Error = Error> {
+        let body = ServiceCreateBody {
             is_enabled,
             name: name.to_owned(),
             url: url.to_owned(),
@@ -41,16 +44,22 @@ impl AsyncClient {
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| res.json::<CreateResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| {
+                res.json::<ServiceReadResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 
-    pub fn service_read(&self, id: &str) -> impl Future<Item = ReadResponse, Error = Error> {
+    pub fn service_read(&self, id: &str) -> impl Future<Item = ServiceReadResponse, Error = Error> {
         let path = format!("/v1/service/{}", id);
 
         self.get(&path)
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| res.json::<ReadResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| {
+                res.json::<ServiceReadResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 }

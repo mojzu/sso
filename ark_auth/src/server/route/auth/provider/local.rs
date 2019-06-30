@@ -1,6 +1,7 @@
 use crate::core;
 use crate::core::AuditMeta;
-use crate::server::route::auth::{password_meta, PasswordMeta};
+use crate::server::api::AuthPasswordMeta;
+use crate::server::route::auth::password_meta;
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
 use crate::server::{smtp, validate, Data, Error, FromJsonValue};
 use actix_identity::Identity;
@@ -52,7 +53,7 @@ impl FromJsonValue<LoginBody> for LoginBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginResponse {
-    pub meta: PasswordMeta,
+    pub meta: AuthPasswordMeta,
     pub data: core::UserToken,
 }
 
@@ -194,7 +195,7 @@ impl FromJsonValue<ResetPasswordConfirmBody> for ResetPasswordConfirmBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ResetPasswordConfirmResponse {
-    pub meta: PasswordMeta,
+    pub meta: AuthPasswordMeta,
 }
 
 fn reset_password_confirm_handler(
@@ -396,7 +397,7 @@ impl FromJsonValue<UpdatePasswordBody> for UpdatePasswordBody {}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdatePasswordResponse {
-    pub meta: PasswordMeta,
+    pub meta: AuthPasswordMeta,
 }
 
 fn update_password_handler(

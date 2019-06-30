@@ -43,6 +43,14 @@ pub fn name(name: &str) -> Result<(), ValidationError> {
     }
 }
 
+pub fn path(path: &str) -> Result<(), ValidationError> {
+    if path.is_empty() || path.len() > 200 {
+        Err(ValidationError::new("invalid_path"))
+    } else {
+        Ok(())
+    }
+}
+
 pub fn email_subject(email_subject: &str) -> Result<(), ValidationError> {
     if email_subject.is_empty() || email_subject.len() > 200 {
         Err(ValidationError::new("invalid_email_subject"))

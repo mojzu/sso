@@ -1,6 +1,6 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
-use crate::server::route::user::{CreateBody, CreateResponse};
+use crate::server::api::{UserCreateBody, UserCreateResponse};
 
 impl SyncClient {
     pub fn user_create(
@@ -9,8 +9,8 @@ impl SyncClient {
         name: &str,
         email: &str,
         password: Option<&str>,
-    ) -> Result<CreateResponse, Error> {
-        let body = CreateBody {
+    ) -> Result<UserCreateResponse, Error> {
+        let body = UserCreateBody {
             is_enabled,
             name: name.to_owned(),
             email: email.to_owned(),
@@ -21,6 +21,9 @@ impl SyncClient {
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| res.json::<CreateResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| {
+                res.json::<UserCreateResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 }

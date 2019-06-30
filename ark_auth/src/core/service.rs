@@ -1,6 +1,16 @@
-use crate::core::{Error, Service};
+use crate::core::audit::AuditBuilder;
+use crate::core::{Error, Service, ServiceQuery};
 use crate::driver;
 use url::Url;
+
+/// List services using query.
+pub fn list(
+    driver: &driver::Driver,
+    _audit: &mut AuditBuilder,
+    query: &ServiceQuery,
+) -> Result<Vec<String>, Error> {
+    unimplemented!();
+}
 
 /// List services where ID is less than.
 pub fn list_where_id_lt(
@@ -27,6 +37,7 @@ pub fn list_where_id_gt(
 /// Create service.
 pub fn create(
     driver: &driver::Driver,
+    _audit: &mut AuditBuilder,
     is_enabled: bool,
     name: &str,
     url: &str,
@@ -41,6 +52,7 @@ pub fn create(
 pub fn read_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     id: &str,
 ) -> Result<Option<Service>, Error> {
     driver.service_read_by_id(id).map_err(Error::Driver)
@@ -50,6 +62,7 @@ pub fn read_by_id(
 pub fn update_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     id: &str,
     is_enabled: Option<bool>,
     name: Option<&str>,
@@ -63,6 +76,7 @@ pub fn update_by_id(
 pub fn delete_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     id: &str,
 ) -> Result<usize, Error> {
     driver.service_delete_by_id(id).map_err(Error::Driver)
