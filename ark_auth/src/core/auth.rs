@@ -249,6 +249,7 @@ pub fn update_email_revoke(
     let count = core::key::update_many_by_user_id(
         driver,
         Some(service),
+        audit,
         &user.id,
         Some(false),
         Some(true),
@@ -388,6 +389,7 @@ pub fn update_password_revoke(
     let count = core::key::update_many_by_user_id(
         driver,
         Some(service),
+        audit,
         &user.id,
         Some(false),
         Some(true),
@@ -755,7 +757,8 @@ fn key_read_by_user(
     audit_path: AuditPath,
     user: &User,
 ) -> Result<Key, Error> {
-    match core::key::read_by_user(driver, &service, &user)?.ok_or_else(|| Error::BadRequest) {
+    match core::key::read_by_user(driver, &service, audit, &user)?.ok_or_else(|| Error::BadRequest)
+    {
         Ok(key) => {
             audit.set_user_key(Some(&key));
             if !key.is_enabled || key.is_revoked {
@@ -780,7 +783,8 @@ fn key_read_by_user_unchecked(
     audit_path: AuditPath,
     user: &User,
 ) -> Result<Key, Error> {
-    match core::key::read_by_user(driver, &service, &user)?.ok_or_else(|| Error::BadRequest) {
+    match core::key::read_by_user(driver, &service, audit, &user)?.ok_or_else(|| Error::BadRequest)
+    {
         Ok(key) => {
             audit.set_user_key(Some(&key));
             Ok(key)
@@ -801,7 +805,9 @@ fn key_read_by_user_value(
     audit_path: AuditPath,
     key: &str,
 ) -> Result<Key, Error> {
-    match core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::BadRequest) {
+    match core::key::read_by_user_value(driver, service, audit, key)?
+        .ok_or_else(|| Error::BadRequest)
+    {
         Ok(key) => {
             audit.set_user_key(Some(&key));
             if !key.is_enabled || key.is_revoked {
@@ -826,7 +832,9 @@ fn key_read_by_user_value_unchecked(
     audit_path: AuditPath,
     key: &str,
 ) -> Result<Key, Error> {
-    match core::key::read_by_user_value(driver, service, key)?.ok_or_else(|| Error::BadRequest) {
+    match core::key::read_by_user_value(driver, service, audit, key)?
+        .ok_or_else(|| Error::BadRequest)
+    {
         Ok(key) => {
             audit.set_user_key(Some(&key));
             Ok(key)

@@ -5,13 +5,13 @@ use actix_rt::System;
 
 /// Create a root key.
 pub fn create_root_key(driver: Box<Driver>, name: &str) -> Result<core::Key, core::Error> {
-    let mut audit = cli_audit();
+    let mut audit = audit_builder();
     core::key::create_root(driver.as_ref(), &mut audit, true, name)
 }
 
 /// Delete all root keys.
 pub fn delete_root_keys(driver: Box<Driver>) -> Result<usize, core::Error> {
-    let mut audit = cli_audit();
+    let mut audit = audit_builder();
     core::key::delete_root(driver.as_ref(), &mut audit)
 }
 
@@ -21,7 +21,7 @@ pub fn create_service_with_key(
     name: &str,
     url: &str,
 ) -> Result<(core::Service, core::Key), core::Error> {
-    let mut audit = cli_audit();
+    let mut audit = audit_builder();
     let service = core::service::create(driver.as_ref(), &mut audit, true, name, url)?;
     let key = core::key::create_service(driver.as_ref(), &mut audit, true, name, &service.id)?;
     Ok((service, key))
@@ -39,7 +39,7 @@ pub fn start_server(
     system.run().map_err(server::Error::StdIo)
 }
 
-fn cli_audit() -> core::audit::AuditBuilder {
+pub fn audit_builder() -> core::audit::AuditBuilder {
     core::audit::AuditBuilder::new(core::AuditMeta {
         user_agent: crate_user_agent(),
         remote: "127.0.0.1".to_owned(),

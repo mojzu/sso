@@ -15,7 +15,7 @@ pub fn authenticate_root(
     let mut audit = AuditBuilder::new(audit_meta);
 
     match key_value {
-        Some(key_value) => read_by_root_value(driver, &key_value)
+        Some(key_value) => read_by_root_value(driver, &mut audit, &key_value)
             .and_then(|key| key.ok_or_else(|| Error::Forbidden))
             .map(|key| {
                 audit.set_key(Some(&key));
@@ -33,7 +33,7 @@ pub fn authenticate_service(
 ) -> Result<(Service, AuditBuilder), Error> {
     let mut audit = AuditBuilder::new(audit_meta);
     match key_value {
-        Some(key_value) => read_by_service_value(driver, &key_value).and_then(|key| {
+        Some(key_value) => read_by_service_value(driver, &mut audit, &key_value).and_then(|key| {
             let key = key.ok_or_else(|| Error::Forbidden)?;
             audit.set_key(Some(&key));
 
@@ -157,6 +157,7 @@ pub fn read_by_id(
 pub fn read_by_user(
     driver: &driver::Driver,
     service: &Service,
+    _audit: &mut AuditBuilder,
     user: &User,
 ) -> Result<Option<Key>, Error> {
     driver
@@ -165,12 +166,20 @@ pub fn read_by_user(
 }
 
 /// Read key by value (root only).
-pub fn read_by_root_value(driver: &driver::Driver, value: &str) -> Result<Option<Key>, Error> {
+pub fn read_by_root_value(
+    driver: &driver::Driver,
+    _audit: &mut AuditBuilder,
+    value: &str,
+) -> Result<Option<Key>, Error> {
     driver.key_read_by_root_value(value).map_err(Error::Driver)
 }
 
 /// Read key by value (services only).
-pub fn read_by_service_value(driver: &driver::Driver, value: &str) -> Result<Option<Key>, Error> {
+pub fn read_by_service_value(
+    driver: &driver::Driver,
+    _audit: &mut AuditBuilder,
+    value: &str,
+) -> Result<Option<Key>, Error> {
     driver
         .key_read_by_service_value(value)
         .map_err(Error::Driver)
@@ -180,6 +189,7 @@ pub fn read_by_service_value(driver: &driver::Driver, value: &str) -> Result<Opt
 pub fn read_by_user_value(
     driver: &driver::Driver,
     service: &Service,
+    _audit: &mut AuditBuilder,
     value: &str,
 ) -> Result<Option<Key>, Error> {
     driver
@@ -206,6 +216,7 @@ pub fn update_by_id(
 pub fn update_many_by_user_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     user_id: &str,
     is_enabled: Option<bool>,
     is_revoked: Option<bool>,
