@@ -1,7 +1,5 @@
 use crate::core;
-use crate::server::route::auth::provider::local::{
-    ResetPasswordTemplateBody, UpdateEmailTemplateBody, UpdatePasswordTemplateBody,
-};
+use crate::server::api::AuthEmailTemplateBody;
 use crate::server::{ConfigurationSmtp, Error, SmtpError};
 use lettre::smtp::authentication::{Credentials, Mechanism};
 use lettre::smtp::ConnectionReuseParameters;
@@ -18,7 +16,7 @@ pub fn send_reset_password(
     service: &core::Service,
     user: &core::User,
     token: &str,
-    template: Option<&ResetPasswordTemplateBody>,
+    template: Option<&AuthEmailTemplateBody>,
 ) -> Result<(), Error> {
     let (subject, text) = match template {
         Some(template) => {
@@ -50,7 +48,7 @@ pub fn send_update_email(
     user: &core::User,
     old_email: &str,
     token: &str,
-    template: Option<&UpdateEmailTemplateBody>,
+    template: Option<&AuthEmailTemplateBody>,
 ) -> Result<(), Error> {
     let (subject, text) = match template {
         Some(template) => {
@@ -81,7 +79,7 @@ pub fn send_update_password(
     service: &core::Service,
     user: &core::User,
     token: &str,
-    template: Option<&UpdatePasswordTemplateBody>,
+    template: Option<&AuthEmailTemplateBody>,
 ) -> Result<(), Error> {
     let (subject, text) = match template {
         Some(template) => {

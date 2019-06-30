@@ -9,7 +9,19 @@ pub fn list(
     _audit: &mut AuditBuilder,
     query: &ServiceQuery,
 ) -> Result<Vec<String>, Error> {
-    unimplemented!();
+    let limit = query.limit.unwrap_or(10);
+
+    match &query.lt {
+        Some(lt) => {
+            let services = list_where_id_lt(driver, lt, limit)?;
+            Ok(services)
+        }
+        None => {
+            let gt = query.gt.to_owned().unwrap_or_else(|| "".to_owned());
+            let services = list_where_id_gt(driver, &gt, limit)?;
+            Ok(services)
+        }
+    }
 }
 
 /// List services where ID is less than.

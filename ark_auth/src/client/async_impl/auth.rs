@@ -1,12 +1,9 @@
 use crate::client::async_impl::AsyncClient;
 use crate::client::Error;
-use crate::server::route::auth::provider::local::{
-    LoginBody, LoginResponse, ResetPasswordBody, ResetPasswordConfirmBody,
-    ResetPasswordConfirmResponse,
-};
-use crate::server::route::auth::provider::Oauth2UrlResponse;
-use crate::server::route::auth::{
-    KeyBody, KeyResponse, TokenBody, TokenPartialResponse, TokenResponse,
+use crate::server::api::{
+    AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse, AuthOauth2UrlResponse,
+    AuthPasswordMetaResponse, AuthResetPasswordBody, AuthResetPasswordConfirmBody, AuthTokenBody,
+    AuthTokenPartialResponse, AuthTokenResponse,
 };
 use futures::Future;
 
@@ -15,8 +12,8 @@ impl AsyncClient {
         &self,
         email: &str,
         password: &str,
-    ) -> impl Future<Item = LoginResponse, Error = Error> {
-        let body = LoginBody {
+    ) -> impl Future<Item = AuthLoginResponse, Error = Error> {
+        let body = AuthLoginBody {
             email: email.to_owned(),
             password: password.to_owned(),
         };
@@ -25,11 +22,14 @@ impl AsyncClient {
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| res.json::<LoginResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| {
+                res.json::<AuthLoginResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 
     pub fn auth_local_reset_password(&self, email: &str) -> impl Future<Item = (), Error = Error> {
-        let body = ResetPasswordBody {
+        let body = AuthResetPasswordBody {
             email: email.to_owned(),
             template: None,
         };
@@ -45,8 +45,8 @@ impl AsyncClient {
         &self,
         token: &str,
         password: &str,
-    ) -> impl Future<Item = ResetPasswordConfirmResponse, Error = Error> {
-        let body = ResetPasswordConfirmBody {
+    ) -> impl Future<Item = AuthPasswordMetaResponse, Error = Error> {
+        let body = AuthResetPasswordConfirmBody {
             token: token.to_owned(),
             password: password.to_owned(),
         };
@@ -56,26 +56,26 @@ impl AsyncClient {
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
             .and_then(|mut res| {
-                res.json::<ResetPasswordConfirmResponse>()
+                res.json::<AuthPasswordMetaResponse>()
                     .map_err(|_err| Error::Unwrap)
             })
     }
 
     pub fn auth_microsoft_oauth2_request(
         &self,
-    ) -> impl Future<Item = Oauth2UrlResponse, Error = Error> {
+    ) -> impl Future<Item = AuthOauth2UrlResponse, Error = Error> {
         self.post("/v1/auth/provider/microsoft/oauth2")
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
             .and_then(|mut res| {
-                res.json::<Oauth2UrlResponse>()
+                res.json::<AuthOauth2UrlResponse>()
                     .map_err(|_err| Error::Unwrap)
             })
     }
 
-    pub fn auth_key_verify(&self, key: &str) -> impl Future<Item = KeyResponse, Error = Error> {
-        let body = KeyBody {
+    pub fn auth_key_verify(&self, key: &str) -> impl Future<Item = AuthKeyResponse, Error = Error> {
+        let body = AuthKeyBody {
             key: key.to_owned(),
         };
 
@@ -83,11 +83,11 @@ impl AsyncClient {
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| res.json::<KeyResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| res.json::<AuthKeyResponse>().map_err(|_err| Error::Unwrap))
     }
 
     pub fn auth_key_revoke(&self, key: &str) -> impl Future<Item = (), Error = Error> {
-        let body = KeyBody {
+        let body = AuthKeyBody {
             key: key.to_owned(),
         };
 
@@ -101,8 +101,8 @@ impl AsyncClient {
     pub fn auth_token_verify(
         &self,
         token: &str,
-    ) -> impl Future<Item = TokenPartialResponse, Error = Error> {
-        let body = TokenBody {
+    ) -> impl Future<Item = AuthTokenPartialResponse, Error = Error> {
+        let body = AuthTokenBody {
             token: token.to_owned(),
         };
 
@@ -111,7 +111,7 @@ impl AsyncClient {
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
             .and_then(|mut res| {
-                res.json::<TokenPartialResponse>()
+                res.json::<AuthTokenPartialResponse>()
                     .map_err(|_err| Error::Unwrap)
             })
     }
@@ -119,8 +119,8 @@ impl AsyncClient {
     pub fn auth_token_refresh(
         &self,
         token: &str,
-    ) -> impl Future<Item = TokenResponse, Error = Error> {
-        let body = TokenBody {
+    ) -> impl Future<Item = AuthTokenResponse, Error = Error> {
+        let body = AuthTokenBody {
             token: token.to_owned(),
         };
 
@@ -128,11 +128,14 @@ impl AsyncClient {
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| res.json::<TokenResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| {
+                res.json::<AuthTokenResponse>()
+                    .map_err(|_err| Error::Unwrap)
+            })
     }
 
     pub fn auth_token_revoke(&self, token: &str) -> impl Future<Item = (), Error = Error> {
-        let body = TokenBody {
+        let body = AuthTokenBody {
             token: token.to_owned(),
         };
 

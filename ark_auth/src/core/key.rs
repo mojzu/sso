@@ -69,7 +69,7 @@ pub fn authenticate(
         })
 }
 
-// TODO(refactor): Consistent list interface, improve/check queries.
+// TODO(refactor): Improve list query handling, driver integration.
 
 /// List keys using query.
 pub fn list(
@@ -78,28 +78,17 @@ pub fn list(
     _audit: &mut AuditBuilder,
     query: &KeyQuery,
 ) -> Result<Vec<String>, Error> {
+    let limit = query.limit.unwrap_or(10);
     match &query.lt {
         Some(lt) => driver
-            .key_list_where_id_lt(
-                lt,
-                query.limit.unwrap(),
-                service_mask.map(|s| s.id.as_ref()),
-            )
+            .key_list_where_id_lt(lt, limit, service_mask.map(|s| s.id.as_ref()))
             .map_err(Error::Driver),
         None => match &query.gt {
             Some(gt) => driver
-                .key_list_where_id_gt(
-                    gt,
-                    query.limit.unwrap(),
-                    service_mask.map(|s| s.id.as_ref()),
-                )
+                .key_list_where_id_gt(gt, limit, service_mask.map(|s| s.id.as_ref()))
                 .map_err(Error::Driver),
             None => driver
-                .key_list_where_id_gt(
-                    "",
-                    query.limit.unwrap(),
-                    service_mask.map(|s| s.id.as_ref()),
-                )
+                .key_list_where_id_gt("", limit, service_mask.map(|s| s.id.as_ref()))
                 .map_err(Error::Driver),
         },
     }

@@ -1,14 +1,17 @@
 use crate::core;
 use crate::core::AuditMeta;
-use crate::server::api::AuthPasswordMeta;
+use crate::server::api::{
+    AuthLoginBody, AuthLoginResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
+    AuthResetPasswordConfirmBody, AuthUpdateEmailBody, AuthUpdateEmailRevokeBody,
+    AuthUpdatePasswordBody, AuthUpdatePasswordRevokeBody,
+};
 use crate::server::route::auth::password_meta;
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
-use crate::server::{smtp, validate, Data, Error, FromJsonValue};
+use crate::server::{smtp, Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
 use futures::{future, Future};
 use serde_json::Value;
-use validator::Validate;
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/local")
@@ -40,23 +43,6 @@ pub fn route_v1_scope() -> actix_web::Scope {
         )
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct LoginBody {
-    #[validate(email)]
-    pub email: String,
-    #[validate(custom = "validate::password")]
-    pub password: String,
-}
-
-impl FromJsonValue<LoginBody> for LoginBody {}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct LoginResponse {
-    pub meta: AuthPasswordMeta,
-    pub data: core::UserToken,
-}
-
 fn login_handler(
     data: web::Data<Data>,
     req: HttpRequest,
@@ -65,7 +51,7 @@ fn login_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = LoginBody::from_value(body.into_inner());
+    let body = AuthLoginBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -81,7 +67,7 @@ fn login_handler(
             let user_token = future::ok(user_token);
             password_meta.join(user_token)
         })
-        .map(|(meta, user_token)| LoginResponse {
+        .map(|(meta, user_token)| AuthLoginResponse {
             meta,
             data: user_token,
         })
@@ -92,14 +78,14 @@ fn login_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &LoginBody,
+    body: &AuthLoginBody,
 ) -> Result<core::UserToken, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, audit)| {
+        .and_then(|(service, mut audit)| {
             core::auth::login(
                 data.driver(),
                 &service,
-                audit,
+                &mut audit,
                 &body.email,
                 &body.password,
                 data.configuration().core_access_token_expires(),
@@ -109,27 +95,6 @@ fn login_inner(
         .map_err(Into::into)
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct ResetPasswordTemplateBody {
-    #[validate(custom = "validate::email_subject")]
-    pub subject: String,
-    #[validate(custom = "validate::email_text")]
-    pub text: String,
-    #[validate(custom = "validate::email_link_text")]
-    pub link_text: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct ResetPasswordBody {
-    #[validate(email)]
-    pub email: String,
-    pub template: Option<ResetPasswordTemplateBody>,
-}
-
-impl FromJsonValue<ResetPasswordBody> for ResetPasswordBody {}
-
 fn reset_password_handler(
     data: web::Data<Data>,
     req: HttpRequest,
@@ -138,7 +103,7 @@ fn reset_password_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = ResetPasswordBody::from_value(body.into_inner());
+    let body = AuthResetPasswordBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -153,14 +118,14 @@ fn reset_password_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &ResetPasswordBody,
+    body: &AuthResetPasswordBody,
 ) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, audit)| {
+        .and_then(|(service, mut audit)| {
             let (user, token) = core::auth::reset_password(
                 data.driver(),
                 &service,
-                audit,
+                &mut audit,
                 &body.email,
                 data.configuration().core_access_token_expires(),
             )?;
@@ -182,22 +147,6 @@ fn reset_password_inner(
         })
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct ResetPasswordConfirmBody {
-    #[validate(custom = "validate::token")]
-    pub token: String,
-    #[validate(custom = "validate::password")]
-    pub password: String,
-}
-
-impl FromJsonValue<ResetPasswordConfirmBody> for ResetPasswordConfirmBody {}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ResetPasswordConfirmResponse {
-    pub meta: AuthPasswordMeta,
-}
-
 fn reset_password_confirm_handler(
     data: web::Data<Data>,
     req: HttpRequest,
@@ -206,7 +155,7 @@ fn reset_password_confirm_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = ResetPasswordConfirmBody::from_value(body.into_inner());
+    let body = AuthResetPasswordConfirmBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -221,7 +170,7 @@ fn reset_password_confirm_handler(
         .and_then(|(data, body, _password_confirm)| {
             password_meta(data.get_ref(), Some(&body.password))
         })
-        .map(|meta| ResetPasswordConfirmResponse { meta })
+        .map(|meta| AuthPasswordMetaResponse { meta })
         .then(route_response_json)
 }
 
@@ -229,47 +178,20 @@ fn reset_password_confirm_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &ResetPasswordConfirmBody,
+    body: &AuthResetPasswordConfirmBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, audit)| {
+        .and_then(|(service, mut audit)| {
             core::auth::reset_password_confirm(
                 data.driver(),
                 &service,
-                audit,
+                &mut audit,
                 &body.token,
                 &body.password,
             )
         })
         .map_err(Into::into)
 }
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct UpdateEmailTemplateBody {
-    #[validate(custom = "validate::email_subject")]
-    pub subject: String,
-    #[validate(custom = "validate::email_text")]
-    pub text: String,
-    #[validate(custom = "validate::email_link_text")]
-    pub link_text: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct UpdateEmailBody {
-    #[validate(custom = "validate::key")]
-    pub key: Option<String>,
-    #[validate(custom = "validate::token")]
-    pub token: Option<String>,
-    #[validate(custom = "validate::password")]
-    pub password: String,
-    #[validate(email)]
-    pub new_email: String,
-    pub template: Option<UpdateEmailTemplateBody>,
-}
-
-impl FromJsonValue<UpdateEmailBody> for UpdateEmailBody {}
 
 fn update_email_handler(
     data: web::Data<Data>,
@@ -279,7 +201,7 @@ fn update_email_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = UpdateEmailBody::from_value(body.into_inner());
+    let body = AuthUpdateEmailBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -294,14 +216,14 @@ fn update_email_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &UpdateEmailBody,
+    body: &AuthUpdateEmailBody,
 ) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, audit)| {
+        .and_then(|(service, mut audit)| {
             let (user, old_email, token) = core::auth::update_email(
                 data.driver(),
                 &service,
-                audit,
+                &mut audit,
                 body.key.as_ref().map(|x| &**x),
                 body.token.as_ref().map(|x| &**x),
                 &body.password,
@@ -327,15 +249,6 @@ fn update_email_inner(
         })
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct UpdateEmailRevokeBody {
-    #[validate(custom = "validate::token")]
-    pub token: String,
-}
-
-impl FromJsonValue<UpdateEmailRevokeBody> for UpdateEmailRevokeBody {}
-
 fn update_email_revoke_handler(
     data: web::Data<Data>,
     req: HttpRequest,
@@ -344,7 +257,7 @@ fn update_email_revoke_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = UpdateEmailRevokeBody::from_value(body.into_inner());
+    let body = AuthUpdateEmailRevokeBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -359,45 +272,13 @@ fn update_email_revoke_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &UpdateEmailRevokeBody,
+    body: &AuthUpdateEmailRevokeBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, audit)| {
-            core::auth::update_email_revoke(data.driver(), &service, audit, &body.token)
+        .and_then(|(service, mut audit)| {
+            core::auth::update_email_revoke(data.driver(), &service, &mut audit, &body.token)
         })
         .map_err(Into::into)
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct UpdatePasswordTemplateBody {
-    #[validate(custom = "validate::email_subject")]
-    pub subject: String,
-    #[validate(custom = "validate::email_text")]
-    pub text: String,
-    #[validate(custom = "validate::email_link_text")]
-    pub link_text: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct UpdatePasswordBody {
-    #[validate(custom = "validate::key")]
-    pub key: Option<String>,
-    #[validate(custom = "validate::token")]
-    pub token: Option<String>,
-    #[validate(custom = "validate::password")]
-    pub password: String,
-    #[validate(custom = "validate::password")]
-    pub new_password: String,
-    pub template: Option<UpdatePasswordTemplateBody>,
-}
-
-impl FromJsonValue<UpdatePasswordBody> for UpdatePasswordBody {}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct UpdatePasswordResponse {
-    pub meta: AuthPasswordMeta,
 }
 
 fn update_password_handler(
@@ -408,7 +289,7 @@ fn update_password_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = UpdatePasswordBody::from_value(body.into_inner());
+    let body = AuthUpdatePasswordBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -420,7 +301,7 @@ fn update_password_handler(
             .map_err(Into::into)
         })
         .and_then(|(data, body)| password_meta(data.get_ref(), Some(&body.password)))
-        .map(|meta| UpdatePasswordResponse { meta })
+        .map(|meta| AuthPasswordMetaResponse { meta })
         .then(route_response_json)
 }
 
@@ -428,14 +309,14 @@ fn update_password_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &UpdatePasswordBody,
+    body: &AuthUpdatePasswordBody,
 ) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, audit)| {
+        .and_then(|(service, mut audit)| {
             let (user, token) = core::auth::update_password(
                 data.driver(),
                 &service,
-                audit,
+                &mut audit,
                 body.key.as_ref().map(|x| &**x),
                 body.token.as_ref().map(|x| &**x),
                 &body.password,
@@ -460,15 +341,6 @@ fn update_password_inner(
         })
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct UpdatePasswordRevokeBody {
-    #[validate(custom = "validate::token")]
-    pub token: String,
-}
-
-impl FromJsonValue<UpdatePasswordRevokeBody> for UpdatePasswordRevokeBody {}
-
 fn update_password_revoke_handler(
     data: web::Data<Data>,
     req: HttpRequest,
@@ -477,7 +349,7 @@ fn update_password_revoke_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = UpdatePasswordRevokeBody::from_value(body.into_inner());
+    let body = AuthUpdatePasswordRevokeBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -492,11 +364,11 @@ fn update_password_revoke_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &UpdatePasswordRevokeBody,
+    body: &AuthUpdatePasswordRevokeBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, audit)| {
-            core::auth::update_password_revoke(data.driver(), &service, audit, &body.token)
+        .and_then(|(service, mut audit)| {
+            core::auth::update_password_revoke(data.driver(), &service, &mut audit, &body.token)
         })
         .map_err(Into::into)
 }

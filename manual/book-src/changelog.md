@@ -20,6 +20,7 @@
 - Moved login, reset routes into local provider group.
 - Upgraded to version 3 of `oauth2` library.
 - Removed `skeptic` from tests, use Cargo test runner.
+- Moved route types to public api module.
 
 ### Fixed
 

@@ -1,9 +1,8 @@
 use crate::core;
 use crate::core::audit::AuditBuilder;
 use crate::core::AuditMeta;
-use crate::server::route::auth::provider::{
-    oauth2_redirect, Oauth2CallbackQuery, Oauth2UrlResponse,
-};
+use crate::server::api::{AuthOauth2CallbackQuery, AuthOauth2UrlResponse};
+use crate::server::route::auth::provider::oauth2_redirect;
 use crate::server::route::{request_audit_meta, route_response_json};
 use crate::server::{ConfigurationProviderOauth2, Data, Error, FromJsonValue, Oauth2Error};
 use actix_identity::Identity;
@@ -49,11 +48,13 @@ fn request_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-) -> Result<Oauth2UrlResponse, Error> {
+) -> Result<AuthOauth2UrlResponse, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .map_err(Into::into)
-        .and_then(|(service, _)| microsoft_authorise(&data, &service).map_err(Into::into))
-        .map(|url| Oauth2UrlResponse { url })
+        .and_then(|(service, mut audit)| {
+            microsoft_authorise(&data, &service, &mut audit).map_err(Into::into)
+        })
+        .map(|url| AuthOauth2UrlResponse { url })
 }
 
 fn oauth2_callback_handler(
@@ -61,32 +62,31 @@ fn oauth2_callback_handler(
     req: HttpRequest,
     query: web::Query<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
-    // TODO(refactor): Improved AuditBuilder support, audit errors here?.
     let audit_meta = request_audit_meta(&req);
-    let query = Oauth2CallbackQuery::from_value(query.into_inner());
+    let query = AuthOauth2CallbackQuery::from_value(query.into_inner());
 
     audit_meta
         .join(query)
         .and_then(|(audit_meta, query)| {
             web::block(move || {
+                let mut audit = AuditBuilder::new(audit_meta);
                 let (service_id, access_token) =
-                    microsoft_callback(data.get_ref(), &query.code, &query.state)?;
-                Ok((data, audit_meta, service_id, access_token))
+                    microsoft_callback(data.get_ref(), &mut audit, &query.code, &query.state)?;
+                Ok((data, audit, service_id, access_token))
             })
             .map_err(Into::into)
         })
-        .and_then(|(data, audit_meta, service_id, access_token)| {
+        .and_then(|(data, audit, service_id, access_token)| {
             let email = microsoft_api_user_email(data.get_ref(), &access_token);
-            let args = future::ok((data, audit_meta, service_id));
+            let args = future::ok((data, audit, service_id));
             email.join(args)
         })
-        .and_then(|(email, (data, audit_meta, service_id))| {
+        .and_then(|(email, (data, mut audit, service_id))| {
             web::block(move || {
-                let audit = AuditBuilder::new(audit_meta);
                 core::auth::oauth2_login(
                     data.driver(),
                     &service_id,
-                    audit,
+                    &mut audit,
                     &email,
                     data.configuration().core_access_token_expires(),
                     data.configuration().core_refresh_token_expires(),
@@ -101,7 +101,11 @@ fn oauth2_callback_handler(
         })
 }
 
-fn microsoft_authorise(data: &Data, service: &core::Service) -> Result<String, Error> {
+fn microsoft_authorise(
+    data: &Data,
+    service: &core::Service,
+    _audit: &mut AuditBuilder,
+) -> Result<String, Error> {
     // Microsoft Graph supports Proof Key for Code Exchange (PKCE - https://oauth.net/2/pkce/).
     // Create a PKCE code verifier and SHA-256 encode it as a code challenge.
     let (pkce_code_challenge, pkce_code_verifier) = PkceCodeChallenge::new_random_sha256();
@@ -129,7 +133,12 @@ fn microsoft_authorise(data: &Data, service: &core::Service) -> Result<String, E
     Ok(authorize_url.to_string())
 }
 
-fn microsoft_callback(data: &Data, code: &str, state: &str) -> Result<(String, String), Error> {
+fn microsoft_callback(
+    data: &Data,
+    _audit: &mut AuditBuilder,
+    code: &str,
+    state: &str,
+) -> Result<(String, String), Error> {
     // Read the CSRF key using state value, rebuild code verifier from value.
     let csrf = core::csrf::read_by_key(data.driver(), &state).map_err(Error::Core)?;
     let csrf = csrf.ok_or_else(|| Error::Oauth2(Oauth2Error::Csrf))?;

@@ -2,10 +2,9 @@ pub mod github;
 pub mod local;
 pub mod microsoft;
 
-use crate::{core, server::validate};
+use crate::core;
 use actix_web::{http::header, web, HttpResponse};
 use url::Url;
-use validator::Validate;
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/provider")
@@ -16,22 +15,8 @@ pub fn route_v1_scope() -> actix_web::Scope {
 
 // TODO(feature): Support more OAuth2 providers.
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
-pub struct Oauth2CallbackQuery {
-    #[validate(custom = "validate::token")]
-    pub code: String,
-    #[validate(custom = "validate::token")]
-    pub state: String,
-}
-
-impl validate::FromJsonValue<Oauth2CallbackQuery> for Oauth2CallbackQuery {}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Oauth2UrlResponse {
-    pub url: String,
-}
-
 pub fn oauth2_redirect(service: core::Service, token: core::UserToken) -> HttpResponse {
+    // TODO(refactor): Use serde_urlencoded here.
     let mut url = Url::parse(&service.url).unwrap();
     let token_query = format!(
         "access_token={}&refresh_token={}",

@@ -51,7 +51,6 @@ pub struct Audit {
 pub struct AuditMeta {
     pub user_agent: String,
     pub remote: String,
-    // TODO(refactor): Use X-Real-IP header?
     pub forwarded_for: Option<String>,
 }
 

@@ -1,6 +1,6 @@
 use crate::core;
 use crate::core::AuditMeta;
-use crate::server::route::auth::{TokenBody, TokenPartialResponse, TokenResponse};
+use crate::server::api::{AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse};
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
 use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
@@ -23,7 +23,7 @@ fn verify_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = TokenBody::from_value(body.into_inner());
+    let body = AuthTokenBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -38,14 +38,14 @@ fn verify_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &TokenBody,
-) -> Result<TokenPartialResponse, Error> {
+    body: &AuthTokenBody,
+) -> Result<AuthTokenPartialResponse, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, audit)| {
-            core::auth::token_verify(data.driver(), &service, audit, &body.token)
+        .and_then(|(service, mut audit)| {
+            core::auth::token_verify(data.driver(), &service, &mut audit, &body.token)
         })
         .map_err(Into::into)
-        .map(|(user_token, _)| TokenPartialResponse { data: user_token })
+        .map(|user_token| AuthTokenPartialResponse { data: user_token })
 }
 
 fn refresh_handler(
@@ -56,7 +56,7 @@ fn refresh_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = TokenBody::from_value(body.into_inner());
+    let body = AuthTokenBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -71,21 +71,21 @@ fn refresh_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &TokenBody,
-) -> Result<TokenResponse, Error> {
+    body: &AuthTokenBody,
+) -> Result<AuthTokenResponse, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, audit)| {
+        .and_then(|(service, mut audit)| {
             core::auth::token_refresh(
                 data.driver(),
                 &service,
-                audit,
+                &mut audit,
                 &body.token,
                 data.configuration().core_access_token_expires(),
                 data.configuration().core_refresh_token_expires(),
             )
         })
         .map_err(Into::into)
-        .map(|user_token| TokenResponse { data: user_token })
+        .map(|user_token| AuthTokenResponse { data: user_token })
 }
 
 fn revoke_handler(
@@ -96,7 +96,7 @@ fn revoke_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = TokenBody::from_value(body.into_inner());
+    let body = AuthTokenBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -111,11 +111,11 @@ fn revoke_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &TokenBody,
+    body: &AuthTokenBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, audit)| {
-            core::auth::token_revoke(data.driver(), &service, audit, &body.token)
+        .and_then(|(service, mut audit)| {
+            core::auth::token_revoke(data.driver(), &service, &mut audit, &body.token)
         })
         .map_err(Into::into)
 }

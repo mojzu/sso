@@ -1,4 +1,7 @@
-use crate::core::{Audit, AuditQuery, Key, KeyQuery, Service, ServiceQuery, User, UserQuery};
+use crate::core::{
+    Audit, AuditQuery, Key, KeyQuery, Service, ServiceQuery, User, UserKey, UserQuery, UserToken,
+    UserTokenPartial,
+};
 use crate::server::{validate, FromJsonValue};
 use serde_json::Value;
 use validator::Validate;
@@ -78,6 +81,168 @@ impl Default for AuthPasswordMeta {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthTokenBody {
+    #[validate(custom = "validate::token")]
+    pub token: String,
+}
+
+impl FromJsonValue<AuthTokenBody> for AuthTokenBody {}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthTokenResponse {
+    pub data: UserToken,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthTokenPartialResponse {
+    pub data: UserTokenPartial,
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthKeyBody {
+    #[validate(custom = "validate::key")]
+    pub key: String,
+}
+
+impl FromJsonValue<AuthKeyBody> for AuthKeyBody {}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthKeyResponse {
+    pub data: UserKey,
+}
+
+// Authentication local provider types.
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthLoginBody {
+    #[validate(email)]
+    pub email: String,
+    #[validate(custom = "validate::password")]
+    pub password: String,
+}
+
+impl FromJsonValue<AuthLoginBody> for AuthLoginBody {}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthLoginResponse {
+    pub meta: AuthPasswordMeta,
+    pub data: UserToken,
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthEmailTemplateBody {
+    #[validate(custom = "validate::email_subject")]
+    pub subject: String,
+    #[validate(custom = "validate::email_text")]
+    pub text: String,
+    #[validate(custom = "validate::email_link_text")]
+    pub link_text: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthResetPasswordBody {
+    #[validate(email)]
+    pub email: String,
+    pub template: Option<AuthEmailTemplateBody>,
+}
+
+impl FromJsonValue<AuthResetPasswordBody> for AuthResetPasswordBody {}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthResetPasswordConfirmBody {
+    #[validate(custom = "validate::token")]
+    pub token: String,
+    #[validate(custom = "validate::password")]
+    pub password: String,
+}
+
+impl FromJsonValue<AuthResetPasswordConfirmBody> for AuthResetPasswordConfirmBody {}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthPasswordMetaResponse {
+    pub meta: AuthPasswordMeta,
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthUpdateEmailBody {
+    #[validate(custom = "validate::key")]
+    pub key: Option<String>,
+    #[validate(custom = "validate::token")]
+    pub token: Option<String>,
+    #[validate(custom = "validate::password")]
+    pub password: String,
+    #[validate(email)]
+    pub new_email: String,
+    pub template: Option<AuthEmailTemplateBody>,
+}
+
+impl FromJsonValue<AuthUpdateEmailBody> for AuthUpdateEmailBody {}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthUpdateEmailRevokeBody {
+    #[validate(custom = "validate::token")]
+    pub token: String,
+}
+
+impl FromJsonValue<AuthUpdateEmailRevokeBody> for AuthUpdateEmailRevokeBody {}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthUpdatePasswordBody {
+    #[validate(custom = "validate::key")]
+    pub key: Option<String>,
+    #[validate(custom = "validate::token")]
+    pub token: Option<String>,
+    #[validate(custom = "validate::password")]
+    pub password: String,
+    #[validate(custom = "validate::password")]
+    pub new_password: String,
+    pub template: Option<AuthEmailTemplateBody>,
+}
+
+impl FromJsonValue<AuthUpdatePasswordBody> for AuthUpdatePasswordBody {}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthUpdatePasswordRevokeBody {
+    #[validate(custom = "validate::token")]
+    pub token: String,
+}
+
+impl FromJsonValue<AuthUpdatePasswordRevokeBody> for AuthUpdatePasswordRevokeBody {}
+
+// Authentication OAuth2 provider types.
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthOauth2UrlResponse {
+    pub url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+pub struct AuthOauth2CallbackQuery {
+    #[validate(custom = "validate::token")]
+    pub code: String,
+    #[validate(custom = "validate::token")]
+    pub state: String,
+}
+
+impl FromJsonValue<AuthOauth2CallbackQuery> for AuthOauth2CallbackQuery {}
 
 // Key types.
 

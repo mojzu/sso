@@ -1,6 +1,6 @@
 use crate::core;
 use crate::core::AuditMeta;
-use crate::server::route::auth::{KeyBody, KeyResponse};
+use crate::server::api::{AuthKeyBody, AuthKeyResponse};
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
 use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
@@ -22,7 +22,7 @@ fn verify_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = KeyBody::from_value(body.into_inner());
+    let body = AuthKeyBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -37,14 +37,14 @@ fn verify_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &KeyBody,
-) -> Result<KeyResponse, Error> {
+    body: &AuthKeyBody,
+) -> Result<AuthKeyResponse, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, audit)| {
-            core::auth::key_verify(data.driver(), &service, audit, &body.key)
+        .and_then(|(service, mut audit)| {
+            core::auth::key_verify(data.driver(), &service, &mut audit, &body.key)
         })
         .map_err(Into::into)
-        .map(|(user_key, _)| KeyResponse { data: user_key })
+        .map(|user_key| AuthKeyResponse { data: user_key })
 }
 
 fn revoke_handler(
@@ -55,7 +55,7 @@ fn revoke_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = KeyBody::from_value(body.into_inner());
+    let body = AuthKeyBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -70,11 +70,11 @@ fn revoke_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &KeyBody,
+    body: &AuthKeyBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, audit)| {
-            core::auth::key_revoke(data.driver(), &service, audit, &body.key)
+        .and_then(|(service, mut audit)| {
+            core::auth::key_revoke(data.driver(), &service, &mut audit, &body.key)
         })
         .map_err(Into::into)
 }

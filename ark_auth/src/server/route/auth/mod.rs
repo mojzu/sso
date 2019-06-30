@@ -2,53 +2,18 @@ pub mod key;
 pub mod provider;
 pub mod token;
 
-use crate::core;
 use crate::server::api::AuthPasswordMeta;
-use crate::server::{validate, Data, Error, FromJsonValue, PwnedPasswordsError};
+use crate::server::{Data, Error, PwnedPasswordsError};
 use actix_web::http::{header, StatusCode};
 use actix_web::web;
 use futures::{future, Future};
 use sha1::{Digest, Sha1};
-use validator::Validate;
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/auth")
         .service(provider::route_v1_scope())
         .service(key::route_v1_scope())
         .service(token::route_v1_scope())
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct TokenBody {
-    #[validate(custom = "validate::token")]
-    pub token: String,
-}
-
-impl FromJsonValue<TokenBody> for TokenBody {}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TokenResponse {
-    pub data: core::UserToken,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TokenPartialResponse {
-    pub data: core::UserTokenPartial,
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct KeyBody {
-    #[validate(custom = "validate::key")]
-    pub key: String,
-}
-
-impl FromJsonValue<KeyBody> for KeyBody {}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct KeyResponse {
-    pub data: core::UserKey,
 }
 
 /// Returns password strength and pwned checks.

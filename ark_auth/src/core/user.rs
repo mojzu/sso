@@ -9,7 +9,24 @@ pub fn list(
     _audit: &mut AuditBuilder,
     query: &UserQuery,
 ) -> Result<Vec<String>, Error> {
-    unimplemented!();
+    if let Some(email_eq) = &query.email_eq {
+        let users = list_where_email_eq(driver, service_mask, &email_eq, 1)?;
+        return Ok(users);
+    }
+
+    // TODO(refactor): Configurable default/max limits.
+    let limit = query.limit.unwrap_or(10);
+    match &query.lt {
+        Some(lt) => {
+            let users = list_where_id_lt(driver, service_mask, lt, limit)?;
+            Ok(users)
+        }
+        None => {
+            let gt = query.gt.to_owned().unwrap_or_else(|| "".to_owned());
+            let users = list_where_id_gt(driver, service_mask, &gt, limit)?;
+            Ok(users)
+        }
+    }
 }
 
 /// List users where ID is less than.

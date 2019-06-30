@@ -37,7 +37,7 @@ pub enum AuditPath {
 impl AuditPath {
     /// Return string representation and JSON value of key.
     pub fn to_string(&self) -> String {
-        let prefix = format!("{}", crate_name!());
+        let prefix = crate_name!();
         match self {
             AuditPath::Login => format!("{}/login", prefix),
             AuditPath::LoginError => format!("{}/error/login", prefix),

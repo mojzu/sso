@@ -1,6 +1,6 @@
 use ark_auth::client::{Client, ClientOptions, Error, RequestError, SyncClient};
 use ark_auth::core::{Key, Service, User, UserKey, UserToken, UserTokenPartial};
-use ark_auth::server::route::auth::provider::Oauth2UrlResponse;
+use ark_auth::server::api::AuthOauth2UrlResponse;
 use chrono::Utc;
 
 pub fn env_test_url() -> String {
@@ -161,7 +161,7 @@ pub fn local_password_reset(client: &SyncClient, email: &str) {
     client.auth_local_reset_password(email).unwrap()
 }
 
-pub fn microsoft_oauth2_request(client: &SyncClient) -> Oauth2UrlResponse {
+pub fn microsoft_oauth2_request(client: &SyncClient) -> AuthOauth2UrlResponse {
     let response = client.auth_microsoft_oauth2_request().unwrap();
     assert!(!response.url.is_empty());
     response
