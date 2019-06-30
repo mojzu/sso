@@ -128,7 +128,8 @@ pub fn reset_password_confirm(
     )?;
 
     // Sucessful reset password confirm, update user password.
-    let count = core::user::update_password_by_id(driver, Some(service), &user.id, password)?;
+    let count =
+        core::user::update_password_by_id(driver, Some(service), audit, &user.id, password)?;
 
     audit.create_internal(
         driver,
@@ -183,7 +184,7 @@ pub fn update_email(
     )?;
 
     // Update user email.
-    core::user::update_email_by_id(driver, Some(service), &user.id, new_email)?;
+    core::user::update_email_by_id(driver, Some(service), audit, &user.id, new_email)?;
     let user = user_read_by_id(
         driver,
         Some(service),
@@ -314,7 +315,7 @@ pub fn update_password(
     )?;
 
     // Update user password, reread from driver.
-    core::user::update_password_by_id(driver, Some(service), &user.id, new_password)?;
+    core::user::update_password_by_id(driver, Some(service), audit, &user.id, new_password)?;
     let user = user_read_by_id(
         driver,
         Some(service),
@@ -732,7 +733,9 @@ fn user_read_by_email(
     audit_path: AuditPath,
     email: &str,
 ) -> Result<User, Error> {
-    match core::user::read_by_email(driver, service_mask, email)?.ok_or_else(|| Error::BadRequest) {
+    match core::user::read_by_email(driver, service_mask, audit, email)?
+        .ok_or_else(|| Error::BadRequest)
+    {
         Ok(user) => {
             audit.set_user(Some(&user));
             if !user.is_enabled {

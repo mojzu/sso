@@ -5,16 +5,19 @@ use crate::driver;
 /// List users using query.
 pub fn list(
     driver: &driver::Driver,
-    service_mask: Option<&Service>,
+    _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     query: &UserQuery,
 ) -> Result<Vec<String>, Error> {
+    let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
+
     if let Some(email_eq) = &query.email_eq {
-        let users = list_where_email_eq(driver, service_mask, &email_eq, 1)?;
+        let users = driver
+            .user_list_where_email_eq(email_eq, limit)
+            .map_err(Error::Driver)?;
         return Ok(users);
     }
 
-    let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
     match &query.lt {
         Some(lt) => {
             let users = driver
@@ -32,30 +35,18 @@ pub fn list(
     }
 }
 
-/// List users where email is equal.
-pub fn list_where_email_eq(
-    driver: &driver::Driver,
-    _service_mask: Option<&Service>,
-    email_eq: &str,
-    limit: i64,
-) -> Result<Vec<String>, Error> {
-    driver
-        .user_list_where_email_eq(email_eq, limit)
-        .map_err(Error::Driver)
-}
-
 /// Create user.
 /// Returns bad request if email address is not unique.
 pub fn create(
     driver: &driver::Driver,
     service_mask: Option<&Service>,
-    _audit: &mut AuditBuilder,
+    audit: &mut AuditBuilder,
     is_enabled: bool,
     name: &str,
     email: &str,
     password: Option<&str>,
 ) -> Result<User, Error> {
-    let user = read_by_email(driver, service_mask, email)?;
+    let user = read_by_email(driver, service_mask, audit, email)?;
     if user.is_some() {
         return Err(Error::BadRequest);
     }
@@ -85,6 +76,7 @@ pub fn read_by_id(
 pub fn read_by_email(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     email: &str,
 ) -> Result<Option<User>, Error> {
     driver.user_read_by_email(email).map_err(Error::Driver)
@@ -108,6 +100,7 @@ pub fn update_by_id(
 pub fn update_email_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     id: &str,
     email: &str,
 ) -> Result<usize, Error> {
@@ -120,6 +113,7 @@ pub fn update_email_by_id(
 pub fn update_password_by_id(
     driver: &driver::Driver,
     _service_mask: Option<&Service>,
+    _audit: &mut AuditBuilder,
     id: &str,
     password: &str,
 ) -> Result<usize, Error> {
