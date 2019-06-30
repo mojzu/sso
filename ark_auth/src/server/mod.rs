@@ -17,6 +17,9 @@ pub use validate::FromJsonValue;
 // <https://webauthn.guide/>
 // <https://webauthn.org/>
 
+/// Default JSON payload size limit.
+const DEFAULT_JSON_LIMIT: usize = 1024;
+
 /// Pwned passwords errors.
 #[derive(Debug, Fail)]
 pub enum PwnedPasswordsError {
@@ -391,7 +394,7 @@ pub fn start(configuration: Configuration, driver: Box<driver::Driver>) -> Resul
             // Shared data.
             .data(Data::new(configuration.clone(), driver.clone()))
             // Global JSON configuration.
-            .data(web::JsonConfig::default().limit(1024))
+            .data(web::JsonConfig::default().limit(DEFAULT_JSON_LIMIT))
             // Logger middleware.
             .wrap(middleware::Logger::default())
             // TODO(refactor): Sentry middleware support.

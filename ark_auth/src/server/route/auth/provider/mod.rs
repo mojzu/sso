@@ -16,13 +16,10 @@ pub fn route_v1_scope() -> actix_web::Scope {
 // TODO(feature): Support more OAuth2 providers.
 
 pub fn oauth2_redirect(service: core::Service, token: core::UserToken) -> HttpResponse {
-    // TODO(refactor): Use serde_urlencoded here.
+    // TODO(refactor): Add callback type to service URLs, builder method.
     let mut url = Url::parse(&service.url).unwrap();
-    let token_query = format!(
-        "access_token={}&refresh_token={}",
-        token.access_token, token.refresh_token
-    );
-    url.set_query(Some(&token_query));
+    let query = serde_urlencoded::to_string(token).unwrap();
+    url.set_query(Some(&query));
 
     HttpResponse::Found()
         .header(header::LOCATION, url.as_str())

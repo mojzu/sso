@@ -15,7 +15,7 @@ The following diagram illustrates how services and Ark Auth integrate to authent
 A service integrating with Ark Auth can provide the following HTTPS endpoints as callbacks.
 
 ```shell
-GET $service_url?access_token=$token&refresh_token=$token
+GET $service_url?user_id=$id&access_token=$token&access_token_expires=$token_expires&refresh_token=$token&refresh_token_expires=$token_expires
 ```
 
 User is redirected to this URL after successful authentication by an OAuth2 provider. The service can verify the `access_token` query parameter to authenticate the user and their requests.

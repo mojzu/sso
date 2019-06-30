@@ -1,5 +1,5 @@
 use crate::core::audit::AuditBuilder;
-use crate::core::{AuditMeta, Error, Key, KeyQuery, Service, User};
+use crate::core::{AuditMeta, Error, Key, KeyQuery, Service, User, DEFAULT_LIMIT};
 use crate::driver;
 
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
@@ -78,7 +78,7 @@ pub fn list(
     _audit: &mut AuditBuilder,
     query: &KeyQuery,
 ) -> Result<Vec<String>, Error> {
-    let limit = query.limit.unwrap_or(10);
+    let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
     match &query.lt {
         Some(lt) => driver
             .key_list_where_id_lt(lt, limit, service_mask.map(|s| s.id.as_ref()))

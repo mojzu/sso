@@ -84,7 +84,7 @@ pub fn id(id: &str) -> Result<(), ValidationError> {
 }
 
 pub fn token(token: &str) -> Result<(), ValidationError> {
-    if token.is_empty() || token.len() > 1024 {
+    if token.is_empty() || token.len() > 1000 {
         Err(ValidationError::new("invalid_token"))
     } else {
         Ok(())

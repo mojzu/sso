@@ -1,5 +1,5 @@
 use crate::core::audit::AuditBuilder;
-use crate::core::{Error, Service, ServiceQuery};
+use crate::core::{Error, Service, ServiceQuery, DEFAULT_LIMIT};
 use crate::driver;
 use url::Url;
 
@@ -9,41 +9,23 @@ pub fn list(
     _audit: &mut AuditBuilder,
     query: &ServiceQuery,
 ) -> Result<Vec<String>, Error> {
-    let limit = query.limit.unwrap_or(10);
+    let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
 
     match &query.lt {
         Some(lt) => {
-            let services = list_where_id_lt(driver, lt, limit)?;
+            let services = driver
+                .service_list_where_id_lt(lt, limit)
+                .map_err(Error::Driver)?;
             Ok(services)
         }
         None => {
             let gt = query.gt.to_owned().unwrap_or_else(|| "".to_owned());
-            let services = list_where_id_gt(driver, &gt, limit)?;
+            let services = driver
+                .service_list_where_id_gt(&gt, limit)
+                .map_err(Error::Driver)?;
             Ok(services)
         }
     }
-}
-
-/// List services where ID is less than.
-pub fn list_where_id_lt(
-    driver: &driver::Driver,
-    lt: &str,
-    limit: i64,
-) -> Result<Vec<String>, Error> {
-    driver
-        .service_list_where_id_lt(lt, limit)
-        .map_err(Error::Driver)
-}
-
-/// List services where ID is greater than.
-pub fn list_where_id_gt(
-    driver: &driver::Driver,
-    gt: &str,
-    limit: i64,
-) -> Result<Vec<String>, Error> {
-    driver
-        .service_list_where_id_gt(gt, limit)
-        .map_err(Error::Driver)
 }
 
 /// Create service.

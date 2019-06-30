@@ -10,6 +10,9 @@ use crate::driver;
 use chrono::{DateTime, Utc};
 use serde_json::Value;
 
+/// Default list limit.
+pub const DEFAULT_LIMIT: i64 = 50;
+
 /// Core errors.
 #[derive(Debug, Fail)]
 pub enum Error {

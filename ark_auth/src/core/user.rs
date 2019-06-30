@@ -1,5 +1,5 @@
 use crate::core::audit::AuditBuilder;
-use crate::core::{hash_password, Error, Service, User, UserQuery};
+use crate::core::{hash_password, Error, Service, User, UserQuery, DEFAULT_LIMIT};
 use crate::driver;
 
 /// List users using query.
@@ -14,43 +14,22 @@ pub fn list(
         return Ok(users);
     }
 
-    // TODO(refactor): Configurable default/max limits.
-    let limit = query.limit.unwrap_or(10);
+    let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
     match &query.lt {
         Some(lt) => {
-            let users = list_where_id_lt(driver, service_mask, lt, limit)?;
+            let users = driver
+                .user_list_where_id_lt(lt, limit)
+                .map_err(Error::Driver)?;
             Ok(users)
         }
         None => {
             let gt = query.gt.to_owned().unwrap_or_else(|| "".to_owned());
-            let users = list_where_id_gt(driver, service_mask, &gt, limit)?;
+            let users = driver
+                .user_list_where_id_gt(&gt, limit)
+                .map_err(Error::Driver)?;
             Ok(users)
         }
     }
-}
-
-/// List users where ID is less than.
-pub fn list_where_id_lt(
-    driver: &driver::Driver,
-    _service_mask: Option<&Service>,
-    lt: &str,
-    limit: i64,
-) -> Result<Vec<String>, Error> {
-    driver
-        .user_list_where_id_lt(lt, limit)
-        .map_err(Error::Driver)
-}
-
-/// List users where ID is greater than.
-pub fn list_where_id_gt(
-    driver: &driver::Driver,
-    _service_mask: Option<&Service>,
-    gt: &str,
-    limit: i64,
-) -> Result<Vec<String>, Error> {
-    driver
-        .user_list_where_id_gt(gt, limit)
-        .map_err(Error::Driver)
 }
 
 /// List users where email is equal.
