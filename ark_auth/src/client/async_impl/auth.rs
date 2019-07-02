@@ -1,9 +1,10 @@
 use crate::client::async_impl::AsyncClient;
 use crate::client::Error;
 use crate::server::api::{
-    AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse, AuthOauth2UrlResponse,
+    route, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse, AuthOauth2UrlResponse,
     AuthPasswordMetaResponse, AuthResetPasswordBody, AuthResetPasswordConfirmBody, AuthTokenBody,
-    AuthTokenPartialResponse, AuthTokenResponse,
+    AuthTokenPartialResponse, AuthTokenResponse, AuthUpdateEmailBody, AuthUpdateEmailRevokeBody,
+    AuthUpdatePasswordBody, AuthUpdatePasswordRevokeBody,
 };
 use futures::Future;
 
@@ -18,7 +19,7 @@ impl AsyncClient {
             password: password.to_owned(),
         };
 
-        self.post("/v1/auth/provider/local/login")
+        self.post(route::AUTH_LOCAL_LOGIN)
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
@@ -34,7 +35,7 @@ impl AsyncClient {
             template: None,
         };
 
-        self.post("/v1/auth/provider/local/reset/password")
+        self.post(route::AUTH_LOCAL_RESET_PASSWORD)
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
@@ -51,7 +52,7 @@ impl AsyncClient {
             password: password.to_owned(),
         };
 
-        self.post("/v1/auth/provider/local/reset/password/confirm")
+        self.post(route::AUTH_LOCAL_RESET_PASSWORD_CONFIRM)
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
@@ -61,10 +62,84 @@ impl AsyncClient {
             })
     }
 
+    pub fn auth_local_update_email(
+        &self,
+        key: Option<&str>,
+        token: Option<&str>,
+        password: &str,
+        new_email: &str,
+    ) -> impl Future<Item = (), Error = Error> {
+        let body = AuthUpdateEmailBody {
+            key: key.map(|x| x.to_owned()),
+            token: token.map(|x| x.to_owned()),
+            password: password.to_owned(),
+            new_email: new_email.to_owned(),
+            template: None,
+        };
+
+        self.post(route::AUTH_LOCAL_UPDATE_EMAIL)
+            .send_json(&body)
+            .map_err(|_err| Error::Unwrap)
+            .and_then(AsyncClient::match_status_code)
+            .map(|_res| ())
+    }
+
+    pub fn auth_local_update_email_revoke(
+        &self,
+        token: &str,
+    ) -> impl Future<Item = (), Error = Error> {
+        let body = AuthUpdateEmailRevokeBody {
+            token: token.to_owned(),
+        };
+
+        self.post(route::AUTH_LOCAL_UPDATE_EMAIL_REVOKE)
+            .send_json(&body)
+            .map_err(|_err| Error::Unwrap)
+            .and_then(AsyncClient::match_status_code)
+            .map(|_res| ())
+    }
+
+    pub fn auth_local_update_password(
+        &self,
+        key: Option<&str>,
+        token: Option<&str>,
+        password: &str,
+        new_password: &str,
+    ) -> impl Future<Item = (), Error = Error> {
+        let body = AuthUpdatePasswordBody {
+            key: key.map(|x| x.to_owned()),
+            token: token.map(|x| x.to_owned()),
+            password: password.to_owned(),
+            new_password: new_password.to_owned(),
+            template: None,
+        };
+
+        self.post(route::AUTH_LOCAL_UPDATE_PASSWORD)
+            .send_json(&body)
+            .map_err(|_err| Error::Unwrap)
+            .and_then(AsyncClient::match_status_code)
+            .map(|_res| ())
+    }
+
+    pub fn auth_local_update_password_revoke(
+        &self,
+        token: &str,
+    ) -> impl Future<Item = (), Error = Error> {
+        let body = AuthUpdatePasswordRevokeBody {
+            token: token.to_owned(),
+        };
+
+        self.post(route::AUTH_LOCAL_UPDATE_PASSWORD_REVOKE)
+            .send_json(&body)
+            .map_err(|_err| Error::Unwrap)
+            .and_then(AsyncClient::match_status_code)
+            .map(|_res| ())
+    }
+
     pub fn auth_microsoft_oauth2_request(
         &self,
     ) -> impl Future<Item = AuthOauth2UrlResponse, Error = Error> {
-        self.post("/v1/auth/provider/microsoft/oauth2")
+        self.post(route::AUTH_MICROSOFT_OAUTH2)
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
@@ -79,7 +154,7 @@ impl AsyncClient {
             key: key.to_owned(),
         };
 
-        self.post("/v1/auth/key/verify")
+        self.post(route::AUTH_KEY_VERIFY)
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
@@ -91,7 +166,7 @@ impl AsyncClient {
             key: key.to_owned(),
         };
 
-        self.post("/v1/auth/key/revoke")
+        self.post(route::AUTH_KEY_REVOKE)
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
@@ -106,7 +181,7 @@ impl AsyncClient {
             token: token.to_owned(),
         };
 
-        self.post("/v1/auth/token/verify")
+        self.post(route::AUTH_TOKEN_VERIFY)
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
@@ -124,7 +199,7 @@ impl AsyncClient {
             token: token.to_owned(),
         };
 
-        self.post("/v1/auth/token/refresh")
+        self.post(route::AUTH_TOKEN_REFRESH)
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)
@@ -139,7 +214,7 @@ impl AsyncClient {
             token: token.to_owned(),
         };
 
-        self.post("/v1/auth/token/revoke")
+        self.post(route::AUTH_TOKEN_REVOKE)
             .send_json(&body)
             .map_err(|_err| Error::Unwrap)
             .and_then(AsyncClient::match_status_code)

@@ -1,7 +1,7 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
 use crate::server::api::{
-    AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse, AuthOauth2UrlResponse,
+    route, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse, AuthOauth2UrlResponse,
     AuthResetPasswordBody, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse,
 };
 use actix_web::http::StatusCode;
@@ -17,7 +17,7 @@ impl SyncClient {
             password: password.to_owned(),
         };
 
-        self.post_json("/v1/auth/provider/local/login", &body)
+        self.post_json(route::AUTH_LOCAL_LOGIN, &body)
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(SyncClient::match_status_code)
@@ -33,7 +33,7 @@ impl SyncClient {
             template: None,
         };
 
-        self.post_json("/v1/auth/provider/local/reset/password", &body)
+        self.post_json(route::AUTH_LOCAL_RESET_PASSWORD, &body)
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(|res| match res.status() {
@@ -43,7 +43,7 @@ impl SyncClient {
     }
 
     pub fn auth_microsoft_oauth2_request(&self) -> Result<AuthOauth2UrlResponse, Error> {
-        self.post("/v1/auth/provider/microsoft/oauth2")
+        self.post(route::AUTH_MICROSOFT_OAUTH2)
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(SyncClient::match_status_code)
@@ -58,7 +58,7 @@ impl SyncClient {
             key: key.to_owned(),
         };
 
-        self.post_json("/v1/auth/key/verify", &body)
+        self.post_json(route::AUTH_KEY_VERIFY, &body)
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(SyncClient::match_status_code)
@@ -70,7 +70,7 @@ impl SyncClient {
             key: key.to_owned(),
         };
 
-        self.post_json("/v1/auth/key/revoke", &body)
+        self.post_json(route::AUTH_KEY_REVOKE, &body)
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(SyncClient::match_status_code)
@@ -82,7 +82,7 @@ impl SyncClient {
             token: token.to_owned(),
         };
 
-        self.post_json("/v1/auth/token/verify", &body)
+        self.post_json(route::AUTH_TOKEN_VERIFY, &body)
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(SyncClient::match_status_code)
@@ -97,7 +97,7 @@ impl SyncClient {
             token: token.to_owned(),
         };
 
-        self.post_json("/v1/auth/token/refresh", &body)
+        self.post_json(route::AUTH_TOKEN_REFRESH, &body)
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(SyncClient::match_status_code)
@@ -112,7 +112,7 @@ impl SyncClient {
             token: token.to_owned(),
         };
 
-        self.post_json("/v1/auth/token/revoke", &body)
+        self.post_json(route::AUTH_TOKEN_REVOKE, &body)
             .send()
             .map_err(|_err| Error::Unwrap)
             .and_then(SyncClient::match_status_code)

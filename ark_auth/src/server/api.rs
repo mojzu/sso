@@ -6,6 +6,25 @@ use crate::server::{validate, FromJsonValue};
 use serde_json::Value;
 use validator::Validate;
 
+/// Route definitions.
+pub mod route {
+    pub const AUTH_LOCAL_LOGIN: &str = "/v1/auth/provider/local/login";
+    pub const AUTH_LOCAL_RESET_PASSWORD: &str = "/v1/auth/provider/local/reset/password";
+    pub const AUTH_LOCAL_RESET_PASSWORD_CONFIRM: &str =
+        "/v1/auth/provider/local/reset/password/confirm";
+    pub const AUTH_LOCAL_UPDATE_EMAIL: &str = "/v1/auth/provider/local/update/email";
+    pub const AUTH_LOCAL_UPDATE_EMAIL_REVOKE: &str = "/v1/auth/provider/local/update/email/revoke";
+    pub const AUTH_LOCAL_UPDATE_PASSWORD: &str = "/v1/auth/provider/local/update/password";
+    pub const AUTH_LOCAL_UPDATE_PASSWORD_REVOKE: &str =
+        "/v1/auth/provider/local/update/password/revoke";
+    pub const AUTH_MICROSOFT_OAUTH2: &str = "/v1/auth/provider/microsoft/oauth2";
+    pub const AUTH_KEY_VERIFY: &str = "/v1/auth/key/verify";
+    pub const AUTH_KEY_REVOKE: &str = "/v1/auth/key/revoke";
+    pub const AUTH_TOKEN_VERIFY: &str = "/v1/auth/token/verify";
+    pub const AUTH_TOKEN_REFRESH: &str = "/v1/auth/token/refresh";
+    pub const AUTH_TOKEN_REVOKE: &str = "/v1/auth/token/revoke";
+}
+
 // Audit types.
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
