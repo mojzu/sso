@@ -1,9 +1,5 @@
 # Introduction
 
-**Warning: The author of this application is not a security expert, nor has the code undergone any kind of review or verification. Use it at your own risk.**
-
-Ark Auth is an authentication server, it is intended to be used as a backend for other services which must authenticate their users requests.
-
 ## Authentication Methods
 
 Authentication methods are organised into provider groups, based on the provider, the following user authentication methods are supported.
@@ -13,7 +9,7 @@ Authentication methods are organised into provider groups, based on the provider
 - Users can authenticate to a service using a unique email address and password.
 - A successful login produces time-limited, revokable access and refresh tokens which can be used to authenticate user requests and to produce new tokens.
 - User passwords can be reset via email.
-- User password is required to update email address or password, if updated an email will be sent to the user with a revokation link in case of compromised access.
+- User password is required to update email address or password, if updated an email is sent to the user with a revokation link in case of compromised access.
 - Passwords are stored as `bcrypt` hashes.
 - Password strength is checked by `zxcvbn`.
 - Password leaks are checked by `haveibeenpwned.com`.
@@ -47,7 +43,7 @@ Random, unique keys produced by Ark Auth. Keys may be revoked to prevent use.
 
 #### Root Key
 
-Keys linked to no services or users, produced by command line and can be used to create services via HTTP requests.
+Keys linked to no services or users, produced by command line and can be used to manage Ark Auth via HTTP requests.
 
 #### Service Key
 
