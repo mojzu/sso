@@ -1,8 +1,8 @@
-% Ark Auth: Developer Manual
+% ark_auth: Developer Manual
 % Sam Ward
 %
 
-# Ark Auth: Developer Manual
+# ark_auth: Developer Manual
 
 ## Manual
 

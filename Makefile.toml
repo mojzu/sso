@@ -1,20 +1,28 @@
-[tasks.format]
-install_crate = "rustfmt"
+[tasks.clean]
+workspace = false
 command = "cargo"
-args = ["fmt", "--", "--write-mode=overwrite"]
-
-[tasks.lint]
-install_crate = "clippy"
-command = "cargo"
-args = ["clippy"]
+args = ["clean"]
 
 [tasks.build]
+workspace = false
 command = "cargo"
 args = ["build"]
 dependencies = ["format"]
 
+[tasks.lint]
+workspace = false
+command = "cargo"
+args = ["clippy"]
+dependencies = ["format"]
+
+[tasks.release]
+workspace = false
+command = "cargo"
+args = ["build", "--release"]
+
 [tasks.manual]
 script = [
+    "mkdir -p target",
     "pandoc manual2/user.md -f markdown -t html -s -o target/user-manual.html",
     "pandoc manual2/developer.md -f markdown -t html -s -o target/developer-manual.html"
 ]

@@ -13,7 +13,6 @@
     - [API Key](./guide/api-key.md)
     - [OAuth2 Login](./guide/oauth2-login.md)
 - [API](./introduction.md)
-    - [Ping](./api/ping.md)
     - [Authentication](./introduction.md)
         - [Provider](./introduction.md)
             - [Local](./introduction.md)
