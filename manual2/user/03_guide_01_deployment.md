@@ -1,8 +1,8 @@
-# Deployment
+## Deployment
 
 TODO(manual): How to deploy ark_auth server.
 
-## Nginx
+**Nginx**
 
 Example [nginx](https://www.nginx.com/) configuration.
 

@@ -7,3 +7,6 @@
 # Ignore workspace configuration.
 /Cargo.toml
 /Cargo.lock
+
+# Manual builds.
+/manual2/*.html
