@@ -23,6 +23,6 @@ args = ["build", "--release"]
 [tasks.manual]
 script = [
     "mkdir -p target",
-    "pandoc manual2/user.md -f markdown -t html -s -o target/user-manual.html",
-    "pandoc manual2/developer.md -f markdown -t html -s -o target/developer-manual.html"
+    "pandoc manual2/user/*.md -f markdown -t html -s --toc --toc-depth=5 -o target/user-manual.html",
+    "pandoc manual2/developer/*.md -f markdown -t html -s --toc --toc-depth=5 -o target/developer-manual.html"
 ]

@@ -1,18 +1,18 @@
 # Integration
 
-The following diagram illustrates how services and Ark Auth integrate to authenticate user requests.
+The following diagram illustrates how services and ark_auth integrate to authenticate user requests.
 
 ![User request verification](../asset/integration.svg)
 
 1. User with token or key acquired by authentication method sends HTTP request to service.
-2. Service sends HTTP request to Ark Auth with its own service key, and the users token or key.
-3. Ark Auth authenticates service using the service key, and verifies user token or key.
+2. Service sends HTTP request to ark_auth with its own service key, and the users token or key.
+3. ark_auth authenticates service using the service key, and verifies user token or key.
 4. If authenticated/verified, service handles request and sends HTTP response to user.
 5. User handles HTTP response.
 
 ## Callbacks
 
-A service integrating with Ark Auth can provide the following HTTPS endpoints as callbacks.
+A service integrating with ark_auth can provide the following HTTPS endpoints as callbacks.
 
 ```shell
 GET $service_url?user_id=$id&access_token=$token&access_token_expires=$token_expires&refresh_token=$token&refresh_token_expires=$token_expires

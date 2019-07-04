@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-    # # Ark Auth service.
+    # # ark_auth service.
     # ark_auth:
     #     build: ark_auth
     #     depends_on:

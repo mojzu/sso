@@ -1,4 +1,4 @@
-//! # Ark Auth
+//! # ark_auth
 //! Library for binary application.
 #![recursion_limit = "1024"]
 
