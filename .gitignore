@@ -9,4 +9,4 @@
 /Cargo.lock
 
 # Manual builds.
-/manual2/*.html
+/manual/*.html

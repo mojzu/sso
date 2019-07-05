@@ -23,6 +23,10 @@ pub mod route {
     pub const AUTH_TOKEN_VERIFY: &str = "/v1/auth/token/verify";
     pub const AUTH_TOKEN_REFRESH: &str = "/v1/auth/token/refresh";
     pub const AUTH_TOKEN_REVOKE: &str = "/v1/auth/token/revoke";
+    pub const AUDIT: &str = "/v1/audit";
+    pub const KEY: &str = "/v1/key";
+    pub const SERVICE: &str = "/v1/service";
+    pub const USER: &str = "/v1/user";
 }
 
 // Audit types.

@@ -22,6 +22,6 @@ args = ["build", "--release"]
 
 [tasks.manual]
 script = [
-    "pandoc manual2/user/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=manual2/asset/pandoc.css --output=manual2/user.html",
-    "pandoc manual2/developer/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=manual2/asset/pandoc.css --output=manual2/developer.html"
+    "pandoc manual/user/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=manual/asset/pandoc.css --output=manual/user.html",
+    "pandoc manual/developer/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=manual/asset/pandoc.css --output=manual/developer.html"
 ]
