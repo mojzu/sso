@@ -2,7 +2,7 @@
 
 The following diagram illustrates how services and ark_auth integrate to authenticate user requests.
 
-![User request verification](manual/asset/integration.svg)
+![User request verification](docs/asset/integration.svg)
 
 1. User with token or key acquired by authentication method sends HTTP request to service.
 2. Service sends HTTP request to ark_auth with its own service key, and the users token or key.

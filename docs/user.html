@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Sam Ward" />
+  <title>ark_auth: User Manual</title>
+  <style>
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style>
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <style type="text/css">
+body {
+color: #111111;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+line-height: 1.25;
+margin-top: 2em;
+font-weight: normal;
+text-decoration: underline;
+}
+h1 {
+font-size: 3rem;
+}
+h2 {
+font-size: 2.25rem;
+}
+h3 {
+font-size: 1.5rem;
+}
+h4 {
+font-size: 1.25rem;
+}
+h5 {
+font-size: 1rem;
+}
+h6 {
+font-size: 0.875rem;
+}
+p {
+line-height: 1;
+margin: 1em 0;
+font-weight: normal;
+}
+pre,
+code {
+background-color: #f4f4f4;
+}
+</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">ark_auth: User Manual</h1>
+<p class="author">Sam Ward</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#introduction">Introduction</a><ul>
+<li><a href="#authentication-methods">Authentication Methods</a></li>
+<li><a href="#definitions">Definitions</a></li>
+</ul></li>
+<li><a href="#changelog">Changelog</a><ul>
+<li><a href="#unreleased">0.2.0 (unreleased)</a></li>
+<li><a href="#section">0.1.0 (2019-05-16)</a></li>
+</ul></li>
+<li><a href="#guides">Guides</a><ul>
+<li><a href="#deployment">Deployment</a></li>
+<li><a href="#integration">Integration</a></li>
+<li><a href="#login">Login</a></li>
+<li><a href="#reset-password">Reset Password</a></li>
+<li><a href="#update-email">Update Email</a></li>
+<li><a href="#update-password">Update Password</a></li>
+<li><a href="#api-key">API Key</a></li>
+<li><a href="#oauth2-login">OAuth2 Login</a></li>
+</ul></li>
+<li><a href="#api">API</a><ul>
+<li><a href="#ping-get-v1ping">Ping [GET /v1/ping]</a></li>
+<li><a href="#authentication">Authentication</a><ul>
+<li><a href="#local-provider">Local Provider</a><ul>
+<li><a href="#login-post-v1authproviderlocallogin">Login [POST /v1/auth/provider/local/login]</a></li>
+<li><a href="#reset-password-post-v1authproviderlocalresetpassword">Reset Password [POST /v1/auth/provider/local/reset/password]</a></li>
+<li><a href="#reset-password-confirm-post-v1authproviderlocalresetpasswordconfirm">Reset Password Confirm [POST /v1/auth/provider/local/reset/password/confirm]</a></li>
+<li><a href="#update-email-post-v1authproviderlocalupdateemail">Update Email [POST /v1/auth/provider/local/update/email]</a></li>
+<li><a href="#update-email-revoke-post-v1authproviderlocalupdateemailrevoke">Update Email Revoke [POST /v1/auth/provider/local/update/email/revoke]</a></li>
+<li><a href="#update-password-post-v1authproviderlocalupdatepassword">Update Password [POST /v1/auth/provider/local/update/password]</a></li>
+<li><a href="#update-password-revoke-post-v1authproviderlocalupdatepasswordrevoke">Update Password Revoke [POST /v1/auth/provider/local/update/password/revoke]</a></li>
+</ul></li>
+<li><a href="#github-provider">GitHub Provider</a><ul>
+<li><a href="#oauth2-request-post-v1authprovidergithuboauth2">OAuth2 Request [POST /v1/auth/provider/github/oauth2]</a></li>
+<li><a href="#oauth2-callback-get-v1authprovidergithuboauth2">OAuth2 Callback [GET /v1/auth/provider/github/oauth2]</a></li>
+</ul></li>
+<li><a href="#microsoft-provider">Microsoft Provider</a><ul>
+<li><a href="#oauth2-request-post-v1authprovidermicrosoftoauth2">OAuth2 Request [POST /v1/auth/provider/microsoft/oauth2]</a></li>
+<li><a href="#oauth2-callback-get-v1authprovidermicrosoftoauth2">OAuth2 Callback [GET /v1/auth/provider/microsoft/oauth2]</a></li>
+</ul></li>
+<li><a href="#key">Key</a><ul>
+<li><a href="#revoke-post-v1authkeyrevoke">Revoke [POST /v1/auth/key/revoke]</a></li>
+<li><a href="#verify-post-v1authkeyverify">Verify [POST /v1/auth/key/verify]</a></li>
+</ul></li>
+<li><a href="#token">Token</a><ul>
+<li><a href="#refresh-token-post-v1authtokenrefresh">Refresh Token [POST /v1/auth/token/refresh]</a></li>
+<li><a href="#revoke-token-post-v1authtokenrevoke">Revoke Token [POST /v1/auth/token/revoke]</a></li>
+<li><a href="#verify-token-post-v1authtokenverify">Verify Token [POST /v1/auth/token/verify]</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#audit">Audit</a><ul>
+<li><a href="#list-get-v1audit">List [GET /v1/audit]</a></li>
+<li><a href="#create-post-v1audit">Create [POST /v1/audit]</a></li>
+<li><a href="#read-get-v1auditid">Read [GET /v1/audit/{id}]</a></li>
+</ul></li>
+<li><a href="#key-1">Key</a><ul>
+<li><a href="#list-get-v1key">List [GET /v1/key]</a></li>
+<li><a href="#create-post-v1key">Create [POST /v1/key]</a></li>
+<li><a href="#read-get-v1keyid">Read [GET /v1/key/{id}]</a></li>
+<li><a href="#update-patch-v1keyid">Update [PATCH /v1/key/{id}]</a></li>
+<li><a href="#delete-delete-v1keyid">Delete [DELETE /v1/key/{id}]</a></li>
+</ul></li>
+<li><a href="#service">Service</a><ul>
+<li><a href="#list-get-v1service">List [GET /v1/service]</a></li>
+<li><a href="#create-post-v1service">Create [POST /v1/service]</a></li>
+<li><a href="#read-get-v1serviceid">Read [GET /v1/service/{id}]</a></li>
+<li><a href="#update-patch-v1serviceid">Update [PATCH /v1/service/{id}]</a></li>
+<li><a href="#delete-delete-v1serviceid">Delete [DELETE /v1/service/{id}]</a></li>
+</ul></li>
+<li><a href="#user">User</a><ul>
+<li><a href="#list-get-v1user">List [GET /v1/user]</a></li>
+<li><a href="#create-post-v1user">Create [POST /v1/user]</a></li>
+<li><a href="#read-get-v1userid">Read [GET /v1/user/{id}]</a></li>
+<li><a href="#update-patch-v1userid">Update [PATCH /v1/user/{id}]</a></li>
+<li><a href="#delete-delete-v1userid">Delete [DELETE /v1/user/{id}]</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="introduction">Introduction</h1>
+<p><strong>Warning: The author of this application is not a security expert, nor has the code undergone any kind of review or verification. Use it at your own risk!</strong></p>
+<p><code>ark_auth</code> is an authentication server, it is intended to be used as a backend for services which must authenticate their users requests.</p>
+<h2 id="authentication-methods">Authentication Methods</h2>
+<p>Authentication methods are exposed via a <a href="https://en.wikipedia.org/wiki/Representational_state_transfer">REST</a> API, and are organised into provider groups. The following provider groups are currently supported: <code>local</code>, <code>github</code>, <code>microsoft</code>. Depending on the provider, the following user authentication methods are supported.</p>
+<p><strong>Password Login (Local)</strong></p>
+<p>Users can authenticate to a service using a unique email address and password. A successful login produces time-limited, revokable access and refresh <a href="https://jwt.io/">JSON web tokens</a>, which can be used to authenticate user requests and produce new tokens. This method also has the following features.</p>
+<ul>
+<li>User passwords can be reset via email.</li>
+<li>User email address and password can be updated, notification emails containing revokation links are emailed to the user in case of compromised access.</li>
+<li>Passwords are stored as <a href="https://en.wikipedia.org/wiki/Bcrypt">Bcrypt</a> hashes.</li>
+<li>Password strength is checked by <a href="https://github.com/shssoichiro/zxcvbn-rs">zxcvbn</a>.</li>
+<li>Password leaks are checked by <a href="https://haveibeenpwned.com/Passwords">Pwned Passwords</a>.</li>
+<li>Users can be created without passwords to disable password login.</li>
+</ul>
+<p><strong>API Key (Local)</strong></p>
+<p>Users can authenticate requests to a service using a unique, random key. This must be distributed by the service and is not time-limited, although is revokable by the service in case of compromised access.</p>
+<p><strong>OAuth2 (GitHub, Microsoft)</strong></p>
+<p>Users can authenticate to services via supported OAuth2 providers. Successful authentication by OAuth2 server produces time-limited, revokable access and refresh <a href="https://jwt.io/">JSON web tokens</a>, which can be used to authenticate user requests and produce new tokens.</p>
+<h2 id="definitions">Definitions</h2>
+<p>The following terms are used throughout this manual.</p>
+<p><strong>User</strong></p>
+<p>A person or API consumer identified by a unique email address who wants to interact with one or more services registered with <code>ark_auth</code>.</p>
+<p><strong>Service</strong></p>
+<p>An application that must authenticate user requests, registered as a service with <code>ark_auth</code> using a name and callback URL.</p>
+<p><strong>Key</strong></p>
+<p>Random, unique keys produced by <code>ark_auth</code>. Keys may be revoked to prevent use.</p>
+<p><strong>Root Key</strong></p>
+<p>Keys linked to no services or users, produced by command line and can be used to manage <code>ark_auth</code> via HTTP requests.</p>
+<p><strong>Service Key</strong></p>
+<p>Keys linked to one service, used by <code>ark_auth</code> to authenticate HTTP requests from services.</p>
+<p><strong>User Key</strong></p>
+<p>Keys linked to one user and one service, allows user to authenticate with the linked service.</p>
+<p><strong>Token</strong></p>
+<p><a href="https://jwt.io/">JSON web tokens</a> used for time-limited authentication, produced for users from a user key. Revoking the key used to produce a token also revokes the token.</p>
+<h1 id="changelog">Changelog</h1>
+<h2 id="unreleased">0.2.0 (unreleased)</h2>
+<p><strong>Added</strong></p>
+<ul>
+<li>Added audit logging to authentication routes.</li>
+<li>Added is enabled flag to services, users and keys, added is revoked flag to keys.</li>
+<li>Added synchronous and asynchronous clients to library.</li>
+<li>Added <code>email_eq</code> query option to user list route.</li>
+<li>Added local provider update user email, password routes.</li>
+</ul>
+<p><strong>Changed</strong></p>
+<ul>
+<li>Changed database schema to use strings as IDs.</li>
+<li>Changed list route endpoints to return data ID arrays.</li>
+<li>Changed CSRF key, value pairs to use TTL in seconds.</li>
+<li>Changed token type handling, user token split into access and refresh tokens.</li>
+<li>Moved OAuth2 routes into provider groups.</li>
+<li>Moved login, reset routes into local provider group.</li>
+<li>Upgraded to version 3 of <code>oauth2</code> library.</li>
+<li>Removed <code>skeptic</code> from tests, use Cargo test runner.</li>
+<li>Moved route types to public api module.</li>
+</ul>
+<p><strong>Fixed</strong></p>
+<ul>
+<li>Fixed not validating service URLs before save using URL parse, improved URL error handling.</li>
+<li>Fixed inconsistent core error display strings.</li>
+<li>Fixed duplicate user email address returned internal server error code.</li>
+<li>Fixed Lettre email error type handling.</li>
+</ul>
+<h2 id="section">0.1.0 (2019-05-16)</h2>
+<ul>
+<li>First version.</li>
+</ul>
+<h1 id="guides">Guides</h1>
+<h2 id="deployment">Deployment</h2>
+<p>TODO(docs): How to deploy ark_auth server.</p>
+<p><strong>Nginx</strong></p>
+<p>Example <a href="https://www.nginx.com/">nginx</a> configuration.</p>
+<pre class="nginx"><code>http {
+    # HTTPS and headers configuration.
+    # https://www.nginx.com/blog/using-free-ssltls-certificates-from-lets-encrypt-with-nginx/
+    # https://www.owasp.org/index.php/OWASP_Secure_Headers_Project
+
+    # API request rate limit.
+    # https://www.nginx.com/blog/rate-limiting-nginx/
+    limit_req_zone $binary_remote_addr zone=api_zone:10m rate=50r/s;
+
+    # API proxy server.
+    # https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
+    location /api {
+        limit_req zone=api_zone burst=100 nodelay;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass http://127.0.0.1:4000;
+    }
+}</code></pre>
+<h2 id="integration">Integration</h2>
+<p>The following diagram illustrates how services and ark_auth integrate to authenticate user requests.</p>
+<figure>
+<img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiIHN0YW5kYWxvbmU9Im5vIj8+PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAyMDAxMDkwNC8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MzIiIGhlaWdodD0iNTMzIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PHNvdXJjZT48IVtDREFUQVtOb3RlIG92ZXIgVXNlcjogMS4gVXNlciBUb2tlbiBvciBLZXkKVXNlci0+PlNlcnZpY2U6IEhUVFAgUmVxdWVzdApOb3RlIG92ZXIgU2VydmljZTogMi4gU2VydmljZSBLZXkKU2VydmljZS0+PmFya19hdXRoOiBIVFRQIFJlcXVlc3QKTm90ZSBvdmVyIGFya19hdXRoOiAzLiBWZXJpZnkKYXJrX2F1dGgtPj5TZXJ2aWNlOiBIVFRQIFJlc3BvbnNlCk5vdGUgb3ZlciBTZXJ2aWNlOiA0LiBSZXF1ZXN0IEhhbmRsZXIKU2VydmljZS0+PlVzZXI6IEhUVFAgUmVzcG9uc2UKTm90ZSBvdmVyIFVzZXI6IDUuIFJlc3BvbnNlIEhhbmRsZXJdXT48L3NvdXJjZT48ZGVzYz48L2Rlc2M+PGRlZnM+PG1hcmtlciB2aWV3Qm94PSIwIDAgNSA1IiBtYXJrZXJXaWR0aD0iNSIgbWFya2VySGVpZ2h0PSI1IiBvcmllbnQ9ImF1dG8iIHJlZlg9IjUiIHJlZlk9IjIuNSIgaWQ9Im1hcmtlckFycm93QmxvY2siPjxwYXRoIGQ9Ik0gMCAwIEwgNSAyLjUgTCAwIDUgeiI+PC9wYXRoPjwvbWFya2VyPjxtYXJrZXIgdmlld0JveD0iMCAwIDkuNiAxNiIgbWFya2VyV2lkdGg9IjQiIG1hcmtlckhlaWdodD0iMTYiIG9yaWVudD0iYXV0byIgcmVmWD0iOS42IiByZWZZPSI4IiBpZD0ibWFya2VyQXJyb3dPcGVuIj48cGF0aCBkPSJNIDkuNiw4IDEuOTIsMTYgMCwxMy43IDUuNzYsOCAwLDIuMjg2IDEuOTIsMCA5LjYsOCB6Ij48L3BhdGg+PC9tYXJrZXI+PC9kZWZzPjxnIGNsYXNzPSJ0aXRsZSI+PC9nPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iODEiIHk9IjIwIiB3aWR0aD0iNTgiIGhlaWdodD0iMzguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjkxIiB5PSI0NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iOTEiPlVzZXI8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9ImFjdG9yIj48cmVjdCB4PSI4MSIgeT0iNDc1IiB3aWR0aD0iNTgiIGhlaWdodD0iMzguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjkxIiB5PSI1MDAiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjkxIj5Vc2VyPC90c3Bhbj48L3RleHQ+PC9nPjxsaW5lIHgxPSIxMTAiIHgyPSIxMTAiIHkxPSI1OC41IiB5Mj0iNDc1IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIj48L2xpbmU+PGcgY2xhc3M9ImFjdG9yIj48cmVjdCB4PSIyMTAuMjUiIHk9IjIwIiB3aWR0aD0iODYuNSIgaGVpZ2h0PSIzOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMjIwLjI1IiB5PSI0NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjIwLjI1Ij5TZXJ2aWNlPC90c3Bhbj48L3RleHQ+PC9nPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iMjEwLjI1IiB5PSI0NzUiIHdpZHRoPSI4Ni41IiBoZWlnaHQ9IjM4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIyMjAuMjUiIHk9IjUwMCIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjIwLjI1Ij5TZXJ2aWNlPC90c3Bhbj48L3RleHQ+PC9nPjxsaW5lIHgxPSIyNTMuNSIgeDI9IjI1My41IiB5MT0iNTguNSIgeTI9IjQ3NSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iMzQ5IiB5PSIyMCIgd2lkdGg9Ijk2IiBoZWlnaHQ9IjM4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIzNTkiIHk9IjQ1IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIzNTkiPmFya19hdXRoPC90c3Bhbj48L3RleHQ+PC9nPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iMzQ5IiB5PSI0NzUiIHdpZHRoPSI5NiIgaGVpZ2h0PSIzOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMzU5IiB5PSI1MDAiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjM1OSI+YXJrX2F1dGg8L3RzcGFuPjwvdGV4dD48L2c+PGxpbmUgeDE9IjM5NyIgeDI9IjM5NyIgeTE9IjU4LjUiIHkyPSI0NzUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9Im5vbmUiPjwvbGluZT48ZyBjbGFzcz0ibm90ZSI+PHJlY3QgeD0iMTAiIHk9Ijc4LjUiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjE1IiB5PSI5OC41IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIxNSI+MS4gVXNlciBUb2tlbiBvciBLZXk8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9InNpZ25hbCI+PHRleHQgeD0iMTI0Ljc1IiB5PSIxMzcuNzUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjEyNC43NSI+SFRUUCBSZXF1ZXN0PC90c3Bhbj48L3RleHQ+PGxpbmUgeDE9IjExMCIgeDI9IjI1My41IiB5MT0iMTQ1LjUiIHkyPSIxNDUuNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsgbWFya2VyLWVuZDogdXJsKCZxdW90OyNtYXJrZXJBcnJvd09wZW4mcXVvdDspOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIj48L2xpbmU+PC9nPjxnIGNsYXNzPSJub3RlIj48cmVjdCB4PSIxODIiIHk9IjE2NS41IiB3aWR0aD0iMTQzIiBoZWlnaHQ9IjI4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIxODciIHk9IjE4NS41IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIxODciPjIuIFNlcnZpY2UgS2V5PC90c3Bhbj48L3RleHQ+PC9nPjxnIGNsYXNzPSJzaWduYWwiPjx0ZXh0IHg9IjI2OC4yNSIgeT0iMjI0Ljc1IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIyNjguMjUiPkhUVFAgUmVxdWVzdDwvdHNwYW4+PC90ZXh0PjxsaW5lIHgxPSIyNTMuNSIgeDI9IjM5NyIgeTE9IjIzMi41IiB5Mj0iMjMyLjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IG1hcmtlci1lbmQ6IHVybCgmcXVvdDsjbWFya2VyQXJyb3dPcGVuJnF1b3Q7KTsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjwvZz48ZyBjbGFzcz0ibm90ZSI+PHJlY3QgeD0iMzQ5LjI1IiB5PSIyNTIuNSIgd2lkdGg9Ijk1LjUiIGhlaWdodD0iMjguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjM1NC4yNSIgeT0iMjcyLjUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjM1NC4yNSI+My4gVmVyaWZ5PC90c3Bhbj48L3RleHQ+PC9nPjxnIGNsYXNzPSJzaWduYWwiPjx0ZXh0IHg9IjI2My41IiB5PSIzMTEuNzUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjI2My41Ij5IVFRQIFJlc3BvbnNlPC90c3Bhbj48L3RleHQ+PGxpbmUgeDE9IjM5NyIgeDI9IjI1My41IiB5MT0iMzE5LjUiIHkyPSIzMTkuNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsgbWFya2VyLWVuZDogdXJsKCZxdW90OyNtYXJrZXJBcnJvd09wZW4mcXVvdDspOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIj48L2xpbmU+PC9nPjxnIGNsYXNzPSJub3RlIj48cmVjdCB4PSIxNjMiIHk9IjMzOS41IiB3aWR0aD0iMTgxIiBoZWlnaHQ9IjI4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIxNjgiIHk9IjM1OS41IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIxNjgiPjQuIFJlcXVlc3QgSGFuZGxlcjwvdHNwYW4+PC90ZXh0PjwvZz48ZyBjbGFzcz0ic2lnbmFsIj48dGV4dCB4PSIxMjAiIHk9IjM5OC43NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMTIwIj5IVFRQIFJlc3BvbnNlPC90c3Bhbj48L3RleHQ+PGxpbmUgeDE9IjI1My41IiB4Mj0iMTEwIiB5MT0iNDA2LjUiIHkyPSI0MDYuNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsgbWFya2VyLWVuZDogdXJsKCZxdW90OyNtYXJrZXJBcnJvd09wZW4mcXVvdDspOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIj48L2xpbmU+PC9nPjxnIGNsYXNzPSJub3RlIj48cmVjdCB4PSIxNC43NSIgeT0iNDI2LjUiIHdpZHRoPSIxOTAuNSIgaGVpZ2h0PSIyOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMTkuNzUiIHk9IjQ0Ni41IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIxOS43NSI+NS4gUmVzcG9uc2UgSGFuZGxlcjwvdHNwYW4+PC90ZXh0PjwvZz48L3N2Zz4K" alt /><figcaption>User request verification</figcaption>
+</figure>
+<ol type="1">
+<li>User with token or key acquired by authentication method sends HTTP request to service.</li>
+<li>Service sends HTTP request to ark_auth with its own service key, and the users token or key.</li>
+<li>ark_auth authenticates service using the service key, and verifies user token or key.</li>
+<li>If authenticated/verified, service handles request and sends HTTP response to user.</li>
+<li>User handles HTTP response.</li>
+</ol>
+<p><strong>Callbacks</strong></p>
+<p>A service integrating with ark_auth can provide the following HTTPS endpoints as callbacks.</p>
+<pre class="shell"><code>GET $service_url?user_id=$id&amp;access_token=$token&amp;access_token_expires=$token_expires&amp;refresh_token=$token&amp;refresh_token_expires=$token_expires</code></pre>
+<p>User is redirected to this URL after successful authentication by an OAuth2 provider. The service can verify the <code>access_token</code> query parameter to authenticate the user and their requests.</p>
+<pre class="shell"><code>GET $service_url?email=$email&amp;reset_password_token=$token</code></pre>
+<p>User requests this URL by clicking reset password email link. The service can take password input from the user, and then make a reset password confirm request with the <code>reset_password_token</code> query parameter.</p>
+<pre class="shell"><code>GET $service_url?email=$email&amp;old_email=$email&amp;update_email_token=$token</code></pre>
+<p>User requests this URL by clicking update email revoke link. The service can present the user information on securing their account, and then make an update email revoke request with the <code>update_email_token</code> query parameter. This will disable the user and all user keys.</p>
+<pre class="shell"><code>GET $service_url?email=$email&amp;update_password_token=$token</code></pre>
+<p>User requests this URL by clicking update password revoke link. The service can present the user information on securing their account, and then make an update password revoke request with the <code>update_password_token</code> query parameter. This will disable the user and all user keys.</p>
+<h2 id="login">Login</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>ark_auth create-service-with-key $service_name $service_url
+ark_auth start-server</code></pre>
+<p>Service creates a user with password.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>User makes login request to service, services makes a login request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/auth/provider/local/login</code></pre>
+<p>Service receives token response, access token can be verified to authenticate requests.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$access_token&quot;}&#39; \
+  $server_url/v1/auth/token/verify</code></pre>
+<p>Refresh token can be used to refresh token.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$refresh_token&quot;}&#39; \
+  $server_url/v1/auth/token/refresh</code></pre>
+<p>Access or refresh token can be revoked, this will disable the key created earlier and prevent verify and refresh.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
+  $server_url/v1/auth/token/revoke</code></pre>
+<h2 id="reset-password">Reset Password</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>ark_auth create-service-with-key $service_name $service_url
+ark_auth start-server</code></pre>
+<p>Service creates a user with password.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>User makes reset password request to service, service makes a reset password request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;email&quot;:&quot;$user_email&quot;}&#39; \
+  $server_url/v1/auth/provider/local/reset/password</code></pre>
+<p>Email containing URL is sent to user email address, URL in format <code>$service_url?email=$user_email&amp;reset_password_token=$token</code>.</p>
+<p>Service receives token via query parameter and makes reset password confirm request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$token&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/auth/provider/local/reset/password/confirm</code></pre>
+<p>User makes login request to service, service makes a login request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/auth/provider/local/login</code></pre>
+<h2 id="update-email">Update Email</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>ark_auth create-service-with-key $service_name $service_url
+ark_auth start-server</code></pre>
+<p>Service creates a user with password.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>User makes update email request to service, service makes an update email request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;key&quot;:&quot;$user_key&quot;,&quot;password&quot;:&quot;$user_password&quot;,&quot;new_email&quot;:&quot;$new_user_email&quot;}&#39; \
+  $server_url/v1/auth/provider/local/update/email</code></pre>
+<p>User makes login request to service, service makes a login request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;email&quot;:&quot;$new_user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/auth/provider/local/login</code></pre>
+<p>After successful update, an email containing URL is sent to the old user email address, URL in format: <code>$service_url?email=$email&amp;update_email_token=$token</code>.</p>
+<p>If user opens URL, service receives token via query parameter and makes update email revoke request, this will disable user and all linked keys and prevent login.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
+  $server_url/v1/auth/provider/local/update/email/revoke</code></pre>
+<h2 id="update-password">Update Password</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>ark_auth create-service-with-key $service_name $service_url
+ark_auth start-server</code></pre>
+<p>Service creates a user with password.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>User makes update password request to service, service makes an update password request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;key&quot;:&quot;$user_key&quot;,&quot;password&quot;:&quot;$user_password&quot;,&quot;new_password&quot;:&quot;$new_user_password&quot;}&#39; \
+  $server_url/v1/auth/provider/local/update/password</code></pre>
+<p>User makes login request to service, service makes a login request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$new_user_password&quot;}&#39; \
+  $server_url/v1/auth/provider/local/login</code></pre>
+<p>After successful update, an email containing URL is sent to user email address, URL in format: <code>$service_url?email=$email&amp;update_password_token=$token</code>.</p>
+<p>If user opens URL, service receives token via query parameter and makes update password revoke request, this will disable user and all linked keys and prevent login.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
+  $server_url/v1/auth/provider/local/update/password/revoke</code></pre>
+<h2 id="api-key">API Key</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>ark_auth create-service-with-key $service_name $service_url
+ark_auth start-server</code></pre>
+<p>Service creates a user without password.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>User makes requests to service with key value, key can be verified to authenticate requests.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39; \
+  $server_url/v1/auth/key/verify</code></pre>
+<p>Key can be revoked, this will disable the key created earlier and prevent verify.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39; \
+  $server_url/v1/auth/key/revoke</code></pre>
+<h2 id="oauth2-login">OAuth2 Login</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>ark_auth create-service-with-key $service_name $service_url
+ark_auth start-server</code></pre>
+<p>Service creates a user with email address matching OAuth2 provider.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>User makes OAuth2 login request to service.</p>
+<p>Service requests a redirect URL for OAuth2 provider, supported providers are <code>github</code>, <code>microsoft</code>.</p>
+<pre class="shell"><code>curl --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  $server_url/v1/auth/provider/$oauth2_provider/oauth2</code></pre>
+<p>Service redirects user to returned URL, OAuth2 provider authentication occurs.</p>
+<p>If successful, OAuth2 provider redirects user to <code>$server_url/v1/auth/provider/$oauth2_provider/oauth2</code> with required query parameters.</p>
+<p>Query parameters are exchanged for API access token, authenticated email address is requested from OAuth2 provider APIs.</p>
+<p>If authenticated email returned by API matches a user email address, and user has key for specified service, a user token is produced and the user is redirected to <code>$service_url?access_token=$token&amp;refresh_token=$token</code>.</p>
+<p>Service receives access token and refresh token via query parameters. Service can verify access token to authenticate requests.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$access_token&quot;}&#39; \
+  $server_url/v1/auth/token/verify</code></pre>
+<p>Refresh token can be used to refresh token.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$refresh_token&quot;}&#39; \
+  $server_url/v1/auth/token/refresh</code></pre>
+<p>Access or refresh token can be revoked, this will disable the key created earlier and prevent verify and refresh.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
+  $server_url/v1/auth/token/revoke</code></pre>
+<h1 id="api">API</h1>
+<h2 id="ping-get-v1ping">Ping [GET /v1/ping]</h2>
+<p>Uptime test route, authentication is not required for this route.</p>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb43-1"><a href="#cb43-1"></a><span class="er">&quot;pong&quot;</span></span></code></pre></div>
+<h2 id="authentication">Authentication</h2>
+<h3 id="local-provider">Local Provider</h3>
+<h4 id="login-post-v1authproviderlocallogin">Login [POST /v1/auth/provider/local/login]</h4>
+<p>Login with email address and password.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb44-1"><a href="#cb44-1"></a><span class="fu">{</span></span>
+<span id="cb44-2"><a href="#cb44-2"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;user@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb44-3"><a href="#cb44-3"></a>  <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;guest&quot;</span></span>
+<span id="cb44-4"><a href="#cb44-4"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>email</code>: User email address (required).</li>
+<li><code>password</code>: User password (required).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb45-1"><a href="#cb45-1"></a><span class="fu">{</span></span>
+<span id="cb45-2"><a href="#cb45-2"></a>  <span class="dt">&quot;meta&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb45-3"><a href="#cb45-3"></a>    <span class="dt">&quot;password_strength&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb45-4"><a href="#cb45-4"></a>    <span class="dt">&quot;password_pwned&quot;</span><span class="fu">:</span> <span class="kw">false</span></span>
+<span id="cb45-5"><a href="#cb45-5"></a>  <span class="fu">},</span></span>
+<span id="cb45-6"><a href="#cb45-6"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb45-7"><a href="#cb45-7"></a>    <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb45-8"><a href="#cb45-8"></a>    <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...6eEvY&quot;</span><span class="fu">,</span></span>
+<span id="cb45-9"><a href="#cb45-9"></a>    <span class="dt">&quot;token_expires&quot;</span><span class="fu">:</span> <span class="dv">1555881550</span></span>
+<span id="cb45-10"><a href="#cb45-10"></a>  <span class="fu">}</span></span>
+<span id="cb45-11"><a href="#cb45-11"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>meta.password_strength</code>: Password strength score by <code>zxcvbn</code>, null if scoring failed.</li>
+<li><code>meta.password_pwned</code>: True if password detected by <code>haveibeenpwned.com</code>, null if request failed or feature disabled.</li>
+<li><code>data.user_id</code>: User ID.</li>
+<li><code>data.token</code>: JWT authentication token for user.</li>
+<li><code>data.token_expires</code>: JWT expiry time, unix timestamp.</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>User email address is invalid or unknown.</li>
+<li>User password is invalid or incorrect or null.</li>
+<li>User is not assigned key for service.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="reset-password-post-v1authproviderlocalresetpassword">Reset Password [POST /v1/auth/provider/local/reset/password]</h4>
+<p>Reset password request for email address.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb46-1"><a href="#cb46-1"></a><span class="fu">{</span></span>
+<span id="cb46-2"><a href="#cb46-2"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;user@example.com&quot;</span></span>
+<span id="cb46-3"><a href="#cb46-3"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>email</code>: User email address (required).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>User email address is invalid or unknown.</li>
+<li>User is not assigned key for service.</li>
+<li>User password is null.</li>
+<li>Unable to send password reset email.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="reset-password-confirm-post-v1authproviderlocalresetpasswordconfirm">Reset Password Confirm [POST /v1/auth/provider/local/reset/password/confirm]</h4>
+<p>Confirm reset password request.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb47-1"><a href="#cb47-1"></a><span class="fu">{</span></span>
+<span id="cb47-2"><a href="#cb47-2"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...6eEvY&quot;</span><span class="fu">,</span></span>
+<span id="cb47-3"><a href="#cb47-3"></a>  <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;guest&quot;</span></span>
+<span id="cb47-4"><a href="#cb47-4"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>token</code>: JWT reset authentication token for user (required).</li>
+<li><code>password</code>: User password (required).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb48-1"><a href="#cb48-1"></a><span class="fu">{</span></span>
+<span id="cb48-2"><a href="#cb48-2"></a>  <span class="dt">&quot;meta&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb48-3"><a href="#cb48-3"></a>    <span class="dt">&quot;password_strength&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb48-4"><a href="#cb48-4"></a>    <span class="dt">&quot;password_pwned&quot;</span><span class="fu">:</span> <span class="kw">false</span></span>
+<span id="cb48-5"><a href="#cb48-5"></a>  <span class="fu">}</span></span>
+<span id="cb48-6"><a href="#cb48-6"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>meta.password_strength</code>: Password strength score by <code>zxcvbn</code>, null if scoring failed.</li>
+<li><code>meta.password_pwned</code>: True if password detected by <code>haveibeenpwned.com</code>, null if request failed or feature disabled.</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>Token is invalid or has been used.</li>
+<li>User password is invalid.</li>
+<li>User is not assigned key for service.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="update-email-post-v1authproviderlocalupdateemail">Update Email [POST /v1/auth/provider/local/update/email]</h4>
+<p>Update email request for user.</p>
+<h4 id="update-email-revoke-post-v1authproviderlocalupdateemailrevoke">Update Email Revoke [POST /v1/auth/provider/local/update/email/revoke]</h4>
+<p>Revoke update email request for user.</p>
+<h4 id="update-password-post-v1authproviderlocalupdatepassword">Update Password [POST /v1/auth/provider/local/update/password]</h4>
+<p>Update password request for user.</p>
+<h4 id="update-password-revoke-post-v1authproviderlocalupdatepasswordrevoke">Update Password Revoke [POST /v1/auth/provider/local/update/password/revoke]</h4>
+<p>Revoke update password request for user.</p>
+<h3 id="github-provider">GitHub Provider</h3>
+<h4 id="oauth2-request-post-v1authprovidergithuboauth2">OAuth2 Request [POST /v1/auth/provider/github/oauth2]</h4>
+<p>Request an OAuth2 authentication redirect URL.</p>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb49"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb49-1"><a href="#cb49-1"></a><span class="fu">{</span></span>
+<span id="cb49-2"><a href="#cb49-2"></a>  <span class="dt">&quot;url&quot;</span><span class="fu">:</span> <span class="st">&quot;https://github.com/login/oauth/authorize?...JAMBQ&quot;</span></span>
+<span id="cb49-3"><a href="#cb49-3"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>url</code>: Authentication redirect URL.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="oauth2-callback-get-v1authprovidergithuboauth2">OAuth2 Callback [GET /v1/auth/provider/github/oauth2]</h4>
+<p>User redirected here by GitHub OAuth2 server after successful authentication.</p>
+<h3 id="microsoft-provider">Microsoft Provider</h3>
+<h4 id="oauth2-request-post-v1authprovidermicrosoftoauth2">OAuth2 Request [POST /v1/auth/provider/microsoft/oauth2]</h4>
+<p>Request an OAuth2 authentication redirect URL.</p>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb50"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb50-1"><a href="#cb50-1"></a><span class="fu">{</span></span>
+<span id="cb50-2"><a href="#cb50-2"></a>  <span class="dt">&quot;url&quot;</span><span class="fu">:</span> <span class="st">&quot;https://login.microsoftonline.com/common/oauth2/v2.0/authorize?...aRgyE&quot;</span></span>
+<span id="cb50-3"><a href="#cb50-3"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>url</code>: Authentication redirect URL.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="oauth2-callback-get-v1authprovidermicrosoftoauth2">OAuth2 Callback [GET /v1/auth/provider/microsoft/oauth2]</h4>
+<p>User redirected here by Microsoft OAuth2 server after successful authentication.</p>
+<h3 id="key">Key</h3>
+<h4 id="revoke-post-v1authkeyrevoke">Revoke [POST /v1/auth/key/revoke]</h4>
+<p>Revoke a user key, any associated tokens will become invalid.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb51-1"><a href="#cb51-1"></a><span class="fu">{</span></span>
+<span id="cb51-2"><a href="#cb51-2"></a>  <span class="dt">&quot;key&quot;</span><span class="fu">:</span> <span class="st">&quot;5a044..4d37c&quot;</span></span>
+<span id="cb51-3"><a href="#cb51-3"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>key</code>: User key (required).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>Key is invalid.</li>
+<li>Key is for a service.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="verify-post-v1authkeyverify">Verify [POST /v1/auth/key/verify]</h4>
+<p>Verify user key.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb52"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb52-1"><a href="#cb52-1"></a><span class="fu">{</span></span>
+<span id="cb52-2"><a href="#cb52-2"></a>  <span class="dt">&quot;key&quot;</span><span class="fu">:</span> <span class="st">&quot;5a044..4d37c&quot;</span></span>
+<span id="cb52-3"><a href="#cb52-3"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>key</code>: User key (required).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb53"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb53-1"><a href="#cb53-1"></a><span class="fu">{</span></span>
+<span id="cb53-2"><a href="#cb53-2"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb53-3"><a href="#cb53-3"></a>    <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb53-4"><a href="#cb53-4"></a>    <span class="dt">&quot;key&quot;</span><span class="fu">:</span> <span class="st">&quot;0e12c...e693f&quot;</span></span>
+<span id="cb53-5"><a href="#cb53-5"></a>  <span class="fu">}</span></span>
+<span id="cb53-6"><a href="#cb53-6"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>data.user_id</code>: User ID.</li>
+<li><code>data.key</code>: User key.</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>Key is invalid.</li>
+<li>Key is for a service.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h3 id="token">Token</h3>
+<h4 id="refresh-token-post-v1authtokenrefresh">Refresh Token [POST /v1/auth/token/refresh]</h4>
+<p>Refresh user token, creates new token with updated expiry time.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb54"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb54-1"><a href="#cb54-1"></a><span class="fu">{</span></span>
+<span id="cb54-2"><a href="#cb54-2"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...Dlgu4&quot;</span></span>
+<span id="cb54-3"><a href="#cb54-3"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>token</code>: JWT authentication token for user (required).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb55"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb55-1"><a href="#cb55-1"></a><span class="fu">{</span></span>
+<span id="cb55-2"><a href="#cb55-2"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb55-3"><a href="#cb55-3"></a>    <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb55-4"><a href="#cb55-4"></a>    <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...0ZT7k&quot;</span><span class="fu">,</span></span>
+<span id="cb55-5"><a href="#cb55-5"></a>    <span class="dt">&quot;token_expires&quot;</span><span class="fu">:</span> <span class="dv">1555957470</span></span>
+<span id="cb55-6"><a href="#cb55-6"></a>  <span class="fu">}</span></span>
+<span id="cb55-7"><a href="#cb55-7"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>data.user_id</code>: User ID.</li>
+<li><code>data.token</code>: JWT authentication token for user.</li>
+<li><code>data.token_expires</code>: JWT expiry time, unix timestamp.</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>Token is invalid.</li>
+<li>Token is not for authorised service.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="revoke-token-post-v1authtokenrevoke">Revoke Token [POST /v1/auth/token/revoke]</h4>
+<p>Revoke user token, deletes associated key to prevent reuse.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb56"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb56-1"><a href="#cb56-1"></a><span class="fu">{</span></span>
+<span id="cb56-2"><a href="#cb56-2"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...Dlgu4&quot;</span></span>
+<span id="cb56-3"><a href="#cb56-3"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>token</code>: JWT authentication token for user (required).</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>Token is invalid.</li>
+<li>Token is not for authorised service.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="verify-token-post-v1authtokenverify">Verify Token [POST /v1/auth/token/verify]</h4>
+<p>Verify user token.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb57-1"><a href="#cb57-1"></a><span class="fu">{</span></span>
+<span id="cb57-2"><a href="#cb57-2"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...Dlgu4&quot;</span></span>
+<span id="cb57-3"><a href="#cb57-3"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>token</code>: JWT authentication token for user (required).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb58"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb58-1"><a href="#cb58-1"></a><span class="fu">{</span></span>
+<span id="cb58-2"><a href="#cb58-2"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb58-3"><a href="#cb58-3"></a>    <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb58-4"><a href="#cb58-4"></a>    <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...Dlgu4&quot;</span><span class="fu">,</span></span>
+<span id="cb58-5"><a href="#cb58-5"></a>    <span class="dt">&quot;token_expires&quot;</span><span class="fu">:</span> <span class="dv">1555957164</span></span>
+<span id="cb58-6"><a href="#cb58-6"></a>  <span class="fu">}</span></span>
+<span id="cb58-7"><a href="#cb58-7"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>data.user_id</code>: User ID.</li>
+<li><code>data.token</code>: JWT authentication token for user.</li>
+<li><code>data.token_expires</code>: JWT expiry time, unix timestamp.</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>Token is invalid.</li>
+<li>Token is not for authorised service.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h2 id="audit">Audit</h2>
+<h4 id="list-get-v1audit">List [GET /v1/audit]</h4>
+<h4 id="create-post-v1audit">Create [POST /v1/audit]</h4>
+<h4 id="read-get-v1auditid">Read [GET /v1/audit/{id}]</h4>
+<h2 id="key-1">Key</h2>
+<h4 id="list-get-v1key">List [GET /v1/key]</h4>
+<p>List keys.</p>
+<p><strong>Request</strong></p>
+<p>Query parameters: <code>?gt=X&amp;lt=Y&amp;limit=Z</code></p>
+<ul>
+<li><code>gt</code>: Greater than ID (optional).</li>
+<li><code>lt</code>: Less than ID (optional).</li>
+<li><code>limit</code>: Limit number of returned items (optional).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb59"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb59-1"><a href="#cb59-1"></a><span class="fu">{</span></span>
+<span id="cb59-2"><a href="#cb59-2"></a>    <span class="dt">&quot;meta&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb59-3"><a href="#cb59-3"></a>        <span class="dt">&quot;gt&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
+<span id="cb59-4"><a href="#cb59-4"></a>        <span class="dt">&quot;lt&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb59-5"><a href="#cb59-5"></a>        <span class="dt">&quot;limit&quot;</span><span class="fu">:</span> <span class="dv">10</span></span>
+<span id="cb59-6"><a href="#cb59-6"></a>    <span class="fu">},</span></span>
+<span id="cb59-7"><a href="#cb59-7"></a>    <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb59-8"><a href="#cb59-8"></a>        <span class="dv">1</span><span class="ot">,</span></span>
+<span id="cb59-9"><a href="#cb59-9"></a>        <span class="er">...</span></span>
+<span id="cb59-10"><a href="#cb59-10"></a>    <span class="ot">]</span></span>
+<span id="cb59-11"><a href="#cb59-11"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>meta.gt</code>: Greater than ID, or null.</li>
+<li><code>meta.lt</code>: Less than ID, or null.</li>
+<li><code>meta.limit</code>: Returned items limit.</li>
+<li><code>data</code>: Array of IDs.</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request query is invalid.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is missing or invalid.</li>
+</ul>
+<h4 id="create-post-v1key">Create [POST /v1/key]</h4>
+<p>Create key.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb60"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb60-1"><a href="#cb60-1"></a><span class="fu">{</span></span>
+<span id="cb60-2"><a href="#cb60-2"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Name&quot;</span><span class="fu">,</span></span>
+<span id="cb60-3"><a href="#cb60-3"></a>    <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">2</span></span>
+<span id="cb60-4"><a href="#cb60-4"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>name</code>: Key name (required).</li>
+<li><code>user_id</code>: User ID (required).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb61"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb61-1"><a href="#cb61-1"></a><span class="fu">{</span></span>
+<span id="cb61-2"><a href="#cb61-2"></a>    <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb61-3"><a href="#cb61-3"></a>        <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...92Z&quot;</span><span class="fu">,</span></span>
+<span id="cb61-4"><a href="#cb61-4"></a>        <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...92Z&quot;</span><span class="fu">,</span></span>
+<span id="cb61-5"><a href="#cb61-5"></a>        <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb61-6"><a href="#cb61-6"></a>        <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Key Name&quot;</span><span class="fu">,</span></span>
+<span id="cb61-7"><a href="#cb61-7"></a>        <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;84b...dc6&quot;</span><span class="fu">,</span></span>
+<span id="cb61-8"><a href="#cb61-8"></a>        <span class="dt">&quot;service_id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb61-9"><a href="#cb61-9"></a>        <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">1</span></span>
+<span id="cb61-10"><a href="#cb61-10"></a>    <span class="fu">}</span></span>
+<span id="cb61-11"><a href="#cb61-11"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>data.created_at</code>: Created time ISO 8601 timestamp.</li>
+<li><code>data.updated_at</code>: Updated time ISO 8601 timestamp.</li>
+<li><code>data.id</code>: Key ID.</li>
+<li><code>data.name</code>: Key name.</li>
+<li><code>data.value</code>: Key value.</li>
+<li><code>data.service_id</code>: Key service ID relation.</li>
+<li><code>data.user_id</code>: Key user ID relation or null.</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>Key name is invalid.</li>
+<li>User ID is invalid or user does not exist.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="read-get-v1keyid">Read [GET /v1/key/{id}]</h4>
+<p>Read key by ID.</p>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb62"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb62-1"><a href="#cb62-1"></a><span class="fu">{</span></span>
+<span id="cb62-2"><a href="#cb62-2"></a>    <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb62-3"><a href="#cb62-3"></a>        <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...90Z&quot;</span><span class="fu">,</span></span>
+<span id="cb62-4"><a href="#cb62-4"></a>        <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...90Z&quot;</span><span class="fu">,</span></span>
+<span id="cb62-5"><a href="#cb62-5"></a>        <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb62-6"><a href="#cb62-6"></a>        <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Key Name&quot;</span><span class="fu">,</span></span>
+<span id="cb62-7"><a href="#cb62-7"></a>        <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;667...35c&quot;</span><span class="fu">,</span></span>
+<span id="cb62-8"><a href="#cb62-8"></a>        <span class="dt">&quot;service_id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb62-9"><a href="#cb62-9"></a>        <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="kw">null</span></span>
+<span id="cb62-10"><a href="#cb62-10"></a>    <span class="fu">}</span></span>
+<span id="cb62-11"><a href="#cb62-11"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>data.created_at</code>: Created time ISO 8601 timestamp.</li>
+<li><code>data.updated_at</code>: Updated time ISO 8601 timestamp.</li>
+<li><code>data.id</code>: Key ID.</li>
+<li><code>data.name</code>: Key name.</li>
+<li><code>data.value</code>: Key value.</li>
+<li><code>data.service_id</code>: Key service ID relation.</li>
+<li><code>data.user_id</code>: Key user ID relation or null.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="update-patch-v1keyid">Update [PATCH /v1/key/{id}]</h4>
+<p>Update key by ID.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb63"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb63-1"><a href="#cb63-1"></a><span class="fu">{</span></span>
+<span id="cb63-2"><a href="#cb63-2"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Key Name 2&quot;</span></span>
+<span id="cb63-3"><a href="#cb63-3"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>name</code>: Key name (optional).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb64"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb64-1"><a href="#cb64-1"></a><span class="fu">{</span></span>
+<span id="cb64-2"><a href="#cb64-2"></a>    <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb64-3"><a href="#cb64-3"></a>        <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...90Z&quot;</span><span class="fu">,</span></span>
+<span id="cb64-4"><a href="#cb64-4"></a>        <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...28Z&quot;</span><span class="fu">,</span></span>
+<span id="cb64-5"><a href="#cb64-5"></a>        <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb64-6"><a href="#cb64-6"></a>        <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Key Name 2&quot;</span><span class="fu">,</span></span>
+<span id="cb64-7"><a href="#cb64-7"></a>        <span class="dt">&quot;value&quot;</span><span class="fu">:</span> <span class="st">&quot;667...35c&quot;</span><span class="fu">,</span></span>
+<span id="cb64-8"><a href="#cb64-8"></a>        <span class="dt">&quot;service_id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb64-9"><a href="#cb64-9"></a>        <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="kw">null</span></span>
+<span id="cb64-10"><a href="#cb64-10"></a>    <span class="fu">}</span></span>
+<span id="cb64-11"><a href="#cb64-11"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>data.created_at</code>: Created time ISO 8601 timestamp.</li>
+<li><code>data.updated_at</code>: Updated time ISO 8601 timestamp.</li>
+<li><code>data.id</code>: Key ID.</li>
+<li><code>data.name</code>: Key name.</li>
+<li><code>data.value</code>: Key value.</li>
+<li><code>data.service_id</code>: Key service ID relation.</li>
+<li><code>data.user_id</code>: Key user ID relation or null.</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>Key name is invalid.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="delete-delete-v1keyid">Delete [DELETE /v1/key/{id}]</h4>
+<p>Delete key by ID.</p>
+<p><strong>Response [200, OK]</strong></p>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Key ID is invalid or key does not exist.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h2 id="service">Service</h2>
+<h4 id="list-get-v1service">List [GET /v1/service]</h4>
+<h4 id="create-post-v1service">Create [POST /v1/service]</h4>
+<h4 id="read-get-v1serviceid">Read [GET /v1/service/{id}]</h4>
+<p>Read service by ID.</p>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb65"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb65-1"><a href="#cb65-1"></a><span class="fu">{</span></span>
+<span id="cb65-2"><a href="#cb65-2"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb65-3"><a href="#cb65-3"></a>    <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...90Z&quot;</span><span class="fu">,</span></span>
+<span id="cb65-4"><a href="#cb65-4"></a>    <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...90Z&quot;</span><span class="fu">,</span></span>
+<span id="cb65-5"><a href="#cb65-5"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb65-6"><a href="#cb65-6"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Service Name&quot;</span><span class="fu">,</span></span>
+<span id="cb65-7"><a href="#cb65-7"></a>    <span class="dt">&quot;url&quot;</span><span class="fu">:</span> <span class="st">&quot;https://...&quot;</span></span>
+<span id="cb65-8"><a href="#cb65-8"></a>  <span class="fu">}</span></span>
+<span id="cb65-9"><a href="#cb65-9"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>data.created_at</code>: Created time ISO 8601 timestamp.</li>
+<li><code>data.updated_at</code>: Updated time ISO 8601 timestamp.</li>
+<li><code>data.id</code>: Service ID.</li>
+<li><code>data.name</code>: Service name.</li>
+<li><code>data.url</code>: Service URL.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="update-patch-v1serviceid">Update [PATCH /v1/service/{id}]</h4>
+<p>TODO(docs): Finish, improve API documentation.</p>
+<h4 id="delete-delete-v1serviceid">Delete [DELETE /v1/service/{id}]</h4>
+<h2 id="user">User</h2>
+<h4 id="list-get-v1user">List [GET /v1/user]</h4>
+<p>List users.</p>
+<p><strong>Request</strong></p>
+<pre><code>?gt=X&amp;lt=Y&amp;limit=Z</code></pre>
+<ul>
+<li><code>gt</code>: Greater than ID (optional).</li>
+<li><code>lt</code>: Less than ID (optional).</li>
+<li><code>limit</code>: Limit number of returned items (optional).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb67"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb67-1"><a href="#cb67-1"></a><span class="fu">{</span></span>
+<span id="cb67-2"><a href="#cb67-2"></a>    <span class="dt">&quot;meta&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb67-3"><a href="#cb67-3"></a>        <span class="dt">&quot;gt&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
+<span id="cb67-4"><a href="#cb67-4"></a>        <span class="dt">&quot;lt&quot;</span><span class="fu">:</span> <span class="kw">null</span><span class="fu">,</span></span>
+<span id="cb67-5"><a href="#cb67-5"></a>        <span class="dt">&quot;limit&quot;</span><span class="fu">:</span> <span class="dv">10</span></span>
+<span id="cb67-6"><a href="#cb67-6"></a>    <span class="fu">},</span></span>
+<span id="cb67-7"><a href="#cb67-7"></a>    <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb67-8"><a href="#cb67-8"></a>        <span class="dv">1</span><span class="ot">,</span></span>
+<span id="cb67-9"><a href="#cb67-9"></a>        <span class="er">...</span></span>
+<span id="cb67-10"><a href="#cb67-10"></a>    <span class="ot">]</span></span>
+<span id="cb67-11"><a href="#cb67-11"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>meta.gt</code>: Greater than ID, or null.</li>
+<li><code>meta.lt</code>: Greater than ID, or null.</li>
+<li><code>meta.limit</code>: Returned items limit.</li>
+<li><code>data</code>: Array of IDs.</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request query is invalid.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="create-post-v1user">Create [POST /v1/user]</h4>
+<p>Create user.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb68"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb68-1"><a href="#cb68-1"></a><span class="fu">{</span></span>
+<span id="cb68-2"><a href="#cb68-2"></a>  <span class="dt">&quot;is_enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb68-3"><a href="#cb68-3"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;User Name&quot;</span><span class="fu">,</span></span>
+<span id="cb68-4"><a href="#cb68-4"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;user@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb68-5"><a href="#cb68-5"></a>  <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;guest&quot;</span></span>
+<span id="cb68-6"><a href="#cb68-6"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>is_enabled</code>: User is enabled flag (required).</li>
+<li><code>name</code>: User name (required).</li>
+<li><code>email</code>: User email address, must be unique (required).</li>
+<li><code>password</code>: User password, optional.</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb69"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb69-1"><a href="#cb69-1"></a><span class="fu">{</span></span>
+<span id="cb69-2"><a href="#cb69-2"></a>  <span class="dt">&quot;meta&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb69-3"><a href="#cb69-3"></a>    <span class="dt">&quot;password_strength&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
+<span id="cb69-4"><a href="#cb69-4"></a>    <span class="dt">&quot;password_pwned&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb69-5"><a href="#cb69-5"></a>  <span class="fu">},</span></span>
+<span id="cb69-6"><a href="#cb69-6"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb69-7"><a href="#cb69-7"></a>    <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...04Z&quot;</span><span class="fu">,</span></span>
+<span id="cb69-8"><a href="#cb69-8"></a>    <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...04Z&quot;</span><span class="fu">,</span></span>
+<span id="cb69-9"><a href="#cb69-9"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">10</span><span class="fu">,</span></span>
+<span id="cb69-10"><a href="#cb69-10"></a>    <span class="dt">&quot;is_enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb69-11"><a href="#cb69-11"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;User Name&quot;</span><span class="fu">,</span></span>
+<span id="cb69-12"><a href="#cb69-12"></a>    <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;user@example.com&quot;</span></span>
+<span id="cb69-13"><a href="#cb69-13"></a>  <span class="fu">}</span></span>
+<span id="cb69-14"><a href="#cb69-14"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>meta.password_strength</code>: Password strength score by <code>zxcvbn</code>, null if scoring failed or password was not provided.</li>
+<li><code>meta.password_pwned</code>: True if password detected by <code>haveibeenpwned.com</code>, null if request failed, feature disabled or password was not provided.</li>
+<li><code>data.created_at</code>: Created time ISO 8601 timestamp.</li>
+<li><code>data.updated_at</code>: Updated time ISO 8601 timestamp.</li>
+<li><code>data.id</code>: User ID.</li>
+<li><code>data.is_enabled</code>: User is enabled flag.</li>
+<li><code>data.name</code>: User name.</li>
+<li><code>data.email</code>: User email address.</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>User name is invalid.</li>
+<li>User email address is invalid or not unique.</li>
+<li>User password is invalid.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="read-get-v1userid">Read [GET /v1/user/{id}]</h4>
+<p>Read user by ID.</p>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb70"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb70-1"><a href="#cb70-1"></a><span class="fu">{</span></span>
+<span id="cb70-2"><a href="#cb70-2"></a>    <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb70-3"><a href="#cb70-3"></a>        <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...46Z&quot;</span><span class="fu">,</span></span>
+<span id="cb70-4"><a href="#cb70-4"></a>        <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...46Z&quot;</span><span class="fu">,</span></span>
+<span id="cb70-5"><a href="#cb70-5"></a>        <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb70-6"><a href="#cb70-6"></a>        <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;User Name&quot;</span><span class="fu">,</span></span>
+<span id="cb70-7"><a href="#cb70-7"></a>        <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;user@example.com&quot;</span></span>
+<span id="cb70-8"><a href="#cb70-8"></a>    <span class="fu">}</span></span>
+<span id="cb70-9"><a href="#cb70-9"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>data.created_at</code>: Created time ISO 8601 timestamp.</li>
+<li><code>data.updated_at</code>: Updated time ISO 8601 timestamp.</li>
+<li><code>data.id</code>: User ID.</li>
+<li><code>data.name</code>: User name.</li>
+<li><code>data.email</code>: User email address.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="update-patch-v1userid">Update [PATCH /v1/user/{id}]</h4>
+<p>Update user by ID.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb71"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb71-1"><a href="#cb71-1"></a><span class="fu">{</span></span>
+<span id="cb71-2"><a href="#cb71-2"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;User Name 2&quot;</span></span>
+<span id="cb71-3"><a href="#cb71-3"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>name</code>: User name (optional).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb72"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb72-1"><a href="#cb72-1"></a><span class="fu">{</span></span>
+<span id="cb72-2"><a href="#cb72-2"></a>    <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb72-3"><a href="#cb72-3"></a>        <span class="dt">&quot;created_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...46Z&quot;</span><span class="fu">,</span></span>
+<span id="cb72-4"><a href="#cb72-4"></a>        <span class="dt">&quot;updated_at&quot;</span><span class="fu">:</span> <span class="st">&quot;2019...95Z&quot;</span><span class="fu">,</span></span>
+<span id="cb72-5"><a href="#cb72-5"></a>        <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb72-6"><a href="#cb72-6"></a>        <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;User Name 2&quot;</span><span class="fu">,</span></span>
+<span id="cb72-7"><a href="#cb72-7"></a>        <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;user@example.com&quot;</span></span>
+<span id="cb72-8"><a href="#cb72-8"></a>    <span class="fu">}</span></span>
+<span id="cb72-9"><a href="#cb72-9"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>data.created_at</code>: Created time ISO 8601 timestamp.</li>
+<li><code>data.updated_at</code>: Updated time ISO 8601 timestamp.</li>
+<li><code>data.id</code>: User ID.</li>
+<li><code>data.name</code>: User name.</li>
+<li><code>data.email</code>: User email address.</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>User name is invalid.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="delete-delete-v1userid">Delete [DELETE /v1/user/{id}]</h4>
+<p>Delete user by ID.</p>
+<p><strong>Response [200, OK]</strong></p>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>User ID is invalid or user does not exist.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+</body>
+</html>

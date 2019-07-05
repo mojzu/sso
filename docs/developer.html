@@ -1,282 +1,210 @@
-<!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js">
-    <head>
-        <!-- Book generated using mdBook -->
-        <meta charset="UTF-8">
-        <title>Developer - Ark Auth Manual</title>
-        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ffffff" />
-
-        <link rel="shortcut icon" href="favicon.png">
-        <link rel="stylesheet" href="css/variables.css">
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/chrome.css">
-        <link rel="stylesheet" href="css/print.css" media="print">
-
-        <!-- Fonts -->
-        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
-        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
-        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
-
-        <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="highlight.css">
-        <link rel="stylesheet" href="tomorrow-night.css">
-        <link rel="stylesheet" href="ayu-highlight.css">
-
-        <!-- Custom theme stylesheets -->
-        
-
-        
-    </head>
-    <body class="light">
-        <!-- Provide site root to javascript -->
-        <script type="text/javascript">
-            var path_to_root = "";
-            var default_theme = "light";
-        </script>
-
-        <!-- Work around some values being stored in localStorage wrapped in quotes -->
-        <script type="text/javascript">
-            try {
-                var theme = localStorage.getItem('mdbook-theme');
-                var sidebar = localStorage.getItem('mdbook-sidebar');
-
-                if (theme.startsWith('"') && theme.endsWith('"')) {
-                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
-                }
-
-                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
-                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
-                }
-            } catch (e) { }
-        </script>
-
-        <!-- Set the theme before any content is loaded, prevents flash -->
-        <script type="text/javascript">
-            var theme;
-            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
-            if (theme === null || theme === undefined) { theme = default_theme; }
-            document.body.className = theme;
-            document.querySelector('html').className = theme + ' js';
-        </script>
-
-        <!-- Hide / unhide sidebar before it is displayed -->
-        <script type="text/javascript">
-            var html = document.querySelector('html');
-            var sidebar = 'hidden';
-            if (document.body.clientWidth >= 1080) {
-                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
-                sidebar = sidebar || 'visible';
-            }
-            html.classList.remove('sidebar-visible');
-            html.classList.add("sidebar-" + sidebar);
-        </script>
-
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="changelog.html"><strong aria-hidden="true">2.</strong> Changelog</a></li><li><a href="developer.html" class="active"><strong aria-hidden="true">3.</strong> Developer</a></li><li><a href="introduction.html"><strong aria-hidden="true">4.</strong> Guides</a></li><li><ol class="section"><li><a href="guide/deployment.html"><strong aria-hidden="true">4.1.</strong> Deployment</a></li><li><a href="guide/integration.html"><strong aria-hidden="true">4.2.</strong> Integration</a></li><li><a href="guide/login.html"><strong aria-hidden="true">4.3.</strong> Login</a></li><li><a href="guide/reset-password.html"><strong aria-hidden="true">4.4.</strong> Reset Password</a></li><li><a href="guide/update-email.html"><strong aria-hidden="true">4.5.</strong> Update Email</a></li><li><a href="guide/update-password.html"><strong aria-hidden="true">4.6.</strong> Update Password</a></li><li><a href="guide/api-key.html"><strong aria-hidden="true">4.7.</strong> API Key</a></li><li><a href="guide/oauth2-login.html"><strong aria-hidden="true">4.8.</strong> OAuth2 Login</a></li></ol></li><li><a href="introduction.html"><strong aria-hidden="true">5.</strong> API</a></li><li><ol class="section"><li><a href="api/ping.html"><strong aria-hidden="true">5.1.</strong> Ping</a></li><li><a href="introduction.html"><strong aria-hidden="true">5.2.</strong> Authentication</a></li><li><ol class="section"><li><a href="introduction.html"><strong aria-hidden="true">5.2.1.</strong> Provider</a></li><li><ol class="section"><li><a href="introduction.html"><strong aria-hidden="true">5.2.1.1.</strong> Local</a></li><li><ol class="section"><li><a href="api/auth/provider/local/login.html"><strong aria-hidden="true">5.2.1.1.1.</strong> Login</a></li><li><a href="api/auth/provider/local/reset-password.html"><strong aria-hidden="true">5.2.1.1.2.</strong> Reset Password</a></li><li><a href="api/auth/provider/local/update-email.html"><strong aria-hidden="true">5.2.1.1.3.</strong> Update Email</a></li><li><a href="api/auth/provider/local/update-password.html"><strong aria-hidden="true">5.2.1.1.4.</strong> Update Password</a></li></ol></li><li><a href="api/auth/provider/github.html"><strong aria-hidden="true">5.2.1.2.</strong> GitHub</a></li><li><a href="api/auth/provider/microsoft.html"><strong aria-hidden="true">5.2.1.3.</strong> Microsoft</a></li></ol></li><li><a href="introduction.html"><strong aria-hidden="true">5.2.2.</strong> Key</a></li><li><ol class="section"><li><a href="api/auth/key-verify.html"><strong aria-hidden="true">5.2.2.1.</strong> Verify</a></li><li><a href="api/auth/key-revoke.html"><strong aria-hidden="true">5.2.2.2.</strong> Revoke</a></li></ol></li><li><a href="introduction.html"><strong aria-hidden="true">5.2.3.</strong> Token</a></li><li><ol class="section"><li><a href="api/auth/token-verify.html"><strong aria-hidden="true">5.2.3.1.</strong> Verify</a></li><li><a href="api/auth/token-refresh.html"><strong aria-hidden="true">5.2.3.2.</strong> Refresh</a></li><li><a href="api/auth/token-revoke.html"><strong aria-hidden="true">5.2.3.3.</strong> Revoke</a></li></ol></li></ol></li><li><a href="introduction.html"><strong aria-hidden="true">5.3.</strong> Key</a></li><li><ol class="section"><li><a href="api/key/list.html"><strong aria-hidden="true">5.3.1.</strong> List</a></li><li><a href="api/key/create.html"><strong aria-hidden="true">5.3.2.</strong> Create</a></li><li><a href="api/key/read.html"><strong aria-hidden="true">5.3.3.</strong> Read</a></li><li><a href="api/key/update.html"><strong aria-hidden="true">5.3.4.</strong> Update</a></li><li><a href="api/key/delete.html"><strong aria-hidden="true">5.3.5.</strong> Delete</a></li></ol></li><li><a href="introduction.html"><strong aria-hidden="true">5.4.</strong> Service</a></li><li><ol class="section"><li><a href="api/service/list.html"><strong aria-hidden="true">5.4.1.</strong> List</a></li><li><a href="api/service/create.html"><strong aria-hidden="true">5.4.2.</strong> Create</a></li><li><a href="api/service/read.html"><strong aria-hidden="true">5.4.3.</strong> Read</a></li><li><a href="api/service/update.html"><strong aria-hidden="true">5.4.4.</strong> Update</a></li><li><a href="api/service/delete.html"><strong aria-hidden="true">5.4.5.</strong> Delete</a></li></ol></li><li><a href="introduction.html"><strong aria-hidden="true">5.5.</strong> User</a></li><li><ol class="section"><li><a href="api/user/list.html"><strong aria-hidden="true">5.5.1.</strong> List</a></li><li><a href="api/user/create.html"><strong aria-hidden="true">5.5.2.</strong> Create</a></li><li><a href="api/user/read.html"><strong aria-hidden="true">5.5.3.</strong> Read</a></li><li><a href="api/user/update.html"><strong aria-hidden="true">5.5.4.</strong> Update</a></li><li><a href="api/user/delete.html"><strong aria-hidden="true">5.5.5.</strong> Delete</a></li></ol></li><li><a href="introduction.html"><strong aria-hidden="true">5.6.</strong> Audit</a></li></ol></li></ol>
-        </nav>
-
-        <div id="page-wrapper" class="page-wrapper">
-
-            <div class="page">
-                
-                <div id="menu-bar" class="menu-bar">
-                    <div id="menu-bar-sticky-container">
-                        <div class="left-buttons">
-                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                                <i class="fa fa-bars"></i>
-                            </button>
-                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                                <i class="fa fa-paint-brush"></i>
-                            </button>
-                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
-                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
-                            </ul>
-                            
-                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
-                                <i class="fa fa-search"></i>
-                            </button>
-                            
-                        </div>
-
-                        <h1 class="menu-title">Ark Auth Manual</h1> 
-
-                        <div class="right-buttons">
-                            <a href="print.html" title="Print this book" aria-label="Print this book">
-                                <i id="print-button" class="fa fa-print"></i>
-                            </a>
-                            
-                        </div>
-                    </div>
-                </div>
-
-                
-                <div id="search-wrapper" class="hidden">
-                    <form id="searchbar-outer" class="searchbar-outer">
-                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
-                    </form>
-                    <div id="searchresults-outer" class="searchresults-outer hidden">
-                        <div id="searchresults-header" class="searchresults-header"></div>
-                        <ul id="searchresults">
-                        </ul>
-                    </div>
-                </div>
-                
-
-                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
-                <script type="text/javascript">
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
-                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
-                    });
-                </script>
-
-                <div id="content" class="content">
-                    <main>
-                        <a class="header" href="#developer" id="developer"><h1>Developer</h1></a>
-<a class="header" href="#tools" id="tools"><h2>Tools</h2></a>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Sam Ward" />
+  <title>ark_auth: Developer Manual</title>
+  <style>
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+body {
+color: #111111;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+line-height: 1.25;
+margin-top: 2em;
+font-weight: normal;
+text-decoration: underline;
+}
+h1 {
+font-size: 3rem;
+}
+h2 {
+font-size: 2.25rem;
+}
+h3 {
+font-size: 1.5rem;
+}
+h4 {
+font-size: 1.25rem;
+}
+h5 {
+font-size: 1rem;
+}
+h6 {
+font-size: 0.875rem;
+}
+p {
+line-height: 1;
+margin: 1em 0;
+font-weight: normal;
+}
+pre,
+code {
+background-color: #f4f4f4;
+}
+</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">ark_auth: Developer Manual</h1>
+<p class="author">Sam Ward</p>
+</header>
+<nav id="TOC" role="doc-toc">
 <ul>
-<li><a href="https://www.rust-lang.org/">Rust</a></li>
-<li><a href="http://diesel.rs/">Diesel</a></li>
-<li><a href="https://github.com/rust-lang-nursery/mdBook">mdBook</a></li>
-<li><a href="https://docs.docker.com/install/">Docker</a></li>
-<li><a href="https://docs.docker.com/compose/">Docker Compose</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#tools">Tools</a></li>
+<li><a href="#manual">Manual</a></li>
+<li><a href="#guide">Guide</a><ul>
+<li><a href="#environment">Environment</a></li>
+<li><a href="#database">Database</a></li>
+<li><a href="#build">Build</a></li>
+<li><a href="#test">Test</a></li>
+</ul></li>
 </ul>
-<pre><code class="language-shell"># Rust installation, updates and utilities.
-$ curl https://sh.rustup.rs -sSf | sh
-$ rustup self update &amp;&amp; rustup update &amp;&amp; cargo update
-$ rustup component add rustfmt
-$ rustup component add clippy
-# Diesel CLI, mdBook installation.
-$ cargo install diesel_cli --no-default-features --features &quot;postgres sqlite&quot;
-$ cargo install mdbook
-# Docker, Docker Compose installation and start containers.
-$ docker-compose up
-</code></pre>
-<a class="header" href="#ubuntu" id="ubuntu"><h3>Ubuntu</h3></a>
-<pre><code class="language-shell">$ sudo apt install libpq-dev libsqlite3-dev libssl-dev pkg-config
-</code></pre>
-<a class="header" href="#environment" id="environment"><h2>Environment</h2></a>
-<p>Replace <code>...</code> as required.</p>
-<pre><code class="language-shell"># Database connection URL, required.
-$ export DATABASE_URL=&quot;postgres://ark_auth:guest@localhost:5432/ark_auth&quot;
-# Server bind, required.
-$ export SERVER_BIND=&quot;localhost:9000&quot;
-# SMTP configured, required for reset password emails.
-$ export SMTP_HOST=&quot;...&quot;
-$ export SMTP_PORT=&quot;...&quot;
-$ export SMTP_USER=&quot;...&quot;
-$ export SMTP_PASSWORD=&quot;...&quot;
-# Sentry URL for logging integration, optional.
-$ export SENTRY_URL=&quot;...&quot;
-# GitHub OAuth2 support, optional.
-$ export GITHUB_CLIENT_ID=&quot;...&quot;
-$ export GITHUB_CLIENT_SECRET=&quot;...&quot;
-$ export GITHUB_REDIRECT_URL=&quot;http://localhost:9000/v1/auth/provider/github/oauth2&quot;
-# Microsoft OAuth2 support, optional.
-$ export MICROSOFT_CLIENT_ID=&quot;...&quot;
-$ export MICROSOFT_CLIENT_SECRET=&quot;...&quot;
-$ export MICROSOFT_REDIRECT_URL=&quot;http://localhost:9000/v1/auth/provider/microsoft/oauth2&quot;
-</code></pre>
-<a class="header" href="#ubuntu-1" id="ubuntu-1"><h3>Ubuntu</h3></a>
-<p>Write export statements to file <code>env.sh</code> and run <code>source env.sh</code> to export variables in open terminal.</p>
-<a class="header" href="#notes" id="notes"><h2>Notes</h2></a>
-<p>Create database and run migrations.</p>
-<pre><code class="language-shell">$ cd ark_auth
-$ diesel database reset --migration-dir migrations/postgres
-$ export DATABASE_URL=&quot;db.sqlite3&quot;
-$ diesel database reset --migration-dir migrations/sqlite
-</code></pre>
-<p>Build application, run commands (see help).</p>
-<pre><code class="language-shell">$ cargo build [--release]
-$ cargo run help
-</code></pre>
-<p>Format source code and run clippy.</p>
-<pre><code class="language-shell">$ cargo fmt &amp;&amp; cargo clippy
-</code></pre>
-<p>Run unit and integration tests. Tests require <code>TEST_URL</code> and <code>TEST_KEY</code> environment variables to set.</p>
-<pre><code class="language-shell">$ export TEST_URL=&quot;...&quot;
-$ export TEST_KEY=&quot;...&quot;
-$ diesel database reset --migration-dir ark_auth/migrations/postgres
-$ cargo test [--test $test_name]
-</code></pre>
-<p>Serve and build manual.</p>
-<pre><code class="language-shell">$ cd manual
-$ mdbook serve
-$ rm -rf ../docs &amp;&amp; mdbook build
-</code></pre>
-<p>Build documentation.</p>
-<pre><code class="language-shell">$ cargo doc --no-deps --open
-</code></pre>
-<p>Build docker image.</p>
-<pre><code class="language-Shell">$ cd ark_auth
-$ docker-compose build
-</code></pre>
-
-                    </main>
-
-                    <nav class="nav-wrapper" aria-label="Page navigation">
-                        <!-- Mobile navigation buttons -->
-                        
-                            <a rel="prev" href="changelog.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
-                            </a>
-                        
-
-                        
-                            <a rel="next" href="introduction.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
-                        
-
-                        <div style="clear: both"></div>
-                    </nav>
-                </div>
-            </div>
-
-            <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                
-                    <a href="changelog.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
-                    </a>
-                
-
-                
-                    <a href="introduction.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
-                
-            </nav>
-
-        </div>
-
-        
-
-        
-
-        
-
-        
-        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
-        
-
-        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
-        <script src="book.js" type="text/javascript" charset="utf-8"></script>
-
-        <!-- Custom JS scripts -->
-        
-
-        
-
-    </body>
+</nav>
+<h1 id="introduction">Introduction</h1>
+<p>Manual for ark_auth developers.</p>
+<h1 id="tools">Tools</h1>
+<p>The ark_auth crate depends on <a href="https://www.postgresql.org/">PostgreSQL</a> and <a href="https://www.sqlite.org/index.html">SQLite</a> libraries, to install them on Debian Linux distributions.</p>
+<pre class="shell"><code>sudo apt install libpq-dev libsqlite3-dev libssl-dev pkg-config</code></pre>
+<p>Install <a href="https://www.rust-lang.org/">Rust</a> using <a href="https://rustup.rs/">rustup</a>. Check required components are installed..</p>
+<pre class="shell"><code>rustup component add rustfmt
+rustup component add clippy</code></pre>
+<p>The ark_auth crate depends on <a href="cargo-make">Cargo Make</a> and <a href="diesel">Diesel</a>, install them with Cargo.</p>
+<pre class="shell"><code>cargo install --force cargo-make
+cargo install --force diesel_cli --no-default-features --features &quot;postgres sqlite&quot;</code></pre>
+<p>To update the toolchain.</p>
+<pre class="shell"><code>rustup self update
+rustup update</code></pre>
+<p>To update crate dependencies.</p>
+<pre class="shell"><code>cargo update</code></pre>
+<p><a href="https://docs.docker.com/install/">Docker</a> and <a href="https://docs.docker.com/compose/">Docker Compose</a> are used for development, install them using the linked documentation.</p>
+<p>To start containers defined in <code>docker-compose.yml</code>.</p>
+<pre class="shell"><code>docker-compose up</code></pre>
+<p>To stop containers.</p>
+<pre class="shell"><code>docker-compose down</code></pre>
+<h1 id="manual">Manual</h1>
+<p>This manual is written in <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Markdown</a> and converted into other formats using <a href="https://pandoc.org/">Pandoc</a>.</p>
+<p>To build the HTML manual.</p>
+<pre class="shell"><code>cargo make manual</code></pre>
+<h1 id="guide">Guide</h1>
+<h2 id="environment">Environment</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DATABASE_URL</td>
+<td>Database connection URL, required.</td>
+</tr>
+<tr class="even">
+<td>SERVER_BIND</td>
+<td>Server bind address, required.</td>
+</tr>
+<tr class="odd">
+<td>SMTP_HOST</td>
+<td>SMTP configured, required for emails.</td>
+</tr>
+<tr class="even">
+<td>SMTP_PORT</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>SMTP_USER</td>
+<td>…</td>
+</tr>
+<tr class="even">
+<td>SMTP_PASSWORD</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>SENTRY_URL</td>
+<td>Sentry URL for logging integration, optional.</td>
+</tr>
+<tr class="even">
+<td>GITHUB_CLIENT_ID</td>
+<td>GitHub OAuth2 support, optional.</td>
+</tr>
+<tr class="odd">
+<td>GITHUB_CLIENT_SECRET</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>GITHUB_REDIRECT_URL</td>
+<td><code>$server_url/v1/auth/provider/github/oauth2</code></td>
+</tr>
+<tr class="odd">
+<td>MICROSOFT_CLIENT_ID</td>
+<td>Microsoft OAuth2 support, optional.</td>
+</tr>
+<tr class="even">
+<td>MICROSOFT_CLIENT_SECRET</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>MICROSOFT_REDIRECT_URL</td>
+<td><code>$server_url/v1/auth/provider/microsoft/oauth2</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Linux</strong></p>
+<p>Write <code>export $NAME=&quot;$VALUE&quot;</code> statements to file <code>env.sh</code> and run <code>source env.sh</code> to export variables in open terminal.</p>
+<h2 id="database">Database</h2>
+<p>To create <a href="https://www.postgresql.org/">PostgreSQL</a> database migrations.</p>
+<pre class="shell"><code>cargo make postgres-migrations</code></pre>
+<p>To create <a href="https://www.sqlite.org/index.html">SQLite</a> database migrations.</p>
+<pre class="shell"><code>cargo make sqlite-migrations</code></pre>
+<h2 id="build">Build</h2>
+<p>To build libraries and binaries.</p>
+<pre class="shell"><code>cargo make build
+cargo make release</code></pre>
+<p>To lint source code using <a href="https://github.com/rust-lang/rust-clippy">clippy</a>.</p>
+<pre class="shell"><code>cargo make lint</code></pre>
+<p>To build documentation.</p>
+<pre class="shell"><code>cargo doc --no-deps --open</code></pre>
+<p>To build docker image.</p>
+<pre class="shell"><code>cd ark_auth
+docker-compose build</code></pre>
+<h2 id="test">Test</h2>
+<p>For integration tests, the following environment variables are required.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>TEST_URL</td>
+<td>Server URL.</td>
+</tr>
+<tr class="even">
+<td>TEST_KEY</td>
+<td>Root key value.</td>
+</tr>
+</tbody>
+</table>
+<p>To run unit and integration tests.</p>
+<pre class="shell"><code>cargo make test</code></pre>
+</body>
 </html>
