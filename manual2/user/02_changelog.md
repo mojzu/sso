@@ -2,7 +2,7 @@
 
 ## 0.2.0 (unreleased)
 
-### Added
+**Added**
 
 - Added audit logging to authentication routes.
 - Added is enabled flag to services, users and keys, added is revoked flag to keys.
@@ -10,7 +10,7 @@
 - Added `email_eq` query option to user list route.
 - Added local provider update user email, password routes.
 
-### Changed
+**Changed**
 
 - Changed database schema to use strings as IDs.
 - Changed list route endpoints to return data ID arrays.
@@ -22,14 +22,12 @@
 - Removed `skeptic` from tests, use Cargo test runner.
 - Moved route types to public api module.
 
-### Fixed
+**Fixed**
 
 - Fixed not validating service URLs before save using URL parse, improved URL error handling.
 - Fixed inconsistent core error display strings.
 - Fixed duplicate user email address returned internal server error code.
 - Fixed Lettre email error type handling.
-
----
 
 ## 0.1.0 (2019-05-16)
 

@@ -1,5 +1,7 @@
 # Notes
 
+TODO(feature): Implement/document this.
+
 -   Binary release ($name-$version-$target.tar.xz)
 
 manifest.json

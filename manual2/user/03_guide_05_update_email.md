@@ -1,16 +1,16 @@
-# Update Email
+## Update Email
 
 Create service with key and start server.
 
 ```shell
-$ ark_auth create-service-with-key $service_name $service_url
-$ ark_auth start-server
+ark_auth create-service-with-key $service_name $service_url
+ark_auth start-server
 ```
 
 Service creates a user with password.
 
 ```shell
-$ curl --header "Content-Type: application/json" \
+curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"is_enabled":true,"name":"$user_name","email":"$user_email","password":"$user_password"}' \
@@ -20,7 +20,7 @@ $ curl --header "Content-Type: application/json" \
 Service creates a key for user.
 
 ```shell
-$ curl --header "Content-Type: application/json" \
+curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"is_enabled":true,"name":"$key_name","user_id":"$user_id"}' \
@@ -30,7 +30,7 @@ $ curl --header "Content-Type: application/json" \
 User makes update email request to service, service makes an update email request.
 
 ```shell
-$ curl --header "Content-Type: application/json" \
+curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"key":"$user_key","password":"$user_password","new_email":"$new_user_email"}' \
@@ -40,7 +40,7 @@ $ curl --header "Content-Type: application/json" \
 User makes login request to service, service makes a login request.
 
 ```shell
-$ curl --header "Content-Type: application/json" \
+curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"email":"$new_user_email","password":"$user_password"}' \
@@ -52,7 +52,7 @@ After successful update, an email containing URL is sent to the old user email a
 If user opens URL, service receives token via query parameter and makes update email revoke request, this will disable user and all linked keys and prevent login.
 
 ```shell
-$ curl --header "Content-Type: application/json" \
+curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"token":"$token"}' \
