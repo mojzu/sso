@@ -20,7 +20,7 @@ actix-identity = "*"
 actix-http = "*"
 actix-rt = "*"
 actix-service = "*"
-actix-web = { version = "^1.0.2", features = ["ssl", "client"] }
+actix-web = { version = "^1.0.3", features = ["ssl", "client"] }
 bcrypt = "*"
 clap = "*"
 chrono = { version = "*", features = ["serde"] }
@@ -37,7 +37,7 @@ log = { version = "*", features = ["max_level_trace", "release_max_level_info"] 
 native-tls = "*"
 r2d2 = "*"
 reqwest = "*"
-oauth2 = "^3.0.0-alpha.2"
+oauth2 = "^3.0.0-alpha.3"
 sentry = "*"
 sentry-actix = "*"
 serde = "*"
