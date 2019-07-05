@@ -1,4 +1,4 @@
-// TODO(feature): SMTP testing using mailin_embedded.
+// TODO(test): SMTP testing using mailin_embedded.
 // pub fn password_confirm_test(driver: &Driver, app: &mut TestServerRuntime) {
 //     let (service, key) = support::service_key(driver);
 //     let (_servic2, key2) = support::service_key(driver);

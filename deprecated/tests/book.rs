@@ -1,6 +1,7 @@
 use manual::*;
 
 // TODO(test): Refactor tests to this format.
+// TODO(test): Finish, improve tests.
 
 #[test]
 fn api_ping() {
