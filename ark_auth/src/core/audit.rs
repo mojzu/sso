@@ -1,4 +1,4 @@
-use crate::core::{Audit, AuditMeta, AuditQuery, Error, Key, Service, User};
+use crate::core::{Audit, AuditMeta, AuditQuery, Error, Key, Service, User, DEFAULT_LIMIT};
 use crate::driver;
 use chrono::Utc;
 use serde::ser::Serialize;
@@ -207,12 +207,25 @@ impl AuditBuilder {
 
 /// List audit IDs.
 pub fn list(
-    _driver: &driver::Driver,
-    _service_mask: Option<&Service>,
+    driver: &driver::Driver,
+    service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    _query: &AuditQuery,
+    query: &AuditQuery,
 ) -> Result<Vec<String>, Error> {
-    unimplemented!();
+    let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
+    match &query.lt {
+        Some(lt) => driver
+            .audit_list_where_id_lt(lt, limit, service_mask.map(|s| s.id.as_ref()))
+            .map_err(Error::Driver),
+        None => match &query.gt {
+            Some(gt) => driver
+                .audit_list_where_id_gt(gt, limit, service_mask.map(|s| s.id.as_ref()))
+                .map_err(Error::Driver),
+            None => driver
+                .audit_list_where_id_gt("", limit, service_mask.map(|s| s.id.as_ref()))
+                .map_err(Error::Driver),
+        },
+    }
 }
 
 /// Create one audit log.

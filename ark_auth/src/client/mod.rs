@@ -97,7 +97,7 @@ mod tests {
         let query = ServiceListQuery {
             gt: Some("".to_owned()),
             lt: None,
-            limit: Some(10),
+            limit: Some("10".to_owned()),
         };
         let url = options.url_path_query("/v1/service/", &query).unwrap();
         assert_eq!(

@@ -19,7 +19,8 @@ pub trait FromJsonValue<T: DeserializeOwned + Validate> {
     }
 }
 
-pub fn limit(limit: i64) -> Result<(), ValidationError> {
+pub fn limit(limit: &str) -> Result<(), ValidationError> {
+    let limit = limit.parse::<i64>().map_err(|_err| ValidationError::new("invalid_limit"))?;
     if limit < 0 {
         Err(ValidationError::new("invalid_limit"))
     } else {

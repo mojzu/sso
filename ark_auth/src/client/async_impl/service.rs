@@ -15,7 +15,7 @@ impl AsyncClient {
         let query = ServiceListQuery {
             gt: gt.map(|x| x.to_owned()),
             lt: lt.map(|x| x.to_owned()),
-            limit,
+            limit: limit.map(|x| format!("{}", x)),
         };
 
         self.get_query("/v1/service", query)

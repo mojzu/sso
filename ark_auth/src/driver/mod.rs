@@ -28,6 +28,22 @@ pub trait Driver: Send + Sync {
     /// Return a boxed trait containing clone of self.
     fn box_clone(&self) -> Box<Driver>;
 
+    /// List audit logs where ID is less than.
+    fn audit_list_where_id_lt(
+        &self,
+        lt: &str,
+        limit: i64,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<String>, Error>;
+
+    /// List audit logs where ID is greater than.
+    fn audit_list_where_id_gt(
+        &self,
+        gt: &str,
+        limit: i64,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<String>, Error>;
+
     /// Create one audit log.
     fn audit_create(
         &self,

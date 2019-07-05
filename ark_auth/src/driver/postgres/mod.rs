@@ -50,6 +50,105 @@ impl driver::Driver for Driver {
         Box::new((*self).clone())
     }
 
+    fn audit_list_where_id_lt(
+        &self,
+        lt: &str,
+        limit: i64,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<String>, Error> {
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        match service_id_mask {
+            Some(service_id_mask) => auth_audit
+                .select(audit_id)
+                .filter(service_id.eq(service_id_mask).and(audit_id.lt(lt)))
+                .limit(limit)
+                .order(audit_id.desc())
+                .load::<String>(&conn),
+            None => auth_audit
+                .select(audit_id)
+                .filter(audit_id.lt(lt))
+                .limit(limit)
+                .order(audit_id.desc())
+                .load::<String>(&conn),
+        }
+        .map_err(Error::Diesel)
+        .map(|mut v| {
+            v.reverse();
+            v
+        })
+    }
+
+    fn audit_list_where_id_gt(
+        &self,
+        gt: &str,
+        limit: i64,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<String>, Error> {
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        match service_id_mask {
+            Some(service_id_mask) => auth_audit
+                .select(audit_id)
+                .filter(service_id.eq(service_id_mask).and(audit_id.gt(gt)))
+                .limit(limit)
+                .order(audit_id.asc())
+                .load::<String>(&conn),
+            None => auth_audit
+                .select(audit_id)
+                .filter(audit_id.gt(gt))
+                .limit(limit)
+                .order(audit_id.asc())
+                .load::<String>(&conn),
+        }
+        .map_err(Error::Diesel)
+    }
+
+    fn audit_create(
+        &self,
+        meta: &AuditMeta,
+        path: &str,
+        data: &Value,
+        audit_key_id: Option<&str>,
+        audit_service_id: Option<&str>,
+        audit_user_id: Option<&str>,
+        audit_user_key_id: Option<&str>,
+    ) -> Result<Audit, Error> {
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        let now = Utc::now();
+        let id = Driver::uuid();
+        let value = model::AuthAuditInsert {
+            created_at: &now,
+            audit_id: &id,
+            audit_user_agent: &meta.user_agent,
+            audit_remote: &meta.remote,
+            audit_forwarded_for: meta.forwarded_for.as_ref().map(|x| &**x),
+            audit_path: path,
+            audit_data: data,
+            key_id: audit_key_id,
+            service_id: audit_service_id,
+            user_id: audit_user_id,
+            user_key_id: audit_user_key_id,
+        };
+        diesel::insert_into(auth_audit)
+            .values(&value)
+            .get_result::<model::AuthAudit>(&conn)
+            .map_err(Error::Diesel)
+            .map(Into::into)
+    }
+
+    fn audit_read_by_id(&self, _id: &str) -> Result<Option<Audit>, Error> {
+        unimplemented!();
+    }
+
+    fn audit_delete_by_created_at(&self, _created_at: &DateTime<Utc>) -> Result<usize, Error> {
+        unimplemented!();
+    }
+
     fn csrf_create(
         &self,
         key: &str,
@@ -105,49 +204,6 @@ impl driver::Driver for Driver {
         diesel::delete(auth_csrf.filter(csrf_ttl.le(now)))
             .execute(&conn)
             .map_err(Error::Diesel)
-    }
-
-    fn audit_create(
-        &self,
-        meta: &AuditMeta,
-        path: &str,
-        data: &Value,
-        audit_key_id: Option<&str>,
-        audit_service_id: Option<&str>,
-        audit_user_id: Option<&str>,
-        audit_user_key_id: Option<&str>,
-    ) -> Result<Audit, Error> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
-        let conn = self.connection()?;
-        let now = Utc::now();
-        let id = Driver::uuid();
-        let value = model::AuthAuditInsert {
-            created_at: &now,
-            audit_id: &id,
-            audit_user_agent: &meta.user_agent,
-            audit_remote: &meta.remote,
-            audit_forwarded_for: meta.forwarded_for.as_ref().map(|x| &**x),
-            audit_path: path,
-            audit_data: data,
-            key_id: audit_key_id,
-            service_id: audit_service_id,
-            user_id: audit_user_id,
-            user_key_id: audit_user_key_id,
-        };
-        diesel::insert_into(auth_audit)
-            .values(&value)
-            .get_result::<model::AuthAudit>(&conn)
-            .map_err(Error::Diesel)
-            .map(Into::into)
-    }
-
-    fn audit_read_by_id(&self, _id: &str) -> Result<Option<Audit>, Error> {
-        unimplemented!();
-    }
-
-    fn audit_delete_by_created_at(&self, _created_at: &DateTime<Utc>) -> Result<usize, Error> {
-        unimplemented!();
     }
 
     fn key_list_where_id_lt(

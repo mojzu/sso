@@ -61,7 +61,7 @@ ark_ota build
 - verify name, target, version, other conditions for installation
 
 ```shell
-$ ark_ota start --auto-update
+ark_ota start --auto-update
 # ark_ota reads + verifies lock file (lock file is signed and/or encrypted?)
 # ark_ota verifies current version using lock file information
 # ark_ota starts process of current version (e.g. /v1/ark_auth)

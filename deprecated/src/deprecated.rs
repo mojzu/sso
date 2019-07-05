@@ -1,5 +1,19 @@
 mod lib2;
 
+// TODO(test): Refactor tests to this format.
+// TODO(test): Finish, improve tests.
+// TODO(test): Update email/password guide tests.
+
+// #[test]
+// fn api_user_list_email_eq() {
+//     let mut client = create_client();
+//     let (service, service_key) = create_service_key(&client);
+//     let user_email = create_user_email();
+
+//     client.options.set_authorisation(&service_key.value);
+//     let user = create_user(&client, "User Name", &user_email, true, None);
+// }
+
 use ark_auth::core::{Key, Service, User};
 use ark_auth::server::route::{auth, key, user};
 pub use lib2::*;

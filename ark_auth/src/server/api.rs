@@ -39,7 +39,7 @@ pub struct AuditListQuery {
     #[validate(custom = "validate::id")]
     pub lt: Option<String>,
     #[validate(custom = "validate::limit")]
-    pub limit: Option<i64>,
+    pub limit: Option<String>,
 }
 
 impl FromJsonValue<AuditListQuery> for AuditListQuery {}
@@ -49,7 +49,7 @@ impl From<AuditListQuery> for AuditQuery {
         AuditQuery {
             gt: query.gt,
             lt: query.lt,
-            limit: query.limit,
+            limit: query.limit.map(|x| x.parse::<i64>().unwrap()),
         }
     }
 }
@@ -277,7 +277,7 @@ pub struct KeyListQuery {
     #[validate(custom = "validate::id")]
     pub lt: Option<String>,
     #[validate(custom = "validate::limit")]
-    pub limit: Option<i64>,
+    pub limit: Option<String>,
 }
 
 impl FromJsonValue<KeyListQuery> for KeyListQuery {}
@@ -287,7 +287,7 @@ impl From<KeyListQuery> for KeyQuery {
         KeyQuery {
             gt: query.gt,
             lt: query.lt,
-            limit: query.limit,
+            limit: query.limit.map(|x| x.parse::<i64>().unwrap()),
         }
     }
 }
@@ -339,7 +339,7 @@ pub struct ServiceListQuery {
     #[validate(custom = "validate::id")]
     pub lt: Option<String>,
     #[validate(custom = "validate::limit")]
-    pub limit: Option<i64>,
+    pub limit: Option<String>,
 }
 
 impl From<ServiceListQuery> for ServiceQuery {
@@ -347,7 +347,7 @@ impl From<ServiceListQuery> for ServiceQuery {
         ServiceQuery {
             gt: query.gt,
             lt: query.lt,
-            limit: query.limit,
+            limit: query.limit.map(|x| x.parse::<i64>().unwrap()),
         }
     }
 }
@@ -399,7 +399,7 @@ pub struct UserListQuery {
     #[validate(custom = "validate::id")]
     pub lt: Option<String>,
     #[validate(custom = "validate::limit")]
-    pub limit: Option<i64>,
+    pub limit: Option<String>,
     #[validate(email)]
     pub email_eq: Option<String>,
 }
@@ -411,7 +411,7 @@ impl From<UserListQuery> for UserQuery {
         UserQuery {
             gt: query.gt,
             lt: query.lt,
-            limit: query.limit,
+            limit: query.limit.map(|x| x.parse::<i64>().unwrap()),
             email_eq: query.email_eq,
         }
     }
