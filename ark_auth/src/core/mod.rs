@@ -60,6 +60,7 @@ pub struct AuditMeta {
 /// Audit list query.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuditQuery {
+    // TODO(refactor): Add created_gt, created_lt options.
     pub gt: Option<String>,
     pub lt: Option<String>,
     pub limit: Option<i64>,

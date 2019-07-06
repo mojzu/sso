@@ -2,9 +2,8 @@ use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
 use crate::server::api::{
     route, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse, AuthOauth2UrlResponse,
-    AuthResetPasswordBody, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse,
+    AuthResetPasswordBody, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse, AuthPasswordMetaResponse, AuthResetPasswordConfirmBody,
 };
-use actix_web::http::StatusCode;
 
 impl SyncClient {
     pub fn auth_local_login(
@@ -36,9 +35,27 @@ impl SyncClient {
         self.post_json(route::AUTH_LOCAL_RESET_PASSWORD, &body)
             .send()
             .map_err(|_err| Error::Unwrap)
-            .and_then(|res| match res.status() {
-                StatusCode::OK => Ok(()),
-                _ => Err(Error::Unwrap),
+            .and_then(SyncClient::match_status_code)
+            .map(|_res| ())
+    }
+
+    pub fn auth_local_reset_password_confirm(
+        &self,
+        token: &str,
+        password: &str,
+    ) -> Result<AuthPasswordMetaResponse, Error> {
+        let body = AuthResetPasswordConfirmBody {
+            token: token.to_owned(),
+            password: password.to_owned(),
+        };
+
+        self.post_json(route::AUTH_LOCAL_RESET_PASSWORD_CONFIRM, &body)
+            .send()
+            .map_err(|_err| Error::Unwrap)
+            .and_then(SyncClient::match_status_code)
+            .and_then(|mut res| {
+                res.json::<AuthPasswordMetaResponse>()
+                    .map_err(|_err| Error::Unwrap)
             })
     }
 

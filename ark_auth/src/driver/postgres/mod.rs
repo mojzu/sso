@@ -220,16 +220,20 @@ impl driver::Driver for Driver {
                 .select(key_id)
                 .filter(service_id.eq(service_id_mask).and(key_id.lt(lt)))
                 .limit(limit)
-                .order(key_id.asc())
+                .order(key_id.desc())
                 .load::<String>(&conn),
             None => auth_key
                 .select(key_id)
                 .filter(key_id.lt(lt))
                 .limit(limit)
-                .order(key_id.asc())
+                .order(key_id.desc())
                 .load::<String>(&conn),
         }
         .map_err(Error::Diesel)
+        .map(|mut v| {
+            v.reverse();
+            v
+        })
     }
 
     fn key_list_where_id_gt(

@@ -94,11 +94,6 @@ pub fn user_token_verify(client: &SyncClient, token: &UserToken) -> UserTokenPar
     user_token
 }
 
-pub fn user_token_verify_bad_request(client: &SyncClient, token: &str) {
-    let err = client.auth_token_verify(token).unwrap_err();
-    assert_eq!(err, Error::Request(RequestError::BadRequest));
-}
-
 pub fn user_token_refresh(client: &SyncClient, token: &UserToken) -> UserToken {
     std::thread::sleep(std::time::Duration::from_secs(1));
     let refresh = client.auth_token_refresh(&token.refresh_token).unwrap();

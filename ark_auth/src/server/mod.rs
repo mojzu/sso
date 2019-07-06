@@ -124,6 +124,7 @@ impl From<core::Error> for Error {
         match err {
             core::Error::BadRequest => Error::BadRequest,
             core::Error::Forbidden => Error::Forbidden,
+            core::Error::Jsonwebtoken(_e) => Error::BadRequest,
             _ => Error::Core(err),
         }
     }
