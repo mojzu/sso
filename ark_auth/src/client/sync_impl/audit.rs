@@ -1,8 +1,6 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
-use crate::server::api::{
-    AuditCreateBody, AuditListQuery, AuditListResponse, AuditReadResponse,
-};
+use crate::server::api::{AuditCreateBody, AuditListQuery, AuditListResponse, AuditReadResponse};
 use serde_json::Value;
 
 impl SyncClient {

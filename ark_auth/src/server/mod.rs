@@ -16,6 +16,7 @@ pub use validate::FromJsonValue;
 // TODO(feature): Webauthn support.
 // <https://webauthn.guide/>
 // <https://webauthn.org/>
+// TODO(feature): Configurable canary routes.
 
 /// Default JSON payload size limit.
 const DEFAULT_JSON_LIMIT: usize = 1024;

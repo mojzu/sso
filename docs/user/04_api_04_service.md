@@ -34,6 +34,6 @@ Read service by ID.
 
 #### Update [PATCH /v1/service/{id}]
 
-TODO(docs): Finish, improve API documentation.
+TODO(docs): Finish, improve documentation.
 
 #### Delete [DELETE /v1/service/{id}]

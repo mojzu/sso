@@ -141,35 +141,3 @@ let content_length = header_get(&response, "content-length");
 assert_eq!(status, 400);
 assert_eq!(content_length, "0");
 ```
-
-### Test
-
-```rust,skt-verify-forbidden
-let url = server_url("/v1/auth/key/verify");
-let request = auth::KeyBody {
-    key: "5a044d9035334e95a60ac0338904d37c".to_owned(),
-};
-
-let response = client
-    .post(&url)
-    .header("content-type", "application/json")
-    .json(&request)
-    .send()
-    .unwrap();
-let status = response.status();
-let content_length = header_get(&response, "content-length");
-assert_eq!(status, 403);
-assert_eq!(content_length, "0");
-
-let response = client
-    .post(&url)
-    .header("content-type", "application/json")
-    .header("authorization", "some-invalid-key")
-    .json(&request)
-    .send()
-    .unwrap();
-let status = response.status();
-let content_length = header_get(&response, "content-length");
-assert_eq!(status, 403);
-assert_eq!(content_length, "0");
-```

@@ -30,13 +30,13 @@ workspace = false
 command = "cargo"
 args = ["test"]
 
-[tasks.release]
-workspace = false
-command = "cargo"
-args = ["build", "--release"]
-
 [tasks.manual]
 script = [
     "pandoc docs/user/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/asset/pandoc.css --output=docs/user.html",
     "pandoc docs/developer/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/asset/pandoc.css --output=docs/developer.html"
 ]
+
+[tasks.release]
+workspace = false
+command = "cargo"
+args = ["build", "--release"]

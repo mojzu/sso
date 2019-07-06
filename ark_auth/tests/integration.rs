@@ -1,8 +1,23 @@
 mod support;
 
 use ark_auth::client::{Error, RequestError};
-use support::*;
 use serde_json::Value;
+use support::*;
+
+const INVALID_UUID: &str = "5a044d9035334e95a60ac0338904d37c";
+const INVALID_SERVICE_KEY: &str = "invalid-service-key";
+const USER_NAME: &str = "user-name";
+const USER_PASSWORD: &str = "user-name";
+const KEY_NAME: &str = "key-name";
+
+// TODO(test): Finish, improve tests.
+// TODO(test): User list using email_eq.
+// TODO(test): SMTP testing using mailin_embedded.
+// TODO(test): Password reset tests.
+// Service 2 cannot confirm reset password.
+// Confirm reset password success.
+// User password is updated.
+// Cannot reuse token.
 
 #[test]
 fn guide_api_key() {
@@ -11,8 +26,8 @@ fn guide_api_key() {
     let user_email = email_create();
 
     client.options.set_authorisation(&service_key.value);
-    let user = user_create(&client, true, "user", &user_email, None);
-    let user_key = user_key_create(&client, "key", &service.id, &user.id);
+    let user = user_create(&client, true, USER_NAME, &user_email, None);
+    let user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 
     user_key_verify(&client, &user_key);
     client.auth_key_revoke(&user_key.key).unwrap();
@@ -26,10 +41,10 @@ fn guide_login() {
     let user_email = email_create();
 
     client.options.set_authorisation(&service_key.value);
-    let user = user_create(&client, true, "user", &user_email, Some("guest"));
-    let _user_key = user_key_create(&client, "key", &service.id, &user.id);
+    let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
+    let _user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 
-    let user_token = auth_local_login(&client, &user.id, &user_email, "guest");
+    let user_token = auth_local_login(&client, &user.id, &user_email, USER_PASSWORD);
     user_token_verify(&client, &user_token);
     let user_token = user_token_refresh(&client, &user_token);
     client.auth_token_revoke(&user_token.access_token).unwrap();
@@ -43,8 +58,8 @@ fn guide_reset_password() {
     let user_email = email_create();
 
     client.options.set_authorisation(&service_key.value);
-    let user = user_create(&client, true, "user", &user_email, Some("guest"));
-    let _user_key = user_key_create(&client, "key", &service.id, &user.id);
+    let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
+    let _user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 
     client.auth_local_reset_password(&user_email).unwrap();
 }
@@ -56,8 +71,8 @@ fn guide_oauth2_login() {
     let user_email = email_create();
 
     client.options.set_authorisation(&service_key.value);
-    let user = user_create(&client, true, "user", &user_email, Some("guest"));
-    let _user_key = user_key_create(&client, "key", &service.id, &user.id);
+    let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
+    let _user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 
     auth_microsoft_oauth2_request(&client);
 }
@@ -65,8 +80,191 @@ fn guide_oauth2_login() {
 #[test]
 fn api_ping_ok() {
     let client = client_create();
-    let pong = client.ping().unwrap();
-    assert_eq!(pong, Value::String("pong".to_owned()));
+    let res = client.ping().unwrap();
+    assert_eq!(res, Value::String("pong".to_owned()));
+}
+
+#[test]
+fn api_auth_local_login_forbidden() {
+    let mut client = client_create();
+    let user_email = email_create();
+
+    client.options.set_authorisation(INVALID_SERVICE_KEY);
+    let res = client
+        .auth_local_login(&user_email, USER_PASSWORD)
+        .unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::Forbidden));
+}
+
+#[test]
+fn api_auth_local_login_bad_request_invalid_email() {
+    let client = client_create();
+
+    let res = client
+        .auth_local_login("invalid-email", USER_PASSWORD)
+        .unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::BadRequest));
+}
+
+#[test]
+fn api_auth_local_login_bad_request_invalid_password() {
+    let client = client_create();
+    let user_email = email_create();
+
+    let res = client.auth_local_login(&user_email, "").unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::BadRequest));
+}
+
+#[test]
+fn api_auth_local_login_bad_request_unknown_email() {
+    let mut client = client_create();
+    let (_service, service_key) = service_key_create(&client);
+    let user_email = email_create();
+
+    client.options.set_authorisation(&service_key.value);
+    let res = client
+        .auth_local_login(&user_email, USER_PASSWORD)
+        .unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::BadRequest));
+}
+
+#[test]
+fn api_auth_local_login_bad_request_disabled_user() {
+    let mut client = client_create();
+    let (_service, service_key) = service_key_create(&client);
+    let user_email = email_create();
+
+    client.options.set_authorisation(&service_key.value);
+    let _user = user_create(&client, false, USER_NAME, &user_email, Some(USER_PASSWORD));
+
+    let res = client
+        .auth_local_login(&user_email, USER_PASSWORD)
+        .unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::BadRequest));
+}
+
+#[test]
+fn api_auth_local_login_bad_request_unknown_user_key() {
+    let mut client = client_create();
+    let (_service, service_key) = service_key_create(&client);
+    let user_email = email_create();
+
+    client.options.set_authorisation(&service_key.value);
+    let _user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
+
+    let res = client
+        .auth_local_login(&user_email, USER_PASSWORD)
+        .unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::BadRequest));
+}
+
+#[test]
+fn api_auth_local_login_bad_request_incorrect_password() {
+    let mut client = client_create();
+    let (service, service_key) = service_key_create(&client);
+    let user_email = email_create();
+
+    client.options.set_authorisation(&service_key.value);
+    let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
+    let _user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
+
+    let res = client.auth_local_login(&user_email, "guests").unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::BadRequest));
+}
+
+#[test]
+fn api_auth_local_login_bad_request_unknown_user_key_for_service() {
+    let mut client = client_create();
+    let (service1, service1_key) = service_key_create(&client);
+    let (_service2, service2_key) = service_key_create(&client);
+    let user_email = email_create();
+
+    client.options.set_authorisation(&service1_key.value);
+    let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
+    let _user_key = user_key_create(&client, KEY_NAME, &service1.id, &user.id);
+
+    client.options.set_authorisation(&service2_key.value);
+    let res = client
+        .auth_local_login(&user_email, USER_PASSWORD)
+        .unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::BadRequest));
+}
+
+#[test]
+fn api_auth_local_login_ok() {
+    let mut client = client_create();
+    let (service, service_key) = service_key_create(&client);
+    let user_email = email_create();
+
+    client.options.set_authorisation(&service_key.value);
+    let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
+    let _user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
+
+    let res = client.auth_local_login(&user_email, USER_PASSWORD).unwrap();
+    assert_eq!(res.data.user_id, user.id);
+}
+
+#[test]
+fn api_auth_key_verify_forbidden() {
+    let mut client = client_create();
+
+    client.options.set_authorisation(INVALID_SERVICE_KEY);
+    let res = client.auth_key_verify(INVALID_UUID).unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::Forbidden));
+}
+
+#[test]
+fn api_auth_key_revoke_forbidden() {
+    let mut client = client_create();
+
+    client.options.set_authorisation(INVALID_SERVICE_KEY);
+    let res = client.auth_key_revoke(INVALID_UUID).unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::Forbidden));
+}
+
+#[test]
+fn api_key_list_forbidden() {
+    let mut client = client_create();
+
+    client.options.set_authorisation(INVALID_SERVICE_KEY);
+    let res = client.key_list(None, None, None).unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::Forbidden));
+}
+
+#[test]
+fn api_key_create_forbidden() {
+    let mut client = client_create();
+
+    client.options.set_authorisation(INVALID_SERVICE_KEY);
+    let res = client.key_create(true, KEY_NAME, None, None).unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::Forbidden));
+}
+
+#[test]
+fn api_key_read_forbidden() {
+    let mut client = client_create();
+
+    client.options.set_authorisation(INVALID_SERVICE_KEY);
+    let res = client.key_read(INVALID_UUID).unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::Forbidden));
+}
+
+#[test]
+fn api_service_read_forbidden() {
+    let mut client = client_create();
+
+    client.options.set_authorisation(INVALID_SERVICE_KEY);
+    let res = client.service_read(INVALID_UUID).unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::Forbidden));
+}
+
+#[test]
+fn api_user_list_forbidden() {
+    let mut client = client_create();
+
+    client.options.set_authorisation(INVALID_SERVICE_KEY);
+    let res = client.user_list(None, None, None, None).unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::Forbidden));
 }
 
 #[test]
@@ -76,7 +274,7 @@ fn api_user_create_ok() {
     let user_email = email_create();
 
     client.options.set_authorisation(&service_key.value);
-    user_create(&client, true, "user", &user_email, None);
+    user_create(&client, true, USER_NAME, &user_email, None);
 }
 
 #[test]
@@ -84,11 +282,11 @@ fn api_user_create_forbidden() {
     let mut client = client_create();
     let user_email = email_create();
 
-    client.options.set_authorisation("invalid-service-key");
-    let create = client
-        .user_create(true, "user", &user_email, None)
+    client.options.set_authorisation(INVALID_SERVICE_KEY);
+    let res = client
+        .user_create(true, USER_NAME, &user_email, None)
         .unwrap_err();
-    assert_eq!(create, Error::Request(RequestError::Forbidden));
+    assert_eq!(res, Error::Request(RequestError::Forbidden));
 }
 
 #[test]
@@ -98,12 +296,12 @@ fn api_user_create_bad_request_duplicate_user_email() {
     let user_email = email_create();
 
     client.options.set_authorisation(&service_key.value);
-    user_create(&client, true, "user", &user_email, None);
+    user_create(&client, true, USER_NAME, &user_email, None);
 
-    let create = client
-        .user_create(true, "user", &user_email, None)
+    let res = client
+        .user_create(true, USER_NAME, &user_email, None)
         .unwrap_err();
-    assert_eq!(create, Error::Request(RequestError::BadRequest));
+    assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
 #[test]

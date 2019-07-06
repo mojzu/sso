@@ -1,4 +1,4 @@
-use ark_auth::client::{Client, ClientOptions, RequestError, Error, SyncClient};
+use ark_auth::client::{Client, ClientOptions, Error, RequestError, SyncClient};
 use ark_auth::core::{Key, Service, User, UserKey, UserToken, UserTokenPartial};
 use ark_auth::server::api::AuthOauth2UrlResponse;
 use chrono::Utc;
@@ -111,7 +111,12 @@ pub fn user_token_refresh(client: &SyncClient, token: &UserToken) -> UserToken {
     user_token
 }
 
-pub fn auth_local_login(client: &SyncClient, user_id: &str, email: &str, password: &str) -> UserToken {
+pub fn auth_local_login(
+    client: &SyncClient,
+    user_id: &str,
+    email: &str,
+    password: &str,
+) -> UserToken {
     let login = client.auth_local_login(email, password).unwrap();
     let user_token = login.data;
     assert_eq!(user_token.user_id, user_id);

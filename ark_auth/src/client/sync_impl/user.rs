@@ -1,8 +1,29 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
-use crate::server::api::{UserCreateBody, UserCreateResponse};
+use crate::server::api::{UserCreateBody, UserCreateResponse, UserListQuery, UserListResponse};
 
 impl SyncClient {
+    pub fn user_list(
+        &self,
+        gt: Option<&str>,
+        lt: Option<&str>,
+        limit: Option<i64>,
+        email_eq: Option<&str>,
+    ) -> Result<UserListResponse, Error> {
+        let query = UserListQuery {
+            gt: gt.map(|x| x.to_owned()),
+            lt: lt.map(|x| x.to_owned()),
+            limit: limit.map(|x| format!("{}", x)),
+            email_eq: email_eq.map(|x| x.to_owned()),
+        };
+
+        self.get_query("/v1/user", query)
+            .send()
+            .map_err(|_err| Error::Unwrap)
+            .and_then(SyncClient::match_status_code)
+            .and_then(|mut res| res.json::<UserListResponse>().map_err(|_err| Error::Unwrap))
+    }
+
     pub fn user_create(
         &self,
         is_enabled: bool,
