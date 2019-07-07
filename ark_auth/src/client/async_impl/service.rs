@@ -20,12 +20,9 @@ impl AsyncClient {
 
         self.get_query("/v1/service", query)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<ServiceListResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<ServiceListResponse>().map_err(Into::into))
     }
 
     pub fn service_create(
@@ -42,12 +39,9 @@ impl AsyncClient {
 
         self.post("/v1/service")
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<ServiceReadResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<ServiceReadResponse>().map_err(Into::into))
     }
 
     pub fn service_read(&self, id: &str) -> impl Future<Item = ServiceReadResponse, Error = Error> {
@@ -55,11 +49,8 @@ impl AsyncClient {
 
         self.get(&path)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<ServiceReadResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<ServiceReadResponse>().map_err(Into::into))
     }
 }

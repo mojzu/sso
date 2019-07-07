@@ -1,6 +1,7 @@
 mod async_impl;
 mod sync_impl;
 
+// TODO(refactor): Feature flags for clients.
 pub use crate::client::async_impl::AsyncClient;
 pub use crate::client::sync_impl::SyncClient;
 use crate::crate_user_agent;
@@ -8,7 +9,7 @@ use serde::ser::Serialize;
 use std::error::Error as StdError;
 use url::Url;
 
-// TODO(feature): Client methods.
+// TODO(feature): Finish client methods.
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum RequestError {
@@ -23,12 +24,15 @@ pub enum RequestError {
 /// Client errors.
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
-    /// TODO(refactor): Error type improvements.
-    #[fail(display = "ClientError::Unwrap")]
-    Unwrap,
+    /// Client error.
+    #[fail(display = "ClientError::Client {}", _0)]
+    Client(String),
     /// Request error.
     #[fail(display = "ClientError::Request {}", _0)]
     Request(RequestError),
+    /// Response error.
+    #[fail(display = "ClientError::Response")]
+    Response,
     /// Url error wrapper.
     #[fail(display = "ClientError::Url {}", _0)]
     Url(String),

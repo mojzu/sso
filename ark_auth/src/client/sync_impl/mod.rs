@@ -8,6 +8,13 @@ use crate::client::{Client, ClientOptions, Error, RequestError};
 use actix_web::http::{header, StatusCode};
 use serde::ser::Serialize;
 use serde_json::Value;
+use std::error::Error as StdError;
+
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Error {
+        Error::Client(err.description().to_owned())
+    }
+}
 
 /// Synchronous client handle.
 pub struct SyncClient {
@@ -19,9 +26,9 @@ impl SyncClient {
     pub fn ping(&self) -> Result<Value, Error> {
         self.get("/v1/ping")
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| res.json::<Value>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| res.json::<Value>().map_err(Into::into))
     }
 
     fn build_client(options: &ClientOptions) -> reqwest::Client {
@@ -69,7 +76,7 @@ impl SyncClient {
             StatusCode::OK => Ok(response),
             StatusCode::BAD_REQUEST => Err(Error::Request(RequestError::BadRequest)),
             StatusCode::FORBIDDEN => Err(Error::Request(RequestError::Forbidden)),
-            _ => Err(Error::Unwrap),
+            _ => Err(Error::Response),
         }
     }
 }

@@ -19,9 +19,9 @@ impl SyncClient {
 
         self.get_query("/v1/user", query)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| res.json::<UserListResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| res.json::<UserListResponse>().map_err(Into::into))
     }
 
     pub fn user_create(
@@ -40,11 +40,8 @@ impl SyncClient {
 
         self.post_json("/v1/user", &body)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<UserCreateResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<UserCreateResponse>().map_err(Into::into))
     }
 }

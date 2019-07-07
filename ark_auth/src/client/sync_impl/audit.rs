@@ -18,12 +18,9 @@ impl SyncClient {
 
         self.get_query("/v1/audit", query)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<AuditListResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<AuditListResponse>().map_err(Into::into))
     }
 
     pub fn audit_create(
@@ -42,12 +39,9 @@ impl SyncClient {
 
         self.post_json("/v1/audit", &body)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<AuditReadResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<AuditReadResponse>().map_err(Into::into))
     }
 
     pub fn audit_read(&self, id: &str) -> Result<AuditReadResponse, Error> {
@@ -55,11 +49,8 @@ impl SyncClient {
 
         self.get(&path)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<AuditReadResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<AuditReadResponse>().map_err(Into::into))
     }
 }

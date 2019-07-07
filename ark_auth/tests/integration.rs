@@ -49,7 +49,9 @@ fn guide_login() {
     let user_token = user_token_refresh(&client, &user_token);
     client.auth_token_revoke(&user_token.access_token).unwrap();
 
-    let res = client.auth_token_verify(&user_token.refresh_token).unwrap_err();
+    let res = client
+        .auth_token_verify(&user_token.refresh_token)
+        .unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -212,9 +214,7 @@ fn api_auth_local_reset_password_forbidden() {
     let user_email = email_create();
 
     client.options.set_authorisation(INVALID_SERVICE_KEY);
-    let res = client
-        .auth_local_reset_password(&user_email)
-        .unwrap_err();
+    let res = client.auth_local_reset_password(&user_email).unwrap_err();
     assert_eq!(res, Error::Request(RequestError::Forbidden));
 }
 
@@ -224,7 +224,9 @@ fn api_auth_local_reset_password_bad_request_invalid_email() {
     let (_service, service_key) = service_key_create(&client);
 
     client.options.set_authorisation(&service_key.value);
-    let res = client.auth_local_reset_password("invalid-email").unwrap_err();
+    let res = client
+        .auth_local_reset_password("invalid-email")
+        .unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -235,9 +237,7 @@ fn api_auth_local_reset_password_bad_request_unknown_email() {
     let user_email = email_create();
 
     client.options.set_authorisation(&service_key.value);
-    let res = client
-        .auth_local_reset_password(&user_email)
-        .unwrap_err();
+    let res = client.auth_local_reset_password(&user_email).unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -253,9 +253,7 @@ fn api_auth_local_reset_password_bad_request_unknown_user_key_for_service() {
     let _user_key = user_key_create(&client, KEY_NAME, &service1.id, &user.id);
 
     client.options.set_authorisation(&service2_key.value);
-    let res = client
-        .auth_local_reset_password(&user_email)
-        .unwrap_err();
+    let res = client.auth_local_reset_password(&user_email).unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -289,7 +287,9 @@ fn api_auth_local_reset_password_confirm_bad_request_invalid_token() {
     let (_service, service_key) = service_key_create(&client);
 
     client.options.set_authorisation(&service_key.value);
-    let res = client.auth_local_reset_password_confirm("", USER_PASSWORD).unwrap_err();
+    let res = client
+        .auth_local_reset_password_confirm("", USER_PASSWORD)
+        .unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -299,7 +299,9 @@ fn api_auth_local_reset_password_confirm_bad_request_invalid_password() {
     let (_service, service_key) = service_key_create(&client);
 
     client.options.set_authorisation(&service_key.value);
-    let res = client.auth_local_reset_password_confirm(INVALID_UUID, "").unwrap_err();
+    let res = client
+        .auth_local_reset_password_confirm(INVALID_UUID, "")
+        .unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -334,9 +336,7 @@ fn api_auth_key_verify_bad_request_unknown_user_key_for_service() {
     let user_key = user_key_create(&client, KEY_NAME, &service1.id, &user.id);
 
     client.options.set_authorisation(&service2_key.value);
-    let res = client
-        .auth_key_verify(&user_key.key)
-        .unwrap_err();
+    let res = client.auth_key_verify(&user_key.key).unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -394,9 +394,7 @@ fn api_auth_key_revoke_bad_request_unknown_user_key_for_service() {
     let user_key = user_key_create(&client, KEY_NAME, &service1.id, &user.id);
 
     client.options.set_authorisation(&service2_key.value);
-    let res = client
-        .auth_key_revoke(&user_key.key)
-        .unwrap_err();
+    let res = client.auth_key_revoke(&user_key.key).unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -530,7 +528,9 @@ fn api_auth_token_refresh_bad_request_used_refresh_token() {
     let user_token2 = user_token_refresh(&client, &user_token);
     client.auth_token_verify(&user_token2.access_token).unwrap();
 
-    let res = client.auth_token_refresh(&user_token.refresh_token).unwrap_err();
+    let res = client
+        .auth_token_refresh(&user_token.refresh_token)
+        .unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -602,7 +602,9 @@ fn api_auth_token_revoke_ok() {
 
     user_token_verify(&client, &user_token);
     client.auth_token_revoke(&user_token.access_token).unwrap();
-    let res = client.auth_token_verify(&user_token.access_token).unwrap_err();
+    let res = client
+        .auth_token_verify(&user_token.access_token)
+        .unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -654,11 +656,21 @@ fn api_key_list_ok() {
     client.options.set_authorisation(&service_key.value);
     let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
 
-    client.key_create(true, KEY_NAME, None, Some(&user.id)).unwrap();
-    client.key_create(true, KEY_NAME, None, Some(&user.id)).unwrap();
-    client.key_create(true, KEY_NAME, None, Some(&user.id)).unwrap();
-    client.key_create(true, KEY_NAME, None, Some(&user.id)).unwrap();
-    client.key_create(true, KEY_NAME, None, Some(&user.id)).unwrap();
+    client
+        .key_create(true, KEY_NAME, None, Some(&user.id))
+        .unwrap();
+    client
+        .key_create(true, KEY_NAME, None, Some(&user.id))
+        .unwrap();
+    client
+        .key_create(true, KEY_NAME, None, Some(&user.id))
+        .unwrap();
+    client
+        .key_create(true, KEY_NAME, None, Some(&user.id))
+        .unwrap();
+    client
+        .key_create(true, KEY_NAME, None, Some(&user.id))
+        .unwrap();
 
     let res1 = client.key_list(None, None, Some(3)).unwrap();
     assert_eq!(res1.data.len(), 3);

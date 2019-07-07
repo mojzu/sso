@@ -20,8 +20,8 @@ impl AsyncClient {
 
         self.post("/v1/key")
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| res.json::<KeyReadResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| res.json::<KeyReadResponse>().map_err(Into::into))
     }
 }

@@ -11,6 +11,20 @@ use futures::{future, Future};
 use serde::ser::Serialize;
 use serde_json::Value;
 
+impl From<actix_http::client::SendRequestError> for Error {
+    fn from(err: actix_http::client::SendRequestError) -> Error {
+        let description = format!("{}", err);
+        Error::Client(description)
+    }
+}
+
+impl From<awc::error::JsonPayloadError> for Error {
+    fn from(err: awc::error::JsonPayloadError) -> Error {
+        let description = format!("{}", err);
+        Error::Client(description)
+    }
+}
+
 /// Asynchronous client handle.
 pub struct AsyncClient {
     pub options: ClientOptions,
@@ -21,9 +35,9 @@ impl AsyncClient {
     pub fn ping(&self) -> impl Future<Item = Value, Error = Error> {
         self.get("/v1/ping")
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| res.json::<Value>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| res.json::<Value>().map_err(Into::into))
     }
 
     fn build_client(options: &ClientOptions) -> actix_web::client::Client {
@@ -61,7 +75,7 @@ impl AsyncClient {
             StatusCode::OK => future::ok(response),
             StatusCode::BAD_REQUEST => future::err(Error::Request(RequestError::BadRequest)),
             StatusCode::FORBIDDEN => future::err(Error::Request(RequestError::Forbidden)),
-            _ => future::err(Error::Unwrap),
+            _ => future::err(Error::Response),
         }
     }
 }

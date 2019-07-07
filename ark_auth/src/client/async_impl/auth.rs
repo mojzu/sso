@@ -21,12 +21,9 @@ impl AsyncClient {
 
         self.post(route::AUTH_LOCAL_LOGIN)
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<AuthLoginResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<AuthLoginResponse>().map_err(Into::into))
     }
 
     pub fn auth_local_reset_password(&self, email: &str) -> impl Future<Item = (), Error = Error> {
@@ -37,7 +34,7 @@ impl AsyncClient {
 
         self.post(route::AUTH_LOCAL_RESET_PASSWORD)
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
             .map(|_res| ())
     }
@@ -54,12 +51,9 @@ impl AsyncClient {
 
         self.post(route::AUTH_LOCAL_RESET_PASSWORD_CONFIRM)
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<AuthPasswordMetaResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<AuthPasswordMetaResponse>().map_err(Into::into))
     }
 
     pub fn auth_local_update_email(
@@ -79,7 +73,7 @@ impl AsyncClient {
 
         self.post(route::AUTH_LOCAL_UPDATE_EMAIL)
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
             .map(|_res| ())
     }
@@ -94,7 +88,7 @@ impl AsyncClient {
 
         self.post(route::AUTH_LOCAL_UPDATE_EMAIL_REVOKE)
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
             .map(|_res| ())
     }
@@ -116,7 +110,7 @@ impl AsyncClient {
 
         self.post(route::AUTH_LOCAL_UPDATE_PASSWORD)
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
             .map(|_res| ())
     }
@@ -131,7 +125,7 @@ impl AsyncClient {
 
         self.post(route::AUTH_LOCAL_UPDATE_PASSWORD_REVOKE)
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
             .map(|_res| ())
     }
@@ -141,12 +135,9 @@ impl AsyncClient {
     ) -> impl Future<Item = AuthOauth2UrlResponse, Error = Error> {
         self.post(route::AUTH_MICROSOFT_OAUTH2)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<AuthOauth2UrlResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<AuthOauth2UrlResponse>().map_err(Into::into))
     }
 
     pub fn auth_key_verify(&self, key: &str) -> impl Future<Item = AuthKeyResponse, Error = Error> {
@@ -156,9 +147,9 @@ impl AsyncClient {
 
         self.post(route::AUTH_KEY_VERIFY)
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| res.json::<AuthKeyResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| res.json::<AuthKeyResponse>().map_err(Into::into))
     }
 
     pub fn auth_key_revoke(&self, key: &str) -> impl Future<Item = (), Error = Error> {
@@ -168,7 +159,7 @@ impl AsyncClient {
 
         self.post(route::AUTH_KEY_REVOKE)
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
             .map(|_res| ())
     }
@@ -183,12 +174,9 @@ impl AsyncClient {
 
         self.post(route::AUTH_TOKEN_VERIFY)
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<AuthTokenPartialResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<AuthTokenPartialResponse>().map_err(Into::into))
     }
 
     pub fn auth_token_refresh(
@@ -201,12 +189,9 @@ impl AsyncClient {
 
         self.post(route::AUTH_TOKEN_REFRESH)
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<AuthTokenResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<AuthTokenResponse>().map_err(Into::into))
     }
 
     pub fn auth_token_revoke(&self, token: &str) -> impl Future<Item = (), Error = Error> {
@@ -216,7 +201,7 @@ impl AsyncClient {
 
         self.post(route::AUTH_TOKEN_REVOKE)
             .send_json(&body)
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
             .map(|_res| ())
     }

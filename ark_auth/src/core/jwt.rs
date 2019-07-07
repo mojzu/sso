@@ -1,9 +1,6 @@
 use crate::core::Error;
 use jsonwebtoken::{dangerous_unsafe_decode, decode, encode, Header, Validation};
 
-// TODO(refactor): Improve handling of decode errors.
-// ServerError::Core CoreError::Jsonwebtoken invalid signature
-
 #[derive(Debug)]
 pub enum ClaimsType {
     AccessToken = 0,

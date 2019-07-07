@@ -19,12 +19,9 @@ impl SyncClient {
 
         self.get_query("/v1/service", query)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<ServiceListResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<ServiceListResponse>().map_err(Into::into))
     }
 
     pub fn service_create(
@@ -41,12 +38,9 @@ impl SyncClient {
 
         self.post_json("/v1/service", &body)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<ServiceReadResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<ServiceReadResponse>().map_err(Into::into))
     }
 
     pub fn service_read(&self, id: &str) -> Result<ServiceReadResponse, Error> {
@@ -54,11 +48,8 @@ impl SyncClient {
 
         self.get(&path)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| {
-                res.json::<ServiceReadResponse>()
-                    .map_err(|_err| Error::Unwrap)
-            })
+            .and_then(|mut res| res.json::<ServiceReadResponse>().map_err(Into::into))
     }
 }

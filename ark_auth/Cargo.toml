@@ -21,6 +21,7 @@ actix-http = "*"
 actix-rt = "*"
 actix-service = "*"
 actix-web = { version = "^1.0.3", features = ["ssl", "client"] }
+awc = "*"
 bcrypt = "*"
 clap = "*"
 chrono = { version = "*", features = ["serde"] }

@@ -17,9 +17,9 @@ impl SyncClient {
 
         self.get_query("/v1/key", query)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| res.json::<KeyListResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| res.json::<KeyListResponse>().map_err(Into::into))
     }
 
     pub fn key_create(
@@ -38,9 +38,9 @@ impl SyncClient {
 
         self.post_json("/v1/key", &body)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| res.json::<KeyReadResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| res.json::<KeyReadResponse>().map_err(Into::into))
     }
 
     pub fn key_read(&self, id: &str) -> Result<KeyReadResponse, Error> {
@@ -48,8 +48,8 @@ impl SyncClient {
 
         self.get(&path)
             .send()
-            .map_err(|_err| Error::Unwrap)
+            .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
-            .and_then(|mut res| res.json::<KeyReadResponse>().map_err(|_err| Error::Unwrap))
+            .and_then(|mut res| res.json::<KeyReadResponse>().map_err(Into::into))
     }
 }
