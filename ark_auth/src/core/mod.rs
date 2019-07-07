@@ -8,7 +8,9 @@ pub mod user;
 
 use crate::driver;
 use chrono::{DateTime, Utc};
+use serde::ser::Serialize;
 use serde_json::Value;
+use url::Url;
 
 /// Default list limit.
 pub const DEFAULT_LIMIT: i64 = 50;
@@ -107,6 +109,16 @@ pub struct Service {
     pub is_enabled: bool,
     pub name: String,
     pub url: String,
+}
+
+impl Service {
+    pub fn callback_url<S: Serialize>(&self, type_: &str, data: S) -> Url {
+        let mut url = Url::parse(&self.url).unwrap();
+        let data_query = serde_urlencoded::to_string(data).unwrap();
+        let query = format!("type={}&{}", type_, data_query);
+        url.set_query(Some(&query));
+        url
+    }
 }
 
 /// Service query.

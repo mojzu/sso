@@ -9,6 +9,7 @@
 - Added synchronous and asynchronous clients to library.
 - Added `email_eq` query option to user list route.
 - Added local provider update user email, password routes.
+- Added type parameter to service URL callback queries.
 
 **Changed**
 

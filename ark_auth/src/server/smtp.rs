@@ -27,10 +27,9 @@ pub fn send_reset_password(
             format!("A reset password request for your email address has been made to {}. If you made this request, follow the link below.", service.name),
         )
     };
-    let text = format!(
-        "{}\r\n\r\n{}?email={}&reset_password_token={}",
-        text, service.url, &user.email, token,
-    );
+    let callback_data = &[("email", user.email.as_ref()), ("token", token)];
+    let url = service.callback_url("reset_password", callback_data);
+    let text = format!("{}\r\n\r\n{}", text, url.as_str(),);
 
     send(
         smtp,
@@ -59,10 +58,13 @@ pub fn send_update_email(
             format!("An update email request for your user has been made to {}. If you did not make this request, follow the link below.", service.name),
         )
     };
-    let text = format!(
-        "{}\r\n\r\n{}?email={}&old_email={}&update_email_token={}",
-        text, service.url, &user.email, &old_email, token,
-    );
+    let callback_data = &[
+        ("email", user.email.as_ref()),
+        ("old_email", old_email),
+        ("token", token),
+    ];
+    let url = service.callback_url("update_email", callback_data);
+    let text = format!("{}\r\n\r\n{}", text, url.as_str(),);
 
     send(
         smtp,
@@ -90,10 +92,9 @@ pub fn send_update_password(
             format!("An update password request for your user has been made to {}. If you did not make this request, follow the link below.", service.name),
         )
     };
-    let text = format!(
-        "{}\r\n\r\n{}?email={}&update_password_token={}",
-        text, service.url, &user.email, token,
-    );
+    let callback_data = &[("email", user.email.as_ref()), ("token", token)];
+    let url = service.callback_url("update_password", callback_data);
+    let text = format!("{}\r\n\r\n{}", text, url.as_str(),);
 
     send(
         smtp,
