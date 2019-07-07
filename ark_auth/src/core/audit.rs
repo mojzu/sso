@@ -8,6 +8,7 @@ use time::Duration;
 /// Audit paths.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum AuditPath {
+    AuthenticationError,
     Login,
     LoginError,
     ResetPassword,
@@ -39,6 +40,7 @@ impl AuditPath {
     pub fn to_string(&self) -> String {
         let prefix = crate_name!();
         match self {
+            AuditPath::AuthenticationError => format!("{}/error/authentication", prefix),
             AuditPath::Login => format!("{}/login", prefix),
             AuditPath::LoginError => format!("{}/error/login", prefix),
             AuditPath::ResetPassword => format!("{}/reset_password", prefix),
@@ -79,6 +81,7 @@ pub enum AuditMessage {
     UserNotFound,
     UserDisabled,
     KeyNotFound,
+    KeyInvalid,
     KeyDisabledOrRevoked,
     PasswordNotSetOrIncorrect,
     Login,
@@ -213,17 +216,32 @@ pub fn list(
     query: &AuditQuery,
 ) -> Result<Vec<String>, Error> {
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
-    match &query.lt {
-        Some(lt) => driver
-            .audit_list_where_id_lt(lt, limit, service_mask.map(|s| s.id.as_ref()))
+    let service_mask = service_mask.map(|s| s.id.as_ref());
+
+    // TODO(refactor): Handle gt AND lt, created_gt AND created_lt cases.
+    match &query.gt {
+        Some(gt) => driver
+            .audit_list_where_id_gt(gt, limit, service_mask)
             .map_err(Error::Driver),
-        None => match &query.gt {
-            Some(gt) => driver
-                .audit_list_where_id_gt(gt, limit, service_mask.map(|s| s.id.as_ref()))
+        None => match &query.lt {
+            Some(lt) => driver
+                .audit_list_where_id_lt(lt, limit, service_mask)
                 .map_err(Error::Driver),
-            None => driver
-                .audit_list_where_id_gt("", limit, service_mask.map(|s| s.id.as_ref()))
-                .map_err(Error::Driver),
+            None => match &query.created_gt {
+                Some(created_gt) => {
+                    driver.audit_list_where_created_gt(created_gt, limit, service_mask)
+                .map_err(Error::Driver)
+                }
+                None => match &query.created_lt {
+                    Some(created_lt) => {
+                        driver.audit_list_where_created_lt(created_lt, limit, service_mask)
+                .map_err(Error::Driver)
+                    }
+                    None => driver
+                        .audit_list_where_id_gt("", limit, service_mask)
+                        .map_err(Error::Driver),
+                },
+            },
         },
     }
 }

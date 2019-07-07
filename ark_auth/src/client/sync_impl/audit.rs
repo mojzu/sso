@@ -1,6 +1,7 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
 use crate::server::api::{AuditCreateBody, AuditListQuery, AuditListResponse, AuditReadResponse};
+use chrono::{DateTime, Utc};
 use serde_json::Value;
 
 impl SyncClient {
@@ -8,11 +9,15 @@ impl SyncClient {
         &self,
         gt: Option<&str>,
         lt: Option<&str>,
+        created_gt: Option<&DateTime<Utc>>,
+        created_lt: Option<&DateTime<Utc>>,
         limit: Option<i64>,
     ) -> Result<AuditListResponse, Error> {
         let query = AuditListQuery {
             gt: gt.map(|x| x.to_owned()),
             lt: lt.map(|x| x.to_owned()),
+            created_gt: created_gt.map(|x| x.to_rfc3339()),
+            created_lt: created_lt.map(|x| x.to_rfc3339()),
             limit: limit.map(|x| format!("{}", x)),
         };
 

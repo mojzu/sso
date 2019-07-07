@@ -9,7 +9,7 @@ use actix_identity::Identity;
 use actix_web::http::{header, StatusCode};
 use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
 use futures::{future, Future};
-use oauth2::curl::http_client;
+use oauth2::reqwest::http_client;
 use oauth2::{
     basic::BasicClient, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl,
     Scope, TokenResponse, TokenUrl,
@@ -137,7 +137,6 @@ fn github_callback(
     let csrf = csrf.ok_or_else(|| Error::Oauth2(Oauth2Error::Csrf))?;
 
     // Exchange the code with a token.
-    // TODO(refactor): Use async client.
     let client = github_client(data.configuration().provider_github_oauth2())?;
     let code = AuthorizationCode::new(code.to_owned());
     let token = client

@@ -399,7 +399,6 @@ pub fn start(configuration: Configuration, driver: Box<driver::Driver>) -> Resul
             .data(web::JsonConfig::default().limit(DEFAULT_JSON_LIMIT))
             // Logger middleware.
             .wrap(middleware::Logger::default())
-            // TODO(refactor): Sentry middleware support.
             // Authorisation header identity service.
             .wrap(AuthorisationIdentityPolicy::identity_service())
             // Route service.

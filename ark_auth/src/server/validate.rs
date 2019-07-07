@@ -1,4 +1,5 @@
 use crate::server::Error;
+use chrono::{DateTime, Utc};
 use futures::future;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -28,6 +29,13 @@ pub fn limit(limit: &str) -> Result<(), ValidationError> {
     } else {
         Ok(())
     }
+}
+
+pub fn datetime(datetime: &str) -> Result<(), ValidationError> {
+    DateTime::parse_from_rfc3339(datetime)
+        .map_err(|_err| ValidationError::new("invalid_datetime"))
+        .map(|x| x.with_timezone(&Utc))?;
+    Ok(())
 }
 
 pub fn password(password: &str) -> Result<(), ValidationError> {

@@ -3,8 +3,21 @@ use crate::core::{
     UserTokenPartial,
 };
 use crate::server::{validate, FromJsonValue};
+use chrono::{DateTime, Utc};
 use serde_json::Value;
 use validator::Validate;
+
+fn datetime_from_string(value: Option<String>) -> Option<DateTime<Utc>> {
+    value.map(|x| {
+        DateTime::parse_from_rfc3339(&x)
+            .unwrap()
+            .with_timezone(&Utc)
+    })
+}
+
+fn i64_from_string(value: Option<String>) -> Option<i64> {
+    value.map(|x| x.parse::<i64>().unwrap())
+}
 
 /// Route definitions.
 pub mod route {
@@ -38,6 +51,10 @@ pub struct AuditListQuery {
     pub gt: Option<String>,
     #[validate(custom = "validate::id")]
     pub lt: Option<String>,
+    #[validate(custom = "validate::datetime")]
+    pub created_gt: Option<String>,
+    #[validate(custom = "validate::datetime")]
+    pub created_lt: Option<String>,
     #[validate(custom = "validate::limit")]
     pub limit: Option<String>,
 }
@@ -49,7 +66,9 @@ impl From<AuditListQuery> for AuditQuery {
         AuditQuery {
             gt: query.gt,
             lt: query.lt,
-            limit: query.limit.map(|x| x.parse::<i64>().unwrap()),
+            created_gt: datetime_from_string(query.created_gt),
+            created_lt: datetime_from_string(query.created_lt),
+            limit: i64_from_string(query.limit),
         }
     }
 }
@@ -287,7 +306,7 @@ impl From<KeyListQuery> for KeyQuery {
         KeyQuery {
             gt: query.gt,
             lt: query.lt,
-            limit: query.limit.map(|x| x.parse::<i64>().unwrap()),
+            limit: i64_from_string(query.limit),
         }
     }
 }
@@ -347,7 +366,7 @@ impl From<ServiceListQuery> for ServiceQuery {
         ServiceQuery {
             gt: query.gt,
             lt: query.lt,
-            limit: query.limit.map(|x| x.parse::<i64>().unwrap()),
+            limit: i64_from_string(query.limit),
         }
     }
 }
@@ -411,7 +430,7 @@ impl From<UserListQuery> for UserQuery {
         UserQuery {
             gt: query.gt,
             lt: query.lt,
-            limit: query.limit.map(|x| x.parse::<i64>().unwrap()),
+            limit: i64_from_string(query.limit),
             email_eq: query.email_eq,
         }
     }

@@ -105,6 +105,24 @@ impl Driver for PostgresDriver {
         .map_err(Error::Diesel)
     }
 
+    fn audit_list_where_created_lt(
+        &self,
+        created_lt: &DateTime<Utc>,
+        limit: i64,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<String>, Error> {
+        unimplemented!();
+    }
+
+    fn audit_list_where_created_gt(
+        &self,
+        created_gt: &DateTime<Utc>,
+        limit: i64,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<String>, Error> {
+        unimplemented!();
+    }
+
     fn audit_create(
         &self,
         meta: &AuditMeta,
@@ -316,7 +334,7 @@ impl Driver for PostgresDriver {
 
         let conn = self.connection()?;
         auth_key
-            // TODO(refactor): Better method to handle multiple keys?
+            // TODO(feature): Better method to handle multiple keys?
             // Allow or require specifying key ID via argument?
             .filter(
                 user_id

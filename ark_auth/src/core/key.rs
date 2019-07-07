@@ -1,4 +1,5 @@
-use crate::core::audit::AuditBuilder;
+use crate::core::audit::{AuditBuilder, AuditMessage, AuditPath};
+use crate::core::service::read_by_id as service_read_by_id;
 use crate::core::{AuditMeta, Error, Key, KeyQuery, Service, User, DEFAULT_LIMIT};
 use crate::driver;
 
@@ -11,16 +12,25 @@ pub fn authenticate_root(
     audit_meta: AuditMeta,
     key_value: Option<String>,
 ) -> Result<AuditBuilder, Error> {
-    // TODO(refactor): Audit forbidden requests.
     let mut audit = AuditBuilder::new(audit_meta);
 
     match key_value {
         Some(key_value) => read_by_root_value(driver, &mut audit, &key_value)
-            .and_then(|key| key.ok_or_else(|| Error::Forbidden))
-            .map(|key| {
-                audit.set_key(Some(&key));
-                audit
-            }),
+            .and_then(|key| match key.ok_or_else(|| Error::Forbidden) {
+                Ok(key) => {
+                    audit.set_key(Some(&key));
+                    Ok(key)
+                }
+                Err(err) => {
+                    audit.create_internal(
+                        driver,
+                        AuditPath::AuthenticationError,
+                        AuditMessage::KeyNotFound,
+                    );
+                    Err(err)
+                }
+            })
+            .map(|_key| audit),
         None => Err(Error::Forbidden),
     }
 }
@@ -32,20 +42,49 @@ pub fn authenticate_service(
     key_value: Option<String>,
 ) -> Result<(Service, AuditBuilder), Error> {
     let mut audit = AuditBuilder::new(audit_meta);
+
     match key_value {
-        Some(key_value) => read_by_service_value(driver, &mut audit, &key_value).and_then(|key| {
-            let key = key.ok_or_else(|| Error::Forbidden)?;
-            audit.set_key(Some(&key));
-
-            let service_id_copy = key.service_id.clone().ok_or_else(|| Error::Forbidden)?;
-            let service = driver
-                .service_read_by_id(&service_id_copy)
-                .map_err(Error::Driver)?
-                .ok_or_else(|| Error::Forbidden)?;
-            audit.set_service(Some(&service));
-
-            Ok((service, audit))
-        }),
+        Some(key_value) => read_by_service_value(driver, &mut audit, &key_value)
+            .and_then(|key| match key.ok_or_else(|| Error::Forbidden) {
+                Ok(key) => {
+                    audit.set_key(Some(&key));
+                    Ok(key)
+                }
+                Err(err) => {
+                    audit.create_internal(
+                        driver,
+                        AuditPath::AuthenticationError,
+                        AuditMessage::KeyNotFound,
+                    );
+                    Err(err)
+                }
+            })
+            .and_then(|key| match key.service_id.ok_or_else(|| Error::Forbidden) {
+                Ok(service_id) => Ok(service_id),
+                Err(err) => {
+                    audit.create_internal(
+                        driver,
+                        AuditPath::AuthenticationError,
+                        AuditMessage::KeyInvalid,
+                    );
+                    Err(err)
+                }
+            })
+            .and_then(|service_id| service_read_by_id(driver, None, &mut audit, &service_id))
+            .and_then(|service| match service.ok_or_else(|| Error::Forbidden) {
+                Ok(service) => {
+                    audit.set_service(Some(&service));
+                    Ok((service, audit))
+                }
+                Err(err) => {
+                    audit.create_internal(
+                        driver,
+                        AuditPath::AuthenticationError,
+                        AuditMessage::ServiceNotFound,
+                    );
+                    Err(err)
+                }
+            }),
         None => Err(Error::Forbidden),
     }
 }

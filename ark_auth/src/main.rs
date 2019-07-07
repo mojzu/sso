@@ -153,8 +153,10 @@ fn main() {
 
 /// Build configuration from environment.
 fn configuration_from_environment() -> Result<(Configuration, Box<Driver>), Error> {
-    // TODO(refactor): Clean this up.
+    // TODO(refactor): Clean this up, improve error messages.
     let database_url = std::env::var("DATABASE_URL").unwrap();
+    let database_connections = std::env::var("DATABASE_CONNECTIONS").unwrap_or("10".to_owned());
+    let database_connections = database_connections.parse::<u32>().unwrap();
     let server_bind = std::env::var("SERVER_BIND").unwrap();
     let mut server_configuration =
         server::Configuration::new(server_bind).set_password_pwned_enabled(true);
@@ -196,13 +198,12 @@ fn configuration_from_environment() -> Result<(Configuration, Box<Driver>), Erro
         server_configuration,
     };
 
-    // TODO(refactor): Configurable number of connections.
     let driver = if configuration.database_url.starts_with("postgres") {
-        driver::PostgresDriver::initialise(&configuration.database_url, 10)
+        driver::PostgresDriver::initialise(&configuration.database_url, database_connections)
             .unwrap()
             .box_clone()
     } else {
-        // driver::SqliteDriver::initialise(&configuration.database_url, 10)
+        // driver::SqliteDriver::initialise(&configuration.database_url, database_connections)
         //     .unwrap()
         //     .box_clone()
         unimplemented!();
