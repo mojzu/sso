@@ -10,9 +10,11 @@ repository = "https://github.com/mojzu/ark_auth"
 edition = "2018"
 
 [features]
-default = ["postgres"]
+default = ["postgres", "async_client", "sync_client"]
 postgres = []
 sqlite = []
+async_client = []
+sync_client = []
 
 [dependencies]
 actix = "*"

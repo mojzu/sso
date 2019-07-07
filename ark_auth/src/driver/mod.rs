@@ -1,11 +1,15 @@
 //! # Drivers
 //! Binary application drivers.
 #[cfg(feature = "postgres")]
-pub mod postgres;
+mod postgres;
 #[cfg(feature = "sqlite")]
-pub mod sqlite;
+mod sqlite;
 
 use crate::core::{Audit, AuditMeta, Csrf, Key, Service, User};
+#[cfg(feature = "postgres")]
+pub use crate::driver::postgres::PostgresDriver;
+#[cfg(feature = "sqlite")]
+pub use crate::driver::sqlite::SqliteDriver;
 use chrono::{DateTime, Utc};
 use serde_json::Value;
 

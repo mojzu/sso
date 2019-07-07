@@ -1,8 +1,13 @@
+//! # Clients
+//! Server clients.
+#[cfg(feature = "async_client")]
 mod async_impl;
+#[cfg(feature = "sync_client")]
 mod sync_impl;
 
-// TODO(refactor): Feature flags for clients.
+#[cfg(feature = "async_client")]
 pub use crate::client::async_impl::AsyncClient;
+#[cfg(feature = "sync_client")]
 pub use crate::client::sync_impl::SyncClient;
 use crate::crate_user_agent;
 use serde::ser::Serialize;

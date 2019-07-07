@@ -198,11 +198,11 @@ fn configuration_from_environment() -> Result<(Configuration, Box<Driver>), Erro
 
     // TODO(refactor): Configurable number of connections.
     let driver = if configuration.database_url.starts_with("postgres") {
-        driver::postgres::Driver::initialise(&configuration.database_url, 10)
+        driver::PostgresDriver::initialise(&configuration.database_url, 10)
             .unwrap()
             .box_clone()
     } else {
-        // driver::sqlite::Driver::initialise(&configuration.database_url, 10)
+        // driver::SqliteDriver::initialise(&configuration.database_url, 10)
         //     .unwrap()
         //     .box_clone()
         unimplemented!();

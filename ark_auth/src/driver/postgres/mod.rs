@@ -3,8 +3,7 @@ mod model;
 mod schema;
 
 use crate::core::{Audit, AuditMeta, Csrf, Key, Service, User};
-use crate::driver;
-use crate::driver::Error;
+use crate::driver::{Driver, Error};
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
@@ -13,20 +12,20 @@ use serde_json::Value;
 embed_migrations!("migrations/postgres");
 
 #[derive(Clone)]
-pub struct Driver {
+pub struct PostgresDriver {
     pool: r2d2::Pool<ConnectionManager<PgConnection>>,
 }
 
 type PooledConnection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
 
-impl Driver {
+impl PostgresDriver {
     pub fn initialise(database_url: &str, max_connections: u32) -> Result<Self, Error> {
         let manager = ConnectionManager::<PgConnection>::new(database_url);
         let pool = r2d2::Pool::builder()
             .max_size(max_connections)
             .build(manager)
             .map_err(Error::R2d2)?;
-        let driver = Driver { pool };
+        let driver = PostgresDriver { pool };
         driver.run_migrations()?;
         Ok(driver)
     }
@@ -45,8 +44,8 @@ impl Driver {
     }
 }
 
-impl driver::Driver for Driver {
-    fn box_clone(&self) -> Box<driver::Driver> {
+impl Driver for PostgresDriver {
+    fn box_clone(&self) -> Box<Driver> {
         Box::new((*self).clone())
     }
 
@@ -120,7 +119,7 @@ impl driver::Driver for Driver {
 
         let conn = self.connection()?;
         let now = Utc::now();
-        let id = Driver::uuid();
+        let id = PostgresDriver::uuid();
         let value = model::AuthAuditInsert {
             created_at: &now,
             audit_id: &id,
@@ -275,7 +274,7 @@ impl driver::Driver for Driver {
 
         let conn = self.connection()?;
         let now = Utc::now();
-        let id = Driver::uuid();
+        let id = PostgresDriver::uuid();
         let value = model::AuthKeyInsert {
             created_at: &now,
             updated_at: &now,
@@ -491,7 +490,7 @@ impl driver::Driver for Driver {
 
         let conn = self.connection()?;
         let now = Utc::now();
-        let id = Driver::uuid();
+        let id = PostgresDriver::uuid();
         let value = model::AuthServiceInsert {
             created_at: &now,
             updated_at: &now,
@@ -602,7 +601,7 @@ impl driver::Driver for Driver {
 
         let conn = self.connection()?;
         let now = Utc::now();
-        let id = Driver::uuid();
+        let id = PostgresDriver::uuid();
         let value = model::AuthUserInsert {
             created_at: &now,
             updated_at: &now,
