@@ -136,8 +136,9 @@ background-color: #f4f4f4;
 <li><a href="#definitions">Definitions</a></li>
 </ul></li>
 <li><a href="#changelog">Changelog</a><ul>
-<li><a href="#unreleased">0.2.0 (unreleased)</a></li>
-<li><a href="#section">0.1.0 (2019-05-16)</a></li>
+<li><a href="#unreleased">0.3.0 (unreleased)</a></li>
+<li><a href="#section">0.2.0 (2019-07-07)</a></li>
+<li><a href="#section-1">0.1.0 (2019-05-16)</a></li>
 </ul></li>
 <li><a href="#guides">Guides</a><ul>
 <li><a href="#deployment">Deployment</a></li>
@@ -244,7 +245,8 @@ background-color: #f4f4f4;
 <p><strong>Token</strong></p>
 <p><a href="https://jwt.io/">JSON web tokens</a> used for time-limited authentication, produced for users from a user key. Revoking the key used to produce a token also revokes the token.</p>
 <h1 id="changelog">Changelog</h1>
-<h2 id="unreleased">0.2.0 (unreleased)</h2>
+<h2 id="unreleased">0.3.0 (unreleased)</h2>
+<h2 id="section">0.2.0 (2019-07-07)</h2>
 <p><strong>Added</strong></p>
 <ul>
 <li>Added audit logging to authentication routes.</li>
@@ -252,6 +254,7 @@ background-color: #f4f4f4;
 <li>Added synchronous and asynchronous clients to library.</li>
 <li>Added <code>email_eq</code> query option to user list route.</li>
 <li>Added local provider update user email, password routes.</li>
+<li>Added type parameter to service URL callback queries.</li>
 </ul>
 <p><strong>Changed</strong></p>
 <ul>
@@ -272,7 +275,7 @@ background-color: #f4f4f4;
 <li>Fixed duplicate user email address returned internal server error code.</li>
 <li>Fixed Lettre email error type handling.</li>
 </ul>
-<h2 id="section">0.1.0 (2019-05-16)</h2>
+<h2 id="section-1">0.1.0 (2019-05-16)</h2>
 <ul>
 <li>First version.</li>
 </ul>
@@ -314,14 +317,14 @@ background-color: #f4f4f4;
 </ol>
 <p><strong>Callbacks</strong></p>
 <p>A service integrating with ark_auth can provide the following HTTPS endpoints as callbacks.</p>
-<pre class="shell"><code>GET $service_url?user_id=$id&amp;access_token=$token&amp;access_token_expires=$token_expires&amp;refresh_token=$token&amp;refresh_token_expires=$token_expires</code></pre>
+<pre class="shell"><code>GET $service_url?type=oauth2&amp;user_id=$id&amp;access_token=$token&amp;access_token_expires=$token_expires&amp;refresh_token=$token&amp;refresh_token_expires=$token_expires</code></pre>
 <p>User is redirected to this URL after successful authentication by an OAuth2 provider. The service can verify the <code>access_token</code> query parameter to authenticate the user and their requests.</p>
-<pre class="shell"><code>GET $service_url?email=$email&amp;reset_password_token=$token</code></pre>
-<p>User requests this URL by clicking reset password email link. The service can take password input from the user, and then make a reset password confirm request with the <code>reset_password_token</code> query parameter.</p>
-<pre class="shell"><code>GET $service_url?email=$email&amp;old_email=$email&amp;update_email_token=$token</code></pre>
-<p>User requests this URL by clicking update email revoke link. The service can present the user information on securing their account, and then make an update email revoke request with the <code>update_email_token</code> query parameter. This will disable the user and all user keys.</p>
-<pre class="shell"><code>GET $service_url?email=$email&amp;update_password_token=$token</code></pre>
-<p>User requests this URL by clicking update password revoke link. The service can present the user information on securing their account, and then make an update password revoke request with the <code>update_password_token</code> query parameter. This will disable the user and all user keys.</p>
+<pre class="shell"><code>GET $service_url?type=reset_password&amp;email=$email&amp;token=$token</code></pre>
+<p>User requests this URL by clicking reset password email link. The service can take password input from the user, and then make a reset password confirm request with the <code>token</code> query parameter.</p>
+<pre class="shell"><code>GET $service_url?type=update_email&amp;email=$email&amp;old_email=$email&amp;token=$token</code></pre>
+<p>User requests this URL by clicking update email revoke link. The service can present the user information on securing their account, and then make an update email revoke request with the <code>token</code> query parameter. This will disable the user and all user keys.</p>
+<pre class="shell"><code>GET $service_url?type=update_password&amp;email=$email&amp;token=$token</code></pre>
+<p>User requests this URL by clicking update password revoke link. The service can present the user information on securing their account, and then make an update password revoke request with the <code>token</code> query parameter. This will disable the user and all user keys.</p>
 <h2 id="login">Login</h2>
 <p>Create service with key and start server.</p>
 <pre class="shell"><code>ark_auth create-service-with-key $service_name $service_url

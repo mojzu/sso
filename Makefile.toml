@@ -10,11 +10,13 @@ args = ["clippy"]
 dependencies = ["format"]
 
 [tasks.postgres-migrations]
+workspace = false
 script = [
     "(cd ark_auth && diesel database reset --migration-dir migrations/postgres)",
 ]
 
 [tasks.sqlite-migrations]
+workspace = false
 script = [
     "(cd ark_auth && DATABASE_URL=\"db.sqlite3\" diesel database reset --migration-dir migrations/sqlite)",
 ]
@@ -31,6 +33,7 @@ command = "cargo"
 args = ["test"]
 
 [tasks.manual]
+workspace = false
 script = [
     "pandoc docs/user/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/asset/pandoc.css --output=docs/user.html",
     "pandoc docs/developer/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/asset/pandoc.css --output=docs/developer.html"

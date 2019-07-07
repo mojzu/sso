@@ -155,7 +155,8 @@ fn main() {
 fn configuration_from_environment() -> Result<(Configuration, Box<Driver>), Error> {
     // TODO(refactor): Clean this up, improve error messages.
     let database_url = std::env::var("DATABASE_URL").unwrap();
-    let database_connections = std::env::var("DATABASE_CONNECTIONS").unwrap_or("10".to_owned());
+    let database_connections =
+        std::env::var("DATABASE_CONNECTIONS").unwrap_or_else(|_| "10".to_owned());
     let database_connections = database_connections.parse::<u32>().unwrap();
     let server_bind = std::env::var("SERVER_BIND").unwrap();
     let mut server_configuration =
