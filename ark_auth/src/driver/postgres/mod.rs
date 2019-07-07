@@ -105,22 +105,74 @@ impl Driver for PostgresDriver {
         .map_err(Error::Diesel)
     }
 
-    fn audit_list_where_created_lt(
+    fn audit_list_where_created_lte(
         &self,
-        created_lt: &DateTime<Utc>,
+        audit_created_lte: &DateTime<Utc>,
         limit: i64,
+        offset: i64,
         service_id_mask: Option<&str>,
     ) -> Result<Vec<String>, Error> {
-        unimplemented!();
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        match service_id_mask {
+            Some(service_id_mask) => auth_audit
+                .select(audit_id)
+                .filter(
+                    service_id
+                        .eq(service_id_mask)
+                        .and(created_at.le(audit_created_lte)),
+                )
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.desc())
+                .load::<String>(&conn),
+            None => auth_audit
+                .select(audit_id)
+                .filter(created_at.le(audit_created_lte))
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.desc())
+                .load::<String>(&conn),
+        }
+        .map_err(Error::Diesel)
+        .map(|mut v| {
+            v.reverse();
+            v
+        })
     }
 
-    fn audit_list_where_created_gt(
+    fn audit_list_where_created_gte(
         &self,
-        created_gt: &DateTime<Utc>,
+        audit_created_gte: &DateTime<Utc>,
         limit: i64,
+        offset: i64,
         service_id_mask: Option<&str>,
     ) -> Result<Vec<String>, Error> {
-        unimplemented!();
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        match service_id_mask {
+            Some(service_id_mask) => auth_audit
+                .select(audit_id)
+                .filter(
+                    service_id
+                        .eq(service_id_mask)
+                        .and(created_at.ge(audit_created_gte)),
+                )
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.asc())
+                .load::<String>(&conn),
+            None => auth_audit
+                .select(audit_id)
+                .filter(created_at.ge(audit_created_gte))
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.asc())
+                .load::<String>(&conn),
+        }
+        .map_err(Error::Diesel)
     }
 
     fn audit_create(
@@ -158,12 +210,27 @@ impl Driver for PostgresDriver {
             .map(Into::into)
     }
 
-    fn audit_read_by_id(&self, _id: &str) -> Result<Option<Audit>, Error> {
-        unimplemented!();
+    fn audit_read_by_id(&self, id: &str) -> Result<Option<Audit>, Error> {
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        auth_audit
+            .filter(audit_id.eq(id))
+            .get_result::<model::AuthAudit>(&conn)
+            .map(|audit| Some(audit.into()))
+            .or_else(|err| match err {
+                diesel::result::Error::NotFound => Ok(None),
+                _ => Err(Error::Diesel(err)),
+            })
     }
 
-    fn audit_delete_by_created_at(&self, _created_at: &DateTime<Utc>) -> Result<usize, Error> {
-        unimplemented!();
+    fn audit_delete_by_created_at(&self, audit_created_at: &DateTime<Utc>) -> Result<usize, Error> {
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        diesel::delete(auth_audit.filter(created_at.le(audit_created_at)))
+            .execute(&conn)
+            .map_err(Error::Diesel)
     }
 
     fn csrf_create(
@@ -485,9 +552,13 @@ impl Driver for PostgresDriver {
             .select(service_id)
             .filter(service_id.lt(lt))
             .limit(limit)
-            .order(service_id.asc())
+            .order(service_id.desc())
             .load::<String>(&conn)
             .map_err(Error::Diesel)
+            .map(|mut v| {
+                v.reverse();
+                v
+            })
     }
 
     fn service_list_where_id_gt(&self, gt: &str, limit: i64) -> Result<Vec<String>, Error> {
@@ -577,9 +648,13 @@ impl Driver for PostgresDriver {
             .select(user_id)
             .filter(user_id.lt(lt))
             .limit(limit)
-            .order(user_id.asc())
+            .order(user_id.desc())
             .load::<String>(&conn)
             .map_err(Error::Diesel)
+            .map(|mut v| {
+                v.reverse();
+                v
+            })
     }
 
     fn user_list_where_id_gt(&self, gt: &str, limit: i64) -> Result<Vec<String>, Error> {

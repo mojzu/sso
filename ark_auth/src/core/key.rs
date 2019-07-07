@@ -108,8 +108,6 @@ pub fn authenticate(
         })
 }
 
-// TODO(refactor): Improve list query handling, driver integration.
-
 /// List keys using query.
 pub fn list(
     driver: &driver::Driver,
@@ -118,16 +116,18 @@ pub fn list(
     query: &KeyQuery,
 ) -> Result<Vec<String>, Error> {
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
-    match &query.lt {
-        Some(lt) => driver
-            .key_list_where_id_lt(lt, limit, service_mask.map(|s| s.id.as_ref()))
+    let service_mask = service_mask.map(|s| s.id.as_ref());
+
+    match &query.gt {
+        Some(gt) => driver
+            .key_list_where_id_gt(gt, limit, service_mask)
             .map_err(Error::Driver),
-        None => match &query.gt {
-            Some(gt) => driver
-                .key_list_where_id_gt(gt, limit, service_mask.map(|s| s.id.as_ref()))
+        None => match &query.lt {
+            Some(lt) => driver
+                .key_list_where_id_lt(lt, limit, service_mask)
                 .map_err(Error::Driver),
             None => driver
-                .key_list_where_id_gt("", limit, service_mask.map(|s| s.id.as_ref()))
+                .key_list_where_id_gt("", limit, service_mask)
                 .map_err(Error::Driver),
         },
     }

@@ -49,18 +49,20 @@ pub trait Driver: Send + Sync {
     ) -> Result<Vec<String>, Error>;
 
     /// List audit logs where created datetime is less than.
-    fn audit_list_where_created_lt(
+    fn audit_list_where_created_lte(
         &self,
-        created_lt: &DateTime<Utc>,
+        created_lte: &DateTime<Utc>,
         limit: i64,
+        offset: i64,
         service_id_mask: Option<&str>,
     ) -> Result<Vec<String>, Error>;
 
     /// List audit logs where created datetime is greater than.
-    fn audit_list_where_created_gt(
+    fn audit_list_where_created_gte(
         &self,
-        created_gt: &DateTime<Utc>,
+        created_gte: &DateTime<Utc>,
         limit: i64,
+        offset: i64,
         service_id_mask: Option<&str>,
     ) -> Result<Vec<String>, Error>;
 

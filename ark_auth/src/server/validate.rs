@@ -31,6 +31,13 @@ pub fn limit(limit: &str) -> Result<(), ValidationError> {
     }
 }
 
+pub fn offset(offset: &str) -> Result<(), ValidationError> {
+    offset
+        .parse::<bool>()
+        .map_err(|_err| ValidationError::new("invalid_offset"))?;
+    Ok(())
+}
+
 pub fn datetime(datetime: &str) -> Result<(), ValidationError> {
     DateTime::parse_from_rfc3339(datetime)
         .map_err(|_err| ValidationError::new("invalid_datetime"))

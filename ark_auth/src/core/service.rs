@@ -11,20 +11,18 @@ pub fn list(
 ) -> Result<Vec<String>, Error> {
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
 
-    match &query.lt {
-        Some(lt) => {
-            let services = driver
+    match &query.gt {
+        Some(gt) => driver
+            .service_list_where_id_gt(gt, limit)
+            .map_err(Error::Driver),
+        None => match &query.lt {
+            Some(lt) => driver
                 .service_list_where_id_lt(lt, limit)
-                .map_err(Error::Driver)?;
-            Ok(services)
-        }
-        None => {
-            let gt = query.gt.to_owned().unwrap_or_else(|| "".to_owned());
-            let services = driver
-                .service_list_where_id_gt(&gt, limit)
-                .map_err(Error::Driver)?;
-            Ok(services)
-        }
+                .map_err(Error::Driver),
+            None => driver
+                .service_list_where_id_gt("", limit)
+                .map_err(Error::Driver),
+        },
     }
 }
 

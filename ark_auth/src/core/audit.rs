@@ -216,6 +216,7 @@ pub fn list(
     query: &AuditQuery,
 ) -> Result<Vec<String>, Error> {
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
+    let offset = if query.offset.unwrap_or(false) { 1 } else { 0 };
     let service_mask = service_mask.map(|s| s.id.as_ref());
 
     // TODO(refactor): Handle gt AND lt, created_gt AND created_lt cases.
@@ -227,16 +228,14 @@ pub fn list(
             Some(lt) => driver
                 .audit_list_where_id_lt(lt, limit, service_mask)
                 .map_err(Error::Driver),
-            None => match &query.created_gt {
-                Some(created_gt) => {
-                    driver.audit_list_where_created_gt(created_gt, limit, service_mask)
-                .map_err(Error::Driver)
-                }
-                None => match &query.created_lt {
-                    Some(created_lt) => {
-                        driver.audit_list_where_created_lt(created_lt, limit, service_mask)
-                .map_err(Error::Driver)
-                    }
+            None => match &query.created_gte {
+                Some(created_gte) => driver
+                    .audit_list_where_created_gte(created_gte, limit, offset, service_mask)
+                    .map_err(Error::Driver),
+                None => match &query.created_lte {
+                    Some(created_lte) => driver
+                        .audit_list_where_created_lte(created_lte, limit, offset, service_mask)
+                        .map_err(Error::Driver),
                     None => driver
                         .audit_list_where_id_gt("", limit, service_mask)
                         .map_err(Error::Driver),
@@ -283,12 +282,12 @@ pub fn create_internal(
 
 /// Read audit by ID.
 pub fn read_by_id(
-    _driver: &driver::Driver,
+    driver: &driver::Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    _id: &str,
+    id: &str,
 ) -> Result<Option<Audit>, Error> {
-    unimplemented!();
+    driver.audit_read_by_id(id).map_err(Error::Driver)
 }
 
 /// Delete many audit logs older than days.

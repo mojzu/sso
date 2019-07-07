@@ -85,3 +85,4 @@ CREATE TABLE auth_audit (
         REFERENCES auth_key(key_id)
         ON DELETE RESTRICT
 );
+CREATE INDEX auth_audit_created_at_index ON auth_audit(created_at);

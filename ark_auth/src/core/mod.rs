@@ -12,6 +12,8 @@ use serde::ser::Serialize;
 use serde_json::Value;
 use url::Url;
 
+// TODO(feature): Improve key, user, service list query options (order by name, ...).
+
 /// Default list limit.
 pub const DEFAULT_LIMIT: i64 = 50;
 
@@ -64,9 +66,10 @@ pub struct AuditMeta {
 pub struct AuditQuery {
     pub gt: Option<String>,
     pub lt: Option<String>,
-    pub created_gt: Option<DateTime<Utc>>,
-    pub created_lt: Option<DateTime<Utc>>,
+    pub created_gte: Option<DateTime<Utc>>,
+    pub created_lte: Option<DateTime<Utc>>,
     pub limit: Option<i64>,
+    pub offset: Option<bool>,
 }
 
 /// CSRF.

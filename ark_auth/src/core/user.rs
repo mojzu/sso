@@ -18,20 +18,18 @@ pub fn list(
         return Ok(users);
     }
 
-    match &query.lt {
-        Some(lt) => {
-            let users = driver
+    match &query.gt {
+        Some(gt) => driver
+            .user_list_where_id_gt(gt, limit)
+            .map_err(Error::Driver),
+        None => match &query.lt {
+            Some(lt) => driver
                 .user_list_where_id_lt(lt, limit)
-                .map_err(Error::Driver)?;
-            Ok(users)
-        }
-        None => {
-            let gt = query.gt.to_owned().unwrap_or_else(|| "".to_owned());
-            let users = driver
-                .user_list_where_id_gt(&gt, limit)
-                .map_err(Error::Driver)?;
-            Ok(users)
-        }
+                .map_err(Error::Driver),
+            None => driver
+                .user_list_where_id_gt("", limit)
+                .map_err(Error::Driver),
+        },
     }
 }
 

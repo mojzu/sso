@@ -9,16 +9,18 @@ impl SyncClient {
         &self,
         gt: Option<&str>,
         lt: Option<&str>,
-        created_gt: Option<&DateTime<Utc>>,
-        created_lt: Option<&DateTime<Utc>>,
+        created_gte: Option<&DateTime<Utc>>,
+        created_lte: Option<&DateTime<Utc>>,
         limit: Option<i64>,
+        offset: Option<bool>,
     ) -> Result<AuditListResponse, Error> {
         let query = AuditListQuery {
             gt: gt.map(|x| x.to_owned()),
             lt: lt.map(|x| x.to_owned()),
-            created_gt: created_gt.map(|x| x.to_rfc3339()),
-            created_lt: created_lt.map(|x| x.to_rfc3339()),
+            created_gte: created_gte.map(|x| x.to_rfc3339()),
+            created_lte: created_lte.map(|x| x.to_rfc3339()),
             limit: limit.map(|x| format!("{}", x)),
+            offset: offset.map(|x| format!("{}", x)),
         };
 
         self.get_query("/v1/audit", query)
