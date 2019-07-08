@@ -8,6 +8,7 @@ use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
 use serde_json::Value;
+use std::convert::TryInto;
 
 embed_migrations!("migrations/postgres");
 
@@ -41,6 +42,72 @@ impl PostgresDriver {
     fn run_migrations(&self) -> Result<(), Error> {
         let connection = self.connection()?;
         embedded_migrations::run(&connection).map_err(Error::DieselMigrations)
+    }
+
+    fn audit_list_where_created_lte_inner(
+        &self,
+        audit_created_lte: &DateTime<Utc>,
+        limit: i64,
+        offset: i64,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<String>, Error> {
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        match service_id_mask {
+            Some(service_id_mask) => auth_audit
+                .select(audit_id)
+                .filter(
+                    service_id
+                        .eq(service_id_mask)
+                        .and(created_at.le(audit_created_lte)),
+                )
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.desc())
+                .load::<String>(&conn),
+            None => auth_audit
+                .select(audit_id)
+                .filter(created_at.le(audit_created_lte))
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.desc())
+                .load::<String>(&conn),
+        }
+        .map_err(Error::Diesel)
+    }
+
+    fn audit_list_where_created_gte_inner(
+        &self,
+        audit_created_gte: &DateTime<Utc>,
+        limit: i64,
+        offset: i64,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<String>, Error> {
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        match service_id_mask {
+            Some(service_id_mask) => auth_audit
+                .select(audit_id)
+                .filter(
+                    service_id
+                        .eq(service_id_mask)
+                        .and(created_at.ge(audit_created_gte)),
+                )
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.asc())
+                .load::<String>(&conn),
+            None => auth_audit
+                .select(audit_id)
+                .filter(created_at.ge(audit_created_gte))
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.asc())
+                .load::<String>(&conn),
+        }
+        .map_err(Error::Diesel)
     }
 }
 
@@ -107,72 +174,58 @@ impl Driver for PostgresDriver {
 
     fn audit_list_where_created_lte(
         &self,
-        audit_created_lte: &DateTime<Utc>,
+        created_lte: &DateTime<Utc>,
+        offset_id: Option<&str>,
         limit: i64,
-        offset: i64,
         service_id_mask: Option<&str>,
     ) -> Result<Vec<String>, Error> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
-        let conn = self.connection()?;
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .select(audit_id)
-                .filter(
-                    service_id
-                        .eq(service_id_mask)
-                        .and(created_at.le(audit_created_lte)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(created_at.desc())
-                .load::<String>(&conn),
-            None => auth_audit
-                .select(audit_id)
-                .filter(created_at.le(audit_created_lte))
-                .limit(limit)
-                .offset(offset)
-                .order(created_at.desc())
-                .load::<String>(&conn),
-        }
-        .map_err(Error::Diesel)
-        .map(|mut v| {
-            v.reverse();
-            v
-        })
+        self.audit_list_where_created_lte_inner(created_lte, limit, 0, service_id_mask)
+            .and_then(|res| {
+                if let Some(offset_id) = offset_id {
+                    for (i, id) in res.iter().enumerate() {
+                        if id == offset_id {
+                            let offset: i64 = (i + 1).try_into().unwrap();
+                            return self.audit_list_where_created_lte_inner(
+                                created_lte,
+                                limit,
+                                offset,
+                                service_id_mask,
+                            );
+                        }
+                    }
+                }
+                Ok(res)
+            })
+            .map(|mut v| {
+                v.reverse();
+                v
+            })
     }
 
     fn audit_list_where_created_gte(
         &self,
-        audit_created_gte: &DateTime<Utc>,
+        created_gte: &DateTime<Utc>,
+        offset_id: Option<&str>,
         limit: i64,
-        offset: i64,
         service_id_mask: Option<&str>,
     ) -> Result<Vec<String>, Error> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
-        let conn = self.connection()?;
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .select(audit_id)
-                .filter(
-                    service_id
-                        .eq(service_id_mask)
-                        .and(created_at.ge(audit_created_gte)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(created_at.asc())
-                .load::<String>(&conn),
-            None => auth_audit
-                .select(audit_id)
-                .filter(created_at.ge(audit_created_gte))
-                .limit(limit)
-                .offset(offset)
-                .order(created_at.asc())
-                .load::<String>(&conn),
-        }
-        .map_err(Error::Diesel)
+        self.audit_list_where_created_gte_inner(created_gte, limit, 0, service_id_mask)
+            .and_then(|res| {
+                if let Some(offset_id) = offset_id {
+                    for (i, id) in res.iter().enumerate() {
+                        if id == offset_id {
+                            let offset: i64 = (i + 1).try_into().unwrap();
+                            return self.audit_list_where_created_gte_inner(
+                                created_gte,
+                                limit,
+                                offset,
+                                service_id_mask,
+                            );
+                        }
+                    }
+                }
+                Ok(res)
+            })
     }
 
     fn audit_create(

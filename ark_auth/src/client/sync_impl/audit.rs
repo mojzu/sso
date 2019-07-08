@@ -11,16 +11,16 @@ impl SyncClient {
         lt: Option<&str>,
         created_gte: Option<&DateTime<Utc>>,
         created_lte: Option<&DateTime<Utc>>,
+        offset_id: Option<&str>,
         limit: Option<i64>,
-        offset: Option<bool>,
     ) -> Result<AuditListResponse, Error> {
         let query = AuditListQuery {
             gt: gt.map(|x| x.to_owned()),
             lt: lt.map(|x| x.to_owned()),
             created_gte: created_gte.map(|x| x.to_rfc3339()),
             created_lte: created_lte.map(|x| x.to_rfc3339()),
+            offset_id: offset_id.map(|x| x.to_owned()),
             limit: limit.map(|x| format!("{}", x)),
-            offset: offset.map(|x| format!("{}", x)),
         };
 
         self.get_query("/v1/audit", query)

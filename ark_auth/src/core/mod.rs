@@ -68,8 +68,8 @@ pub struct AuditQuery {
     pub lt: Option<String>,
     pub created_gte: Option<DateTime<Utc>>,
     pub created_lte: Option<DateTime<Utc>>,
+    pub offset_id: Option<String>,
     pub limit: Option<i64>,
-    pub offset: Option<bool>,
 }
 
 /// CSRF.

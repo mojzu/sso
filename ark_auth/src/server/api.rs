@@ -19,10 +19,6 @@ fn i64_from_string(value: Option<String>) -> Option<i64> {
     value.map(|x| x.parse::<i64>().unwrap())
 }
 
-fn bool_from_string(value: Option<String>) -> Option<bool> {
-    value.map(|x| x.parse::<bool>().unwrap())
-}
-
 /// Route definitions.
 pub mod route {
     pub const AUTH_LOCAL_LOGIN: &str = "/v1/auth/provider/local/login";
@@ -59,10 +55,10 @@ pub struct AuditListQuery {
     pub created_gte: Option<String>,
     #[validate(custom = "validate::datetime")]
     pub created_lte: Option<String>,
+    #[validate(custom = "validate::id")]
+    pub offset_id: Option<String>,
     #[validate(custom = "validate::limit")]
     pub limit: Option<String>,
-    #[validate(custom = "validate::offset")]
-    pub offset: Option<String>,
 }
 
 impl FromJsonValue<AuditListQuery> for AuditListQuery {}
@@ -74,8 +70,8 @@ impl From<AuditListQuery> for AuditQuery {
             lt: query.lt,
             created_gte: datetime_from_string(query.created_gte),
             created_lte: datetime_from_string(query.created_lte),
+            offset_id: query.offset_id,
             limit: i64_from_string(query.limit),
-            offset: bool_from_string(query.offset),
         }
     }
 }

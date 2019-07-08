@@ -216,7 +216,6 @@ pub fn list(
     query: &AuditQuery,
 ) -> Result<Vec<String>, Error> {
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
-    let offset = if query.offset.unwrap_or(false) { 1 } else { 0 };
     let service_mask = service_mask.map(|s| s.id.as_ref());
 
     // TODO(refactor): Handle gt AND lt, created_gt AND created_lt cases.
@@ -230,11 +229,21 @@ pub fn list(
                 .map_err(Error::Driver),
             None => match &query.created_gte {
                 Some(created_gte) => driver
-                    .audit_list_where_created_gte(created_gte, limit, offset, service_mask)
+                    .audit_list_where_created_gte(
+                        created_gte,
+                        query.offset_id.as_ref().map(|x| &**x),
+                        limit,
+                        service_mask,
+                    )
                     .map_err(Error::Driver),
                 None => match &query.created_lte {
                     Some(created_lte) => driver
-                        .audit_list_where_created_lte(created_lte, limit, offset, service_mask)
+                        .audit_list_where_created_lte(
+                            created_lte,
+                            query.offset_id.as_ref().map(|x| &**x),
+                            limit,
+                            service_mask,
+                        )
                         .map_err(Error::Driver),
                     None => driver
                         .audit_list_where_id_gt("", limit, service_mask)

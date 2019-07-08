@@ -52,8 +52,8 @@ pub trait Driver: Send + Sync {
     fn audit_list_where_created_lte(
         &self,
         created_lte: &DateTime<Utc>,
+        offset_id: Option<&str>,
         limit: i64,
-        offset: i64,
         service_id_mask: Option<&str>,
     ) -> Result<Vec<String>, Error>;
 
@@ -61,8 +61,8 @@ pub trait Driver: Send + Sync {
     fn audit_list_where_created_gte(
         &self,
         created_gte: &DateTime<Utc>,
+        offset_id: Option<&str>,
         limit: i64,
-        offset: i64,
         service_id_mask: Option<&str>,
     ) -> Result<Vec<String>, Error>;
 
