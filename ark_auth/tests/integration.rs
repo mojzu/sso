@@ -697,7 +697,14 @@ fn api_audit_created_list_ok() {
     let a1 = client.audit_read(r1_1).unwrap().data;
 
     let res2 = client
-        .audit_list(None, None, Some(&a1.created_at), None, Some(&a1.id), Some(3))
+        .audit_list(
+            None,
+            None,
+            Some(&a1.created_at),
+            None,
+            Some(&a1.id),
+            Some(3),
+        )
         .unwrap();
     assert_eq!(res2.data.len(), 3);
     let r2_2 = &res2.data[0];
@@ -708,7 +715,14 @@ fn api_audit_created_list_ok() {
     let a2 = client.audit_read(r2_2).unwrap().data;
 
     let res3 = client
-        .audit_list(None, None, Some(&a2.created_at), None, Some(&a2.id), Some(3))
+        .audit_list(
+            None,
+            None,
+            Some(&a2.created_at),
+            None,
+            Some(&a2.id),
+            Some(3),
+        )
         .unwrap();
     assert_eq!(res3.data.len(), 3);
     let r3_3 = &res3.data[0];
@@ -719,7 +733,14 @@ fn api_audit_created_list_ok() {
     let a5 = client.audit_read(r3_5).unwrap().data;
 
     let res4 = client
-        .audit_list(None, None, None, Some(&a5.created_at), Some(&a5.id), Some(3))
+        .audit_list(
+            None,
+            None,
+            None,
+            Some(&a5.created_at),
+            Some(&a5.id),
+            Some(3),
+        )
         .unwrap();
     assert_eq!(res4.data.len(), 3);
     let r4_2 = &res4.data[0];
@@ -731,7 +752,14 @@ fn api_audit_created_list_ok() {
     let a4 = client.audit_read(r4_4).unwrap().data;
 
     let res5 = client
-        .audit_list(None, None, None, Some(&a4.created_at), Some(&a4.id), Some(3))
+        .audit_list(
+            None,
+            None,
+            None,
+            Some(&a4.created_at),
+            Some(&a4.id),
+            Some(3),
+        )
         .unwrap();
     assert_eq!(res5.data.len(), 3);
     let r5_1 = &res5.data[0];

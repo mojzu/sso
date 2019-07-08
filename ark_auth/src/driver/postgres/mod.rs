@@ -179,7 +179,8 @@ impl Driver for PostgresDriver {
         limit: i64,
         service_id_mask: Option<&str>,
     ) -> Result<Vec<String>, Error> {
-        self.audit_list_where_created_lte_inner(created_lte, limit, 0, service_id_mask)
+        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
+        self.audit_list_where_created_lte_inner(created_lte, limit, offset, service_id_mask)
             .and_then(|res| {
                 if let Some(offset_id) = offset_id {
                     for (i, id) in res.iter().enumerate() {
@@ -209,7 +210,8 @@ impl Driver for PostgresDriver {
         limit: i64,
         service_id_mask: Option<&str>,
     ) -> Result<Vec<String>, Error> {
-        self.audit_list_where_created_gte_inner(created_gte, limit, 0, service_id_mask)
+        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
+        self.audit_list_where_created_gte_inner(created_gte, limit, offset, service_id_mask)
             .and_then(|res| {
                 if let Some(offset_id) = offset_id {
                     for (i, id) in res.iter().enumerate() {
