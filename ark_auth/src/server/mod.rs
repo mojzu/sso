@@ -1,6 +1,7 @@
 pub mod api;
 pub mod route;
 pub mod smtp;
+pub mod template;
 pub mod validate;
 
 use crate::crate_user_agent;
@@ -117,6 +118,9 @@ pub enum Error {
     /// Zxcvbn error wrapper.
     #[fail(display = "ServerError::Zxcvbn {}", _0)]
     Zxcvbn(#[fail(cause)] zxcvbn::ZxcvbnError),
+    /// Handlebars template render error wrapper.
+    #[fail(display = "ServerError::HandlebarsTemplateRender {}", _0)]
+    HandlebarsTemplateRender(#[fail(cause)] handlebars::TemplateRenderError),
 }
 
 impl From<core::Error> for Error {

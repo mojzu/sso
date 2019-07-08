@@ -32,6 +32,7 @@ diesel_migrations = { version = "*", features = ["postgres", "sqlite"] }
 env_logger = "*"
 failure = "*"
 futures = "*"
+handlebars = "*"
 http = "*"
 jsonwebtoken = "*"
 lettre = "*"

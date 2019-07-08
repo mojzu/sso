@@ -7,9 +7,10 @@ use lettre::{ClientSecurity, ClientTlsParameters, SmtpClient, Transport};
 use lettre_email::Email;
 use native_tls::{Protocol, TlsConnector};
 
-// TODO(feature): Improve email templates, formatting.
+// TODO(feature): Improve email templates, formatting (template::email_html).
 // TODO(feature): HTML sanitisation for template.
 // <https://github.com/rust-ammonia/ammonia>
+// Remove template option, locale parameter for translations?
 
 pub fn send_reset_password(
     smtp: Option<&ConfigurationSmtp>,
