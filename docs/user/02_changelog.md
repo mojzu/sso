@@ -2,9 +2,13 @@
 
 ## 0.3.0 (unreleased)
 
+**Added**
+
+- Added email HTML templates, removed template parameters from routes.
+
 **Changed**
 
-- Changed audit list query parameters when using `created_gte` or `created_lte` options, added optional `offset_id` parameter.
+- Changed audit list query parameters when using `created_gte` or `created_lte` options, added optional `offset_id` parameter to exclude previous results.
 
 ## 0.2.0 (2019-07-07)
 

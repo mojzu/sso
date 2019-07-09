@@ -14,7 +14,7 @@ use serde::ser::Serialize;
 use std::error::Error as StdError;
 use url::Url;
 
-// TODO(feature): Finish client methods.
+// TODO(refactor): Finish client methods.
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum RequestError {

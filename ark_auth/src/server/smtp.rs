@@ -7,7 +7,7 @@ use lettre::{ClientSecurity, ClientTlsParameters, SmtpClient, Transport};
 use lettre_email::Email;
 use native_tls::{Protocol, TlsConnector};
 
-// TODO(feature): Improve email templates, formatting.
+// TODO(feature): Improve email templates, formatting, style (red button for revoke).
 // Locale parameter or user column for translations?
 
 pub fn send_reset_password(
@@ -16,8 +16,8 @@ pub fn send_reset_password(
     user: &core::User,
     token: &str,
 ) -> Result<(), Error> {
-    let subject = format!("{}: Reset Password Request", service.name);
-    let text = format!("A reset password request for your email address has been made to {}. If you made this request, follow the link below.", service.name);
+    let subject = "Password Reset Request";
+    let text = format!("A request has been made to reset the password for your email address ({}). If you made this request, click the link below.", &user.email);
     let callback_data = &[("email", user.email.as_ref()), ("token", token)];
     let url = service.callback_url("reset_password", callback_data);
 
@@ -36,7 +36,7 @@ pub fn send_reset_password(
         user.email.to_owned(),
         user.name.to_owned(),
         subject,
-        text,
+        &text,
         html,
     )
 }
@@ -48,8 +48,8 @@ pub fn send_update_email(
     old_email: &str,
     token: &str,
 ) -> Result<(), Error> {
-    let subject = format!("{}: Update Email Request", service.name);
-    let text = format!("An update email request for your user has been made to {}. If you did not make this request, follow the link below.", service.name);
+    let subject = "Update Email Request";
+    let text = format!("A request has been made to update the email address for your user to {} (from {}). If you did not make this request, click the link below to revoke access.", &user.email, old_email);
     let callback_data = &[
         ("email", user.email.as_ref()),
         ("old_email", old_email),
@@ -58,7 +58,7 @@ pub fn send_update_email(
     let url = service.callback_url("update_email", callback_data);
 
     let parameters = template::Email::new(
-        &subject,
+        subject,
         &text,
         "Revoke Access",
         url.as_str(),
@@ -72,7 +72,7 @@ pub fn send_update_email(
         old_email.to_owned(),
         user.name.to_owned(),
         subject,
-        text,
+        &text,
         html,
     )
 }
@@ -83,13 +83,13 @@ pub fn send_update_password(
     user: &core::User,
     token: &str,
 ) -> Result<(), Error> {
-    let subject = format!("{}: Update Password Request", service.name);
-    let text = format!("An update password request for your user has been made to {}. If you did not make this request, follow the link below.", service.name);
+    let subject = "Update Password Request";
+    let text = format!("A request has been made to update the password for your email address ({}). If you made this request, click the link below.", &user.email);
     let callback_data = &[("email", user.email.as_ref()), ("token", token)];
     let url = service.callback_url("update_password", callback_data);
 
     let parameters = template::Email::new(
-        &subject,
+        subject,
         &text,
         "Revoke Access",
         url.as_str(),
@@ -103,7 +103,7 @@ pub fn send_update_password(
         user.email.to_owned(),
         user.name.to_owned(),
         subject,
-        text,
+        &text,
         html,
     )
 }
@@ -113,8 +113,8 @@ fn send(
     service: &core::Service,
     to: String,
     name: String,
-    subject: String,
-    text: String,
+    subject: &str,
+    text: &str,
     html: String,
 ) -> Result<(), Error> {
     let smtp = smtp.ok_or(Error::Smtp(SmtpError::Disabled))?;

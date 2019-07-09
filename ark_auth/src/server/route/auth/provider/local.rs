@@ -14,6 +14,7 @@ use futures::{future, Future};
 use serde_json::Value;
 
 // TODO(feature): Reset/update routes should not reveal if user exists, constant time?
+// TODO(refactor): Email actor to handle emails asynchronously.
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/local")

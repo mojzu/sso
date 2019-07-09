@@ -218,7 +218,7 @@ pub fn list(
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
     let service_mask = service_mask.map(|s| s.id.as_ref());
 
-    // TODO(refactor): Handle gt AND lt, created_gte AND created_lte cases.
+    // TODO(feature): Handle gt AND lt, created_gte AND created_lte cases.
     match &query.gt {
         Some(gt) => driver
             .audit_list_where_id_gt(gt, limit, service_mask)

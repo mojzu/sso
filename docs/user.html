@@ -246,6 +246,14 @@ background-color: #f4f4f4;
 <p><a href="https://jwt.io/">JSON web tokens</a> used for time-limited authentication, produced for users from a user key. Revoking the key used to produce a token also revokes the token.</p>
 <h1 id="changelog">Changelog</h1>
 <h2 id="unreleased">0.3.0 (unreleased)</h2>
+<p><strong>Added</strong></p>
+<ul>
+<li>Added email HTML templates, removed template parameters from routes.</li>
+</ul>
+<p><strong>Changed</strong></p>
+<ul>
+<li>Changed audit list query parameters when using <code>created_gte</code> or <code>created_lte</code> options, added optional <code>offset_id</code> parameter to exclude previous results.</li>
+</ul>
 <h2 id="section">0.2.0 (2019-07-07)</h2>
 <p><strong>Added</strong></p>
 <ul>

@@ -1,6 +1,8 @@
 use crate::server::Error;
 use handlebars::Handlebars;
 
+// TODO(refactor): Create template registry in server data.
+
 const EMAIL_HTML: &str = include_str!("email_html.hbs");
 const EMAIL_TEXT: &str = include_str!("email_text.hbs");
 
