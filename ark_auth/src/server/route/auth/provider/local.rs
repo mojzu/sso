@@ -131,21 +131,16 @@ fn reset_password_inner(
                 &body.email,
                 data.configuration().core_access_token_expires(),
             )?;
-            Ok((service, body, user, token))
+            Ok((service, user, token))
         })
         .map_err(Into::into)
-        .and_then(|(service, body, user, token)| {
-            smtp::send_reset_password(
-                data.configuration().smtp(),
-                &service,
-                &user,
-                &token,
-                body.template.as_ref(),
+        .and_then(|(service, user, token)| {
+            smtp::send_reset_password(data.configuration().smtp(), &service, &user, &token).or_else(
+                |err| {
+                    warn!("{}", err);
+                    Ok(())
+                },
             )
-            .or_else(|err| {
-                warn!("{}", err);
-                Ok(())
-            })
         })
 }
 
@@ -232,17 +227,16 @@ fn update_email_inner(
                 &body.new_email,
                 data.configuration().core_revoke_token_expires(),
             )?;
-            Ok((service, body, user, old_email, token))
+            Ok((service, user, old_email, token))
         })
         .map_err(Into::into)
-        .and_then(|(service, body, user, old_email, token)| {
+        .and_then(|(service, user, old_email, token)| {
             smtp::send_update_email(
                 data.configuration().smtp(),
                 &service,
                 &user,
                 &old_email,
                 &token,
-                body.template.as_ref(),
             )
             .or_else(|err| {
                 warn!("{}", err);
@@ -325,21 +319,15 @@ fn update_password_inner(
                 &body.new_password,
                 data.configuration().core_revoke_token_expires(),
             )?;
-            Ok((service, body, user, token))
+            Ok((service, user, token))
         })
         .map_err(Into::into)
-        .and_then(|(service, body, user, token)| {
-            smtp::send_update_password(
-                data.configuration().smtp(),
-                &service,
-                &user,
-                &token,
-                body.template.as_ref(),
-            )
-            .or_else(|err| {
-                warn!("{}", err);
-                Ok(())
-            })
+        .and_then(|(service, user, token)| {
+            smtp::send_update_password(data.configuration().smtp(), &service, &user, &token)
+                .or_else(|err| {
+                    warn!("{}", err);
+                    Ok(())
+                })
         })
 }
 

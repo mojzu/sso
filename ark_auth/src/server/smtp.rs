@@ -1,5 +1,5 @@
 use crate::core;
-use crate::server::api::AuthEmailTemplateBody;
+use crate::server::template;
 use crate::server::{ConfigurationSmtp, Error, SmtpError};
 use lettre::smtp::authentication::{Credentials, Mechanism};
 use lettre::smtp::ConnectionReuseParameters;
@@ -7,31 +7,29 @@ use lettre::{ClientSecurity, ClientTlsParameters, SmtpClient, Transport};
 use lettre_email::Email;
 use native_tls::{Protocol, TlsConnector};
 
-// TODO(feature): Improve email templates, formatting (template::email_html).
-// TODO(feature): HTML sanitisation for template.
-// <https://github.com/rust-ammonia/ammonia>
-// Remove template option, locale parameter for translations?
+// TODO(feature): Improve email templates, formatting.
+// Locale parameter or user column for translations?
 
 pub fn send_reset_password(
     smtp: Option<&ConfigurationSmtp>,
     service: &core::Service,
     user: &core::User,
     token: &str,
-    template: Option<&AuthEmailTemplateBody>,
 ) -> Result<(), Error> {
-    let (subject, text) = match template {
-        Some(template) => {
-            (template.subject.to_owned(), template.text.to_owned())
-        }
-        None => (
-            format!("{}: Reset Password Request", service.name),
-            format!("A reset password request for your email address has been made to {}. If you made this request, follow the link below.", service.name),
-        )
-    };
+    let subject = format!("{}: Reset Password Request", service.name);
+    let text = format!("A reset password request for your email address has been made to {}. If you made this request, follow the link below.", service.name);
     let callback_data = &[("email", user.email.as_ref()), ("token", token)];
     let url = service.callback_url("reset_password", callback_data);
-    let text = format!("{}\r\n\r\n{}", text, url.as_str(),);
 
+    let parameters = template::Email::new(
+        &subject,
+        &text,
+        "Reset Password",
+        url.as_str(),
+        &service.name,
+        &service.url,
+    );
+    let (text, html) = template::email(&parameters)?;
     send(
         smtp,
         service,
@@ -39,6 +37,7 @@ pub fn send_reset_password(
         user.name.to_owned(),
         subject,
         text,
+        html,
     )
 }
 
@@ -48,25 +47,25 @@ pub fn send_update_email(
     user: &core::User,
     old_email: &str,
     token: &str,
-    template: Option<&AuthEmailTemplateBody>,
 ) -> Result<(), Error> {
-    let (subject, text) = match template {
-        Some(template) => {
-            (template.subject.to_owned(), template.text.to_owned())
-        }
-        None => (
-            format!("{}: Update Email Request", service.name),
-            format!("An update email request for your user has been made to {}. If you did not make this request, follow the link below.", service.name),
-        )
-    };
+    let subject = format!("{}: Update Email Request", service.name);
+    let text = format!("An update email request for your user has been made to {}. If you did not make this request, follow the link below.", service.name);
     let callback_data = &[
         ("email", user.email.as_ref()),
         ("old_email", old_email),
         ("token", token),
     ];
     let url = service.callback_url("update_email", callback_data);
-    let text = format!("{}\r\n\r\n{}", text, url.as_str(),);
 
+    let parameters = template::Email::new(
+        &subject,
+        &text,
+        "Revoke Access",
+        url.as_str(),
+        &service.name,
+        &service.url,
+    );
+    let (text, html) = template::email(&parameters)?;
     send(
         smtp,
         service,
@@ -74,6 +73,7 @@ pub fn send_update_email(
         user.name.to_owned(),
         subject,
         text,
+        html,
     )
 }
 
@@ -82,21 +82,21 @@ pub fn send_update_password(
     service: &core::Service,
     user: &core::User,
     token: &str,
-    template: Option<&AuthEmailTemplateBody>,
 ) -> Result<(), Error> {
-    let (subject, text) = match template {
-        Some(template) => {
-            (template.subject.to_owned(), template.text.to_owned())
-        }
-        None => (
-            format!("{}: Update Password Request", service.name),
-            format!("An update password request for your user has been made to {}. If you did not make this request, follow the link below.", service.name),
-        )
-    };
+    let subject = format!("{}: Update Password Request", service.name);
+    let text = format!("An update password request for your user has been made to {}. If you did not make this request, follow the link below.", service.name);
     let callback_data = &[("email", user.email.as_ref()), ("token", token)];
     let url = service.callback_url("update_password", callback_data);
-    let text = format!("{}\r\n\r\n{}", text, url.as_str(),);
 
+    let parameters = template::Email::new(
+        &subject,
+        &text,
+        "Revoke Access",
+        url.as_str(),
+        &service.name,
+        &service.url,
+    );
+    let (text, html) = template::email(&parameters)?;
     send(
         smtp,
         service,
@@ -104,6 +104,7 @@ pub fn send_update_password(
         user.name.to_owned(),
         subject,
         text,
+        html,
     )
 }
 
@@ -114,12 +115,14 @@ fn send(
     name: String,
     subject: String,
     text: String,
+    html: String,
 ) -> Result<(), Error> {
     let smtp = smtp.ok_or(Error::Smtp(SmtpError::Disabled))?;
     let email = Email::builder()
         .to((to, name))
         .from((smtp.user.to_owned(), service.name.to_owned()))
         .subject(subject)
+        .html(html)
         .text(text)
         .build()
         .map_err(|err| Error::Smtp(SmtpError::LettreEmail(err)))?;

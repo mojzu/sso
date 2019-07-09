@@ -69,30 +69,6 @@ pub fn path(path: &str) -> Result<(), ValidationError> {
     }
 }
 
-pub fn email_subject(email_subject: &str) -> Result<(), ValidationError> {
-    if email_subject.is_empty() || email_subject.len() > 200 {
-        Err(ValidationError::new("invalid_email_subject"))
-    } else {
-        Ok(())
-    }
-}
-
-pub fn email_text(email_text: &str) -> Result<(), ValidationError> {
-    if email_text.is_empty() || email_text.len() > 1000 {
-        Err(ValidationError::new("invalid_email_text"))
-    } else {
-        Ok(())
-    }
-}
-
-pub fn email_link_text(email_link_text: &str) -> Result<(), ValidationError> {
-    if email_link_text.is_empty() || email_link_text.len() > 200 {
-        Err(ValidationError::new("invalid_email_link_text"))
-    } else {
-        Ok(())
-    }
-}
-
 pub fn id(id: &str) -> Result<(), ValidationError> {
     if id.is_empty() || id.len() > 32 {
         Err(ValidationError::new("invalid_id"))

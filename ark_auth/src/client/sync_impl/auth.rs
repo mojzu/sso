@@ -27,7 +27,6 @@ impl SyncClient {
     pub fn auth_local_reset_password(&self, email: &str) -> Result<(), Error> {
         let body = AuthResetPasswordBody {
             email: email.to_owned(),
-            template: None,
         };
 
         self.post_json(route::AUTH_LOCAL_RESET_PASSWORD, &body)

@@ -185,21 +185,9 @@ pub struct AuthLoginResponse {
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-pub struct AuthEmailTemplateBody {
-    #[validate(custom = "validate::email_subject")]
-    pub subject: String,
-    #[validate(custom = "validate::email_text")]
-    pub text: String,
-    #[validate(custom = "validate::email_link_text")]
-    pub link_text: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
 pub struct AuthResetPasswordBody {
     #[validate(email)]
     pub email: String,
-    pub template: Option<AuthEmailTemplateBody>,
 }
 
 impl FromJsonValue<AuthResetPasswordBody> for AuthResetPasswordBody {}
@@ -232,7 +220,6 @@ pub struct AuthUpdateEmailBody {
     pub password: String,
     #[validate(email)]
     pub new_email: String,
-    pub template: Option<AuthEmailTemplateBody>,
 }
 
 impl FromJsonValue<AuthUpdateEmailBody> for AuthUpdateEmailBody {}
@@ -257,7 +244,6 @@ pub struct AuthUpdatePasswordBody {
     pub password: String,
     #[validate(custom = "validate::password")]
     pub new_password: String,
-    pub template: Option<AuthEmailTemplateBody>,
 }
 
 impl FromJsonValue<AuthUpdatePasswordBody> for AuthUpdatePasswordBody {}

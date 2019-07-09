@@ -29,7 +29,6 @@ impl AsyncClient {
     pub fn auth_local_reset_password(&self, email: &str) -> impl Future<Item = (), Error = Error> {
         let body = AuthResetPasswordBody {
             email: email.to_owned(),
-            template: None,
         };
 
         self.post(route::AUTH_LOCAL_RESET_PASSWORD)
@@ -68,7 +67,6 @@ impl AsyncClient {
             token: token.map(|x| x.to_owned()),
             password: password.to_owned(),
             new_email: new_email.to_owned(),
-            template: None,
         };
 
         self.post(route::AUTH_LOCAL_UPDATE_EMAIL)
@@ -105,7 +103,6 @@ impl AsyncClient {
             token: token.map(|x| x.to_owned()),
             password: password.to_owned(),
             new_password: new_password.to_owned(),
-            template: None,
         };
 
         self.post(route::AUTH_LOCAL_UPDATE_PASSWORD)
