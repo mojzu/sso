@@ -136,6 +136,8 @@ fn reset_password_inner(
         })
         .map_err(Into::into)
         .and_then(|(service, user, token)| {
+            // TODO(refactor): Use notify actor here, move smtp.
+            // data.notify().try_send(msg: M);
             smtp::send_reset_password(data.configuration().smtp(), &service, &user, &token).or_else(
                 |err| {
                     warn!("{}", err);

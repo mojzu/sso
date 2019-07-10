@@ -21,6 +21,7 @@ pub mod cli;
 pub mod client;
 pub mod core;
 pub mod driver;
+pub mod notify;
 pub mod server;
 
 /// User agent constructed from crate name and version.

@@ -1,7 +1,10 @@
 use crate::crate_user_agent;
 use crate::driver::Driver;
+use crate::notify::NotifyExecutor;
 use crate::{core, server};
 use actix_rt::System;
+
+// TODO(refactor): Move configuration here, split into notify/server/etc.
 
 /// Create a root key.
 pub fn create_root_key(driver: Box<Driver>, name: &str) -> Result<core::Key, core::Error> {
@@ -34,7 +37,11 @@ pub fn start_server(
 ) -> Result<(), server::Error> {
     let system = System::new(crate_name!());
 
-    server::start(configuration, driver)?;
+    // Start notify actor.
+    let notify_addr = NotifyExecutor::start(2);
+
+    // Start HTTP server.
+    server::start(4, &configuration, &driver, &notify_addr)?;
 
     system.run().map_err(server::Error::StdIo)
 }

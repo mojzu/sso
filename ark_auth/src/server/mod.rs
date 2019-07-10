@@ -5,7 +5,9 @@ pub mod template;
 pub mod validate;
 
 use crate::crate_user_agent;
+use crate::notify::NotifyExecutor;
 use crate::{core, driver};
+use actix::Addr;
 use actix_identity::{IdentityPolicy, IdentityService};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::{middleware, web, App, HttpResponse, HttpServer, ResponseError};
@@ -324,14 +326,20 @@ impl Configuration {
 pub struct Data {
     configuration: Configuration,
     driver: Box<driver::Driver>,
+    notify_addr: Addr<NotifyExecutor>,
 }
 
 impl Data {
     /// Create new data.
-    pub fn new(configuration: Configuration, driver: Box<driver::Driver>) -> Self {
+    pub fn new(
+        configuration: Configuration,
+        driver: Box<driver::Driver>,
+        notify_addr: Addr<NotifyExecutor>,
+    ) -> Self {
         Data {
             configuration,
             driver,
+            notify_addr,
         }
     }
 
@@ -343,6 +351,11 @@ impl Data {
     /// Get reference to driver.
     pub fn driver(&self) -> &driver::Driver {
         self.driver.as_ref()
+    }
+
+    /// Get reference to notify actor address.
+    pub fn notify(&self) -> &Addr<NotifyExecutor> {
+        &self.notify_addr
     }
 }
 
@@ -392,13 +405,25 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
 }
 
 /// Start HTTP server.
-pub fn start(configuration: Configuration, driver: Box<driver::Driver>) -> Result<(), Error> {
+pub fn start(
+    workers: usize,
+    configuration: &Configuration,
+    driver: &Box<driver::Driver>,
+    notify_addr: &Addr<NotifyExecutor>,
+) -> Result<(), Error> {
     let bind = configuration.bind().to_owned();
+    let configuration = configuration.clone();
+    let driver = driver.clone();
+    let notify_addr = notify_addr.clone();
 
     let server = HttpServer::new(move || {
         App::new()
             // Shared data.
-            .data(Data::new(configuration.clone(), driver.clone()))
+            .data(Data::new(
+                configuration.clone(),
+                driver.clone(),
+                notify_addr.clone(),
+            ))
             // Global JSON configuration.
             .data(web::JsonConfig::default().limit(DEFAULT_JSON_LIMIT))
             // Logger middleware.
@@ -410,6 +435,7 @@ pub fn start(configuration: Configuration, driver: Box<driver::Driver>) -> Resul
             // Default route (method not allowed).
             .default_service(web::route().to(HttpResponse::MethodNotAllowed))
     })
+    .workers(workers)
     .bind(bind)
     .map_err(Error::StdIo)?;
 
