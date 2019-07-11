@@ -1,7 +1,5 @@
 pub mod api;
 pub mod route;
-pub mod smtp;
-pub mod template;
 pub mod validate;
 
 use crate::crate_user_agent;
@@ -44,23 +42,6 @@ pub enum PwnedPasswordsError {
     ActixPayload,
 }
 
-/// SMTP errors.
-#[derive(Debug, Fail)]
-pub enum SmtpError {
-    /// Integration disabled.
-    #[fail(display = "SmtpError::Disabled")]
-    Disabled,
-    /// Native TLS error.
-    #[fail(display = "SmtpError::NativeTls {}", _0)]
-    NativeTls(native_tls::Error),
-    /// Lettre email error.
-    #[fail(display = "SmtpError::LettreEmail {}", _0)]
-    LettreEmail(lettre_email::error::Error),
-    /// Lettre error.
-    #[fail(display = "SmtpError::Lettre {}", _0)]
-    Lettre(lettre::smtp::error::Error),
-}
-
 /// OAuth2 errors.
 #[derive(Debug, Fail)]
 pub enum Oauth2Error {
@@ -99,9 +80,6 @@ pub enum Error {
     /// Client request error.
     #[fail(display = "ServerError::PwnedPasswords {}", _0)]
     PwnedPasswords(PwnedPasswordsError),
-    /// SMTP error.
-    #[fail(display = "ServerError::Smtp {}", _0)]
-    Smtp(SmtpError),
     /// OAuth2 error.
     #[fail(display = "ServerError::Oauth2 {}", _0)]
     Oauth2(Oauth2Error),
@@ -180,15 +158,6 @@ pub struct ConfigurationProviderGroup {
     microsoft: ConfigurationProvider,
 }
 
-/// SMTP configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigurationSmtp {
-    host: String,
-    port: u16,
-    user: String,
-    password: String,
-}
-
 /// Core configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigurationCore {
@@ -204,7 +173,6 @@ pub struct Configuration {
     user_agent: String,
     password_pwned_enabled: bool,
     core: ConfigurationCore,
-    smtp: Option<ConfigurationSmtp>,
     provider: ConfigurationProviderGroup,
 }
 
@@ -220,7 +188,6 @@ impl Configuration {
                 refresh_token_expires: 86_400,
                 revoke_token_expires: 604_800,
             },
-            smtp: None,
             provider: ConfigurationProviderGroup {
                 github: ConfigurationProvider { oauth2: None },
                 microsoft: ConfigurationProvider { oauth2: None },
@@ -229,29 +196,18 @@ impl Configuration {
     }
 
     /// Set password pwned enabled.
-    pub fn set_password_pwned_enabled(mut self, value: bool) -> Self {
+    pub fn set_password_pwned_enabled(&mut self, value: bool) -> &mut Self {
         self.password_pwned_enabled = value;
-        self
-    }
-
-    // Set SMTP provider.
-    pub fn set_smtp(mut self, host: String, port: u16, user: String, password: String) -> Self {
-        self.smtp = Some(ConfigurationSmtp {
-            host,
-            port,
-            user,
-            password,
-        });
         self
     }
 
     /// Set provider GitHub OAuth2.
     pub fn set_provider_github_oauth2(
-        mut self,
+        &mut self,
         client_id: String,
         client_secret: String,
         redirect_url: String,
-    ) -> Self {
+    ) -> &mut Self {
         self.provider.github.oauth2 = Some(ConfigurationProviderOauth2 {
             client_id,
             client_secret,
@@ -262,11 +218,11 @@ impl Configuration {
 
     /// Set provider Microsoft OAuth2.
     pub fn set_provider_microsoft_oauth2(
-        mut self,
+        &mut self,
         client_id: String,
         client_secret: String,
         redirect_url: String,
-    ) -> Self {
+    ) -> &mut Self {
         self.provider.microsoft.oauth2 = Some(ConfigurationProviderOauth2 {
             client_id,
             client_secret,
@@ -303,11 +259,6 @@ impl Configuration {
     /// Get revoke token expiry.
     pub fn core_revoke_token_expires(&self) -> i64 {
         self.core.revoke_token_expires
-    }
-
-    /// Configured SMTP provider.
-    pub fn smtp(&self) -> Option<&ConfigurationSmtp> {
-        self.smtp.as_ref()
     }
 
     /// Configured provider GitHub OAuth2.

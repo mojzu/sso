@@ -1,10 +1,44 @@
 use crate::crate_user_agent;
 use crate::driver::Driver;
 use crate::notify::NotifyExecutor;
-use crate::{core, server};
+use crate::{core, notify, server};
 use actix_rt::System;
 
-// TODO(refactor): Move configuration here, split into notify/server/etc.
+/// Configuration.
+pub struct Configuration {
+    pub notify: notify::Configuration,
+    pub server: server::Configuration,
+}
+
+impl Configuration {
+    /// Create new configuration.
+    pub fn new(bind: String) -> Self {
+        Configuration {
+            notify: notify::Configuration::new(),
+            server: server::Configuration::new(bind),
+        }
+    }
+
+    /// Get reference to notify configuration.
+    pub fn notify(&self) -> &notify::Configuration {
+        &self.notify
+    }
+
+    /// Get mutable reference to notify configuration.
+    pub fn mut_notify(&mut self) -> &mut notify::Configuration {
+        &mut self.notify
+    }
+
+    /// Get reference to server configuration.
+    pub fn server(&self) -> &server::Configuration {
+        &self.server
+    }
+
+    /// Get mutable reference to server configuration.
+    pub fn mut_server(&mut self) -> &mut server::Configuration {
+        &mut self.server
+    }
+}
 
 /// Create a root key.
 pub fn create_root_key(driver: Box<Driver>, name: &str) -> Result<core::Key, core::Error> {
@@ -33,15 +67,15 @@ pub fn create_service_with_key(
 /// Start server.
 pub fn start_server(
     driver: Box<Driver>,
-    configuration: server::Configuration,
+    configuration: Configuration,
 ) -> Result<(), server::Error> {
     let system = System::new(crate_name!());
 
     // Start notify actor.
-    let notify_addr = NotifyExecutor::start(2);
+    let notify_addr = NotifyExecutor::start(2, configuration.notify());
 
     // Start HTTP server.
-    server::start(4, &configuration, &driver, &notify_addr)?;
+    server::start(4, configuration.server(), &driver, &notify_addr)?;
 
     system.run().map_err(server::Error::StdIo)
 }

@@ -7,6 +7,7 @@ use lettre::{ClientSecurity, ClientTlsParameters, SmtpClient, Transport};
 use lettre_email::Email;
 use native_tls::{Protocol, TlsConnector};
 
+// TODO(refactor): Move this to notify module.
 // TODO(feature): Improve email templates, formatting, style (red button for revoke).
 // Locale parameter or user column for translations?
 

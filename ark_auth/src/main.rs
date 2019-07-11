@@ -35,7 +35,7 @@ enum Error {
 
 struct Configuration {
     database_url: String,
-    server_configuration: server::Configuration,
+    configuration: cli::Configuration,
 }
 
 fn main() {
@@ -134,7 +134,7 @@ fn main() {
                 })
         }
         (COMMAND_START_SERVER, Some(_submatches)) => {
-            cli::start_server(driver, configuration.server_configuration)
+            cli::start_server(driver, configuration.configuration)
                 .map_err(Error::Server)
                 .map(|_| 0)
         }
@@ -159,8 +159,7 @@ fn configuration_from_environment() -> Result<(Configuration, Box<Driver>), Erro
         std::env::var("DATABASE_CONNECTIONS").unwrap_or_else(|_| "10".to_owned());
     let database_connections = database_connections.parse::<u32>().unwrap();
     let server_bind = std::env::var("SERVER_BIND").unwrap();
-    let mut server_configuration =
-        server::Configuration::new(server_bind).set_password_pwned_enabled(true);
+    let mut configuration = cli::Configuration::new(server_bind);
 
     let smtp_host = std::env::var("SMTP_HOST").map_err(Error::StdEnvVar);
     let smtp_port = std::env::var("SMTP_PORT").map_err(Error::StdEnvVar);
@@ -168,15 +167,18 @@ fn configuration_from_environment() -> Result<(Configuration, Box<Driver>), Erro
     let smtp_password = std::env::var("SMTP_PASSWORD").map_err(Error::StdEnvVar);
     if smtp_host.is_ok() || smtp_port.is_ok() || smtp_user.is_ok() || smtp_password.is_ok() {
         let smtp_port = smtp_port?.parse::<u16>().unwrap();
-        server_configuration =
-            server_configuration.set_smtp(smtp_host?, smtp_port, smtp_user?, smtp_password?);
+        configuration
+            .mut_notify()
+            .set_smtp(smtp_host?, smtp_port, smtp_user?, smtp_password?);
     }
+
+    configuration.mut_server().set_password_pwned_enabled(true);
 
     let gh_client_id = std::env::var("GITHUB_CLIENT_ID").map_err(Error::StdEnvVar);
     let gh_client_secret = std::env::var("GITHUB_CLIENT_SECRET").map_err(Error::StdEnvVar);
     let gh_redirect_url = std::env::var("GITHUB_REDIRECT_URL").map_err(Error::StdEnvVar);
     if gh_client_id.is_ok() || gh_client_secret.is_ok() || gh_redirect_url.is_ok() {
-        server_configuration = server_configuration.set_provider_github_oauth2(
+        configuration.mut_server().set_provider_github_oauth2(
             gh_client_id?,
             gh_client_secret?,
             gh_redirect_url?,
@@ -187,7 +189,7 @@ fn configuration_from_environment() -> Result<(Configuration, Box<Driver>), Erro
     let ms_client_secret = std::env::var("MICROSOFT_CLIENT_SECRET").map_err(Error::StdEnvVar);
     let ms_redirect_url = std::env::var("MICROSOFT_REDIRECT_URL").map_err(Error::StdEnvVar);
     if ms_client_id.is_ok() || ms_client_secret.is_ok() || ms_redirect_url.is_ok() {
-        server_configuration = server_configuration.set_provider_microsoft_oauth2(
+        configuration.mut_server().set_provider_microsoft_oauth2(
             ms_client_id?,
             ms_client_secret?,
             ms_redirect_url?,
@@ -196,7 +198,7 @@ fn configuration_from_environment() -> Result<(Configuration, Box<Driver>), Erro
 
     let configuration = Configuration {
         database_url,
-        server_configuration,
+        configuration,
     };
 
     let driver = if configuration.database_url.starts_with("postgres") {

@@ -7,14 +7,13 @@ use crate::server::api::{
 };
 use crate::server::route::auth::password_meta;
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
-use crate::server::{smtp, Data, Error, FromJsonValue};
+use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
 use futures::{future, Future};
 use serde_json::Value;
 
 // TODO(feature): Reset/update routes should not reveal if user exists, constant time?
-// TODO(refactor): Email actor to handle emails asynchronously.
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/local")
@@ -125,26 +124,16 @@ fn reset_password_inner(
 ) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            let (user, token) = core::auth::reset_password(
+            core::auth::reset_password(
                 data.driver(),
+                data.notify(),
                 &service,
                 &mut audit,
                 &body.email,
                 data.configuration().core_access_token_expires(),
-            )?;
-            Ok((service, user, token))
-        })
-        .map_err(Into::into)
-        .and_then(|(service, user, token)| {
-            // TODO(refactor): Use notify actor here, move smtp.
-            // data.notify().try_send(msg: M);
-            smtp::send_reset_password(data.configuration().smtp(), &service, &user, &token).or_else(
-                |err| {
-                    warn!("{}", err);
-                    Ok(())
-                },
             )
         })
+        .map_err(Into::into)
 }
 
 fn reset_password_confirm_handler(
@@ -220,8 +209,9 @@ fn update_email_inner(
 ) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            let (user, old_email, token) = core::auth::update_email(
+            core::auth::update_email(
                 data.driver(),
+                data.notify(),
                 &service,
                 &mut audit,
                 body.key.as_ref().map(|x| &**x),
@@ -229,23 +219,9 @@ fn update_email_inner(
                 &body.password,
                 &body.new_email,
                 data.configuration().core_revoke_token_expires(),
-            )?;
-            Ok((service, user, old_email, token))
+            )
         })
         .map_err(Into::into)
-        .and_then(|(service, user, old_email, token)| {
-            smtp::send_update_email(
-                data.configuration().smtp(),
-                &service,
-                &user,
-                &old_email,
-                &token,
-            )
-            .or_else(|err| {
-                warn!("{}", err);
-                Ok(())
-            })
-        })
 }
 
 fn update_email_revoke_handler(
@@ -312,8 +288,9 @@ fn update_password_inner(
 ) -> Result<(), Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            let (user, token) = core::auth::update_password(
+            core::auth::update_password(
                 data.driver(),
+                data.notify(),
                 &service,
                 &mut audit,
                 body.key.as_ref().map(|x| &**x),
@@ -321,17 +298,9 @@ fn update_password_inner(
                 &body.password,
                 &body.new_password,
                 data.configuration().core_revoke_token_expires(),
-            )?;
-            Ok((service, user, token))
+            )
         })
         .map_err(Into::into)
-        .and_then(|(service, user, token)| {
-            smtp::send_update_password(data.configuration().smtp(), &service, &user, &token)
-                .or_else(|err| {
-                    warn!("{}", err);
-                    Ok(())
-                })
-        })
 }
 
 fn update_password_revoke_handler(

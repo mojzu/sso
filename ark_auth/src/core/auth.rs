@@ -2,6 +2,8 @@ use crate::core;
 use crate::core::audit::{AuditBuilder, AuditMessage, AuditPath};
 use crate::core::{Csrf, Error, Key, Service, User, UserKey, UserToken, UserTokenPartial};
 use crate::driver::Driver;
+use crate::notify::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword, NotifyExecutor};
+use actix::Addr;
 
 pub fn login(
     driver: &Driver,
@@ -41,11 +43,12 @@ pub fn login(
 
 pub fn reset_password(
     driver: &Driver,
+    notify: &Addr<NotifyExecutor>,
     service: &Service,
     audit: &mut AuditBuilder,
     email: &str,
     token_expires: i64,
-) -> Result<(User, String), Error> {
+) -> Result<(), Error> {
     let user = user_read_by_email(
         driver,
         Some(service),
@@ -55,7 +58,7 @@ pub fn reset_password(
     )?;
     let key = key_read_by_user(driver, service, audit, AuditPath::ResetPasswordError, &user)?;
 
-    // Successful reset password, encode and return reset token.
+    // Successful reset password, encode reset token.
     let csrf = csrf_create(driver, service, token_expires)?;
     let (token, _) = core::jwt::encode_token(
         &service.id,
@@ -66,12 +69,21 @@ pub fn reset_password(
         token_expires,
     )?;
 
+    // Send reset password action email.
+    notify
+        .try_send(EmailResetPassword {
+            service: service.clone(),
+            user,
+            token,
+        })
+        .map_err(|_err| Error::BadRequest)?;
+
     audit.create_internal(
         driver,
         AuditPath::ResetPassword,
         AuditMessage::ResetPassword,
     );
-    Ok((user, token))
+    Ok(())
 }
 
 pub fn reset_password_confirm(
@@ -141,6 +153,7 @@ pub fn reset_password_confirm(
 
 pub fn update_email(
     driver: &Driver,
+    notify: &Addr<NotifyExecutor>,
     service: &Service,
     audit: &mut AuditBuilder,
     key: Option<&str>,
@@ -148,7 +161,7 @@ pub fn update_email(
     password: &str,
     new_email: &str,
     revoke_token_expires: i64,
-) -> Result<(User, String, String), Error> {
+) -> Result<(), Error> {
     // Verify key or token argument to get user ID.
     let user_id = key_or_token_verify(driver, service, audit, key, token)?;
 
@@ -193,8 +206,18 @@ pub fn update_email(
         &user_id,
     )?;
 
+    // Send update email action email.
+    notify
+        .try_send(EmailUpdateEmail {
+            service: service.clone(),
+            user,
+            old_email,
+            token: revoke_token,
+        })
+        .map_err(|_err| Error::BadRequest)?;
+
     audit.create_internal(driver, AuditPath::UpdateEmail, AuditMessage::UpdateEmail);
-    Ok((user, old_email, revoke_token))
+    Ok(())
 }
 
 pub fn update_email_revoke(
@@ -267,6 +290,7 @@ pub fn update_email_revoke(
 
 pub fn update_password(
     driver: &Driver,
+    notify: &Addr<NotifyExecutor>,
     service: &Service,
     audit: &mut AuditBuilder,
     key: Option<&str>,
@@ -274,7 +298,7 @@ pub fn update_password(
     password: &str,
     new_password: &str,
     revoke_token_expires: i64,
-) -> Result<(User, String), Error> {
+) -> Result<(), Error> {
     // Verify key or token argument to get user ID.
     let user_id = key_or_token_verify(driver, service, audit, key, token)?;
 
@@ -324,12 +348,21 @@ pub fn update_password(
         &user_id,
     )?;
 
+    // Send update password action email.
+    notify
+        .try_send(EmailUpdatePassword {
+            service: service.clone(),
+            user,
+            token: revoke_token,
+        })
+        .map_err(|_err| Error::BadRequest)?;
+
     audit.create_internal(
         driver,
         AuditPath::UpdatePassword,
         AuditMessage::UpdatePassword,
     );
-    Ok((user, revoke_token))
+    Ok(())
 }
 
 pub fn update_password_revoke(
