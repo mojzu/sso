@@ -1,6 +1,6 @@
 ## Key
 
-#### List [GET /v1/key]
+### List [GET /v1/key]
 
 List keys.
 
@@ -41,7 +41,7 @@ Query parameters: `?gt=X&lt=Y&limit=Z`
 
 - Authorisation header is missing or invalid.
 
-#### Create [POST /v1/key]
+### Create [POST /v1/key]
 
 Create key.
 
@@ -91,7 +91,7 @@ Create key.
 
 - Authorisation header is invalid.
 
-#### Read [GET /v1/key/{id}]
+### Read [GET /v1/key/{id}]
 
 Read key by ID.
 
@@ -123,7 +123,7 @@ Read key by ID.
 
 - Authorisation header is invalid.
 
-#### Update [PATCH /v1/key/{id}]
+### Update [PATCH /v1/key/{id}]
 
 Update key by ID.
 
@@ -170,7 +170,7 @@ Update key by ID.
 
 - Authorisation header is invalid.
 
-#### Delete [DELETE /v1/key/{id}]
+### Delete [DELETE /v1/key/{id}]
 
 Delete key by ID.
 

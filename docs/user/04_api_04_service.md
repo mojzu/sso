@@ -1,10 +1,10 @@
 ## Service
 
-#### List [GET /v1/service]
+### List [GET /v1/service]
 
-#### Create [POST /v1/service]
+### Create [POST /v1/service]
 
-#### Read [GET /v1/service/{id}]
+### Read [GET /v1/service/{id}]
 
 Read service by ID.
 
@@ -32,8 +32,8 @@ Read service by ID.
 
 - Authorisation header is invalid.
 
-#### Update [PATCH /v1/service/{id}]
+### Update [PATCH /v1/service/{id}]
 
 TODO(docs): Finish, improve documentation.
 
-#### Delete [DELETE /v1/service/{id}]
+### Delete [DELETE /v1/service/{id}]

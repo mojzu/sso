@@ -1,6 +1,6 @@
 ## User
 
-#### List [GET /v1/user]
+### List [GET /v1/user]
 
 List users.
 
@@ -43,7 +43,7 @@ List users.
 
 - Authorisation header is invalid.
 
-#### Create [POST /v1/user]
+### Create [POST /v1/user]
 
 Create user.
 
@@ -102,7 +102,7 @@ Create user.
 
 - Authorisation header is invalid.
 
-#### Read [GET /v1/user/{id}]
+### Read [GET /v1/user/{id}]
 
 Read user by ID.
 
@@ -130,7 +130,7 @@ Read user by ID.
 
 - Authorisation header is invalid.
 
-#### Update [PATCH /v1/user/{id}]
+### Update [PATCH /v1/user/{id}]
 
 Update user by ID.
 
@@ -173,7 +173,7 @@ Update user by ID.
 
 - Authorisation header is invalid.
 
-#### Delete [DELETE /v1/user/{id}]
+### Delete [DELETE /v1/user/{id}]
 
 Delete user by ID.
 

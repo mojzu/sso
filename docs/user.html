@@ -170,13 +170,13 @@ background-color: #f4f4f4;
 <li><a href="#oauth2-callback-get-v1authprovidermicrosoftoauth2">OAuth2 Callback [GET /v1/auth/provider/microsoft/oauth2]</a></li>
 </ul></li>
 <li><a href="#key">Key</a><ul>
-<li><a href="#revoke-post-v1authkeyrevoke">Revoke [POST /v1/auth/key/revoke]</a></li>
 <li><a href="#verify-post-v1authkeyverify">Verify [POST /v1/auth/key/verify]</a></li>
+<li><a href="#revoke-post-v1authkeyrevoke">Revoke [POST /v1/auth/key/revoke]</a></li>
 </ul></li>
 <li><a href="#token">Token</a><ul>
+<li><a href="#verify-token-post-v1authtokenverify">Verify Token [POST /v1/auth/token/verify]</a></li>
 <li><a href="#refresh-token-post-v1authtokenrefresh">Refresh Token [POST /v1/auth/token/refresh]</a></li>
 <li><a href="#revoke-token-post-v1authtokenrevoke">Revoke Token [POST /v1/auth/token/revoke]</a></li>
-<li><a href="#verify-token-post-v1authtokenverify">Verify Token [POST /v1/auth/token/verify]</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#audit">Audit</a><ul>
@@ -692,8 +692,8 @@ ark_auth start-server</code></pre>
 <h4 id="oauth2-callback-get-v1authprovidermicrosoftoauth2">OAuth2 Callback [GET /v1/auth/provider/microsoft/oauth2]</h4>
 <p>User redirected here by Microsoft OAuth2 server after successful authentication.</p>
 <h3 id="key">Key</h3>
-<h4 id="revoke-post-v1authkeyrevoke">Revoke [POST /v1/auth/key/revoke]</h4>
-<p>Revoke a user key, any associated tokens will become invalid.</p>
+<h4 id="verify-post-v1authkeyverify">Verify [POST /v1/auth/key/verify]</h4>
+<p>Verify user key.</p>
 <p><strong>Request</strong></p>
 <div class="sourceCode" id="cb51"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb51-1"><a href="#cb51-1"></a><span class="fu">{</span></span>
 <span id="cb51-2"><a href="#cb51-2"></a>  <span class="dt">&quot;key&quot;</span><span class="fu">:</span> <span class="st">&quot;5a044..4d37c&quot;</span></span>
@@ -702,32 +702,12 @@ ark_auth start-server</code></pre>
 <li><code>key</code>: User key (required).</li>
 </ul>
 <p><strong>Response [200, OK]</strong></p>
-<p><strong>Response [400, Bad Request]</strong></p>
-<ul>
-<li>Request body is invalid.</li>
-<li>Key is invalid.</li>
-<li>Key is for a service.</li>
-</ul>
-<p><strong>Response [403, Forbidden]</strong></p>
-<ul>
-<li>Authorisation header is invalid.</li>
-</ul>
-<h4 id="verify-post-v1authkeyverify">Verify [POST /v1/auth/key/verify]</h4>
-<p>Verify user key.</p>
-<p><strong>Request</strong></p>
 <div class="sourceCode" id="cb52"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb52-1"><a href="#cb52-1"></a><span class="fu">{</span></span>
-<span id="cb52-2"><a href="#cb52-2"></a>  <span class="dt">&quot;key&quot;</span><span class="fu">:</span> <span class="st">&quot;5a044..4d37c&quot;</span></span>
-<span id="cb52-3"><a href="#cb52-3"></a><span class="fu">}</span></span></code></pre></div>
-<ul>
-<li><code>key</code>: User key (required).</li>
-</ul>
-<p><strong>Response [200, OK]</strong></p>
-<div class="sourceCode" id="cb53"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb53-1"><a href="#cb53-1"></a><span class="fu">{</span></span>
-<span id="cb53-2"><a href="#cb53-2"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb53-3"><a href="#cb53-3"></a>    <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
-<span id="cb53-4"><a href="#cb53-4"></a>    <span class="dt">&quot;key&quot;</span><span class="fu">:</span> <span class="st">&quot;0e12c...e693f&quot;</span></span>
-<span id="cb53-5"><a href="#cb53-5"></a>  <span class="fu">}</span></span>
-<span id="cb53-6"><a href="#cb53-6"></a><span class="fu">}</span></span></code></pre></div>
+<span id="cb52-2"><a href="#cb52-2"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb52-3"><a href="#cb52-3"></a>    <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb52-4"><a href="#cb52-4"></a>    <span class="dt">&quot;key&quot;</span><span class="fu">:</span> <span class="st">&quot;0e12c...e693f&quot;</span></span>
+<span id="cb52-5"><a href="#cb52-5"></a>  <span class="fu">}</span></span>
+<span id="cb52-6"><a href="#cb52-6"></a><span class="fu">}</span></span></code></pre></div>
 <ul>
 <li><code>data.user_id</code>: User ID.</li>
 <li><code>data.key</code>: User key.</li>
@@ -742,9 +722,29 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
+<h4 id="revoke-post-v1authkeyrevoke">Revoke [POST /v1/auth/key/revoke]</h4>
+<p>Revoke a user key, any associated tokens will become invalid.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb53"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb53-1"><a href="#cb53-1"></a><span class="fu">{</span></span>
+<span id="cb53-2"><a href="#cb53-2"></a>  <span class="dt">&quot;key&quot;</span><span class="fu">:</span> <span class="st">&quot;5a044..4d37c&quot;</span></span>
+<span id="cb53-3"><a href="#cb53-3"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>key</code>: User key (required).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>Key is invalid.</li>
+<li>Key is for a service.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
 <h3 id="token">Token</h3>
-<h4 id="refresh-token-post-v1authtokenrefresh">Refresh Token [POST /v1/auth/token/refresh]</h4>
-<p>Refresh user token, creates new token with updated expiry time.</p>
+<h4 id="verify-token-post-v1authtokenverify">Verify Token [POST /v1/auth/token/verify]</h4>
+<p>Verify user token.</p>
 <p><strong>Request</strong></p>
 <div class="sourceCode" id="cb54"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb54-1"><a href="#cb54-1"></a><span class="fu">{</span></span>
 <span id="cb54-2"><a href="#cb54-2"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...Dlgu4&quot;</span></span>
@@ -756,10 +756,42 @@ ark_auth start-server</code></pre>
 <div class="sourceCode" id="cb55"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb55-1"><a href="#cb55-1"></a><span class="fu">{</span></span>
 <span id="cb55-2"><a href="#cb55-2"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
 <span id="cb55-3"><a href="#cb55-3"></a>    <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
-<span id="cb55-4"><a href="#cb55-4"></a>    <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...0ZT7k&quot;</span><span class="fu">,</span></span>
-<span id="cb55-5"><a href="#cb55-5"></a>    <span class="dt">&quot;token_expires&quot;</span><span class="fu">:</span> <span class="dv">1555957470</span></span>
+<span id="cb55-4"><a href="#cb55-4"></a>    <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...Dlgu4&quot;</span><span class="fu">,</span></span>
+<span id="cb55-5"><a href="#cb55-5"></a>    <span class="dt">&quot;token_expires&quot;</span><span class="fu">:</span> <span class="dv">1555957164</span></span>
 <span id="cb55-6"><a href="#cb55-6"></a>  <span class="fu">}</span></span>
 <span id="cb55-7"><a href="#cb55-7"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>data.user_id</code>: User ID.</li>
+<li><code>data.token</code>: JWT authentication token for user.</li>
+<li><code>data.token_expires</code>: JWT expiry time, unix timestamp.</li>
+</ul>
+<p><strong>Response [400, Bad Request]</strong></p>
+<ul>
+<li>Request body is invalid.</li>
+<li>Token is invalid.</li>
+<li>Token is not for authorised service.</li>
+</ul>
+<p><strong>Response [403, Forbidden]</strong></p>
+<ul>
+<li>Authorisation header is invalid.</li>
+</ul>
+<h4 id="refresh-token-post-v1authtokenrefresh">Refresh Token [POST /v1/auth/token/refresh]</h4>
+<p>Refresh user token, creates new token with updated expiry time.</p>
+<p><strong>Request</strong></p>
+<div class="sourceCode" id="cb56"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb56-1"><a href="#cb56-1"></a><span class="fu">{</span></span>
+<span id="cb56-2"><a href="#cb56-2"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...Dlgu4&quot;</span></span>
+<span id="cb56-3"><a href="#cb56-3"></a><span class="fu">}</span></span></code></pre></div>
+<ul>
+<li><code>token</code>: JWT authentication token for user (required).</li>
+</ul>
+<p><strong>Response [200, OK]</strong></p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb57-1"><a href="#cb57-1"></a><span class="fu">{</span></span>
+<span id="cb57-2"><a href="#cb57-2"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb57-3"><a href="#cb57-3"></a>    <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb57-4"><a href="#cb57-4"></a>    <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...0ZT7k&quot;</span><span class="fu">,</span></span>
+<span id="cb57-5"><a href="#cb57-5"></a>    <span class="dt">&quot;token_expires&quot;</span><span class="fu">:</span> <span class="dv">1555957470</span></span>
+<span id="cb57-6"><a href="#cb57-6"></a>  <span class="fu">}</span></span>
+<span id="cb57-7"><a href="#cb57-7"></a><span class="fu">}</span></span></code></pre></div>
 <ul>
 <li><code>data.user_id</code>: User ID.</li>
 <li><code>data.token</code>: JWT authentication token for user.</li>
@@ -778,43 +810,11 @@ ark_auth start-server</code></pre>
 <h4 id="revoke-token-post-v1authtokenrevoke">Revoke Token [POST /v1/auth/token/revoke]</h4>
 <p>Revoke user token, deletes associated key to prevent reuse.</p>
 <p><strong>Request</strong></p>
-<div class="sourceCode" id="cb56"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb56-1"><a href="#cb56-1"></a><span class="fu">{</span></span>
-<span id="cb56-2"><a href="#cb56-2"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...Dlgu4&quot;</span></span>
-<span id="cb56-3"><a href="#cb56-3"></a><span class="fu">}</span></span></code></pre></div>
-<ul>
-<li><code>token</code>: JWT authentication token for user (required).</li>
-</ul>
-<p><strong>Response [400, Bad Request]</strong></p>
-<ul>
-<li>Request body is invalid.</li>
-<li>Token is invalid.</li>
-<li>Token is not for authorised service.</li>
-</ul>
-<p><strong>Response [403, Forbidden]</strong></p>
-<ul>
-<li>Authorisation header is invalid.</li>
-</ul>
-<h4 id="verify-token-post-v1authtokenverify">Verify Token [POST /v1/auth/token/verify]</h4>
-<p>Verify user token.</p>
-<p><strong>Request</strong></p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb57-1"><a href="#cb57-1"></a><span class="fu">{</span></span>
-<span id="cb57-2"><a href="#cb57-2"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...Dlgu4&quot;</span></span>
-<span id="cb57-3"><a href="#cb57-3"></a><span class="fu">}</span></span></code></pre></div>
-<ul>
-<li><code>token</code>: JWT authentication token for user (required).</li>
-</ul>
-<p><strong>Response [200, OK]</strong></p>
 <div class="sourceCode" id="cb58"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb58-1"><a href="#cb58-1"></a><span class="fu">{</span></span>
-<span id="cb58-2"><a href="#cb58-2"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb58-3"><a href="#cb58-3"></a>    <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
-<span id="cb58-4"><a href="#cb58-4"></a>    <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...Dlgu4&quot;</span><span class="fu">,</span></span>
-<span id="cb58-5"><a href="#cb58-5"></a>    <span class="dt">&quot;token_expires&quot;</span><span class="fu">:</span> <span class="dv">1555957164</span></span>
-<span id="cb58-6"><a href="#cb58-6"></a>  <span class="fu">}</span></span>
-<span id="cb58-7"><a href="#cb58-7"></a><span class="fu">}</span></span></code></pre></div>
+<span id="cb58-2"><a href="#cb58-2"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;eyJ0e...Dlgu4&quot;</span></span>
+<span id="cb58-3"><a href="#cb58-3"></a><span class="fu">}</span></span></code></pre></div>
 <ul>
-<li><code>data.user_id</code>: User ID.</li>
-<li><code>data.token</code>: JWT authentication token for user.</li>
-<li><code>data.token_expires</code>: JWT expiry time, unix timestamp.</li>
+<li><code>token</code>: JWT authentication token for user (required).</li>
 </ul>
 <p><strong>Response [400, Bad Request]</strong></p>
 <ul>
@@ -827,11 +827,11 @@ ark_auth start-server</code></pre>
 <li>Authorisation header is invalid.</li>
 </ul>
 <h2 id="audit">Audit</h2>
-<h4 id="list-get-v1audit">List [GET /v1/audit]</h4>
-<h4 id="create-post-v1audit">Create [POST /v1/audit]</h4>
-<h4 id="read-get-v1auditid">Read [GET /v1/audit/{id}]</h4>
+<h3 id="list-get-v1audit">List [GET /v1/audit]</h3>
+<h3 id="create-post-v1audit">Create [POST /v1/audit]</h3>
+<h3 id="read-get-v1auditid">Read [GET /v1/audit/{id}]</h3>
 <h2 id="key-1">Key</h2>
-<h4 id="list-get-v1key">List [GET /v1/key]</h4>
+<h3 id="list-get-v1key">List [GET /v1/key]</h3>
 <p>List keys.</p>
 <p><strong>Request</strong></p>
 <p>Query parameters: <code>?gt=X&amp;lt=Y&amp;limit=Z</code></p>
@@ -866,7 +866,7 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is missing or invalid.</li>
 </ul>
-<h4 id="create-post-v1key">Create [POST /v1/key]</h4>
+<h3 id="create-post-v1key">Create [POST /v1/key]</h3>
 <p>Create key.</p>
 <p><strong>Request</strong></p>
 <div class="sourceCode" id="cb60"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb60-1"><a href="#cb60-1"></a><span class="fu">{</span></span>
@@ -908,7 +908,7 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<h4 id="read-get-v1keyid">Read [GET /v1/key/{id}]</h4>
+<h3 id="read-get-v1keyid">Read [GET /v1/key/{id}]</h3>
 <p>Read key by ID.</p>
 <p><strong>Response [200, OK]</strong></p>
 <div class="sourceCode" id="cb62"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb62-1"><a href="#cb62-1"></a><span class="fu">{</span></span>
@@ -935,7 +935,7 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<h4 id="update-patch-v1keyid">Update [PATCH /v1/key/{id}]</h4>
+<h3 id="update-patch-v1keyid">Update [PATCH /v1/key/{id}]</h3>
 <p>Update key by ID.</p>
 <p><strong>Request</strong></p>
 <div class="sourceCode" id="cb63"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb63-1"><a href="#cb63-1"></a><span class="fu">{</span></span>
@@ -974,7 +974,7 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<h4 id="delete-delete-v1keyid">Delete [DELETE /v1/key/{id}]</h4>
+<h3 id="delete-delete-v1keyid">Delete [DELETE /v1/key/{id}]</h3>
 <p>Delete key by ID.</p>
 <p><strong>Response [200, OK]</strong></p>
 <p><strong>Response [400, Bad Request]</strong></p>
@@ -986,9 +986,9 @@ ark_auth start-server</code></pre>
 <li>Authorisation header is invalid.</li>
 </ul>
 <h2 id="service">Service</h2>
-<h4 id="list-get-v1service">List [GET /v1/service]</h4>
-<h4 id="create-post-v1service">Create [POST /v1/service]</h4>
-<h4 id="read-get-v1serviceid">Read [GET /v1/service/{id}]</h4>
+<h3 id="list-get-v1service">List [GET /v1/service]</h3>
+<h3 id="create-post-v1service">Create [POST /v1/service]</h3>
+<h3 id="read-get-v1serviceid">Read [GET /v1/service/{id}]</h3>
 <p>Read service by ID.</p>
 <p><strong>Response [200, OK]</strong></p>
 <div class="sourceCode" id="cb65"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb65-1"><a href="#cb65-1"></a><span class="fu">{</span></span>
@@ -1011,11 +1011,11 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<h4 id="update-patch-v1serviceid">Update [PATCH /v1/service/{id}]</h4>
+<h3 id="update-patch-v1serviceid">Update [PATCH /v1/service/{id}]</h3>
 <p>TODO(docs): Finish, improve documentation.</p>
-<h4 id="delete-delete-v1serviceid">Delete [DELETE /v1/service/{id}]</h4>
+<h3 id="delete-delete-v1serviceid">Delete [DELETE /v1/service/{id}]</h3>
 <h2 id="user">User</h2>
-<h4 id="list-get-v1user">List [GET /v1/user]</h4>
+<h3 id="list-get-v1user">List [GET /v1/user]</h3>
 <p>List users.</p>
 <p><strong>Request</strong></p>
 <pre><code>?gt=X&amp;lt=Y&amp;limit=Z</code></pre>
@@ -1050,7 +1050,7 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<h4 id="create-post-v1user">Create [POST /v1/user]</h4>
+<h3 id="create-post-v1user">Create [POST /v1/user]</h3>
 <p>Create user.</p>
 <p><strong>Request</strong></p>
 <div class="sourceCode" id="cb68"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb68-1"><a href="#cb68-1"></a><span class="fu">{</span></span>
@@ -1101,7 +1101,7 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<h4 id="read-get-v1userid">Read [GET /v1/user/{id}]</h4>
+<h3 id="read-get-v1userid">Read [GET /v1/user/{id}]</h3>
 <p>Read user by ID.</p>
 <p><strong>Response [200, OK]</strong></p>
 <div class="sourceCode" id="cb70"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb70-1"><a href="#cb70-1"></a><span class="fu">{</span></span>
@@ -1124,7 +1124,7 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<h4 id="update-patch-v1userid">Update [PATCH /v1/user/{id}]</h4>
+<h3 id="update-patch-v1userid">Update [PATCH /v1/user/{id}]</h3>
 <p>Update user by ID.</p>
 <p><strong>Request</strong></p>
 <div class="sourceCode" id="cb71"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb71-1"><a href="#cb71-1"></a><span class="fu">{</span></span>
@@ -1159,7 +1159,7 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<h4 id="delete-delete-v1userid">Delete [DELETE /v1/user/{id}]</h4>
+<h3 id="delete-delete-v1userid">Delete [DELETE /v1/user/{id}]</h3>
 <p>Delete user by ID.</p>
 <p><strong>Response [200, OK]</strong></p>
 <p><strong>Response [400, Bad Request]</strong></p>
