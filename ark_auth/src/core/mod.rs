@@ -53,12 +53,42 @@ pub struct Audit {
     pub user_key_id: Option<String>,
 }
 
-/// Audit meta.
+/// Audit metadata, HTTP request information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuditMeta {
-    pub user_agent: String,
-    pub remote: String,
-    pub forwarded_for: Option<String>,
+    user_agent: String,
+    remote: String,
+    forwarded_for: Option<String>,
+}
+
+impl AuditMeta {
+    /// Create audit metadata from parameters.
+    pub fn new<T1: Into<String>, T2: Into<Option<String>>>(
+        user_agent: T1,
+        remote: T1,
+        forwarded_for: T2,
+    ) -> Self {
+        AuditMeta {
+            user_agent: user_agent.into(),
+            remote: remote.into(),
+            forwarded_for: forwarded_for.into(),
+        }
+    }
+
+    /// User agent string reference.
+    pub fn user_agent(&self) -> &str {
+        &self.user_agent
+    }
+
+    /// Remote IP string reference.
+    pub fn remote(&self) -> &str {
+        &self.remote
+    }
+
+    /// Forwarded for header optional string reference.
+    pub fn forwarded_for(&self) -> Option<&str> {
+        self.forwarded_for.as_ref().map(|x| &**x)
+    }
 }
 
 /// Audit list query.
@@ -223,7 +253,10 @@ mod tests {
             name: "Service Name".to_owned(),
             url: "http://localhost:9000".to_owned(),
         };
-        let callback_data = &[("email", "user@test.com"), ("token", "6a9c6cfb7e15498b99e057153f0a212b")];
+        let callback_data = &[
+            ("email", "user@test.com"),
+            ("token", "6a9c6cfb7e15498b99e057153f0a212b"),
+        ];
         let url = service.callback_url("reset_password", callback_data);
         assert_eq!(
             url.to_string(),

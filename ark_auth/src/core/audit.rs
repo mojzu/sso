@@ -147,8 +147,8 @@ impl AuditBuilder {
         self
     }
 
-    pub fn set_user_id(&mut self, user: Option<String>) -> &mut Self {
-        self.user = user.map(|x| x.to_owned());
+    pub fn set_user_id<T: Into<Option<String>>>(&mut self, user: T) -> &mut Self {
+        self.user = user.into();
         self
     }
 
@@ -157,8 +157,8 @@ impl AuditBuilder {
         self
     }
 
-    pub fn set_user_key_id(&mut self, key: Option<String>) -> &mut Self {
-        self.user_key = key.map(|x| x.to_owned());
+    pub fn set_user_key_id<T: Into<Option<String>>>(&mut self, key: T) -> &mut Self {
+        self.user_key = key.into();
         self
     }
 
@@ -218,7 +218,7 @@ pub fn list(
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
     let service_mask = service_mask.map(|s| s.id.as_ref());
 
-    // TODO(feature): Handle gt AND lt, created_gte AND created_lte cases.
+    // TODO(refactor): Handle gt AND lt, created_gte AND created_lte cases.
     match &query.gt {
         Some(gt) => driver
             .audit_list_where_id_gt(gt, limit, service_mask)

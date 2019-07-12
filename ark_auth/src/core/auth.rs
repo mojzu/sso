@@ -456,7 +456,7 @@ pub fn key_verify(
     };
 
     // Successful key verify.
-    // TODO(refactor): Optional custom audit log here.
+    // TODO(feature): Optional custom audit log here.
     let user_key = UserKey {
         user_id,
         key: key.value,
@@ -528,7 +528,7 @@ pub fn token_verify(
     };
 
     // Successful token verify.
-    // TODO(refactor): Optional custom audit log here.
+    // TODO(feature): Optional custom audit log here.
     let user_token = UserTokenPartial {
         user_id: user.id.to_owned(),
         access_token: token.to_owned(),

@@ -82,7 +82,7 @@ fn create_inner(
     body: &AuditCreateBody,
 ) -> Result<AuditCreateResponse, Error> {
     core::key::authenticate(data.driver(), audit_meta, id)
-        .and_then(|(_, mut audit)| {
+        .and_then(move |(_, mut audit)| {
             audit
                 .set_user_id(body.user_id.to_owned())
                 .set_user_key_id(body.user_key_id.to_owned())

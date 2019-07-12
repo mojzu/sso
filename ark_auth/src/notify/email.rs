@@ -9,7 +9,7 @@ use lettre::{ClientSecurity, ClientTlsParameters, SmtpClient, Transport};
 use lettre_email::Email;
 use native_tls::{Protocol, TlsConnector};
 
-// TODO(feature): Improve email templates, formatting, style (red button for revoke).
+// TODO(refactor): Improve email templates, formatting, style (red button for revoke).
 // Locale parameter or user column for translations?
 
 pub fn reset_password_handler(

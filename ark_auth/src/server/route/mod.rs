@@ -55,11 +55,11 @@ pub fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, 
     future::result(remote.and_then(|remote| {
         let user_agent = user_agent?;
         let forwarded_for = forwarded_for?;
-        Ok(AuditMeta {
-            user_agent: user_agent.to_owned(),
-            remote: remote.to_owned(),
-            forwarded_for: forwarded_for.map(|x| x.to_owned()),
-        })
+        Ok(AuditMeta::new(
+            user_agent,
+            remote,
+            forwarded_for.map(|x| x.to_owned()),
+        ))
     }))
 }
 

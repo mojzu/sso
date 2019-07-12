@@ -84,9 +84,9 @@ pub fn start_server(
 }
 
 pub fn audit_builder() -> core::audit::AuditBuilder {
-    core::audit::AuditBuilder::new(core::AuditMeta {
-        user_agent: crate_user_agent(),
-        remote: "127.0.0.1".to_owned(),
-        forwarded_for: None,
-    })
+    core::audit::AuditBuilder::new(core::AuditMeta::new(
+        crate_user_agent(),
+        "127.0.0.1".to_owned(),
+        None,
+    ))
 }

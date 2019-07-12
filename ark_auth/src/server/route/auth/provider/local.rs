@@ -10,10 +10,10 @@ use crate::server::route::{request_audit_meta, route_response_empty, route_respo
 use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
-use futures::{future, Future};
+use futures::Future;
 use serde_json::Value;
 
-// TODO(feature): Reset/update routes should not reveal if user exists, constant time?
+// TODO(refactor): Reset route should not reveal if user exists.
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/local")
@@ -58,15 +58,9 @@ fn login_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || {
-                let user_token = login_inner(data.get_ref(), audit_meta, id, &body)?;
-                Ok((data, body, user_token))
-            })
-            .map_err(Into::into)
-        })
-        .and_then(|(data, body, user_token)| {
             let password_meta = password_meta(data.get_ref(), Some(&body.password));
-            let user_token = future::ok(user_token);
+            let user_token = web::block(move || login_inner(data.get_ref(), audit_meta, id, &body))
+                .map_err(Into::into);
             password_meta.join(user_token)
         })
         .map(|(meta, user_token)| AuthLoginResponse {
@@ -149,17 +143,16 @@ fn reset_password_confirm_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || {
+            let password_meta = password_meta(data.get_ref(), Some(&body.password));
+            let password_confirm = web::block(move || {
                 let password_confirm =
                     reset_password_confirm_inner(data.get_ref(), audit_meta, id, &body)?;
                 Ok((data, body, password_confirm))
             })
-            .map_err(Into::into)
+            .map_err(Into::into);
+            password_meta.join(password_confirm)
         })
-        .and_then(|(data, body, _password_confirm)| {
-            password_meta(data.get_ref(), Some(&body.password))
-        })
-        .map(|meta| AuthPasswordMetaResponse { meta })
+        .map(|(meta, _password_confirm)| AuthPasswordMetaResponse { meta })
         .then(route_response_json)
 }
 
@@ -269,14 +262,13 @@ fn update_password_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || {
-                update_password_inner(data.get_ref(), audit_meta, id, &body)?;
-                Ok((data, body))
-            })
-            .map_err(Into::into)
+            let password_meta = password_meta(data.get_ref(), Some(&body.password));
+            let update_password =
+                web::block(move || update_password_inner(data.get_ref(), audit_meta, id, &body))
+                    .map_err(Into::into);
+            password_meta.join(update_password)
         })
-        .and_then(|(data, body)| password_meta(data.get_ref(), Some(&body.password)))
-        .map(|meta| AuthPasswordMetaResponse { meta })
+        .map(|(meta, _update_password)| AuthPasswordMetaResponse { meta })
         .then(route_response_json)
 }
 

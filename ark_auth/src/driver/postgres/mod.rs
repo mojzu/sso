@@ -248,9 +248,9 @@ impl Driver for PostgresDriver {
         let value = model::AuthAuditInsert {
             created_at: &now,
             audit_id: &id,
-            audit_user_agent: &meta.user_agent,
-            audit_remote: &meta.remote,
-            audit_forwarded_for: meta.forwarded_for.as_ref().map(|x| &**x),
+            audit_user_agent: meta.user_agent(),
+            audit_remote: meta.remote(),
+            audit_forwarded_for: meta.forwarded_for(),
             audit_path: path,
             audit_data: data,
             key_id: audit_key_id,
