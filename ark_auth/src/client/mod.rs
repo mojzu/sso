@@ -101,7 +101,7 @@ mod tests {
     use crate::server::api::ServiceListQuery;
 
     #[test]
-    fn adds_serialised_query_to_url() {
+    fn builds_url_from_path_and_query() {
         let options = ClientOptions::new("http://localhost:9000", "authorisation-key").unwrap();
         let query = ServiceListQuery {
             gt: Some("".to_owned()),

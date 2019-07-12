@@ -118,8 +118,9 @@ pub struct Service {
 impl Service {
     pub fn callback_url<S: Serialize>(&self, type_: &str, data: S) -> Url {
         let mut url = Url::parse(&self.url).unwrap();
+        let type_query = serde_urlencoded::to_string(&[("type", type_)]).unwrap();
         let data_query = serde_urlencoded::to_string(data).unwrap();
-        let query = format!("type={}&{}", type_, data_query);
+        let query = format!("{}&{}", type_query, data_query);
         url.set_query(Some(&query));
         url
     }
@@ -204,5 +205,29 @@ pub fn check_password(password_hash: Option<&str>, password: &str) -> Result<(),
                 }
             }),
         None => Err(Error::BadRequest),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Utc;
+
+    #[test]
+    fn builds_service_callback_url() {
+        let service = Service {
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            id: "6a9c6cfb7e15498b99e057153f0a212b".to_owned(),
+            is_enabled: true,
+            name: "Service Name".to_owned(),
+            url: "http://localhost:9000".to_owned(),
+        };
+        let callback_data = &[("email", "user@test.com"), ("token", "6a9c6cfb7e15498b99e057153f0a212b")];
+        let url = service.callback_url("reset_password", callback_data);
+        assert_eq!(
+            url.to_string(),
+            "http://localhost:9000/?type=reset_password&email=user%40test.com&token=6a9c6cfb7e15498b99e057153f0a212b"
+        );
     }
 }
