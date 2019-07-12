@@ -14,7 +14,7 @@ impl Configuration {
     /// Create new configuration.
     pub fn new(bind: String) -> Self {
         Configuration {
-            notify: notify::Configuration::new(),
+            notify: notify::Configuration::default(),
             server: server::Configuration::new(bind),
         }
     }
@@ -72,10 +72,13 @@ pub fn start_server(
     let system = System::new(crate_name!());
 
     // Start notify actor.
-    let notify_addr = NotifyExecutor::start(2, configuration.notify());
+    let notify_configuration = configuration.notify().clone();
+    let notify_addr = NotifyExecutor::start(2, notify_configuration);
 
     // Start HTTP server.
-    server::start(4, configuration.server(), &driver, &notify_addr)?;
+    let server_configuration = configuration.server().clone();
+    let server_notify_addr = notify_addr.clone();
+    server::start(4, server_configuration, driver, server_notify_addr)?;
 
     system.run().map_err(server::Error::StdIo)
 }

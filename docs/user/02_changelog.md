@@ -9,6 +9,7 @@
 **Changed**
 
 - Changed audit list query parameters when using `created_gte` or `created_lte` options, added optional `offset_id` parameter to exclude previous results.
+- Moved email handling from `server::smtp` module to `notify` module.
 
 ## 0.2.0 (2019-07-07)
 

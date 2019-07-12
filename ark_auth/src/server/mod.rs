@@ -358,15 +358,11 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
 /// Start HTTP server.
 pub fn start(
     workers: usize,
-    configuration: &Configuration,
-    driver: &Box<driver::Driver>,
-    notify_addr: &Addr<NotifyExecutor>,
+    configuration: Configuration,
+    driver: Box<driver::Driver>,
+    notify_addr: Addr<NotifyExecutor>,
 ) -> Result<(), Error> {
     let bind = configuration.bind().to_owned();
-    let configuration = configuration.clone();
-    let driver = driver.clone();
-    let notify_addr = notify_addr.clone();
-
     let server = HttpServer::new(move || {
         App::new()
             // Shared data.
