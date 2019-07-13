@@ -1,11 +1,9 @@
 #[macro_use]
 extern crate clap;
 #[macro_use]
-extern crate failure;
-#[macro_use]
 extern crate log;
 
-use ark_auth::{cli, core, driver, driver::Driver, server};
+use ark_auth::{cli, driver, driver::Driver};
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 
@@ -15,23 +13,6 @@ const COMMAND_CREATE_SERVICE_WITH_KEY: &str = "create-service-with-key";
 const COMMAND_START_SERVER: &str = "start-server";
 const ARG_NAME: &str = "NAME";
 const ARG_URL: &str = "URL";
-
-/// Main errors.
-#[derive(Debug, Fail)]
-enum Error {
-    /// Command invalid.
-    #[fail(display = "MainError::CommandInvalid")]
-    CommandInvalid,
-    /// Core error wrapper.
-    #[fail(display = "MainError::Core {}", _0)]
-    Core(#[fail(cause)] core::Error),
-    /// Server error wrapper.
-    #[fail(display = "MainError::Server {}", _0)]
-    Server(#[fail(cause)] server::Error),
-    /// Standard environment variable error wrapper.
-    #[fail(display = "MainError::StdEnvVar {}", _0)]
-    StdEnvVar(#[fail(cause)] std::env::VarError),
-}
 
 struct Configuration {
     database_url: String,
@@ -103,42 +84,37 @@ fn main() {
         .get_matches();
 
     // Build configuration and driver from environment.
-    let (configuration, driver) = configuration_from_environment().unwrap();
+    let (configuration, driver) = configuration_from_environment();
 
     // Call library functions with command line arguments.
     let result = match matches.subcommand() {
         (COMMAND_CREATE_ROOT_KEY, Some(submatches)) => {
             let name = submatches.value_of(ARG_NAME).unwrap();
-            cli::create_root_key(driver, name)
-                .map_err(Error::Core)
-                .map(|key| {
-                    println!("key.id: {}", key.id);
-                    println!("key.value: {}", key.value);
-                    0
-                })
+            cli::create_root_key(driver, name).map(|key| {
+                println!("key.id: {}", key.id);
+                println!("key.value: {}", key.value);
+                0
+            })
         }
-        (COMMAND_DELETE_ROOT_KEYS, Some(_submatches)) => cli::delete_root_keys(driver)
-            .map_err(Error::Core)
-            .map(|_| 0),
+        (COMMAND_DELETE_ROOT_KEYS, Some(_submatches)) => cli::delete_root_keys(driver).map(|_| 0),
         (COMMAND_CREATE_SERVICE_WITH_KEY, Some(submatches)) => {
             let name = submatches.value_of(ARG_NAME).unwrap();
             let url = submatches.value_of(ARG_URL).unwrap();
-            cli::create_service_with_key(driver, name, url)
-                .map_err(Error::Core)
-                .map(|(service, key)| {
-                    println!("service.id: {}", service.id);
-                    println!("service.name: {}", service.name);
-                    println!("key.id: {}", key.id);
-                    println!("key.value: {}", key.value);
-                    0
-                })
+            cli::create_service_with_key(driver, name, url).map(|(service, key)| {
+                println!("service.id: {}", service.id);
+                println!("service.name: {}", service.name);
+                println!("key.id: {}", key.id);
+                println!("key.value: {}", key.value);
+                0
+            })
         }
         (COMMAND_START_SERVER, Some(_submatches)) => {
-            cli::start_server(driver, configuration.configuration)
-                .map_err(Error::Server)
-                .map(|_| 0)
+            cli::start_server(driver, configuration.configuration).map(|_| 0)
         }
-        _ => Err(Error::CommandInvalid),
+        _ => {
+            println!("{}", matches.usage());
+            Ok(1)
+        }
     };
 
     // Handle errors and exit with code.
@@ -152,7 +128,7 @@ fn main() {
 }
 
 /// Build configuration from environment.
-fn configuration_from_environment() -> Result<(Configuration, Box<Driver>), Error> {
+fn configuration_from_environment() -> (Configuration, Box<Driver>) {
     // TODO(refactor): Clean this up, improve error messages.
     let database_url = std::env::var("DATABASE_URL").unwrap();
     let database_connections =
@@ -161,38 +137,41 @@ fn configuration_from_environment() -> Result<(Configuration, Box<Driver>), Erro
     let server_bind = std::env::var("SERVER_BIND").unwrap();
     let mut configuration = cli::Configuration::new(server_bind);
 
-    let smtp_host = std::env::var("SMTP_HOST").map_err(Error::StdEnvVar);
-    let smtp_port = std::env::var("SMTP_PORT").map_err(Error::StdEnvVar);
-    let smtp_user = std::env::var("SMTP_USER").map_err(Error::StdEnvVar);
-    let smtp_password = std::env::var("SMTP_PASSWORD").map_err(Error::StdEnvVar);
+    let smtp_host = std::env::var("SMTP_HOST");
+    let smtp_port = std::env::var("SMTP_PORT");
+    let smtp_user = std::env::var("SMTP_USER");
+    let smtp_password = std::env::var("SMTP_PASSWORD");
     if smtp_host.is_ok() || smtp_port.is_ok() || smtp_user.is_ok() || smtp_password.is_ok() {
-        let smtp_port = smtp_port?.parse::<u16>().unwrap();
-        configuration
-            .mut_notify()
-            .set_smtp(smtp_host?, smtp_port, smtp_user?, smtp_password?);
+        let smtp_port = smtp_port.unwrap().parse::<u16>().unwrap();
+        configuration.mut_notify().set_smtp(
+            smtp_host.unwrap(),
+            smtp_port,
+            smtp_user.unwrap(),
+            smtp_password.unwrap(),
+        );
     }
 
     configuration.mut_server().set_password_pwned_enabled(true);
 
-    let gh_client_id = std::env::var("GITHUB_CLIENT_ID").map_err(Error::StdEnvVar);
-    let gh_client_secret = std::env::var("GITHUB_CLIENT_SECRET").map_err(Error::StdEnvVar);
-    let gh_redirect_url = std::env::var("GITHUB_REDIRECT_URL").map_err(Error::StdEnvVar);
+    let gh_client_id = std::env::var("GITHUB_CLIENT_ID");
+    let gh_client_secret = std::env::var("GITHUB_CLIENT_SECRET");
+    let gh_redirect_url = std::env::var("GITHUB_REDIRECT_URL");
     if gh_client_id.is_ok() || gh_client_secret.is_ok() || gh_redirect_url.is_ok() {
         configuration.mut_server().set_provider_github_oauth2(
-            gh_client_id?,
-            gh_client_secret?,
-            gh_redirect_url?,
+            gh_client_id.unwrap(),
+            gh_client_secret.unwrap(),
+            gh_redirect_url.unwrap(),
         );
     }
 
-    let ms_client_id = std::env::var("MICROSOFT_CLIENT_ID").map_err(Error::StdEnvVar);
-    let ms_client_secret = std::env::var("MICROSOFT_CLIENT_SECRET").map_err(Error::StdEnvVar);
-    let ms_redirect_url = std::env::var("MICROSOFT_REDIRECT_URL").map_err(Error::StdEnvVar);
+    let ms_client_id = std::env::var("MICROSOFT_CLIENT_ID");
+    let ms_client_secret = std::env::var("MICROSOFT_CLIENT_SECRET");
+    let ms_redirect_url = std::env::var("MICROSOFT_REDIRECT_URL");
     if ms_client_id.is_ok() || ms_client_secret.is_ok() || ms_redirect_url.is_ok() {
         configuration.mut_server().set_provider_microsoft_oauth2(
-            ms_client_id?,
-            ms_client_secret?,
-            ms_redirect_url?,
+            ms_client_id.unwrap(),
+            ms_client_secret.unwrap(),
+            ms_redirect_url.unwrap(),
         );
     }
 
@@ -212,5 +191,5 @@ fn configuration_from_environment() -> Result<(Configuration, Box<Driver>), Erro
         unimplemented!();
     };
 
-    Ok((configuration, driver))
+    (configuration, driver)
 }

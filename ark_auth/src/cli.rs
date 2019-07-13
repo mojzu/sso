@@ -4,6 +4,17 @@ use crate::notify::NotifyExecutor;
 use crate::{core, notify, server};
 use actix_rt::System;
 
+/// Command line interface errors.
+#[derive(Debug, Fail)]
+pub enum Error {
+    /// Core error wrapper.
+    #[fail(display = "CliError::Core {}", _0)]
+    Core(#[fail(cause)] core::Error),
+    /// Server error wrapper.
+    #[fail(display = "CliError::Server {}", _0)]
+    Server(#[fail(cause)] server::Error),
+}
+
 /// Configuration.
 pub struct Configuration {
     pub notify: notify::Configuration,
@@ -41,15 +52,15 @@ impl Configuration {
 }
 
 /// Create a root key.
-pub fn create_root_key(driver: Box<Driver>, name: &str) -> Result<core::Key, core::Error> {
+pub fn create_root_key(driver: Box<Driver>, name: &str) -> Result<core::Key, Error> {
     let mut audit = audit_builder();
-    core::key::create_root(driver.as_ref(), &mut audit, true, name)
+    core::key::create_root(driver.as_ref(), &mut audit, true, name).map_err(Error::Core)
 }
 
 /// Delete all root keys.
-pub fn delete_root_keys(driver: Box<Driver>) -> Result<usize, core::Error> {
+pub fn delete_root_keys(driver: Box<Driver>) -> Result<usize, Error> {
     let mut audit = audit_builder();
-    core::key::delete_root(driver.as_ref(), &mut audit)
+    core::key::delete_root(driver.as_ref(), &mut audit).map_err(Error::Core)
 }
 
 /// Create a service with service key.
@@ -57,18 +68,17 @@ pub fn create_service_with_key(
     driver: Box<Driver>,
     name: &str,
     url: &str,
-) -> Result<(core::Service, core::Key), core::Error> {
+) -> Result<(core::Service, core::Key), Error> {
     let mut audit = audit_builder();
-    let service = core::service::create(driver.as_ref(), &mut audit, true, name, url)?;
-    let key = core::key::create_service(driver.as_ref(), &mut audit, true, name, &service.id)?;
+    let service =
+        core::service::create(driver.as_ref(), &mut audit, true, name, url).map_err(Error::Core)?;
+    let key = core::key::create_service(driver.as_ref(), &mut audit, true, name, &service.id)
+        .map_err(Error::Core)?;
     Ok((service, key))
 }
 
 /// Start server.
-pub fn start_server(
-    driver: Box<Driver>,
-    configuration: Configuration,
-) -> Result<(), server::Error> {
+pub fn start_server(driver: Box<Driver>, configuration: Configuration) -> Result<(), Error> {
     let system = System::new(crate_name!());
 
     // Start notify actor.
@@ -78,9 +88,12 @@ pub fn start_server(
     // Start HTTP server.
     let server_configuration = configuration.server().clone();
     let server_notify_addr = notify_addr.clone();
-    server::start(4, server_configuration, driver, server_notify_addr)?;
+    server::start(4, server_configuration, driver, server_notify_addr).map_err(Error::Server)?;
 
-    system.run().map_err(server::Error::StdIo)
+    system
+        .run()
+        .map_err(server::Error::StdIo)
+        .map_err(Error::Server)
 }
 
 pub fn audit_builder() -> core::audit::AuditBuilder {
