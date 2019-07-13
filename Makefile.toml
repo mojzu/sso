@@ -19,6 +19,7 @@ script = [
 workspace = false
 script = [
     "(cd ark_auth && DATABASE_URL=\"db.sqlite3\" diesel database reset --migration-dir migrations/sqlite)",
+    "(cd ark_kv && DATABASE_URL=\"db.sqlite3\" diesel database reset --migration-dir migrations/sqlite)",
 ]
 
 [tasks.build]
@@ -36,7 +37,7 @@ args = ["test"]
 workspace = false
 script = [
     "pandoc docs/user/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/asset/pandoc.css --output=docs/user.html",
-    "pandoc docs/developer/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/asset/pandoc.css --output=docs/developer.html"
+    "pandoc docs/developer/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/asset/pandoc.css --output=docs/developer.html",
 ]
 
 [tasks.release]

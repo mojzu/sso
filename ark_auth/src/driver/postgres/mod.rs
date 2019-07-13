@@ -456,8 +456,6 @@ impl Driver for PostgresDriver {
 
         let conn = self.connection()?;
         auth_key
-            // TODO(feature): Better method to handle multiple keys?
-            // Allow or require specifying key ID via argument?
             .filter(
                 user_id
                     .eq(key_user_id)

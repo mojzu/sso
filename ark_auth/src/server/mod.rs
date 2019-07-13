@@ -18,6 +18,12 @@ pub use validate::FromJsonValue;
 // <https://webauthn.guide/>
 // <https://webauthn.org/>
 // TODO(feature): Configurable canary routes.
+// TODO(feature): User sessions route for active tokens/keys.
+// TODO(feature): Optional custom audit log for key/token verify routes.
+// TODO(feature): Better method to handle multiple keys?
+// Allow or require specifying key ID via argument?
+// TODO(feature): Support more OAuth2 providers.
+// TODO(feature): Improve key, user, service list query options (order by name, ...).
 
 /// Default JSON payload size limit.
 const DEFAULT_JSON_LIMIT: usize = 1024;

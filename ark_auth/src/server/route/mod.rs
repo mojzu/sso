@@ -10,8 +10,6 @@ use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
 use futures::{future, Future};
 use serde::Serialize;
 
-// TODO(feature): User sessions route for active tokens/keys.
-
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope("/v1")
         .service(web::resource("/ping").route(web::get().to(ping_handler)))

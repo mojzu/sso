@@ -12,8 +12,6 @@ use serde::ser::Serialize;
 use serde_json::Value;
 use url::Url;
 
-// TODO(feature): Improve key, user, service list query options (order by name, ...).
-
 /// Default list limit.
 pub const DEFAULT_LIMIT: i64 = 50;
 

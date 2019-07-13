@@ -12,8 +12,6 @@ pub fn route_v1_scope() -> actix_web::Scope {
         .service(microsoft::route_v1_scope())
 }
 
-// TODO(feature): Support more OAuth2 providers.
-
 pub fn oauth2_redirect(service: core::Service, token: core::UserToken) -> HttpResponse {
     let url = service.callback_url("oauth2", token);
     HttpResponse::Found()

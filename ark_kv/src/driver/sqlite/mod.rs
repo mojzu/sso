@@ -2,12 +2,9 @@
 mod model;
 mod schema;
 
-use crate::core::{Audit, Csrf, Key, Service, User};
 use crate::driver::{Driver, Error};
-use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
-use serde_json::Value;
 
 embed_migrations!("migrations/sqlite");
 
@@ -17,8 +14,6 @@ pub struct SqliteDriver {
 }
 
 type PooledConnection = r2d2::PooledConnection<ConnectionManager<SqliteConnection>>;
-
-// TODO(refactor): Implement SQLite driver, check unimplemented.
 
 impl SqliteDriver {
     pub fn initialise(database_url: &str, max_connections: u32) -> Result<Self, Error> {
