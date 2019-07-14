@@ -7,3 +7,6 @@
 # Ignore workspace configuration.
 /Cargo.toml
 /Cargo.lock
+
+# Ignore SQLite databases.
+*.sqlite3

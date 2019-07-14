@@ -8,7 +8,8 @@ readme = "README.md"
 edition = "2018"
 
 [features]
-default = ["sqlite"]
+default = ["file", "sqlite"]
+file = []
 sqlite = []
 
 [dependencies]

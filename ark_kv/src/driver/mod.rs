@@ -1,8 +1,12 @@
 //! # Drivers
 //! Binary application drivers.
+#[cfg(feature = "file")]
+mod file;
 #[cfg(feature = "sqlite")]
 mod sqlite;
 
+#[cfg(feature = "file")]
+pub use crate::driver::file::FileDriver;
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::SqliteDriver;
 
