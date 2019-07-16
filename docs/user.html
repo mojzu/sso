@@ -248,11 +248,17 @@ background-color: #f4f4f4;
 <p><strong>Added</strong></p>
 <ul>
 <li>Added email HTML templates, removed template parameters from routes.</li>
+<li>Defined server routes in <code>server::api</code> module.</li>
 </ul>
 <p><strong>Changed</strong></p>
 <ul>
 <li>Changed audit list query parameters when using <code>created_gte</code> or <code>created_lte</code> options, added optional <code>offset_id</code> parameter to exclude previous results.</li>
 <li>Moved email handling from <code>server::smtp</code> module to <code>notify</code> module.</li>
+<li>Moved <code>main.rs:Error</code> into <code>cli</code> module, refactored error handling.</li>
+</ul>
+<p><strong>Fixed</strong></p>
+<ul>
+<li>Reset password route returns OK in cases where user email address does not exist.</li>
 </ul>
 <h2 id="section">0.2.0 (2019-07-07)</h2>
 <p><strong>Added</strong></p>

@@ -33,6 +33,11 @@ workspace = false
 command = "cargo"
 args = ["test"]
 
+[tasks.test-integration]
+workspace = false
+command = "cargo"
+args = ["test", "--", "--ignored"]
+
 [tasks.manual]
 workspace = false
 script = [

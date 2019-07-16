@@ -184,6 +184,8 @@ cargo make release</code></pre>
 <pre class="shell"><code>cd ark_auth
 docker-compose build</code></pre>
 <h2 id="test">Test</h2>
+<p>To run unit tests.</p>
+<pre class="shell"><code>cargo make test</code></pre>
 <p>For integration tests, the following environment variables are required.</p>
 <table>
 <thead>
@@ -194,16 +196,20 @@ docker-compose build</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td>TEST_URL</td>
+<td>TEST_ARK_AUTH_URL</td>
 <td>Server URL.</td>
 </tr>
 <tr class="even">
-<td>TEST_KEY</td>
+<td>TEST_ARK_AUTH_KEY</td>
 <td>Root key value.</td>
+</tr>
+<tr class="odd">
+<td>TEST_ARK_KV_BIN</td>
+<td>Binary path.</td>
 </tr>
 </tbody>
 </table>
-<p>To run unit and integration tests.</p>
-<pre class="shell"><code>cargo make test</code></pre>
+<p>To run unit tests and integration tests.</p>
+<pre class="shell"><code>cargo make test-integration</code></pre>
 </body>
 </html>

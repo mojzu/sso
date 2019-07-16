@@ -18,6 +18,7 @@ const KEY_NAME: &str = "key-name";
 // Cannot reuse token.
 
 #[test]
+#[ignore]
 fn guide_api_key() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -33,6 +34,7 @@ fn guide_api_key() {
 }
 
 #[test]
+#[ignore]
 fn guide_login() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -54,6 +56,7 @@ fn guide_login() {
 }
 
 #[test]
+#[ignore]
 fn guide_reset_password() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -67,6 +70,7 @@ fn guide_reset_password() {
 }
 
 #[test]
+#[ignore]
 fn guide_oauth2_login() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -80,6 +84,7 @@ fn guide_oauth2_login() {
 }
 
 #[test]
+#[ignore]
 fn api_ping_ok() {
     let client = client_create();
     let res = client.ping().unwrap();
@@ -87,6 +92,7 @@ fn api_ping_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_login_forbidden() {
     let mut client = client_create();
     let user_email = email_create();
@@ -99,6 +105,7 @@ fn api_auth_local_login_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_login_bad_request_invalid_email() {
     let client = client_create();
 
@@ -109,6 +116,7 @@ fn api_auth_local_login_bad_request_invalid_email() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_login_bad_request_invalid_password() {
     let client = client_create();
     let user_email = email_create();
@@ -118,6 +126,7 @@ fn api_auth_local_login_bad_request_invalid_password() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_login_bad_request_unknown_email() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -131,6 +140,7 @@ fn api_auth_local_login_bad_request_unknown_email() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_login_bad_request_disabled_user() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -146,6 +156,7 @@ fn api_auth_local_login_bad_request_disabled_user() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_login_bad_request_unknown_user_key() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -161,6 +172,7 @@ fn api_auth_local_login_bad_request_unknown_user_key() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_login_bad_request_incorrect_password() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -175,6 +187,7 @@ fn api_auth_local_login_bad_request_incorrect_password() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_login_bad_request_unknown_user_key_for_service() {
     let mut client = client_create();
     let (service1, service1_key) = service_key_create(&client);
@@ -193,6 +206,7 @@ fn api_auth_local_login_bad_request_unknown_user_key_for_service() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_login_ok() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -207,6 +221,7 @@ fn api_auth_local_login_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_reset_password_forbidden() {
     let mut client = client_create();
     let user_email = email_create();
@@ -217,6 +232,7 @@ fn api_auth_local_reset_password_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_reset_password_bad_request_invalid_email() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -229,6 +245,7 @@ fn api_auth_local_reset_password_bad_request_invalid_email() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_reset_password_ok_unknown_email() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -240,6 +257,7 @@ fn api_auth_local_reset_password_ok_unknown_email() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_reset_password_ok_unknown_user_key_for_service() {
     let mut client = client_create();
     let (service1, service1_key) = service_key_create(&client);
@@ -256,6 +274,7 @@ fn api_auth_local_reset_password_ok_unknown_user_key_for_service() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_reset_password_ok() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -269,6 +288,7 @@ fn api_auth_local_reset_password_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_reset_password_confirm_forbidden() {
     let mut client = client_create();
 
@@ -280,6 +300,7 @@ fn api_auth_local_reset_password_confirm_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_reset_password_confirm_bad_request_invalid_token() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -292,6 +313,7 @@ fn api_auth_local_reset_password_confirm_bad_request_invalid_token() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_local_reset_password_confirm_bad_request_invalid_password() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -304,6 +326,7 @@ fn api_auth_local_reset_password_confirm_bad_request_invalid_password() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_key_verify_forbidden() {
     let mut client = client_create();
 
@@ -313,6 +336,7 @@ fn api_auth_key_verify_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_key_verify_bad_request_invalid_key() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -323,6 +347,7 @@ fn api_auth_key_verify_bad_request_invalid_key() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_key_verify_bad_request_unknown_user_key_for_service() {
     let mut client = client_create();
     let (service1, service1_key) = service_key_create(&client);
@@ -339,6 +364,7 @@ fn api_auth_key_verify_bad_request_unknown_user_key_for_service() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_key_verify_bad_request_service_key() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -349,6 +375,7 @@ fn api_auth_key_verify_bad_request_service_key() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_key_verify_ok() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -362,6 +389,7 @@ fn api_auth_key_verify_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_key_revoke_forbidden() {
     let mut client = client_create();
 
@@ -371,6 +399,7 @@ fn api_auth_key_revoke_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_key_revoke_bad_request_invalid_key() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -381,6 +410,7 @@ fn api_auth_key_revoke_bad_request_invalid_key() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_key_revoke_bad_request_unknown_user_key_for_service() {
     let mut client = client_create();
     let (service1, service1_key) = service_key_create(&client);
@@ -397,6 +427,7 @@ fn api_auth_key_revoke_bad_request_unknown_user_key_for_service() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_key_revoke_bad_request_service_key() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -407,6 +438,7 @@ fn api_auth_key_revoke_bad_request_service_key() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_key_revoke_ok() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -422,6 +454,7 @@ fn api_auth_key_revoke_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_verify_forbidden() {
     let mut client = client_create();
 
@@ -431,6 +464,7 @@ fn api_auth_token_verify_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_verify_bad_request_invalid_token() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -441,6 +475,7 @@ fn api_auth_token_verify_bad_request_invalid_token() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_verify_bad_request_unknown_user_key_for_service() {
     let mut client = client_create();
     let (service1, service1_key) = service_key_create(&client);
@@ -460,6 +495,7 @@ fn api_auth_token_verify_bad_request_unknown_user_key_for_service() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_verify_ok() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -474,6 +510,7 @@ fn api_auth_token_verify_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_refresh_forbidden() {
     let mut client = client_create();
 
@@ -483,6 +520,7 @@ fn api_auth_token_refresh_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_refresh_bad_request_invalid_token() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -493,6 +531,7 @@ fn api_auth_token_refresh_bad_request_invalid_token() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_refresh_bad_request_unknown_user_key_for_service() {
     let mut client = client_create();
     let (service1, service1_key) = service_key_create(&client);
@@ -512,6 +551,7 @@ fn api_auth_token_refresh_bad_request_unknown_user_key_for_service() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_refresh_bad_request_used_refresh_token() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -533,6 +573,7 @@ fn api_auth_token_refresh_bad_request_used_refresh_token() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_refresh_ok() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -549,6 +590,7 @@ fn api_auth_token_refresh_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_revoke_forbidden() {
     let mut client = client_create();
 
@@ -558,6 +600,7 @@ fn api_auth_token_revoke_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_revoke_bad_request_invalid_token() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -568,6 +611,7 @@ fn api_auth_token_revoke_bad_request_invalid_token() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_revoke_bad_request_unknown_user_key_for_service() {
     let mut client = client_create();
     let (service1, service1_key) = service_key_create(&client);
@@ -587,6 +631,7 @@ fn api_auth_token_revoke_bad_request_unknown_user_key_for_service() {
 }
 
 #[test]
+#[ignore]
 fn api_auth_token_revoke_ok() {
     let mut client = client_create();
     let (service, service_key) = service_key_create(&client);
@@ -607,6 +652,7 @@ fn api_auth_token_revoke_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_audit_id_list_ok() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -671,6 +717,7 @@ fn api_audit_id_list_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_audit_created_list_ok() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -771,6 +818,7 @@ fn api_audit_created_list_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_key_list_forbidden() {
     let mut client = client_create();
 
@@ -780,6 +828,7 @@ fn api_key_list_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_key_list_bad_request_invalid_gt() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -790,6 +839,7 @@ fn api_key_list_bad_request_invalid_gt() {
 }
 
 #[test]
+#[ignore]
 fn api_key_list_bad_request_invalid_lt() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -800,6 +850,7 @@ fn api_key_list_bad_request_invalid_lt() {
 }
 
 #[test]
+#[ignore]
 fn api_key_list_bad_request_invalid_limit() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -810,6 +861,7 @@ fn api_key_list_bad_request_invalid_limit() {
 }
 
 #[test]
+#[ignore]
 fn api_key_list_ok() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -876,6 +928,7 @@ fn api_key_list_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_key_create_forbidden() {
     let mut client = client_create();
 
@@ -885,6 +938,7 @@ fn api_key_create_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_key_read_forbidden() {
     let mut client = client_create();
 
@@ -894,6 +948,7 @@ fn api_key_read_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_service_list_ok() {
     let client = client_create();
     service_key_create(&client);
@@ -944,6 +999,7 @@ fn api_service_list_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_service_read_forbidden() {
     let mut client = client_create();
 
@@ -953,6 +1009,7 @@ fn api_service_read_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_user_list_forbidden() {
     let mut client = client_create();
 
@@ -962,6 +1019,7 @@ fn api_user_list_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_user_list_ok() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -1020,6 +1078,7 @@ fn api_user_list_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_user_list_email_eq_ok() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -1036,6 +1095,7 @@ fn api_user_list_email_eq_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_user_create_ok() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
@@ -1046,6 +1106,7 @@ fn api_user_create_ok() {
 }
 
 #[test]
+#[ignore]
 fn api_user_create_forbidden() {
     let mut client = client_create();
     let user_email = email_create();
@@ -1058,6 +1119,7 @@ fn api_user_create_forbidden() {
 }
 
 #[test]
+#[ignore]
 fn api_user_create_bad_request_duplicate_user_email() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);

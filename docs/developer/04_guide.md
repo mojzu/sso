@@ -68,15 +68,22 @@ docker-compose build
 
 ## Test
 
+To run unit tests.
+
+```shell
+cargo make test
+```
+
 For integration tests, the following environment variables are required.
 
 | Variable | Description     |
 | -------- | --------------- |
-| TEST_URL | Server URL.     |
-| TEST_KEY | Root key value. |
+| TEST_ARK_AUTH_URL | Server URL.     |
+| TEST_ARK_AUTH_KEY | Root key value. |
+| TEST_ARK_KV_BIN | Binary path. |
 
-To run unit and integration tests.
+To run unit tests and integration tests.
 
 ```shell
-cargo make test
+cargo make test-integration
 ```

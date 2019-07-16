@@ -3,17 +3,17 @@ use ark_auth::core::{Key, Service, User, UserKey, UserToken, UserTokenPartial};
 use ark_auth::server::api::AuthOauth2UrlResponse;
 use chrono::Utc;
 
-pub fn env_test_url() -> String {
+fn env_test_ark_auth_url() -> String {
     std::env::var("TEST_URL").unwrap()
 }
 
-pub fn env_test_key() -> String {
+fn env_test_ark_auth_key() -> String {
     std::env::var("TEST_KEY").unwrap()
 }
 
 pub fn client_create() -> SyncClient {
-    let url = env_test_url();
-    let key = env_test_key();
+    let url = env_test_ark_auth_url();
+    let key = env_test_ark_auth_key();
     let options = ClientOptions::new(&url, &key).unwrap();
     SyncClient::new(options)
 }
