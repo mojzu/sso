@@ -1,7 +1,7 @@
 use crate::core;
 use crate::core::{AuditMeta, KeyQuery};
 use crate::server::api::{
-    KeyCreateBody, KeyListQuery, KeyListResponse, KeyReadResponse, KeyUpdateBody,
+    path, KeyCreateBody, KeyListQuery, KeyListResponse, KeyReadResponse, KeyUpdateBody,
 };
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
 use crate::server::{Data, Error, FromJsonValue};
@@ -11,14 +11,14 @@ use futures::Future;
 use serde_json::Value;
 
 pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope("/key")
+    web::scope(path::KEY)
         .service(
-            web::resource("")
+            web::resource(path::NONE)
                 .route(web::get().to_async(list_handler))
                 .route(web::post().to_async(create_handler)),
         )
         .service(
-            web::resource("/{key_id}")
+            web::resource(path::ID)
                 .route(web::get().to_async(read_handler))
                 .route(web::patch().to_async(update_handler))
                 .route(web::delete().to_async(delete_handler)),

@@ -1,7 +1,7 @@
 use crate::core;
 use crate::core::AuditMeta;
 use crate::server::api::{
-    AuthLoginBody, AuthLoginResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
+    path, AuthLoginBody, AuthLoginResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
     AuthResetPasswordConfirmBody, AuthUpdateEmailBody, AuthUpdateEmailRevokeBody,
     AuthUpdatePasswordBody, AuthUpdatePasswordRevokeBody,
 };
@@ -16,30 +16,35 @@ use serde_json::Value;
 // TODO(refactor): Reset route should not reveal if user exists.
 
 pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope("/local")
-        .service(web::resource("/login").route(web::post().to_async(login_handler)))
+    web::scope(path::LOCAL)
+        .service(web::resource(path::LOGIN).route(web::post().to_async(login_handler)))
         .service(
-            web::scope("/reset")
+            web::scope(path::RESET_PASSWORD)
                 .service(
-                    web::resource("/password").route(web::post().to_async(reset_password_handler)),
+                    web::resource(path::NONE).route(web::post().to_async(reset_password_handler)),
                 )
                 .service(
-                    web::resource("/password/confirm")
+                    web::resource(path::CONFIRM)
                         .route(web::post().to_async(reset_password_confirm_handler)),
                 ),
         )
         .service(
-            web::scope("/update")
-                .service(web::resource("/email").route(web::post().to_async(update_email_handler)))
+            web::scope(path::UPDATE_EMAIL)
                 .service(
-                    web::resource("/email/revoke")
+                    web::resource(path::NONE).route(web::post().to_async(update_email_handler)),
+                )
+                .service(
+                    web::resource(path::REVOKE)
                         .route(web::post().to_async(update_email_revoke_handler)),
+                ),
+        )
+        .service(
+            web::scope(path::UPDATE_PASSWORD)
+                .service(
+                    web::resource(path::NONE).route(web::post().to_async(update_password_handler)),
                 )
                 .service(
-                    web::resource("/password").route(web::post().to_async(update_password_handler)),
-                )
-                .service(
-                    web::resource("/password/revoke")
+                    web::resource(path::REVOKE)
                         .route(web::post().to_async(update_password_revoke_handler)),
                 ),
         )

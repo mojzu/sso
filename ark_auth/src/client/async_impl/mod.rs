@@ -4,6 +4,7 @@ mod service;
 mod user;
 
 use crate::client::{Client, ClientOptions, Error, RequestError};
+use crate::server::api::route;
 use actix_web::client::ClientResponse;
 use actix_web::http::{header, StatusCode};
 use futures::stream::Stream;
@@ -33,7 +34,7 @@ pub struct AsyncClient {
 
 impl AsyncClient {
     pub fn ping(&self) -> impl Future<Item = Value, Error = Error> {
-        self.get("/v1/ping")
+        self.get(route::PING)
             .send()
             .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)

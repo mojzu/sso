@@ -1,6 +1,8 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
-use crate::server::api::{UserCreateBody, UserCreateResponse, UserListQuery, UserListResponse};
+use crate::server::api::{
+    route, UserCreateBody, UserCreateResponse, UserListQuery, UserListResponse,
+};
 
 impl SyncClient {
     pub fn user_list(
@@ -17,7 +19,7 @@ impl SyncClient {
             email_eq: email_eq.map(|x| x.to_owned()),
         };
 
-        self.get_query("/v1/user", query)
+        self.get_query(route::USER, query)
             .send()
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
@@ -38,7 +40,7 @@ impl SyncClient {
             password: password.map(String::from),
         };
 
-        self.post_json("/v1/user", &body)
+        self.post_json(route::USER, &body)
             .send()
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)

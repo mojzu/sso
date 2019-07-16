@@ -1,7 +1,7 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
 use crate::server::api::{
-    ServiceCreateBody, ServiceListQuery, ServiceListResponse, ServiceReadResponse,
+    route, ServiceCreateBody, ServiceListQuery, ServiceListResponse, ServiceReadResponse,
 };
 
 impl SyncClient {
@@ -16,8 +16,7 @@ impl SyncClient {
             lt: lt.map(|x| x.to_owned()),
             limit: limit.map(|x| format!("{}", x)),
         };
-
-        self.get_query("/v1/service", query)
+        self.get_query(route::SERVICE, query)
             .send()
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
@@ -35,8 +34,7 @@ impl SyncClient {
             name: name.to_owned(),
             url: url.to_owned(),
         };
-
-        self.post_json("/v1/service", &body)
+        self.post_json(route::SERVICE, &body)
             .send()
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
@@ -44,8 +42,7 @@ impl SyncClient {
     }
 
     pub fn service_read(&self, id: &str) -> Result<ServiceReadResponse, Error> {
-        let path = format!("/v1/service/{}", id);
-
+        let path = route::service_id(id);
         self.get(&path)
             .send()
             .map_err(Into::into)

@@ -1,23 +1,25 @@
 use crate::core;
 use crate::core::{AuditMeta, AuditQuery};
 use crate::server::api::{
-    AuditCreateBody, AuditCreateResponse, AuditListQuery, AuditListResponse, AuditReadResponse,
+    path, AuditCreateBody, AuditCreateResponse, AuditListQuery, AuditListResponse,
+    AuditReadResponse,
 };
 use crate::server::route::{request_audit_meta, route_response_json};
 use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
 use futures::Future;
+
 use serde_json::Value;
 
 pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope("/audit")
+    web::scope(path::AUDIT)
         .service(
-            web::resource("")
+            web::resource(path::NONE)
                 .route(web::get().to_async(list_handler))
                 .route(web::post().to_async(create_handler)),
         )
-        .service(web::resource("/{audit_id}").route(web::get().to_async(read_handler)))
+        .service(web::resource(path::ID).route(web::get().to_async(read_handler)))
 }
 
 fn list_handler(

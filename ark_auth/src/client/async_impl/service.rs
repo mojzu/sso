@@ -1,7 +1,7 @@
 use crate::client::async_impl::AsyncClient;
 use crate::client::Error;
 use crate::server::api::{
-    ServiceCreateBody, ServiceListQuery, ServiceListResponse, ServiceReadResponse,
+    route, ServiceCreateBody, ServiceListQuery, ServiceListResponse, ServiceReadResponse,
 };
 use futures::Future;
 
@@ -17,8 +17,7 @@ impl AsyncClient {
             lt: lt.map(|x| x.to_owned()),
             limit: limit.map(|x| format!("{}", x)),
         };
-
-        self.get_query("/v1/service", query)
+        self.get_query(route::SERVICE, query)
             .send()
             .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
@@ -36,8 +35,7 @@ impl AsyncClient {
             name: name.to_owned(),
             url: url.to_owned(),
         };
-
-        self.post("/v1/service")
+        self.post(route::SERVICE)
             .send_json(&body)
             .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
@@ -45,8 +43,7 @@ impl AsyncClient {
     }
 
     pub fn service_read(&self, id: &str) -> impl Future<Item = ServiceReadResponse, Error = Error> {
-        let path = format!("/v1/service/{}", id);
-
+        let path = route::service_id(id);
         self.get(&path)
             .send()
             .map_err(Into::into)

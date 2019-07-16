@@ -1,6 +1,6 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
-use crate::server::api::{KeyCreateBody, KeyListQuery, KeyListResponse, KeyReadResponse};
+use crate::server::api::{route, KeyCreateBody, KeyListQuery, KeyListResponse, KeyReadResponse};
 
 impl SyncClient {
     pub fn key_list(
@@ -14,8 +14,7 @@ impl SyncClient {
             lt: lt.map(|x| x.to_owned()),
             limit: limit.map(|x| format!("{}", x)),
         };
-
-        self.get_query("/v1/key", query)
+        self.get_query(route::KEY, query)
             .send()
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
@@ -35,8 +34,7 @@ impl SyncClient {
             service_id: service_id.map(|x| x.to_owned()),
             user_id: user_id.map(|x| x.to_owned()),
         };
-
-        self.post_json("/v1/key", &body)
+        self.post_json(route::KEY, &body)
             .send()
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
@@ -44,8 +42,7 @@ impl SyncClient {
     }
 
     pub fn key_read(&self, id: &str) -> Result<KeyReadResponse, Error> {
-        let path = format!("/v1/key/{}", id);
-
+        let path = route::key_id(id);
         self.get(&path)
             .send()
             .map_err(Into::into)

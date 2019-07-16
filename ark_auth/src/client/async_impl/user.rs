@@ -1,6 +1,6 @@
 use crate::client::async_impl::AsyncClient;
 use crate::client::Error;
-use crate::server::api::{UserCreateBody, UserCreateResponse};
+use crate::server::api::{route, UserCreateBody, UserCreateResponse};
 use futures::Future;
 
 impl AsyncClient {
@@ -18,7 +18,7 @@ impl AsyncClient {
             password: password.map(String::from),
         };
 
-        self.post("/v1/user")
+        self.post(route::USER)
             .send_json(&body)
             .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)

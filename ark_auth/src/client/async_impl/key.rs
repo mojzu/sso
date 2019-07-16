@@ -1,6 +1,6 @@
 use crate::client::async_impl::AsyncClient;
 use crate::client::Error;
-use crate::server::api::{KeyCreateBody, KeyReadResponse};
+use crate::server::api::{route, KeyCreateBody, KeyReadResponse};
 use futures::Future;
 
 impl AsyncClient {
@@ -18,7 +18,7 @@ impl AsyncClient {
             user_id: user_id.map(|x| x.to_owned()),
         };
 
-        self.post("/v1/key")
+        self.post(route::KEY)
             .send_json(&body)
             .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)

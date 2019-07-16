@@ -3,10 +3,11 @@ pub mod local;
 pub mod microsoft;
 
 use crate::core;
+use crate::server::api::path;
 use actix_web::{http::header, web, HttpResponse};
 
 pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope("/provider")
+    web::scope(path::PROVIDER)
         .service(local::route_v1_scope())
         .service(github::route_v1_scope())
         .service(microsoft::route_v1_scope())

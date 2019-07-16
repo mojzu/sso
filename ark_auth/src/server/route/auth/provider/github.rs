@@ -1,7 +1,7 @@
 use crate::core;
 use crate::core::audit::AuditBuilder;
 use crate::core::AuditMeta;
-use crate::server::api::{AuthOauth2CallbackQuery, AuthOauth2UrlResponse};
+use crate::server::api::{path, AuthOauth2CallbackQuery, AuthOauth2UrlResponse};
 use crate::server::route::auth::provider::oauth2_redirect;
 use crate::server::route::{request_audit_meta, route_response_json};
 use crate::server::{ConfigurationProviderOauth2, Data, Error, FromJsonValue, Oauth2Error};
@@ -18,8 +18,8 @@ use serde_json::Value;
 use url::Url;
 
 pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope("/github").service(
-        web::resource("/oauth2")
+    web::scope(path::GITHUB).service(
+        web::resource(path::OAUTH2)
             .route(web::post().to_async(oauth2_request_handler))
             .route(web::get().to_async(oauth2_callback_handler)),
     )

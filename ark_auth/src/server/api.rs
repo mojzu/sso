@@ -19,8 +19,36 @@ fn i64_from_string(value: Option<String>) -> Option<i64> {
     value.map(|x| x.parse::<i64>().unwrap())
 }
 
+/// Path definitions.
+pub mod path {
+    pub const NONE: &str = "";
+    pub const ID: &str = "/{id}";
+    pub const V1: &str = "/v1";
+    pub const PING: &str = "/ping";
+    pub const AUTH: &str = "/auth";
+    pub const PROVIDER: &str = "/provider";
+    pub const LOCAL: &str = "/local";
+    pub const LOGIN: &str = "/login";
+    pub const RESET_PASSWORD: &str = "/reset/password";
+    pub const UPDATE_EMAIL: &str = "/update/email";
+    pub const UPDATE_PASSWORD: &str = "/update/password";
+    pub const CONFIRM: &str = "/confirm";
+    pub const GITHUB: &str = "/github";
+    pub const MICROSOFT: &str = "/microsoft";
+    pub const OAUTH2: &str = "/oauth2";
+    pub const KEY: &str = "/key";
+    pub const TOKEN: &str = "/token";
+    pub const VERIFY: &str = "/verify";
+    pub const REFRESH: &str = "/refresh";
+    pub const REVOKE: &str = "/revoke";
+    pub const AUDIT: &str = "/audit";
+    pub const SERVICE: &str = "/service";
+    pub const USER: &str = "/user";
+}
+
 /// Route definitions.
 pub mod route {
+    pub const PING: &str = "/v1/ping";
     pub const AUTH_LOCAL_LOGIN: &str = "/v1/auth/provider/local/login";
     pub const AUTH_LOCAL_RESET_PASSWORD: &str = "/v1/auth/provider/local/reset/password";
     pub const AUTH_LOCAL_RESET_PASSWORD_CONFIRM: &str =
@@ -40,6 +68,22 @@ pub mod route {
     pub const KEY: &str = "/v1/key";
     pub const SERVICE: &str = "/v1/service";
     pub const USER: &str = "/v1/user";
+
+    pub fn audit_id(id: &str) -> String {
+        format!("{}/{}", AUDIT, id)
+    }
+
+    pub fn key_id(id: &str) -> String {
+        format!("{}/{}", KEY, id)
+    }
+
+    pub fn service_id(id: &str) -> String {
+        format!("{}/{}", SERVICE, id)
+    }
+
+    pub fn user_id(id: &str) -> String {
+        format!("{}/{}", USER, id)
+    }
 }
 
 // Audit types.

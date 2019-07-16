@@ -1,6 +1,6 @@
 use crate::core;
 use crate::core::AuditMeta;
-use crate::server::api::{AuthKeyBody, AuthKeyResponse};
+use crate::server::api::{path, AuthKeyBody, AuthKeyResponse};
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
 use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
@@ -9,9 +9,9 @@ use futures::Future;
 use serde_json::Value;
 
 pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope("/key")
-        .service(web::resource("/verify").route(web::post().to_async(verify_handler)))
-        .service(web::resource("/revoke").route(web::post().to_async(revoke_handler)))
+    web::scope(path::KEY)
+        .service(web::resource(path::VERIFY).route(web::post().to_async(verify_handler)))
+        .service(web::resource(path::REVOKE).route(web::post().to_async(revoke_handler)))
 }
 
 fn verify_handler(

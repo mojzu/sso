@@ -2,7 +2,7 @@ pub mod key;
 pub mod provider;
 pub mod token;
 
-use crate::server::api::AuthPasswordMeta;
+use crate::server::api::{path, AuthPasswordMeta};
 use crate::server::{Data, Error, PwnedPasswordsError};
 use actix_web::http::{header, StatusCode};
 use actix_web::web;
@@ -10,7 +10,7 @@ use futures::{future, Future};
 use sha1::{Digest, Sha1};
 
 pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope("/auth")
+    web::scope(path::AUTH)
         .service(provider::route_v1_scope())
         .service(key::route_v1_scope())
         .service(token::route_v1_scope())

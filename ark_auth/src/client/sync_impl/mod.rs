@@ -5,6 +5,7 @@ mod service;
 mod user;
 
 use crate::client::{Client, ClientOptions, Error, RequestError};
+use crate::server::api::route;
 use actix_web::http::{header, StatusCode};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -24,7 +25,7 @@ pub struct SyncClient {
 
 impl SyncClient {
     pub fn ping(&self) -> Result<Value, Error> {
-        self.get("/v1/ping")
+        self.get(route::PING)
             .send()
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)

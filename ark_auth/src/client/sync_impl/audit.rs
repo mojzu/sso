@@ -1,6 +1,8 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
-use crate::server::api::{AuditCreateBody, AuditListQuery, AuditListResponse, AuditReadResponse};
+use crate::server::api::{
+    route, AuditCreateBody, AuditListQuery, AuditListResponse, AuditReadResponse,
+};
 use chrono::{DateTime, Utc};
 use serde_json::Value;
 
@@ -22,8 +24,7 @@ impl SyncClient {
             offset_id: offset_id.map(|x| x.to_owned()),
             limit: limit.map(|x| format!("{}", x)),
         };
-
-        self.get_query("/v1/audit", query)
+        self.get_query(route::AUDIT, query)
             .send()
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
@@ -43,8 +44,7 @@ impl SyncClient {
             user_id: user_id.map(|x| x.to_owned()),
             user_key_id: user_key_id.map(|x| x.to_owned()),
         };
-
-        self.post_json("/v1/audit", &body)
+        self.post_json(route::AUDIT, &body)
             .send()
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
@@ -52,8 +52,7 @@ impl SyncClient {
     }
 
     pub fn audit_read(&self, id: &str) -> Result<AuditReadResponse, Error> {
-        let path = format!("/v1/audit/{}", id);
-
+        let path = route::audit_id(id);
         self.get(&path)
             .send()
             .map_err(Into::into)
