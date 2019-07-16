@@ -229,18 +229,18 @@ fn api_auth_local_reset_password_bad_request_invalid_email() {
 }
 
 #[test]
-fn api_auth_local_reset_password_bad_request_unknown_email() {
+fn api_auth_local_reset_password_ok_unknown_email() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
     let user_email = email_create();
 
+    // Endpoint should not infer users existence.
     client.options.set_authorisation(&service_key.value);
-    let res = client.auth_local_reset_password(&user_email).unwrap_err();
-    assert_eq!(res, Error::Request(RequestError::BadRequest));
+    client.auth_local_reset_password(&user_email).unwrap();
 }
 
 #[test]
-fn api_auth_local_reset_password_bad_request_unknown_user_key_for_service() {
+fn api_auth_local_reset_password_ok_unknown_user_key_for_service() {
     let mut client = client_create();
     let (service1, service1_key) = service_key_create(&client);
     let (_service2, service2_key) = service_key_create(&client);
@@ -250,9 +250,9 @@ fn api_auth_local_reset_password_bad_request_unknown_user_key_for_service() {
     let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
     let _user_key = user_key_create(&client, KEY_NAME, &service1.id, &user.id);
 
+    // Endpoint should not infer users existence.
     client.options.set_authorisation(&service2_key.value);
-    let res = client.auth_local_reset_password(&user_email).unwrap_err();
-    assert_eq!(res, Error::Request(RequestError::BadRequest));
+    client.auth_local_reset_password(&user_email).unwrap();
 }
 
 #[test]

@@ -41,7 +41,21 @@ pub fn login(
     Ok(user_token)
 }
 
+/// Reset user password via email request. In case of an error this function
+/// returns Ok to prevent the caller from inferring the existence of a user.
 pub fn reset_password(
+    driver: &Driver,
+    notify: &Addr<NotifyExecutor>,
+    service: &Service,
+    audit: &mut AuditBuilder,
+    email: &str,
+    token_expires: i64,
+) -> Result<(), Error> {
+    reset_password_inner(driver, notify, service, audit, email, token_expires)
+        .or_else(|_err| Ok(()))
+}
+
+fn reset_password_inner(
     driver: &Driver,
     notify: &Addr<NotifyExecutor>,
     service: &Service,

@@ -13,8 +13,6 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use futures::Future;
 use serde_json::Value;
 
-// TODO(refactor): Reset route should not reveal if user exists.
-
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope(path::LOCAL)
         .service(web::resource(path::LOGIN).route(web::post().to_async(login_handler)))

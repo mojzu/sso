@@ -5,11 +5,17 @@
 **Added**
 
 - Added email HTML templates, removed template parameters from routes.
+- Defined server routes in `server::api` module.
 
 **Changed**
 
 - Changed audit list query parameters when using `created_gte` or `created_lte` options, added optional `offset_id` parameter to exclude previous results.
 - Moved email handling from `server::smtp` module to `notify` module.
+- Moved `main.rs:Error` into `cli` module, refactored error handling.
+
+**Fixed**
+
+- Reset password route returns OK in cases where user email address does not exist.
 
 ## 0.2.0 (2019-07-07)
 
