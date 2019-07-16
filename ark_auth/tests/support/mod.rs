@@ -4,11 +4,11 @@ use ark_auth::server::api::AuthOauth2UrlResponse;
 use chrono::Utc;
 
 fn env_test_ark_auth_url() -> String {
-    std::env::var("TEST_URL").unwrap()
+    std::env::var("TEST_ARK_AUTH_URL").expect("TEST_ARK_AUTH_URL is undefined, integration test disabled")
 }
 
 fn env_test_ark_auth_key() -> String {
-    std::env::var("TEST_KEY").unwrap()
+    std::env::var("TEST_ARK_AUTH_KEY").expect("TEST_ARK_AUTH_KEY is undefined, integration test disabled")
 }
 
 pub fn client_create() -> SyncClient {
