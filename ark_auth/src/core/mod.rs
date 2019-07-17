@@ -42,7 +42,7 @@ pub struct Audit {
     pub id: String,
     pub user_agent: String,
     pub remote: String,
-    pub forwarded_for: Option<String>,
+    pub forwarded: Option<String>,
     pub path: String,
     pub data: Value,
     pub key_id: Option<String>,
@@ -56,7 +56,7 @@ pub struct Audit {
 pub struct AuditMeta {
     user_agent: String,
     remote: String,
-    forwarded_for: Option<String>,
+    forwarded: Option<String>,
 }
 
 impl AuditMeta {
@@ -64,12 +64,12 @@ impl AuditMeta {
     pub fn new<T1: Into<String>, T2: Into<Option<String>>>(
         user_agent: T1,
         remote: T1,
-        forwarded_for: T2,
+        forwarded: T2,
     ) -> Self {
         AuditMeta {
             user_agent: user_agent.into(),
             remote: remote.into(),
-            forwarded_for: forwarded_for.into(),
+            forwarded: forwarded.into(),
         }
     }
 
@@ -84,8 +84,8 @@ impl AuditMeta {
     }
 
     /// Forwarded for header optional string reference.
-    pub fn forwarded_for(&self) -> Option<&str> {
-        self.forwarded_for.as_ref().map(|x| &**x)
+    pub fn forwarded(&self) -> Option<&str> {
+        self.forwarded.as_ref().map(|x| &**x)
     }
 }
 

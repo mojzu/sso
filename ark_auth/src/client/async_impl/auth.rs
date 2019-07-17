@@ -3,8 +3,7 @@ use crate::client::Error;
 use crate::server::api::{
     route, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse, AuthOauth2UrlResponse,
     AuthPasswordMetaResponse, AuthResetPasswordBody, AuthResetPasswordConfirmBody, AuthTokenBody,
-    AuthTokenPartialResponse, AuthTokenResponse, AuthUpdateEmailBody, AuthUpdateEmailRevokeBody,
-    AuthUpdatePasswordBody, AuthUpdatePasswordRevokeBody,
+    AuthTokenPartialResponse, AuthTokenResponse, AuthUpdateEmailBody, AuthUpdatePasswordBody,
 };
 use futures::Future;
 
@@ -90,7 +89,7 @@ impl AsyncClient {
     where
         T1: Into<String>,
     {
-        let body = AuthUpdateEmailRevokeBody {
+        let body = AuthTokenBody {
             token: token.into(),
         };
         self.post(route::AUTH_LOCAL_UPDATE_EMAIL_REVOKE)
@@ -127,7 +126,7 @@ impl AsyncClient {
     where
         T1: Into<String>,
     {
-        let body = AuthUpdatePasswordRevokeBody {
+        let body = AuthTokenBody {
             token: token.into(),
         };
         self.post(route::AUTH_LOCAL_UPDATE_PASSWORD_REVOKE)
@@ -135,6 +134,16 @@ impl AsyncClient {
             .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
             .map(|_res| ())
+    }
+
+    pub fn auth_github_oauth2_request(
+        &self,
+    ) -> impl Future<Item = AuthOauth2UrlResponse, Error = Error> {
+        self.post(route::AUTH_GITHUB_OAUTH2)
+            .send()
+            .map_err(Into::into)
+            .and_then(AsyncClient::match_status_code)
+            .and_then(|mut res| res.json::<AuthOauth2UrlResponse>().map_err(Into::into))
     }
 
     pub fn auth_microsoft_oauth2_request(

@@ -3,7 +3,7 @@ use crate::client::Error;
 use crate::server::api::{
     route, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse, AuthOauth2UrlResponse,
     AuthPasswordMetaResponse, AuthResetPasswordBody, AuthResetPasswordConfirmBody, AuthTokenBody,
-    AuthTokenPartialResponse, AuthTokenResponse,
+    AuthTokenPartialResponse, AuthTokenResponse, AuthUpdateEmailBody, AuthUpdatePasswordBody,
 };
 
 impl SyncClient {
@@ -59,6 +59,49 @@ impl SyncClient {
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
             .and_then(|mut res| res.json::<AuthPasswordMetaResponse>().map_err(Into::into))
+    }
+
+    pub fn auth_local_update_email(&self, body: AuthUpdateEmailBody) -> Result<(), Error> {
+        self.post_json(route::AUTH_LOCAL_UPDATE_EMAIL, &body)
+            .send()
+            .map_err(Into::into)
+            .and_then(SyncClient::match_status_code)
+            .map(|_res| ())
+    }
+
+    pub fn auth_local_update_email_revoke(&self, body: AuthTokenBody) -> Result<(), Error> {
+        self.post_json(route::AUTH_LOCAL_UPDATE_EMAIL_REVOKE, &body)
+            .send()
+            .map_err(Into::into)
+            .and_then(SyncClient::match_status_code)
+            .map(|_res| ())
+    }
+
+    pub fn auth_local_update_password(
+        &self,
+        body: AuthUpdatePasswordBody,
+    ) -> Result<AuthPasswordMetaResponse, Error> {
+        self.post_json(route::AUTH_LOCAL_UPDATE_PASSWORD, &body)
+            .send()
+            .map_err(Into::into)
+            .and_then(SyncClient::match_status_code)
+            .and_then(|mut res| res.json::<AuthPasswordMetaResponse>().map_err(Into::into))
+    }
+
+    pub fn auth_local_update_password_revoke(&self, body: AuthTokenBody) -> Result<(), Error> {
+        self.post_json(route::AUTH_LOCAL_UPDATE_PASSWORD_REVOKE, &body)
+            .send()
+            .map_err(Into::into)
+            .and_then(SyncClient::match_status_code)
+            .map(|_res| ())
+    }
+
+    pub fn auth_github_oauth2_request(&self) -> Result<AuthOauth2UrlResponse, Error> {
+        self.post(route::AUTH_GITHUB_OAUTH2)
+            .send()
+            .map_err(Into::into)
+            .and_then(SyncClient::match_status_code)
+            .and_then(|mut res| res.json::<AuthOauth2UrlResponse>().map_err(Into::into))
     }
 
     pub fn auth_microsoft_oauth2_request(&self) -> Result<AuthOauth2UrlResponse, Error> {

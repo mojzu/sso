@@ -99,6 +99,21 @@ impl AsyncClient {
             .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
     }
 
+    fn patch(&self, path: &str) -> actix_web::client::ClientRequest {
+        let url = self.options.url_path(path).unwrap();
+        self.client
+            .patch(url.to_string())
+            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+    }
+
+    fn delete(&self, path: &str, forwarded: &str) -> actix_web::client::ClientRequest {
+        let url = self.options.url_path(path).unwrap();
+        self.client
+            .delete(url.to_string())
+            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+            .header(header::FORWARDED, forwarded.to_owned())
+    }
+
     fn match_status_code<T: Stream>(
         response: ClientResponse<T>,
     ) -> impl Future<Item = ClientResponse<T>, Error = Error> {

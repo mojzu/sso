@@ -1,6 +1,8 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
-use crate::server::api::{route, KeyCreateBody, KeyListQuery, KeyListResponse, KeyReadResponse};
+use crate::server::api::{
+    route, KeyCreateBody, KeyListQuery, KeyListResponse, KeyReadResponse, KeyUpdateBody,
+};
 
 impl SyncClient {
     pub fn key_list(&self, query: KeyListQuery) -> Result<KeyListResponse, Error> {
@@ -38,5 +40,29 @@ impl SyncClient {
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
             .and_then(|mut res| res.json::<KeyReadResponse>().map_err(Into::into))
+    }
+
+    pub fn key_update(
+        &self,
+        id: &str,
+        is_enabled: Option<bool>,
+        name: Option<String>,
+    ) -> Result<KeyReadResponse, Error> {
+        let path = route::key_id(id);
+        let body = KeyUpdateBody { is_enabled, name };
+        self.patch_json(&path, &body)
+            .send()
+            .map_err(Into::into)
+            .and_then(SyncClient::match_status_code)
+            .and_then(|mut res| res.json::<KeyReadResponse>().map_err(Into::into))
+    }
+
+    pub fn key_delete(&self, id: &str) -> Result<(), Error> {
+        let path = route::key_id(id);
+        self.delete(&path)
+            .send()
+            .map_err(Into::into)
+            .and_then(SyncClient::match_status_code)
+            .map(|_res| ())
     }
 }

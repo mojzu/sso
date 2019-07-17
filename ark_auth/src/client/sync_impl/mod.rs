@@ -90,6 +90,21 @@ impl SyncClient {
             .json(&body)
     }
 
+    fn patch_json<T: Serialize>(&self, path: &str, body: &T) -> reqwest::RequestBuilder {
+        let url = self.options.url_path(path).unwrap();
+        self.client
+            .patch(url)
+            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+            .json(&body)
+    }
+
+    fn delete(&self, path: &str) -> reqwest::RequestBuilder {
+        let url = self.options.url_path(path).unwrap();
+        self.client
+            .delete(url)
+            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+    }
+
     fn match_status_code(response: reqwest::Response) -> Result<reqwest::Response, Error> {
         match response.status() {
             StatusCode::OK => Ok(response),

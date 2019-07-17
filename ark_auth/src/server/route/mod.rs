@@ -41,9 +41,9 @@ pub fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, 
         .ok_or_else(|| Error::BadRequest)
         .and_then(|x| x.to_str().map_err(|_err| Error::BadRequest));
 
-    let forwarded_for = req.headers().get("X-Forwarded-For");
-    let forwarded_for = if let Some(forwarded_for) = forwarded_for {
-        forwarded_for
+    let forwarded = req.headers().get(http::header::FORWARDED);
+    let forwarded = if let Some(forwarded) = forwarded {
+        forwarded
             .to_str()
             .map_err(|_err| Error::BadRequest)
             .map(Some)
@@ -53,11 +53,11 @@ pub fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, 
 
     future::result(remote.and_then(|remote| {
         let user_agent = user_agent?;
-        let forwarded_for = forwarded_for?;
+        let forwarded = forwarded?;
         Ok(AuditMeta::new(
             user_agent,
             remote,
-            forwarded_for.map(|x| x.to_owned()),
+            forwarded.map(|x| x.to_owned()),
         ))
     }))
 }

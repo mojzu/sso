@@ -14,8 +14,6 @@ use serde::ser::Serialize;
 use std::error::Error as StdError;
 use url::Url;
 
-// TODO(refactor): Finish client methods.
-
 #[derive(Debug, Fail, PartialEq)]
 pub enum RequestError {
     /// Bad request error.
@@ -81,10 +79,12 @@ impl ClientOptions {
         self.authorisation = authorisation.into();
     }
 
+    /// Build URL from client options and path.
     pub fn url_path(&self, path: &str) -> Result<Url, Error> {
         self.url.join(path).map_err(|err| Error::url(&err))
     }
 
+    /// Build URL from client options and path with serialised query parameters.
     pub fn url_path_query<T: Serialize>(&self, path: &str, query: T) -> Result<Url, Error> {
         let mut url = self.url_path(path)?;
         let query = serde_urlencoded::to_string(query).map_err(Error::SerdeUrlencodedSer)?;
@@ -93,6 +93,7 @@ impl ClientOptions {
     }
 
     /// Split value of `Authorization` HTTP header into a type and value, where format is `TYPE VALUE`.
+    /// For example `key abc123def456` and `token abc123def456`.
     pub fn split_authorisation(type_value: String) -> Result<(String, String), Error> {
         let mut type_value = type_value.split_whitespace();
         let type_ = type_value.next();
@@ -111,7 +112,10 @@ impl ClientOptions {
 }
 
 /// Client trait.
+/// Options are shared between synchronous and asynchronous clients, may be worth
+/// finding a way to make client methods generic to ensure both clients are equal.
 pub trait Client {
+    /// Create a new client with options.
     fn new(options: ClientOptions) -> Self;
 }
 
@@ -133,5 +137,20 @@ mod tests {
             url.to_string(),
             "http://localhost:9000/v1/service/?gt=&limit=10"
         );
+    }
+
+    #[test]
+    fn splits_authorisation_key() {
+        let (type_, value) = ClientOptions::split_authorisation("key abcdefg".to_owned()).unwrap();
+        assert_eq!(type_, "key");
+        assert_eq!(value, "abcdefg");
+    }
+
+    #[test]
+    fn splits_authorisation_token() {
+        let (type_, value) =
+            ClientOptions::split_authorisation("token abcdefg".to_owned()).unwrap();
+        assert_eq!(type_, "token");
+        assert_eq!(value, "abcdefg");
     }
 }

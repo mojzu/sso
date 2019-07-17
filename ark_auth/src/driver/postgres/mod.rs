@@ -250,7 +250,7 @@ impl Driver for PostgresDriver {
             audit_id: &id,
             audit_user_agent: meta.user_agent(),
             audit_remote: meta.remote(),
-            audit_forwarded_for: meta.forwarded_for(),
+            audit_forwarded: meta.forwarded(),
             audit_path: path,
             audit_data: data,
             key_id: audit_key_id,

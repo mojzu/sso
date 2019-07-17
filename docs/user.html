@@ -154,12 +154,12 @@ background-color: #f4f4f4;
 <li><a href="#authentication">Authentication</a><ul>
 <li><a href="#local-provider">Local Provider</a><ul>
 <li><a href="#login-post-v1authproviderlocallogin">Login [POST /v1/auth/provider/local/login]</a></li>
-<li><a href="#reset-password-post-v1authproviderlocalresetpassword">Reset Password [POST /v1/auth/provider/local/reset/password]</a></li>
-<li><a href="#reset-password-confirm-post-v1authproviderlocalresetpasswordconfirm">Reset Password Confirm [POST /v1/auth/provider/local/reset/password/confirm]</a></li>
-<li><a href="#update-email-post-v1authproviderlocalupdateemail">Update Email [POST /v1/auth/provider/local/update/email]</a></li>
-<li><a href="#update-email-revoke-post-v1authproviderlocalupdateemailrevoke">Update Email Revoke [POST /v1/auth/provider/local/update/email/revoke]</a></li>
-<li><a href="#update-password-post-v1authproviderlocalupdatepassword">Update Password [POST /v1/auth/provider/local/update/password]</a></li>
-<li><a href="#update-password-revoke-post-v1authproviderlocalupdatepasswordrevoke">Update Password Revoke [POST /v1/auth/provider/local/update/password/revoke]</a></li>
+<li><a href="#reset-password-post-v1authproviderlocalreset-password">Reset Password [POST /v1/auth/provider/local/reset-password]</a></li>
+<li><a href="#reset-password-confirm-post-v1authproviderlocalreset-passwordconfirm">Reset Password Confirm [POST /v1/auth/provider/local/reset-password/confirm]</a></li>
+<li><a href="#update-email-post-v1authproviderlocalupdate-email">Update Email [POST /v1/auth/provider/local/update-email]</a></li>
+<li><a href="#update-email-revoke-post-v1authproviderlocalupdate-emailrevoke">Update Email Revoke [POST /v1/auth/provider/local/update-email/revoke]</a></li>
+<li><a href="#update-password-post-v1authproviderlocalupdate-password">Update Password [POST /v1/auth/provider/local/update-password]</a></li>
+<li><a href="#update-password-revoke-post-v1authproviderlocalupdate-passwordrevoke">Update Password Revoke [POST /v1/auth/provider/local/update-password/revoke]</a></li>
 </ul></li>
 <li><a href="#github-provider">GitHub Provider</a><ul>
 <li><a href="#oauth2-request-post-v1authprovidergithuboauth2">OAuth2 Request [POST /v1/auth/provider/github/oauth2]</a></li>
@@ -249,12 +249,15 @@ background-color: #f4f4f4;
 <ul>
 <li>Added email HTML templates, removed template parameters from routes.</li>
 <li>Defined server routes in <code>server::api</code> module.</li>
+<li>Finished client methods.</li>
 </ul>
 <p><strong>Changed</strong></p>
 <ul>
 <li>Changed audit list query parameters when using <code>created_gte</code> or <code>created_lte</code> options, added optional <code>offset_id</code> parameter to exclude previous results.</li>
 <li>Moved email handling from <code>server::smtp</code> module to <code>notify</code> module.</li>
 <li>Moved <code>main.rs:Error</code> into <code>cli</code> module, refactored error handling.</li>
+<li>Use <code>Forwarded</code> header instead of <code>X-Forwarded-For</code> for audit logs.</li>
+<li>Rename local authentication provider reset, update routes.</li>
 </ul>
 <p><strong>Fixed</strong></p>
 <ul>
@@ -400,14 +403,14 @@ ark_auth start-server</code></pre>
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
   --data &#39;{&quot;email&quot;:&quot;$user_email&quot;}&#39; \
-  $server_url/v1/auth/provider/local/reset/password</code></pre>
+  $server_url/v1/auth/provider/local/reset-password</code></pre>
 <p>Email containing URL is sent to user email address, URL in format <code>$service_url?email=$user_email&amp;reset_password_token=$token</code>.</p>
 <p>Service receives token via query parameter and makes reset password confirm request.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
   --data &#39;{&quot;token&quot;:&quot;$token&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
-  $server_url/v1/auth/provider/local/reset/password/confirm</code></pre>
+  $server_url/v1/auth/provider/local/reset-password/confirm</code></pre>
 <p>User makes login request to service, service makes a login request.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -435,7 +438,7 @@ ark_auth start-server</code></pre>
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
   --data &#39;{&quot;key&quot;:&quot;$user_key&quot;,&quot;password&quot;:&quot;$user_password&quot;,&quot;new_email&quot;:&quot;$new_user_email&quot;}&#39; \
-  $server_url/v1/auth/provider/local/update/email</code></pre>
+  $server_url/v1/auth/provider/local/update-email</code></pre>
 <p>User makes login request to service, service makes a login request.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -448,7 +451,7 @@ ark_auth start-server</code></pre>
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
   --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
-  $server_url/v1/auth/provider/local/update/email/revoke</code></pre>
+  $server_url/v1/auth/provider/local/update-email/revoke</code></pre>
 <h2 id="update-password">Update Password</h2>
 <p>Create service with key and start server.</p>
 <pre class="shell"><code>ark_auth create-service-with-key $service_name $service_url
@@ -470,7 +473,7 @@ ark_auth start-server</code></pre>
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
   --data &#39;{&quot;key&quot;:&quot;$user_key&quot;,&quot;password&quot;:&quot;$user_password&quot;,&quot;new_password&quot;:&quot;$new_user_password&quot;}&#39; \
-  $server_url/v1/auth/provider/local/update/password</code></pre>
+  $server_url/v1/auth/provider/local/update-password</code></pre>
 <p>User makes login request to service, service makes a login request.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -483,7 +486,7 @@ ark_auth start-server</code></pre>
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
   --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
-  $server_url/v1/auth/provider/local/update/password/revoke</code></pre>
+  $server_url/v1/auth/provider/local/update-password/revoke</code></pre>
 <h2 id="api-key">API Key</h2>
 <p>Create service with key and start server.</p>
 <pre class="shell"><code>ark_auth create-service-with-key $service_name $service_url
@@ -603,7 +606,7 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<h4 id="reset-password-post-v1authproviderlocalresetpassword">Reset Password [POST /v1/auth/provider/local/reset/password]</h4>
+<h4 id="reset-password-post-v1authproviderlocalreset-password">Reset Password [POST /v1/auth/provider/local/reset-password]</h4>
 <p>Reset password request for email address.</p>
 <p><strong>Request</strong></p>
 <div class="sourceCode" id="cb46"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb46-1"><a href="#cb46-1"></a><span class="fu">{</span></span>
@@ -625,7 +628,7 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<h4 id="reset-password-confirm-post-v1authproviderlocalresetpasswordconfirm">Reset Password Confirm [POST /v1/auth/provider/local/reset/password/confirm]</h4>
+<h4 id="reset-password-confirm-post-v1authproviderlocalreset-passwordconfirm">Reset Password Confirm [POST /v1/auth/provider/local/reset-password/confirm]</h4>
 <p>Confirm reset password request.</p>
 <p><strong>Request</strong></p>
 <div class="sourceCode" id="cb47"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb47-1"><a href="#cb47-1"></a><span class="fu">{</span></span>
@@ -658,13 +661,13 @@ ark_auth start-server</code></pre>
 <ul>
 <li>Authorisation header is invalid.</li>
 </ul>
-<h4 id="update-email-post-v1authproviderlocalupdateemail">Update Email [POST /v1/auth/provider/local/update/email]</h4>
+<h4 id="update-email-post-v1authproviderlocalupdate-email">Update Email [POST /v1/auth/provider/local/update-email]</h4>
 <p>Update email request for user.</p>
-<h4 id="update-email-revoke-post-v1authproviderlocalupdateemailrevoke">Update Email Revoke [POST /v1/auth/provider/local/update/email/revoke]</h4>
+<h4 id="update-email-revoke-post-v1authproviderlocalupdate-emailrevoke">Update Email Revoke [POST /v1/auth/provider/local/update-email/revoke]</h4>
 <p>Revoke update email request for user.</p>
-<h4 id="update-password-post-v1authproviderlocalupdatepassword">Update Password [POST /v1/auth/provider/local/update/password]</h4>
+<h4 id="update-password-post-v1authproviderlocalupdate-password">Update Password [POST /v1/auth/provider/local/update-password]</h4>
 <p>Update password request for user.</p>
-<h4 id="update-password-revoke-post-v1authproviderlocalupdatepasswordrevoke">Update Password Revoke [POST /v1/auth/provider/local/update/password/revoke]</h4>
+<h4 id="update-password-revoke-post-v1authproviderlocalupdate-passwordrevoke">Update Password Revoke [POST /v1/auth/provider/local/update-password/revoke]</h4>
 <p>Revoke update password request for user.</p>
 <h3 id="github-provider">GitHub Provider</h3>
 <h4 id="oauth2-request-post-v1authprovidergithuboauth2">OAuth2 Request [POST /v1/auth/provider/github/oauth2]</h4>

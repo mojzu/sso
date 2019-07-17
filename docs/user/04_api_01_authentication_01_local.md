@@ -49,7 +49,7 @@ Login with email address and password.
 
 - Authorisation header is invalid.
 
-#### Reset Password [POST /v1/auth/provider/local/reset/password]
+#### Reset Password [POST /v1/auth/provider/local/reset-password]
 
 Reset password request for email address.
 
@@ -77,7 +77,7 @@ Reset password request for email address.
 
 - Authorisation header is invalid.
 
-#### Reset Password Confirm [POST /v1/auth/provider/local/reset/password/confirm]
+#### Reset Password Confirm [POST /v1/auth/provider/local/reset-password/confirm]
 
 Confirm reset password request.
 
@@ -118,18 +118,18 @@ Confirm reset password request.
 
 - Authorisation header is invalid.
 
-#### Update Email [POST /v1/auth/provider/local/update/email]
+#### Update Email [POST /v1/auth/provider/local/update-email]
 
 Update email request for user.
 
-#### Update Email Revoke [POST /v1/auth/provider/local/update/email/revoke]
+#### Update Email Revoke [POST /v1/auth/provider/local/update-email/revoke]
 
 Revoke update email request for user.
 
-#### Update Password [POST /v1/auth/provider/local/update/password]
+#### Update Password [POST /v1/auth/provider/local/update-password]
 
 Update password request for user.
 
-#### Update Password Revoke [POST /v1/auth/provider/local/update/password/revoke]
+#### Update Password Revoke [POST /v1/auth/provider/local/update-password/revoke]
 
 Revoke update password request for user.

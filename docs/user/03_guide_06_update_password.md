@@ -34,7 +34,7 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"key":"$user_key","password":"$user_password","new_password":"$new_user_password"}' \
-  $server_url/v1/auth/provider/local/update/password
+  $server_url/v1/auth/provider/local/update-password
 ```
 
 User makes login request to service, service makes a login request.
@@ -56,5 +56,5 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"token":"$token"}' \
-  $server_url/v1/auth/provider/local/update/password/revoke
+  $server_url/v1/auth/provider/local/update-password/revoke
 ```

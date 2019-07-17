@@ -29,9 +29,9 @@ pub mod path {
     pub const PROVIDER: &str = "/provider";
     pub const LOCAL: &str = "/local";
     pub const LOGIN: &str = "/login";
-    pub const RESET_PASSWORD: &str = "/reset/password";
-    pub const UPDATE_EMAIL: &str = "/update/email";
-    pub const UPDATE_PASSWORD: &str = "/update/password";
+    pub const RESET_PASSWORD: &str = "/reset-password";
+    pub const UPDATE_EMAIL: &str = "/update-email";
+    pub const UPDATE_PASSWORD: &str = "/update-password";
     pub const CONFIRM: &str = "/confirm";
     pub const GITHUB: &str = "/github";
     pub const MICROSOFT: &str = "/microsoft";
@@ -50,14 +50,15 @@ pub mod path {
 pub mod route {
     pub const PING: &str = "/v1/ping";
     pub const AUTH_LOCAL_LOGIN: &str = "/v1/auth/provider/local/login";
-    pub const AUTH_LOCAL_RESET_PASSWORD: &str = "/v1/auth/provider/local/reset/password";
+    pub const AUTH_LOCAL_RESET_PASSWORD: &str = "/v1/auth/provider/local/reset-password";
     pub const AUTH_LOCAL_RESET_PASSWORD_CONFIRM: &str =
-        "/v1/auth/provider/local/reset/password/confirm";
-    pub const AUTH_LOCAL_UPDATE_EMAIL: &str = "/v1/auth/provider/local/update/email";
-    pub const AUTH_LOCAL_UPDATE_EMAIL_REVOKE: &str = "/v1/auth/provider/local/update/email/revoke";
-    pub const AUTH_LOCAL_UPDATE_PASSWORD: &str = "/v1/auth/provider/local/update/password";
+        "/v1/auth/provider/local/reset-password/confirm";
+    pub const AUTH_LOCAL_UPDATE_EMAIL: &str = "/v1/auth/provider/local/update-email";
+    pub const AUTH_LOCAL_UPDATE_EMAIL_REVOKE: &str = "/v1/auth/provider/local/update-email/revoke";
+    pub const AUTH_LOCAL_UPDATE_PASSWORD: &str = "/v1/auth/provider/local/update-password";
     pub const AUTH_LOCAL_UPDATE_PASSWORD_REVOKE: &str =
-        "/v1/auth/provider/local/update/password/revoke";
+        "/v1/auth/provider/local/update-password/revoke";
+    pub const AUTH_GITHUB_OAUTH2: &str = "/v1/auth/provider/github/oauth2";
     pub const AUTH_MICROSOFT_OAUTH2: &str = "/v1/auth/provider/microsoft/oauth2";
     pub const AUTH_KEY_VERIFY: &str = "/v1/auth/key/verify";
     pub const AUTH_KEY_REVOKE: &str = "/v1/auth/key/revoke";
@@ -289,15 +290,6 @@ impl FromJsonValue<AuthUpdateEmailBody> for AuthUpdateEmailBody {}
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-pub struct AuthUpdateEmailRevokeBody {
-    #[validate(custom = "validate::token")]
-    pub token: String,
-}
-
-impl FromJsonValue<AuthUpdateEmailRevokeBody> for AuthUpdateEmailRevokeBody {}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
 pub struct AuthUpdatePasswordBody {
     #[validate(custom = "validate::key")]
     pub key: Option<String>,
@@ -310,15 +302,6 @@ pub struct AuthUpdatePasswordBody {
 }
 
 impl FromJsonValue<AuthUpdatePasswordBody> for AuthUpdatePasswordBody {}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct AuthUpdatePasswordRevokeBody {
-    #[validate(custom = "validate::token")]
-    pub token: String,
-}
-
-impl FromJsonValue<AuthUpdatePasswordRevokeBody> for AuthUpdatePasswordRevokeBody {}
 
 // Authentication OAuth2 provider types.
 

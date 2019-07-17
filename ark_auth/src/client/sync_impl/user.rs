@@ -2,6 +2,7 @@ use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
 use crate::server::api::{
     route, UserCreateBody, UserCreateResponse, UserListQuery, UserListResponse, UserReadResponse,
+    UserUpdateBody,
 };
 
 impl SyncClient {
@@ -40,5 +41,29 @@ impl SyncClient {
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
             .and_then(|mut res| res.json::<UserReadResponse>().map_err(Into::into))
+    }
+
+    pub fn user_update(
+        &self,
+        id: &str,
+        is_enabled: Option<bool>,
+        name: Option<String>,
+    ) -> Result<UserReadResponse, Error> {
+        let path = route::user_id(id);
+        let body = UserUpdateBody { is_enabled, name };
+        self.patch_json(&path, &body)
+            .send()
+            .map_err(Into::into)
+            .and_then(SyncClient::match_status_code)
+            .and_then(|mut res| res.json::<UserReadResponse>().map_err(Into::into))
+    }
+
+    pub fn user_delete(&self, id: &str) -> Result<(), Error> {
+        let path = route::user_id(id);
+        self.delete(&path)
+            .send()
+            .map_err(Into::into)
+            .and_then(SyncClient::match_status_code)
+            .map(|_res| ())
     }
 }

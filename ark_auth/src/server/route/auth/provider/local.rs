@@ -2,8 +2,7 @@ use crate::core;
 use crate::core::AuditMeta;
 use crate::server::api::{
     path, AuthLoginBody, AuthLoginResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
-    AuthResetPasswordConfirmBody, AuthUpdateEmailBody, AuthUpdateEmailRevokeBody,
-    AuthUpdatePasswordBody, AuthUpdatePasswordRevokeBody,
+    AuthResetPasswordConfirmBody, AuthTokenBody, AuthUpdateEmailBody, AuthUpdatePasswordBody,
 };
 use crate::server::route::auth::password_meta;
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
@@ -228,7 +227,7 @@ fn update_email_revoke_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = AuthUpdateEmailRevokeBody::from_value(body.into_inner());
+    let body = AuthTokenBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -243,7 +242,7 @@ fn update_email_revoke_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthUpdateEmailRevokeBody,
+    body: &AuthTokenBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
@@ -306,7 +305,7 @@ fn update_password_revoke_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = AuthUpdatePasswordRevokeBody::from_value(body.into_inner());
+    let body = AuthTokenBody::from_value(body.into_inner());
 
     audit_meta
         .join(body)
@@ -321,7 +320,7 @@ fn update_password_revoke_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthUpdatePasswordRevokeBody,
+    body: &AuthTokenBody,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
