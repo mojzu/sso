@@ -1,24 +1,11 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
 use crate::server::api::{
-    route, UserCreateBody, UserCreateResponse, UserListQuery, UserListResponse,
+    route, UserCreateBody, UserCreateResponse, UserListQuery, UserListResponse, UserReadResponse,
 };
 
 impl SyncClient {
-    pub fn user_list(
-        &self,
-        gt: Option<&str>,
-        lt: Option<&str>,
-        limit: Option<i64>,
-        email_eq: Option<&str>,
-    ) -> Result<UserListResponse, Error> {
-        let query = UserListQuery {
-            gt: gt.map(|x| x.to_owned()),
-            lt: lt.map(|x| x.to_owned()),
-            limit: limit.map(|x| format!("{}", x)),
-            email_eq: email_eq.map(|x| x.to_owned()),
-        };
-
+    pub fn user_list(&self, query: UserListQuery) -> Result<UserListResponse, Error> {
         self.get_query(route::USER, query)
             .send()
             .map_err(Into::into)
@@ -26,24 +13,32 @@ impl SyncClient {
             .and_then(|mut res| res.json::<UserListResponse>().map_err(Into::into))
     }
 
-    pub fn user_create(
+    pub fn user_create<T: Into<String>>(
         &self,
         is_enabled: bool,
-        name: &str,
-        email: &str,
-        password: Option<&str>,
+        name: T,
+        email: T,
+        password: Option<String>,
     ) -> Result<UserCreateResponse, Error> {
         let body = UserCreateBody {
             is_enabled,
-            name: name.to_owned(),
-            email: email.to_owned(),
-            password: password.map(String::from),
+            name: name.into(),
+            email: email.into(),
+            password,
         };
-
         self.post_json(route::USER, &body)
             .send()
             .map_err(Into::into)
             .and_then(SyncClient::match_status_code)
             .and_then(|mut res| res.json::<UserCreateResponse>().map_err(Into::into))
+    }
+
+    pub fn user_read(&self, id: &str) -> Result<UserReadResponse, Error> {
+        let path = route::user_id(id);
+        self.get(&path)
+            .send()
+            .map_err(Into::into)
+            .and_then(SyncClient::match_status_code)
+            .and_then(|mut res| res.json::<UserReadResponse>().map_err(Into::into))
     }
 }

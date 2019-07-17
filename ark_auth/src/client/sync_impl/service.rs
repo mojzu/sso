@@ -5,17 +5,7 @@ use crate::server::api::{
 };
 
 impl SyncClient {
-    pub fn service_list(
-        &self,
-        gt: Option<&str>,
-        lt: Option<&str>,
-        limit: Option<i64>,
-    ) -> Result<ServiceListResponse, Error> {
-        let query = ServiceListQuery {
-            gt: gt.map(|x| x.to_owned()),
-            lt: lt.map(|x| x.to_owned()),
-            limit: limit.map(|x| format!("{}", x)),
-        };
+    pub fn service_list(&self, query: ServiceListQuery) -> Result<ServiceListResponse, Error> {
         self.get_query(route::SERVICE, query)
             .send()
             .map_err(Into::into)
@@ -23,16 +13,16 @@ impl SyncClient {
             .and_then(|mut res| res.json::<ServiceListResponse>().map_err(Into::into))
     }
 
-    pub fn service_create(
+    pub fn service_create<T: Into<String>>(
         &self,
         is_enabled: bool,
-        name: &str,
-        url: &str,
+        name: T,
+        url: T,
     ) -> Result<ServiceReadResponse, Error> {
         let body = ServiceCreateBody {
             is_enabled,
-            name: name.to_owned(),
-            url: url.to_owned(),
+            name: name.into(),
+            url: url.into(),
         };
         self.post_json(route::SERVICE, &body)
             .send()

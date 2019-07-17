@@ -9,16 +9,19 @@ use crate::server::api::{
 use futures::Future;
 
 impl AsyncClient {
-    pub fn auth_local_login(
+    pub fn auth_local_login<T1, T2>(
         &self,
-        email: &str,
-        password: &str,
-    ) -> impl Future<Item = AuthLoginResponse, Error = Error> {
+        email: T1,
+        password: T2,
+    ) -> impl Future<Item = AuthLoginResponse, Error = Error>
+    where
+        T1: Into<String>,
+        T2: Into<String>,
+    {
         let body = AuthLoginBody {
-            email: email.to_owned(),
-            password: password.to_owned(),
+            email: email.into(),
+            password: password.into(),
         };
-
         self.post(route::AUTH_LOCAL_LOGIN)
             .send_json(&body)
             .map_err(Into::into)
@@ -26,11 +29,13 @@ impl AsyncClient {
             .and_then(|mut res| res.json::<AuthLoginResponse>().map_err(Into::into))
     }
 
-    pub fn auth_local_reset_password(&self, email: &str) -> impl Future<Item = (), Error = Error> {
+    pub fn auth_local_reset_password<T1>(&self, email: T1) -> impl Future<Item = (), Error = Error>
+    where
+        T1: Into<String>,
+    {
         let body = AuthResetPasswordBody {
-            email: email.to_owned(),
+            email: email.into(),
         };
-
         self.post(route::AUTH_LOCAL_RESET_PASSWORD)
             .send_json(&body)
             .map_err(Into::into)
@@ -38,16 +43,19 @@ impl AsyncClient {
             .map(|_res| ())
     }
 
-    pub fn auth_local_reset_password_confirm(
+    pub fn auth_local_reset_password_confirm<T1, T2>(
         &self,
-        token: &str,
-        password: &str,
-    ) -> impl Future<Item = AuthPasswordMetaResponse, Error = Error> {
+        token: T1,
+        password: T2,
+    ) -> impl Future<Item = AuthPasswordMetaResponse, Error = Error>
+    where
+        T1: Into<String>,
+        T2: Into<String>,
+    {
         let body = AuthResetPasswordConfirmBody {
-            token: token.to_owned(),
-            password: password.to_owned(),
+            token: token.into(),
+            password: password.into(),
         };
-
         self.post(route::AUTH_LOCAL_RESET_PASSWORD_CONFIRM)
             .send_json(&body)
             .map_err(Into::into)
@@ -57,18 +65,17 @@ impl AsyncClient {
 
     pub fn auth_local_update_email(
         &self,
-        key: Option<&str>,
-        token: Option<&str>,
-        password: &str,
-        new_email: &str,
+        key: Option<String>,
+        token: Option<String>,
+        password: String,
+        new_email: String,
     ) -> impl Future<Item = (), Error = Error> {
         let body = AuthUpdateEmailBody {
-            key: key.map(|x| x.to_owned()),
-            token: token.map(|x| x.to_owned()),
-            password: password.to_owned(),
-            new_email: new_email.to_owned(),
+            key,
+            token,
+            password,
+            new_email,
         };
-
         self.post(route::AUTH_LOCAL_UPDATE_EMAIL)
             .send_json(&body)
             .map_err(Into::into)
@@ -76,14 +83,16 @@ impl AsyncClient {
             .map(|_res| ())
     }
 
-    pub fn auth_local_update_email_revoke(
+    pub fn auth_local_update_email_revoke<T1>(
         &self,
-        token: &str,
-    ) -> impl Future<Item = (), Error = Error> {
+        token: T1,
+    ) -> impl Future<Item = (), Error = Error>
+    where
+        T1: Into<String>,
+    {
         let body = AuthUpdateEmailRevokeBody {
-            token: token.to_owned(),
+            token: token.into(),
         };
-
         self.post(route::AUTH_LOCAL_UPDATE_EMAIL_REVOKE)
             .send_json(&body)
             .map_err(Into::into)
@@ -93,18 +102,17 @@ impl AsyncClient {
 
     pub fn auth_local_update_password(
         &self,
-        key: Option<&str>,
-        token: Option<&str>,
-        password: &str,
-        new_password: &str,
+        key: Option<String>,
+        token: Option<String>,
+        password: String,
+        new_password: String,
     ) -> impl Future<Item = (), Error = Error> {
         let body = AuthUpdatePasswordBody {
-            key: key.map(|x| x.to_owned()),
-            token: token.map(|x| x.to_owned()),
-            password: password.to_owned(),
-            new_password: new_password.to_owned(),
+            key,
+            token,
+            password,
+            new_password,
         };
-
         self.post(route::AUTH_LOCAL_UPDATE_PASSWORD)
             .send_json(&body)
             .map_err(Into::into)
@@ -112,14 +120,16 @@ impl AsyncClient {
             .map(|_res| ())
     }
 
-    pub fn auth_local_update_password_revoke(
+    pub fn auth_local_update_password_revoke<T1>(
         &self,
-        token: &str,
-    ) -> impl Future<Item = (), Error = Error> {
+        token: T1,
+    ) -> impl Future<Item = (), Error = Error>
+    where
+        T1: Into<String>,
+    {
         let body = AuthUpdatePasswordRevokeBody {
-            token: token.to_owned(),
+            token: token.into(),
         };
-
         self.post(route::AUTH_LOCAL_UPDATE_PASSWORD_REVOKE)
             .send_json(&body)
             .map_err(Into::into)
@@ -137,11 +147,11 @@ impl AsyncClient {
             .and_then(|mut res| res.json::<AuthOauth2UrlResponse>().map_err(Into::into))
     }
 
-    pub fn auth_key_verify(&self, key: &str) -> impl Future<Item = AuthKeyResponse, Error = Error> {
-        let body = AuthKeyBody {
-            key: key.to_owned(),
-        };
-
+    pub fn auth_key_verify<T1>(&self, key: T1) -> impl Future<Item = AuthKeyResponse, Error = Error>
+    where
+        T1: Into<String>,
+    {
+        let body = AuthKeyBody { key: key.into() };
         self.post(route::AUTH_KEY_VERIFY)
             .send_json(&body)
             .map_err(Into::into)
@@ -149,11 +159,11 @@ impl AsyncClient {
             .and_then(|mut res| res.json::<AuthKeyResponse>().map_err(Into::into))
     }
 
-    pub fn auth_key_revoke(&self, key: &str) -> impl Future<Item = (), Error = Error> {
-        let body = AuthKeyBody {
-            key: key.to_owned(),
-        };
-
+    pub fn auth_key_revoke<T1>(&self, key: T1) -> impl Future<Item = (), Error = Error>
+    where
+        T1: Into<String>,
+    {
+        let body = AuthKeyBody { key: key.into() };
         self.post(route::AUTH_KEY_REVOKE)
             .send_json(&body)
             .map_err(Into::into)
@@ -161,14 +171,16 @@ impl AsyncClient {
             .map(|_res| ())
     }
 
-    pub fn auth_token_verify(
+    pub fn auth_token_verify<T1>(
         &self,
-        token: &str,
-    ) -> impl Future<Item = AuthTokenPartialResponse, Error = Error> {
+        token: T1,
+    ) -> impl Future<Item = AuthTokenPartialResponse, Error = Error>
+    where
+        T1: Into<String>,
+    {
         let body = AuthTokenBody {
-            token: token.to_owned(),
+            token: token.into(),
         };
-
         self.post(route::AUTH_TOKEN_VERIFY)
             .send_json(&body)
             .map_err(Into::into)
@@ -176,14 +188,16 @@ impl AsyncClient {
             .and_then(|mut res| res.json::<AuthTokenPartialResponse>().map_err(Into::into))
     }
 
-    pub fn auth_token_refresh(
+    pub fn auth_token_refresh<T1>(
         &self,
-        token: &str,
-    ) -> impl Future<Item = AuthTokenResponse, Error = Error> {
+        token: T1,
+    ) -> impl Future<Item = AuthTokenResponse, Error = Error>
+    where
+        T1: Into<String>,
+    {
         let body = AuthTokenBody {
-            token: token.to_owned(),
+            token: token.into(),
         };
-
         self.post(route::AUTH_TOKEN_REFRESH)
             .send_json(&body)
             .map_err(Into::into)
@@ -191,11 +205,13 @@ impl AsyncClient {
             .and_then(|mut res| res.json::<AuthTokenResponse>().map_err(Into::into))
     }
 
-    pub fn auth_token_revoke(&self, token: &str) -> impl Future<Item = (), Error = Error> {
+    pub fn auth_token_revoke<T1>(&self, token: T1) -> impl Future<Item = (), Error = Error>
+    where
+        T1: Into<String>,
+    {
         let body = AuthTokenBody {
-            token: token.to_owned(),
+            token: token.into(),
         };
-
         self.post(route::AUTH_TOKEN_REVOKE)
             .send_json(&body)
             .map_err(Into::into)

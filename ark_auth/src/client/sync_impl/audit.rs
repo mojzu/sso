@@ -3,27 +3,9 @@ use crate::client::Error;
 use crate::server::api::{
     route, AuditCreateBody, AuditListQuery, AuditListResponse, AuditReadResponse,
 };
-use chrono::{DateTime, Utc};
-use serde_json::Value;
 
 impl SyncClient {
-    pub fn audit_list(
-        &self,
-        gt: Option<&str>,
-        lt: Option<&str>,
-        created_gte: Option<&DateTime<Utc>>,
-        created_lte: Option<&DateTime<Utc>>,
-        offset_id: Option<&str>,
-        limit: Option<i64>,
-    ) -> Result<AuditListResponse, Error> {
-        let query = AuditListQuery {
-            gt: gt.map(|x| x.to_owned()),
-            lt: lt.map(|x| x.to_owned()),
-            created_gte: created_gte.map(|x| x.to_rfc3339()),
-            created_lte: created_lte.map(|x| x.to_rfc3339()),
-            offset_id: offset_id.map(|x| x.to_owned()),
-            limit: limit.map(|x| format!("{}", x)),
-        };
+    pub fn audit_list(&self, query: AuditListQuery) -> Result<AuditListResponse, Error> {
         self.get_query(route::AUDIT, query)
             .send()
             .map_err(Into::into)
@@ -31,19 +13,7 @@ impl SyncClient {
             .and_then(|mut res| res.json::<AuditListResponse>().map_err(Into::into))
     }
 
-    pub fn audit_create(
-        &self,
-        path: &str,
-        data: &Value,
-        user_id: Option<&str>,
-        user_key_id: Option<&str>,
-    ) -> Result<AuditReadResponse, Error> {
-        let body = AuditCreateBody {
-            path: path.to_owned(),
-            data: data.to_owned(),
-            user_id: user_id.map(|x| x.to_owned()),
-            user_key_id: user_key_id.map(|x| x.to_owned()),
-        };
+    pub fn audit_create(&self, body: AuditCreateBody) -> Result<AuditReadResponse, Error> {
         self.post_json(route::AUDIT, &body)
             .send()
             .map_err(Into::into)

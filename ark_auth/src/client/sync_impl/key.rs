@@ -3,17 +3,7 @@ use crate::client::Error;
 use crate::server::api::{route, KeyCreateBody, KeyListQuery, KeyListResponse, KeyReadResponse};
 
 impl SyncClient {
-    pub fn key_list(
-        &self,
-        gt: Option<&str>,
-        lt: Option<&str>,
-        limit: Option<i64>,
-    ) -> Result<KeyListResponse, Error> {
-        let query = KeyListQuery {
-            gt: gt.map(|x| x.to_owned()),
-            lt: lt.map(|x| x.to_owned()),
-            limit: limit.map(|x| format!("{}", x)),
-        };
+    pub fn key_list(&self, query: KeyListQuery) -> Result<KeyListResponse, Error> {
         self.get_query(route::KEY, query)
             .send()
             .map_err(Into::into)
@@ -21,18 +11,18 @@ impl SyncClient {
             .and_then(|mut res| res.json::<KeyListResponse>().map_err(Into::into))
     }
 
-    pub fn key_create(
+    pub fn key_create<T: Into<String>>(
         &self,
         is_enabled: bool,
-        name: &str,
-        service_id: Option<&str>,
-        user_id: Option<&str>,
+        name: T,
+        service_id: Option<String>,
+        user_id: Option<String>,
     ) -> Result<KeyReadResponse, Error> {
         let body = KeyCreateBody {
             is_enabled,
-            name: name.to_owned(),
-            service_id: service_id.map(|x| x.to_owned()),
-            user_id: user_id.map(|x| x.to_owned()),
+            name: name.into(),
+            service_id,
+            user_id,
         };
         self.post_json(route::KEY, &body)
             .send()

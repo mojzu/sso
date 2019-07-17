@@ -4,11 +4,13 @@ use ark_auth::server::api::AuthOauth2UrlResponse;
 use chrono::Utc;
 
 fn env_test_ark_auth_url() -> String {
-    std::env::var("TEST_ARK_AUTH_URL").expect("TEST_ARK_AUTH_URL is undefined, integration test disabled")
+    std::env::var("TEST_ARK_AUTH_URL")
+        .expect("TEST_ARK_AUTH_URL is undefined, integration test disabled")
 }
 
 fn env_test_ark_auth_key() -> String {
-    std::env::var("TEST_ARK_AUTH_KEY").expect("TEST_ARK_AUTH_KEY is undefined, integration test disabled")
+    std::env::var("TEST_ARK_AUTH_KEY")
+        .expect("TEST_ARK_AUTH_KEY is undefined, integration test disabled")
 }
 
 pub fn client_create() -> SyncClient {
@@ -28,7 +30,7 @@ pub fn service_key_create(client: &SyncClient) -> (Service, Key) {
         .service_create(true, "test", "http://localhost")
         .unwrap();
     let create_key = client
-        .key_create(true, "test", Some(&create_service.data.id), None)
+        .key_create(true, "test", Some(create_service.data.id.to_owned()), None)
         .unwrap();
     (create_service.data, create_key.data)
 }
@@ -42,7 +44,7 @@ pub fn user_create(
 ) -> User {
     let before = Utc::now();
     let create = client
-        .user_create(is_enabled, name, email, password)
+        .user_create(is_enabled, name, email, password.map(|x| x.to_owned()))
         .unwrap();
     let user = create.data;
     assert!(user.created_at.gt(&before));
@@ -61,7 +63,9 @@ pub fn user_key_create(
     service_id: &str,
     user_id: &str,
 ) -> UserKey {
-    let create = client.key_create(true, name, None, Some(user_id)).unwrap();
+    let create = client
+        .key_create(true, name, None, Some(user_id.to_owned()))
+        .unwrap();
     let key = create.data;
     assert_eq!(key.name, name);
     assert_eq!(key.service_id.unwrap(), service_id);

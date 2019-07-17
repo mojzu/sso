@@ -141,6 +141,25 @@ pub struct AuditCreateBody {
 
 impl FromJsonValue<AuditCreateBody> for AuditCreateBody {}
 
+impl AuditCreateBody {
+    pub fn new<T1>(
+        path: T1,
+        data: Value,
+        user_id: Option<String>,
+        user_key_id: Option<String>,
+    ) -> Self
+    where
+        T1: Into<String>,
+    {
+        Self {
+            path: path.into(),
+            data,
+            user_id,
+            user_key_id,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuditCreateResponse {

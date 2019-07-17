@@ -4,20 +4,19 @@ use crate::server::api::{route, KeyCreateBody, KeyReadResponse};
 use futures::Future;
 
 impl AsyncClient {
-    pub fn key_create(
+    pub fn key_create<T: Into<String>>(
         &self,
         is_enabled: bool,
-        name: &str,
-        service_id: Option<&str>,
-        user_id: Option<&str>,
+        name: T,
+        service_id: Option<String>,
+        user_id: Option<String>,
     ) -> impl Future<Item = KeyReadResponse, Error = Error> {
         let body = KeyCreateBody {
             is_enabled,
-            name: name.to_owned(),
-            service_id: service_id.map(|x| x.to_owned()),
-            user_id: user_id.map(|x| x.to_owned()),
+            name: name.into(),
+            service_id,
+            user_id,
         };
-
         self.post(route::KEY)
             .send_json(&body)
             .map_err(Into::into)

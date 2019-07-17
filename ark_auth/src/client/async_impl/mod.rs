@@ -1,9 +1,11 @@
+mod audit;
 mod auth;
 mod key;
 mod service;
 mod user;
 
 use crate::client::{Client, ClientOptions, Error, RequestError};
+use crate::core::User;
 use crate::server::api::route;
 use actix_web::client::ClientResponse;
 use actix_web::http::{header, StatusCode};
@@ -27,6 +29,7 @@ impl From<awc::error::JsonPayloadError> for Error {
 }
 
 /// Asynchronous client handle.
+#[derive(Clone)]
 pub struct AsyncClient {
     pub options: ClientOptions,
     pub client: actix_web::client::Client,
@@ -39,6 +42,33 @@ impl AsyncClient {
             .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)
             .and_then(|mut res| res.json::<Value>().map_err(Into::into))
+    }
+
+    /// Authenticate user using token or key, returns user if successful.
+    pub fn authenticate(
+        &self,
+        key_or_token: Option<String>,
+    ) -> impl Future<Item = User, Error = Error> {
+        match key_or_token {
+            Some(key_or_token) => {
+                let (s1, s2) = (self.clone(), self.clone());
+                future::Either::A(
+                    AsyncClient::split_authorisation(key_or_token)
+                        .and_then(move |(type_, value)| match type_.as_ref() {
+                            "key" => future::Either::A(future::Either::A(
+                                s1.auth_key_verify(value).map(|res| res.data.user_id),
+                            )),
+                            "token" => future::Either::A(future::Either::B(
+                                s1.auth_token_verify(value).map(|res| res.data.user_id),
+                            )),
+                            _ => future::Either::B(future::err(Error::InvalidKeyOrToken)),
+                        })
+                        .and_then(move |user_id| s2.user_read(&user_id))
+                        .map(|res| res.data),
+                )
+            }
+            None => future::Either::B(future::err(Error::InvalidKeyOrToken)),
+        }
     }
 
     fn build_client(options: &ClientOptions) -> actix_web::client::Client {
@@ -78,6 +108,10 @@ impl AsyncClient {
             StatusCode::FORBIDDEN => future::err(Error::Request(RequestError::Forbidden)),
             _ => future::err(Error::Response),
         }
+    }
+
+    fn split_authorisation(type_value: String) -> future::FutureResult<(String, String), Error> {
+        future::result(ClientOptions::split_authorisation(type_value))
     }
 }
 

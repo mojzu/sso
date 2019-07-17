@@ -1,6 +1,9 @@
 mod support;
 
 use ark_auth::client::{Error, RequestError};
+use ark_auth::server::api::{
+    AuditCreateBody, AuditListQuery, KeyListQuery, ServiceListQuery, UserListQuery,
+};
 use serde_json::Value;
 use support::*;
 
@@ -658,15 +661,31 @@ fn api_audit_id_list_ok() {
     let (_service, service_key) = service_key_create(&client);
     client.options.set_authorisation(&service_key.value);
 
-    let data = Value::Null;
-    client.audit_create("/test/1", &data, None, None).unwrap();
-    client.audit_create("/test/2", &data, None, None).unwrap();
-    client.audit_create("/test/3", &data, None, None).unwrap();
-    client.audit_create("/test/4", &data, None, None).unwrap();
-    client.audit_create("/test/5", &data, None, None).unwrap();
+    client
+        .audit_create(AuditCreateBody::new("/test/1", Value::Null, None, None))
+        .unwrap();
+    client
+        .audit_create(AuditCreateBody::new("/test/2", Value::Null, None, None))
+        .unwrap();
+    client
+        .audit_create(AuditCreateBody::new("/test/3", Value::Null, None, None))
+        .unwrap();
+    client
+        .audit_create(AuditCreateBody::new("/test/4", Value::Null, None, None))
+        .unwrap();
+    client
+        .audit_create(AuditCreateBody::new("/test/5", Value::Null, None, None))
+        .unwrap();
 
     let res1 = client
-        .audit_list(None, None, None, None, None, Some(3))
+        .audit_list(AuditListQuery {
+            gt: None,
+            lt: None,
+            created_gte: None,
+            created_lte: None,
+            offset_id: None,
+            limit: Some("3".to_owned()),
+        })
         .unwrap();
     assert_eq!(res1.data.len(), 3);
     let r1_1 = &res1.data[0];
@@ -674,7 +693,14 @@ fn api_audit_id_list_ok() {
     let r1_3 = &res1.data[2];
 
     let res2 = client
-        .audit_list(Some(r1_1), None, None, None, None, Some(3))
+        .audit_list(AuditListQuery {
+            gt: Some(r1_1.to_owned()),
+            lt: None,
+            created_gte: None,
+            created_lte: None,
+            offset_id: None,
+            limit: Some("3".to_owned()),
+        })
         .unwrap();
     assert_eq!(res2.data.len(), 3);
     let r2_2 = &res2.data[0];
@@ -684,7 +710,14 @@ fn api_audit_id_list_ok() {
     assert_eq!(r2_3, r1_3);
 
     let res3 = client
-        .audit_list(Some(r1_2), None, None, None, None, Some(3))
+        .audit_list(AuditListQuery {
+            gt: Some(r1_2.to_owned()),
+            lt: None,
+            created_gte: None,
+            created_lte: None,
+            offset_id: None,
+            limit: Some("3".to_owned()),
+        })
         .unwrap();
     assert_eq!(res3.data.len(), 3);
     let r3_3 = &res3.data[0];
@@ -694,7 +727,14 @@ fn api_audit_id_list_ok() {
     assert_eq!(r3_4, r2_4);
 
     let res4 = client
-        .audit_list(None, Some(r3_5), None, None, None, Some(3))
+        .audit_list(AuditListQuery {
+            gt: None,
+            lt: Some(r3_5.to_owned()),
+            created_gte: None,
+            created_lte: None,
+            offset_id: None,
+            limit: Some("3".to_owned()),
+        })
         .unwrap();
     assert_eq!(res4.data.len(), 3);
     let r4_2 = &res4.data[0];
@@ -705,7 +745,14 @@ fn api_audit_id_list_ok() {
     assert_eq!(r4_4, r3_4);
 
     let res5 = client
-        .audit_list(None, Some(r4_4), None, None, None, Some(3))
+        .audit_list(AuditListQuery {
+            gt: None,
+            lt: Some(r4_4.to_owned()),
+            created_gte: None,
+            created_lte: None,
+            offset_id: None,
+            limit: Some("3".to_owned()),
+        })
         .unwrap();
     assert_eq!(res5.data.len(), 3);
     let r5_1 = &res5.data[0];
@@ -723,35 +770,49 @@ fn api_audit_created_list_ok() {
     let (_service, service_key) = service_key_create(&client);
     client.options.set_authorisation(&service_key.value);
 
-    let data = Value::Null;
     let a1 = client
-        .audit_create("/test/1", &data, None, None)
+        .audit_create(AuditCreateBody::new("/test/1", Value::Null, None, None))
         .unwrap()
         .data;
-    client.audit_create("/test/2", &data, None, None).unwrap();
-    client.audit_create("/test/3", &data, None, None).unwrap();
-    client.audit_create("/test/4", &data, None, None).unwrap();
-    client.audit_create("/test/5", &data, None, None).unwrap();
+    client
+        .audit_create(AuditCreateBody::new("/test/2", Value::Null, None, None))
+        .unwrap();
+    client
+        .audit_create(AuditCreateBody::new("/test/3", Value::Null, None, None))
+        .unwrap();
+    client
+        .audit_create(AuditCreateBody::new("/test/4", Value::Null, None, None))
+        .unwrap();
+    client
+        .audit_create(AuditCreateBody::new("/test/5", Value::Null, None, None))
+        .unwrap();
 
     let res1 = client
-        .audit_list(None, None, Some(&a1.created_at), None, None, Some(3))
+        .audit_list(AuditListQuery {
+            gt: None,
+            lt: None,
+            created_gte: Some(a1.created_at.to_rfc3339()),
+            created_lte: None,
+            offset_id: None,
+            limit: Some("3".to_owned()),
+        })
         .unwrap();
     assert_eq!(res1.data.len(), 3);
     let r1_1 = &res1.data[0];
     let r1_2 = &res1.data[1];
     let r1_3 = &res1.data[2];
     assert_eq!(r1_1, &a1.id);
-    let a1 = client.audit_read(r1_1).unwrap().data;
+    let a1 = client.audit_read(&r1_1).unwrap().data;
 
     let res2 = client
-        .audit_list(
-            None,
-            None,
-            Some(&a1.created_at),
-            None,
-            Some(&a1.id),
-            Some(3),
-        )
+        .audit_list(AuditListQuery {
+            gt: None,
+            lt: None,
+            created_gte: Some(a1.created_at.to_rfc3339()),
+            created_lte: None,
+            offset_id: Some(a1.id),
+            limit: Some("3".to_owned()),
+        })
         .unwrap();
     assert_eq!(res2.data.len(), 3);
     let r2_2 = &res2.data[0];
@@ -759,17 +820,17 @@ fn api_audit_created_list_ok() {
     let r2_4 = &res2.data[2];
     assert_eq!(r2_2, r1_2);
     assert_eq!(r2_3, r1_3);
-    let a2 = client.audit_read(r2_2).unwrap().data;
+    let a2 = client.audit_read(&r2_2).unwrap().data;
 
     let res3 = client
-        .audit_list(
-            None,
-            None,
-            Some(&a2.created_at),
-            None,
-            Some(&a2.id),
-            Some(3),
-        )
+        .audit_list(AuditListQuery {
+            gt: None,
+            lt: None,
+            created_gte: Some(a2.created_at.to_rfc3339()),
+            created_lte: None,
+            offset_id: Some(a2.id),
+            limit: Some("3".to_owned()),
+        })
         .unwrap();
     assert_eq!(res3.data.len(), 3);
     let r3_3 = &res3.data[0];
@@ -777,17 +838,17 @@ fn api_audit_created_list_ok() {
     let r3_5 = &res3.data[2];
     assert_eq!(r3_3, r2_3);
     assert_eq!(r3_4, r2_4);
-    let a5 = client.audit_read(r3_5).unwrap().data;
+    let a5 = client.audit_read(&r3_5).unwrap().data;
 
     let res4 = client
-        .audit_list(
-            None,
-            None,
-            None,
-            Some(&a5.created_at),
-            Some(&a5.id),
-            Some(3),
-        )
+        .audit_list(AuditListQuery {
+            gt: None,
+            lt: None,
+            created_gte: None,
+            created_lte: Some(a5.created_at.to_rfc3339()),
+            offset_id: Some(a5.id),
+            limit: Some("3".to_owned()),
+        })
         .unwrap();
     assert_eq!(res4.data.len(), 3);
     let r4_2 = &res4.data[0];
@@ -796,17 +857,17 @@ fn api_audit_created_list_ok() {
     assert_eq!(r4_2, r2_2);
     assert_eq!(r4_3, r3_3);
     assert_eq!(r4_4, r3_4);
-    let a4 = client.audit_read(r4_4).unwrap().data;
+    let a4 = client.audit_read(&r4_4).unwrap().data;
 
     let res5 = client
-        .audit_list(
-            None,
-            None,
-            None,
-            Some(&a4.created_at),
-            Some(&a4.id),
-            Some(3),
-        )
+        .audit_list(AuditListQuery {
+            gt: None,
+            lt: None,
+            created_gte: None,
+            created_lte: Some(a4.created_at.to_rfc3339()),
+            offset_id: Some(a4.id),
+            limit: Some("3".to_owned()),
+        })
         .unwrap();
     assert_eq!(res5.data.len(), 3);
     let r5_1 = &res5.data[0];
@@ -823,7 +884,13 @@ fn api_key_list_forbidden() {
     let mut client = client_create();
 
     client.options.set_authorisation(INVALID_SERVICE_KEY);
-    let res = client.key_list(None, None, None).unwrap_err();
+    let res = client
+        .key_list(KeyListQuery {
+            gt: None,
+            lt: None,
+            limit: None,
+        })
+        .unwrap_err();
     assert_eq!(res, Error::Request(RequestError::Forbidden));
 }
 
@@ -834,7 +901,13 @@ fn api_key_list_bad_request_invalid_gt() {
     let (_service, service_key) = service_key_create(&client);
 
     client.options.set_authorisation(&service_key.value);
-    let res = client.key_list(Some(""), None, None).unwrap_err();
+    let res = client
+        .key_list(KeyListQuery {
+            gt: Some("".to_owned()),
+            lt: None,
+            limit: None,
+        })
+        .unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -845,7 +918,13 @@ fn api_key_list_bad_request_invalid_lt() {
     let (_service, service_key) = service_key_create(&client);
 
     client.options.set_authorisation(&service_key.value);
-    let res = client.key_list(None, Some(""), None).unwrap_err();
+    let res = client
+        .key_list(KeyListQuery {
+            gt: None,
+            lt: Some("".to_owned()),
+            limit: None,
+        })
+        .unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -856,7 +935,13 @@ fn api_key_list_bad_request_invalid_limit() {
     let (_service, service_key) = service_key_create(&client);
 
     client.options.set_authorisation(&service_key.value);
-    let res = client.key_list(None, None, Some(-1)).unwrap_err();
+    let res = client
+        .key_list(KeyListQuery {
+            gt: None,
+            lt: None,
+            limit: Some("-1".to_owned()),
+        })
+        .unwrap_err();
     assert_eq!(res, Error::Request(RequestError::BadRequest));
 }
 
@@ -871,28 +956,40 @@ fn api_key_list_ok() {
     let user = user_create(&client, true, USER_NAME, &user_email, None);
 
     client
-        .key_create(true, KEY_NAME, None, Some(&user.id))
+        .key_create(true, KEY_NAME, None, Some(user.id.to_owned()))
         .unwrap();
     client
-        .key_create(true, KEY_NAME, None, Some(&user.id))
+        .key_create(true, KEY_NAME, None, Some(user.id.to_owned()))
         .unwrap();
     client
-        .key_create(true, KEY_NAME, None, Some(&user.id))
+        .key_create(true, KEY_NAME, None, Some(user.id.to_owned()))
         .unwrap();
     client
-        .key_create(true, KEY_NAME, None, Some(&user.id))
+        .key_create(true, KEY_NAME, None, Some(user.id.to_owned()))
         .unwrap();
     client
-        .key_create(true, KEY_NAME, None, Some(&user.id))
+        .key_create(true, KEY_NAME, None, Some(user.id.to_owned()))
         .unwrap();
 
-    let res1 = client.key_list(None, None, Some(3)).unwrap();
+    let res1 = client
+        .key_list(KeyListQuery {
+            gt: None,
+            lt: None,
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
     assert_eq!(res1.data.len(), 3);
     let r1_1 = &res1.data[0];
     let r1_2 = &res1.data[1];
     let r1_3 = &res1.data[2];
 
-    let res2 = client.key_list(Some(r1_1), None, Some(3)).unwrap();
+    let res2 = client
+        .key_list(KeyListQuery {
+            gt: Some(r1_1.to_owned()),
+            lt: None,
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
     assert_eq!(res2.data.len(), 3);
     let r2_2 = &res2.data[0];
     let r2_3 = &res2.data[1];
@@ -900,7 +997,13 @@ fn api_key_list_ok() {
     assert_eq!(r2_2, r1_2);
     assert_eq!(r2_3, r1_3);
 
-    let res3 = client.key_list(Some(r1_2), None, Some(3)).unwrap();
+    let res3 = client
+        .key_list(KeyListQuery {
+            gt: Some(r1_2.to_owned()),
+            lt: None,
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
     assert_eq!(res3.data.len(), 3);
     let r3_3 = &res3.data[0];
     let r3_4 = &res3.data[1];
@@ -908,7 +1011,13 @@ fn api_key_list_ok() {
     assert_eq!(r3_3, r2_3);
     assert_eq!(r3_4, r2_4);
 
-    let res4 = client.key_list(None, Some(r3_5), Some(3)).unwrap();
+    let res4 = client
+        .key_list(KeyListQuery {
+            gt: None,
+            lt: Some(r3_5.to_owned()),
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
     assert_eq!(res4.data.len(), 3);
     let r4_2 = &res4.data[0];
     let r4_3 = &res4.data[1];
@@ -917,7 +1026,13 @@ fn api_key_list_ok() {
     assert_eq!(r4_3, r3_3);
     assert_eq!(r4_4, r3_4);
 
-    let res5 = client.key_list(None, Some(r4_4), Some(3)).unwrap();
+    let res5 = client
+        .key_list(KeyListQuery {
+            gt: None,
+            lt: Some(r4_4.to_owned()),
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
     assert_eq!(res5.data.len(), 3);
     let r5_1 = &res5.data[0];
     let r5_2 = &res5.data[1];
@@ -957,13 +1072,25 @@ fn api_service_list_ok() {
     service_key_create(&client);
     service_key_create(&client);
 
-    let res1 = client.service_list(None, None, Some(3)).unwrap();
+    let res1 = client
+        .service_list(ServiceListQuery {
+            gt: None,
+            lt: None,
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
     assert_eq!(res1.data.len(), 3);
     let r1_1 = &res1.data[0];
     let r1_2 = &res1.data[1];
     let r1_3 = &res1.data[2];
 
-    let res2 = client.service_list(Some(r1_1), None, Some(3)).unwrap();
+    let res2 = client
+        .service_list(ServiceListQuery {
+            gt: Some(r1_1.to_owned()),
+            lt: None,
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
     assert_eq!(res2.data.len(), 3);
     let r2_2 = &res2.data[0];
     let r2_3 = &res2.data[1];
@@ -971,7 +1098,13 @@ fn api_service_list_ok() {
     assert_eq!(r2_2, r1_2);
     assert_eq!(r2_3, r1_3);
 
-    let res3 = client.service_list(Some(r1_2), None, Some(3)).unwrap();
+    let res3 = client
+        .service_list(ServiceListQuery {
+            gt: Some(r1_2.to_owned()),
+            lt: None,
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
     assert_eq!(res3.data.len(), 3);
     let r3_3 = &res3.data[0];
     let r3_4 = &res3.data[1];
@@ -979,7 +1112,13 @@ fn api_service_list_ok() {
     assert_eq!(r3_3, r2_3);
     assert_eq!(r3_4, r2_4);
 
-    let res4 = client.service_list(None, Some(r3_5), Some(3)).unwrap();
+    let res4 = client
+        .service_list(ServiceListQuery {
+            gt: None,
+            lt: Some(r3_5.to_owned()),
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
     assert_eq!(res4.data.len(), 3);
     let r4_2 = &res4.data[0];
     let r4_3 = &res4.data[1];
@@ -988,7 +1127,13 @@ fn api_service_list_ok() {
     assert_eq!(r4_3, r3_3);
     assert_eq!(r4_4, r3_4);
 
-    let res5 = client.service_list(None, Some(r4_4), Some(3)).unwrap();
+    let res5 = client
+        .service_list(ServiceListQuery {
+            gt: None,
+            lt: Some(r4_4.to_owned()),
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
     assert_eq!(res5.data.len(), 3);
     let r5_1 = &res5.data[0];
     let r5_2 = &res5.data[1];
@@ -1014,7 +1159,14 @@ fn api_user_list_forbidden() {
     let mut client = client_create();
 
     client.options.set_authorisation(INVALID_SERVICE_KEY);
-    let res = client.user_list(None, None, None, None).unwrap_err();
+    let res = client
+        .user_list(UserListQuery {
+            gt: None,
+            lt: None,
+            limit: None,
+            email_eq: None,
+        })
+        .unwrap_err();
     assert_eq!(res, Error::Request(RequestError::Forbidden));
 }
 
@@ -1036,13 +1188,27 @@ fn api_user_list_ok() {
     user_create(&client, true, USER_NAME, &user4_email, None);
     user_create(&client, true, USER_NAME, &user5_email, None);
 
-    let res1 = client.user_list(None, None, Some(3), None).unwrap();
+    let res1 = client
+        .user_list(UserListQuery {
+            gt: None,
+            lt: None,
+            limit: Some("3".to_owned()),
+            email_eq: None,
+        })
+        .unwrap();
     assert_eq!(res1.data.len(), 3);
     let r1_1 = &res1.data[0];
     let r1_2 = &res1.data[1];
     let r1_3 = &res1.data[2];
 
-    let res2 = client.user_list(Some(r1_1), None, Some(3), None).unwrap();
+    let res2 = client
+        .user_list(UserListQuery {
+            gt: Some(r1_1.to_owned()),
+            lt: None,
+            limit: Some("3".to_owned()),
+            email_eq: None,
+        })
+        .unwrap();
     assert_eq!(res2.data.len(), 3);
     let r2_2 = &res2.data[0];
     let r2_3 = &res2.data[1];
@@ -1050,7 +1216,14 @@ fn api_user_list_ok() {
     assert_eq!(r2_2, r1_2);
     assert_eq!(r2_3, r1_3);
 
-    let res3 = client.user_list(Some(r1_2), None, Some(3), None).unwrap();
+    let res3 = client
+        .user_list(UserListQuery {
+            gt: Some(r1_2.to_owned()),
+            lt: None,
+            limit: Some("3".to_owned()),
+            email_eq: None,
+        })
+        .unwrap();
     assert_eq!(res3.data.len(), 3);
     let r3_3 = &res3.data[0];
     let r3_4 = &res3.data[1];
@@ -1058,7 +1231,14 @@ fn api_user_list_ok() {
     assert_eq!(r3_3, r2_3);
     assert_eq!(r3_4, r2_4);
 
-    let res4 = client.user_list(None, Some(r3_5), Some(3), None).unwrap();
+    let res4 = client
+        .user_list(UserListQuery {
+            gt: None,
+            lt: Some(r3_5.to_owned()),
+            limit: Some("3".to_owned()),
+            email_eq: None,
+        })
+        .unwrap();
     assert_eq!(res4.data.len(), 3);
     let r4_2 = &res4.data[0];
     let r4_3 = &res4.data[1];
@@ -1067,7 +1247,14 @@ fn api_user_list_ok() {
     assert_eq!(r4_3, r3_3);
     assert_eq!(r4_4, r3_4);
 
-    let res5 = client.user_list(None, Some(r4_4), Some(3), None).unwrap();
+    let res5 = client
+        .user_list(UserListQuery {
+            gt: None,
+            lt: Some(r4_4.to_owned()),
+            limit: Some("3".to_owned()),
+            email_eq: None,
+        })
+        .unwrap();
     assert_eq!(res5.data.len(), 3);
     let r5_1 = &res5.data[0];
     let r5_2 = &res5.data[1];
@@ -1088,7 +1275,12 @@ fn api_user_list_email_eq_ok() {
     let user = user_create(&client, true, USER_NAME, &user_email, None);
 
     let res = client
-        .user_list(None, None, None, Some(&user.email))
+        .user_list(UserListQuery {
+            gt: None,
+            lt: None,
+            limit: None,
+            email_eq: Some(user.email),
+        })
         .unwrap();
     assert_eq!(res.data.len(), 1);
     assert_eq!(res.data[0], user.id);

@@ -32,6 +32,9 @@ pub enum Error {
     /// Client error.
     #[fail(display = "ClientError::Client {}", _0)]
     Client(String),
+    /// Invalid key or token header value.
+    #[fail(display = "ClientError::Client")]
+    InvalidKeyOrToken,
     /// Request error.
     #[fail(display = "ClientError::Request {}", _0)]
     Request(RequestError),
@@ -48,7 +51,7 @@ pub enum Error {
 
 impl Error {
     pub fn url(err: &StdError) -> Error {
-        Error::Url(err.description().to_owned())
+        Error::Url(err.description().into())
     }
 }
 
@@ -61,21 +64,21 @@ pub struct ClientOptions {
 }
 
 impl ClientOptions {
-    pub fn new(url: &str, authorisation: &str) -> Result<Self, Error> {
+    pub fn new<T: Into<String>>(url: &str, authorisation: T) -> Result<Self, Error> {
         let url = Url::parse(url).map_err(|err| Error::url(&err))?;
         Ok(ClientOptions {
             url,
             user_agent: crate_user_agent(),
-            authorisation: authorisation.to_owned(),
+            authorisation: authorisation.into(),
         })
     }
 
-    pub fn set_user_agent(&mut self, user_agent: &str) {
-        self.user_agent = user_agent.to_owned();
+    pub fn set_user_agent<T: Into<String>>(&mut self, user_agent: T) {
+        self.user_agent = user_agent.into();
     }
 
-    pub fn set_authorisation(&mut self, authorisation: &str) {
-        self.authorisation = authorisation.to_owned();
+    pub fn set_authorisation<T: Into<String>>(&mut self, authorisation: T) {
+        self.authorisation = authorisation.into();
     }
 
     pub fn url_path(&self, path: &str) -> Result<Url, Error> {
@@ -87,6 +90,23 @@ impl ClientOptions {
         let query = serde_urlencoded::to_string(query).map_err(Error::SerdeUrlencodedSer)?;
         url.set_query(Some(&query));
         Ok(url)
+    }
+
+    /// Split value of `Authorization` HTTP header into a type and value, where format is `TYPE VALUE`.
+    pub fn split_authorisation(type_value: String) -> Result<(String, String), Error> {
+        let mut type_value = type_value.split_whitespace();
+        let type_ = type_value.next();
+        if type_.is_none() {
+            return Err(Error::InvalidKeyOrToken);
+        }
+        let type_: String = type_.unwrap().into();
+
+        let value = type_value.next();
+        if value.is_none() {
+            return Err(Error::InvalidKeyOrToken);
+        }
+        let value: String = value.unwrap().into();
+        Ok((type_, value))
     }
 }
 

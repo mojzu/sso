@@ -9,7 +9,6 @@ use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
 use futures::Future;
-
 use serde_json::Value;
 
 pub fn route_v1_scope() -> actix_web::Scope {

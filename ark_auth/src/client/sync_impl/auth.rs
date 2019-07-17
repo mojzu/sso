@@ -7,16 +7,19 @@ use crate::server::api::{
 };
 
 impl SyncClient {
-    pub fn auth_local_login(
+    pub fn auth_local_login<T1, T2>(
         &self,
-        email: &str,
-        password: &str,
-    ) -> Result<AuthLoginResponse, Error> {
+        email: T1,
+        password: T2,
+    ) -> Result<AuthLoginResponse, Error>
+    where
+        T1: Into<String>,
+        T2: Into<String>,
+    {
         let body = AuthLoginBody {
-            email: email.to_owned(),
-            password: password.to_owned(),
+            email: email.into(),
+            password: password.into(),
         };
-
         self.post_json(route::AUTH_LOCAL_LOGIN, &body)
             .send()
             .map_err(Into::into)
@@ -24,11 +27,13 @@ impl SyncClient {
             .and_then(|mut res| res.json::<AuthLoginResponse>().map_err(Into::into))
     }
 
-    pub fn auth_local_reset_password(&self, email: &str) -> Result<(), Error> {
+    pub fn auth_local_reset_password<T1>(&self, email: T1) -> Result<(), Error>
+    where
+        T1: Into<String>,
+    {
         let body = AuthResetPasswordBody {
-            email: email.to_owned(),
+            email: email.into(),
         };
-
         self.post_json(route::AUTH_LOCAL_RESET_PASSWORD, &body)
             .send()
             .map_err(Into::into)
@@ -36,16 +41,19 @@ impl SyncClient {
             .map(|_res| ())
     }
 
-    pub fn auth_local_reset_password_confirm(
+    pub fn auth_local_reset_password_confirm<T1, T2>(
         &self,
-        token: &str,
-        password: &str,
-    ) -> Result<AuthPasswordMetaResponse, Error> {
+        token: T1,
+        password: T2,
+    ) -> Result<AuthPasswordMetaResponse, Error>
+    where
+        T1: Into<String>,
+        T2: Into<String>,
+    {
         let body = AuthResetPasswordConfirmBody {
-            token: token.to_owned(),
-            password: password.to_owned(),
+            token: token.into(),
+            password: password.into(),
         };
-
         self.post_json(route::AUTH_LOCAL_RESET_PASSWORD_CONFIRM, &body)
             .send()
             .map_err(Into::into)
@@ -61,11 +69,11 @@ impl SyncClient {
             .and_then(|mut res| res.json::<AuthOauth2UrlResponse>().map_err(Into::into))
     }
 
-    pub fn auth_key_verify(&self, key: &str) -> Result<AuthKeyResponse, Error> {
-        let body = AuthKeyBody {
-            key: key.to_owned(),
-        };
-
+    pub fn auth_key_verify<T1>(&self, key: T1) -> Result<AuthKeyResponse, Error>
+    where
+        T1: Into<String>,
+    {
+        let body = AuthKeyBody { key: key.into() };
         self.post_json(route::AUTH_KEY_VERIFY, &body)
             .send()
             .map_err(Into::into)
@@ -73,11 +81,11 @@ impl SyncClient {
             .and_then(|mut res| res.json::<AuthKeyResponse>().map_err(Into::into))
     }
 
-    pub fn auth_key_revoke(&self, key: &str) -> Result<(), Error> {
-        let body = AuthKeyBody {
-            key: key.to_owned(),
-        };
-
+    pub fn auth_key_revoke<T1>(&self, key: T1) -> Result<(), Error>
+    where
+        T1: Into<String>,
+    {
+        let body = AuthKeyBody { key: key.into() };
         self.post_json(route::AUTH_KEY_REVOKE, &body)
             .send()
             .map_err(Into::into)
@@ -85,11 +93,13 @@ impl SyncClient {
             .map(|_res| ())
     }
 
-    pub fn auth_token_verify(&self, token: &str) -> Result<AuthTokenPartialResponse, Error> {
+    pub fn auth_token_verify<T1>(&self, token: T1) -> Result<AuthTokenPartialResponse, Error>
+    where
+        T1: Into<String>,
+    {
         let body = AuthTokenBody {
-            token: token.to_owned(),
+            token: token.into(),
         };
-
         self.post_json(route::AUTH_TOKEN_VERIFY, &body)
             .send()
             .map_err(Into::into)
@@ -97,11 +107,13 @@ impl SyncClient {
             .and_then(|mut res| res.json::<AuthTokenPartialResponse>().map_err(Into::into))
     }
 
-    pub fn auth_token_refresh(&self, token: &str) -> Result<AuthTokenResponse, Error> {
+    pub fn auth_token_refresh<T1>(&self, token: T1) -> Result<AuthTokenResponse, Error>
+    where
+        T1: Into<String>,
+    {
         let body = AuthTokenBody {
-            token: token.to_owned(),
+            token: token.into(),
         };
-
         self.post_json(route::AUTH_TOKEN_REFRESH, &body)
             .send()
             .map_err(Into::into)
@@ -109,11 +121,13 @@ impl SyncClient {
             .and_then(|mut res| res.json::<AuthTokenResponse>().map_err(Into::into))
     }
 
-    pub fn auth_token_revoke(&self, token: &str) -> Result<(), Error> {
+    pub fn auth_token_revoke<T1>(&self, token: T1) -> Result<(), Error>
+    where
+        T1: Into<String>,
+    {
         let body = AuthTokenBody {
-            token: token.to_owned(),
+            token: token.into(),
         };
-
         self.post_json(route::AUTH_TOKEN_REVOKE, &body)
             .send()
             .map_err(Into::into)
