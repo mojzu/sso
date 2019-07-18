@@ -22,6 +22,9 @@ pub enum RequestError {
     /// Forbidden error.
     #[fail(display = "RequestError::Forbidden")]
     Forbidden,
+    /// Not found error.
+    #[fail(display = "RequestError::NotFound")]
+    NotFound,
 }
 
 /// Client errors.

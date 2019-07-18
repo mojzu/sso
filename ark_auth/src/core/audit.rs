@@ -284,11 +284,13 @@ pub fn create_internal(
 /// Read audit by ID.
 pub fn read_by_id(
     driver: &driver::Driver,
-    _service_mask: Option<&Service>,
+    service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,
 ) -> Result<Option<Audit>, Error> {
-    driver.audit_read_by_id(id).map_err(Error::Driver)
+    driver
+        .audit_read_by_id(id, service_mask.map(|s| s.id.as_ref()))
+        .map_err(Error::Driver)
 }
 
 /// Delete many audit logs older than days.

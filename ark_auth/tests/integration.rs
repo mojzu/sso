@@ -656,7 +656,7 @@ fn api_auth_token_revoke_ok() {
 
 #[test]
 #[ignore]
-fn api_audit_id_list_ok() {
+fn api_audit_list_id_ok() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
     client.options.set_authorisation(&service_key.value);
@@ -765,7 +765,54 @@ fn api_audit_id_list_ok() {
 
 #[test]
 #[ignore]
-fn api_audit_created_list_ok() {
+fn api_audit_list_id_and_ok() {
+    let mut client = client_create();
+    let (_service, service_key) = service_key_create(&client);
+    client.options.set_authorisation(&service_key.value);
+
+    client
+        .audit_create(AuditCreateBody::new("/test/1", Value::Null, None, None))
+        .unwrap();
+    client
+        .audit_create(AuditCreateBody::new("/test/2", Value::Null, None, None))
+        .unwrap();
+    client
+        .audit_create(AuditCreateBody::new("/test/3", Value::Null, None, None))
+        .unwrap();
+
+    let res1 = client
+        .audit_list(AuditListQuery {
+            gt: None,
+            lt: None,
+            created_gte: None,
+            created_lte: None,
+            offset_id: None,
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
+    assert_eq!(res1.data.len(), 3);
+    let r1_1 = &res1.data[0];
+    let r1_2 = &res1.data[1];
+    let r1_3 = &res1.data[2];
+
+    let res2 = client
+        .audit_list(AuditListQuery {
+            gt: Some(r1_1.to_owned()),
+            lt: Some(r1_3.to_owned()),
+            created_gte: None,
+            created_lte: None,
+            offset_id: None,
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
+    assert_eq!(res2.data.len(), 1);
+    let r2_2 = &res2.data[0];
+    assert_eq!(r2_2, r1_2);
+}
+
+#[test]
+#[ignore]
+fn api_audit_list_created_ok() {
     let mut client = client_create();
     let (_service, service_key) = service_key_create(&client);
     client.options.set_authorisation(&service_key.value);
@@ -876,6 +923,88 @@ fn api_audit_created_list_ok() {
     assert_eq!(r5_1, r1_1);
     assert_eq!(r5_2, r4_2);
     assert_eq!(r5_3, r4_3);
+}
+
+#[test]
+#[ignore]
+fn api_audit_list_created_and_ok() {
+    let mut client = client_create();
+    let (_service, service_key) = service_key_create(&client);
+    client.options.set_authorisation(&service_key.value);
+
+    let a1 = client
+        .audit_create(AuditCreateBody::new("/test/1", Value::Null, None, None))
+        .unwrap()
+        .data;
+    client
+        .audit_create(AuditCreateBody::new("/test/2", Value::Null, None, None))
+        .unwrap();
+    client
+        .audit_create(AuditCreateBody::new("/test/3", Value::Null, None, None))
+        .unwrap();
+
+    let res1 = client
+        .audit_list(AuditListQuery {
+            gt: None,
+            lt: None,
+            created_gte: Some(a1.created_at.to_rfc3339()),
+            created_lte: None,
+            offset_id: None,
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
+    assert_eq!(res1.data.len(), 3);
+    let r1_1 = &res1.data[0];
+    let r1_2 = &res1.data[1];
+    let r1_3 = &res1.data[2];
+    assert_eq!(r1_1, &a1.id);
+    let a1 = client.audit_read(&r1_1).unwrap().data;
+    let a3 = client.audit_read(&r1_3).unwrap().data;
+
+    let res2 = client
+        .audit_list(AuditListQuery {
+            gt: None,
+            lt: None,
+            created_gte: Some(a1.created_at.to_rfc3339()),
+            created_lte: Some(a3.created_at.to_rfc3339()),
+            offset_id: Some(a1.id),
+            limit: Some("3".to_owned()),
+        })
+        .unwrap();
+    assert_eq!(res2.data.len(), 2);
+    let r2_2 = &res2.data[0];
+    let r2_3 = &res2.data[1];
+    assert_eq!(r2_2, r1_2);
+    assert_eq!(r2_3, r1_3);
+}
+
+#[test]
+#[ignore]
+fn api_audit_read_not_found_does_not_exist() {
+    let mut client = client_create();
+    let (_service, service_key) = service_key_create(&client);
+    client.options.set_authorisation(&service_key.value);
+
+    let res = client.audit_read(INVALID_UUID).unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::NotFound));
+}
+
+#[test]
+#[ignore]
+fn api_audit_read_not_found_masked_by_service() {
+    let mut client = client_create();
+    let (_service1, service_key1) = service_key_create(&client);
+    let (_service2, service_key2) = service_key_create(&client);
+
+    client.options.set_authorisation(&service_key1.value);
+    let a1 = client
+        .audit_create(AuditCreateBody::new("/test/1", Value::Null, None, None))
+        .unwrap()
+        .data;
+
+    client.options.set_authorisation(&service_key2.value);
+    let res = client.audit_read(&a1.id).unwrap_err();
+    assert_eq!(res, Error::Request(RequestError::NotFound));
 }
 
 #[test]

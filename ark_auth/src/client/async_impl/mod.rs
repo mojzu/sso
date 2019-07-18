@@ -121,6 +121,7 @@ impl AsyncClient {
             StatusCode::OK => future::ok(response),
             StatusCode::BAD_REQUEST => future::err(Error::Request(RequestError::BadRequest)),
             StatusCode::FORBIDDEN => future::err(Error::Request(RequestError::Forbidden)),
+            StatusCode::NOT_FOUND => future::err(Error::Request(RequestError::NotFound)),
             _ => future::err(Error::Response),
         }
     }

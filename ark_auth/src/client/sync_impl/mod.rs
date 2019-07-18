@@ -110,6 +110,7 @@ impl SyncClient {
             StatusCode::OK => Ok(response),
             StatusCode::BAD_REQUEST => Err(Error::Request(RequestError::BadRequest)),
             StatusCode::FORBIDDEN => Err(Error::Request(RequestError::Forbidden)),
+            StatusCode::NOT_FOUND => Err(Error::Request(RequestError::NotFound)),
             _ => Err(Error::Response),
         }
     }

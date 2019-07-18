@@ -371,18 +371,27 @@ impl Driver for PostgresDriver {
             .map(Into::into)
     }
 
-    fn audit_read_by_id(&self, id: &str) -> Result<Option<Audit>, Error> {
+    fn audit_read_by_id(
+        &self,
+        id: &str,
+        service_id_mask: Option<&str>,
+    ) -> Result<Option<Audit>, Error> {
         use crate::driver::postgres::schema::auth_audit::dsl::*;
 
         let conn = self.connection()?;
-        auth_audit
-            .filter(audit_id.eq(id))
-            .get_result::<model::AuthAudit>(&conn)
-            .map(|audit| Some(audit.into()))
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(Error::Diesel(err)),
-            })
+        match service_id_mask {
+            Some(service_id_mask) => auth_audit
+                .filter(service_id.eq(service_id_mask).and(audit_id.eq(id)))
+                .get_result::<model::AuthAudit>(&conn),
+            None => auth_audit
+                .filter(audit_id.eq(id))
+                .get_result::<model::AuthAudit>(&conn),
+        }
+        .map(|audit| Some(audit.into()))
+        .or_else(|err| match err {
+            diesel::result::Error::NotFound => Ok(None),
+            _ => Err(Error::Diesel(err)),
+        })
     }
 
     fn audit_delete_by_created_at(&self, audit_created_at: &DateTime<Utc>) -> Result<usize, Error> {

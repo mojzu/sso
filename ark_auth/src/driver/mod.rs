@@ -98,7 +98,11 @@ pub trait Driver: Send + Sync {
     ) -> Result<Audit, Error>;
 
     /// Read one audit log by ID.
-    fn audit_read_by_id(&self, id: &str) -> Result<Option<Audit>, Error>;
+    fn audit_read_by_id(
+        &self,
+        id: &str,
+        service_id_mask: Option<&str>,
+    ) -> Result<Option<Audit>, Error>;
 
     /// Delete many audit logs by created at time.
     fn audit_delete_by_created_at(&self, created_at: &DateTime<Utc>) -> Result<usize, Error>;
