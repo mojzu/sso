@@ -109,6 +109,45 @@ impl PostgresDriver {
         }
         .map_err(Error::Diesel)
     }
+
+    fn audit_list_where_created_gte_and_lte_inner(
+        &self,
+        audit_created_gte: &DateTime<Utc>,
+        audit_created_lte: &DateTime<Utc>,
+        limit: i64,
+        offset: i64,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<String>, Error> {
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        match service_id_mask {
+            Some(service_id_mask) => auth_audit
+                .select(audit_id)
+                .filter(
+                    service_id
+                        .eq(service_id_mask)
+                        .and(created_at.ge(audit_created_gte))
+                        .and(created_at.le(audit_created_lte)),
+                )
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.asc())
+                .load::<String>(&conn),
+            None => auth_audit
+                .select(audit_id)
+                .filter(
+                    created_at
+                        .ge(audit_created_gte)
+                        .and(created_at.le(audit_created_lte)),
+                )
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.asc())
+                .load::<String>(&conn),
+        }
+        .map_err(Error::Diesel)
+    }
 }
 
 impl Driver for PostgresDriver {
@@ -172,6 +211,38 @@ impl Driver for PostgresDriver {
         .map_err(Error::Diesel)
     }
 
+    fn audit_list_where_id_gt_and_lt(
+        &self,
+        gt: &str,
+        lt: &str,
+        limit: i64,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<String>, Error> {
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        match service_id_mask {
+            Some(service_id_mask) => auth_audit
+                .select(audit_id)
+                .filter(
+                    service_id
+                        .eq(service_id_mask)
+                        .and(audit_id.gt(gt))
+                        .and(audit_id.lt(lt)),
+                )
+                .limit(limit)
+                .order(audit_id.asc())
+                .load::<String>(&conn),
+            None => auth_audit
+                .select(audit_id)
+                .filter(audit_id.gt(gt).and(audit_id.lt(lt)))
+                .limit(limit)
+                .order(audit_id.asc())
+                .load::<String>(&conn),
+        }
+        .map_err(Error::Diesel)
+    }
+
     fn audit_list_where_created_lte(
         &self,
         created_lte: &DateTime<Utc>,
@@ -228,6 +299,41 @@ impl Driver for PostgresDriver {
                 }
                 Ok(res)
             })
+    }
+
+    fn audit_list_where_created_gte_and_lte(
+        &self,
+        created_gte: &DateTime<Utc>,
+        created_lte: &DateTime<Utc>,
+        offset_id: Option<&str>,
+        limit: i64,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<String>, Error> {
+        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
+        self.audit_list_where_created_gte_and_lte_inner(
+            created_gte,
+            created_lte,
+            limit,
+            offset,
+            service_id_mask,
+        )
+        .and_then(|res| {
+            if let Some(offset_id) = offset_id {
+                for (i, id) in res.iter().enumerate() {
+                    if id == offset_id {
+                        let offset: i64 = (i + 1).try_into().unwrap();
+                        return self.audit_list_where_created_gte_and_lte_inner(
+                            created_gte,
+                            created_lte,
+                            limit,
+                            offset,
+                            service_id_mask,
+                        );
+                    }
+                }
+            }
+            Ok(res)
+        })
     }
 
     fn audit_create(

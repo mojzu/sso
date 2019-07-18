@@ -218,40 +218,32 @@ pub fn list(
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
     let service_mask = service_mask.map(|s| s.id.as_ref());
 
-    // TODO(refactor): Handle gt AND lt, created_gte AND created_lte cases.
-    match &query.gt {
-        Some(gt) => driver
-            .audit_list_where_id_gt(gt, limit, service_mask)
-            .map_err(Error::Driver),
-        None => match &query.lt {
-            Some(lt) => driver
-                .audit_list_where_id_lt(lt, limit, service_mask)
-                .map_err(Error::Driver),
-            None => match &query.created_gte {
-                Some(created_gte) => driver
-                    .audit_list_where_created_gte(
+    match (&query.gt, &query.lt) {
+        (Some(gt), Some(lt)) => driver.audit_list_where_id_gt_and_lt(gt, lt, limit, service_mask),
+        (Some(gt), None) => driver.audit_list_where_id_gt(gt, limit, service_mask),
+        (None, Some(lt)) => driver.audit_list_where_id_lt(lt, limit, service_mask),
+        (None, None) => {
+            let offset_id = query.offset_id.as_ref().map(|x| &**x);
+            match (&query.created_gte, &query.created_lte) {
+                (Some(created_gte), Some(created_lte)) => driver
+                    .audit_list_where_created_gte_and_lte(
                         created_gte,
-                        query.offset_id.as_ref().map(|x| &**x),
+                        created_lte,
+                        offset_id,
                         limit,
                         service_mask,
-                    )
-                    .map_err(Error::Driver),
-                None => match &query.created_lte {
-                    Some(created_lte) => driver
-                        .audit_list_where_created_lte(
-                            created_lte,
-                            query.offset_id.as_ref().map(|x| &**x),
-                            limit,
-                            service_mask,
-                        )
-                        .map_err(Error::Driver),
-                    None => driver
-                        .audit_list_where_id_gt("", limit, service_mask)
-                        .map_err(Error::Driver),
-                },
-            },
-        },
+                    ),
+                (Some(created_gte), None) => {
+                    driver.audit_list_where_created_gte(created_gte, offset_id, limit, service_mask)
+                }
+                (None, Some(created_lte)) => {
+                    driver.audit_list_where_created_lte(created_lte, offset_id, limit, service_mask)
+                }
+                (None, None) => driver.audit_list_where_id_gt("", limit, service_mask),
+            }
+        }
     }
+    .map_err(Error::Driver)
 }
 
 /// Create one audit log.
