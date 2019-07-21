@@ -1,7 +1,7 @@
 use crate::core::audit::AuditBuilder;
 use crate::core::{Error, Service};
 use crate::driver;
-use prometheus::{Encoder, IntCounter, Opts, Registry, TextEncoder};
+use prometheus::{Encoder, IntCounterVec, Opts, Registry, TextEncoder};
 
 pub fn read(
     driver: &driver::Driver,
@@ -10,16 +10,17 @@ pub fn read(
     registry: &Registry,
 ) -> Result<String, Error> {
     // TODO(refactor): More efficient way of handling audit metrics.
-    let audit_registry = Registry::new();
     let audit_metrics = driver
         .audit_read_metrics(service_mask.map(|s| s.id.as_ref()))
         .map_err(Error::Driver)?;
+
+    let audit_registry = Registry::new();
+    let prefix = crate_name!();
+    let opts = Opts::new(format!("{}_audit", prefix), "Audit log counter".to_owned());
+    let counter = IntCounterVec::new(opts, &["path"]).unwrap();
+    audit_registry.register(Box::new(counter.clone())).unwrap();
     for (path, count) in audit_metrics.iter() {
-        // TODO(refactor): Get help strings from somewhere.
-        let opts = Opts::new(path.to_owned(), "...".to_owned());
-        let counter = IntCounter::with_opts(opts).unwrap();
-        counter.inc_by(*count);
-        audit_registry.register(Box::new(counter)).unwrap();
+        counter.with_label_values(&[path]).inc_by(*count);
     }
 
     let encoded = encode_registry(registry)?;
@@ -29,8 +30,6 @@ pub fn read(
 }
 
 fn encode_registry(registry: &Registry) -> Result<String, Error> {
-    registry.gather();
-
     let mut buffer = vec![];
     let encoder = TextEncoder::new();
     let metrics = registry.gather();

@@ -1,4 +1,5 @@
 pub mod api;
+pub mod metrics;
 pub mod route;
 pub mod validate;
 
@@ -9,6 +10,7 @@ use actix::Addr;
 use actix_identity::{IdentityPolicy, IdentityService};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::{middleware, web, App, HttpResponse, HttpServer, ResponseError};
+use prometheus::{HistogramOpts, HistogramVec, IntCounterVec, Opts, Registry};
 use serde::Serialize;
 pub use validate::FromJsonValue;
 
@@ -104,6 +106,9 @@ pub enum Error {
     /// Handlebars template render error wrapper.
     #[fail(display = "ServerError::HandlebarsTemplateRender {}", _0)]
     HandlebarsTemplateRender(#[fail(cause)] handlebars::TemplateRenderError),
+    /// Prometheus error wrapper.
+    #[fail(display = "ServerError::Prometheus {}", _0)]
+    Prometheus(#[fail(cause)] prometheus::Error),
 }
 
 impl From<core::Error> for Error {
@@ -281,7 +286,6 @@ pub struct Data {
     configuration: Configuration,
     driver: Box<driver::Driver>,
     notify_addr: Addr<NotifyExecutor>,
-    /// TODO(refactor): Middleware for request metrics.
     registry: prometheus::Registry,
 }
 
@@ -291,12 +295,13 @@ impl Data {
         configuration: Configuration,
         driver: Box<driver::Driver>,
         notify_addr: Addr<NotifyExecutor>,
+        registry: prometheus::Registry,
     ) -> Self {
         Data {
             configuration,
             driver,
             notify_addr,
-            registry: prometheus::Registry::new(),
+            registry,
         }
     }
 
@@ -370,7 +375,7 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
 fn trim_authorisation(value: &str) -> Option<String> {
     let value = value.to_owned();
     if value.starts_with("Bearer ") {
-        let parts: Vec<&str> = value.split(" ").collect();
+        let parts: Vec<&str> = value.split(' ').collect();
         if parts.len() > 1 {
             let value = parts[1].trim().to_owned();
             Some(value)
@@ -390,6 +395,8 @@ pub fn start(
     notify_addr: Addr<NotifyExecutor>,
 ) -> Result<(), Error> {
     let bind = configuration.bind().to_owned();
+    let (registry, counter, histogram) = metrics_registry()?;
+
     let server = HttpServer::new(move || {
         App::new()
             // Shared data.
@@ -397,13 +404,16 @@ pub fn start(
                 configuration.clone(),
                 driver.clone(),
                 notify_addr.clone(),
+                registry.clone(),
             ))
             // Global JSON configuration.
             .data(web::JsonConfig::default().limit(DEFAULT_JSON_LIMIT))
+            // Authorisation header identity middleware.
+            .wrap(AuthorisationIdentityPolicy::identity_service())
+            // Metrics middleware.
+            .wrap(metrics::Metrics::new(counter.clone(), histogram.clone()))
             // Logger middleware.
             .wrap(middleware::Logger::default())
-            // Authorisation header identity service.
-            .wrap(AuthorisationIdentityPolicy::identity_service())
             // Route service.
             .configure(route::route_service)
             // Default route (method not allowed).
@@ -415,4 +425,28 @@ pub fn start(
 
     server.start();
     Ok(())
+}
+
+fn metrics_registry() -> Result<(Registry, IntCounterVec, HistogramVec), Error> {
+    let registry = Registry::new();
+    let prefix = crate_name!();
+    let count_opts = Opts::new(
+        format!("{}_http_count", prefix),
+        "HTTP request counter".to_owned(),
+    );
+    let count = IntCounterVec::new(count_opts, &["path", "status"]).map_err(Error::Prometheus)?;
+
+    let latency_opts = HistogramOpts::new(
+        format!("{}_http_latency", prefix),
+        "HTTP request latency".to_owned(),
+    );
+    let latency = HistogramVec::new(latency_opts, &["path"]).map_err(Error::Prometheus)?;
+
+    registry
+        .register(Box::new(count.clone()))
+        .map_err(Error::Prometheus)?;
+    registry
+        .register(Box::new(latency.clone()))
+        .map_err(Error::Prometheus)?;
+    Ok((registry, count, latency))
 }
