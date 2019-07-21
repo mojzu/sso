@@ -104,6 +104,12 @@ pub trait Driver: Send + Sync {
         service_id_mask: Option<&str>,
     ) -> Result<Option<Audit>, Error>;
 
+    /// Read audit metrics, returns array of counts for distinct audit paths.
+    fn audit_read_metrics(
+        &self,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<(String, i64)>, Error>;
+
     /// Delete many audit logs by created at time.
     fn audit_delete_by_created_at(&self, created_at: &DateTime<Utc>) -> Result<usize, Error>;
 

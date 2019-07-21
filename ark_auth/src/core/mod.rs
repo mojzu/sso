@@ -3,6 +3,7 @@ pub mod auth;
 pub mod csrf;
 pub mod jwt;
 pub mod key;
+pub mod metrics;
 pub mod service;
 pub mod user;
 

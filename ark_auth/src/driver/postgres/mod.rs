@@ -5,8 +5,10 @@ mod schema;
 use crate::core::{Audit, AuditMeta, Csrf, Key, Service, User};
 use crate::driver::{Driver, Error};
 use chrono::{DateTime, Utc};
+use diesel::dsl::sql;
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
+use diesel::sql_types::BigInt;
 use serde_json::Value;
 use std::convert::TryInto;
 
@@ -392,6 +394,29 @@ impl Driver for PostgresDriver {
             diesel::result::Error::NotFound => Ok(None),
             _ => Err(Error::Diesel(err)),
         })
+    }
+
+    fn audit_read_metrics(
+        &self,
+        service_id_mask: Option<&str>,
+    ) -> Result<Vec<(String, i64)>, Error> {
+        use crate::driver::postgres::schema::auth_audit::dsl::*;
+
+        let conn = self.connection()?;
+        match service_id_mask {
+            Some(service_id_mask) => auth_audit
+                .select((audit_path, sql::<BigInt>("count(*)")))
+                .group_by(audit_path)
+                .filter(service_id.eq(service_id_mask))
+                .order(audit_path.asc())
+                .load(&conn),
+            None => auth_audit
+                .select((audit_path, sql::<BigInt>("count(*)")))
+                .group_by(audit_path)
+                .order(audit_path.asc())
+                .load(&conn),
+        }
+        .map_err(Error::Diesel)
     }
 
     fn audit_delete_by_created_at(&self, audit_created_at: &DateTime<Utc>) -> Result<usize, Error> {

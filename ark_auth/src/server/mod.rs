@@ -12,17 +12,15 @@ use actix_web::{middleware, web, App, HttpResponse, HttpServer, ResponseError};
 use serde::Serialize;
 pub use validate::FromJsonValue;
 
-// TODO(feature): Prometheus metrics.
-// <https://prometheus.io/docs/instrumenting/exposition_formats/>
-// TODO(feature): Webauthn support.
-// <https://webauthn.guide/>
-// <https://webauthn.org/>
-// TODO(feature): Configurable canary routes.
 // TODO(feature): User sessions route for active tokens/keys.
 // TODO(feature): Optional custom audit log for key/token verify routes.
 // TODO(feature): Better method to handle multiple keys?
 // Allow or require specifying key ID via argument?
 // TODO(feature): Support more OAuth2 providers.
+// TODO(feature): Webauthn support.
+// <https://webauthn.guide/>
+// <https://webauthn.org/>
+// TODO(feature): Configurable canary routes.
 
 /// Default JSON payload size limit.
 const DEFAULT_JSON_LIMIT: usize = 1024;
@@ -283,6 +281,8 @@ pub struct Data {
     configuration: Configuration,
     driver: Box<driver::Driver>,
     notify_addr: Addr<NotifyExecutor>,
+    /// TODO(refactor): Middleware for request metrics.
+    registry: prometheus::Registry,
 }
 
 impl Data {
@@ -296,6 +296,7 @@ impl Data {
             configuration,
             driver,
             notify_addr,
+            registry: prometheus::Registry::new(),
         }
     }
 
@@ -312,6 +313,11 @@ impl Data {
     /// Get reference to notify actor address.
     pub fn notify(&self) -> &Addr<NotifyExecutor> {
         &self.notify_addr
+    }
+
+    /// Get reference to prometheus registry.
+    pub fn registry(&self) -> &prometheus::Registry {
+        &self.registry
     }
 }
 
@@ -342,8 +348,8 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
     fn from_request(&self, request: &mut ServiceRequest) -> Self::Future {
         let key = match request.headers().get(&self.header) {
             Some(value) => {
-                let value = value.to_str().map_err(|_| Error::Forbidden)?;
-                Some(value.to_owned())
+                let value = value.to_str().map_err(|_err| Error::Forbidden)?;
+                trim_authorisation(value)
             }
             None => None,
         };
@@ -357,6 +363,22 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
         _response: &mut ServiceResponse<B>,
     ) -> Self::ResponseFuture {
         Ok(())
+    }
+}
+
+/// Returns key value from formats: `$KEY`, `Bearer $KEY`.
+fn trim_authorisation(value: &str) -> Option<String> {
+    let value = value.to_owned();
+    if value.starts_with("Bearer ") {
+        let parts: Vec<&str> = value.split(" ").collect();
+        if parts.len() > 1 {
+            let value = parts[1].trim().to_owned();
+            Some(value)
+        } else {
+            None
+        }
+    } else {
+        Some(value)
     }
 }
 

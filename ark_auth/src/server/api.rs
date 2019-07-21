@@ -25,6 +25,7 @@ pub mod path {
     pub const ID: &str = "/{id}";
     pub const V1: &str = "/v1";
     pub const PING: &str = "/ping";
+    pub const METRICS: &str = "/metrics";
     pub const AUTH: &str = "/auth";
     pub const PROVIDER: &str = "/provider";
     pub const LOCAL: &str = "/local";
@@ -49,6 +50,7 @@ pub mod path {
 /// Route definitions.
 pub mod route {
     pub const PING: &str = "/v1/ping";
+    pub const METRICS: &str = "/v1/metrics";
     pub const AUTH_LOCAL_LOGIN: &str = "/v1/auth/provider/local/login";
     pub const AUTH_LOCAL_RESET_PASSWORD: &str = "/v1/auth/provider/local/reset-password";
     pub const AUTH_LOCAL_RESET_PASSWORD_CONFIRM: &str =

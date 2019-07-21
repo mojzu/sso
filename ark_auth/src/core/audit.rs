@@ -8,7 +8,7 @@ use time::Duration;
 /// Audit paths.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum AuditPath {
-    AuthenticationError,
+    AuthenticateError,
     Login,
     LoginError,
     ResetPassword,
@@ -40,35 +40,35 @@ impl AuditPath {
     pub fn to_string(&self) -> String {
         let prefix = crate_name!();
         match self {
-            AuditPath::AuthenticationError => format!("{}/error/authentication", prefix),
-            AuditPath::Login => format!("{}/login", prefix),
-            AuditPath::LoginError => format!("{}/error/login", prefix),
-            AuditPath::ResetPassword => format!("{}/reset_password", prefix),
-            AuditPath::ResetPasswordError => format!("{}/error/reset_password", prefix),
-            AuditPath::ResetPasswordConfirm => format!("{}/reset_password_confirm", prefix),
+            AuditPath::AuthenticateError => format!("{}_authenticate_error", prefix),
+            AuditPath::Login => format!("{}_login", prefix),
+            AuditPath::LoginError => format!("{}_login_error", prefix),
+            AuditPath::ResetPassword => format!("{}_reset_password", prefix),
+            AuditPath::ResetPasswordError => format!("{}_reset_password_error", prefix),
+            AuditPath::ResetPasswordConfirm => format!("{}_reset_password_confirm", prefix),
             AuditPath::ResetPasswordConfirmError => {
-                format!("{}/error/reset_password_confirm", prefix)
+                format!("{}_reset_password_confirm_error", prefix)
             }
-            AuditPath::UpdateEmail => format!("{}/update_email", prefix),
-            AuditPath::UpdateEmailError => format!("{}/error/update_email", prefix),
-            AuditPath::UpdateEmailRevoke => format!("{}/update_email_revoke", prefix),
-            AuditPath::UpdateEmailRevokeError => format!("{}/error/update_email_revoke", prefix),
-            AuditPath::UpdatePassword => format!("{}/update_password", prefix),
-            AuditPath::UpdatePasswordError => format!("{}/error/update_password", prefix),
-            AuditPath::UpdatePasswordRevoke => format!("{}/update_password_revoke", prefix),
+            AuditPath::UpdateEmail => format!("{}_update_email", prefix),
+            AuditPath::UpdateEmailError => format!("{}_update_email_error", prefix),
+            AuditPath::UpdateEmailRevoke => format!("{}_update_email_revoke", prefix),
+            AuditPath::UpdateEmailRevokeError => format!("{}_update_email_revoke_error", prefix),
+            AuditPath::UpdatePassword => format!("{}_update_password", prefix),
+            AuditPath::UpdatePasswordError => format!("{}_update_password_error", prefix),
+            AuditPath::UpdatePasswordRevoke => format!("{}_update_password_revoke", prefix),
             AuditPath::UpdatePasswordRevokeError => {
-                format!("{}/error/update_password_revoke", prefix)
+                format!("{}_update_password_revoke_error", prefix)
             }
-            AuditPath::Oauth2Login => format!("{}/oauth2_login", prefix),
-            AuditPath::Oauth2LoginError => format!("{}/error/oauth2_login", prefix),
-            AuditPath::KeyVerifyError => format!("{}/error/key_verify", prefix),
-            AuditPath::KeyRevoke => format!("{}/key_revoke", prefix),
-            AuditPath::KeyRevokeError => format!("{}/error/key_revoke", prefix),
-            AuditPath::TokenVerifyError => format!("{}/error/token_verify", prefix),
-            AuditPath::TokenRefresh => format!("{}/token_refresh", prefix),
-            AuditPath::TokenRefreshError => format!("{}/error/token_refresh", prefix),
-            AuditPath::TokenRevoke => format!("{}/token_revoke", prefix),
-            AuditPath::TokenRevokeError => format!("{}/error/token_revoke", prefix),
+            AuditPath::Oauth2Login => format!("{}_oauth2_login", prefix),
+            AuditPath::Oauth2LoginError => format!("{}_oauth2_login_error", prefix),
+            AuditPath::KeyVerifyError => format!("{}_key_verify_error", prefix),
+            AuditPath::KeyRevoke => format!("{}_key_revoke", prefix),
+            AuditPath::KeyRevokeError => format!("{}_key_revoke_error", prefix),
+            AuditPath::TokenVerifyError => format!("{}_token_verify_error", prefix),
+            AuditPath::TokenRefresh => format!("{}_token_refresh", prefix),
+            AuditPath::TokenRefreshError => format!("{}_token_refresh_error", prefix),
+            AuditPath::TokenRevoke => format!("{}_token_revoke", prefix),
+            AuditPath::TokenRevokeError => format!("{}_token_revoke_error", prefix),
         }
     }
 }

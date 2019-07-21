@@ -6,6 +6,7 @@ use crate::driver;
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
 // TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
 // TODO(refactor): Improve key, user, service list query options (order by name, ...).
+// TODO(fix): Audit logs created for root keys using authenticate.
 
 /// Authenticate root key.
 pub fn authenticate_root(
@@ -25,7 +26,7 @@ pub fn authenticate_root(
                 Err(err) => {
                     audit.create_internal(
                         driver,
-                        AuditPath::AuthenticationError,
+                        AuditPath::AuthenticateError,
                         AuditMessage::KeyNotFound,
                     );
                     Err(err)
@@ -54,7 +55,7 @@ pub fn authenticate_service(
                 Err(err) => {
                     audit.create_internal(
                         driver,
-                        AuditPath::AuthenticationError,
+                        AuditPath::AuthenticateError,
                         AuditMessage::KeyNotFound,
                     );
                     Err(err)
@@ -65,7 +66,7 @@ pub fn authenticate_service(
                 Err(err) => {
                     audit.create_internal(
                         driver,
-                        AuditPath::AuthenticationError,
+                        AuditPath::AuthenticateError,
                         AuditMessage::KeyInvalid,
                     );
                     Err(err)
@@ -80,7 +81,7 @@ pub fn authenticate_service(
                 Err(err) => {
                     audit.create_internal(
                         driver,
-                        AuditPath::AuthenticationError,
+                        AuditPath::AuthenticateError,
                         AuditMessage::ServiceNotFound,
                     );
                     Err(err)

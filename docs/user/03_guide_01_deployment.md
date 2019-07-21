@@ -27,3 +27,22 @@ http {
     }
 }
 ```
+
+**Prometheus**
+
+Example [Prometheus](https://prometheus.io/) configuration.
+
+```yml
+scrape_configs:
+    # ...
+
+    - job_name: "ark_auth"
+      metrics_path: "/v1/metrics"
+      bearer_token: "$root_or_service_key"
+      static_configs:
+          - targets: ["$server_url"]
+```
+
+```shell
+curl --header "Authorization: $root_or_service_key" $server_url/v1/metrics
+```
