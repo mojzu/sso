@@ -1,7 +1,29 @@
-use ark_auth::client::{Client, ClientOptions, Error, RequestError, SyncClient};
+mod audit;
+mod auth_key;
+mod auth_local;
+mod auth_token;
+mod guide;
+mod key;
+mod service;
+mod user;
+
+use ark_auth::client::{Client, ClientOptions, SyncClient};
+pub use ark_auth::client::{Error, RequestError};
 use ark_auth::core::{Key, Service, User, UserKey, UserToken, UserTokenPartial};
 use ark_auth::server::api::AuthOauth2UrlResponse;
+pub use ark_auth::server::api::{
+    AuditCreateBody, AuditListQuery, KeyListQuery, ServiceListQuery, UserListQuery,
+};
 use chrono::Utc;
+pub use serde_json::Value;
+
+pub const INVALID_EMAIL: &str = "invalid-email";
+pub const INVALID_PASSWORD: &str = "guests";
+pub const INVALID_UUID: &str = "5a044d9035334e95a60ac0338904d37c";
+pub const INVALID_SERVICE_KEY: &str = "invalid-service-key";
+pub const USER_NAME: &str = "user-name";
+pub const USER_PASSWORD: &str = "user-name";
+pub const KEY_NAME: &str = "key-name";
 
 fn env_test_ark_auth_url() -> String {
     std::env::var("TEST_ARK_AUTH_URL")
