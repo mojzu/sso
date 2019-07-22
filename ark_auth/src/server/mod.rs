@@ -429,15 +429,14 @@ pub fn start(
 
 fn metrics_registry() -> Result<(Registry, IntCounterVec, HistogramVec), Error> {
     let registry = Registry::new();
-    let prefix = crate_name!();
     let count_opts = Opts::new(
-        format!("{}_http_count", prefix),
+        core::metrics::name("http_count"),
         "HTTP request counter".to_owned(),
     );
     let count = IntCounterVec::new(count_opts, &["path", "status"]).map_err(Error::Prometheus)?;
 
     let latency_opts = HistogramOpts::new(
-        format!("{}_http_latency", prefix),
+        core::metrics::name("http_latency"),
         "HTTP request latency".to_owned(),
     );
     let latency = HistogramVec::new(latency_opts, &["path"]).map_err(Error::Prometheus)?;

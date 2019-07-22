@@ -3,6 +3,11 @@ use crate::core::{Error, Service};
 use crate::driver;
 use prometheus::{Encoder, IntCounterVec, Opts, Registry, TextEncoder};
 
+pub fn name(name: &str) -> String {
+    let prefix = crate_name!();
+    format!("{}_{}", prefix, name)
+}
+
 pub fn read(
     driver: &driver::Driver,
     service_mask: Option<&Service>,
@@ -15,8 +20,7 @@ pub fn read(
         .map_err(Error::Driver)?;
 
     let audit_registry = Registry::new();
-    let prefix = crate_name!();
-    let opts = Opts::new(format!("{}_audit", prefix), "Audit log counter".to_owned());
+    let opts = Opts::new(name("audit"), "Audit log counter".to_owned());
     let counter = IntCounterVec::new(opts, &["path"]).unwrap();
     audit_registry.register(Box::new(counter.clone())).unwrap();
     for (path, count) in audit_metrics.iter() {
