@@ -130,11 +130,11 @@ fn main() {
 /// Build configuration from environment.
 fn configuration_from_environment() -> (Configuration, Box<Driver>) {
     // TODO(refactor): Clean this up, improve error messages.
-    let database_url = std::env::var("DATABASE_URL").unwrap();
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL is undefined, required");
     let database_connections =
         std::env::var("DATABASE_CONNECTIONS").unwrap_or_else(|_| "10".to_owned());
     let database_connections = database_connections.parse::<u32>().unwrap();
-    let server_bind = std::env::var("SERVER_BIND").unwrap();
+    let server_bind = std::env::var("SERVER_BIND").expect("SERVER_BIND is undefined, required");
     let mut configuration = cli::Configuration::new(server_bind);
 
     let smtp_host = std::env::var("SMTP_HOST");

@@ -60,11 +60,11 @@ where
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
-        let timer = self.latency.with_label_values(&[req.path()]).start_timer();
+        // TODO(refactor): Add path as label value (&[req.path()]), doesn't work now as
+        // routing happens before middleware calls, so path contains ID, queries, etc.
+        let timer = self.latency.with_label_values(&["/"]).start_timer();
         let timer = ok::<HistogramTimer, Self::Error>(timer);
         let count = self.count.clone();
-        let path = req.path().to_owned();
-        // TODO(fix): Clean path to remove parameters.
 
         Box::new(
             self.service
@@ -73,7 +73,7 @@ where
                 .and_then(move |(res, timer)| {
                     timer.observe_duration();
                     count
-                        .with_label_values(&[&path, res.status().as_str()])
+                        .with_label_values(&["/", res.status().as_str()])
                         .inc_by(1);
                     Ok(res)
                 }),
