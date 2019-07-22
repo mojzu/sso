@@ -8,7 +8,7 @@ services:
     #         - postgres
     #     restart: always
     #     environment:
-    #         DATABASE_URL: "postgres://ark_auth:guest@postgres:5432/ark_auth"
+    #         DATABASE_URL: "postgres://guest:guest@postgres:5432/ark_auth"
     #         SERVER_BIND: "0.0.0.0:9000"
     #     ports:
     #         - "9000:9000"
@@ -17,8 +17,9 @@ services:
     postgres:
         image: postgres:11.3
         restart: always
+        network_mode: "host"
         environment:
-            POSTGRES_USER: ark_auth
+            POSTGRES_USER: guest
             POSTGRES_PASSWORD: guest
         ports:
             - "5432:5432"

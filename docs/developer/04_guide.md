@@ -5,7 +5,8 @@
 | Variable                | Description                                     |
 | ----------------------- | ----------------------------------------------- |
 | DATABASE_URL            | Database connection URL, required.              |
-| SERVER_BIND             | Server bind address, required.                  |
+| DATABASE_CONNECTIONS    | Database connections, optional.                 |
+| SERVER_BIND             | HTTP server bind address, required.             |
 | SMTP_HOST               | SMTP configured, required for emails.           |
 | SMTP_PORT               | ...                                             |
 | SMTP_USER               | ...                                             |
@@ -76,11 +77,11 @@ cargo make test
 
 For integration tests, the following environment variables are required.
 
-| Variable | Description     |
-| -------- | --------------- |
+| Variable          | Description     |
+| ----------------- | --------------- |
 | TEST_ARK_AUTH_URL | Server URL.     |
 | TEST_ARK_AUTH_KEY | Root key value. |
-| TEST_ARK_KV_BIN | Binary path. |
+| TEST_ARK_KV_BIN   | Binary path.    |
 
 To run unit tests and integration tests.
 

@@ -6,6 +6,7 @@ extern crate log;
 use ark_auth::{cli, driver, driver::Driver};
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
+use std::env;
 
 const COMMAND_CREATE_ROOT_KEY: &str = "create-root-key";
 const COMMAND_DELETE_ROOT_KEYS: &str = "delete-root-keys";
@@ -14,14 +15,9 @@ const COMMAND_START_SERVER: &str = "start-server";
 const ARG_NAME: &str = "NAME";
 const ARG_URL: &str = "URL";
 
-struct Configuration {
-    database_url: String,
-    configuration: cli::Configuration,
-}
-
 fn main() {
     // Configure logging environment variables.
-    std::env::set_var("RUST_BACKTRACE", "1");
+    std::env::set_var("RUST_BACKTRACE", "0");
     std::env::set_var("RUST_LOG", "info");
 
     // If SENTRY_URL is defined, enable logging and panic handler integration.
@@ -109,7 +105,7 @@ fn main() {
             })
         }
         (COMMAND_START_SERVER, Some(_submatches)) => {
-            cli::start_server(driver, configuration.configuration).map(|_| 0)
+            cli::start_server(driver, configuration).map(|_| 0)
         }
         _ => {
             println!("{}", matches.usage());
@@ -127,14 +123,15 @@ fn main() {
     }
 }
 
+const DATABASE_URL: &str = "DATABASE_URL";
+const DATABASE_CONNECTIONS: &str = "DATABASE_CONNECTIONS";
+const SERVER_BIND: &str = "SERVER_BIND";
+
 /// Build configuration from environment.
-fn configuration_from_environment() -> (Configuration, Box<Driver>) {
+fn configuration_from_environment() -> (cli::Configuration, Box<Driver>) {
     // TODO(refactor): Clean this up, improve error messages.
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL is undefined, required");
-    let database_connections =
-        std::env::var("DATABASE_CONNECTIONS").unwrap_or_else(|_| "10".to_owned());
-    let database_connections = database_connections.parse::<u32>().unwrap();
-    let server_bind = std::env::var("SERVER_BIND").expect("SERVER_BIND is undefined, required");
+    let server_bind_error = format!("{} is undefined, required", SERVER_BIND);
+    let server_bind = env::var(SERVER_BIND).expect(&server_bind_error);
     let mut configuration = cli::Configuration::new(server_bind);
 
     let smtp_host = std::env::var("SMTP_HOST");
@@ -175,17 +172,22 @@ fn configuration_from_environment() -> (Configuration, Box<Driver>) {
         );
     }
 
-    let configuration = Configuration {
-        database_url,
-        configuration,
+    let database_url_error = format!("{} is undefined, required", DATABASE_URL);
+    let database_url = env::var(DATABASE_URL).expect(&database_url_error);
+    let database_connections_error =
+        format!("{} is invalid unsigned integer", DATABASE_CONNECTIONS);
+    let database_connections = env::var(DATABASE_CONNECTIONS).ok();
+    let database_connections = if let Some(x) = database_connections {
+        Some(x.parse::<u32>().expect(&database_connections_error))
+    } else {
+        None
     };
-
-    let driver = if configuration.database_url.starts_with("postgres") {
-        driver::PostgresDriver::initialise(&configuration.database_url, database_connections)
+    let driver = if database_url.starts_with("postgres") {
+        driver::PostgresDriver::initialise(&database_url, database_connections)
             .unwrap()
             .box_clone()
     } else {
-        // driver::SqliteDriver::initialise(&configuration.database_url, database_connections)
+        // driver::SqliteDriver::initialise(&database_url, database_connections)
         //     .unwrap()
         //     .box_clone()
         unimplemented!();
