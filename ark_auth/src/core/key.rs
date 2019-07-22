@@ -6,7 +6,6 @@ use crate::driver;
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
 // TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
 // TODO(refactor): Improve key, user, service list query options (order by name, ...).
-// TODO(fix): Audit logs created for root keys using authenticate.
 
 /// Authenticate root key.
 pub fn authenticate_root(
@@ -33,7 +32,14 @@ pub fn authenticate_root(
                 }
             })
             .map(|_key| audit),
-        None => Err(Error::Forbidden),
+        None => {
+            audit.create_internal(
+                driver,
+                AuditPath::AuthenticateError,
+                AuditMessage::KeyUndefined,
+            );
+            Err(Error::Forbidden)
+        }
     }
 }
 
@@ -72,22 +78,15 @@ pub fn authenticate_service(
                     Err(err)
                 }
             })
-            .and_then(|service_id| service_read_by_id(driver, None, &mut audit, &service_id))
-            .and_then(|service| match service.ok_or_else(|| Error::Forbidden) {
-                Ok(service) => {
-                    audit.set_service(Some(&service));
-                    Ok((service, audit))
-                }
-                Err(err) => {
-                    audit.create_internal(
-                        driver,
-                        AuditPath::AuthenticateError,
-                        AuditMessage::ServiceNotFound,
-                    );
-                    Err(err)
-                }
-            }),
-        None => Err(Error::Forbidden),
+            .and_then(|service_id| authenticate_service_inner(driver, audit, &service_id)),
+        None => {
+            audit.create_internal(
+                driver,
+                AuditPath::AuthenticateError,
+                AuditMessage::KeyUndefined,
+            );
+            Err(Error::Forbidden)
+        }
     }
 }
 
@@ -100,7 +99,7 @@ pub fn authenticate(
     let key_value_1 = key_value.to_owned();
     let audit_meta_copy = audit_meta.clone();
 
-    authenticate_service(driver, audit_meta, key_value)
+    try_authenticate_service(driver, audit_meta, key_value)
         .map(|(service, audit)| (Some(service), audit))
         .or_else(move |err| match err {
             Error::Forbidden => {
@@ -108,6 +107,48 @@ pub fn authenticate(
             }
             _ => Err(err),
         })
+}
+
+/// Authenticate service key, in case key does not exist or is not a service key, do not create audit log.
+/// This is used in cases where a key may be a service or root key, audit logs will be created by root key
+/// handler in case the key does not exist or is invalid.
+fn try_authenticate_service(
+    driver: &driver::Driver,
+    audit_meta: AuditMeta,
+    key_value: Option<String>,
+) -> Result<(Service, AuditBuilder), Error> {
+    let mut audit = AuditBuilder::new(audit_meta);
+
+    match key_value {
+        Some(key_value) => read_by_service_value(driver, &mut audit, &key_value)
+            .and_then(|key| key.ok_or_else(|| Error::Forbidden))
+            .and_then(|key| key.service_id.ok_or_else(|| Error::Forbidden))
+            .and_then(|service_id| authenticate_service_inner(driver, audit, &service_id)),
+        None => Err(Error::Forbidden),
+    }
+}
+
+fn authenticate_service_inner(
+    driver: &driver::Driver,
+    mut audit: AuditBuilder,
+    service_id: &str,
+) -> Result<(Service, AuditBuilder), Error> {
+    service_read_by_id(driver, None, &mut audit, service_id).and_then(|service| {
+        match service.ok_or_else(|| Error::Forbidden) {
+            Ok(service) => {
+                audit.set_service(Some(&service));
+                Ok((service, audit))
+            }
+            Err(err) => {
+                audit.create_internal(
+                    driver,
+                    AuditPath::AuthenticateError,
+                    AuditMessage::ServiceNotFound,
+                );
+                Err(err)
+            }
+        }
+    })
 }
 
 /// List keys using query.

@@ -21,6 +21,7 @@
 **Fixed**
 
 - Reset password route returns OK in cases where user email address does not exist.
+- Audit log errors created for root key authentication when checking if service key.
 
 ## 0.2.0 (2019-07-07)
 

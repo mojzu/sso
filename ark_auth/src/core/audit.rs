@@ -82,6 +82,7 @@ pub enum AuditMessage {
     UserDisabled,
     KeyNotFound,
     KeyInvalid,
+    KeyUndefined,
     KeyDisabledOrRevoked,
     PasswordNotSetOrIncorrect,
     Login,
