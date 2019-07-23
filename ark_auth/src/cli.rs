@@ -44,6 +44,108 @@ impl Configuration {
     }
 }
 
+/// Read required environment variable string value.
+pub fn str_from_env(name: &str) -> Result<String, Error> {
+    std::env::var(name).map_err(|err| {
+        error!("{} is undefined, required ({})", name, err);
+        Error::StdEnvVar(err)
+    })
+}
+
+/// Read optional environment variable u32 value.
+pub fn opt_u32_from_env(name: &str) -> Result<Option<u32>, Error> {
+    let value = std::env::var(name).ok();
+    if let Some(x) = value {
+        match x.parse::<u32>() {
+            Ok(x) => Ok(Some(x)),
+            Err(err) => {
+                error!("{} is invalid unsigned integer ({})", name, err);
+                Err(Error::StdNumParseInt(err))
+            }
+        }
+    } else {
+        Ok(None)
+    }
+}
+
+/// Read SMTP environment variables into configuration.
+pub fn smtp_from_env(
+    smtp_host_name: &str,
+    smtp_port_name: &str,
+    smtp_user_name: &str,
+    smtp_password_name: &str,
+) -> Result<Option<notify::ConfigurationSmtp>, Error> {
+    let smtp_host = std::env::var(smtp_host_name).map_err(|err| {
+        error!("{} is undefined ({})", smtp_host_name, err);
+        Error::StdEnvVar(err)
+    });
+    let smtp_port = std::env::var(smtp_port_name).map_err(|err| {
+        error!("{} is undefined ({})", smtp_port_name, err);
+        Error::StdEnvVar(err)
+    });
+    let smtp_user = std::env::var(smtp_user_name).map_err(|err| {
+        error!("{} is undefined ({})", smtp_user_name, err);
+        Error::StdEnvVar(err)
+    });
+    let smtp_password = std::env::var(smtp_password_name).map_err(|err| {
+        error!("{} is undefined ({})", smtp_password_name, err);
+        Error::StdEnvVar(err)
+    });
+    if smtp_host.is_ok() || smtp_port.is_ok() || smtp_user.is_ok() || smtp_password.is_ok() {
+        let smtp_host = smtp_host?;
+        let smtp_port = smtp_port?;
+        let smtp_user = smtp_user?;
+        let smtp_password = smtp_password?;
+
+        match smtp_port.parse::<u16>() {
+            Ok(x) => Ok(Some(notify::ConfigurationSmtp::new(
+                smtp_host,
+                x,
+                smtp_user,
+                smtp_password,
+            ))),
+            Err(err) => {
+                error!("{} is invalid port number ({})", smtp_port_name, err);
+                Err(Error::StdNumParseInt(err))
+            }
+        }
+    } else {
+        Ok(None)
+    }
+}
+
+/// Read OAuth2 environment variables into configuration.
+pub fn oauth2_from_env(
+    client_id_name: &str,
+    client_secret_name: &str,
+    redirect_url_name: &str,
+) -> Result<Option<server::ConfigurationProviderOauth2>, Error> {
+    let client_id = std::env::var(client_id_name).map_err(|err| {
+        error!("{} is undefined ({})", client_id_name, err);
+        Error::StdEnvVar(err)
+    });
+    let client_secret = std::env::var(client_secret_name).map_err(|err| {
+        error!("{} is undefined ({})", client_secret_name, err);
+        Error::StdEnvVar(err)
+    });
+    let redirect_url = std::env::var(redirect_url_name).map_err(|err| {
+        error!("{} is undefined ({})", redirect_url_name, err);
+        Error::StdEnvVar(err)
+    });
+    if client_id.is_ok() || client_secret.is_ok() || redirect_url.is_ok() {
+        let client_id = client_id?;
+        let client_secret = client_secret?;
+        let redirect_url = redirect_url?;
+        Ok(Some(server::ConfigurationProviderOauth2::new(
+            client_id,
+            client_secret,
+            redirect_url,
+        )))
+    } else {
+        Ok(None)
+    }
+}
+
 /// Create a root key.
 pub fn create_root_key(driver: Box<Driver>, name: &str) -> Result<core::Key, Error> {
     let mut audit = audit_builder();
