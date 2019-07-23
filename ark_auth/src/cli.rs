@@ -52,6 +52,11 @@ pub fn str_from_env(name: &str) -> Result<String, Error> {
     })
 }
 
+/// Read optional environment variable string value.
+pub fn opt_str_from_env(name: &str) -> Option<String> {
+    std::env::var(name).ok()
+}
+
 /// Read optional environment variable u32 value.
 pub fn opt_u32_from_env(name: &str) -> Result<Option<u32>, Error> {
     let value = std::env::var(name).ok();
@@ -183,7 +188,8 @@ pub fn start_server(driver: Box<Driver>, configuration: Configuration) -> Result
     // Start HTTP server.
     let server_configuration = configuration.server().clone();
     let server_notify_addr = notify_addr.clone();
-    server::start(4, server_configuration, driver, server_notify_addr).map_err(Error::Server)?;
+    server::start(4, driver, server_configuration, server_notify_addr).map_err(Error::Server)?;
+    // TODO(refactor): Threads configuration.
 
     system
         .run()

@@ -94,7 +94,7 @@ fn main() {
         .get_matches();
 
     // Build configuration and driver from environment variables.
-    let result = configuration_from_environment().and_then(|(configuration, driver)| {
+    let result = configure().and_then(|(driver, configuration)| {
         // Call library functions with command line arguments.
         match matches.subcommand() {
             (CMD_CREATE_ROOT_KEY, Some(submatches)) => {
@@ -137,7 +137,7 @@ fn main() {
     }
 }
 
-fn configuration_from_environment() -> Result<(cli::Configuration, Box<Driver>), cli::Error> {
+fn configure() -> Result<(Box<Driver>, cli::Configuration), cli::Error> {
     let database_url = cli::str_from_env(ENV_DATABASE_URL)?;
     let database_connections = cli::opt_u32_from_env(ENV_DATABASE_CONNECTIONS)?;
     let server_bind = cli::str_from_env(ENV_SERVER_BIND)?;
@@ -158,6 +158,17 @@ fn configuration_from_environment() -> Result<(cli::Configuration, Box<Driver>),
         ENV_MICROSOFT_REDIRECT_URL,
     )?);
 
+    let driver = if database_url.starts_with("postgres") {
+        driver::PostgresDriver::initialise(&database_url, database_connections)
+            .unwrap()
+            .box_clone()
+    } else {
+        // driver::SqliteDriver::initialise(&database_url, database_connections)
+        //     .unwrap()
+        //     .box_clone()
+        unimplemented!();
+    };
+
     let notify = notify::ConfigurationBuilder::default()
         .smtp(smtp)
         .build()
@@ -170,16 +181,5 @@ fn configuration_from_environment() -> Result<(cli::Configuration, Box<Driver>),
         .unwrap();
     let configuration = cli::Configuration::new(notify, server);
 
-    let driver = if database_url.starts_with("postgres") {
-        driver::PostgresDriver::initialise(&database_url, database_connections)
-            .unwrap()
-            .box_clone()
-    } else {
-        // driver::SqliteDriver::initialise(&database_url, database_connections)
-        //     .unwrap()
-        //     .box_clone()
-        unimplemented!();
-    };
-
-    Ok((configuration, driver))
+    Ok((driver, configuration))
 }

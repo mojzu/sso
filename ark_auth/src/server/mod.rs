@@ -251,8 +251,8 @@ impl Configuration {
 /// Server data.
 #[derive(Clone)]
 pub struct Data {
-    configuration: Configuration,
     driver: Box<driver::Driver>,
+    configuration: Configuration,
     notify_addr: Addr<NotifyExecutor>,
     registry: prometheus::Registry,
 }
@@ -260,27 +260,27 @@ pub struct Data {
 impl Data {
     /// Create new data.
     pub fn new(
-        configuration: Configuration,
         driver: Box<driver::Driver>,
+        configuration: Configuration,
         notify_addr: Addr<NotifyExecutor>,
         registry: prometheus::Registry,
     ) -> Self {
         Data {
-            configuration,
             driver,
+            configuration,
             notify_addr,
             registry,
         }
     }
 
-    /// Get reference to configuration.
-    pub fn configuration(&self) -> &Configuration {
-        &self.configuration
-    }
-
     /// Get reference to driver.
     pub fn driver(&self) -> &driver::Driver {
         self.driver.as_ref()
+    }
+
+    /// Get reference to configuration.
+    pub fn configuration(&self) -> &Configuration {
+        &self.configuration
     }
 
     /// Get reference to notify actor address.
@@ -358,8 +358,8 @@ fn trim_authorisation(value: &str) -> Option<String> {
 /// Start HTTP server.
 pub fn start(
     workers: usize,
-    configuration: Configuration,
     driver: Box<driver::Driver>,
+    configuration: Configuration,
     notify_addr: Addr<NotifyExecutor>,
 ) -> Result<(), Error> {
     let bind = configuration.bind().to_owned();
@@ -369,8 +369,8 @@ pub fn start(
         App::new()
             // Shared data.
             .data(Data::new(
-                configuration.clone(),
                 driver.clone(),
+                configuration.clone(),
                 notify_addr.clone(),
                 registry.clone(),
             ))
