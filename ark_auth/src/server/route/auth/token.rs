@@ -80,8 +80,8 @@ fn refresh_inner(
                 &service,
                 &mut audit,
                 &body.token,
-                data.configuration().core_access_token_expires(),
-                data.configuration().core_refresh_token_expires(),
+                data.configuration().access_token_expires(),
+                data.configuration().refresh_token_expires(),
             )
         })
         .map_err(Into::into)

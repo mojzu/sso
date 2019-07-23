@@ -261,10 +261,12 @@ background-color: #f4f4f4;
 <li>Moved <code>main.rs:Error</code> into <code>cli</code> module, refactored error handling.</li>
 <li>Use <code>Forwarded</code> header instead of <code>X-Forwarded-For</code> for audit logs.</li>
 <li>Rename local authentication provider reset, update routes.</li>
+<li>Improved configuration interface using <code>derive_builder</code> crate.</li>
 </ul>
 <p><strong>Fixed</strong></p>
 <ul>
 <li>Reset password route returns OK in cases where user email address does not exist.</li>
+<li>Audit log errors created for root key authentication when checking if service key.</li>
 </ul>
 <h2 id="section">0.2.0 (2019-07-07)</h2>
 <p><strong>Added</strong></p>

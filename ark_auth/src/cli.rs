@@ -13,6 +13,12 @@ pub enum Error {
     /// Server error wrapper.
     #[fail(display = "CliError::Server {}", _0)]
     Server(#[fail(cause)] server::Error),
+    /// Standard environment variable error wrapper.
+    #[fail(display = "CliError::StdEnvVar {}", _0)]
+    StdEnvVar(#[fail(cause)] std::env::VarError),
+    /// Standard number parse integer error wrapper.
+    #[fail(display = "CliError::StdNumParseInt {}", _0)]
+    StdNumParseInt(#[fail(cause)] std::num::ParseIntError),
 }
 
 /// Configuration.
@@ -23,11 +29,8 @@ pub struct Configuration {
 
 impl Configuration {
     /// Create new configuration.
-    pub fn new(bind: String) -> Self {
-        Configuration {
-            notify: notify::Configuration::default(),
-            server: server::Configuration::new(bind),
-        }
+    pub fn new(notify: notify::Configuration, server: server::Configuration) -> Self {
+        Self { notify, server }
     }
 
     /// Get reference to notify configuration.
@@ -35,19 +38,9 @@ impl Configuration {
         &self.notify
     }
 
-    /// Get mutable reference to notify configuration.
-    pub fn mut_notify(&mut self) -> &mut notify::Configuration {
-        &mut self.notify
-    }
-
     /// Get reference to server configuration.
     pub fn server(&self) -> &server::Configuration {
         &self.server
-    }
-
-    /// Get mutable reference to server configuration.
-    pub fn mut_server(&mut self) -> &mut server::Configuration {
-        &mut self.server
     }
 }
 

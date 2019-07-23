@@ -17,6 +17,7 @@
 - Moved `main.rs:Error` into `cli` module, refactored error handling.
 - Use `Forwarded` header instead of `X-Forwarded-For` for audit logs.
 - Rename local authentication provider reset, update routes.
+- Improved configuration interface using `derive_builder` crate.
 
 **Fixed**
 

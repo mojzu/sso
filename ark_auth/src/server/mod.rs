@@ -153,92 +153,60 @@ pub struct ConfigurationProviderOauth2 {
     redirect_url: String,
 }
 
+impl ConfigurationProviderOauth2 {
+    pub fn new(client_id: String, client_secret: String, redirect_url: String) -> Self {
+        Self {
+            client_id,
+            client_secret,
+            redirect_url,
+        }
+    }
+}
+
 /// Provider configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ConfigurationProvider {
     oauth2: Option<ConfigurationProviderOauth2>,
 }
 
+impl ConfigurationProvider {
+    pub fn new(oauth2: Option<ConfigurationProviderOauth2>) -> Self {
+        Self { oauth2 }
+    }
+}
+
 // Provider group configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ConfigurationProviderGroup {
     github: ConfigurationProvider,
     microsoft: ConfigurationProvider,
 }
 
-/// Core configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigurationCore {
-    access_token_expires: i64,
-    refresh_token_expires: i64,
-    revoke_token_expires: i64,
+impl ConfigurationProviderGroup {
+    pub fn new(github: ConfigurationProvider, microsoft: ConfigurationProvider) -> Self {
+        Self { github, microsoft }
+    }
 }
 
 /// Server configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Builder)]
 pub struct Configuration {
     bind: String,
+    #[builder(default = "crate_user_agent()")]
     user_agent: String,
+    #[builder(default = "false")]
     password_pwned_enabled: bool,
-    core: ConfigurationCore,
+    #[builder(default = "3_600")]
+    access_token_expires: i64,
+    #[builder(default = "86_400")]
+    refresh_token_expires: i64,
+    #[builder(default = "604_800")]
+    revoke_token_expires: i64,
+    #[builder(default)]
     provider: ConfigurationProviderGroup,
 }
 
 impl Configuration {
-    /// Create new configuration.
-    pub fn new(bind: String) -> Self {
-        Configuration {
-            bind,
-            user_agent: crate_user_agent(),
-            password_pwned_enabled: false,
-            core: ConfigurationCore {
-                access_token_expires: 3_600,
-                refresh_token_expires: 86_400,
-                revoke_token_expires: 604_800,
-            },
-            provider: ConfigurationProviderGroup {
-                github: ConfigurationProvider { oauth2: None },
-                microsoft: ConfigurationProvider { oauth2: None },
-            },
-        }
-    }
-
-    /// Set password pwned enabled.
-    pub fn set_password_pwned_enabled(&mut self, value: bool) -> &mut Self {
-        self.password_pwned_enabled = value;
-        self
-    }
-
-    /// Set provider GitHub OAuth2.
-    pub fn set_provider_github_oauth2(
-        &mut self,
-        client_id: String,
-        client_secret: String,
-        redirect_url: String,
-    ) -> &mut Self {
-        self.provider.github.oauth2 = Some(ConfigurationProviderOauth2 {
-            client_id,
-            client_secret,
-            redirect_url,
-        });
-        self
-    }
-
-    /// Set provider Microsoft OAuth2.
-    pub fn set_provider_microsoft_oauth2(
-        &mut self,
-        client_id: String,
-        client_secret: String,
-        redirect_url: String,
-    ) -> &mut Self {
-        self.provider.microsoft.oauth2 = Some(ConfigurationProviderOauth2 {
-            client_id,
-            client_secret,
-            redirect_url,
-        });
-        self
-    }
-
     /// Configured bind address.
     pub fn bind(&self) -> &str {
         &self.bind
@@ -255,18 +223,18 @@ impl Configuration {
     }
 
     /// Get access token expiry.
-    pub fn core_access_token_expires(&self) -> i64 {
-        self.core.access_token_expires
+    pub fn access_token_expires(&self) -> i64 {
+        self.access_token_expires
     }
 
     /// Get refresh token expiry.
-    pub fn core_refresh_token_expires(&self) -> i64 {
-        self.core.refresh_token_expires
+    pub fn refresh_token_expires(&self) -> i64 {
+        self.refresh_token_expires
     }
 
     /// Get revoke token expiry.
-    pub fn core_revoke_token_expires(&self) -> i64 {
-        self.core.revoke_token_expires
+    pub fn revoke_token_expires(&self) -> i64 {
+        self.revoke_token_expires
     }
 
     /// Configured provider GitHub OAuth2.

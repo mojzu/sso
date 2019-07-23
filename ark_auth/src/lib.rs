@@ -5,6 +5,8 @@
 #[macro_use]
 extern crate clap;
 #[macro_use]
+extern crate derive_builder;
+#[macro_use]
 extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;

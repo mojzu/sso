@@ -88,8 +88,8 @@ fn oauth2_callback_handler(
                     &service_id,
                     &mut audit,
                     &email,
-                    data.configuration().core_access_token_expires(),
-                    data.configuration().core_refresh_token_expires(),
+                    data.configuration().access_token_expires(),
+                    data.configuration().refresh_token_expires(),
                 )
                 .map_err(Into::into)
             })
@@ -119,7 +119,7 @@ fn github_authorise(
         service,
         &csrf_state.secret(),
         &csrf_state.secret(),
-        data.configuration().core_access_token_expires(),
+        data.configuration().access_token_expires(),
     )
     .map_err(Error::Core)?;
 

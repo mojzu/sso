@@ -27,6 +27,7 @@ awc = "*"
 bcrypt = "*"
 clap = "*"
 chrono = { version = "*", features = ["serde"] }
+derive_builder = "*"
 diesel = { version = "*", features = ["postgres", "sqlite", "r2d2", "chrono", "serde_json"] }
 diesel_migrations = { version = "*", features = ["postgres", "sqlite"] }
 env_logger = "*"

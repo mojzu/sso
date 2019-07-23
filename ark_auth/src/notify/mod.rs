@@ -45,35 +45,22 @@ pub struct ConfigurationSmtp {
     password: String,
 }
 
-/// Notify configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Configuration {
-    smtp: Option<ConfigurationSmtp>,
-}
-
-impl Default for Configuration {
-    fn default() -> Self {
-        Configuration { smtp: None }
-    }
-}
-
-impl Configuration {
-    // Set SMTP provider.
-    pub fn set_smtp(
-        &mut self,
-        host: String,
-        port: u16,
-        user: String,
-        password: String,
-    ) -> &mut Self {
-        self.smtp = Some(ConfigurationSmtp {
+impl ConfigurationSmtp {
+    pub fn new(host: String, port: u16, user: String, password: String) -> Self {
+        Self {
             host,
             port,
             user,
             password,
-        });
-        self
+        }
     }
+}
+
+/// Notify configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, Builder)]
+pub struct Configuration {
+    #[builder(default)]
+    smtp: Option<ConfigurationSmtp>,
 }
 
 /// Notify actor.
