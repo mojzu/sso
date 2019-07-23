@@ -22,12 +22,13 @@ pub struct PostgresDriver {
 type PooledConnection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
 
 impl PostgresDriver {
-    pub fn initialise(database_url: &str, max_connections: u32) -> Result<Self, Error> {
+    pub fn initialise(database_url: &str, max_connections: Option<u32>) -> Result<Self, Error> {
         let manager = ConnectionManager::<PgConnection>::new(database_url);
-        let pool = r2d2::Pool::builder()
-            .max_size(max_connections)
-            .build(manager)
-            .map_err(Error::R2d2)?;
+        let mut pool = r2d2::Pool::builder();
+        if let Some(max_connections) = max_connections {
+            pool = pool.max_size(max_connections);
+        }
+        let pool = pool.build(manager).map_err(Error::R2d2)?;
         let driver = PostgresDriver { pool };
         driver.run_migrations()?;
         Ok(driver)
