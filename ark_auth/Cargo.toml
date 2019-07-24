@@ -22,7 +22,7 @@ actix-identity = "*"
 actix-http = "*"
 actix-rt = "*"
 actix-service = "*"
-actix-web = { version = "^1.0.3", features = ["ssl", "client"] }
+actix-web = { version = "^1.0.5", features = ["ssl", "client"] }
 awc = "*"
 bcrypt = "*"
 clap = "*"
@@ -51,7 +51,7 @@ serde_derive = "*"
 serde_json = "*"
 serde_urlencoded = "*"
 sha-1 = "*"
-url = "*"
+url = "^1.7.2"
 uuid = { version = "*", features = ["v4"] }
 time = "*"
 validator = "*"
