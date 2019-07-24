@@ -15,8 +15,9 @@ use serde::Serialize;
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope(path::V1)
-        .service(web::resource(path::PING).route(web::get().to(ping_handler)))
-        .service(web::resource(path::METRICS).route(web::get().to_async(metrics_handler)))
+        // TODO(refactor): Are route names useful for metrics middleware?
+        .service(web::resource(path::PING).name("v1_ping").route(web::get().to(ping_handler)))
+        .service(web::resource(path::METRICS).name("v1_metrics").route(web::get().to_async(metrics_handler)))
         .service(audit::route_v1_scope())
         .service(auth::route_v1_scope())
         .service(key::route_v1_scope())

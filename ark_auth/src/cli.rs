@@ -1,3 +1,5 @@
+//! # Command Line Interface
+//! Functions for a command line interface and some helpers for integration.
 use crate::crate_user_agent;
 use crate::driver::Driver;
 use crate::notify::NotifyExecutor;
@@ -23,19 +25,41 @@ pub enum Error {
 
 /// Configuration.
 pub struct Configuration {
-    pub notify: notify::Configuration,
-    pub server: server::Configuration,
+    notify_threads: usize,
+    notify: notify::Configuration,
+    server_threads: usize,
+    server: server::Configuration,
 }
 
 impl Configuration {
     /// Create new configuration.
-    pub fn new(notify: notify::Configuration, server: server::Configuration) -> Self {
-        Self { notify, server }
+    pub fn new(
+        notify_threads: usize,
+        notify: notify::Configuration,
+        server_threads: usize,
+        server: server::Configuration,
+    ) -> Self {
+        Self {
+            notify_threads,
+            notify,
+            server_threads,
+            server,
+        }
+    }
+
+    /// Get number of notify threads.
+    pub fn notify_threads(&self) -> usize {
+        self.notify_threads
     }
 
     /// Get reference to notify configuration.
     pub fn notify(&self) -> &notify::Configuration {
         &self.notify
+    }
+
+    /// Get number of server threads.
+    pub fn server_threads(&self) -> usize {
+        self.server_threads
     }
 
     /// Get reference to server configuration.
@@ -45,6 +69,7 @@ impl Configuration {
 }
 
 /// Read required environment variable string value.
+/// Logs an error message in case of error.
 pub fn str_from_env(name: &str) -> Result<String, Error> {
     std::env::var(name).map_err(|err| {
         error!("{} is undefined, required ({})", name, err);
@@ -58,6 +83,7 @@ pub fn opt_str_from_env(name: &str) -> Option<String> {
 }
 
 /// Read optional environment variable u32 value.
+/// Logs an error message in case value is not a valid unsigned integer.
 pub fn opt_u32_from_env(name: &str) -> Result<Option<u32>, Error> {
     let value = std::env::var(name).ok();
     if let Some(x) = value {
@@ -74,6 +100,8 @@ pub fn opt_u32_from_env(name: &str) -> Result<Option<u32>, Error> {
 }
 
 /// Read SMTP environment variables into configuration.
+/// If no variables are defined, returns None. Else all variables
+/// are required and an error message logged for each missing variable.
 pub fn smtp_from_env(
     smtp_host_name: &str,
     smtp_port_name: &str,
@@ -120,6 +148,8 @@ pub fn smtp_from_env(
 }
 
 /// Read OAuth2 environment variables into configuration.
+/// If no variables are defined, returns None. Else all variables
+/// are required and an error message logged for each missing variable.
 pub fn oauth2_from_env(
     client_id_name: &str,
     client_secret_name: &str,
@@ -151,6 +181,15 @@ pub fn oauth2_from_env(
     }
 }
 
+/// Create an audit builder for local commands.
+pub fn audit_builder() -> core::audit::AuditBuilder {
+    core::audit::AuditBuilder::new(core::AuditMeta::new(
+        crate_user_agent(),
+        "127.0.0.1".to_owned(),
+        None,
+    ))
+}
+
 /// Create a root key.
 pub fn create_root_key(driver: Box<Driver>, name: &str) -> Result<core::Key, Error> {
     let mut audit = audit_builder();
@@ -178,29 +217,25 @@ pub fn create_service_with_key(
 }
 
 /// Start server.
+/// Starts notify actor and HTTP server.
 pub fn start_server(driver: Box<Driver>, configuration: Configuration) -> Result<(), Error> {
     let system = System::new(crate_name!());
 
-    // Start notify actor.
     let notify_configuration = configuration.notify().clone();
-    let notify_addr = NotifyExecutor::start(2, notify_configuration);
+    let notify_addr = NotifyExecutor::start(configuration.notify_threads(), notify_configuration);
 
-    // Start HTTP server.
     let server_configuration = configuration.server().clone();
     let server_notify_addr = notify_addr.clone();
-    server::start(4, driver, server_configuration, server_notify_addr).map_err(Error::Server)?;
-    // TODO(refactor): Threads configuration.
+    server::start(
+        configuration.server_threads(),
+        driver,
+        server_configuration,
+        server_notify_addr,
+    )
+    .map_err(Error::Server)?;
 
     system
         .run()
         .map_err(server::Error::StdIo)
         .map_err(Error::Server)
-}
-
-pub fn audit_builder() -> core::audit::AuditBuilder {
-    core::audit::AuditBuilder::new(core::AuditMeta::new(
-        crate_user_agent(),
-        "127.0.0.1".to_owned(),
-        None,
-    ))
 }

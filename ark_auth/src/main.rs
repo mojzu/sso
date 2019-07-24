@@ -179,7 +179,7 @@ fn configure() -> Result<(Box<Driver>, cli::Configuration), cli::Error> {
         .provider(server::ConfigurationProviderGroup::new(github, microsoft))
         .build()
         .unwrap();
-    let configuration = cli::Configuration::new(notify, server);
+    let configuration = cli::Configuration::new(2, notify, 4, server);
 
     Ok((driver, configuration))
 }

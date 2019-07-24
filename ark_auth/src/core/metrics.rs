@@ -14,7 +14,8 @@ pub fn read(
     _audit: &mut AuditBuilder,
     registry: &Registry,
 ) -> Result<String, Error> {
-    // TODO(refactor): More efficient way of handling audit metrics.
+    // TODO(feature): More efficient way of handling audit metrics read.
+    // Keep audit registry and counter alive, only query metrics since last query.
     let audit_metrics = driver
         .audit_read_metrics(service_mask.map(|s| s.id.as_ref()))
         .map_err(Error::Driver)?;
