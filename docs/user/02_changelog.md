@@ -18,6 +18,8 @@
 - Use `Forwarded` header instead of `X-Forwarded-For` for audit logs.
 - Rename local authentication provider reset, update routes.
 - Improved configuration interface using `derive_builder` crate.
+- Added hostname configuration to server.
+- Switched to `rustls` crate for TLS support in Actix.
 
 **Fixed**
 

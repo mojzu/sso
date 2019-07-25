@@ -9,6 +9,7 @@ use sentry::integrations::log::LoggerOptions;
 
 const ENV_DATABASE_URL: &str = "DATABASE_URL";
 const ENV_DATABASE_CONNECTIONS: &str = "DATABASE_CONNECTIONS";
+const ENV_SERVER_HOSTNAME: &str = "SERVER_HOSTNAME";
 const ENV_SERVER_BIND: &str = "SERVER_BIND";
 const ENV_SMTP_HOST: &str = "SMTP_HOST";
 const ENV_SMTP_PORT: &str = "SMTP_PORT";
@@ -140,6 +141,8 @@ fn main() {
 fn configure() -> Result<(Box<Driver>, cli::Configuration), cli::Error> {
     let database_url = cli::str_from_env(ENV_DATABASE_URL)?;
     let database_connections = cli::opt_u32_from_env(ENV_DATABASE_CONNECTIONS)?;
+    let server_hostname =
+        cli::opt_str_from_env(ENV_SERVER_HOSTNAME).unwrap_or_else(|| "ark_auth".to_owned());
     let server_bind = cli::str_from_env(ENV_SERVER_BIND)?;
     let smtp = cli::smtp_from_env(
         ENV_SMTP_HOST,
@@ -174,6 +177,7 @@ fn configure() -> Result<(Box<Driver>, cli::Configuration), cli::Error> {
         .build()
         .unwrap();
     let server = server::ConfigurationBuilder::default()
+        .hostname(server_hostname)
         .bind(server_bind)
         .password_pwned_enabled(true)
         .provider(server::ConfigurationProviderGroup::new(github, microsoft))

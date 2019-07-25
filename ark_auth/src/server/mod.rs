@@ -191,6 +191,7 @@ impl ConfigurationProviderGroup {
 /// Server configuration.
 #[derive(Debug, Clone, Serialize, Deserialize, Builder)]
 pub struct Configuration {
+    hostname: String,
     bind: String,
     #[builder(default = "crate_user_agent()")]
     user_agent: String,
@@ -207,6 +208,11 @@ pub struct Configuration {
 }
 
 impl Configuration {
+    /// Configured hostname.
+    pub fn hostname(&self) -> &str {
+        &self.hostname
+    }
+
     /// Configured bind address.
     pub fn bind(&self) -> &str {
         &self.bind
@@ -362,6 +368,7 @@ pub fn start(
     configuration: Configuration,
     notify_addr: Addr<NotifyExecutor>,
 ) -> Result<(), Error> {
+    let hostname = configuration.hostname().to_owned();
     let bind = configuration.bind().to_owned();
     let (registry, counter, histogram) = metrics_registry()?;
 
@@ -388,8 +395,9 @@ pub fn start(
             .default_service(web::route().to(HttpResponse::MethodNotAllowed))
     })
     .workers(workers)
-    .bind(bind)
-    .map_err(Error::StdIo)?;
+    .server_hostname(hostname);
+
+    let server = server.bind(bind).map_err(Error::StdIo)?;
 
     server.start();
     Ok(())

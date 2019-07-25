@@ -22,7 +22,7 @@ actix-identity = "*"
 actix-http = "*"
 actix-rt = "*"
 actix-service = "*"
-actix-web = { version = "^1.0.5", features = ["ssl", "client"] }
+actix-web = { version = "^1.0.5", features = ["rust-tls", "client"] }
 awc = "*"
 bcrypt = "*"
 clap = "*"
@@ -42,6 +42,7 @@ log = { version = "*", features = ["max_level_trace", "release_max_level_info"] 
 native-tls = "*"
 r2d2 = "*"
 reqwest = "*"
+rustls = "*"
 oauth2 = "^3.0.0-alpha.3"
 prometheus = "*"
 sentry = "*"
