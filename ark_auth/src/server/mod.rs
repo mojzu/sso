@@ -3,14 +3,15 @@ pub mod metrics;
 pub mod route;
 pub mod validate;
 
-use crate::crate_user_agent;
 use crate::notify::NotifyExecutor;
 use crate::{core, driver};
+use crate::{crate_name, crate_user_agent};
 use actix::Addr;
 use actix_identity::{IdentityPolicy, IdentityService};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::{middleware, web, App, HttpResponse, HttpServer, ResponseError};
 use prometheus::{HistogramOpts, HistogramVec, IntCounterVec, Opts, Registry};
+use rustls::ServerConfig;
 use serde::Serialize;
 pub use validate::FromJsonValue;
 
@@ -188,9 +189,23 @@ impl ConfigurationProviderGroup {
     }
 }
 
+// Rustls configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigurationRustls {
+    crt_pem: String,
+    key_pem: String,
+}
+
+impl ConfigurationRustls {
+    pub fn new(crt_pem: String, key_pem: String) -> Self {
+        Self { crt_pem, key_pem }
+    }
+}
+
 /// Server configuration.
 #[derive(Debug, Clone, Serialize, Deserialize, Builder)]
 pub struct Configuration {
+    #[builder(default = "crate_name()")]
     hostname: String,
     bind: String,
     #[builder(default = "crate_user_agent()")]
@@ -205,6 +220,7 @@ pub struct Configuration {
     revoke_token_expires: i64,
     #[builder(default)]
     provider: ConfigurationProviderGroup,
+    rustls: Option<ConfigurationRustls>,
 }
 
 impl Configuration {
@@ -251,6 +267,12 @@ impl Configuration {
     /// Configured provider Microsoft OAuth2.
     pub fn provider_microsoft_oauth2(&self) -> Option<&ConfigurationProviderOauth2> {
         self.provider.microsoft.oauth2.as_ref()
+    }
+
+    /// Configured rustls parameters.
+    pub fn rustls_server_config(&self) -> Result<Option<ServerConfig>, Error> {
+        // TODO(feature): Implement this.
+        unimplemented!();
     }
 }
 
@@ -368,8 +390,7 @@ pub fn start(
     configuration: Configuration,
     notify_addr: Addr<NotifyExecutor>,
 ) -> Result<(), Error> {
-    let hostname = configuration.hostname().to_owned();
-    let bind = configuration.bind().to_owned();
+    let configuration_clone = configuration.clone();
     let (registry, counter, histogram) = metrics_registry()?;
 
     let server = HttpServer::new(move || {
@@ -377,7 +398,7 @@ pub fn start(
             // Shared data.
             .data(Data::new(
                 driver.clone(),
-                configuration.clone(),
+                configuration_clone.clone(),
                 notify_addr.clone(),
                 registry.clone(),
             ))
@@ -395,9 +416,15 @@ pub fn start(
             .default_service(web::route().to(HttpResponse::MethodNotAllowed))
     })
     .workers(workers)
-    .server_hostname(hostname);
+    .server_hostname(configuration.hostname());
 
-    let server = server.bind(bind).map_err(Error::StdIo)?;
+    let rustls_server_config = configuration.rustls_server_config()?;
+    let server = if let Some(rustls_server_config) = rustls_server_config {
+        server.bind_rustls(configuration.bind(), rustls_server_config)
+    } else {
+        server.bind(configuration.bind())
+    }
+    .map_err(Error::StdIo)?;
 
     server.start();
     Ok(())

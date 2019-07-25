@@ -181,6 +181,30 @@ pub fn oauth2_from_env(
     }
 }
 
+/// Read Rustls environment variables into configuration.
+/// If no variables are defined, returns None. Else all variables
+/// are required and an error message logged for each missing variable.
+pub fn rustls_from_env(
+    crt_pem_name: &str,
+    key_pem_name: &str,
+) -> Result<Option<server::ConfigurationRustls>, Error> {
+    let crt_pem = std::env::var(crt_pem_name).map_err(|err| {
+        error!("{} is undefined ({})", crt_pem_name, err);
+        Error::StdEnvVar(err)
+    });
+    let key_pem = std::env::var(key_pem_name).map_err(|err| {
+        error!("{} is undefined ({})", key_pem_name, err);
+        Error::StdEnvVar(err)
+    });
+    if crt_pem.is_ok() || key_pem.is_ok() {
+        let crt_pem = crt_pem?;
+        let key_pem = key_pem?;
+        Ok(Some(server::ConfigurationRustls::new(crt_pem, key_pem)))
+    } else {
+        Ok(None)
+    }
+}
+
 /// Create an audit builder for local commands.
 pub fn audit_builder() -> core::audit::AuditBuilder {
     core::audit::AuditBuilder::new(core::AuditMeta::new(

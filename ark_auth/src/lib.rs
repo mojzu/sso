@@ -26,6 +26,11 @@ pub mod driver;
 pub mod notify;
 pub mod server;
 
+/// Crate name macro as function.
+pub fn crate_name() -> String {
+    crate_name!().to_string()
+}
+
 /// User agent constructed from crate name and version.
 pub fn crate_user_agent() -> String {
     format!("{}/{}", crate_name!(), crate_version!())
