@@ -11,8 +11,11 @@ use actix_identity::{IdentityPolicy, IdentityService};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::{middleware, web, App, HttpResponse, HttpServer, ResponseError};
 use prometheus::{HistogramOpts, HistogramVec, IntCounterVec, Opts, Registry};
-use rustls::ServerConfig;
+use rustls::internal::pemfile::{certs, rsa_private_keys};
+use rustls::{NoClientAuth, ServerConfig};
 use serde::Serialize;
+use std::fs::File;
+use std::io::BufReader;
 pub use validate::FromJsonValue;
 
 // TODO(feature): User sessions route for active tokens/keys.
@@ -269,10 +272,20 @@ impl Configuration {
         self.provider.microsoft.oauth2.as_ref()
     }
 
-    /// Configured rustls parameters.
+    /// Configured rustls server parameters.
     pub fn rustls_server_config(&self) -> Result<Option<ServerConfig>, Error> {
-        // TODO(feature): Implement this.
-        unimplemented!();
+        if let Some(rustls_config) = &self.rustls {
+            // TODO(refactor): Improve error handling, configuration.
+            let crt_file = &mut BufReader::new(File::open(&rustls_config.crt_pem).unwrap());
+            let key_file = &mut BufReader::new(File::open(&rustls_config.key_pem).unwrap());
+            let cert_chain = certs(crt_file).unwrap();
+            let mut keys = rsa_private_keys(key_file).unwrap();
+            let mut config = ServerConfig::new(NoClientAuth::new());
+            config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
+            Ok(Some(config))
+        } else {
+            Ok(None)
+        }
     }
 }
 
