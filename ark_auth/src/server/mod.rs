@@ -197,11 +197,16 @@ impl ConfigurationProviderGroup {
 pub struct ConfigurationRustls {
     crt_pem: String,
     key_pem: String,
+    client_auth: bool,
 }
 
 impl ConfigurationRustls {
-    pub fn new(crt_pem: String, key_pem: String) -> Self {
-        Self { crt_pem, key_pem }
+    pub fn new(crt_pem: String, key_pem: String, client_auth: bool) -> Self {
+        Self {
+            crt_pem,
+            key_pem,
+            client_auth,
+        }
     }
 }
 
@@ -280,7 +285,13 @@ impl Configuration {
             let key_file = &mut BufReader::new(File::open(&rustls_config.key_pem).unwrap());
             let cert_chain = certs(crt_file).unwrap();
             let mut keys = rsa_private_keys(key_file).unwrap();
-            let mut config = ServerConfig::new(NoClientAuth::new());
+            let mut config = if rustls_config.client_auth {
+                // TODO(feature): Support TLS client authentication.
+                // ServerConfig::new(AllowAnyAuthenticatedClient::new())
+                unimplemented!();
+            } else {
+                ServerConfig::new(NoClientAuth::new())
+            };
             config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
             Ok(Some(config))
         } else {

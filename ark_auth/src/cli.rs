@@ -21,6 +21,9 @@ pub enum Error {
     /// Standard number parse integer error wrapper.
     #[fail(display = "CliError::StdNumParseInt {}", _0)]
     StdNumParseInt(#[fail(cause)] std::num::ParseIntError),
+    /// Standard string parse boolean error wrapper.
+    #[fail(display = "CliError::StdStrParseBool {}", _0)]
+    StdStrParseBool(#[fail(cause)] std::str::ParseBoolError),
 }
 
 /// Configuration.
@@ -187,6 +190,7 @@ pub fn oauth2_from_env(
 pub fn rustls_from_env(
     crt_pem_name: &str,
     key_pem_name: &str,
+    client_auth_name: &str,
 ) -> Result<Option<server::ConfigurationRustls>, Error> {
     let crt_pem = std::env::var(crt_pem_name).map_err(|err| {
         error!("{} is undefined ({})", crt_pem_name, err);
@@ -196,10 +200,22 @@ pub fn rustls_from_env(
         error!("{} is undefined ({})", key_pem_name, err);
         Error::StdEnvVar(err)
     });
-    if crt_pem.is_ok() || key_pem.is_ok() {
+    let client_auth = std::env::var(client_auth_name).map_err(|err| {
+        error!("{} is undefined ({})", client_auth_name, err);
+        Error::StdEnvVar(err)
+    });
+    if crt_pem.is_ok() || key_pem.is_ok() || client_auth.is_ok() {
         let crt_pem = crt_pem?;
         let key_pem = key_pem?;
-        Ok(Some(server::ConfigurationRustls::new(crt_pem, key_pem)))
+        let client_auth = client_auth?;
+
+        match client_auth.parse::<bool>() {
+            Ok(x) => Ok(Some(server::ConfigurationRustls::new(crt_pem, key_pem, x))),
+            Err(err) => {
+                error!("{} is invalid boolean ({})", client_auth_name, err);
+                Err(Error::StdStrParseBool(err))
+            }
+        }
     } else {
         Ok(None)
     }

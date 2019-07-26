@@ -11,6 +11,9 @@ const ENV_DATABASE_URL: &str = "DATABASE_URL";
 const ENV_DATABASE_CONNECTIONS: &str = "DATABASE_CONNECTIONS";
 const ENV_SERVER_HOSTNAME: &str = "SERVER_HOSTNAME";
 const ENV_SERVER_BIND: &str = "SERVER_BIND";
+const ENV_SERVER_TLS_CRT_PEM: &str = "SERVER_TLS_CRT_PEM";
+const ENV_SERVER_TLS_KEY_PEM: &str = "SERVER_TLS_KEY_PEM";
+const ENV_SERVER_TLS_CLIENT_AUTH: &str = "SERVER_TLS_CLIENT_AUTH";
 const ENV_SMTP_HOST: &str = "SMTP_HOST";
 const ENV_SMTP_PORT: &str = "SMTP_PORT";
 const ENV_SMTP_USER: &str = "SMTP_USER";
@@ -160,6 +163,11 @@ fn configure() -> Result<(Box<Driver>, cli::Configuration), cli::Error> {
         ENV_MICROSOFT_CLIENT_SECRET,
         ENV_MICROSOFT_REDIRECT_URL,
     )?);
+    let rustls = cli::rustls_from_env(
+        ENV_SERVER_TLS_CRT_PEM,
+        ENV_SERVER_TLS_KEY_PEM,
+        ENV_SERVER_TLS_CLIENT_AUTH,
+    )?;
 
     let driver = if database_url.starts_with("postgres") {
         driver::PostgresDriver::initialise(&database_url, database_connections)
@@ -181,6 +189,7 @@ fn configure() -> Result<(Box<Driver>, cli::Configuration), cli::Error> {
         .bind(server_bind)
         .password_pwned_enabled(true)
         .provider(server::ConfigurationProviderGroup::new(github, microsoft))
+        .rustls(rustls)
         .build()
         .unwrap();
     let configuration = cli::Configuration::new(2, notify, 4, server);
