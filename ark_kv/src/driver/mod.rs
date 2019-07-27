@@ -8,7 +8,7 @@ mod sqlite;
 // TODO(feature): Implement file driver (ark_ota support?).
 // #[cfg(feature = "file")]
 // pub use crate::driver::file::FileDriver;
-use crate::core::{Disk, DiskOptions};
+use crate::core::{Data, Disk, DiskOptions, Key, Version};
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::SqliteDriver;
 
@@ -42,11 +42,40 @@ pub trait Driver: Send + Sync {
     /// Create disk.
     fn disk_create(&self, name: &str, options: &DiskOptions) -> Result<Disk, Error>;
 
-    /// Read disk by ID, returns Err in case disk does not exist.
-    fn disk_read_by_id(&self, id: &str) -> Result<Disk, Error>;
+    /// Read disk by ID.
+    fn disk_read_by_id(&self, id: &str) -> Result<Option<Disk>, Error>;
 
-    /// Read disk by name, returns Err in case disk does not exist.
-    fn disk_read_by_name(&self, name: &str) -> Result<Disk, Error>;
+    /// Read disk by name.
+    fn disk_read_by_name(&self, name: &str) -> Result<Option<Disk>, Error>;
+
+    /// Create key.
+    fn key_create(&self, name: &str, disk_id: &str) -> Result<Key, Error>;
+
+    /// Read key by ID.
+    fn key_read_by_id(&self, id: &str) -> Result<Option<Key>, Error>;
+
+    /// Read key by name.
+    fn key_read_by_name(&self, name: &str, disk_id: &str) -> Result<Option<Key>, Error>;
+
+    /// Update key by ID.
+    fn key_update_by_id(
+        &self,
+        id: &str,
+        name: Option<&str>,
+        version_id: Option<&str>,
+    ) -> Result<usize, Error>;
+
+    /// Create version.
+    fn version_create(&self, hash: &[u8], size: i64, key_id: &str) -> Result<Version, Error>;
+
+    /// Read version by ID.
+    fn version_read_by_id(&self, id: &str) -> Result<Option<Version>, Error>;
+
+    /// Create data.
+    fn data_create(&self, chunk: i64, data: &[u8], version_id: &str) -> Result<Data, Error>;
+
+    /// Read data by chunk.
+    fn data_read_by_chunk(&self, chunk: i64, version_id: &str) -> Result<Option<Data>, Error>;
 }
 
 impl Clone for Box<Driver> {

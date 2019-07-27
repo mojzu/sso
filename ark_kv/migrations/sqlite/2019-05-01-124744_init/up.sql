@@ -16,7 +16,7 @@ CREATE TABLE kv_key (
     disk_id TEXT NOT NULL,
     version_id TEXT,
     PRIMARY KEY (key_id),
-    CONSTRAINT uq_kv_key_name UNIQUE(key_name),
+    CONSTRAINT uq_kv_key_name UNIQUE(key_name, disk_id),
     CONSTRAINT fk_kv_key_disk
         FOREIGN KEY (disk_id)
         REFERENCES kv_disk(disk_id)

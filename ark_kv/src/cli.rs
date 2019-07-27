@@ -56,8 +56,9 @@ pub fn disk_create(
         Some(duration_retention) => duration_retention.parse::<i64>().unwrap(),
         None => 0,
     };
+    // TODO(feature): Configurable chunk size, compression.
     let options = core::DiskOptionsBuilder::default()
-        .chunk_size(536870912)
+        .chunk_size(536_870_912)
         .compression("zlib".to_owned())
         .encryption(disk_encryption.new_internal())
         .version_retention(version_retention)
@@ -106,22 +107,30 @@ pub fn key_status(_driver: Box<Driver>, _disk: &str, _key: &str) -> Result<(), E
 }
 
 pub fn key_read_to_file(
-    _driver: Box<Driver>,
-    _disk: &str,
-    _key: &str,
-    _secret_key: &str,
-    _f: &str,
-) -> Result<(), Error> {
-    unimplemented!();
+    driver: Box<Driver>,
+    disk: &str,
+    key: &str,
+    secret_key: &str,
+    f: &str,
+) -> Result<(core::Key, core::Version), Error> {
+    let secret_key = Path::new(secret_key);
+    let disk_encryption = core::DiskEncryption::read_from_file(secret_key).map_err(Error::Core)?;
+    let file_path = Path::new(f);
+    let mut file = File::create(&file_path).map_err(Error::StdIo)?;
+    core::key::read(driver.as_ref(), disk, key, &disk_encryption, &mut file).map_err(Error::Core)
 }
 
 pub fn key_read_to_stdout(
-    _driver: Box<Driver>,
-    _disk: &str,
-    _key: &str,
-    _secret_key: &str,
-) -> Result<(), Error> {
-    unimplemented!();
+    driver: Box<Driver>,
+    disk: &str,
+    key: &str,
+    secret_key: &str,
+) -> Result<(core::Key, core::Version), Error> {
+    let secret_key = Path::new(secret_key);
+    let disk_encryption = core::DiskEncryption::read_from_file(secret_key).map_err(Error::Core)?;
+    let stdout = std::io::stdout();
+    let mut writer = stdout.lock();
+    core::key::read(driver.as_ref(), disk, key, &disk_encryption, &mut writer).map_err(Error::Core)
 }
 
 pub fn key_write_from_string(

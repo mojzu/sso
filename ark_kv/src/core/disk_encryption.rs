@@ -7,6 +7,7 @@ use std::io::Write;
 use std::path::Path;
 
 // TODO(refactor): Clear sensitive data from memory on drop.
+// TODO(refactor): Use seed interface.
 
 impl DiskEncryption {
     /// Generate new secret key.
@@ -89,6 +90,15 @@ impl DiskEncryption {
         let open_data = curve25519xsalsa20poly1305::open(&ciphertext, &nonce, &pk, &sk)
             .map_err(|_err| Error::Unwrap)?;
         Ok(seal_data[..] == open_data[..])
+    }
+
+    pub fn precompute_read(&self, internal: &DiskEncryption) -> Result<Vec<u8>, Error> {
+        let sk = DiskEncryption::secret_key_from_bytes(self.secret_key())?;
+        let internal_sk = DiskEncryption::secret_key_from_bytes(internal.secret_key())?;
+        let public_key = internal_sk.public_key().0;
+        let pk = DiskEncryption::public_key_from_bytes(&public_key)?;
+        let precomputed = curve25519xsalsa20poly1305::precompute(&pk, &sk);
+        Ok(precomputed.0.to_vec())
     }
 
     pub fn precompute_write(&self) -> Result<Vec<u8>, Error> {

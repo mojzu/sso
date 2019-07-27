@@ -2,18 +2,71 @@ use crate::core;
 use crate::core::disk_encryption::HashWriter;
 use crate::core::{Disk, DiskEncryption, Error, Key, KeyWriteOptions, Version};
 use crate::driver::Driver;
-use std::io::Read;
+use std::io::{Read, Write};
 
 pub fn create(driver: &Driver, disk: &Disk, key: &str) -> Result<Key, Error> {
-    unimplemented!();
+    driver.key_create(key, &disk.id).map_err(Error::Driver)
+}
+
+pub fn read_by_name(driver: &Driver, disk: &Disk, key: &str) -> Result<Key, Error> {
+    read_opt_by_name(driver, disk, key).and_then(|x| x.ok_or_else(|| Error::Unwrap))
 }
 
 pub fn read_opt_by_name(driver: &Driver, disk: &Disk, key: &str) -> Result<Option<Key>, Error> {
-    unimplemented!();
+    driver
+        .key_read_by_name(key, &disk.id)
+        .map_err(Error::Driver)
 }
 
-pub fn update_version(driver: &Driver, key: &Key, version: &Version) -> Result<(), Error> {
-    unimplemented!();
+pub fn update_version(driver: &Driver, key: &Key, version: &Version) -> Result<usize, Error> {
+    driver
+        .key_update_by_id(&key.id, None, Some(&version.id))
+        .map_err(Error::Driver)
+}
+
+pub fn read<W: Write>(
+    driver: &Driver,
+    disk: &str,
+    key: &str,
+    disk_encryption: &DiskEncryption,
+    output: &mut W,
+) -> Result<(Key, Version), Error> {
+    use flate2::write::ZlibDecoder;
+    use std::io::prelude::*;
+
+    let disk = core::disk::read_by_name(driver, disk)?;
+    let key = read_by_name(driver, &disk, key)?;
+    let version = core::version::read_by_key(driver, &key)?;
+
+    let precomputed = disk_encryption.precompute_read(&disk.options.encryption)?;
+
+    let writer = HashWriter::new(output);
+    let mut decoder = ZlibDecoder::new(writer);
+    let mut current_chunk: i64 = 0;
+    loop {
+        let data_cursor = core::data::read_opt_by_version(driver, &version, current_chunk)?;
+
+        if let Some(value) = data_cursor {
+            let decrypted_chunk = DiskEncryption::open_precomputed(&value.value, &precomputed)?;
+
+            decoder.write_all(&decrypted_chunk[..]).unwrap();
+            current_chunk = value.chunk + 1;
+        } else {
+            break;
+        }
+    }
+
+    let writer = decoder.finish().unwrap();
+    let (digest, size) = writer.finalize();
+    // TODO(feature): Read options with check flags.
+    if digest[..] != version.hash[..] {
+        return Err(Error::Unwrap);
+    }
+    if size != version.size {
+        return Err(Error::Unwrap);
+    }
+
+    Ok((key, version))
 }
 
 pub fn write<R: Read>(
@@ -29,7 +82,7 @@ pub fn write<R: Read>(
         Some(x) => x,
         None => create(driver, &disk, key_name)?,
     };
-    let version = core::version::read_by_key(driver, &key)?;
+    let version = core::version::read_opt_by_key(driver, &key)?;
 
     if options.check_modified_time > 0 {
         let updated_at_timestamp = key.updated_at.timestamp();
@@ -44,15 +97,11 @@ pub fn write<R: Read>(
     let (hash, compressed, size) = hash_and_compress(input)?;
 
     if let Some(version) = &version {
-        if options.check_hash {
-            if hash == version.hash {
-                return Ok((key, version.clone()));
-            }
+        if options.check_hash && hash == version.hash {
+            return Ok((key, version.clone()));
         }
-        if options.check_size {
-            if size == version.size {
-                return Ok((key, version.clone()));
-            }
+        if options.check_size && size == version.size {
+            return Ok((key, version.clone()));
         }
     }
 
@@ -74,10 +123,10 @@ fn hash_and_compress<R: Read>(input: &mut R) -> Result<(Vec<u8>, Vec<u8>, i64), 
     use flate2::Compression;
     use std::io::prelude::*;
 
-    // TODO(refactor): Use files instead of buffers depending on file size.
+    // TODO(refactor): Use files instead of buffers depending on file size, guess input size for buffers.
     let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
     let mut writer = HashWriter::new(&mut encoder);
-    let mut buf = vec![0u8; 8388608 as usize];
+    let mut buf = vec![0u8; 8_388_608 as usize];
 
     loop {
         let sz = input.read(&mut buf).unwrap();
