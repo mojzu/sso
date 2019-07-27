@@ -10,37 +10,20 @@ pub struct Disk {
     pub updated_at: String,
     pub disk_id: String,
     pub disk_name: String,
-    pub disk_chunk_size: i64,
-    pub disk_version_retention: i64,
-    pub disk_duration_retention: i64,
-    pub disk_compression: String,
-    pub disk_encryption: String,
-    pub disk_encryption_data: String,
+    pub disk_options: String,
 }
 
 impl From<Disk> for core::Disk {
     fn from(disk: Disk) -> Self {
         let created_at = disk.created_at.parse::<DateTime<Utc>>().unwrap();
         let updated_at = disk.updated_at.parse::<DateTime<Utc>>().unwrap();
-        let encryption_data: core::DiskEncryptionData =
-            serde_json::from_str(&disk.disk_encryption_data).unwrap();
+        let disk_options: core::DiskOptions = serde_json::from_str(&disk.disk_options).unwrap();
         core::Disk {
             created_at,
             updated_at,
             id: disk.disk_id,
             name: disk.disk_name,
-            options: core::DiskOptions {
-                chunk_size: disk.disk_chunk_size,
-                version_retention: disk.disk_version_retention,
-                duration_retention: disk.disk_duration_retention,
-            },
-            compression: core::DiskCompression {
-                compression: disk.disk_compression,
-            },
-            encryption: core::DiskEncryption {
-                encryption: disk.disk_encryption,
-                encryption_data,
-            },
+            options: disk_options,
         }
     }
 }
@@ -52,12 +35,7 @@ pub struct DiskInsert<'a> {
     pub updated_at: &'a str,
     pub disk_id: &'a str,
     pub disk_name: &'a str,
-    pub disk_chunk_size: i64,
-    pub disk_version_retention: i64,
-    pub disk_duration_retention: i64,
-    pub disk_compression: &'a str,
-    pub disk_encryption: &'a str,
-    pub disk_encryption_data: &'a str,
+    pub disk_options: &'a str,
 }
 
 #[derive(AsChangeset)]

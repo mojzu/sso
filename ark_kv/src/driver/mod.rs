@@ -1,12 +1,14 @@
 //! # Drivers
 //! Binary application drivers.
-#[cfg(feature = "file")]
-mod file;
+// #[cfg(feature = "file")]
+// mod file;
 #[cfg(feature = "sqlite")]
 mod sqlite;
 
-#[cfg(feature = "file")]
-pub use crate::driver::file::FileDriver;
+// TODO(feature): Implement file driver (ark_ota support?).
+// #[cfg(feature = "file")]
+// pub use crate::driver::file::FileDriver;
+use crate::core::{Disk, DiskOptions};
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::SqliteDriver;
 
@@ -28,6 +30,23 @@ pub enum Error {
 pub trait Driver: Send + Sync {
     /// Return a boxed trait containing clone of self.
     fn box_clone(&self) -> Box<Driver>;
+
+    /// List disks where name is greater than.
+    fn disk_list_where_name_gte(
+        &self,
+        name_gte: &str,
+        offset_id: Option<&str>,
+        limit: i64,
+    ) -> Result<Vec<String>, Error>;
+
+    /// Create disk.
+    fn disk_create(&self, name: &str, options: &DiskOptions) -> Result<Disk, Error>;
+
+    /// Read disk by ID, returns Err in case disk does not exist.
+    fn disk_read_by_id(&self, id: &str) -> Result<Disk, Error>;
+
+    /// Read disk by name, returns Err in case disk does not exist.
+    fn disk_read_by_name(&self, name: &str) -> Result<Disk, Error>;
 }
 
 impl Clone for Box<Driver> {

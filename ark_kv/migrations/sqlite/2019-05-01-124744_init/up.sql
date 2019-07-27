@@ -3,12 +3,7 @@ CREATE TABLE kv_disk (
     updated_at TEXT NOT NULL,
     disk_id TEXT NOT NULL,
     disk_name TEXT NOT NULL,
-    disk_chunk_size INTEGER NOT NULL,
-    disk_version_retention INTEGER NOT NULL,
-    disk_duration_retention INTEGER NOT NULL,
-    disk_compression TEXT NOT NULL,
-    disk_encryption TEXT NOT NULL,
-    disk_encryption_data TEXT NOT NULL,
+    disk_options TEXT NOT NULL,
     PRIMARY KEY (disk_id),
     CONSTRAINT uq_kv_disk_name UNIQUE(disk_name)
 );

@@ -505,7 +505,7 @@ fn configuration_from_environment() -> (Configuration, Box<Driver>) {
     // TODO(refactor): Clean this up, improve error messages.
     let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "db.sqlite3".to_owned());
     let database_connections =
-        std::env::var("DATABASE_CONNECTIONS").unwrap_or_else(|_| "1".to_owned());
+        std::env::var("DATABASE_CONNECTIONS").unwrap_or_else(|_| "10".to_owned());
     let database_connections = database_connections.parse::<u32>().unwrap();
 
     let configuration = Configuration { database_url };

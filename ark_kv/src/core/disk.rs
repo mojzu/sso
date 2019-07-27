@@ -1,0 +1,22 @@
+use crate::core::{Disk, DiskOptions, Error};
+use crate::driver;
+
+pub fn list(driver: &driver::Driver) -> Result<Vec<Disk>, Error> {
+    let id_list = driver
+        .disk_list_where_name_gte("", None, 1024)
+        .map_err(Error::Driver)?;
+    let mut disk_list: Vec<Disk> = Vec::new();
+    for id in id_list.into_iter() {
+        let disk = driver.disk_read_by_id(&id).map_err(Error::Driver)?;
+        disk_list.push(disk);
+    }
+    Ok(disk_list)
+}
+
+pub fn create(driver: &driver::Driver, disk: &str, options: &DiskOptions) -> Result<Disk, Error> {
+    driver.disk_create(disk, options).map_err(Error::Driver)
+}
+
+pub fn read_by_name(driver: &driver::Driver, name: &str) -> Result<Disk, Error> {
+    driver.disk_read_by_name(name).map_err(Error::Driver)
+}

@@ -15,6 +15,7 @@ sqlite = []
 [dependencies]
 clap = "*"
 chrono = { version = "*", features = ["serde"] }
+derive_builder = "*"
 diesel = { version = "*", features = ["postgres", "sqlite", "r2d2", "chrono", "serde_json"] }
 diesel_migrations = { version = "*", features = ["postgres", "sqlite"] }
 dirs = "*"
@@ -29,4 +30,5 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 sodiumoxide = "*"
+uuid = { version = "*", features = ["v4"] }
 time = "*"
