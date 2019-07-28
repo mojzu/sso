@@ -2,9 +2,9 @@
 mod model;
 mod schema;
 
-use crate::core::{Data, Disk, DiskOptions, Key, Version};
+use crate::core::{Data, Disk, DiskOptions, DiskStatus, Key, KeyStatus, Status, Version};
 use crate::driver::{Driver, Error};
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
 use std::convert::TryInto;
@@ -19,12 +19,13 @@ pub struct SqliteDriver {
 type PooledConnection = r2d2::PooledConnection<ConnectionManager<SqliteConnection>>;
 
 impl SqliteDriver {
-    pub fn initialise(database_url: &str, max_connections: u32) -> Result<Self, Error> {
+    pub fn initialise(database_url: &str, max_connections: Option<u32>) -> Result<Self, Error> {
         let manager = ConnectionManager::<SqliteConnection>::new(database_url);
-        let pool = r2d2::Pool::builder()
-            .max_size(max_connections)
-            .build(manager)
-            .map_err(Error::R2d2)?;
+        let mut pool = r2d2::Pool::builder();
+        if let Some(max_connections) = max_connections {
+            pool = pool.max_size(max_connections);
+        }
+        let pool = pool.build(manager).map_err(Error::R2d2)?;
         let driver = SqliteDriver { pool };
         driver.run_migrations()?;
         Ok(driver)
@@ -61,11 +62,68 @@ impl SqliteDriver {
             .load::<String>(&conn)
             .map_err(Error::Diesel)
     }
+
+    fn key_list_where_name_gte_inner(
+        &self,
+        name_gte: &str,
+        limit: i64,
+        offset: i64,
+        key_disk_id: &str,
+    ) -> Result<Vec<String>, Error> {
+        use crate::driver::sqlite::schema::kv_key::dsl::*;
+
+        let conn = self.connection()?;
+        kv_key
+            .select(key_id)
+            .filter(key_name.ge(name_gte).and(disk_id.eq(key_disk_id)))
+            .limit(limit)
+            .offset(offset)
+            .order(key_name.asc())
+            .load::<String>(&conn)
+            .map_err(Error::Diesel)
+    }
+
+    fn version_list_where_created_lte_inner(
+        &self,
+        created_lte: &str,
+        limit: i64,
+        offset: i64,
+        version_key_id: &str,
+    ) -> Result<Vec<String>, Error> {
+        use crate::driver::sqlite::schema::kv_version::dsl::*;
+
+        let conn = self.connection()?;
+        kv_version
+            .select(version_id)
+            .filter(created_at.le(created_lte).and(key_id.eq(version_key_id)))
+            .limit(limit)
+            .offset(offset)
+            .order(created_at.desc())
+            .load::<String>(&conn)
+            .map_err(Error::Diesel)
+    }
 }
 
 impl Driver for SqliteDriver {
     fn box_clone(&self) -> Box<Driver> {
         Box::new((*self).clone())
+    }
+
+    fn status(&self) -> Result<Status, Error> {
+        use crate::driver::sqlite::schema::kv_disk::dsl::*;
+
+        let conn = self.connection()?;
+        let disk_count = kv_disk
+            .select(diesel::dsl::count_star())
+            .get_result::<i64>(&conn)
+            .map_err(Error::Diesel)?;
+
+        Ok(Status { disk_count })
+    }
+
+    fn vacuum(&self) -> Result<usize, Error> {
+        let conn = self.connection()?;
+        conn.execute("VACUUM").map_err(Error::Diesel)
     }
 
     fn disk_list_where_name_gte(
@@ -111,6 +169,27 @@ impl Driver for SqliteDriver {
         Ok(disk.unwrap())
     }
 
+    fn disk_status_by_id(&self, id: &str) -> Result<DiskStatus, Error> {
+        use crate::driver::sqlite::schema::kv_key::dsl::*;
+
+        let disk = self.disk_read_by_id(id)?.unwrap();
+        let conn = self.connection()?;
+        let key_count = kv_key
+            .filter(disk_id.eq(id))
+            .select(diesel::dsl::count_star())
+            .get_result::<i64>(&conn)
+            .map_err(Error::Diesel)?;
+        // TODO(refactor): Implement this.
+        let total_size = 0;
+
+        Ok(DiskStatus {
+            id: disk.id,
+            name: disk.name,
+            key_count,
+            total_size,
+        })
+    }
+
     fn disk_read_by_id(&self, id: &str) -> Result<Option<Disk>, Error> {
         use crate::driver::sqlite::schema::kv_disk::dsl::*;
 
@@ -139,6 +218,38 @@ impl Driver for SqliteDriver {
             })
     }
 
+    fn disk_delete_by_id(&self, id: &str) -> Result<usize, Error> {
+        use crate::driver::sqlite::schema::kv_disk::dsl::*;
+
+        let conn = self.connection()?;
+        diesel::delete(kv_disk.filter(disk_id.eq(id)))
+            .execute(&conn)
+            .map_err(Error::Diesel)
+    }
+
+    fn key_list_where_name_gte(
+        &self,
+        name_gte: &str,
+        offset_id: Option<&str>,
+        limit: i64,
+        disk_id: &str,
+    ) -> Result<Vec<String>, Error> {
+        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
+        self.key_list_where_name_gte_inner(name_gte, limit, offset, disk_id)
+            .and_then(|res| {
+                if let Some(offset_id) = offset_id {
+                    for (i, id) in res.iter().enumerate() {
+                        if id == offset_id {
+                            let offset: i64 = (i + 1).try_into().unwrap();
+                            return self
+                                .key_list_where_name_gte_inner(name_gte, limit, offset, disk_id);
+                        }
+                    }
+                }
+                Ok(res)
+            })
+    }
+
     fn key_create(&self, name: &str, key_disk_id: &str) -> Result<Key, Error> {
         use crate::driver::sqlite::schema::kv_key::dsl::*;
 
@@ -158,6 +269,27 @@ impl Driver for SqliteDriver {
             .map_err(Error::Diesel)?;
         let key = self.key_read_by_id(&id)?;
         Ok(key.unwrap())
+    }
+
+    fn key_status_by_id(&self, id: &str) -> Result<KeyStatus, Error> {
+        use crate::driver::sqlite::schema::kv_version::dsl::*;
+
+        let key = self.key_read_by_id(id)?.unwrap();
+        let conn = self.connection()?;
+        let version_count = kv_version
+            .filter(key_id.eq(id))
+            .select(diesel::dsl::count_star())
+            .get_result::<i64>(&conn)
+            .map_err(Error::Diesel)?;
+        // TODO(refactor): Implement this.
+        let total_size = 0;
+
+        Ok(KeyStatus {
+            id: key.id,
+            name: key.name,
+            version_count,
+            total_size,
+        })
     }
 
     fn key_read_by_id(&self, id: &str) -> Result<Option<Key>, Error> {
@@ -209,6 +341,43 @@ impl Driver for SqliteDriver {
             .map_err(Error::Diesel)
     }
 
+    fn key_delete_by_id(&self, id: &str) -> Result<usize, Error> {
+        use crate::driver::sqlite::schema::kv_key::dsl::*;
+
+        let conn = self.connection()?;
+        diesel::delete(kv_key.filter(key_id.eq(id)))
+            .execute(&conn)
+            .map_err(Error::Diesel)
+    }
+
+    fn version_list_where_created_lte(
+        &self,
+        created_lte: &DateTime<Utc>,
+        offset_id: Option<&str>,
+        limit: i64,
+        key_id: &str,
+    ) -> Result<Vec<String>, Error> {
+        let created_lte = created_lte.to_rfc3339();
+        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
+        self.version_list_where_created_lte_inner(&created_lte, limit, offset, key_id)
+            .and_then(|res| {
+                if let Some(offset_id) = offset_id {
+                    for (i, id) in res.iter().enumerate() {
+                        if id == offset_id {
+                            let offset: i64 = (i + 1).try_into().unwrap();
+                            return self.version_list_where_created_lte_inner(
+                                &created_lte,
+                                limit,
+                                offset,
+                                key_id,
+                            );
+                        }
+                    }
+                }
+                Ok(res)
+            })
+    }
+
     fn version_create(
         &self,
         hash: &[u8],
@@ -247,6 +416,15 @@ impl Driver for SqliteDriver {
                 diesel::result::Error::NotFound => Ok(None),
                 _ => Err(Error::Diesel(err)),
             })
+    }
+
+    fn version_delete_by_id(&self, id: &str) -> Result<usize, Error> {
+        use crate::driver::sqlite::schema::kv_version::dsl::*;
+
+        let conn = self.connection()?;
+        diesel::delete(kv_version.filter(version_id.eq(id)))
+            .execute(&conn)
+            .map_err(Error::Diesel)
     }
 
     fn data_create(&self, chunk: i64, data: &[u8], data_version_id: &str) -> Result<Data, Error> {

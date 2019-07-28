@@ -27,8 +27,6 @@ pub enum RequestError {
     NotFound,
 }
 
-// TODO(feature): Client TLS support.
-
 /// Client errors.
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {

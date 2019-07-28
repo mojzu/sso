@@ -1,11 +1,38 @@
 use crate::core;
 use crate::core::disk_encryption::HashWriter;
-use crate::core::{Disk, DiskEncryption, Error, Key, KeyWriteOptions, Version};
+use crate::core::{Disk, DiskEncryption, Error, Key, KeyStatus, KeyWriteOptions, Version};
 use crate::driver::Driver;
 use std::io::{Read, Write};
 
+// TODO(refactor): Improve arguments consistency.
+
+pub fn list(driver: &Driver, disk: &Disk) -> Result<Vec<Key>, Error> {
+    let id_list = driver
+        .key_list_where_name_gte("", None, 65536, &disk.id)
+        .map_err(Error::Driver)?;
+    let mut key_list: Vec<Key> = Vec::new();
+    for id in id_list.into_iter() {
+        let key = read_by_id(driver, &id)?;
+        key_list.push(key);
+    }
+    Ok(key_list)
+}
+
+pub fn status(driver: &Driver, disk: &Disk, key: &str) -> Result<KeyStatus, Error> {
+    let key = read_by_name(driver, disk, key)?;
+    driver.key_status_by_id(&key.id).map_err(Error::Driver)
+}
+
 pub fn create(driver: &Driver, disk: &Disk, key: &str) -> Result<Key, Error> {
     driver.key_create(key, &disk.id).map_err(Error::Driver)
+}
+
+pub fn read_by_id(driver: &Driver, id: &str) -> Result<Key, Error> {
+    read_opt_by_id(driver, id).and_then(|x| x.ok_or_else(|| Error::Unwrap))
+}
+
+pub fn read_opt_by_id(driver: &Driver, id: &str) -> Result<Option<Key>, Error> {
+    driver.key_read_by_id(id).map_err(Error::Driver)
 }
 
 pub fn read_by_name(driver: &Driver, disk: &Disk, key: &str) -> Result<Key, Error> {
@@ -22,6 +49,11 @@ pub fn update_version(driver: &Driver, key: &Key, version: &Version) -> Result<u
     driver
         .key_update_by_id(&key.id, None, Some(&version.id))
         .map_err(Error::Driver)
+}
+
+pub fn delete(driver: &Driver, disk: &Disk, key: &str) -> Result<usize, Error> {
+    let key = read_by_name(driver, disk, key)?;
+    driver.key_delete_by_id(&key.id).map_err(Error::Driver)
 }
 
 pub fn read<W: Write>(
@@ -58,7 +90,6 @@ pub fn read<W: Write>(
 
     let writer = decoder.finish().unwrap();
     let (digest, size) = writer.finalize();
-    // TODO(feature): Read options with check flags.
     if digest[..] != version.hash[..] {
         return Err(Error::Unwrap);
     }
@@ -118,12 +149,21 @@ pub fn write<R: Read>(
     Ok((key, version))
 }
 
+pub fn verify<R: Read>(
+    _driver: &Driver,
+    _disk: &str,
+    _key_name: &str,
+    _disk_encryption: &DiskEncryption,
+    _input: &mut R,
+) -> Result<(), Error> {
+    unimplemented!();
+}
+
 fn hash_and_compress<R: Read>(input: &mut R) -> Result<(Vec<u8>, Vec<u8>, i64), Error> {
     use flate2::write::ZlibEncoder;
     use flate2::Compression;
     use std::io::prelude::*;
 
-    // TODO(refactor): Use files instead of buffers depending on file size, guess input size for buffers.
     let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
     let mut writer = HashWriter::new(&mut encoder);
     let mut buf = vec![0u8; 8_388_608 as usize];

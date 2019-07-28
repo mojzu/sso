@@ -13,7 +13,7 @@ Encrypted key, value storage library and binary crate.
 ### create secret-key
 
 ```shell
-ark_kv create secret-key SECRET_KEY
+ark_kv create secret-key <SECRET_KEY>
 ```
 
 Create secret key and write to file `./secret.key`.
@@ -25,7 +25,7 @@ ark_kv create secret-key ./secret.key
 ### verify secret-key
 
 ```shell
-ark_kv verify secret-key SECRET_KEY
+ark_kv verify secret-key <SECRET_KEY>
 ```
 
 Verify ark key read from file `./secret.key`.
@@ -37,7 +37,7 @@ ark_kv verify secret-key ./secret.key
 ### create disk
 
 ```shell
-ark_kv create disk DISK SECRET_KEY [--version-retention X] [--duration-retention X]
+ark_kv create disk [OPTIONS] <DISK> <SECRET_KEY>
 ```
 
 Create a new disk named `Foo` with secret key read from file `./secret.key`.
@@ -55,7 +55,7 @@ ark_kv create disk Bar ./secret.key  --version-retention 10 --duration-retention
 ### list
 
 ```shell
-ark_kv list [DISK] [KEY]
+ark_kv list [ARGS]
 ```
 
 List all disks.
@@ -64,10 +64,22 @@ List all disks.
 ark_kv list
 ```
 
+List all keys in disk `Foo`.
+
+```shell
+ark_kv list Foo
+```
+
+List versions of key `bar.txt` in disk `Foo`.
+
+```shell
+ark_kv list Foo bar.txt
+```
+
 ### read key
 
 ```shell
-ark_kv read key DISK KEY SECRET_KEY [--file FILE]
+ark_kv read key [OPTIONS] <DISK> <KEY> <SECRET_KEY>
 ```
 
 Read key `world.txt` in disk `Hello` using secret key `./secret.key` and write to `stdout`.
@@ -85,7 +97,7 @@ ark_kv read key Hello world.txt ./secret.key --file slurm.txt
 ### write key
 
 ```shell
-ark_kv write key DISK KEY [--file FILE] [--str STR]
+ark_kv write key [OPTIONS] <DISK> <KEY>
 ```
 
 Write key `slurm.txt` in disk `Super` from `stdin`. Use `CTRL+D` to close input.
@@ -104,4 +116,22 @@ Write key `cake.txt` in disk `Triumph` from file `./cake.txt`.
 
 ```shell
 ark_kv write key Triumph cake.txt --file ./cake.txt
+```
+
+### delete
+
+```shell
+ark_kv delete <DISK> [KEY]
+```
+
+Delete disk `Combine`.
+
+```shell
+ark_kv delete Combine
+```
+
+Delete key `escape.txt` in disk `Ape`.
+
+```shell
+ark_kv delete Ape escape.txt
 ```

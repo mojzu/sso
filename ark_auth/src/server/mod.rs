@@ -27,6 +27,9 @@ pub use validate::FromJsonValue;
 // <https://webauthn.guide/>
 // <https://webauthn.org/>
 // TODO(feature): Configurable canary routes.
+// TODO(feature): More efficient way of handling audit metrics read.
+// Keep audit registry and counter alive, only query metrics since last query.
+// TODO(feature): Client TLS support.
 
 /// Default JSON payload size limit.
 const DEFAULT_JSON_LIMIT: usize = 1024;

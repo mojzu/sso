@@ -1,4 +1,4 @@
-use crate::core::{Disk, DiskOptions, Error};
+use crate::core::{Disk, DiskOptions, DiskStatus, Error};
 use crate::driver::Driver;
 
 pub fn list(driver: &Driver) -> Result<Vec<Disk>, Error> {
@@ -11,6 +11,11 @@ pub fn list(driver: &Driver) -> Result<Vec<Disk>, Error> {
         disk_list.push(disk);
     }
     Ok(disk_list)
+}
+
+pub fn status(driver: &Driver, disk: &str) -> Result<DiskStatus, Error> {
+    let disk = read_by_name(driver, disk)?;
+    driver.disk_status_by_id(&disk.id).map_err(Error::Driver)
 }
 
 pub fn create(driver: &Driver, disk: &str, options: &DiskOptions) -> Result<Disk, Error> {
@@ -29,4 +34,9 @@ pub fn read_by_name(driver: &Driver, name: &str) -> Result<Disk, Error> {
         .disk_read_by_name(name)
         .map_err(Error::Driver)
         .and_then(|x| x.ok_or_else(|| Error::Unwrap))
+}
+
+pub fn delete(driver: &Driver, disk: &str) -> Result<usize, Error> {
+    let disk = read_by_name(driver, disk)?;
+    driver.disk_delete_by_id(&disk.id).map_err(Error::Driver)
 }

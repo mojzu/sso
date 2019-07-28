@@ -3,6 +3,8 @@ pub mod disk;
 pub mod disk_encryption;
 pub mod key;
 pub mod version;
+// TODO(refactor): Feature flag for fuse support.
+pub mod fuse;
 
 use crate::driver;
 use chrono::{DateTime, Utc};
@@ -11,6 +13,19 @@ use chrono::{DateTime, Utc};
 // TODO(feature): Symmetric encryption key option.
 // TODO(feature): Improve types, support types of encryption.
 // TODO(feature): Compression type per key.
+// TODO(feature): Implement file driver (ark_ota support?).
+// TODO(feature): Use files instead of buffers depending on file size, guess input size for buffers.
+// TODO(feature): Key read options with check flags.
+// TODO(feature): FUSE filesystem support.
+// TODO(feature): Make secret key optional for verify.
+// TODO(feature): Flag to enable/disable modified time check.
+// TODO(feature): Configurable chunk size, compression.
+// TODO(feature): Data deduplication support/testing?
+// TODO(feature): Windows support/testing, use features.
+// TODO(feature): Remote backup/synchronisation of volumes.
+// TODO(feature): Application logs and API.
+// TODO(feature): Read to directory datetime option for point in time recovery.
+// TODO(feature): HTTP server interface, server read-only files from volumes.
 
 /// Core errors.
 #[derive(Debug, Fail)]
@@ -24,6 +39,11 @@ pub enum Error {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    pub disk_count: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DiskEncryptionData {
     secret_key: Vec<u8>,
     public_key: Vec<u8>,
@@ -31,8 +51,8 @@ pub struct DiskEncryptionData {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DiskEncryption {
-    pub encryption: String,
-    pub encryption_data: DiskEncryptionData,
+    encryption: String,
+    encryption_data: DiskEncryptionData,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Builder)]
@@ -72,6 +92,15 @@ pub struct Disk {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiskStatus {
+    pub id: String,
+    pub name: String,
+    pub key_count: i64,
+    pub total_size: i64,
+    // TODO(feature): Compressed size status.
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Key {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -79,6 +108,14 @@ pub struct Key {
     pub name: String,
     pub disk_id: String,
     pub version_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyStatus {
+    pub id: String,
+    pub name: String,
+    pub version_count: i64,
+    pub total_size: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Builder)]
@@ -105,4 +142,42 @@ pub struct Data {
     pub chunk: i64,
     pub value: Vec<u8>,
     pub version_id: String,
+}
+
+pub fn status(driver: &driver::Driver) -> Result<Status, Error> {
+    driver.status().map_err(Error::Driver)
+}
+
+pub fn poll(driver: &driver::Driver, vacuum: bool) -> Result<(), Error> {
+    let disks = self::disk::list(driver)?;
+    for (_i, disk) in disks.into_iter().enumerate() {
+        if disk.options.version_retention > 0 {
+            let keys = self::key::list(driver, &disk)?;
+
+            for (_j, key) in keys.into_iter().enumerate() {
+                let versions = self::version::list(driver, &key)?;
+
+                if versions.len() as i64 > disk.options.version_retention {
+                    for version in &versions[disk.options.version_retention as usize..] {
+                        if disk.options.duration_retention > -1 {
+                            let now = Utc::now().timestamp();
+                            let duration_compare = now - disk.options.duration_retention;
+                            let created_at = version.created_at.timestamp();
+
+                            if duration_compare < created_at {
+                                continue;
+                            }
+                        }
+
+                        self::version::delete_by_id(driver, &version.id)?;
+                    }
+                }
+            }
+        }
+    }
+
+    if vacuum {
+        driver.vacuum().map_err(Error::Driver)?;
+    }
+    Ok(())
 }
