@@ -34,6 +34,12 @@ Verify ark key read from file `./secret.key`.
 ark_kv verify secret-key ./secret.key
 ```
 
+### verify key
+
+```shell
+ark_kv verify key [OPTIONS] <DISK> <KEY> <SECRET_KEY>
+```
+
 ### create disk
 
 ```shell
@@ -76,6 +82,30 @@ List versions of key `bar.txt` in disk `Foo`.
 ark_kv list Foo bar.txt
 ```
 
+### status
+
+```shell
+ark_kv status [ARGS]
+```
+
+Get status of all disks.
+
+```shell
+ark_kv status
+```
+
+Get status of disk `Import`.
+
+```shell
+ark_kv status Import
+```
+
+Get status of key `blns.txt` in disk `Import`.
+
+```shell
+ark_kv status Import blns.txt
+```
+
 ### read key
 
 ```shell
@@ -92,6 +122,18 @@ Read key `slurm.txt` in disk `Super` using secret key `./secret.key` and write t
 
 ```shell
 ark_kv read key Hello world.txt ./secret.key --file slurm.txt
+```
+
+### read disk
+
+```shell
+ark_kv read disk [OPTIONS] <DISK> <SECRET_KEY>
+```
+
+Read keys in disk `Import` into directory `./tests/file2` using secret key `./secret.key`.
+
+```shell
+ark_kv read disk Import ./secret.key --directory ./tests/file2
 ```
 
 ### write key
@@ -118,6 +160,18 @@ Write key `cake.txt` in disk `Triumph` from file `./cake.txt`.
 ark_kv write key Triumph cake.txt --file ./cake.txt
 ```
 
+### write disk
+
+```shell
+ark_kv write disk [OPTIONS] <DISK>
+```
+
+Write keys in disk `Import` from directory `./tests/file`.
+
+```shell
+ark_kv write disk Import --directory ./tests/file
+```
+
 ### delete
 
 ```shell
@@ -134,4 +188,30 @@ Delete key `escape.txt` in disk `Ape`.
 
 ```shell
 ark_kv delete Ape escape.txt
+```
+
+### poll
+
+```shell
+ark_kv poll [FLAGS]
+```
+
+Poll disks and vacuum database.
+
+```shell
+ark_kv poll --vacuum
+```
+
+### mount
+
+```shell
+ark_kv mount <DISK> <MOUNTPOINT>
+```
+
+Mount disk `Documents` at path `/tmp/documents`.
+
+```shell
+mkdir -p /tmp/documents
+ark_kv mount Documents /tmp/documents
+fusermount -u /tmp/documents
 ```

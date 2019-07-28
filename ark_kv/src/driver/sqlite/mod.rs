@@ -27,7 +27,13 @@ impl SqliteDriver {
         }
         let pool = pool.build(manager).map_err(Error::R2d2)?;
         let driver = SqliteDriver { pool };
-        driver.run_migrations()?;
+
+        let connection = driver.connection()?;
+        embedded_migrations::run(&connection).map_err(Error::DieselMigrations)?;
+        connection
+            .execute("PRAGMA foreign_keys = ON")
+            .map_err(Error::Diesel)?;
+
         Ok(driver)
     }
 
@@ -37,11 +43,6 @@ impl SqliteDriver {
 
     fn uuid() -> String {
         uuid::Uuid::new_v4().to_simple().to_string()
-    }
-
-    fn run_migrations(&self) -> Result<(), Error> {
-        let connection = self.connection()?;
-        embedded_migrations::run(&connection).map_err(Error::DieselMigrations)
     }
 
     fn disk_list_where_name_gte_inner(
@@ -100,6 +101,15 @@ impl SqliteDriver {
             .offset(offset)
             .order(created_at.desc())
             .load::<String>(&conn)
+            .map_err(Error::Diesel)
+    }
+
+    fn data_delete_by_version_id(&self, id: &str) -> Result<usize, Error> {
+        use crate::driver::sqlite::schema::kv_data::dsl::*;
+
+        let conn = self.connection()?;
+        diesel::delete(kv_data.filter(version_id.eq(id)))
+            .execute(&conn)
             .map_err(Error::Diesel)
     }
 }
@@ -220,6 +230,12 @@ impl Driver for SqliteDriver {
 
     fn disk_delete_by_id(&self, id: &str) -> Result<usize, Error> {
         use crate::driver::sqlite::schema::kv_disk::dsl::*;
+
+        // TODO(refactor): Use scan in place of large limits.
+        let key_list = self.key_list_where_name_gte("", None, 65536, id)?;
+        for key in key_list {
+            self.key_delete_by_id(&key)?;
+        }
 
         let conn = self.connection()?;
         diesel::delete(kv_disk.filter(disk_id.eq(id)))
@@ -344,6 +360,12 @@ impl Driver for SqliteDriver {
     fn key_delete_by_id(&self, id: &str) -> Result<usize, Error> {
         use crate::driver::sqlite::schema::kv_key::dsl::*;
 
+        let now = Utc::now();
+        let version_list = self.version_list_where_created_lte(&now, None, 1024, id)?;
+        for version in version_list {
+            self.version_delete_by_id(&version)?;
+        }
+
         let conn = self.connection()?;
         diesel::delete(kv_key.filter(key_id.eq(id)))
             .execute(&conn)
@@ -421,6 +443,7 @@ impl Driver for SqliteDriver {
     fn version_delete_by_id(&self, id: &str) -> Result<usize, Error> {
         use crate::driver::sqlite::schema::kv_version::dsl::*;
 
+        self.data_delete_by_version_id(id)?;
         let conn = self.connection()?;
         diesel::delete(kv_version.filter(version_id.eq(id)))
             .execute(&conn)

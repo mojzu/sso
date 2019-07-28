@@ -133,6 +133,7 @@ pub fn smtp_from_env(
         let smtp_user = smtp_user?;
         let smtp_password = smtp_password?;
 
+        // TODO(refactor): Break into functions.
         match smtp_port.parse::<u16>() {
             Ok(x) => Ok(Some(notify::ConfigurationSmtp::new(
                 smtp_host,

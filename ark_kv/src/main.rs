@@ -515,6 +515,7 @@ fn configure() -> Result<Box<Driver>, cli::Error> {
         cli::opt_str_from_env(ENV_DATABASE_URL).unwrap_or_else(|| "db.sqlite3".to_owned());
     let database_connections = cli::opt_u32_from_env(ENV_DATABASE_CONNECTIONS)?;
 
+    sodiumoxide::init().unwrap();
     let driver = driver::SqliteDriver::initialise(&database_url, database_connections)
         .unwrap()
         .box_clone();
