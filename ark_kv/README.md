@@ -215,3 +215,20 @@ mkdir -p /tmp/documents
 ark_kv mount Documents /tmp/documents
 fusermount -u /tmp/documents
 ```
+
+## Test
+
+```shell
+# Backup.
+ark_kv create disk archive ~/ark.key
+ark_kv create disk documents ~/ark.key --version-retention 10 --duration-retention 2419200
+ark_kv write disk archive --directory /home/$USER/archive
+ark_kv write disk documents --directory /home/$USER/documents
+ark_kv poll --vacuum
+
+# Restore.
+ark_kv read disk archive ~/ark.key --directory /home/$USER/archive2
+diff -r /home/$USER/archive /home/$USER/archive2
+ark_kv read disk documents ~/ark.key --directory /home/$USER/documents2
+diff -r /home/$USER/documents /home/$USER/documents2
+```

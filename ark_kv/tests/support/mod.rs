@@ -6,5 +6,6 @@ fn env_test_ark_kv_bin() -> String {
 }
 
 pub fn command_create() -> Command {
+    std::env::set_var("DATABASE_URL", "test.sqlite3");
     Command::new(env_test_ark_kv_bin())
 }

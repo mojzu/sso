@@ -26,6 +26,7 @@ use chrono::{DateTime, Utc};
 // TODO(feature): Application logs and API.
 // TODO(feature): Read to directory datetime option for point in time recovery.
 // TODO(feature): HTTP server interface, server read-only files from volumes.
+// TODO(refactor): Improve CLI output, formatting, progress for read/write disk.
 
 /// Core errors.
 #[derive(Debug, Fail)]
