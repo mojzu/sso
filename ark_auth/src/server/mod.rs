@@ -221,6 +221,7 @@ pub struct Configuration {
     bind: String,
     #[builder(default = "crate_user_agent()")]
     user_agent: String,
+    /// TODO(refactor): Check pwned password API notification (key required?).
     #[builder(default = "false")]
     password_pwned_enabled: bool,
     #[builder(default = "3_600")]
