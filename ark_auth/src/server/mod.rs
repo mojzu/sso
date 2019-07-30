@@ -222,19 +222,26 @@ pub struct Configuration {
     #[builder(default = "crate_name()")]
     hostname: String,
     bind: String,
+    /// User agent string for outgoing client requests.
     #[builder(default = "crate_user_agent()")]
     user_agent: String,
-    /// TODO(refactor): Check pwned password API notification (key required?).
+    /// Enable Pwned Passwords API to check passwords.
+    /// API keys may be required in the future to use this API.
     #[builder(default = "false")]
     password_pwned_enabled: bool,
+    /// Access token expiry time in seconds.
     #[builder(default = "3_600")]
     access_token_expires: i64,
+    /// Refresh token expiry time in seconds.
     #[builder(default = "86_400")]
     refresh_token_expires: i64,
+    /// Revoke token expiry time in seconds.
     #[builder(default = "604_800")]
     revoke_token_expires: i64,
+    /// Authentication provider groups.
     #[builder(default)]
     provider: ConfigurationProviderGroup,
+    /// Rustls configuration for TLS support.
     rustls: Option<ConfigurationRustls>,
 }
 
@@ -300,7 +307,9 @@ impl Configuration {
                 let client_file_reader = &mut BufReader::new(client_file);
 
                 let mut roots = RootCertStore::empty();
-                roots.add_pem_file(client_file_reader).map_err(|_err| Error::Rustls)?;
+                roots
+                    .add_pem_file(client_file_reader)
+                    .map_err(|_err| Error::Rustls)?;
                 ServerConfig::new(AllowAnyAuthenticatedClient::new(roots))
             } else {
                 ServerConfig::new(NoClientAuth::new())

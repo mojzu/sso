@@ -22,7 +22,8 @@ actix-identity = "*"
 actix-http = "*"
 actix-rt = "*"
 actix-service = "*"
-actix-web = { version = "^1.0.5", features = ["rust-tls", "client"] }
+# Feature `ssl` required for client HTTPS support.
+actix-web = { version = "^1.0.5", features = ["ssl", "rust-tls", "client"] }
 awc = "*"
 bcrypt = "*"
 clap = "*"

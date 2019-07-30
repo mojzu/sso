@@ -60,9 +60,8 @@ where
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
-        // TODO(refactor): Add path as label value (&[req.path()]), doesn't work now as
-        // routing happens before middleware calls, so path contains ID, queries, etc.
-        // Attaching this middleware to each route with a path could work, but verbose.
+        // TODO(refactor): Add path as label value (&[req.path()]).
+        // <https://github.com/actix/actix-web/issues/833>
         let timer = self.latency.with_label_values(&["/"]).start_timer();
         let timer = ok::<HistogramTimer, Self::Error>(timer);
         let count = self.count.clone();

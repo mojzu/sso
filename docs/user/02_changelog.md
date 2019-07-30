@@ -19,7 +19,7 @@
 - Rename local authentication provider reset, update routes.
 - Improved configuration interface using `derive_builder` crate.
 - Added hostname configuration to server.
-- Switched to `rustls` crate for TLS support in Actix.
+- Switched to `rustls` crate for TLS support in Actix, `ssl` feature still used for client HTTPS requests.
 
 **Fixed**
 
