@@ -12,7 +12,7 @@ use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::{middleware, web, App, HttpResponse, HttpServer, ResponseError};
 use prometheus::{HistogramOpts, HistogramVec, IntCounterVec, Opts, Registry};
 use rustls::internal::pemfile::{certs, rsa_private_keys};
-use rustls::{NoClientAuth, ServerConfig};
+use rustls::{AllowAnyAuthenticatedClient, NoClientAuth, RootCertStore, ServerConfig};
 use serde::Serialize;
 use std::fs::File;
 use std::io::BufReader;
@@ -98,6 +98,9 @@ pub enum Error {
     /// Core error wrapper.
     #[fail(display = "ServerError::Core {}", _0)]
     Core(#[fail(cause)] core::Error),
+    /// Rustls error wrapper.
+    #[fail(display = "ServerError::Rustls")]
+    Rustls,
     /// URL parse error.
     #[fail(display = "ServerError::UrlParse {}", _0)]
     UrlParse(#[fail(cause)] url::ParseError),
@@ -200,15 +203,15 @@ impl ConfigurationProviderGroup {
 pub struct ConfigurationRustls {
     crt_pem: String,
     key_pem: String,
-    client_auth: bool,
+    client_pem: Option<String>,
 }
 
 impl ConfigurationRustls {
-    pub fn new(crt_pem: String, key_pem: String, client_auth: bool) -> Self {
+    pub fn new(crt_pem: String, key_pem: String, client_pem: Option<String>) -> Self {
         Self {
             crt_pem,
             key_pem,
-            client_auth,
+            client_pem,
         }
     }
 }
@@ -284,19 +287,26 @@ impl Configuration {
     /// Configured rustls server parameters.
     pub fn rustls_server_config(&self) -> Result<Option<ServerConfig>, Error> {
         if let Some(rustls_config) = &self.rustls {
-            // TODO(refactor): Improve error handling, configuration.
-            let crt_file = &mut BufReader::new(File::open(&rustls_config.crt_pem).unwrap());
-            let key_file = &mut BufReader::new(File::open(&rustls_config.key_pem).unwrap());
-            let cert_chain = certs(crt_file).unwrap();
-            let mut keys = rsa_private_keys(key_file).unwrap();
-            let mut config = if rustls_config.client_auth {
-                // TODO(feature): Support TLS client authentication.
-                // ServerConfig::new(AllowAnyAuthenticatedClient::new())
-                unimplemented!();
+            let crt_file = File::open(&rustls_config.crt_pem).map_err(Error::StdIo)?;
+            let key_file = File::open(&rustls_config.key_pem).map_err(Error::StdIo)?;
+            let crt_file_reader = &mut BufReader::new(crt_file);
+            let key_file_reader = &mut BufReader::new(key_file);
+
+            let cert_chain = certs(crt_file_reader).map_err(|_err| Error::Rustls)?;
+            let mut keys = rsa_private_keys(key_file_reader).map_err(|_err| Error::Rustls)?;
+
+            let mut config = if let Some(client_pem) = &rustls_config.client_pem {
+                let client_file = File::open(client_pem).map_err(Error::StdIo)?;
+                let client_file_reader = &mut BufReader::new(client_file);
+
+                let mut roots = RootCertStore::empty();
+                roots.add_pem_file(client_file_reader).map_err(|_err| Error::Rustls)?;
+                ServerConfig::new(AllowAnyAuthenticatedClient::new(roots))
             } else {
                 ServerConfig::new(NoClientAuth::new())
             };
             config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
+
             Ok(Some(config))
         } else {
             Ok(None)

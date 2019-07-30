@@ -198,7 +198,7 @@ pub fn env_rustls(
     if env_has_any_name(&[crt_pem_name, key_pem_name, client_auth_name]) {
         let crt_pem = env_string(crt_pem_name)?;
         let key_pem = env_string(key_pem_name)?;
-        let client_auth = env_value::<bool>(client_auth_name)?;
+        let client_auth = env_string_opt(client_auth_name);
 
         Ok(Some(server::ConfigurationRustls::new(
             crt_pem,
