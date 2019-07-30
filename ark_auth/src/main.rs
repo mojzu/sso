@@ -142,28 +142,28 @@ fn main() {
 }
 
 fn configure() -> Result<(Box<Driver>, cli::Configuration), cli::Error> {
-    let database_url = cli::str_from_env(ENV_DATABASE_URL)?;
-    let database_connections = cli::opt_u32_from_env(ENV_DATABASE_CONNECTIONS)?;
+    let database_url = cli::env_string(ENV_DATABASE_URL)?;
+    let database_connections = cli::env_value_opt::<u32>(ENV_DATABASE_CONNECTIONS)?;
     let server_hostname =
-        cli::opt_str_from_env(ENV_SERVER_HOSTNAME).unwrap_or_else(|| "ark_auth".to_owned());
-    let server_bind = cli::str_from_env(ENV_SERVER_BIND)?;
-    let smtp = cli::smtp_from_env(
+        cli::env_string_opt(ENV_SERVER_HOSTNAME).unwrap_or_else(|| "ark_auth".to_owned());
+    let server_bind = cli::env_string(ENV_SERVER_BIND)?;
+    let smtp = cli::env_smtp(
         ENV_SMTP_HOST,
         ENV_SMTP_PORT,
         ENV_SMTP_USER,
         ENV_SMTP_PASSWORD,
     )?;
-    let github = server::ConfigurationProvider::new(cli::oauth2_from_env(
+    let github = server::ConfigurationProvider::new(cli::env_oauth2(
         ENV_GITHUB_CLIENT_ID,
         ENV_GITHUB_CLIENT_SECRET,
         ENV_GITHUB_REDIRECT_URL,
     )?);
-    let microsoft = server::ConfigurationProvider::new(cli::oauth2_from_env(
+    let microsoft = server::ConfigurationProvider::new(cli::env_oauth2(
         ENV_MICROSOFT_CLIENT_ID,
         ENV_MICROSOFT_CLIENT_SECRET,
         ENV_MICROSOFT_REDIRECT_URL,
     )?);
-    let rustls = cli::rustls_from_env(
+    let rustls = cli::env_rustls(
         ENV_SERVER_TLS_CRT_PEM,
         ENV_SERVER_TLS_KEY_PEM,
         ENV_SERVER_TLS_CLIENT_AUTH,

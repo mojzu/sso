@@ -5,10 +5,14 @@ use crate::driver::Driver;
 use crate::notify::NotifyExecutor;
 use crate::{core, notify, server};
 use actix_rt::System;
+use std::str::FromStr;
 
 /// Command line interface errors.
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// Environment variable parse error.
+    #[fail(display = "CliError::EnvParse {}", _0)]
+    EnvParse(String),
     /// Core error wrapper.
     #[fail(display = "CliError::Core {}", _0)]
     Core(#[fail(cause)] core::Error),
@@ -18,12 +22,6 @@ pub enum Error {
     /// Standard environment variable error wrapper.
     #[fail(display = "CliError::StdEnvVar {}", _0)]
     StdEnvVar(#[fail(cause)] std::env::VarError),
-    /// Standard number parse integer error wrapper.
-    #[fail(display = "CliError::StdNumParseInt {}", _0)]
-    StdNumParseInt(#[fail(cause)] std::num::ParseIntError),
-    /// Standard string parse boolean error wrapper.
-    #[fail(display = "CliError::StdStrParseBool {}", _0)]
-    StdStrParseBool(#[fail(cause)] std::str::ParseBoolError),
 }
 
 /// Configuration.
@@ -73,7 +71,7 @@ impl Configuration {
 
 /// Read required environment variable string value.
 /// Logs an error message in case of error.
-pub fn str_from_env(name: &str) -> Result<String, Error> {
+pub fn env_string(name: &str) -> Result<String, Error> {
     std::env::var(name).map_err(|err| {
         error!("{} is undefined, required ({})", name, err);
         Error::StdEnvVar(err)
@@ -81,20 +79,43 @@ pub fn str_from_env(name: &str) -> Result<String, Error> {
 }
 
 /// Read optional environment variable string value.
-pub fn opt_str_from_env(name: &str) -> Option<String> {
+pub fn env_string_opt(name: &str) -> Option<String> {
     std::env::var(name).ok()
 }
 
-/// Read optional environment variable u32 value.
-/// Logs an error message in case value is not a valid unsigned integer.
-pub fn opt_u32_from_env(name: &str) -> Result<Option<u32>, Error> {
+/// Read environment variable value parsed from string.
+/// Logs an error message in case of error.
+pub fn env_value<T: FromStr>(name: &str) -> Result<T, Error>
+where
+    <T as std::str::FromStr>::Err: std::fmt::Display,
+{
+    let value = std::env::var(name).map_err(|err| {
+        error!("{} is undefined, required ({})", name, err);
+        Error::StdEnvVar(err)
+    })?;
+
+    match value.parse::<T>() {
+        Ok(x) => Ok(x),
+        Err(err) => {
+            error!("{} is invalid ({})", name, err);
+            Err(Error::EnvParse(err.to_string()))
+        }
+    }
+}
+
+/// Read optional environment variable value parsed from string.
+/// Logs an error message in case value is not parsed successfully.
+pub fn env_value_opt<T: FromStr>(name: &str) -> Result<Option<T>, Error>
+where
+    <T as std::str::FromStr>::Err: std::fmt::Display,
+{
     let value = std::env::var(name).ok();
     if let Some(x) = value {
-        match x.parse::<u32>() {
+        match x.parse::<T>() {
             Ok(x) => Ok(Some(x)),
             Err(err) => {
-                error!("{} is invalid unsigned integer ({})", name, err);
-                Err(Error::StdNumParseInt(err))
+                error!("{} is invalid ({})", name, err);
+                Err(Error::EnvParse(err.to_string()))
             }
         }
     } else {
@@ -102,50 +123,42 @@ pub fn opt_u32_from_env(name: &str) -> Result<Option<u32>, Error> {
     }
 }
 
+/// Returns true if any name in string reference array is defined in environment.
+pub fn env_has_any_name(names: &[&str]) -> bool {
+    for name in names.into_iter() {
+        if std::env::var(name).is_ok() {
+            return true;
+        }
+    }
+    return false;
+}
+
 /// Read SMTP environment variables into configuration.
 /// If no variables are defined, returns None. Else all variables
 /// are required and an error message logged for each missing variable.
-pub fn smtp_from_env(
+pub fn env_smtp(
     smtp_host_name: &str,
     smtp_port_name: &str,
     smtp_user_name: &str,
     smtp_password_name: &str,
 ) -> Result<Option<notify::ConfigurationSmtp>, Error> {
-    let smtp_host = std::env::var(smtp_host_name).map_err(|err| {
-        error!("{} is undefined ({})", smtp_host_name, err);
-        Error::StdEnvVar(err)
-    });
-    let smtp_port = std::env::var(smtp_port_name).map_err(|err| {
-        error!("{} is undefined ({})", smtp_port_name, err);
-        Error::StdEnvVar(err)
-    });
-    let smtp_user = std::env::var(smtp_user_name).map_err(|err| {
-        error!("{} is undefined ({})", smtp_user_name, err);
-        Error::StdEnvVar(err)
-    });
-    let smtp_password = std::env::var(smtp_password_name).map_err(|err| {
-        error!("{} is undefined ({})", smtp_password_name, err);
-        Error::StdEnvVar(err)
-    });
-    if smtp_host.is_ok() || smtp_port.is_ok() || smtp_user.is_ok() || smtp_password.is_ok() {
-        let smtp_host = smtp_host?;
-        let smtp_port = smtp_port?;
-        let smtp_user = smtp_user?;
-        let smtp_password = smtp_password?;
+    if env_has_any_name(&[
+        smtp_host_name,
+        smtp_port_name,
+        smtp_user_name,
+        smtp_password_name,
+    ]) {
+        let smtp_host = env_string(smtp_host_name)?;
+        let smtp_port = env_value::<u16>(smtp_port_name)?;
+        let smtp_user = env_string(smtp_user_name)?;
+        let smtp_password = env_string(smtp_password_name)?;
 
-        // TODO(refactor): Break into functions.
-        match smtp_port.parse::<u16>() {
-            Ok(x) => Ok(Some(notify::ConfigurationSmtp::new(
-                smtp_host,
-                x,
-                smtp_user,
-                smtp_password,
-            ))),
-            Err(err) => {
-                error!("{} is invalid port number ({})", smtp_port_name, err);
-                Err(Error::StdNumParseInt(err))
-            }
-        }
+        Ok(Some(notify::ConfigurationSmtp::new(
+            smtp_host,
+            smtp_port,
+            smtp_user,
+            smtp_password,
+        )))
     } else {
         Ok(None)
     }
@@ -154,27 +167,16 @@ pub fn smtp_from_env(
 /// Read OAuth2 environment variables into configuration.
 /// If no variables are defined, returns None. Else all variables
 /// are required and an error message logged for each missing variable.
-pub fn oauth2_from_env(
+pub fn env_oauth2(
     client_id_name: &str,
     client_secret_name: &str,
     redirect_url_name: &str,
 ) -> Result<Option<server::ConfigurationProviderOauth2>, Error> {
-    let client_id = std::env::var(client_id_name).map_err(|err| {
-        error!("{} is undefined ({})", client_id_name, err);
-        Error::StdEnvVar(err)
-    });
-    let client_secret = std::env::var(client_secret_name).map_err(|err| {
-        error!("{} is undefined ({})", client_secret_name, err);
-        Error::StdEnvVar(err)
-    });
-    let redirect_url = std::env::var(redirect_url_name).map_err(|err| {
-        error!("{} is undefined ({})", redirect_url_name, err);
-        Error::StdEnvVar(err)
-    });
-    if client_id.is_ok() || client_secret.is_ok() || redirect_url.is_ok() {
-        let client_id = client_id?;
-        let client_secret = client_secret?;
-        let redirect_url = redirect_url?;
+    if env_has_any_name(&[client_id_name, client_secret_name, redirect_url_name]) {
+        let client_id = env_string(client_id_name)?;
+        let client_secret = env_string(client_secret_name)?;
+        let redirect_url = env_string(redirect_url_name)?;
+
         Ok(Some(server::ConfigurationProviderOauth2::new(
             client_id,
             client_secret,
@@ -188,35 +190,21 @@ pub fn oauth2_from_env(
 /// Read Rustls environment variables into configuration.
 /// If no variables are defined, returns None. Else all variables
 /// are required and an error message logged for each missing variable.
-pub fn rustls_from_env(
+pub fn env_rustls(
     crt_pem_name: &str,
     key_pem_name: &str,
     client_auth_name: &str,
 ) -> Result<Option<server::ConfigurationRustls>, Error> {
-    let crt_pem = std::env::var(crt_pem_name).map_err(|err| {
-        error!("{} is undefined ({})", crt_pem_name, err);
-        Error::StdEnvVar(err)
-    });
-    let key_pem = std::env::var(key_pem_name).map_err(|err| {
-        error!("{} is undefined ({})", key_pem_name, err);
-        Error::StdEnvVar(err)
-    });
-    let client_auth = std::env::var(client_auth_name).map_err(|err| {
-        error!("{} is undefined ({})", client_auth_name, err);
-        Error::StdEnvVar(err)
-    });
-    if crt_pem.is_ok() || key_pem.is_ok() || client_auth.is_ok() {
-        let crt_pem = crt_pem?;
-        let key_pem = key_pem?;
-        let client_auth = client_auth?;
+    if env_has_any_name(&[crt_pem_name, key_pem_name, client_auth_name]) {
+        let crt_pem = env_string(crt_pem_name)?;
+        let key_pem = env_string(key_pem_name)?;
+        let client_auth = env_value::<bool>(client_auth_name)?;
 
-        match client_auth.parse::<bool>() {
-            Ok(x) => Ok(Some(server::ConfigurationRustls::new(crt_pem, key_pem, x))),
-            Err(err) => {
-                error!("{} is invalid boolean ({})", client_auth_name, err);
-                Err(Error::StdStrParseBool(err))
-            }
-        }
+        Ok(Some(server::ConfigurationRustls::new(
+            crt_pem,
+            key_pem,
+            client_auth,
+        )))
     } else {
         Ok(None)
     }

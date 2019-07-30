@@ -5,6 +5,7 @@ use std::convert::TryInto;
 use std::fs::{symlink_metadata, File};
 use std::io::BufReader;
 use std::path::Path;
+use std::str::FromStr;
 use std::time::UNIX_EPOCH;
 
 /// Command line interface errors.
@@ -13,38 +14,38 @@ pub enum Error {
     /// Not a file error.
     #[fail(display = "CliError::IsNotFile {}", _0)]
     IsNotFile(String),
+    /// Environment variable parse error.
+    #[fail(display = "CliError::EnvParse {}", _0)]
+    EnvParse(String),
     /// Core error wrapper.
     #[fail(display = "CliError::Core {}", _0)]
     Core(#[fail(cause)] core::Error),
     /// Standard IO error wrapper.
     #[fail(display = "CliError::StdIo {}", _0)]
     StdIo(#[fail(cause)] std::io::Error),
-    /// Standard environment variable error wrapper.
-    #[fail(display = "CliError::StdEnvVar {}", _0)]
-    StdEnvVar(#[fail(cause)] std::env::VarError),
-    /// Standard number parse integer error wrapper.
-    #[fail(display = "CliError::StdNumParseInt {}", _0)]
-    StdNumParseInt(#[fail(cause)] std::num::ParseIntError),
     /// Glob error wrapper.
     #[fail(display = "CliError::Glob {}", _0)]
     Glob(#[fail(cause)] glob::GlobError),
 }
 
 /// Read optional environment variable string value.
-pub fn opt_str_from_env(name: &str) -> Option<String> {
+pub fn env_string_opt(name: &str) -> Option<String> {
     std::env::var(name).ok()
 }
 
-/// Read optional environment variable u32 value.
-/// Logs an error message in case value is not a valid unsigned integer.
-pub fn opt_u32_from_env(name: &str) -> Result<Option<u32>, Error> {
+/// Read optional environment variable value parsed from string.
+/// Logs an error message in case value is not parsed successfully.
+pub fn env_value_opt<T: FromStr>(name: &str) -> Result<Option<T>, Error>
+where
+    <T as std::str::FromStr>::Err: std::fmt::Display,
+{
     let value = std::env::var(name).ok();
     if let Some(x) = value {
-        match x.parse::<u32>() {
+        match x.parse::<T>() {
             Ok(x) => Ok(Some(x)),
             Err(err) => {
-                error!("{} is invalid unsigned integer ({})", name, err);
-                Err(Error::StdNumParseInt(err))
+                error!("{} is invalid ({})", name, err);
+                Err(Error::EnvParse(err.to_string()))
             }
         }
     } else {
