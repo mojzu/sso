@@ -100,16 +100,10 @@ impl ClientOptions {
     pub fn split_authorisation(type_value: String) -> Result<(String, String), Error> {
         let mut type_value = type_value.split_whitespace();
         let type_ = type_value.next();
-        if type_.is_none() {
-            return Err(Error::InvalidKeyOrToken);
-        }
-        let type_: String = type_.unwrap().into();
+        let type_: String = type_.ok_or_else(|| Error::InvalidKeyOrToken)?.into();
 
         let value = type_value.next();
-        if value.is_none() {
-            return Err(Error::InvalidKeyOrToken);
-        }
-        let value: String = value.unwrap().into();
+        let value: String = value.ok_or_else(|| Error::InvalidKeyOrToken)?.into();
         Ok((type_, value))
     }
 }

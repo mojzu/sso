@@ -125,12 +125,12 @@ where
 
 /// Returns true if any name in string reference array is defined in environment.
 pub fn env_has_any_name(names: &[&str]) -> bool {
-    for name in names.into_iter() {
+    for name in names.iter() {
         if std::env::var(name).is_ok() {
             return true;
         }
     }
-    return false;
+    false
 }
 
 /// Read SMTP environment variables into configuration.
