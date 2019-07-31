@@ -12,6 +12,9 @@ pub use crate::client::sync_impl::SyncClient;
 use crate::crate_user_agent;
 use serde::ser::Serialize;
 use std::error::Error as StdError;
+use std::fs::File;
+use std::io::Error as StdIoError;
+use std::io::Read;
 use url::Url;
 
 #[derive(Debug, Fail, PartialEq)]
@@ -48,11 +51,18 @@ pub enum Error {
     /// Serde URL encoded serialise error wrapper.
     #[fail(display = "ClientError::SerdeUrlencodedSer {}", _0)]
     SerdeUrlencodedSer(#[fail(cause)] serde_urlencoded::ser::Error),
+    /// Standard IO error wrapper.
+    #[fail(display = "ClientError::StdIo {}", _0)]
+    StdIo(String),
 }
 
 impl Error {
     pub fn url(err: &StdError) -> Error {
         Error::Url(err.description().into())
+    }
+
+    pub fn stdio(err: &StdIoError) -> Error {
+        Error::StdIo(err.description().into())
     }
 }
 
@@ -62,16 +72,47 @@ pub struct ClientOptions {
     url: Url,
     user_agent: String,
     authorisation: String,
+    crt_pem: Option<Vec<u8>>,
+    client_pem: Option<Vec<u8>>,
 }
 
 impl ClientOptions {
-    pub fn new<T: Into<String>>(url: &str, authorisation: T) -> Result<Self, Error> {
+    /// Create new client options.
+    /// Reads CA certificate PEM file into buffer if provided.
+    /// Reads client key PEM file into buffer if provided.
+    pub fn new<T1: Into<String>>(
+        url: &str,
+        authorisation: T1,
+        crt_pem: Option<String>,
+        client_pem: Option<String>,
+    ) -> Result<Self, Error> {
         let url = Url::parse(url).map_err(|err| Error::url(&err))?;
-        Ok(ClientOptions {
+        let mut options = ClientOptions {
             url,
             user_agent: crate_user_agent(),
             authorisation: authorisation.into(),
-        })
+            crt_pem: None,
+            client_pem: None,
+        };
+
+        if let Some(crt_pem) = crt_pem {
+            let mut buf = Vec::new();
+            File::open(&crt_pem)
+                .map_err(|err| Error::stdio(&err))?
+                .read_to_end(&mut buf)
+                .map_err(|err| Error::stdio(&err))?;
+            options.crt_pem = Some(buf);
+        }
+        if let Some(client_pem) = client_pem {
+            let mut buf = Vec::new();
+            File::open(&client_pem)
+                .map_err(|err| Error::stdio(&err))?
+                .read_to_end(&mut buf)
+                .map_err(|err| Error::stdio(&err))?;
+            options.client_pem = Some(buf);
+        }
+
+        Ok(options)
     }
 
     /// Sets internal authorisation value using mutable reference.
@@ -120,7 +161,8 @@ mod tests {
 
     #[test]
     fn builds_url_from_path_and_query() {
-        let options = ClientOptions::new("http://localhost:9000", "authorisation-key").unwrap();
+        let options =
+            ClientOptions::new("http://localhost:9000", "authorisation-key", None, None).unwrap();
         let query = ServiceListQuery {
             gt: Some("".to_owned()),
             lt: None,

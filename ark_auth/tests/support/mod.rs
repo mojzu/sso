@@ -38,7 +38,7 @@ fn env_test_ark_auth_key() -> String {
 pub fn client_create() -> SyncClient {
     let url = env_test_ark_auth_url();
     let key = env_test_ark_auth_key();
-    let options = ClientOptions::new(&url, &key).unwrap();
+    let options = ClientOptions::new(&url, &key, None, None).unwrap();
     SyncClient::new(options)
 }
 

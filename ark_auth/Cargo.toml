@@ -43,7 +43,7 @@ log = { version = "*", features = ["max_level_trace", "release_max_level_info"] 
 native-tls = "*"
 prometheus = "*"
 r2d2 = "*"
-reqwest = "*"
+reqwest = { version = "*", features = ["rustls-tls"] }
 rustls = "*"
 oauth2 = "^3.0.0-alpha.3"
 sentry = "*"

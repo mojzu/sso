@@ -14,6 +14,8 @@ use futures::{future, Future};
 use serde::ser::Serialize;
 use serde_json::Value;
 
+// TODO(refactor): Use reqwest async client for client TLS support.
+
 impl From<actix_http::client::SendRequestError> for Error {
     fn from(err: actix_http::client::SendRequestError) -> Error {
         let description = format!("{}", err);

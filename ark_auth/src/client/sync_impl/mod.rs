@@ -25,6 +25,7 @@ pub struct SyncClient {
 }
 
 impl SyncClient {
+    /// Ping request.
     pub fn ping(&self) -> Result<Value, Error> {
         self.get(route::PING)
             .send()
@@ -55,10 +56,27 @@ impl SyncClient {
         headers.insert(header::CONTENT_TYPE, "application/json".parse().unwrap());
         headers.insert(header::USER_AGENT, options.user_agent.parse().unwrap());
 
-        reqwest::ClientBuilder::new()
-            .default_headers(headers)
-            .build()
-            .unwrap()
+        let builder = reqwest::ClientBuilder::new()
+            .use_rustls_tls()
+            .default_headers(headers);
+
+        // Optional CA and client certificates for client.
+        let builder = match &options.crt_pem {
+            Some(buf) => {
+                let crt_pem = reqwest::Certificate::from_pem(buf).unwrap();
+                builder.add_root_certificate(crt_pem)
+            }
+            None => builder,
+        };
+        let builder = match &options.client_pem {
+            Some(buf) => {
+                let client_pem = reqwest::Identity::from_pem(buf).unwrap();
+                builder.identity(client_pem)
+            }
+            None => builder,
+        };
+
+        builder.build().unwrap()
     }
 
     fn get(&self, path: &str) -> reqwest::RequestBuilder {
