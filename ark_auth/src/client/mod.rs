@@ -74,10 +74,7 @@ impl ClientOptions {
         })
     }
 
-    pub fn set_user_agent<T: Into<String>>(&mut self, user_agent: T) {
-        self.user_agent = user_agent.into();
-    }
-
+    /// Sets internal authorisation value using mutable reference.
     pub fn set_authorisation<T: Into<String>>(&mut self, authorisation: T) {
         self.authorisation = authorisation.into();
     }

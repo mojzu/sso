@@ -329,7 +329,7 @@ pub struct Data {
     driver: Box<driver::Driver>,
     configuration: Configuration,
     notify_addr: Addr<NotifyExecutor>,
-    registry: prometheus::Registry,
+    registry: Registry,
 }
 
 impl Data {
@@ -338,7 +338,7 @@ impl Data {
         driver: Box<driver::Driver>,
         configuration: Configuration,
         notify_addr: Addr<NotifyExecutor>,
-        registry: prometheus::Registry,
+        registry: Registry,
     ) -> Self {
         Data {
             driver,
