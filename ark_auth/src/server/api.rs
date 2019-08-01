@@ -175,6 +175,28 @@ pub struct AuditReadResponse {
     pub data: Audit,
 }
 
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuditCustom {
+    #[validate(custom = "validate::path")]
+    pub path: String,
+    pub data: Value,
+}
+
+impl FromJsonValue<AuditCustom> for AuditCustom {}
+
+impl AuditCustom {
+    pub fn new<T1>(path: T1, data: Value) -> Self
+    where
+        T1: Into<String>,
+    {
+        Self {
+            path: path.into(),
+            data,
+        }
+    }
+}
+
 // Authentication types.
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -198,6 +220,7 @@ impl Default for AuthPasswordMeta {
 pub struct AuthTokenBody {
     #[validate(custom = "validate::token")]
     pub token: String,
+    pub audit: Option<AuditCustom>,
 }
 
 impl FromJsonValue<AuthTokenBody> for AuthTokenBody {}
@@ -219,6 +242,7 @@ pub struct AuthTokenPartialResponse {
 pub struct AuthKeyBody {
     #[validate(custom = "validate::key")]
     pub key: String,
+    pub audit: Option<AuditCustom>,
 }
 
 impl FromJsonValue<AuthKeyBody> for AuthKeyBody {}

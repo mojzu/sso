@@ -6,7 +6,7 @@ mod user;
 
 use crate::client::{Client, ClientOptions, Error, RequestError};
 use crate::core::User;
-use crate::server::api::route;
+use crate::server::api::{route, AuditCustom};
 use actix_web::http::{header, StatusCode};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -35,13 +35,21 @@ impl SyncClient {
     }
 
     /// Authenticate user using token or key, returns user if successful.
-    pub fn authenticate(&self, key_or_token: Option<String>) -> Result<User, Error> {
+    pub fn authenticate(
+        &self,
+        key_or_token: Option<String>,
+        audit: Option<AuditCustom>,
+    ) -> Result<User, Error> {
         match key_or_token {
             Some(key_or_token) => {
                 let (type_, value) = ClientOptions::split_authorisation(key_or_token)?;
                 match type_.as_ref() {
-                    "key" => self.auth_key_verify(value).map(|res| res.data.user_id),
-                    "token" => self.auth_token_verify(value).map(|res| res.data.user_id),
+                    "key" => self
+                        .auth_key_verify(value, audit)
+                        .map(|res| res.data.user_id),
+                    "token" => self
+                        .auth_token_verify(value, audit)
+                        .map(|res| res.data.user_id),
                     _ => Err(Error::InvalidKeyOrToken),
                 }
                 .and_then(|user_id| self.user_read(&user_id))

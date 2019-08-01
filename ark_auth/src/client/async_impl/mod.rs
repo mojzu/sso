@@ -6,7 +6,7 @@ mod user;
 
 use crate::client::{Client, ClientOptions, Error, RequestError};
 use crate::core::User;
-use crate::server::api::route;
+use crate::server::api::{route, AuditCustom};
 use actix_web::client::ClientResponse;
 use actix_web::http::{header, StatusCode};
 use futures::stream::Stream;
@@ -14,6 +14,7 @@ use futures::{future, Future};
 use serde::ser::Serialize;
 use serde_json::Value;
 
+// TODO(refactor): Client TLS support.
 // TODO(refactor): Use reqwest async client for client TLS support.
 
 impl From<actix_http::client::SendRequestError> for Error {
@@ -50,6 +51,7 @@ impl AsyncClient {
     pub fn authenticate(
         &self,
         key_or_token: Option<String>,
+        audit: Option<AuditCustom>,
     ) -> impl Future<Item = User, Error = Error> {
         match key_or_token {
             Some(key_or_token) => {
@@ -58,10 +60,11 @@ impl AsyncClient {
                     AsyncClient::split_authorisation(key_or_token)
                         .and_then(move |(type_, value)| match type_.as_ref() {
                             "key" => future::Either::A(future::Either::A(
-                                s1.auth_key_verify(value).map(|res| res.data.user_id),
+                                s1.auth_key_verify(value, audit).map(|res| res.data.user_id),
                             )),
                             "token" => future::Either::A(future::Either::B(
-                                s1.auth_token_verify(value).map(|res| res.data.user_id),
+                                s1.auth_token_verify(value, audit)
+                                    .map(|res| res.data.user_id),
                             )),
                             _ => future::Either::B(future::err(Error::InvalidKeyOrToken)),
                         })

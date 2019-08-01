@@ -13,7 +13,7 @@ macro_rules! guide_integration_test {
             let user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 
             user_key_verify(&client, &user_key);
-            client.auth_key_revoke(&user_key.key).unwrap();
+            client.auth_key_revoke(&user_key.key, None).unwrap();
             user_key_verify_bad_request(&client, &user_key.key);
         }
 
@@ -31,10 +31,12 @@ macro_rules! guide_integration_test {
 
             user_token_verify(&client, &user_token);
             let user_token = user_token_refresh(&client, &user_token);
-            client.auth_token_revoke(&user_token.access_token).unwrap();
+            client
+                .auth_token_revoke(&user_token.access_token, None)
+                .unwrap();
 
             let res = client
-                .auth_token_verify(&user_token.refresh_token)
+                .auth_token_verify(&user_token.refresh_token, None)
                 .unwrap_err();
             assert_eq!(res, Error::Request(RequestError::BadRequest));
         }

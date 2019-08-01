@@ -99,7 +99,7 @@ pub fn user_key_create(
 }
 
 pub fn user_key_verify(client: &SyncClient, key: &UserKey) -> UserKey {
-    let verify = client.auth_key_verify(&key.key).unwrap();
+    let verify = client.auth_key_verify(&key.key, None).unwrap();
     let user_key = verify.data;
     assert_eq!(user_key.user_id, key.user_id);
     assert_eq!(user_key.key, key.key);
@@ -107,12 +107,12 @@ pub fn user_key_verify(client: &SyncClient, key: &UserKey) -> UserKey {
 }
 
 pub fn user_key_verify_bad_request(client: &SyncClient, key: &str) {
-    let err = client.auth_key_verify(key).unwrap_err();
+    let err = client.auth_key_verify(key, None).unwrap_err();
     assert_eq!(err, Error::Request(RequestError::BadRequest));
 }
 
 pub fn user_token_verify(client: &SyncClient, token: &UserToken) -> UserTokenPartial {
-    let verify = client.auth_token_verify(&token.access_token).unwrap();
+    let verify = client.auth_token_verify(&token.access_token, None).unwrap();
     let user_token = verify.data;
     assert_eq!(user_token.user_id, token.user_id);
     assert_eq!(user_token.access_token, token.access_token);
@@ -122,7 +122,9 @@ pub fn user_token_verify(client: &SyncClient, token: &UserToken) -> UserTokenPar
 
 pub fn user_token_refresh(client: &SyncClient, token: &UserToken) -> UserToken {
     std::thread::sleep(std::time::Duration::from_secs(1));
-    let refresh = client.auth_token_refresh(&token.refresh_token).unwrap();
+    let refresh = client
+        .auth_token_refresh(&token.refresh_token, None)
+        .unwrap();
     let user_token = refresh.data;
     assert_eq!(user_token.user_id, token.user_id);
     assert_ne!(user_token.access_token, token.access_token);

@@ -41,7 +41,8 @@ fn verify_inner(
 ) -> Result<AuthKeyResponse, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::key_verify(data.driver(), &service, &mut audit, &body.key)
+            // TODO(refactor): Implement custom audit logs.
+            core::auth::key_verify(data.driver(), &service, &mut audit, &body.key) // &body.audit
         })
         .map_err(Into::into)
         .map(|user_key| AuthKeyResponse { data: user_key })
@@ -74,7 +75,7 @@ fn revoke_inner(
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::key_revoke(data.driver(), &service, &mut audit, &body.key)
+            core::auth::key_revoke(data.driver(), &service, &mut audit, &body.key) // &body.audit
         })
         .map_err(Into::into)
 }
