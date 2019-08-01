@@ -120,6 +120,11 @@ impl ClientOptions {
         self.authorisation = authorisation.into();
     }
 
+    /// Get reference to authorisation header value.
+    pub fn authorisation(&self) -> &str {
+        &self.authorisation
+    }
+
     /// Build URL from client options and path.
     pub fn url_path(&self, path: &str) -> Result<Url, Error> {
         self.url.join(path).map_err(|err| Error::url(&err))
