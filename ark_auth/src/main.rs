@@ -13,7 +13,7 @@ const ENV_SERVER_HOSTNAME: &str = "SERVER_HOSTNAME";
 const ENV_SERVER_BIND: &str = "SERVER_BIND";
 const ENV_SERVER_TLS_CRT_PEM: &str = "SERVER_TLS_CRT_PEM";
 const ENV_SERVER_TLS_KEY_PEM: &str = "SERVER_TLS_KEY_PEM";
-const ENV_SERVER_TLS_CLIENT_AUTH: &str = "SERVER_TLS_CLIENT_AUTH";
+const ENV_SERVER_TLS_CLIENT_PEM: &str = "SERVER_TLS_CLIENT_PEM";
 const ENV_SMTP_HOST: &str = "SMTP_HOST";
 const ENV_SMTP_PORT: &str = "SMTP_PORT";
 const ENV_SMTP_USER: &str = "SMTP_USER";
@@ -166,7 +166,7 @@ fn configure() -> Result<(Box<Driver>, cli::Configuration), cli::Error> {
     let rustls = cli::env_rustls(
         ENV_SERVER_TLS_CRT_PEM,
         ENV_SERVER_TLS_KEY_PEM,
-        ENV_SERVER_TLS_CLIENT_AUTH,
+        ENV_SERVER_TLS_CLIENT_PEM,
     )?;
 
     let driver = if database_url.starts_with("postgres") {

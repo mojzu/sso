@@ -4,24 +4,28 @@
 
 | Variable                | Description                                     |
 | ----------------------- | ----------------------------------------------- |
+| SENTRY_URL              | Sentry URL for logging integration, optional.   |
 | DATABASE_URL            | Database connection URL, required.              |
 | DATABASE_CONNECTIONS    | Database connections, optional.                 |
-| SERVER_BIND             | HTTP server bind address, required.             |
-| SMTP_HOST               | SMTP configured, required for emails.           |
+| SERVER_HOSTNAME         | Server hostname, optional.                      |
+| SERVER_BIND             | Server bind address, required.                  |
+| SERVER_TLS_CRT_PEM      | Server TLS certificate files, optional.         |
+| SERVER_TLS_KEY_PEM      |                                                 |
+| SERVER_TLS_CLIENT_PEM   | Server mutual TLS authentication, optional.     |
+| SMTP_HOST               | SMTP server, optional.                          |
 | SMTP_PORT               | ...                                             |
 | SMTP_USER               | ...                                             |
 | SMTP_PASSWORD           | ...                                             |
-| SENTRY_URL              | Sentry URL for logging integration, optional.   |
-| GITHUB_CLIENT_ID        | GitHub OAuth2 support, optional.                |
+| GITHUB_CLIENT_ID        | GitHub OAuth2 provider, optional.               |
 | GITHUB_CLIENT_SECRET    |                                                 |
 | GITHUB_REDIRECT_URL     | `$server_url/v1/auth/provider/github/oauth2`    |
-| MICROSOFT_CLIENT_ID     | Microsoft OAuth2 support, optional.             |
+| MICROSOFT_CLIENT_ID     | Microsoft OAuth2 provider, optional.            |
 | MICROSOFT_CLIENT_SECRET |                                                 |
 | MICROSOFT_REDIRECT_URL  | `$server_url/v1/auth/provider/microsoft/oauth2` |
 
 **Linux**
 
-Write `export $NAME="$VALUE"` statements to file `env.sh` and run `source env.sh` to export variables in open terminal.
+Write `export $NAME="$VALUE"` statements to file `.env` and run `source .env` to export variables in open terminal. See `ark_auth/.env` for example.
 
 ## Database
 

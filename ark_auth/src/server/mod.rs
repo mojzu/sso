@@ -29,8 +29,7 @@ pub use validate::FromJsonValue;
 // TODO(feature): Configurable canary routes.
 // TODO(feature): More efficient way of handling audit metrics read.
 // Keep audit registry and counter alive, only query metrics since last query.
-// TODO(feature): Client TLS support.
-// TODO(feature): Improved function interfaces, use of Into?
+// TODO(feature): Improved public API, function interfaces, use of Into?
 
 /// Default JSON payload size limit.
 const DEFAULT_JSON_LIMIT: usize = 1024;
