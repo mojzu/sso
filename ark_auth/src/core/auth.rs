@@ -241,7 +241,7 @@ pub fn update_email_revoke(
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
-    _audit_data: Option<&AuditData>,
+    audit_data: Option<&AuditData>,
 ) -> Result<usize, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
@@ -302,6 +302,9 @@ pub fn update_email_revoke(
         AuditPath::UpdateEmailRevoke,
         AuditMessage::UpdateEmailRevoke,
     );
+    if let Some(audit_data) = audit_data {
+        audit.create_unchecked(driver, &audit_data.path, &audit_data.data);
+    }
     Ok(count + 1)
 }
 
@@ -387,7 +390,7 @@ pub fn update_password_revoke(
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
-    _audit_data: Option<&AuditData>,
+    audit_data: Option<&AuditData>,
 ) -> Result<usize, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
@@ -453,6 +456,9 @@ pub fn update_password_revoke(
         AuditPath::UpdatePasswordRevoke,
         AuditMessage::UpdatePasswordRevoke,
     );
+    if let Some(audit_data) = audit_data {
+        audit.create_unchecked(driver, &audit_data.path, &audit_data.data);
+    }
     Ok(count + 1)
 }
 
@@ -461,7 +467,7 @@ pub fn key_verify(
     service: &Service,
     audit: &mut AuditBuilder,
     key: &str,
-    _audit_data: Option<&AuditData>,
+    audit_data: Option<&AuditData>,
 ) -> Result<UserKey, Error> {
     let key = key_read_by_user_value(driver, service, audit, AuditPath::KeyVerifyError, key)?;
 
@@ -479,6 +485,10 @@ pub fn key_verify(
         user_id,
         key: key.value,
     };
+
+    if let Some(audit_data) = audit_data {
+        audit.create_unchecked(driver, &audit_data.path, &audit_data.data);
+    }
     Ok(user_key)
 }
 
@@ -487,7 +497,7 @@ pub fn key_revoke(
     service: &Service,
     audit: &mut AuditBuilder,
     key: &str,
-    _audit_data: Option<&AuditData>,
+    audit_data: Option<&AuditData>,
 ) -> Result<usize, Error> {
     // Do not check key is enabled or not revoked.
     let key =
@@ -505,6 +515,9 @@ pub fn key_revoke(
     )?;
 
     audit.create_internal(driver, AuditPath::KeyRevoke, AuditMessage::KeyRevoke);
+    if let Some(audit_data) = audit_data {
+        audit.create_unchecked(driver, &audit_data.path, &audit_data.data);
+    }
     Ok(1)
 }
 
@@ -513,7 +526,7 @@ pub fn token_verify(
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
-    _audit_data: Option<&AuditData>,
+    audit_data: Option<&AuditData>,
 ) -> Result<UserTokenPartial, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
@@ -553,6 +566,10 @@ pub fn token_verify(
         access_token: token.to_owned(),
         access_token_expires,
     };
+
+    if let Some(audit_data) = audit_data {
+        audit.create_unchecked(driver, &audit_data.path, &audit_data.data);
+    }
     Ok(user_token)
 }
 
@@ -561,7 +578,7 @@ pub fn token_refresh(
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
-    _audit_data: Option<&AuditData>,
+    audit_data: Option<&AuditData>,
     access_token_expires: i64,
     refresh_token_expires: i64,
 ) -> Result<UserToken, Error> {
@@ -611,6 +628,9 @@ pub fn token_refresh(
     )?;
 
     audit.create_internal(driver, AuditPath::TokenRefresh, AuditMessage::TokenRefresh);
+    if let Some(audit_data) = audit_data {
+        audit.create_unchecked(driver, &audit_data.path, &audit_data.data);
+    }
     Ok(user_token)
 }
 
@@ -619,7 +639,7 @@ pub fn token_revoke(
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
-    _audit_data: Option<&AuditData>,
+    audit_data: Option<&AuditData>,
 ) -> Result<usize, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, token_type) = core::jwt::decode_unsafe(token, &service.id)?;
@@ -666,6 +686,9 @@ pub fn token_revoke(
     )?;
 
     audit.create_internal(driver, AuditPath::TokenRevoke, AuditMessage::TokenRevoke);
+    if let Some(audit_data) = audit_data {
+        audit.create_unchecked(driver, &audit_data.path, &audit_data.data);
+    }
     Ok(1)
 }
 

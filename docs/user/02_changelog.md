@@ -9,6 +9,7 @@
 - Finished client methods.
 - Added support for audit list cases `gt AND lt`, `created_gte AND created_lte`.
 - Added `/v1/metrics` endpoint for Prometheus integration.
+- Added support for optional audit logs to some authentication endpoints.
 
 **Changed**
 

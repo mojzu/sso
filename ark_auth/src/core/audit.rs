@@ -184,6 +184,23 @@ impl AuditBuilder {
 
     /// Create audit log from internal parameters.
     /// In case of error, log as warning and return None.
+    pub fn create_unchecked(
+        &self,
+        driver: &driver::Driver,
+        path: &str,
+        data: &Value,
+    ) -> Option<Audit> {
+        match self.create(driver, path, data) {
+            Ok(audit) => Some(audit),
+            Err(err) => {
+                warn!("{}", err);
+                None
+            }
+        }
+    }
+
+    /// Create audit log from internal parameters.
+    /// In case of error, log as warning and return None.
     pub fn create_internal(
         &self,
         driver: &driver::Driver,
