@@ -1,7 +1,7 @@
 use crate::client::sync_impl::SyncClient;
 use crate::client::Error;
 use crate::server::api::{
-    route, AuditCustom, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
+    route, AuditDataRequest, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
     AuthOauth2UrlResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
     AuthResetPasswordConfirmBody, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse,
     AuthUpdateEmailBody, AuthUpdatePasswordBody,
@@ -116,7 +116,7 @@ impl SyncClient {
     pub fn auth_key_verify<T1>(
         &self,
         key: T1,
-        audit: Option<AuditCustom>,
+        audit: Option<AuditDataRequest>,
     ) -> Result<AuthKeyResponse, Error>
     where
         T1: Into<String>,
@@ -132,7 +132,7 @@ impl SyncClient {
             .and_then(|mut res| res.json::<AuthKeyResponse>().map_err(Into::into))
     }
 
-    pub fn auth_key_revoke<T1>(&self, key: T1, audit: Option<AuditCustom>) -> Result<(), Error>
+    pub fn auth_key_revoke<T1>(&self, key: T1, audit: Option<AuditDataRequest>) -> Result<(), Error>
     where
         T1: Into<String>,
     {
@@ -150,7 +150,7 @@ impl SyncClient {
     pub fn auth_token_verify<T1>(
         &self,
         token: T1,
-        audit: Option<AuditCustom>,
+        audit: Option<AuditDataRequest>,
     ) -> Result<AuthTokenPartialResponse, Error>
     where
         T1: Into<String>,
@@ -169,7 +169,7 @@ impl SyncClient {
     pub fn auth_token_refresh<T1>(
         &self,
         token: T1,
-        audit: Option<AuditCustom>,
+        audit: Option<AuditDataRequest>,
     ) -> Result<AuthTokenResponse, Error>
     where
         T1: Into<String>,
@@ -185,7 +185,11 @@ impl SyncClient {
             .and_then(|mut res| res.json::<AuthTokenResponse>().map_err(Into::into))
     }
 
-    pub fn auth_token_revoke<T1>(&self, token: T1, audit: Option<AuditCustom>) -> Result<(), Error>
+    pub fn auth_token_revoke<T1>(
+        &self,
+        token: T1,
+        audit: Option<AuditDataRequest>,
+    ) -> Result<(), Error>
     where
         T1: Into<String>,
     {

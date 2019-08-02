@@ -1,5 +1,5 @@
 use crate::core;
-use crate::core::AuditMeta;
+use crate::core::{AuditData, AuditMeta};
 use crate::server::api::{path, AuthKeyBody, AuthKeyResponse};
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
 use crate::server::{Data, Error, FromJsonValue};
@@ -27,8 +27,16 @@ fn verify_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || verify_inner(data.get_ref(), audit_meta, id, &body))
-                .map_err(Into::into)
+            web::block(move || {
+                verify_inner(
+                    data.get_ref(),
+                    audit_meta,
+                    id,
+                    body.key,
+                    body.audit.map(Into::into),
+                )
+            })
+            .map_err(Into::into)
         })
         .then(route_response_json)
 }
@@ -37,12 +45,18 @@ fn verify_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthKeyBody,
+    key: String,
+    audit_data: Option<AuditData>,
 ) -> Result<AuthKeyResponse, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            // TODO(refactor): Implement custom audit logs.
-            core::auth::key_verify(data.driver(), &service, &mut audit, &body.key) // &body.audit
+            core::auth::key_verify(
+                data.driver(),
+                &service,
+                &mut audit,
+                &key,
+                audit_data.as_ref(),
+            )
         })
         .map_err(Into::into)
         .map(|user_key| AuthKeyResponse { data: user_key })
@@ -61,8 +75,16 @@ fn revoke_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || revoke_inner(data.get_ref(), audit_meta, id, &body))
-                .map_err(Into::into)
+            web::block(move || {
+                revoke_inner(
+                    data.get_ref(),
+                    audit_meta,
+                    id,
+                    body.key,
+                    body.audit.map(Into::into),
+                )
+            })
+            .map_err(Into::into)
         })
         .then(route_response_empty)
 }
@@ -71,11 +93,18 @@ fn revoke_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthKeyBody,
+    key: String,
+    audit_data: Option<AuditData>,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::key_revoke(data.driver(), &service, &mut audit, &body.key) // &body.audit
+            core::auth::key_revoke(
+                data.driver(),
+                &service,
+                &mut audit,
+                &key,
+                audit_data.as_ref(),
+            )
         })
         .map_err(Into::into)
 }

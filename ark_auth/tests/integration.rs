@@ -22,7 +22,15 @@ user_integration_test!();
 #[test]
 #[ignore]
 fn api_ping_ok() {
-    let client = client_create();
+    let client = client_create(None);
     let res = client.ping().unwrap();
     assert_eq!(res, Value::String("pong".to_owned()));
+}
+
+#[test]
+#[ignore]
+fn api_metrics_ok() {
+    let client = client_create(None);
+    let res = client.metrics().unwrap();
+    assert!(res.len() > 0);
 }

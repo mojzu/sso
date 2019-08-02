@@ -1,5 +1,5 @@
 use crate::core;
-use crate::core::AuditMeta;
+use crate::core::{AuditData, AuditMeta};
 use crate::server::api::{path, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse};
 use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
 use crate::server::{Data, Error, FromJsonValue};
@@ -28,8 +28,16 @@ fn verify_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || verify_inner(data.get_ref(), audit_meta, id, &body))
-                .map_err(Into::into)
+            web::block(move || {
+                verify_inner(
+                    data.get_ref(),
+                    audit_meta,
+                    id,
+                    body.token,
+                    body.audit.map(Into::into),
+                )
+            })
+            .map_err(Into::into)
         })
         .then(route_response_json)
 }
@@ -38,11 +46,18 @@ fn verify_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthTokenBody,
+    token: String,
+    audit_data: Option<AuditData>,
 ) -> Result<AuthTokenPartialResponse, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::token_verify(data.driver(), &service, &mut audit, &body.token)
+            core::auth::token_verify(
+                data.driver(),
+                &service,
+                &mut audit,
+                &token,
+                audit_data.as_ref(),
+            )
         })
         .map_err(Into::into)
         .map(|user_token| AuthTokenPartialResponse { data: user_token })
@@ -61,8 +76,16 @@ fn refresh_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || refresh_inner(data.get_ref(), audit_meta, id, &body))
-                .map_err(Into::into)
+            web::block(move || {
+                refresh_inner(
+                    data.get_ref(),
+                    audit_meta,
+                    id,
+                    body.token,
+                    body.audit.map(Into::into),
+                )
+            })
+            .map_err(Into::into)
         })
         .then(route_response_json)
 }
@@ -71,7 +94,8 @@ fn refresh_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthTokenBody,
+    token: String,
+    audit_data: Option<AuditData>,
 ) -> Result<AuthTokenResponse, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
@@ -79,7 +103,8 @@ fn refresh_inner(
                 data.driver(),
                 &service,
                 &mut audit,
-                &body.token,
+                &token,
+                audit_data.as_ref(),
                 data.configuration().access_token_expires(),
                 data.configuration().refresh_token_expires(),
             )
@@ -101,8 +126,16 @@ fn revoke_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || revoke_inner(data.get_ref(), audit_meta, id, &body))
-                .map_err(Into::into)
+            web::block(move || {
+                revoke_inner(
+                    data.get_ref(),
+                    audit_meta,
+                    id,
+                    body.token,
+                    body.audit.map(Into::into),
+                )
+            })
+            .map_err(Into::into)
         })
         .then(route_response_empty)
 }
@@ -111,11 +144,18 @@ fn revoke_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthTokenBody,
+    token: String,
+    audit_data: Option<AuditData>,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::token_revoke(data.driver(), &service, &mut audit, &body.token)
+            core::auth::token_revoke(
+                data.driver(),
+                &service,
+                &mut audit,
+                &token,
+                audit_data.as_ref(),
+            )
         })
         .map_err(Into::into)
 }

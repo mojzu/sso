@@ -1,6 +1,8 @@
 use crate::core;
 use crate::core::audit::{AuditBuilder, AuditMessage, AuditPath};
-use crate::core::{Csrf, Error, Key, Service, User, UserKey, UserToken, UserTokenPartial};
+use crate::core::{
+    AuditData, Csrf, Error, Key, Service, User, UserKey, UserToken, UserTokenPartial,
+};
 use crate::driver::Driver;
 use crate::notify::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword, NotifyExecutor};
 use actix::Addr;
@@ -239,6 +241,7 @@ pub fn update_email_revoke(
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
+    _audit_data: Option<&AuditData>,
 ) -> Result<usize, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
@@ -384,6 +387,7 @@ pub fn update_password_revoke(
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
+    _audit_data: Option<&AuditData>,
 ) -> Result<usize, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
@@ -457,6 +461,7 @@ pub fn key_verify(
     service: &Service,
     audit: &mut AuditBuilder,
     key: &str,
+    _audit_data: Option<&AuditData>,
 ) -> Result<UserKey, Error> {
     let key = key_read_by_user_value(driver, service, audit, AuditPath::KeyVerifyError, key)?;
 
@@ -482,6 +487,7 @@ pub fn key_revoke(
     service: &Service,
     audit: &mut AuditBuilder,
     key: &str,
+    _audit_data: Option<&AuditData>,
 ) -> Result<usize, Error> {
     // Do not check key is enabled or not revoked.
     let key =
@@ -507,6 +513,7 @@ pub fn token_verify(
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
+    _audit_data: Option<&AuditData>,
 ) -> Result<UserTokenPartial, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) = core::jwt::decode_unsafe(token, &service.id)?;
@@ -554,6 +561,7 @@ pub fn token_refresh(
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
+    _audit_data: Option<&AuditData>,
     access_token_expires: i64,
     refresh_token_expires: i64,
 ) -> Result<UserToken, Error> {
@@ -611,6 +619,7 @@ pub fn token_revoke(
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
+    _audit_data: Option<&AuditData>,
 ) -> Result<usize, Error> {
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, token_type) = core::jwt::decode_unsafe(token, &service.id)?;
@@ -904,12 +913,12 @@ fn key_or_token_verify(
 ) -> Result<String, Error> {
     match key {
         Some(key) => {
-            let user_key = key_verify(driver, service, audit, key)?;
+            let user_key = key_verify(driver, service, audit, key, None)?;
             Ok(user_key.user_id)
         }
         None => match token {
             Some(token) => {
-                let user_token = token_verify(driver, service, audit, token)?;
+                let user_token = token_verify(driver, service, audit, token, None)?;
                 Ok(user_token.user_id)
             }
             None => Err(Error::Forbidden),

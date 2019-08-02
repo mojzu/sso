@@ -6,6 +6,7 @@ use crate::driver;
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
 // TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
 // TODO(refactor): Improve key, user, service list query options (order by name, ...).
+// TODO(refactor): Optional custom audit log for key/token verify routes (_audit_data).
 
 /// Authenticate root key.
 pub fn authenticate_root(

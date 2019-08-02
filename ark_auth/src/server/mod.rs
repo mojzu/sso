@@ -19,7 +19,6 @@ use std::io::BufReader;
 pub use validate::FromJsonValue;
 
 // TODO(feature): User sessions route for active tokens/keys.
-// TODO(feature): Optional custom audit log for key/token verify routes.
 // TODO(feature): Better method to handle multiple keys?
 // Allow or require specifying key ID via argument?
 // TODO(feature): Support more OAuth2 providers.

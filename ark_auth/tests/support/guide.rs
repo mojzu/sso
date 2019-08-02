@@ -4,11 +4,11 @@ macro_rules! guide_integration_test {
         #[test]
         #[ignore]
         fn guide_api_key() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (service, service_key) = service_key_create(&client);
             let user_email = email_create();
 
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email, None);
             let user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 
@@ -20,11 +20,11 @@ macro_rules! guide_integration_test {
         #[test]
         #[ignore]
         fn guide_login() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (service, service_key) = service_key_create(&client);
             let user_email = email_create();
 
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
             let _user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
             let user_token = auth_local_login(&client, &user.id, &user_email, USER_PASSWORD);
@@ -44,11 +44,11 @@ macro_rules! guide_integration_test {
         #[test]
         #[ignore]
         fn guide_reset_password() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (service, service_key) = service_key_create(&client);
             let user_email = email_create();
 
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
             let _user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 
@@ -58,11 +58,11 @@ macro_rules! guide_integration_test {
         #[test]
         #[ignore]
         fn guide_oauth2_login() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (service, service_key) = service_key_create(&client);
             let user_email = email_create();
 
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
             let _user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 

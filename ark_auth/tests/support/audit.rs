@@ -4,9 +4,9 @@ macro_rules! audit_integration_test {
         #[test]
         #[ignore]
         fn api_audit_list_id_ok() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
             let path = "test_1";
             let limit = "3";
 
@@ -115,9 +115,9 @@ macro_rules! audit_integration_test {
         #[test]
         #[ignore]
         fn api_audit_list_id_and_ok() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
             let path = "test_1";
             let limit = "3";
 
@@ -164,9 +164,9 @@ macro_rules! audit_integration_test {
         #[test]
         #[ignore]
         fn api_audit_list_created_ok() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
             let path = "test_1";
             let limit = "3";
 
@@ -281,9 +281,9 @@ macro_rules! audit_integration_test {
         #[test]
         #[ignore]
         fn api_audit_list_created_and_ok() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
             let path = "test_1";
             let limit = "3";
 
@@ -336,9 +336,9 @@ macro_rules! audit_integration_test {
         #[test]
         #[ignore]
         fn api_audit_read_not_found_does_not_exist() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
 
             let res = client.audit_read(INVALID_UUID).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::NotFound));
@@ -347,17 +347,17 @@ macro_rules! audit_integration_test {
         #[test]
         #[ignore]
         fn api_audit_read_not_found_masked_by_service() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (_service1, service_key1) = service_key_create(&client);
             let (_service2, service_key2) = service_key_create(&client);
 
-            client.options.set_authorisation(&service_key1.value);
+            let client = client_create(Some(&service_key1.value));
             let a1 = client
                 .audit_create(AuditCreateBody::new("test_1", Value::Null, None, None))
                 .unwrap()
                 .data;
 
-            client.options.set_authorisation(&service_key2.value);
+            let client = client_create(Some(&service_key2.value));
             let res = client.audit_read(&a1.id).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::NotFound));
         }

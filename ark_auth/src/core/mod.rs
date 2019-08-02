@@ -101,6 +101,13 @@ pub struct AuditQuery {
     pub limit: Option<i64>,
 }
 
+// Audit data.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AuditData {
+    pub path: String,
+    pub data: Value,
+}
+
 /// CSRF.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Csrf {

@@ -51,9 +51,9 @@ impl AsyncClient {
             .and_then(|mut res| res.json::<UserReadResponse>().map_err(Into::into))
     }
 
-    pub fn user_delete(&self, id: &str, forwarded: &str) -> impl Future<Item = (), Error = Error> {
+    pub fn user_delete(&self, id: &str) -> impl Future<Item = (), Error = Error> {
         let path = route::user_id(id);
-        self.delete(&path, forwarded)
+        self.delete(&path)
             .send()
             .map_err(Into::into)
             .and_then(AsyncClient::match_status_code)

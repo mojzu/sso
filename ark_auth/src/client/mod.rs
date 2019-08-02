@@ -72,6 +72,7 @@ pub struct ClientOptions {
     url: Url,
     user_agent: String,
     authorisation: String,
+    forwarded: Option<String>,
     crt_pem: Option<Vec<u8>>,
     client_pem: Option<Vec<u8>>,
 }
@@ -83,6 +84,7 @@ impl ClientOptions {
     pub fn new<T1: Into<String>>(
         url: &str,
         authorisation: T1,
+        forwarded: Option<String>,
         crt_pem: Option<String>,
         client_pem: Option<String>,
     ) -> Result<Self, Error> {
@@ -91,6 +93,7 @@ impl ClientOptions {
             url,
             user_agent: crate_user_agent(),
             authorisation: authorisation.into(),
+            forwarded,
             crt_pem: None,
             client_pem: None,
         };
@@ -115,16 +118,6 @@ impl ClientOptions {
         Ok(options)
     }
 
-    /// Sets internal authorisation value using mutable reference.
-    pub fn set_authorisation<T: Into<String>>(&mut self, authorisation: T) {
-        self.authorisation = authorisation.into();
-    }
-
-    /// Get reference to authorisation header value.
-    pub fn authorisation(&self) -> &str {
-        &self.authorisation
-    }
-
     /// Build URL from client options and path.
     pub fn url_path(&self, path: &str) -> Result<Url, Error> {
         self.url.join(path).map_err(|err| Error::url(&err))
@@ -136,6 +129,16 @@ impl ClientOptions {
         let query = serde_urlencoded::to_string(query).map_err(Error::SerdeUrlencodedSer)?;
         url.set_query(Some(&query));
         Ok(url)
+    }
+
+    /// Get reference to authorisation header value.
+    pub fn authorisation(&self) -> &str {
+        &self.authorisation
+    }
+
+    /// Get reference to forwarded header value.
+    pub fn forwarded(&self) -> Option<&str> {
+        self.forwarded.as_ref().map(|x| &**x)
     }
 
     /// Split value of `Authorization` HTTP header into a type and value, where format is `TYPE VALUE`.
@@ -166,8 +169,14 @@ mod tests {
 
     #[test]
     fn builds_url_from_path_and_query() {
-        let options =
-            ClientOptions::new("http://localhost:9000", "authorisation-key", None, None).unwrap();
+        let options = ClientOptions::new(
+            "http://localhost:9000",
+            "authorisation-key",
+            None,
+            None,
+            None,
+        )
+        .unwrap();
         let query = ServiceListQuery {
             gt: Some("".to_owned()),
             lt: None,

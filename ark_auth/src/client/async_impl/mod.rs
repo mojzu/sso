@@ -6,7 +6,7 @@ mod user;
 
 use crate::client::{Client, ClientOptions, Error, RequestError};
 use crate::core::User;
-use crate::server::api::{route, AuditCustom};
+use crate::server::api::{route, AuditDataRequest};
 use actix_web::client::ClientResponse;
 use actix_web::http::{header, StatusCode};
 use futures::stream::Stream;
@@ -51,7 +51,7 @@ impl AsyncClient {
     pub fn authenticate(
         &self,
         key_or_token: Option<String>,
-        audit: Option<AuditCustom>,
+        audit: Option<AuditDataRequest>,
     ) -> impl Future<Item = User, Error = Error> {
         match key_or_token {
             Some(key_or_token) => {
@@ -77,46 +77,39 @@ impl AsyncClient {
     }
 
     fn build_client(options: &ClientOptions) -> actix_web::client::Client {
-        actix_web::client::Client::build()
+        let mut builder = actix_web::client::Client::build()
             .header(header::CONTENT_TYPE, header::ContentType::json())
             .header(header::USER_AGENT, options.user_agent.to_owned())
-            .finish()
+            .header(header::AUTHORIZATION, options.authorisation().to_owned());
+        if let Some(forwarded) = options.forwarded() {
+            builder = builder.header(header::FORWARDED, forwarded.to_owned());
+        }
+        builder.finish()
     }
 
     fn get(&self, path: &str) -> actix_web::client::ClientRequest {
         let url = self.options.url_path(path).unwrap();
-        self.client
-            .get(url.to_string())
-            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+        self.client.get(url.to_string())
     }
 
     fn get_query<T: Serialize>(&self, path: &str, query: T) -> actix_web::client::ClientRequest {
         let url = self.options.url_path_query(path, query).unwrap();
-        self.client
-            .get(url.to_string())
-            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+        self.client.get(url.to_string())
     }
 
     fn post(&self, path: &str) -> actix_web::client::ClientRequest {
         let url = self.options.url_path(path).unwrap();
-        self.client
-            .post(url.to_string())
-            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+        self.client.post(url.to_string())
     }
 
     fn patch(&self, path: &str) -> actix_web::client::ClientRequest {
         let url = self.options.url_path(path).unwrap();
-        self.client
-            .patch(url.to_string())
-            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+        self.client.patch(url.to_string())
     }
 
-    fn delete(&self, path: &str, forwarded: &str) -> actix_web::client::ClientRequest {
+    fn delete(&self, path: &str) -> actix_web::client::ClientRequest {
         let url = self.options.url_path(path).unwrap();
-        self.client
-            .delete(url.to_string())
-            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
-            .header(header::FORWARDED, forwarded.to_owned())
+        self.client.delete(url.to_string())
     }
 
     fn match_status_code<T: Stream>(

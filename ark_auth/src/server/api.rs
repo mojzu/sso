@@ -1,6 +1,6 @@
 use crate::core::{
-    Audit, AuditQuery, Key, KeyQuery, Service, ServiceQuery, User, UserKey, UserQuery, UserToken,
-    UserTokenPartial,
+    Audit, AuditData, AuditQuery, Key, KeyQuery, Service, ServiceQuery, User, UserKey, UserQuery,
+    UserToken, UserTokenPartial,
 };
 use crate::server::{validate, FromJsonValue};
 use chrono::{DateTime, Utc};
@@ -177,15 +177,15 @@ pub struct AuditReadResponse {
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-pub struct AuditCustom {
+pub struct AuditDataRequest {
     #[validate(custom = "validate::path")]
     pub path: String,
     pub data: Value,
 }
 
-impl FromJsonValue<AuditCustom> for AuditCustom {}
+impl FromJsonValue<AuditDataRequest> for AuditDataRequest {}
 
-impl AuditCustom {
+impl AuditDataRequest {
     pub fn new<T1>(path: T1, data: Value) -> Self
     where
         T1: Into<String>,
@@ -193,6 +193,15 @@ impl AuditCustom {
         Self {
             path: path.into(),
             data,
+        }
+    }
+}
+
+impl From<AuditDataRequest> for AuditData {
+    fn from(data: AuditDataRequest) -> AuditData {
+        AuditData {
+            path: data.path,
+            data: data.data,
         }
     }
 }
@@ -220,7 +229,7 @@ impl Default for AuthPasswordMeta {
 pub struct AuthTokenBody {
     #[validate(custom = "validate::token")]
     pub token: String,
-    pub audit: Option<AuditCustom>,
+    pub audit: Option<AuditDataRequest>,
 }
 
 impl FromJsonValue<AuthTokenBody> for AuthTokenBody {}
@@ -242,7 +251,7 @@ pub struct AuthTokenPartialResponse {
 pub struct AuthKeyBody {
     #[validate(custom = "validate::key")]
     pub key: String,
-    pub audit: Option<AuditCustom>,
+    pub audit: Option<AuditDataRequest>,
 }
 
 impl FromJsonValue<AuthKeyBody> for AuthKeyBody {}

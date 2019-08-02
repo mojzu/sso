@@ -6,7 +6,7 @@ mod user;
 
 use crate::client::{Client, ClientOptions, Error, RequestError};
 use crate::core::User;
-use crate::server::api::{route, AuditCustom};
+use crate::server::api::{route, AuditDataRequest};
 use actix_web::http::{header, StatusCode};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -34,11 +34,20 @@ impl SyncClient {
             .and_then(|mut res| res.json::<Value>().map_err(Into::into))
     }
 
+    /// Metrics request.
+    pub fn metrics(&self) -> Result<String, Error> {
+        self.get(route::METRICS)
+            .send()
+            .map_err(Into::into)
+            .and_then(SyncClient::match_status_code)
+            .and_then(|mut res| res.text().map_err(Into::into))
+    }
+
     /// Authenticate user using token or key, returns user if successful.
     pub fn authenticate(
         &self,
         key_or_token: Option<String>,
-        audit: Option<AuditCustom>,
+        audit: Option<AuditDataRequest>,
     ) -> Result<User, Error> {
         match key_or_token {
             Some(key_or_token) => {
@@ -63,6 +72,13 @@ impl SyncClient {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(header::CONTENT_TYPE, "application/json".parse().unwrap());
         headers.insert(header::USER_AGENT, options.user_agent.parse().unwrap());
+        headers.insert(
+            header::AUTHORIZATION,
+            options.authorisation().parse().unwrap(),
+        );
+        if let Some(forwarded) = options.forwarded() {
+            headers.insert(header::FORWARDED, forwarded.parse().unwrap());
+        }
 
         let builder = reqwest::ClientBuilder::new()
             .use_rustls_tls()
@@ -89,46 +105,32 @@ impl SyncClient {
 
     fn get(&self, path: &str) -> reqwest::RequestBuilder {
         let url = self.options.url_path(path).unwrap();
-        self.client
-            .get(url)
-            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+        self.client.get(url)
     }
 
     fn get_query<T: Serialize>(&self, path: &str, query: T) -> reqwest::RequestBuilder {
         let url = self.options.url_path_query(path, query).unwrap();
-        self.client
-            .get(url)
-            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+        self.client.get(url)
     }
 
     fn post(&self, path: &str) -> reqwest::RequestBuilder {
         let url = self.options.url_path(path).unwrap();
-        self.client
-            .post(url)
-            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+        self.client.post(url)
     }
 
     fn post_json<T: Serialize>(&self, path: &str, body: &T) -> reqwest::RequestBuilder {
         let url = self.options.url_path(path).unwrap();
-        self.client
-            .post(url)
-            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
-            .json(&body)
+        self.client.post(url).json(&body)
     }
 
     fn patch_json<T: Serialize>(&self, path: &str, body: &T) -> reqwest::RequestBuilder {
         let url = self.options.url_path(path).unwrap();
-        self.client
-            .patch(url)
-            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
-            .json(&body)
+        self.client.patch(url).json(&body)
     }
 
     fn delete(&self, path: &str) -> reqwest::RequestBuilder {
         let url = self.options.url_path(path).unwrap();
-        self.client
-            .delete(url)
-            .header(header::AUTHORIZATION, self.options.authorisation.to_owned())
+        self.client.delete(url)
     }
 
     fn match_status_code(response: reqwest::Response) -> Result<reqwest::Response, Error> {

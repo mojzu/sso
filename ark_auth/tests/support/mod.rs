@@ -35,10 +35,12 @@ fn env_test_ark_auth_key() -> String {
         .expect("TEST_ARK_AUTH_KEY is undefined, integration test disabled")
 }
 
-pub fn client_create() -> SyncClient {
+pub fn client_create(key: Option<&str>) -> SyncClient {
     let url = env_test_ark_auth_url();
-    let key = env_test_ark_auth_key();
-    let options = ClientOptions::new(&url, &key, None, None).unwrap();
+    let key = key
+        .map(|x| x.to_owned())
+        .unwrap_or_else(|| env_test_ark_auth_key());
+    let options = ClientOptions::new(&url, &key, None, None, None).unwrap();
     SyncClient::new(options)
 }
 

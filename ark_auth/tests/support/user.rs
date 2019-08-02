@@ -4,9 +4,7 @@ macro_rules! user_integration_test {
         #[test]
         #[ignore]
         fn api_user_list_forbidden() {
-            let mut client = client_create();
-
-            client.options.set_authorisation(INVALID_SERVICE_KEY);
+            let client = client_create(Some(INVALID_SERVICE_KEY));
             let res = client
                 .user_list(UserListQuery {
                     gt: None,
@@ -21,7 +19,7 @@ macro_rules! user_integration_test {
         #[test]
         #[ignore]
         fn api_user_list_ok() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
             let user1_email = email_create();
             let user2_email = email_create();
@@ -30,7 +28,7 @@ macro_rules! user_integration_test {
             let user5_email = email_create();
             let limit = "3";
 
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
             user_create(&client, true, USER_NAME, &user1_email, None);
             user_create(&client, true, USER_NAME, &user2_email, None);
             user_create(&client, true, USER_NAME, &user3_email, None);
@@ -116,11 +114,11 @@ macro_rules! user_integration_test {
         #[test]
         #[ignore]
         fn api_user_list_email_eq_ok() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
             let user_email = email_create();
 
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email, None);
 
             let res = client
@@ -138,21 +136,19 @@ macro_rules! user_integration_test {
         #[test]
         #[ignore]
         fn api_user_create_ok() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
             let user_email = email_create();
 
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
             user_create(&client, true, USER_NAME, &user_email, None);
         }
 
         #[test]
         #[ignore]
         fn api_user_create_forbidden() {
-            let mut client = client_create();
+            let client = client_create(Some(INVALID_SERVICE_KEY));
             let user_email = email_create();
-
-            client.options.set_authorisation(INVALID_SERVICE_KEY);
             let res = client
                 .user_create(true, USER_NAME, &user_email, None)
                 .unwrap_err();
@@ -162,11 +158,11 @@ macro_rules! user_integration_test {
         #[test]
         #[ignore]
         fn api_user_create_bad_request_duplicate_user_email() {
-            let mut client = client_create();
+            let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
             let user_email = email_create();
 
-            client.options.set_authorisation(&service_key.value);
+            let client = client_create(Some(&service_key.value));
             user_create(&client, true, USER_NAME, &user_email, None);
 
             let res = client

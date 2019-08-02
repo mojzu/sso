@@ -1,7 +1,7 @@
 use crate::client::async_impl::AsyncClient;
 use crate::client::Error;
 use crate::server::api::{
-    route, AuditCustom, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
+    route, AuditDataRequest, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
     AuthOauth2UrlResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
     AuthResetPasswordConfirmBody, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse,
     AuthUpdateEmailBody, AuthUpdatePasswordBody,
@@ -86,7 +86,7 @@ impl AsyncClient {
     pub fn auth_local_update_email_revoke<T1>(
         &self,
         token: T1,
-        audit: Option<AuditCustom>,
+        audit: Option<AuditDataRequest>,
     ) -> impl Future<Item = (), Error = Error>
     where
         T1: Into<String>,
@@ -125,7 +125,7 @@ impl AsyncClient {
     pub fn auth_local_update_password_revoke<T1>(
         &self,
         token: T1,
-        audit: Option<AuditCustom>,
+        audit: Option<AuditDataRequest>,
     ) -> impl Future<Item = (), Error = Error>
     where
         T1: Into<String>,
@@ -164,7 +164,7 @@ impl AsyncClient {
     pub fn auth_key_verify<T1>(
         &self,
         key: T1,
-        audit: Option<AuditCustom>,
+        audit: Option<AuditDataRequest>,
     ) -> impl Future<Item = AuthKeyResponse, Error = Error>
     where
         T1: Into<String>,
@@ -183,7 +183,7 @@ impl AsyncClient {
     pub fn auth_key_revoke<T1>(
         &self,
         key: T1,
-        audit: Option<AuditCustom>,
+        audit: Option<AuditDataRequest>,
     ) -> impl Future<Item = (), Error = Error>
     where
         T1: Into<String>,
@@ -202,7 +202,7 @@ impl AsyncClient {
     pub fn auth_token_verify<T1>(
         &self,
         token: T1,
-        audit: Option<AuditCustom>,
+        audit: Option<AuditDataRequest>,
     ) -> impl Future<Item = AuthTokenPartialResponse, Error = Error>
     where
         T1: Into<String>,
@@ -221,7 +221,7 @@ impl AsyncClient {
     pub fn auth_token_refresh<T1>(
         &self,
         token: T1,
-        audit: Option<AuditCustom>,
+        audit: Option<AuditDataRequest>,
     ) -> impl Future<Item = AuthTokenResponse, Error = Error>
     where
         T1: Into<String>,
@@ -240,7 +240,7 @@ impl AsyncClient {
     pub fn auth_token_revoke<T1>(
         &self,
         token: T1,
-        audit: Option<AuditCustom>,
+        audit: Option<AuditDataRequest>,
     ) -> impl Future<Item = (), Error = Error>
     where
         T1: Into<String>,

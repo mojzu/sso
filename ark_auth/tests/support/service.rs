@@ -4,7 +4,7 @@ macro_rules! service_integration_test {
         #[test]
         #[ignore]
         fn api_service_list_ok() {
-            let client = client_create();
+            let client = client_create(None);
             service_key_create(&client);
             service_key_create(&client);
             service_key_create(&client);
@@ -86,9 +86,7 @@ macro_rules! service_integration_test {
         #[test]
         #[ignore]
         fn api_service_read_forbidden() {
-            let mut client = client_create();
-
-            client.options.set_authorisation(INVALID_SERVICE_KEY);
+            let client = client_create(Some(INVALID_SERVICE_KEY));
             let res = client.service_read(INVALID_UUID).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::Forbidden));
         }

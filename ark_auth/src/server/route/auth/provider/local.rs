@@ -1,5 +1,5 @@
 use crate::core;
-use crate::core::AuditMeta;
+use crate::core::{AuditData, AuditMeta};
 use crate::server::api::{
     path, AuthLoginBody, AuthLoginResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
     AuthResetPasswordConfirmBody, AuthTokenBody, AuthUpdateEmailBody, AuthUpdatePasswordBody,
@@ -232,8 +232,16 @@ fn update_email_revoke_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || update_email_revoke_inner(data.get_ref(), audit_meta, id, &body))
-                .map_err(Into::into)
+            web::block(move || {
+                update_email_revoke_inner(
+                    data.get_ref(),
+                    audit_meta,
+                    id,
+                    body.token,
+                    body.audit.map(Into::into),
+                )
+            })
+            .map_err(Into::into)
         })
         .then(route_response_empty)
 }
@@ -242,11 +250,18 @@ fn update_email_revoke_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthTokenBody,
+    token: String,
+    audit_data: Option<AuditData>,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::update_email_revoke(data.driver(), &service, &mut audit, &body.token)
+            core::auth::update_email_revoke(
+                data.driver(),
+                &service,
+                &mut audit,
+                &token,
+                audit_data.as_ref(),
+            )
         })
         .map_err(Into::into)
 }
@@ -310,8 +325,16 @@ fn update_password_revoke_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || update_password_revoke_inner(data.get_ref(), audit_meta, id, &body))
-                .map_err(Into::into)
+            web::block(move || {
+                update_password_revoke_inner(
+                    data.get_ref(),
+                    audit_meta,
+                    id,
+                    body.token,
+                    body.audit.map(Into::into),
+                )
+            })
+            .map_err(Into::into)
         })
         .then(route_response_empty)
 }
@@ -320,11 +343,18 @@ fn update_password_revoke_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthTokenBody,
+    token: String,
+    audit_data: Option<AuditData>,
 ) -> Result<usize, Error> {
     core::key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::update_password_revoke(data.driver(), &service, &mut audit, &body.token)
+            core::auth::update_password_revoke(
+                data.driver(),
+                &service,
+                &mut audit,
+                &token,
+                audit_data.as_ref(),
+            )
         })
         .map_err(Into::into)
 }
