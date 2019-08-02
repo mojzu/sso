@@ -9,11 +9,12 @@ macro_rules! guide_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email, None);
+            let user = user_create(&client, true, USER_NAME, &user_email);
             let user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 
             user_key_verify(&client, &user_key);
-            client.auth_key_revoke(&user_key.key, None).unwrap();
+            let body = AuthKeyBody::new(&user_key.key, None);
+            client.auth_key_revoke(body).unwrap();
             user_key_verify_bad_request(&client, &user_key.key);
         }
 
@@ -25,19 +26,18 @@ macro_rules! guide_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
+            let user =
+                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
             let _user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
             let user_token = auth_local_login(&client, &user.id, &user_email, USER_PASSWORD);
 
             user_token_verify(&client, &user_token);
             let user_token = user_token_refresh(&client, &user_token);
-            client
-                .auth_token_revoke(&user_token.access_token, None)
-                .unwrap();
+            let body = AuthTokenBody::new(&user_token.access_token, None);
+            client.auth_token_revoke(body).unwrap();
 
-            let res = client
-                .auth_token_verify(&user_token.refresh_token, None)
-                .unwrap_err();
+            let body = AuthTokenBody::new(&user_token.refresh_token, None);
+            let res = client.auth_token_verify(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::BadRequest));
         }
 
@@ -49,10 +49,12 @@ macro_rules! guide_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
+            let user =
+                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
             let _user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 
-            client.auth_local_reset_password(&user_email).unwrap();
+            let body = AuthResetPasswordBody::new(&user_email);
+            client.auth_local_reset_password(body).unwrap();
         }
 
         #[test]
@@ -63,7 +65,8 @@ macro_rules! guide_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
+            let user =
+                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
             let _user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 
             auth_microsoft_oauth2_request(&client);

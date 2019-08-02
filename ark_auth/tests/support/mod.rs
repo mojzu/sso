@@ -12,7 +12,9 @@ pub use ark_auth::client::{Error, RequestError};
 use ark_auth::core::{Key, Service, User, UserKey, UserToken, UserTokenPartial};
 use ark_auth::server::api::AuthOauth2UrlResponse;
 pub use ark_auth::server::api::{
-    AuditCreateBody, AuditListQuery, KeyListQuery, ServiceListQuery, UserListQuery,
+    AuditCreateBody, AuditListQuery, AuthKeyBody, AuthLoginBody, AuthResetPasswordBody,
+    AuthResetPasswordConfirmBody, AuthTokenBody, KeyCreateBody, KeyListQuery, ServiceCreateBody,
+    ServiceListQuery, UserCreateBody, UserListQuery,
 };
 use chrono::Utc;
 pub use serde_json::Value;
@@ -50,26 +52,39 @@ pub fn email_create() -> String {
 }
 
 pub fn service_key_create(client: &SyncClient) -> (Service, Key) {
-    let create_service = client
-        .service_create(true, "test", "http://localhost")
-        .unwrap();
-    let create_key = client
-        .key_create(true, "test", Some(create_service.data.id.to_owned()), None)
-        .unwrap();
+    let body = ServiceCreateBody::new(true, "test", "http://localhost");
+    let create_service = client.service_create(body).unwrap();
+
+    let body = KeyCreateBody::with_service_id(true, "test", &create_service.data.id);
+    let create_key = client.key_create(body).unwrap();
     (create_service.data, create_key.data)
 }
 
-pub fn user_create(
+pub fn user_create(client: &SyncClient, is_enabled: bool, name: &str, email: &str) -> User {
+    let before = Utc::now();
+    let body = UserCreateBody::new(is_enabled, name, email);
+    let create = client.user_create(body).unwrap();
+    let user = create.data;
+    assert!(user.created_at.gt(&before));
+    assert!(user.updated_at.gt(&before));
+    assert!(!user.id.is_empty());
+    assert_eq!(user.is_enabled, is_enabled);
+    assert_eq!(user.name, name);
+    assert_eq!(user.email, email);
+    assert!(user.password_hash.is_none());
+    user
+}
+
+pub fn user_create_with_password(
     client: &SyncClient,
     is_enabled: bool,
     name: &str,
     email: &str,
-    password: Option<&str>,
+    password: &str,
 ) -> User {
     let before = Utc::now();
-    let create = client
-        .user_create(is_enabled, name, email, password.map(|x| x.to_owned()))
-        .unwrap();
+    let body = UserCreateBody::with_password(is_enabled, name, email, password);
+    let create = client.user_create(body).unwrap();
     let user = create.data;
     assert!(user.created_at.gt(&before));
     assert!(user.updated_at.gt(&before));
@@ -87,9 +102,8 @@ pub fn user_key_create(
     service_id: &str,
     user_id: &str,
 ) -> UserKey {
-    let create = client
-        .key_create(true, name, None, Some(user_id.to_owned()))
-        .unwrap();
+    let body = KeyCreateBody::with_user_id(true, name, user_id);
+    let create = client.key_create(body).unwrap();
     let key = create.data;
     assert_eq!(key.name, name);
     assert_eq!(key.service_id.unwrap(), service_id);
@@ -101,7 +115,8 @@ pub fn user_key_create(
 }
 
 pub fn user_key_verify(client: &SyncClient, key: &UserKey) -> UserKey {
-    let verify = client.auth_key_verify(&key.key, None).unwrap();
+    let body = AuthKeyBody::new(&key.key, None);
+    let verify = client.auth_key_verify(body).unwrap();
     let user_key = verify.data;
     assert_eq!(user_key.user_id, key.user_id);
     assert_eq!(user_key.key, key.key);
@@ -109,12 +124,14 @@ pub fn user_key_verify(client: &SyncClient, key: &UserKey) -> UserKey {
 }
 
 pub fn user_key_verify_bad_request(client: &SyncClient, key: &str) {
-    let err = client.auth_key_verify(key, None).unwrap_err();
+    let body = AuthKeyBody::new(key, None);
+    let err = client.auth_key_verify(body).unwrap_err();
     assert_eq!(err, Error::Request(RequestError::BadRequest));
 }
 
 pub fn user_token_verify(client: &SyncClient, token: &UserToken) -> UserTokenPartial {
-    let verify = client.auth_token_verify(&token.access_token, None).unwrap();
+    let body = AuthTokenBody::new(&token.access_token, None);
+    let verify = client.auth_token_verify(body).unwrap();
     let user_token = verify.data;
     assert_eq!(user_token.user_id, token.user_id);
     assert_eq!(user_token.access_token, token.access_token);
@@ -124,9 +141,8 @@ pub fn user_token_verify(client: &SyncClient, token: &UserToken) -> UserTokenPar
 
 pub fn user_token_refresh(client: &SyncClient, token: &UserToken) -> UserToken {
     std::thread::sleep(std::time::Duration::from_secs(1));
-    let refresh = client
-        .auth_token_refresh(&token.refresh_token, None)
-        .unwrap();
+    let body = AuthTokenBody::new(&token.refresh_token, None);
+    let refresh = client.auth_token_refresh(body).unwrap();
     let user_token = refresh.data;
     assert_eq!(user_token.user_id, token.user_id);
     assert_ne!(user_token.access_token, token.access_token);
@@ -142,7 +158,8 @@ pub fn auth_local_login(
     email: &str,
     password: &str,
 ) -> UserToken {
-    let login = client.auth_local_login(email, password).unwrap();
+    let body = AuthLoginBody::new(email, password);
+    let login = client.auth_local_login(body).unwrap();
     let user_token = login.data;
     assert_eq!(user_token.user_id, user_id);
     user_token

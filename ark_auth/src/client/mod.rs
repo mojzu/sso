@@ -10,7 +10,11 @@ pub use crate::client::async_impl::AsyncClient;
 #[cfg(feature = "sync_client")]
 pub use crate::client::sync_impl::SyncClient;
 use crate::crate_user_agent;
+use http::header;
+use reqwest::header::HeaderMap;
+use reqwest::Error as ReqwestError;
 use serde::ser::Serialize;
+use serde_urlencoded::ser::Error as SerdeUrlencodedSerError;
 use std::error::Error as StdError;
 use std::fs::File;
 use std::io::Error as StdIoError;
@@ -50,7 +54,7 @@ pub enum Error {
     Url(String),
     /// Serde URL encoded serialise error wrapper.
     #[fail(display = "ClientError::SerdeUrlencodedSer {}", _0)]
-    SerdeUrlencodedSer(#[fail(cause)] serde_urlencoded::ser::Error),
+    SerdeUrlencodedSer(#[fail(cause)] SerdeUrlencodedSerError),
     /// Standard IO error wrapper.
     #[fail(display = "ClientError::StdIo {}", _0)]
     StdIo(String),
@@ -63,6 +67,12 @@ impl Error {
 
     pub fn stdio(err: &StdIoError) -> Error {
         Error::StdIo(err.description().into())
+    }
+}
+
+impl From<ReqwestError> for Error {
+    fn from(err: ReqwestError) -> Error {
+        Error::Client(err.description().to_owned())
     }
 }
 
@@ -131,6 +141,11 @@ impl ClientOptions {
         Ok(url)
     }
 
+    /// Get reference to user agent header value.
+    pub fn user_agent(&self) -> &str {
+        &self.user_agent
+    }
+
     /// Get reference to authorisation header value.
     pub fn authorisation(&self) -> &str {
         &self.authorisation
@@ -139,6 +154,18 @@ impl ClientOptions {
     /// Get reference to forwarded header value.
     pub fn forwarded(&self) -> Option<&str> {
         self.forwarded.as_ref().map(|x| &**x)
+    }
+
+    /// Default header map for Reqwest client builder.
+    pub fn default_headers(&self) -> HeaderMap {
+        let mut headers = HeaderMap::new();
+        headers.insert(header::CONTENT_TYPE, "application/json".parse().unwrap());
+        headers.insert(header::USER_AGENT, self.user_agent().parse().unwrap());
+        headers.insert(header::AUTHORIZATION, self.authorisation().parse().unwrap());
+        if let Some(forwarded) = self.forwarded() {
+            headers.insert(header::FORWARDED, forwarded.parse().unwrap());
+        }
+        headers
     }
 
     /// Split value of `Authorization` HTTP header into a type and value, where format is `TYPE VALUE`.

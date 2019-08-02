@@ -29,11 +29,11 @@ macro_rules! user_integration_test {
             let limit = "3";
 
             let client = client_create(Some(&service_key.value));
-            user_create(&client, true, USER_NAME, &user1_email, None);
-            user_create(&client, true, USER_NAME, &user2_email, None);
-            user_create(&client, true, USER_NAME, &user3_email, None);
-            user_create(&client, true, USER_NAME, &user4_email, None);
-            user_create(&client, true, USER_NAME, &user5_email, None);
+            user_create(&client, true, USER_NAME, &user1_email);
+            user_create(&client, true, USER_NAME, &user2_email);
+            user_create(&client, true, USER_NAME, &user3_email);
+            user_create(&client, true, USER_NAME, &user4_email);
+            user_create(&client, true, USER_NAME, &user5_email);
 
             let res1 = client
                 .user_list(UserListQuery {
@@ -119,7 +119,7 @@ macro_rules! user_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email, None);
+            let user = user_create(&client, true, USER_NAME, &user_email);
 
             let res = client
                 .user_list(UserListQuery {
@@ -141,7 +141,7 @@ macro_rules! user_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            user_create(&client, true, USER_NAME, &user_email, None);
+            user_create(&client, true, USER_NAME, &user_email);
         }
 
         #[test]
@@ -149,9 +149,8 @@ macro_rules! user_integration_test {
         fn api_user_create_forbidden() {
             let client = client_create(Some(INVALID_SERVICE_KEY));
             let user_email = email_create();
-            let res = client
-                .user_create(true, USER_NAME, &user_email, None)
-                .unwrap_err();
+            let body = UserCreateBody::new(true, USER_NAME, &user_email);
+            let res = client.user_create(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::Forbidden));
         }
 
@@ -163,11 +162,10 @@ macro_rules! user_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            user_create(&client, true, USER_NAME, &user_email, None);
+            user_create(&client, true, USER_NAME, &user_email);
 
-            let res = client
-                .user_create(true, USER_NAME, &user_email, None)
-                .unwrap_err();
+            let body = UserCreateBody::new(true, USER_NAME, &user_email);
+            let res = client.user_create(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::BadRequest));
         }
     };

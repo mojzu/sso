@@ -74,24 +74,15 @@ macro_rules! key_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email, None);
+            let user = user_create(&client, true, USER_NAME, &user_email);
             let limit = "3";
 
-            client
-                .key_create(true, KEY_NAME, None, Some(user.id.to_owned()))
-                .unwrap();
-            client
-                .key_create(true, KEY_NAME, None, Some(user.id.to_owned()))
-                .unwrap();
-            client
-                .key_create(true, KEY_NAME, None, Some(user.id.to_owned()))
-                .unwrap();
-            client
-                .key_create(true, KEY_NAME, None, Some(user.id.to_owned()))
-                .unwrap();
-            client
-                .key_create(true, KEY_NAME, None, Some(user.id.to_owned()))
-                .unwrap();
+            let body = KeyCreateBody::with_user_id(true, KEY_NAME, &user.id);
+            client.key_create(body.clone()).unwrap();
+            client.key_create(body.clone()).unwrap();
+            client.key_create(body.clone()).unwrap();
+            client.key_create(body.clone()).unwrap();
+            client.key_create(body.clone()).unwrap();
 
             let res1 = client
                 .key_list(KeyListQuery {
@@ -168,7 +159,8 @@ macro_rules! key_integration_test {
         #[ignore]
         fn api_key_create_forbidden() {
             let client = client_create(Some(INVALID_SERVICE_KEY));
-            let res = client.key_create(true, KEY_NAME, None, None).unwrap_err();
+            let body = KeyCreateBody::new(true, KEY_NAME);
+            let res = client.key_create(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::Forbidden));
         }
 

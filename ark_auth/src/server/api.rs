@@ -234,6 +234,15 @@ pub struct AuthTokenBody {
 
 impl FromJsonValue<AuthTokenBody> for AuthTokenBody {}
 
+impl AuthTokenBody {
+    pub fn new<S1: Into<String>>(token: S1, audit: Option<AuditDataRequest>) -> Self {
+        Self {
+            token: token.into(),
+            audit,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthTokenResponse {
@@ -256,6 +265,15 @@ pub struct AuthKeyBody {
 
 impl FromJsonValue<AuthKeyBody> for AuthKeyBody {}
 
+impl AuthKeyBody {
+    pub fn new<S1: Into<String>>(key: S1, audit: Option<AuditDataRequest>) -> Self {
+        Self {
+            key: key.into(),
+            audit,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthKeyResponse {
@@ -275,6 +293,19 @@ pub struct AuthLoginBody {
 
 impl FromJsonValue<AuthLoginBody> for AuthLoginBody {}
 
+impl AuthLoginBody {
+    pub fn new<S1, S2>(email: S1, password: S2) -> Self
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+    {
+        Self {
+            email: email.into(),
+            password: password.into(),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthLoginResponse {
@@ -291,6 +322,14 @@ pub struct AuthResetPasswordBody {
 
 impl FromJsonValue<AuthResetPasswordBody> for AuthResetPasswordBody {}
 
+impl AuthResetPasswordBody {
+    pub fn new<S1: Into<String>>(email: S1) -> Self {
+        Self {
+            email: email.into(),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuthResetPasswordConfirmBody {
@@ -301,6 +340,19 @@ pub struct AuthResetPasswordConfirmBody {
 }
 
 impl FromJsonValue<AuthResetPasswordConfirmBody> for AuthResetPasswordConfirmBody {}
+
+impl AuthResetPasswordConfirmBody {
+    pub fn new<S1, S2>(token: S1, password: S2) -> Self
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+    {
+        Self {
+            token: token.into(),
+            password: password.into(),
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -388,7 +440,7 @@ pub struct KeyListResponse {
     pub data: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct KeyCreateBody {
     pub is_enabled: bool,
@@ -401,6 +453,43 @@ pub struct KeyCreateBody {
 }
 
 impl FromJsonValue<KeyCreateBody> for KeyCreateBody {}
+
+impl KeyCreateBody {
+    pub fn new<S1: Into<String>>(is_enabled: bool, name: S1) -> Self {
+        Self {
+            is_enabled,
+            name: name.into(),
+            service_id: None,
+            user_id: None,
+        }
+    }
+
+    pub fn with_service_id<S1, S2>(is_enabled: bool, name: S1, service_id: S2) -> Self
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+    {
+        Self {
+            is_enabled,
+            name: name.into(),
+            service_id: Some(service_id.into()),
+            user_id: None,
+        }
+    }
+
+    pub fn with_user_id<S1, S2>(is_enabled: bool, name: S1, user_id: S2) -> Self
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+    {
+        Self {
+            is_enabled,
+            name: name.into(),
+            service_id: None,
+            user_id: Some(user_id.into()),
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -461,6 +550,20 @@ pub struct ServiceCreateBody {
 }
 
 impl FromJsonValue<ServiceCreateBody> for ServiceCreateBody {}
+
+impl ServiceCreateBody {
+    pub fn new<S1, S2>(is_enabled: bool, name: S1, url: S2) -> Self
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+    {
+        Self {
+            is_enabled,
+            name: name.into(),
+            url: url.into(),
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -526,6 +629,35 @@ pub struct UserCreateBody {
 }
 
 impl FromJsonValue<UserCreateBody> for UserCreateBody {}
+
+impl UserCreateBody {
+    pub fn new<S1, S2>(is_enabled: bool, name: S1, email: S2) -> Self
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+    {
+        Self {
+            is_enabled,
+            name: name.into(),
+            email: email.into(),
+            password: None,
+        }
+    }
+
+    pub fn with_password<S1, S2, S3>(is_enabled: bool, name: S1, email: S2, password: S3) -> Self
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+        S3: Into<String>,
+    {
+        Self {
+            is_enabled,
+            name: name.into(),
+            email: email.into(),
+            password: Some(password.into()),
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserCreateResponse {

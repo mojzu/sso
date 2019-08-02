@@ -5,7 +5,8 @@ macro_rules! auth_key_integration_test {
         #[ignore]
         fn api_auth_key_verify_forbidden() {
             let client = client_create(Some(INVALID_SERVICE_KEY));
-            let res = client.auth_key_verify(INVALID_UUID, None).unwrap_err();
+            let body = AuthKeyBody::new(INVALID_UUID, None);
+            let res = client.auth_key_verify(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::Forbidden));
         }
 
@@ -16,7 +17,8 @@ macro_rules! auth_key_integration_test {
             let (_service, service_key) = service_key_create(&client);
 
             let client = client_create(Some(&service_key.value));
-            let res = client.auth_key_verify(INVALID_UUID, None).unwrap_err();
+            let body = AuthKeyBody::new(INVALID_UUID, None);
+            let res = client.auth_key_verify(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::BadRequest));
         }
 
@@ -29,11 +31,13 @@ macro_rules! auth_key_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service1_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
+            let user =
+                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
             let user_key = user_key_create(&client, KEY_NAME, &service1.id, &user.id);
 
             let client = client_create(Some(&service2_key.value));
-            let res = client.auth_key_verify(&user_key.key, None).unwrap_err();
+            let body = AuthKeyBody::new(&user_key.key, None);
+            let res = client.auth_key_verify(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::BadRequest));
         }
 
@@ -44,9 +48,8 @@ macro_rules! auth_key_integration_test {
             let (_service, service_key) = service_key_create(&client);
 
             let client = client_create(Some(&service_key.value));
-            let res = client
-                .auth_key_verify(&service_key.value, None)
-                .unwrap_err();
+            let body = AuthKeyBody::new(&service_key.value, None);
+            let res = client.auth_key_verify(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::BadRequest));
         }
 
@@ -58,17 +61,19 @@ macro_rules! auth_key_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email, None);
+            let user = user_create(&client, true, USER_NAME, &user_email);
             let user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 
-            client.auth_key_verify(&user_key.key, None).unwrap();
+            let body = AuthKeyBody::new(&user_key.key, None);
+            client.auth_key_verify(body).unwrap();
         }
 
         #[test]
         #[ignore]
         fn api_auth_key_revoke_forbidden() {
             let client = client_create(Some(INVALID_SERVICE_KEY));
-            let res = client.auth_key_revoke(INVALID_UUID, None).unwrap_err();
+            let body = AuthKeyBody::new(INVALID_UUID, None);
+            let res = client.auth_key_revoke(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::Forbidden));
         }
 
@@ -79,7 +84,8 @@ macro_rules! auth_key_integration_test {
             let (_service, service_key) = service_key_create(&client);
 
             let client = client_create(Some(&service_key.value));
-            let res = client.auth_key_revoke(INVALID_UUID, None).unwrap_err();
+            let body = AuthKeyBody::new(INVALID_UUID, None);
+            let res = client.auth_key_revoke(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::BadRequest));
         }
 
@@ -92,11 +98,13 @@ macro_rules! auth_key_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service1_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email, Some(USER_PASSWORD));
+            let user =
+                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
             let user_key = user_key_create(&client, KEY_NAME, &service1.id, &user.id);
 
             let client = client_create(Some(&service2_key.value));
-            let res = client.auth_key_revoke(&user_key.key, None).unwrap_err();
+            let body = AuthKeyBody::new(&user_key.key, None);
+            let res = client.auth_key_revoke(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::BadRequest));
         }
 
@@ -107,9 +115,8 @@ macro_rules! auth_key_integration_test {
             let (_service, service_key) = service_key_create(&client);
 
             let client = client_create(Some(&service_key.value));
-            let res = client
-                .auth_key_revoke(&service_key.value, None)
-                .unwrap_err();
+            let body = AuthKeyBody::new(&service_key.value, None);
+            let res = client.auth_key_revoke(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::BadRequest));
         }
 
@@ -121,11 +128,13 @@ macro_rules! auth_key_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email, None);
+            let user = user_create(&client, true, USER_NAME, &user_email);
             let user_key = user_key_create(&client, KEY_NAME, &service.id, &user.id);
 
-            client.auth_key_revoke(&user_key.key, None).unwrap();
-            let res = client.auth_key_verify(&user_key.key, None).unwrap_err();
+            let body = AuthKeyBody::new(&user_key.key, None);
+            client.auth_key_revoke(body).unwrap();
+            let body = AuthKeyBody::new(&user_key.key, None);
+            let res = client.auth_key_verify(body).unwrap_err();
             assert_eq!(res, Error::Request(RequestError::BadRequest));
         }
     };
