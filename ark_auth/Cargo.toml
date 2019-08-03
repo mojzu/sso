@@ -1,6 +1,6 @@
 [package]
 name = "ark_auth"
-version = "0.2.0"
+version = "0.3.0"
 description = "Authentication server"
 authors = ["Sam Ward <mail@mojzu.net>"]
 license = "Unlicense"
