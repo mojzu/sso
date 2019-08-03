@@ -176,7 +176,13 @@ fn github_api_user_email(
 }
 
 fn github_client(provider: Option<&ConfigurationProviderOauth2>) -> Result<BasicClient, Error> {
-    let provider = provider.ok_or(Error::Oauth2(Oauth2Error::Disabled))?;
+    let provider = provider.ok_or_else(|| {
+        // Warn OAuth2 is disabled, return bad request error so internal server error
+        // is not returned to the client.
+        let err = Error::Oauth2(Oauth2Error::Disabled);
+        warn!("{}", err);
+        Error::BadRequest
+    })?;
 
     let github_client_id = ClientId::new(provider.client_id.to_owned());
     let github_client_secret = ClientSecret::new(provider.client_secret.to_owned());

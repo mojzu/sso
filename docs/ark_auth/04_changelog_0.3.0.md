@@ -1,4 +1,4 @@
-## 0.3.0 (unreleased)
+## 0.3.0 (2019-08-03)
 
 **Added**
 
@@ -22,5 +22,6 @@
 
 **Fixed**
 
-- Reset password route returns OK in cases where user email address does not exist.
-- Audit log errors created for root key authentication when authenticating a service key.
+- Reset password route now returns OK in cases where user email address does not exist.
+- Fixed audit log errors were created for root key authentication when authenticating a service key.
+- Fixed internal server errors returned to client when OAuth2 provider is disabled.
