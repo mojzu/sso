@@ -1,45 +1,48 @@
 use crate::notify::Error;
 use handlebars::Handlebars;
+use serde_json::Value;
 
-const EMAIL_HTML: &str = "email_html";
-const EMAIL_TEXT: &str = "email_text";
+const EMAIL_RESET_PASSWORD: &str = "email_reset_password";
+const EMAIL_UPDATE_EMAIL: &str = "email_update_email";
+const EMAIL_UPDATE_PASSWORD: &str = "email_update_password";
 
 /// Register template strings.
 pub fn register(registry: &mut Handlebars) -> Result<(), Error> {
     registry
-        .register_template_string(EMAIL_HTML, include_str!("email_html.hbs"))
+        .register_template_string(
+            EMAIL_RESET_PASSWORD,
+            include_str!("email_reset_password.hbs"),
+        )
         .map_err(Error::HandlebarsTemplate)?;
     registry
-        .register_template_string(EMAIL_TEXT, include_str!("email_text.hbs"))
+        .register_template_string(EMAIL_UPDATE_EMAIL, include_str!("email_update_email.hbs"))
+        .map_err(Error::HandlebarsTemplate)?;
+    registry
+        .register_template_string(
+            EMAIL_UPDATE_PASSWORD,
+            include_str!("email_update_password.hbs"),
+        )
         .map_err(Error::HandlebarsTemplate)?;
     Ok(())
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Email {
-    pub title: String,
-    pub text: String,
-    pub url_text: String,
-    pub url: String,
-    pub service_name: String,
-    pub service_url: String,
-}
-
-/// Render email HTML and text templates with parameters.
-pub fn email(registry: &Handlebars, parameters: &Email) -> Result<(String, String), Error> {
-    let text = email_text(registry, parameters)?;
-    let html = email_html(registry, parameters)?;
-    Ok((text, html))
-}
-
-fn email_html(registry: &Handlebars, parameters: &Email) -> Result<String, Error> {
+/// Render reset password email template.
+pub fn email_reset_password(registry: &Handlebars, parameters: &Value) -> Result<String, Error> {
     registry
-        .render(EMAIL_HTML, parameters)
+        .render(EMAIL_RESET_PASSWORD, parameters)
         .map_err(Error::HandlebarsRender)
 }
 
-fn email_text(registry: &Handlebars, parameters: &Email) -> Result<String, Error> {
+/// Render update email email template.
+pub fn email_update_email(registry: &Handlebars, parameters: &Value) -> Result<String, Error> {
     registry
-        .render(EMAIL_TEXT, parameters)
+        .render(EMAIL_UPDATE_EMAIL, parameters)
+        .map_err(Error::HandlebarsRender)
+}
+
+/// Render update password email template.
+pub fn email_update_password(registry: &Handlebars, parameters: &Value) -> Result<String, Error> {
+    registry
+        .render(EMAIL_UPDATE_PASSWORD, parameters)
         .map_err(Error::HandlebarsRender)
 }

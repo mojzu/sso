@@ -30,6 +30,8 @@ pub use validate::FromJsonValue;
 // TODO(feature): More efficient way of handling audit metrics read.
 // Keep audit registry and counter alive, only query metrics since last query.
 // TODO(feature): Improved public library API, function interfaces, use of Into?
+// TODO(feature): All emails have 2 actions, ok or revoke, option to verify update email/password requests.
+// TODO(feature): Email translation/formatting using user locale and timezone.
 
 /// Default JSON payload size limit.
 const DEFAULT_JSON_LIMIT: usize = 1024;

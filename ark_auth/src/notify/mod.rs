@@ -2,11 +2,11 @@
 mod email;
 mod template;
 
-use crate::core::{Service, User};
+use crate::core::{Audit, Service, User};
 use actix::{Actor, Addr, Handler, Message, SyncArbiter, SyncContext};
 use handlebars::Handlebars;
 
-/// SMTP Errors
+/// ## SMTP Errors
 #[derive(Debug, Fail)]
 pub enum SmtpError {
     /// Integration disabled.
@@ -23,7 +23,7 @@ pub enum SmtpError {
     Lettre(lettre::smtp::error::Error),
 }
 
-/// Notify Errors
+/// ## Notify Errors
 #[derive(Debug, Fail)]
 pub enum Error {
     /// SMTP error.
@@ -37,7 +37,7 @@ pub enum Error {
     HandlebarsRender(#[fail(cause)] handlebars::RenderError),
 }
 
-/// SMTP Configuration
+/// ## SMTP Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigurationSmtp {
     host: String,
@@ -58,14 +58,14 @@ impl ConfigurationSmtp {
     }
 }
 
-/// Notify Actor Configuration
+/// ## Notify Actor Configuration
 #[derive(Debug, Clone, Serialize, Deserialize, Builder)]
 pub struct Configuration {
     #[builder(default)]
     smtp: Option<ConfigurationSmtp>,
 }
 
-/// Notify Actor Executor
+/// ## Notify Actor Executor
 pub struct NotifyExecutor {
     configuration: Configuration,
     registry: Handlebars,
@@ -104,11 +104,25 @@ impl Actor for NotifyExecutor {
     type Context = SyncContext<Self>;
 }
 
+/// ## Reset Password Email Message Data
 #[derive(Debug, Deserialize)]
 pub struct EmailResetPassword {
     pub service: Service,
     pub user: User,
     pub token: String,
+    pub audit: Option<Audit>,
+}
+
+impl EmailResetPassword {
+    /// Create new message data.
+    pub fn new(service: Service, user: User, token: String, audit: Option<Audit>) -> Self {
+        Self {
+            service,
+            user,
+            token,
+            audit,
+        }
+    }
 }
 
 impl Message for EmailResetPassword {
@@ -125,12 +139,33 @@ impl Handler<EmailResetPassword> for NotifyExecutor {
     }
 }
 
+/// ## Update Email Email Message Data
 #[derive(Debug, Deserialize)]
 pub struct EmailUpdateEmail {
     pub service: Service,
     pub user: User,
     pub old_email: String,
     pub token: String,
+    pub audit: Option<Audit>,
+}
+
+impl EmailUpdateEmail {
+    /// Create new message data.
+    pub fn new(
+        service: Service,
+        user: User,
+        old_email: String,
+        token: String,
+        audit: Option<Audit>,
+    ) -> Self {
+        Self {
+            service,
+            user,
+            old_email,
+            token,
+            audit,
+        }
+    }
 }
 
 impl Message for EmailUpdateEmail {
@@ -147,11 +182,25 @@ impl Handler<EmailUpdateEmail> for NotifyExecutor {
     }
 }
 
+/// ## Update Password Email Message Data
 #[derive(Debug, Deserialize)]
 pub struct EmailUpdatePassword {
     pub service: Service,
     pub user: User,
     pub token: String,
+    pub audit: Option<Audit>,
+}
+
+impl EmailUpdatePassword {
+    /// Create new message data.
+    pub fn new(service: Service, user: User, token: String, audit: Option<Audit>) -> Self {
+        Self {
+            service,
+            user,
+            token,
+            audit,
+        }
+    }
 }
 
 impl Message for EmailUpdatePassword {

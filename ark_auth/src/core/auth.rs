@@ -85,20 +85,17 @@ fn reset_password_inner(
         token_expires,
     )?;
 
-    // Send reset password action email.
-    notify
-        .try_send(EmailResetPassword {
-            service: service.clone(),
-            user,
-            token,
-        })
-        .map_err(|_err| Error::BadRequest)?;
-
-    audit.create_internal(
+    // Pass audit log to notification actor.
+    let audit = audit.create_internal(
         driver,
         AuditPath::ResetPassword,
         AuditMessage::ResetPassword,
     );
+
+    // Send reset password action email.
+    notify
+        .try_send(EmailResetPassword::new(service.clone(), user, token, audit))
+        .map_err(|_err| Error::BadRequest)?;
     Ok(())
 }
 
@@ -222,17 +219,19 @@ pub fn update_email(
         &user_id,
     )?;
 
+    // Pass audit log to notification actor.
+    let audit = audit.create_internal(driver, AuditPath::UpdateEmail, AuditMessage::UpdateEmail);
+
     // Send update email action email.
     notify
-        .try_send(EmailUpdateEmail {
-            service: service.clone(),
+        .try_send(EmailUpdateEmail::new(
+            service.clone(),
             user,
             old_email,
-            token: revoke_token,
-        })
+            revoke_token,
+            audit,
+        ))
         .map_err(|_err| Error::BadRequest)?;
-
-    audit.create_internal(driver, AuditPath::UpdateEmail, AuditMessage::UpdateEmail);
     Ok(())
 }
 
@@ -368,20 +367,22 @@ pub fn update_password(
         &user_id,
     )?;
 
-    // Send update password action email.
-    notify
-        .try_send(EmailUpdatePassword {
-            service: service.clone(),
-            user,
-            token: revoke_token,
-        })
-        .map_err(|_err| Error::BadRequest)?;
-
-    audit.create_internal(
+    // Pass audit log to notification actor.
+    let audit = audit.create_internal(
         driver,
         AuditPath::UpdatePassword,
         AuditMessage::UpdatePassword,
     );
+
+    // Send update password action email.
+    notify
+        .try_send(EmailUpdatePassword::new(
+            service.clone(),
+            user,
+            revoke_token,
+            audit,
+        ))
+        .map_err(|_err| Error::BadRequest)?;
     Ok(())
 }
 
