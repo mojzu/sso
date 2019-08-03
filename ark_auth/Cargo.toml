@@ -17,7 +17,7 @@ async_client = []
 sync_client = []
 
 [dependencies]
-actix = "*"
+actix = "^0.8.3"
 actix-identity = "*"
 actix-http = "*"
 actix-rt = "*"

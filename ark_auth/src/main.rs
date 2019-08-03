@@ -35,7 +35,7 @@ const ARG_URL: &str = "URL";
 
 fn main() {
     // Configure logging environment variables.
-    std::env::set_var("RUST_BACKTRACE", "0");
+    std::env::set_var("RUST_BACKTRACE", "1");
     std::env::set_var("RUST_LOG", "info");
 
     // If SENTRY_URL is defined, enable logging and panic handler integration.
