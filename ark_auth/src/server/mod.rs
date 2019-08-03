@@ -1,11 +1,12 @@
+//! # Server
 pub mod api;
 pub mod metrics;
 pub mod route;
 pub mod validate;
 
+use crate::client::ClientOptions;
 use crate::notify::NotifyExecutor;
 use crate::{core, driver};
-use crate::{crate_name, crate_user_agent};
 use actix::Addr;
 use actix_identity::{IdentityPolicy, IdentityService};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
@@ -218,11 +219,11 @@ impl ConfigurationRustls {
 /// Server configuration.
 #[derive(Debug, Clone, Serialize, Deserialize, Builder)]
 pub struct Configuration {
-    #[builder(default = "crate_name()")]
+    #[builder(default = "crate_name!().to_string()")]
     hostname: String,
     bind: String,
     /// User agent string for outgoing client requests.
-    #[builder(default = "crate_user_agent()")]
+    #[builder(default = "ClientOptions::default_user_agent()")]
     user_agent: String,
     /// Enable Pwned Passwords API to check passwords.
     /// API keys may be required in the future to use this API.

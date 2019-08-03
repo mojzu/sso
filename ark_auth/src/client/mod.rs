@@ -1,5 +1,4 @@
-//! # Clients
-//! Server clients.
+//! # Server Clients
 #[cfg(feature = "async_client")]
 mod async_impl;
 #[cfg(feature = "sync_client")]
@@ -9,7 +8,6 @@ mod sync_impl;
 pub use crate::client::async_impl::AsyncClient;
 #[cfg(feature = "sync_client")]
 pub use crate::client::sync_impl::SyncClient;
-use crate::crate_user_agent;
 use http::header;
 use reqwest::header::HeaderMap;
 use reqwest::Error as ReqwestError;
@@ -21,6 +19,7 @@ use std::io::Error as StdIoError;
 use std::io::Read;
 use url::Url;
 
+/// ## Request Errors
 #[derive(Debug, Fail, PartialEq)]
 pub enum RequestError {
     /// Bad request error.
@@ -34,7 +33,7 @@ pub enum RequestError {
     NotFound,
 }
 
-/// Client errors.
+/// ## Client Errors
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
     /// Client error.
@@ -61,11 +60,11 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn url(err: &StdError) -> Error {
+    fn url(err: &StdError) -> Error {
         Error::Url(err.description().into())
     }
 
-    pub fn stdio(err: &StdIoError) -> Error {
+    fn stdio(err: &StdIoError) -> Error {
         Error::StdIo(err.description().into())
     }
 }
@@ -76,7 +75,7 @@ impl From<ReqwestError> for Error {
     }
 }
 
-/// Client options.
+/// ## Client Options
 #[derive(Debug, Clone)]
 pub struct ClientOptions {
     url: Url,
@@ -101,7 +100,7 @@ impl ClientOptions {
         let url = Url::parse(url).map_err(|err| Error::url(&err))?;
         let mut options = ClientOptions {
             url,
-            user_agent: crate_user_agent(),
+            user_agent: ClientOptions::default_user_agent(),
             authorisation: authorisation.into(),
             forwarded,
             crt_pem: None,
@@ -168,6 +167,11 @@ impl ClientOptions {
         headers
     }
 
+    /// Default user agent constructed from crate name and version.
+    pub fn default_user_agent() -> String {
+        format!("{}/{}", crate_name!(), crate_version!())
+    }
+
     /// Split value of `Authorization` HTTP header into a type and value, where format is `TYPE VALUE`.
     /// For example `key abc123def456` and `token abc123def456`.
     pub fn split_authorisation(type_value: String) -> Result<(String, String), Error> {
@@ -181,9 +185,8 @@ impl ClientOptions {
     }
 }
 
-/// Client trait.
-/// Options are shared between synchronous and asynchronous clients, may be worth
-/// finding a way to make client methods generic to ensure both clients are equal.
+/// ## Client Trait
+/// Options are shared between synchronous and asynchronous clients.
 pub trait Client {
     /// Create a new client with options.
     fn new(options: ClientOptions) -> Self;

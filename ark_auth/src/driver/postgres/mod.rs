@@ -1,4 +1,3 @@
-//! # PostgreSQL Driver
 mod model;
 mod schema;
 
@@ -14,6 +13,7 @@ use std::convert::TryInto;
 
 embed_migrations!("migrations/postgres");
 
+/// ## PostgreSQL Driver Implementation
 #[derive(Clone)]
 pub struct PostgresDriver {
     pool: r2d2::Pool<ConnectionManager<PgConnection>>,
@@ -22,6 +22,7 @@ pub struct PostgresDriver {
 type PooledConnection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
 
 impl PostgresDriver {
+    /// Initialise driver with connection URL and number of pooled connections.
     pub fn initialise(database_url: &str, max_connections: Option<u32>) -> Result<Self, Error> {
         let manager = ConnectionManager::<PgConnection>::new(database_url);
         let mut pool = r2d2::Pool::builder();

@@ -1,3 +1,4 @@
+//! # Notification Actor
 mod email;
 mod template;
 
@@ -5,7 +6,7 @@ use crate::core::{Service, User};
 use actix::{Actor, Addr, Handler, Message, SyncArbiter, SyncContext};
 use handlebars::Handlebars;
 
-/// SMTP errors.
+/// SMTP Errors
 #[derive(Debug, Fail)]
 pub enum SmtpError {
     /// Integration disabled.
@@ -22,7 +23,7 @@ pub enum SmtpError {
     Lettre(lettre::smtp::error::Error),
 }
 
-/// Notify errors.
+/// Notify Errors
 #[derive(Debug, Fail)]
 pub enum Error {
     /// SMTP error.
@@ -36,7 +37,7 @@ pub enum Error {
     HandlebarsRender(#[fail(cause)] handlebars::RenderError),
 }
 
-/// SMTP configuration.
+/// SMTP Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigurationSmtp {
     host: String,
@@ -46,6 +47,7 @@ pub struct ConfigurationSmtp {
 }
 
 impl ConfigurationSmtp {
+    /// Create a new SMTP configuration.
     pub fn new(host: String, port: u16, user: String, password: String) -> Self {
         Self {
             host,
@@ -56,21 +58,21 @@ impl ConfigurationSmtp {
     }
 }
 
-/// Notify configuration.
+/// Notify Actor Configuration
 #[derive(Debug, Clone, Serialize, Deserialize, Builder)]
 pub struct Configuration {
     #[builder(default)]
     smtp: Option<ConfigurationSmtp>,
 }
 
-/// Notify actor.
+/// Notify Actor Executor
 pub struct NotifyExecutor {
     configuration: Configuration,
     registry: Handlebars,
 }
 
 impl NotifyExecutor {
-    /// Start notify actor.
+    /// Start notifications actor on number of threads with configuration.
     pub fn start(threads: usize, configuration: Configuration) -> Addr<NotifyExecutor> {
         SyncArbiter::start(threads, move || {
             // Register template strings.

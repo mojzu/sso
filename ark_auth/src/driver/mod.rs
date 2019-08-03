@@ -1,5 +1,4 @@
-//! # Drivers
-//! Binary application drivers.
+//! # Driver Interface
 #[cfg(feature = "postgres")]
 mod postgres;
 #[cfg(feature = "sqlite")]
@@ -13,7 +12,7 @@ pub use crate::driver::sqlite::SqliteDriver;
 use chrono::{DateTime, Utc};
 use serde_json::Value;
 
-/// Driver errors.
+/// ## Driver Errors
 #[derive(Debug, Fail)]
 pub enum Error {
     /// Diesel result error wrapper.
@@ -27,7 +26,7 @@ pub enum Error {
     R2d2(#[fail(cause)] r2d2::Error),
 }
 
-/// Driver trait.
+/// ## Driver Interface
 pub trait Driver: Send + Sync {
     /// Return a boxed trait containing clone of self.
     fn box_clone(&self) -> Box<Driver>;

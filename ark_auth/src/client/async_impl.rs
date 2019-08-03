@@ -1,4 +1,4 @@
-//! Asynchronous Client
+//! # Asynchronous Client
 use crate::client::{Client, ClientOptions, Error, RequestError};
 use crate::core::User;
 use crate::server::api::{

@@ -1,6 +1,6 @@
 //! # Command Line Interface
 //! Functions for a command line interface and some helpers for integration.
-use crate::crate_user_agent;
+use crate::client::ClientOptions;
 use crate::driver::Driver;
 use crate::notify::NotifyExecutor;
 use crate::{core, notify, server};
@@ -211,7 +211,7 @@ pub fn env_rustls(
 /// Create an audit builder for local commands.
 pub fn audit_builder() -> core::audit::AuditBuilder {
     core::audit::AuditBuilder::new(core::AuditMeta::new(
-        crate_user_agent(),
+        ClientOptions::default_user_agent(),
         "127.0.0.1".to_owned(),
         None,
     ))

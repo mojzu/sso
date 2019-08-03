@@ -1,6 +1,8 @@
 //! # ark_auth
 //! Library for binary application.
 #![recursion_limit = "1024"]
+// // TODO(docs): Require documentation.
+// #![deny(missing_docs)]
 
 #[macro_use]
 extern crate clap;
@@ -25,13 +27,3 @@ pub mod core;
 pub mod driver;
 pub mod notify;
 pub mod server;
-
-/// Crate name macro as function.
-pub fn crate_name() -> String {
-    crate_name!().to_string()
-}
-
-/// User agent constructed from crate name and version.
-pub fn crate_user_agent() -> String {
-    format!("{}/{}", crate_name!(), crate_version!())
-}

@@ -1,4 +1,3 @@
-//! # SQLite Driver
 mod model;
 mod schema;
 
@@ -11,6 +10,7 @@ use serde_json::Value;
 
 embed_migrations!("migrations/sqlite");
 
+/// ## SQLite Driver Implementation
 #[derive(Clone)]
 pub struct SqliteDriver {
     pool: r2d2::Pool<ConnectionManager<SqliteConnection>>,
@@ -21,6 +21,7 @@ type PooledConnection = r2d2::PooledConnection<ConnectionManager<SqliteConnectio
 // TODO(refactor): Implement SQLite driver, check unimplemented.
 
 impl SqliteDriver {
+    /// Initialise driver with connection URL and number of pooled connections.
     pub fn initialise(database_url: &str, max_connections: u32) -> Result<Self, Error> {
         let manager = ConnectionManager::<SqliteConnection>::new(database_url);
         let pool = r2d2::Pool::builder()
