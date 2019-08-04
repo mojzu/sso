@@ -72,7 +72,7 @@ pub fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, 
         forwarded
             .to_str()
             .map_err(|_err| Error::BadRequest)
-            .map(Some)
+            .map(|x| Some(x.to_owned()))
     } else {
         Ok(None)
     };
@@ -80,11 +80,7 @@ pub fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, 
     future::result(remote.and_then(|remote| {
         let user_agent = user_agent?;
         let forwarded = forwarded?;
-        Ok(AuditMeta::new(
-            user_agent,
-            remote,
-            forwarded.map(|x| x.to_owned()),
-        ))
+        Ok(AuditMeta::new(user_agent, remote, forwarded))
     }))
 }
 

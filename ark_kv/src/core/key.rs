@@ -128,6 +128,7 @@ pub fn write<R: Read>(
     let (hash, compressed, size) = hash_and_compress(input)?;
 
     if let Some(version) = &version {
+        // TODO(refactor): Touch file for hash matches so modified time catches next.
         if options.check_hash && hash == version.hash {
             return Ok((key, version.clone()));
         }
