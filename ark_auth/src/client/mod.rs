@@ -180,16 +180,20 @@ impl ClientOptions {
         format!("{}/{}", crate_name!(), crate_version!())
     }
 
-    /// Split value of `Authorization` HTTP header into a type and value, where format is `TYPE VALUE`.
-    /// For example `key abc123def456` and `token abc123def456`.
+    /// Split value of `Authorization` HTTP header into a type and value, where format is `VALUE`, `TYPE VALUE`.
+    /// For example `abc123def456`, `key abc123def456` and `token abc123def456`.
+    /// Without a type `key` is assumed and returned.
     pub fn split_authorisation(type_value: String) -> Result<(String, String), Error> {
         let mut type_value = type_value.split_whitespace();
         let type_ = type_value.next();
         let type_: String = type_.ok_or_else(|| Error::InvalidKeyOrToken)?.into();
 
         let value = type_value.next();
-        let value: String = value.ok_or_else(|| Error::InvalidKeyOrToken)?.into();
-        Ok((type_, value))
+        if let Some(value) = value {
+            Ok((type_, value.into()))
+        } else {
+            Ok(("key".to_owned(), type_))
+        }
     }
 }
 
@@ -228,14 +232,21 @@ mod tests {
     }
 
     #[test]
-    fn splits_authorisation_key() {
+    fn splits_authorisation_type_none() {
+        let (type_, value) = ClientOptions::split_authorisation("abcdefg".to_owned()).unwrap();
+        assert_eq!(type_, "key");
+        assert_eq!(value, "abcdefg");
+    }
+
+    #[test]
+    fn splits_authorisation_type_key() {
         let (type_, value) = ClientOptions::split_authorisation("key abcdefg".to_owned()).unwrap();
         assert_eq!(type_, "key");
         assert_eq!(value, "abcdefg");
     }
 
     #[test]
-    fn splits_authorisation_token() {
+    fn splits_authorisation_type_token() {
         let (type_, value) =
             ClientOptions::split_authorisation("token abcdefg".to_owned()).unwrap();
         assert_eq!(type_, "token");

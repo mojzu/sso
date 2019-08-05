@@ -39,13 +39,13 @@ impl PostgresDriver {
         self.pool.get().map_err(Error::R2d2)
     }
 
-    fn uuid() -> String {
-        uuid::Uuid::new_v4().to_simple().to_string()
-    }
-
     fn run_migrations(&self) -> Result<(), Error> {
         let connection = self.connection()?;
         embedded_migrations::run(&connection).map_err(Error::DieselMigrations)
+    }
+
+    fn uuid() -> String {
+        uuid::Uuid::new_v4().to_simple().to_string()
     }
 
     fn audit_list_where_created_lte_inner(
