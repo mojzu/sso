@@ -2,7 +2,12 @@ use crate::core::audit::AuditBuilder;
 use crate::core::{Error, Service};
 use crate::driver;
 use prometheus::{Counter, Encoder, IntCounter, IntCounterVec, Opts, Registry, TextEncoder};
-use sysinfo::{ProcessExt, SystemExt};
+use std::sync::Mutex;
+use sysinfo::{ProcessExt, System, SystemExt};
+
+lazy_static! {
+    static ref SYSTEM: Mutex<System> = { Mutex::new(System::new()) };
+}
 
 pub fn name(name: &str) -> String {
     let prefix = crate_name!();
@@ -12,21 +17,14 @@ pub fn name(name: &str) -> String {
 pub fn sysinfo_encoded() -> Result<String, Error> {
     let registry = Registry::new();
 
-    // TODO(feature): Support more process metrics. More efficient refresh of system data.
+    // TODO(feature): Support more process/other metrics.
     // <https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors>
-    // process_open_fds
-    // process_max_fds
-    // process_virtual_memory_bytes
-    // process_virtual_memory_max_bytes
-    // process_heap_bytes
-    // process_start_time_seconds (p.start_time)
-    let mut system = sysinfo::System::new();
-    system.refresh_all();
-    let p = system
-        .get_process(sysinfo::get_current_pid().unwrap())
-        .unwrap();
+    let mut system = SYSTEM.lock().unwrap();
+    let pid = sysinfo::get_current_pid().unwrap();
+    system.refresh_process(pid);
+    let p = system.get_process(pid).unwrap();
 
-    // TODO(fix): Is value in correct units.
+    // TODO(fix): CPU usage is %, not time, make pull request?
     let cpu_usage_counter = Counter::new(
         "process_cpu_seconds_total",
         "Total user and system CPU time spent in seconds.",
@@ -43,7 +41,19 @@ pub fn sysinfo_encoded() -> Result<String, Error> {
     )
     .unwrap();
     registry.register(Box::new(memory_counter.clone())).unwrap();
-    memory_counter.inc_by(p.memory() as i64);
+    let memory_bytes = p.memory() * 1024;
+    memory_counter.inc_by(memory_bytes as i64);
+
+    // TODO(fix): Are units correct? This is seconds since system boot?
+    let start_time_counter = IntCounter::new(
+        "process_start_time_seconds",
+        "Start time of the process since unix epoch in seconds.",
+    )
+    .unwrap();
+    registry
+        .register(Box::new(start_time_counter.clone()))
+        .unwrap();
+    start_time_counter.inc_by(p.start_time() as i64);
 
     encode_registry(&registry)
 }

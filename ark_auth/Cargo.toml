@@ -37,6 +37,7 @@ futures = "*"
 handlebars = "*"
 http = "*"
 jsonwebtoken = "*"
+lazy_static = "*"
 lettre = "*"
 lettre_email = "*"
 log = { version = "*", features = ["max_level_trace", "release_max_level_info"] }
