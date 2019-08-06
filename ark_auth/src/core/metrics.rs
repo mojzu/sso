@@ -52,6 +52,8 @@ pub fn read(
         .audit_read_metrics(service_mask.map(|s| s.id.as_ref()))
         .map_err(Error::Driver)?;
 
+    // TODO(refactor): More efficient way of handling audit metrics read.
+    // Keep audit registry and counter alive, only query metrics since last query.
     let audit_registry = Registry::new();
     let opts = Opts::new(name("audit"), "Audit log counter".to_owned());
     let counter = IntCounterVec::new(opts, &["path"]).unwrap();

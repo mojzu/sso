@@ -128,9 +128,9 @@ impl ClientOptions {
     }
 
     /// Clone client options with forwarded value.
-    pub fn with_forwarded<T1: Into<String>>(&self, forwarded: T1) -> Self {
-        // TODO(refactor): Appended user agent here.
+    pub fn with_forwarded<T1: Into<String>>(&self, user_agent: &str, forwarded: T1) -> Self {
         let mut options = self.clone();
+        options.user_agent = format!("{}, {}", options.user_agent, user_agent);
         options.forwarded = Some(forwarded.into());
         options
     }

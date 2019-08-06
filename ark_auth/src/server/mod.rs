@@ -27,8 +27,6 @@ pub use validate::FromJsonValue;
 // <https://webauthn.guide/>
 // <https://webauthn.org/>
 // TODO(feature): Configurable canary routes.
-// TODO(feature): More efficient way of handling audit metrics read.
-// Keep audit registry and counter alive, only query metrics since last query.
 // TODO(feature): Improved public library API, function interfaces, use of Into?
 // TODO(feature): All emails have 2 actions, ok or revoke, option to verify update email/password requests.
 // TODO(feature): Email translation/formatting using user locale and timezone.
