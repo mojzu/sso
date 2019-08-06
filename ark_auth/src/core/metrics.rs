@@ -24,12 +24,7 @@ pub fn sysinfo_encoded() -> Result<String, Error> {
     system.refresh_process(pid);
     let p = system.get_process(pid).unwrap();
 
-    // TODO(fix): CPU usage is %, not time, make pull request?
-    let cpu_usage_counter = Counter::new(
-        "process_cpu_seconds_total",
-        "Total user and system CPU time spent in seconds.",
-    )
-    .unwrap();
+    let cpu_usage_counter = Counter::new("process_cpu_usage", "CPU usage (%).").unwrap();
     registry
         .register(Box::new(cpu_usage_counter.clone()))
         .unwrap();
@@ -43,17 +38,6 @@ pub fn sysinfo_encoded() -> Result<String, Error> {
     registry.register(Box::new(memory_counter.clone())).unwrap();
     let memory_bytes = p.memory() * 1024;
     memory_counter.inc_by(memory_bytes as i64);
-
-    // TODO(fix): Are units correct? This is seconds since system boot?
-    let start_time_counter = IntCounter::new(
-        "process_start_time_seconds",
-        "Start time of the process since unix epoch in seconds.",
-    )
-    .unwrap();
-    registry
-        .register(Box::new(start_time_counter.clone()))
-        .unwrap();
-    start_time_counter.inc_by(p.start_time() as i64);
 
     encode_registry(&registry)
 }

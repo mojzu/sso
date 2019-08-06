@@ -2,4 +2,4 @@
 
 **Added**
 
-- Added standard metrics to Prometheus integration.
+- Added some process metrics to Prometheus integration.

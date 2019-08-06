@@ -60,4 +60,4 @@ uuid = { version = "*", features = ["v4"] }
 time = "*"
 validator = "*"
 validator_derive = "*"
-zxcvbn = { git = "https://github.com/mojzu/zxcvbn-rs.git" }
+zxcvbn = "^1.0.2"
