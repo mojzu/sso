@@ -127,14 +127,6 @@ impl ClientOptions {
         Ok(options)
     }
 
-    /// Clone client options with forwarded value.
-    pub fn with_forwarded<T1: Into<String>>(&self, user_agent: &str, forwarded: T1) -> Self {
-        let mut options = self.clone();
-        options.user_agent = format!("{}, {}", options.user_agent, user_agent);
-        options.forwarded = Some(forwarded.into());
-        options
-    }
-
     /// Build URL from client options and path.
     pub fn url_path(&self, path: &str) -> Result<Url, Error> {
         self.url.join(path).map_err(|err| Error::url(&err))

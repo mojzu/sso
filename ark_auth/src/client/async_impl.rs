@@ -37,16 +37,6 @@ impl AsyncClient {
         Supervisor::start(|_| AsyncClient::new(options))
     }
 
-    /// Ping request.
-    pub fn ping(&self) -> impl Future<Item = Value, Error = Error> {
-        AsyncClient::send_response_json::<Value>(self.get(route::PING))
-    }
-
-    /// Metrics request.
-    pub fn metrics(&self) -> impl Future<Item = String, Error = Error> {
-        AsyncClient::send_response_text(self.get(route::METRICS))
-    }
-
     /// Authenticate user using token or key, returns user if successful.
     pub fn authenticate(
         &self,
@@ -418,10 +408,6 @@ impl AsyncClient {
         AsyncClient::send(request).and_then(|mut res| res.json::<T>().map_err(Into::into))
     }
 
-    fn send_response_text(request: RequestBuilder) -> impl Future<Item = String, Error = Error> {
-        AsyncClient::send(request).and_then(|mut res| res.text().map_err(Into::into))
-    }
-
     fn split_authorisation(type_value: String) -> future::FutureResult<(String, String), Error> {
         future::result(ClientOptions::split_authorisation(type_value))
     }
@@ -434,12 +420,63 @@ impl Client for AsyncClient {
     }
 }
 
-impl actix::Supervised for AsyncClient {
-    // TODO(refactor): Implement restarting.
-}
+impl actix::Supervised for AsyncClient {}
 
 impl actix::Actor for AsyncClient {
     type Context = Context<Self>;
-    // TODO(refactor): Implement message types using API types.
     // TODO(refactor): Use actor for external HTTP requests instead of recreating clients.
 }
+
+/// Actor GET request.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Get {
+    pub route: String,
+}
+
+impl Get {
+    /// Create new GET request.
+    pub fn new<T1: Into<String>>(route: T1) -> Self {
+        Self {
+            route: route.into(),
+        }
+    }
+}
+
+impl actix::Message for Get {
+    type Result = Result<String, Error>;
+}
+
+impl actix::Handler<Get> for AsyncClient {
+    type Result = ResponseActFuture<Self, String, Error>;
+
+    fn handle(&mut self, msg: Get, _ctx: &mut Context<Self>) -> Self::Result {
+        let req = self.get(&msg.route);
+        let res = AsyncClient::send(req).and_then(|mut res| res.text().map_err(Into::into));
+        let wrapped = actix::fut::wrap_future(res);
+        Box::new(wrapped)
+    }
+}
+
+impl AsyncClient {
+    /// Ping request.
+    pub fn ping(addr: Addr<AsyncClient>) -> impl Future<Item = Value, Error = Error> {
+        addr.send(Get::new(route::PING))
+            .map_err(|_err| Error::Response)
+            .and_then(AsyncClient::response_json)
+    }
+
+    /// Metrics request.
+    pub fn metrics(addr: Addr<AsyncClient>) -> impl Future<Item = String, Error = Error> {
+        addr.send(Get::new(route::METRICS))
+            .map_err(|_err| Error::Response)
+            .and_then(|res| res)
+    }
+
+    fn response_json(res: Result<String, Error>) -> Result<Value, Error> {
+        res.map(|x| serde_json::from_str(&x).unwrap())
+    }
+}
+
+// TODO(refactor): Split actor and async client into...
+// AsyncClient (actor).
+// async functions or another struct
