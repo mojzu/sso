@@ -18,7 +18,13 @@ use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 use serde_json::Value;
 
+use actix::prelude::*;
+
 /// Asynchronous client handle.
+/// Reqwest advises not to recreate clients, and clients cannot be sent across threads.
+/// The primary use case for asynchronous client is in actix-web routes, which may
+/// run across many threads, so to avoid creating a client for each request, the client
+/// can be run in an actor thread and used by passing messages.
 #[derive(Clone)]
 pub struct AsyncClient {
     pub options: ClientOptions,
@@ -26,6 +32,11 @@ pub struct AsyncClient {
 }
 
 impl AsyncClient {
+    /// Start instance of actor with options.
+    pub fn start_actor(options: ClientOptions) -> Addr<AsyncClient> {
+        Supervisor::start(|_| AsyncClient::new(options))
+    }
+
     /// Ping request.
     pub fn ping(&self) -> impl Future<Item = Value, Error = Error> {
         AsyncClient::send_response_json::<Value>(self.get(route::PING))
@@ -421,4 +432,14 @@ impl Client for AsyncClient {
         let client = AsyncClient::build_client(&options);
         AsyncClient { options, client }
     }
+}
+
+impl actix::Supervised for AsyncClient {
+    // TODO(refactor): Implement restarting.
+}
+
+impl actix::Actor for AsyncClient {
+    type Context = Context<Self>;
+    // TODO(refactor): Implement message types using API types.
+    // TODO(refactor): Use actor for external HTTP requests instead of recreating clients.
 }
