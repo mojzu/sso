@@ -161,6 +161,8 @@ impl ClientOptions {
         headers.insert(header::CONTENT_TYPE, "application/json".parse().unwrap());
         headers.insert(header::USER_AGENT, self.user_agent().parse().unwrap());
         headers.insert(header::AUTHORIZATION, self.authorisation().parse().unwrap());
+        // TODO(refactor): Improved forwarded header format.
+        // <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded>
         if let Some(forwarded) = self.forwarded() {
             headers.insert(header::FORWARDED, forwarded.parse().unwrap());
         }
