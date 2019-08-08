@@ -11,20 +11,118 @@ use crate::server::api::{
     ServiceUpdateBody, UserCreateBody, UserCreateResponse, UserListQuery, UserListResponse,
     UserReadResponse, UserUpdateBody,
 };
+use actix::prelude::*;
 use futures::{future, Future};
 use http::StatusCode;
+use http::{header, HeaderMap};
 use reqwest::r#async::{Client as ReqwestClient, ClientBuilder, RequestBuilder, Response};
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
-use serde_json::Value;
+use url::Url;
 
-use actix::prelude::*;
+/// ## Client Executor Configuration
+pub struct ClientExecutorConfiguration {
+    user_agent: String,
+}
 
-/// Asynchronous client handle.
+impl ClientExecutorConfiguration {
+    pub fn new<T1>(user_agent: T1) -> Self
+    where
+        T1: Into<String>,
+    {
+        Self {
+            user_agent: user_agent.into(),
+        }
+    }
+}
+
+/// ## Client Executor
 /// Reqwest advises not to recreate clients, and clients cannot be sent across threads.
 /// The primary use case for asynchronous client is in actix-web routes, which may
 /// run across many threads, so to avoid creating a client for each request, the client
 /// can be run in an actor thread and used by passing messages.
+pub struct ClientExecutor {
+    client: ReqwestClient,
+}
+
+impl ClientExecutor {
+    /// Start client actor with configuration.
+    pub fn start(configuration: ClientExecutorConfiguration) -> Addr<Self> {
+        Supervisor::start(|_| {
+            let mut headers = HeaderMap::new();
+            headers.insert(
+                header::USER_AGENT,
+                configuration.user_agent.parse().unwrap(),
+            );
+
+            let client = ClientBuilder::new()
+                .use_rustls_tls()
+                .default_headers(headers)
+                .build()
+                .unwrap();
+            Self { client }
+        })
+    }
+}
+
+impl Supervised for ClientExecutor {}
+
+impl Actor for ClientExecutor {
+    type Context = Context<Self>;
+}
+
+/// ## Asynchronous Client GET Request
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Get {
+    pub url: String,
+    pub route: String,
+}
+
+impl Get {
+    /// Create new GET request.
+    pub fn new<T1, T2>(url: T1, route: T2) -> Self
+    where
+        T1: Into<String>,
+        T2: Into<String>,
+    {
+        Self {
+            url: url.into(),
+            route: route.into(),
+        }
+    }
+
+    /// Build and return Url.
+    pub fn url(&self) -> Result<Url, Error> {
+        let u = Url::parse(&self.url).map_err(|err| Error::url(&err))?;
+        u.join(&self.route).map_err(|err| Error::url(&err))
+    }
+}
+
+impl Message for Get {
+    type Result = Result<String, Error>;
+}
+
+impl Handler<Get> for ClientExecutor {
+    type Result = ResponseActFuture<Self, String, Error>;
+
+    fn handle(&mut self, msg: Get, _ctx: &mut Context<Self>) -> Self::Result {
+        let url = msg.url().unwrap();
+        let req = self.client.get(url);
+
+        let res = req
+            .send()
+            .map_err(Into::into)
+            .and_then(|res| res.error_for_status().map_err(Into::into))
+            .and_then(|mut res| res.text().map_err(Into::into));
+
+        let wrapped = actix::fut::wrap_future(res);
+        Box::new(wrapped)
+    }
+}
+
+//////////////////////////////
+
+/// Asynchronous client handle.
 #[derive(Clone)]
 pub struct AsyncClient {
     pub options: ClientOptions,
@@ -32,11 +130,6 @@ pub struct AsyncClient {
 }
 
 impl AsyncClient {
-    /// Start instance of actor with options.
-    pub fn start_actor(options: ClientOptions) -> Addr<AsyncClient> {
-        Supervisor::start(|_| AsyncClient::new(options))
-    }
-
     /// Authenticate user using token or key, returns user if successful.
     pub fn authenticate(
         &self,
@@ -420,63 +513,33 @@ impl Client for AsyncClient {
     }
 }
 
-impl actix::Supervised for AsyncClient {}
+// impl actix::Supervised for AsyncClient {}
 
-impl actix::Actor for AsyncClient {
-    type Context = Context<Self>;
-    // TODO(refactor): Use actor for external HTTP requests instead of recreating clients.
-}
+// impl actix::Actor for AsyncClient {
+//     type Context = Context<Self>;
+//     // TODO(refactor): Use actor for external HTTP requests instead of recreating clients.
+// }
 
-/// Actor GET request.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Get {
-    pub route: String,
-}
+// impl AsyncClient {
+//     /// Ping request.
+//     pub fn ping(addr: Addr<AsyncClient>) -> impl Future<Item = Value, Error = Error> {
+//         addr.send(Get::new(route::PING))
+//             .map_err(|_err| Error::Response)
+//             .and_then(AsyncClient::response_json)
+//     }
 
-impl Get {
-    /// Create new GET request.
-    pub fn new<T1: Into<String>>(route: T1) -> Self {
-        Self {
-            route: route.into(),
-        }
-    }
-}
+//     /// Metrics request.
+//     pub fn metrics(addr: Addr<AsyncClient>) -> impl Future<Item = String, Error = Error> {
+//         addr.send(Get::new(route::METRICS))
+//             .map_err(|_err| Error::Response)
+//             .and_then(|res| res)
+//     }
 
-impl actix::Message for Get {
-    type Result = Result<String, Error>;
-}
-
-impl actix::Handler<Get> for AsyncClient {
-    type Result = ResponseActFuture<Self, String, Error>;
-
-    fn handle(&mut self, msg: Get, _ctx: &mut Context<Self>) -> Self::Result {
-        let req = self.get(&msg.route);
-        let res = AsyncClient::send(req).and_then(|mut res| res.text().map_err(Into::into));
-        let wrapped = actix::fut::wrap_future(res);
-        Box::new(wrapped)
-    }
-}
-
-impl AsyncClient {
-    /// Ping request.
-    pub fn ping(addr: Addr<AsyncClient>) -> impl Future<Item = Value, Error = Error> {
-        addr.send(Get::new(route::PING))
-            .map_err(|_err| Error::Response)
-            .and_then(AsyncClient::response_json)
-    }
-
-    /// Metrics request.
-    pub fn metrics(addr: Addr<AsyncClient>) -> impl Future<Item = String, Error = Error> {
-        addr.send(Get::new(route::METRICS))
-            .map_err(|_err| Error::Response)
-            .and_then(|res| res)
-    }
-
-    fn response_json(res: Result<String, Error>) -> Result<Value, Error> {
-        res.map(|x| serde_json::from_str(&x).unwrap())
-    }
-}
+//     fn response_json(res: Result<String, Error>) -> Result<Value, Error> {
+//         res.map(|x| serde_json::from_str(&x).unwrap())
+//     }
+// }
 
 // TODO(refactor): Split actor and async client into...
-// AsyncClient (actor).
+// AsyncClient (actor), move into mod.rs
 // async functions or another struct

@@ -73,13 +73,13 @@ pub struct NotifyExecutor {
 
 impl NotifyExecutor {
     /// Start notifications actor on number of threads with configuration.
-    pub fn start(threads: usize, configuration: Configuration) -> Addr<NotifyExecutor> {
+    pub fn start(threads: usize, configuration: Configuration) -> Addr<Self> {
         SyncArbiter::start(threads, move || {
             // Register template strings.
             let mut handlebars = Handlebars::new();
             template::register(&mut handlebars).unwrap();
 
-            NotifyExecutor {
+            Self {
                 configuration: configuration.clone(),
                 registry: handlebars,
             }

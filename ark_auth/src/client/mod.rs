@@ -1,11 +1,11 @@
 //! # Server Clients
-#[cfg(feature = "async_client")]
 mod async_impl;
 #[cfg(feature = "sync_client")]
 mod sync_impl;
 
-#[cfg(feature = "async_client")]
-pub use crate::client::async_impl::AsyncClient;
+pub use crate::client::async_impl::{
+    AsyncClient, ClientExecutor, ClientExecutorConfiguration, Get,
+};
 #[cfg(feature = "sync_client")]
 pub use crate::client::sync_impl::SyncClient;
 use http::header;

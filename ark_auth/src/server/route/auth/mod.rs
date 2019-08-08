@@ -2,9 +2,9 @@ pub mod key;
 pub mod provider;
 pub mod token;
 
+use crate::client::Get;
 use crate::server::api::{path, AuthPasswordMeta};
 use crate::server::{Data, Error, PwnedPasswordsError};
-use actix_web::http::{header, StatusCode};
 use actix_web::web;
 use futures::{future, Future};
 use sha1::{Digest, Sha1};
@@ -58,44 +58,22 @@ fn password_meta_strength(password: &str) -> impl Future<Item = zxcvbn::Entropy,
 /// <https://haveibeenpwned.com/Passwords>
 fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, Error = Error> {
     let password_pwned_enabled = data.configuration().password_pwned_enabled();
-    let user_agent = data.configuration().user_agent();
 
     if password_pwned_enabled {
         // Make request to API using first 5 characters of SHA1 password hash.
         let mut hash = Sha1::new();
         hash.input(password);
         let hash = format!("{:X}", hash.result());
+        let route = format!("/range/{:.5}", hash);
 
-        let client = actix_web::client::Client::new();
-        let url = format!("https://api.pwnedpasswords.com/range/{:.5}", hash);
         future::Either::A(
-            client
-                .get(url)
-                .header(header::USER_AGENT, user_agent)
-                .send()
-                .map_err(|_err| Error::PwnedPasswords(PwnedPasswordsError::ActixClientSendRequest))
-                // Receive OK response and return body as string.
-                .and_then(|response| {
-                    let status = response.status();
-                    match status {
-                        StatusCode::OK => future::ok(response),
-                        _ => future::err(Error::PwnedPasswords(PwnedPasswordsError::StatusCode(
-                            status,
-                        ))),
-                    }
-                })
-                .and_then(|mut response| {
-                    response
-                        .body()
-                        .map_err(|_err| Error::PwnedPasswords(PwnedPasswordsError::ActixPayload))
-                        .and_then(|b| {
-                            String::from_utf8(b.to_vec()).map_err(|err| {
-                                Error::PwnedPasswords(PwnedPasswordsError::FromUtf8(err))
-                            })
-                        })
-                })
+            // Make API request.
+            data.client_addr
+                .send(Get::new("https://api.pwnedpasswords.com", route))
+                .map_err(|_err| unimplemented!())
+                .and_then(|res| res.map_err(|_err| unimplemented!()))
                 // Compare suffix of hash to lines to determine if password is pwned.
-                .and_then(move |text| {
+                .and_then(|text| {
                     for line in text.lines() {
                         if hash[5..] == line[..35] {
                             return Ok(true);

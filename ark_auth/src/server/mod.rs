@@ -4,7 +4,7 @@ pub mod metrics;
 pub mod route;
 pub mod validate;
 
-use crate::client::ClientOptions;
+use crate::client::ClientExecutor;
 use crate::notify::NotifyExecutor;
 use crate::{core, driver};
 use actix::Addr;
@@ -222,9 +222,6 @@ pub struct Configuration {
     #[builder(default = "crate_name!().to_string()")]
     hostname: String,
     bind: String,
-    /// User agent string for outgoing client requests.
-    #[builder(default = "ClientOptions::default_user_agent()")]
-    user_agent: String,
     /// Enable Pwned Passwords API to check passwords.
     /// API keys may be required in the future to use this API.
     #[builder(default = "false")]
@@ -254,11 +251,6 @@ impl Configuration {
     /// Configured bind address.
     pub fn bind(&self) -> &str {
         &self.bind
-    }
-
-    /// Configured user agent.
-    pub fn user_agent(&self) -> &str {
-        &self.user_agent
     }
 
     /// Get password pwned enabled.
@@ -329,6 +321,7 @@ pub struct Data {
     driver: Box<driver::Driver>,
     configuration: Configuration,
     notify_addr: Addr<NotifyExecutor>,
+    client_addr: Addr<ClientExecutor>,
     registry: Registry,
 }
 
@@ -338,12 +331,14 @@ impl Data {
         driver: Box<driver::Driver>,
         configuration: Configuration,
         notify_addr: Addr<NotifyExecutor>,
+        client_addr: Addr<ClientExecutor>,
         registry: Registry,
     ) -> Self {
         Data {
             driver,
             configuration,
             notify_addr,
+            client_addr,
             registry,
         }
     }
@@ -436,6 +431,7 @@ pub fn start(
     driver: Box<driver::Driver>,
     configuration: Configuration,
     notify_addr: Addr<NotifyExecutor>,
+    client_addr: Addr<ClientExecutor>,
 ) -> Result<(), Error> {
     let configuration_clone = configuration.clone();
     let (registry, counter, histogram) = metrics_registry()?;
@@ -447,6 +443,7 @@ pub fn start(
                 driver.clone(),
                 configuration_clone.clone(),
                 notify_addr.clone(),
+                client_addr.clone(),
                 registry.clone(),
             ))
             // Global JSON configuration.

@@ -1,6 +1,6 @@
 //! # Command Line Interface
 //! Functions for a command line interface and some helpers for integration.
-use crate::client::ClientOptions;
+use crate::client::{ClientExecutor, ClientExecutorConfiguration, ClientOptions};
 use crate::driver::Driver;
 use crate::notify::NotifyExecutor;
 use crate::{core, notify, server};
@@ -244,20 +244,26 @@ pub fn create_service_with_key(
 }
 
 /// Start server.
-/// Starts notify actor and HTTP server.
+/// Starts notify and client actors, and HTTP server.
 pub fn start_server(driver: Box<Driver>, configuration: Configuration) -> Result<(), Error> {
     let system = System::new(crate_name!());
 
     let notify_configuration = configuration.notify().clone();
     let notify_addr = NotifyExecutor::start(configuration.notify_threads(), notify_configuration);
 
+    // TODO(refactor): Improve configuration interface.
+    let client_options = ClientExecutorConfiguration::new(ClientOptions::default_user_agent());
+    let client_addr = ClientExecutor::start(client_options);
+
     let server_configuration = configuration.server().clone();
     let server_notify_addr = notify_addr.clone();
+    let server_client_addr = client_addr.clone();
     server::start(
         configuration.server_threads(),
         driver,
         server_configuration,
         server_notify_addr,
+        server_client_addr,
     )
     .map_err(Error::Server)?;
 
