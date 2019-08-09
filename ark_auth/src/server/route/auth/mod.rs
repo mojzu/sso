@@ -69,11 +69,11 @@ fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, 
         future::Either::A(
             // Make API request.
             data.client_addr
-                .send(Get::new("https://api.pwnedpasswords.com", route))
+                .send(Get::text("https://api.pwnedpasswords.com", route))
                 .map_err(|_err| unimplemented!())
                 .and_then(|res| res.map_err(|_err| unimplemented!()))
                 // Compare suffix of hash to lines to determine if password is pwned.
-                .and_then(|text| {
+                .and_then(move |text| {
                     for line in text.lines() {
                         if hash[5..] == line[..35] {
                             return Ok(true);

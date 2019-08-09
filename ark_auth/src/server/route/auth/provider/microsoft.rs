@@ -1,3 +1,4 @@
+use crate::client::Get;
 use crate::core;
 use crate::core::audit::AuditBuilder;
 use crate::core::AuditMeta;
@@ -6,7 +7,6 @@ use crate::server::route::auth::provider::oauth2_redirect;
 use crate::server::route::{request_audit_meta, route_response_json};
 use crate::server::{ConfigurationProviderOauth2, Data, Error, FromJsonValue, Oauth2Error};
 use actix_identity::Identity;
-use actix_web::http::{header, StatusCode};
 use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
 use futures::{future, Future};
 use oauth2::reqwest::http_client;
@@ -161,25 +161,14 @@ fn microsoft_api_user_email(
     data: &Data,
     access_token: &str,
 ) -> impl Future<Item = String, Error = Error> {
-    let client = actix_web::client::Client::new();
-    let authorisation_header = format!("Bearer {}", access_token);
-    client
-        .get("https://graph.microsoft.com/v1.0/me")
-        .header(header::AUTHORIZATION, authorisation_header)
-        .header(header::CONTENT_TYPE, header::ContentType::json())
-        .header(header::USER_AGENT, data.configuration().user_agent())
-        .send()
-        .map_err(|_err| Error::Oauth2(Oauth2Error::ActixClientSendRequest))
-        .and_then(|res| {
-            let status = res.status();
-            match res.status() {
-                StatusCode::OK => future::ok(res),
-                _ => future::err(Error::Oauth2(Oauth2Error::StatusCode(status))),
-            }
-        })
-        .and_then(|mut res| {
-            res.json::<MicrosoftUser>()
-                .map_err(|_err| Error::Oauth2(Oauth2Error::ActixPayload))
+    let authorisation = format!("Bearer {}", access_token);
+    // TODO(refactor): Improve error handling, check unimplemented/unwrap.
+    data.client_addr
+        .send(Get::json("https://graph.microsoft.com", "/v1.0/me").authorisation(authorisation))
+        .map_err(|_err| unimplemented!())
+        .and_then(|res| res.map_err(|_err| unimplemented!()))
+        .and_then(|text| {
+            serde_json::from_str::<MicrosoftUser>(&text).map_err(|_err| unimplemented!())
         })
         .map(|res| res.mail)
 }

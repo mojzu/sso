@@ -48,7 +48,7 @@ pub struct ClientExecutor {
 impl ClientExecutor {
     /// Start client actor with configuration.
     pub fn start(configuration: ClientExecutorConfiguration) -> Addr<Self> {
-        Supervisor::start(|_| {
+        Supervisor::start(move |_| {
             let mut headers = HeaderMap::new();
             headers.insert(
                 header::USER_AGENT,
@@ -76,11 +76,13 @@ impl Actor for ClientExecutor {
 pub struct Get {
     pub url: String,
     pub route: String,
+    pub content_type: String,
+    pub authorisation: Option<String>,
 }
 
 impl Get {
-    /// Create new GET request.
-    pub fn new<T1, T2>(url: T1, route: T2) -> Self
+    /// Create new GET text request.
+    pub fn text<T1, T2>(url: T1, route: T2) -> Self
     where
         T1: Into<String>,
         T2: Into<String>,
@@ -88,7 +90,29 @@ impl Get {
         Self {
             url: url.into(),
             route: route.into(),
+            content_type: "text/plain".to_owned(),
+            authorisation: None,
         }
+    }
+
+    /// Create new GET JSON request.
+    pub fn json<T1, T2>(url: T1, route: T2) -> Self
+    where
+        T1: Into<String>,
+        T2: Into<String>,
+    {
+        Self {
+            url: url.into(),
+            route: route.into(),
+            content_type: "application/json".to_owned(),
+            authorisation: None,
+        }
+    }
+
+    /// Set authorisation header on GET request.
+    pub fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
+        self.authorisation = Some(authorisation.into());
+        self
     }
 
     /// Build and return Url.
@@ -107,7 +131,15 @@ impl Handler<Get> for ClientExecutor {
 
     fn handle(&mut self, msg: Get, _ctx: &mut Context<Self>) -> Self::Result {
         let url = msg.url().unwrap();
-        let req = self.client.get(url);
+        let req = self
+            .client
+            .get(url)
+            .header(header::CONTENT_TYPE, &msg.content_type);
+        let req = if let Some(authorisation) = &msg.authorisation {
+            req.header(header::AUTHORIZATION, authorisation)
+        } else {
+            req
+        };
 
         let res = req
             .send()
