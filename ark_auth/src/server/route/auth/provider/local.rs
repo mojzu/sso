@@ -86,8 +86,8 @@ fn login_inner(
                 &mut audit,
                 &body.email,
                 &body.password,
-                data.configuration().access_token_expires(),
-                data.configuration().refresh_token_expires(),
+                data.options().access_token_expires(),
+                data.options().refresh_token_expires(),
             )
         })
         .map_err(Into::into)
@@ -126,7 +126,7 @@ fn reset_password_inner(
                 &service,
                 &mut audit,
                 &body.email,
-                data.configuration().access_token_expires(),
+                data.options().access_token_expires(),
             )
         })
         .map_err(Into::into)
@@ -213,7 +213,7 @@ fn update_email_inner(
                 body.token.as_ref().map(|x| &**x),
                 &body.password,
                 &body.new_email,
-                data.configuration().revoke_token_expires(),
+                data.options().revoke_token_expires(),
             )
         })
         .map_err(Into::into)
@@ -306,7 +306,7 @@ fn update_password_inner(
                 body.token.as_ref().map(|x| &**x),
                 &body.password,
                 &body.new_password,
-                data.configuration().revoke_token_expires(),
+                data.options().revoke_token_expires(),
             )
         })
         .map_err(Into::into)

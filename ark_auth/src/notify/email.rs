@@ -1,7 +1,8 @@
 use crate::core::{Audit, Service};
 use crate::notify::template;
 use crate::notify::{
-    ConfigurationSmtp, EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword, Error, SmtpError,
+    EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword, NotifyError,
+    NotifyExecutorOptionsSmtp, NotifySmtpError,
 };
 use handlebars::Handlebars;
 use lettre::smtp::authentication::{Credentials, Mechanism};
@@ -11,10 +12,10 @@ use native_tls::{Protocol, TlsConnector};
 use serde_json::Value;
 
 pub fn reset_password_handler(
-    smtp: &ConfigurationSmtp,
+    smtp: &NotifyExecutorOptionsSmtp,
     registry: &Handlebars,
     data: &EmailResetPassword,
-) -> Result<(), Error> {
+) -> Result<(), NotifyError> {
     let callback_data = &[("email", &data.user.email), ("token", &data.token)];
     let url = data.service.callback_url("reset_password", callback_data);
 
@@ -39,10 +40,10 @@ pub fn reset_password_handler(
 }
 
 pub fn update_email_handler(
-    smtp: &ConfigurationSmtp,
+    smtp: &NotifyExecutorOptionsSmtp,
     registry: &Handlebars,
     data: &EmailUpdateEmail,
-) -> Result<(), Error> {
+) -> Result<(), NotifyError> {
     let callback_data = &[
         ("email", &data.user.email),
         ("old_email", &data.old_email),
@@ -72,10 +73,10 @@ pub fn update_email_handler(
 }
 
 pub fn update_password_handler(
-    smtp: &ConfigurationSmtp,
+    smtp: &NotifyExecutorOptionsSmtp,
     registry: &Handlebars,
     data: &EmailUpdatePassword,
-) -> Result<(), Error> {
+) -> Result<(), NotifyError> {
     let callback_data = &[("email", &data.user.email), ("token", &data.token)];
     let url = data.service.callback_url("update_password", callback_data);
 
@@ -113,20 +114,20 @@ fn audit_value(audit: Option<&Audit>) -> Option<Value> {
 }
 
 fn send(
-    smtp: &ConfigurationSmtp,
+    smtp: &NotifyExecutorOptionsSmtp,
     service: &Service,
     to: String,
     name: String,
     subject: &str,
     text: &str,
-) -> Result<(), Error> {
+) -> Result<(), NotifyError> {
     let email = Email::builder()
         .to((to, name))
         .from((smtp.user.to_owned(), service.name.to_owned()))
         .subject(subject)
         .text(text)
         .build()
-        .map_err(|err| Error::Smtp(SmtpError::LettreEmail(err)))?;
+        .map_err(|err| NotifyError::Smtp(NotifySmtpError::LettreEmail(err)))?;
 
     let mut tls_builder = TlsConnector::builder();
     tls_builder.min_protocol_version(Some(Protocol::Tlsv10));
@@ -134,13 +135,13 @@ fn send(
         smtp.host.to_owned(),
         tls_builder
             .build()
-            .map_err(|err| Error::Smtp(SmtpError::NativeTls(err)))?,
+            .map_err(|err| NotifyError::Smtp(NotifySmtpError::NativeTls(err)))?,
     );
     let mut mailer = SmtpClient::new(
         (smtp.host.as_ref(), smtp.port),
         ClientSecurity::Required(tls_parameters),
     )
-    .map_err(|err| Error::Smtp(SmtpError::Lettre(err)))?
+    .map_err(|err| NotifyError::Smtp(NotifySmtpError::Lettre(err)))?
     .authentication_mechanism(Mechanism::Login)
     .credentials(Credentials::new(
         smtp.user.to_owned(),
@@ -150,7 +151,7 @@ fn send(
 
     let result = mailer
         .send(email.into())
-        .map_err(|err| Error::Smtp(SmtpError::Lettre(err)))
+        .map_err(|err| NotifyError::Smtp(NotifySmtpError::Lettre(err)))
         .map(|_res| ());
     mailer.close();
     result

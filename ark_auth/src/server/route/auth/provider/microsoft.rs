@@ -5,7 +5,7 @@ use crate::core::AuditMeta;
 use crate::server::api::{path, AuthOauth2CallbackQuery, AuthOauth2UrlResponse};
 use crate::server::route::auth::provider::oauth2_redirect;
 use crate::server::route::{request_audit_meta, route_response_json};
-use crate::server::{ConfigurationProviderOauth2, Data, Error, FromJsonValue, Oauth2Error};
+use crate::server::{Data, Error, FromJsonValue, Oauth2Error, ServerOptionsProviderOauth2};
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
 use futures::{future, Future};
@@ -88,8 +88,8 @@ fn oauth2_callback_handler(
                     &service_id,
                     &mut audit,
                     &email,
-                    data.configuration().access_token_expires(),
-                    data.configuration().refresh_token_expires(),
+                    data.options().access_token_expires(),
+                    data.options().refresh_token_expires(),
                 )
                 .map_err(Into::into)
             })
@@ -111,7 +111,7 @@ fn microsoft_authorise(
     let (pkce_code_challenge, pkce_code_verifier) = PkceCodeChallenge::new_random_sha256();
 
     // Generate the authorisation URL to redirect.
-    let client = microsoft_client(data.configuration().provider_microsoft_oauth2())?;
+    let client = microsoft_client(data.options().provider_microsoft_oauth2())?;
     let (authorize_url, csrf_state) = client
         .authorize_url(CsrfToken::new_random)
         .add_scope(Scope::new(
@@ -126,7 +126,7 @@ fn microsoft_authorise(
         service,
         &csrf_state.secret(),
         &pkce_code_verifier.secret(),
-        data.configuration().access_token_expires(),
+        data.options().access_token_expires(),
     )
     .map_err(Error::Core)?;
 
@@ -144,7 +144,7 @@ fn microsoft_callback(
     let csrf = csrf.ok_or_else(|| Error::Oauth2(Oauth2Error::Csrf))?;
 
     // Exchange the code with a token.
-    let client = microsoft_client(data.configuration().provider_microsoft_oauth2())?;
+    let client = microsoft_client(data.options().provider_microsoft_oauth2())?;
     let code = AuthorizationCode::new(code.to_owned());
     let pkce_code_verifier = PkceCodeVerifier::new(csrf.value);
     let token = client
@@ -163,7 +163,7 @@ fn microsoft_api_user_email(
 ) -> impl Future<Item = String, Error = Error> {
     let authorisation = format!("Bearer {}", access_token);
     // TODO(refactor): Improve error handling, check unimplemented/unwrap.
-    data.client_addr
+    data.client()
         .send(Get::json("https://graph.microsoft.com", "/v1.0/me").authorisation(authorisation))
         .map_err(|_err| unimplemented!())
         .and_then(|res| res.map_err(|_err| unimplemented!()))
@@ -173,7 +173,7 @@ fn microsoft_api_user_email(
         .map(|res| res.mail)
 }
 
-fn microsoft_client(provider: Option<&ConfigurationProviderOauth2>) -> Result<BasicClient, Error> {
+fn microsoft_client(provider: Option<&ServerOptionsProviderOauth2>) -> Result<BasicClient, Error> {
     let provider = provider.ok_or_else(|| {
         // Warn OAuth2 is disabled, return bad request error so internal server error
         // is not returned to the client.

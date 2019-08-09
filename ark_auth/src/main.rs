@@ -3,7 +3,8 @@ extern crate clap;
 #[macro_use]
 extern crate log;
 
-use ark_auth::{cli, driver, driver::Driver, notify, server};
+use ark_auth::cli::*;
+use ark_auth::{client, driver, driver::Driver, notify, server};
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 
@@ -97,23 +98,23 @@ fn main() {
         ])
         .get_matches();
 
-    // Build configuration and driver from environment variables.
-    let result = configure().and_then(|(driver, configuration)| {
+    // Build options and driver from environment variables.
+    let result = configure().and_then(|(driver, options)| {
         // Call library functions with command line arguments.
         match matches.subcommand() {
             (CMD_CREATE_ROOT_KEY, Some(submatches)) => {
                 let name = submatches.value_of(ARG_NAME).unwrap();
-                cli::create_root_key(driver, name).map(|key| {
+                create_root_key(driver, name).map(|key| {
                     println!("key.id: {}", key.id);
                     println!("key.value: {}", key.value);
                     0
                 })
             }
-            (CMD_DELETE_ROOT_KEYS, Some(_submatches)) => cli::delete_root_keys(driver).map(|_| 0),
+            (CMD_DELETE_ROOT_KEYS, Some(_submatches)) => delete_root_keys(driver).map(|_| 0),
             (CMD_CREATE_SERVICE_WITH_KEY, Some(submatches)) => {
                 let name = submatches.value_of(ARG_NAME).unwrap();
                 let url = submatches.value_of(ARG_URL).unwrap();
-                cli::create_service_with_key(driver, name, url).map(|(service, key)| {
+                create_service_with_key(driver, name, url).map(|(service, key)| {
                     println!("service.id: {}", service.id);
                     println!("service.name: {}", service.name);
                     println!("key.id: {}", key.id);
@@ -121,9 +122,7 @@ fn main() {
                     0
                 })
             }
-            (CMD_START_SERVER, Some(_submatches)) => {
-                cli::start_server(driver, configuration).map(|_| 0)
-            }
+            (CMD_START_SERVER, Some(_submatches)) => start_server(driver, options).map(|_| 0),
             _ => {
                 println!("{}", matches.usage());
                 Ok(1)
@@ -141,29 +140,29 @@ fn main() {
     }
 }
 
-fn configure() -> Result<(Box<Driver>, cli::Configuration), cli::Error> {
-    let database_url = cli::env_string(ENV_DATABASE_URL)?;
-    let database_connections = cli::env_value_opt::<u32>(ENV_DATABASE_CONNECTIONS)?;
+fn configure() -> Result<(Box<Driver>, CliOptions), CliError> {
+    let database_url = env_string(ENV_DATABASE_URL)?;
+    let database_connections = env_value_opt::<u32>(ENV_DATABASE_CONNECTIONS)?;
     let server_hostname =
-        cli::env_string_opt(ENV_SERVER_HOSTNAME).unwrap_or_else(|| "ark_auth".to_owned());
-    let server_bind = cli::env_string(ENV_SERVER_BIND)?;
-    let smtp = cli::env_smtp(
+        env_string_opt(ENV_SERVER_HOSTNAME).unwrap_or_else(|| "ark_auth".to_owned());
+    let server_bind = env_string(ENV_SERVER_BIND)?;
+    let smtp = env_smtp(
         ENV_SMTP_HOST,
         ENV_SMTP_PORT,
         ENV_SMTP_USER,
         ENV_SMTP_PASSWORD,
     )?;
-    let github = server::ConfigurationProvider::new(cli::env_oauth2(
+    let github = server::ServerOptionsProvider::new(env_oauth2(
         ENV_GITHUB_CLIENT_ID,
         ENV_GITHUB_CLIENT_SECRET,
         ENV_GITHUB_REDIRECT_URL,
     )?);
-    let microsoft = server::ConfigurationProvider::new(cli::env_oauth2(
+    let microsoft = server::ServerOptionsProvider::new(env_oauth2(
         ENV_MICROSOFT_CLIENT_ID,
         ENV_MICROSOFT_CLIENT_SECRET,
         ENV_MICROSOFT_REDIRECT_URL,
     )?);
-    let rustls = cli::env_rustls(
+    let rustls = env_rustls(
         ENV_SERVER_TLS_CRT_PEM,
         ENV_SERVER_TLS_KEY_PEM,
         ENV_SERVER_TLS_CLIENT_PEM,
@@ -180,19 +179,20 @@ fn configure() -> Result<(Box<Driver>, cli::Configuration), cli::Error> {
         unimplemented!();
     };
 
-    let notify = notify::ConfigurationBuilder::default()
+    let client = client::ClientExecutorOptions::new(client::default_user_agent());
+    let notify = notify::NotifyExecutorOptionsBuilder::default()
         .smtp(smtp)
         .build()
         .unwrap();
-    let server = server::ConfigurationBuilder::default()
+    let server = server::ServerOptionsBuilder::default()
         .hostname(server_hostname)
         .bind(server_bind)
         .password_pwned_enabled(true)
-        .provider(server::ConfigurationProviderGroup::new(github, microsoft))
+        .provider(server::ServerOptionsProviderGroup::new(github, microsoft))
         .rustls(rustls)
         .build()
         .unwrap();
-    let configuration = cli::Configuration::new(2, notify, 4, server);
+    let options = CliOptions::new(client, 2, notify, 4, server);
 
-    Ok((driver, configuration))
+    Ok((driver, options))
 }

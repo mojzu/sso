@@ -2,7 +2,7 @@ mod model;
 mod schema;
 
 use crate::core::{Audit, Csrf, Key, Service, User};
-use crate::driver::{Driver, Error};
+use crate::driver::{Driver, DriverError};
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
@@ -22,24 +22,24 @@ type PooledConnection = r2d2::PooledConnection<ConnectionManager<SqliteConnectio
 
 impl SqliteDriver {
     /// Initialise driver with connection URL and number of pooled connections.
-    pub fn initialise(database_url: &str, max_connections: u32) -> Result<Self, Error> {
+    pub fn initialise(database_url: &str, max_connections: u32) -> Result<Self, DriverError> {
         let manager = ConnectionManager::<SqliteConnection>::new(database_url);
         let pool = r2d2::Pool::builder()
             .max_size(max_connections)
             .build(manager)
-            .map_err(Error::R2d2)?;
+            .map_err(DriverError::R2d2)?;
         let driver = SqliteDriver { pool };
         driver.run_migrations()?;
         Ok(driver)
     }
 
-    fn connection(&self) -> Result<PooledConnection, Error> {
-        self.pool.get().map_err(Error::R2d2)
+    fn connection(&self) -> Result<PooledConnection, DriverError> {
+        self.pool.get().map_err(DriverError::R2d2)
     }
 
-    fn run_migrations(&self) -> Result<(), Error> {
+    fn run_migrations(&self) -> Result<(), DriverError> {
         let connection = self.connection()?;
-        embedded_migrations::run(&connection).map_err(Error::DieselMigrations)
+        embedded_migrations::run(&connection).map_err(DriverError::DieselMigrations)
     }
 }
 

@@ -8,7 +8,7 @@ use handlebars::Handlebars;
 
 /// ## SMTP Errors
 #[derive(Debug, Fail)]
-pub enum SmtpError {
+pub enum NotifySmtpError {
     /// Integration disabled.
     #[fail(display = "SmtpError::Disabled")]
     Disabled,
@@ -25,10 +25,10 @@ pub enum SmtpError {
 
 /// ## Notify Errors
 #[derive(Debug, Fail)]
-pub enum Error {
+pub enum NotifyError {
     /// SMTP error.
     #[fail(display = "NotifyError::Smtp {}", _0)]
-    Smtp(SmtpError),
+    Smtp(NotifySmtpError),
     /// Handlebars template error wrapper.
     #[fail(display = "NotifyError::HandlebarsTemplate {}", _0)]
     HandlebarsTemplate(#[fail(cause)] handlebars::TemplateError),
@@ -37,17 +37,17 @@ pub enum Error {
     HandlebarsRender(#[fail(cause)] handlebars::RenderError),
 }
 
-/// ## SMTP Configuration
+/// ## SMTP Options
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigurationSmtp {
+pub struct NotifyExecutorOptionsSmtp {
     host: String,
     port: u16,
     user: String,
     password: String,
 }
 
-impl ConfigurationSmtp {
-    /// Create a new SMTP configuration.
+impl NotifyExecutorOptionsSmtp {
+    /// Create new SMTP options.
     pub fn new(host: String, port: u16, user: String, password: String) -> Self {
         Self {
             host,
@@ -58,43 +58,43 @@ impl ConfigurationSmtp {
     }
 }
 
-/// ## Notify Actor Configuration
+/// ## Notify Actor Options
 #[derive(Debug, Clone, Serialize, Deserialize, Builder)]
-pub struct Configuration {
+pub struct NotifyExecutorOptions {
     #[builder(default)]
-    smtp: Option<ConfigurationSmtp>,
+    smtp: Option<NotifyExecutorOptionsSmtp>,
 }
 
 /// ## Notify Actor Executor
 pub struct NotifyExecutor {
-    configuration: Configuration,
+    options: NotifyExecutorOptions,
     registry: Handlebars,
 }
 
 impl NotifyExecutor {
-    /// Start notifications actor on number of threads with configuration.
-    pub fn start(threads: usize, configuration: Configuration) -> Addr<Self> {
+    /// Start notifications actor on number of threads with options.
+    pub fn start(threads: usize, options: NotifyExecutorOptions) -> Addr<Self> {
         SyncArbiter::start(threads, move || {
             // Register template strings.
             let mut handlebars = Handlebars::new();
             template::register(&mut handlebars).unwrap();
 
             Self {
-                configuration: configuration.clone(),
+                options: options.clone(),
                 registry: handlebars,
             }
         })
     }
 
-    /// Configured SMTP provider reference.
-    pub fn smtp(&self) -> Result<&ConfigurationSmtp, Error> {
-        self.configuration
+    /// Returns SMTP provider reference.
+    pub fn smtp(&self) -> Result<&NotifyExecutorOptionsSmtp, NotifyError> {
+        self.options
             .smtp
             .as_ref()
-            .ok_or(Error::Smtp(SmtpError::Disabled))
+            .ok_or(NotifyError::Smtp(NotifySmtpError::Disabled))
     }
 
-    /// Configured template registry.
+    /// Returns template registry reference.
     pub fn registry(&self) -> &Handlebars {
         &self.registry
     }
@@ -107,10 +107,10 @@ impl Actor for NotifyExecutor {
 /// ## Reset Password Email Message Data
 #[derive(Debug, Deserialize)]
 pub struct EmailResetPassword {
-    pub service: Service,
-    pub user: User,
-    pub token: String,
-    pub audit: Option<Audit>,
+    service: Service,
+    user: User,
+    token: String,
+    audit: Option<Audit>,
 }
 
 impl EmailResetPassword {
@@ -126,11 +126,11 @@ impl EmailResetPassword {
 }
 
 impl Message for EmailResetPassword {
-    type Result = Result<(), Error>;
+    type Result = Result<(), NotifyError>;
 }
 
 impl Handler<EmailResetPassword> for NotifyExecutor {
-    type Result = Result<(), Error>;
+    type Result = Result<(), NotifyError>;
 
     fn handle(&mut self, msg: EmailResetPassword, _: &mut Self::Context) -> Self::Result {
         self.smtp()
@@ -142,11 +142,11 @@ impl Handler<EmailResetPassword> for NotifyExecutor {
 /// ## Update Email Email Message Data
 #[derive(Debug, Deserialize)]
 pub struct EmailUpdateEmail {
-    pub service: Service,
-    pub user: User,
-    pub old_email: String,
-    pub token: String,
-    pub audit: Option<Audit>,
+    service: Service,
+    user: User,
+    old_email: String,
+    token: String,
+    audit: Option<Audit>,
 }
 
 impl EmailUpdateEmail {
@@ -169,11 +169,11 @@ impl EmailUpdateEmail {
 }
 
 impl Message for EmailUpdateEmail {
-    type Result = Result<(), Error>;
+    type Result = Result<(), NotifyError>;
 }
 
 impl Handler<EmailUpdateEmail> for NotifyExecutor {
-    type Result = Result<(), Error>;
+    type Result = Result<(), NotifyError>;
 
     fn handle(&mut self, msg: EmailUpdateEmail, _: &mut Self::Context) -> Self::Result {
         self.smtp()
@@ -185,10 +185,10 @@ impl Handler<EmailUpdateEmail> for NotifyExecutor {
 /// ## Update Password Email Message Data
 #[derive(Debug, Deserialize)]
 pub struct EmailUpdatePassword {
-    pub service: Service,
-    pub user: User,
-    pub token: String,
-    pub audit: Option<Audit>,
+    service: Service,
+    user: User,
+    token: String,
+    audit: Option<Audit>,
 }
 
 impl EmailUpdatePassword {
@@ -204,11 +204,11 @@ impl EmailUpdatePassword {
 }
 
 impl Message for EmailUpdatePassword {
-    type Result = Result<(), Error>;
+    type Result = Result<(), NotifyError>;
 }
 
 impl Handler<EmailUpdatePassword> for NotifyExecutor {
-    type Result = Result<(), Error>;
+    type Result = Result<(), NotifyError>;
 
     fn handle(&mut self, msg: EmailUpdatePassword, _: &mut Self::Context) -> Self::Result {
         self.smtp()
@@ -217,7 +217,7 @@ impl Handler<EmailUpdatePassword> for NotifyExecutor {
     }
 }
 
-fn warn_on_err(err: Error) -> Result<(), Error> {
+fn warn_on_err(err: NotifyError) -> Result<(), NotifyError> {
     warn!("{}", err);
     Ok(())
 }

@@ -155,15 +155,15 @@ impl From<actix_web::error::BlockingError<Error>> for Error {
     }
 }
 
-/// Provider OAuth2 configuration.
+/// Provider OAuth2 options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigurationProviderOauth2 {
+pub struct ServerOptionsProviderOauth2 {
     client_id: String,
     client_secret: String,
     redirect_url: String,
 }
 
-impl ConfigurationProviderOauth2 {
+impl ServerOptionsProviderOauth2 {
     pub fn new(client_id: String, client_secret: String, redirect_url: String) -> Self {
         Self {
             client_id,
@@ -173,40 +173,40 @@ impl ConfigurationProviderOauth2 {
     }
 }
 
-/// Provider configuration.
+/// Provider options.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct ConfigurationProvider {
-    oauth2: Option<ConfigurationProviderOauth2>,
+pub struct ServerOptionsProvider {
+    oauth2: Option<ServerOptionsProviderOauth2>,
 }
 
-impl ConfigurationProvider {
-    pub fn new(oauth2: Option<ConfigurationProviderOauth2>) -> Self {
+impl ServerOptionsProvider {
+    pub fn new(oauth2: Option<ServerOptionsProviderOauth2>) -> Self {
         Self { oauth2 }
     }
 }
 
-// Provider group configuration.
+// Provider group options.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct ConfigurationProviderGroup {
-    github: ConfigurationProvider,
-    microsoft: ConfigurationProvider,
+pub struct ServerOptionsProviderGroup {
+    github: ServerOptionsProvider,
+    microsoft: ServerOptionsProvider,
 }
 
-impl ConfigurationProviderGroup {
-    pub fn new(github: ConfigurationProvider, microsoft: ConfigurationProvider) -> Self {
+impl ServerOptionsProviderGroup {
+    pub fn new(github: ServerOptionsProvider, microsoft: ServerOptionsProvider) -> Self {
         Self { github, microsoft }
     }
 }
 
-// Rustls configuration.
+// Rustls options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigurationRustls {
+pub struct ServerOptionsRustls {
     crt_pem: String,
     key_pem: String,
     client_pem: Option<String>,
 }
 
-impl ConfigurationRustls {
+impl ServerOptionsRustls {
     pub fn new(crt_pem: String, key_pem: String, client_pem: Option<String>) -> Self {
         Self {
             crt_pem,
@@ -216,9 +216,9 @@ impl ConfigurationRustls {
     }
 }
 
-/// Server configuration.
+/// Server options.
 #[derive(Debug, Clone, Serialize, Deserialize, Builder)]
-pub struct Configuration {
+pub struct ServerOptions {
     #[builder(default = "crate_name!().to_string()")]
     hostname: String,
     bind: String,
@@ -237,64 +237,64 @@ pub struct Configuration {
     revoke_token_expires: i64,
     /// Authentication provider groups.
     #[builder(default)]
-    provider: ConfigurationProviderGroup,
-    /// Rustls configuration for TLS support.
-    rustls: Option<ConfigurationRustls>,
+    provider: ServerOptionsProviderGroup,
+    /// Rustls options for TLS support.
+    rustls: Option<ServerOptionsRustls>,
 }
 
-impl Configuration {
-    /// Configured hostname.
+impl ServerOptions {
+    /// Returns hostname reference.
     pub fn hostname(&self) -> &str {
         &self.hostname
     }
 
-    /// Configured bind address.
+    /// Returns bind address reference.
     pub fn bind(&self) -> &str {
         &self.bind
     }
 
-    /// Get password pwned enabled.
+    /// Returns password pwned enabled flag.
     pub fn password_pwned_enabled(&self) -> bool {
         self.password_pwned_enabled
     }
 
-    /// Get access token expiry.
+    /// Returns access token expiry value.
     pub fn access_token_expires(&self) -> i64 {
         self.access_token_expires
     }
 
-    /// Get refresh token expiry.
+    /// Returns refresh token expiry value.
     pub fn refresh_token_expires(&self) -> i64 {
         self.refresh_token_expires
     }
 
-    /// Get revoke token expiry.
+    /// Returns revoke token expiry value.
     pub fn revoke_token_expires(&self) -> i64 {
         self.revoke_token_expires
     }
 
-    /// Configured provider GitHub OAuth2.
-    pub fn provider_github_oauth2(&self) -> Option<&ConfigurationProviderOauth2> {
+    /// Returns provider GitHub OAuth2 reference.
+    pub fn provider_github_oauth2(&self) -> Option<&ServerOptionsProviderOauth2> {
         self.provider.github.oauth2.as_ref()
     }
 
-    /// Configured provider Microsoft OAuth2.
-    pub fn provider_microsoft_oauth2(&self) -> Option<&ConfigurationProviderOauth2> {
+    /// Returns provider Microsoft OAuth2 reference.
+    pub fn provider_microsoft_oauth2(&self) -> Option<&ServerOptionsProviderOauth2> {
         self.provider.microsoft.oauth2.as_ref()
     }
 
-    /// Configured rustls server parameters.
+    /// Returns rustls server configuration built from options.
     pub fn rustls_server_config(&self) -> Result<Option<ServerConfig>, Error> {
-        if let Some(rustls_config) = &self.rustls {
-            let crt_file = File::open(&rustls_config.crt_pem).map_err(Error::StdIo)?;
-            let key_file = File::open(&rustls_config.key_pem).map_err(Error::StdIo)?;
+        if let Some(rustls_options) = &self.rustls {
+            let crt_file = File::open(&rustls_options.crt_pem).map_err(Error::StdIo)?;
+            let key_file = File::open(&rustls_options.key_pem).map_err(Error::StdIo)?;
             let crt_file_reader = &mut BufReader::new(crt_file);
             let key_file_reader = &mut BufReader::new(key_file);
 
             let cert_chain = certs(crt_file_reader).map_err(|_err| Error::Rustls)?;
             let mut keys = rsa_private_keys(key_file_reader).map_err(|_err| Error::Rustls)?;
 
-            let mut config = if let Some(client_pem) = &rustls_config.client_pem {
+            let mut config = if let Some(client_pem) = &rustls_options.client_pem {
                 let client_file = File::open(client_pem).map_err(Error::StdIo)?;
                 let client_file_reader = &mut BufReader::new(client_file);
 
@@ -319,7 +319,7 @@ impl Configuration {
 #[derive(Clone)]
 pub struct Data {
     driver: Box<driver::Driver>,
-    configuration: Configuration,
+    options: ServerOptions,
     notify_addr: Addr<NotifyExecutor>,
     client_addr: Addr<ClientExecutor>,
     registry: Registry,
@@ -329,14 +329,14 @@ impl Data {
     /// Create new data.
     pub fn new(
         driver: Box<driver::Driver>,
-        configuration: Configuration,
+        options: ServerOptions,
         notify_addr: Addr<NotifyExecutor>,
         client_addr: Addr<ClientExecutor>,
         registry: Registry,
     ) -> Self {
         Data {
             driver,
-            configuration,
+            options,
             notify_addr,
             client_addr,
             registry,
@@ -348,14 +348,19 @@ impl Data {
         self.driver.as_ref()
     }
 
-    /// Get reference to configuration.
-    pub fn configuration(&self) -> &Configuration {
-        &self.configuration
+    /// Get reference to options.
+    pub fn options(&self) -> &ServerOptions {
+        &self.options
     }
 
     /// Get reference to notify actor address.
     pub fn notify(&self) -> &Addr<NotifyExecutor> {
         &self.notify_addr
+    }
+
+    /// Get reference to client actor address.
+    pub fn client(&self) -> &Addr<ClientExecutor> {
+        &self.client_addr
     }
 
     /// Get reference to prometheus registry.
@@ -429,11 +434,11 @@ fn trim_authorisation(value: &str) -> Option<String> {
 pub fn start(
     workers: usize,
     driver: Box<driver::Driver>,
-    configuration: Configuration,
+    options: ServerOptions,
     notify_addr: Addr<NotifyExecutor>,
     client_addr: Addr<ClientExecutor>,
 ) -> Result<(), Error> {
-    let configuration_clone = configuration.clone();
+    let options_clone = options.clone();
     let (registry, counter, histogram) = metrics_registry()?;
 
     let server = HttpServer::new(move || {
@@ -441,7 +446,7 @@ pub fn start(
             // Shared data.
             .data(Data::new(
                 driver.clone(),
-                configuration_clone.clone(),
+                options_clone.clone(),
                 notify_addr.clone(),
                 client_addr.clone(),
                 registry.clone(),
@@ -460,13 +465,13 @@ pub fn start(
             .default_service(web::route().to(HttpResponse::MethodNotAllowed))
     })
     .workers(workers)
-    .server_hostname(configuration.hostname());
+    .server_hostname(options.hostname());
 
-    let rustls_server_config = configuration.rustls_server_config()?;
+    let rustls_server_config = options.rustls_server_config()?;
     let server = if let Some(rustls_server_config) = rustls_server_config {
-        server.bind_rustls(configuration.bind(), rustls_server_config)
+        server.bind_rustls(options.bind(), rustls_server_config)
     } else {
-        server.bind(configuration.bind())
+        server.bind(options.bind())
     }
     .map_err(Error::StdIo)?;
 

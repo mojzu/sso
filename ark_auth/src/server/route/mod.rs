@@ -24,8 +24,8 @@ pub fn route_v1_scope() -> actix_web::Scope {
         .service(user::route_v1_scope())
 }
 
-pub fn route_service(configuration: &mut web::ServiceConfig) {
-    configuration.service(route_v1_scope());
+pub fn route_service(config: &mut web::ServiceConfig) {
+    config.service(route_v1_scope());
 }
 
 fn ping_handler() -> actix_web::Result<HttpResponse> {

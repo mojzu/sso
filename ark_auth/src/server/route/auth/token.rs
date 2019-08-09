@@ -105,8 +105,8 @@ fn refresh_inner(
                 &mut audit,
                 &token,
                 audit_data.as_ref(),
-                data.configuration().access_token_expires(),
-                data.configuration().refresh_token_expires(),
+                data.options().access_token_expires(),
+                data.options().refresh_token_expires(),
             )
         })
         .map_err(Into::into)

@@ -1,15 +1,16 @@
 //! # Command Line Interface
 //! Functions for a command line interface and some helpers for integration.
-use crate::client::{ClientExecutor, ClientExecutorConfiguration, ClientOptions};
+use crate::client::{ClientExecutor, ClientExecutorOptions};
 use crate::driver::Driver;
-use crate::notify::NotifyExecutor;
-use crate::{core, notify, server};
+use crate::notify::{NotifyExecutor, NotifyExecutorOptions, NotifyExecutorOptionsSmtp};
+use crate::server::{ServerOptions, ServerOptionsProviderOauth2, ServerOptionsRustls};
+use crate::{core, server};
 use actix_rt::System;
 use std::str::FromStr;
 
-/// Command line interface errors.
+/// ## Command Line Interface Errors
 #[derive(Debug, Fail)]
-pub enum Error {
+pub enum CliError {
     /// Environment variable parse error.
     #[fail(display = "CliError::EnvParse {}", _0)]
     EnvParse(String),
@@ -24,23 +25,26 @@ pub enum Error {
     StdEnvVar(#[fail(cause)] std::env::VarError),
 }
 
-/// Configuration.
-pub struct Configuration {
+/// ## Command Line Interface Options
+pub struct CliOptions {
+    client: ClientExecutorOptions,
     notify_threads: usize,
-    notify: notify::Configuration,
+    notify: NotifyExecutorOptions,
     server_threads: usize,
-    server: server::Configuration,
+    server: ServerOptions,
 }
 
-impl Configuration {
-    /// Create new configuration.
+impl CliOptions {
+    /// Create new options.
     pub fn new(
+        client: ClientExecutorOptions,
         notify_threads: usize,
-        notify: notify::Configuration,
+        notify: NotifyExecutorOptions,
         server_threads: usize,
-        server: server::Configuration,
+        server: ServerOptions,
     ) -> Self {
         Self {
+            client,
             notify_threads,
             notify,
             server_threads,
@@ -48,33 +52,38 @@ impl Configuration {
         }
     }
 
-    /// Get number of notify threads.
+    /// Returns client options reference.
+    pub fn client(&self) -> &ClientExecutorOptions {
+        &self.client
+    }
+
+    /// Returns number of notify threads.
     pub fn notify_threads(&self) -> usize {
         self.notify_threads
     }
 
-    /// Get reference to notify configuration.
-    pub fn notify(&self) -> &notify::Configuration {
+    /// Returns notify options reference.
+    pub fn notify(&self) -> &NotifyExecutorOptions {
         &self.notify
     }
 
-    /// Get number of server threads.
+    /// Returns number of server threads.
     pub fn server_threads(&self) -> usize {
         self.server_threads
     }
 
-    /// Get reference to server configuration.
-    pub fn server(&self) -> &server::Configuration {
+    /// Returns server options reference.
+    pub fn server(&self) -> &ServerOptions {
         &self.server
     }
 }
 
 /// Read required environment variable string value.
 /// Logs an error message in case of error.
-pub fn env_string(name: &str) -> Result<String, Error> {
+pub fn env_string(name: &str) -> Result<String, CliError> {
     std::env::var(name).map_err(|err| {
         error!("{} is undefined, required ({})", name, err);
-        Error::StdEnvVar(err)
+        CliError::StdEnvVar(err)
     })
 }
 
@@ -85,27 +94,27 @@ pub fn env_string_opt(name: &str) -> Option<String> {
 
 /// Read environment variable value parsed from string.
 /// Logs an error message in case of error.
-pub fn env_value<T: FromStr>(name: &str) -> Result<T, Error>
+pub fn env_value<T: FromStr>(name: &str) -> Result<T, CliError>
 where
     <T as std::str::FromStr>::Err: std::fmt::Display,
 {
     let value = std::env::var(name).map_err(|err| {
         error!("{} is undefined, required ({})", name, err);
-        Error::StdEnvVar(err)
+        CliError::StdEnvVar(err)
     })?;
 
     match value.parse::<T>() {
         Ok(x) => Ok(x),
         Err(err) => {
             error!("{} is invalid ({})", name, err);
-            Err(Error::EnvParse(err.to_string()))
+            Err(CliError::EnvParse(err.to_string()))
         }
     }
 }
 
 /// Read optional environment variable value parsed from string.
 /// Logs an error message in case value is not parsed successfully.
-pub fn env_value_opt<T: FromStr>(name: &str) -> Result<Option<T>, Error>
+pub fn env_value_opt<T: FromStr>(name: &str) -> Result<Option<T>, CliError>
 where
     <T as std::str::FromStr>::Err: std::fmt::Display,
 {
@@ -115,7 +124,7 @@ where
             Ok(x) => Ok(Some(x)),
             Err(err) => {
                 error!("{} is invalid ({})", name, err);
-                Err(Error::EnvParse(err.to_string()))
+                Err(CliError::EnvParse(err.to_string()))
             }
         }
     } else {
@@ -133,7 +142,7 @@ pub fn env_has_any_name(names: &[&str]) -> bool {
     false
 }
 
-/// Read SMTP environment variables into configuration.
+/// Read SMTP environment variables into options.
 /// If no variables are defined, returns None. Else all variables
 /// are required and an error message logged for each missing variable.
 pub fn env_smtp(
@@ -141,7 +150,7 @@ pub fn env_smtp(
     smtp_port_name: &str,
     smtp_user_name: &str,
     smtp_password_name: &str,
-) -> Result<Option<notify::ConfigurationSmtp>, Error> {
+) -> Result<Option<NotifyExecutorOptionsSmtp>, CliError> {
     if env_has_any_name(&[
         smtp_host_name,
         smtp_port_name,
@@ -153,7 +162,7 @@ pub fn env_smtp(
         let smtp_user = env_string(smtp_user_name)?;
         let smtp_password = env_string(smtp_password_name)?;
 
-        Ok(Some(notify::ConfigurationSmtp::new(
+        Ok(Some(NotifyExecutorOptionsSmtp::new(
             smtp_host,
             smtp_port,
             smtp_user,
@@ -164,20 +173,20 @@ pub fn env_smtp(
     }
 }
 
-/// Read OAuth2 environment variables into configuration.
+/// Read OAuth2 environment variables into options.
 /// If no variables are defined, returns None. Else all variables
 /// are required and an error message logged for each missing variable.
 pub fn env_oauth2(
     client_id_name: &str,
     client_secret_name: &str,
     redirect_url_name: &str,
-) -> Result<Option<server::ConfigurationProviderOauth2>, Error> {
+) -> Result<Option<ServerOptionsProviderOauth2>, CliError> {
     if env_has_any_name(&[client_id_name, client_secret_name, redirect_url_name]) {
         let client_id = env_string(client_id_name)?;
         let client_secret = env_string(client_secret_name)?;
         let redirect_url = env_string(redirect_url_name)?;
 
-        Ok(Some(server::ConfigurationProviderOauth2::new(
+        Ok(Some(ServerOptionsProviderOauth2::new(
             client_id,
             client_secret,
             redirect_url,
@@ -187,22 +196,20 @@ pub fn env_oauth2(
     }
 }
 
-/// Read Rustls environment variables into configuration.
+/// Read Rustls environment variables into options.
 /// If no variables are defined, returns None. Else all variables
 /// are required and an error message logged for each missing variable.
 pub fn env_rustls(
     crt_pem_name: &str,
     key_pem_name: &str,
     client_pem_name: &str,
-) -> Result<Option<server::ConfigurationRustls>, Error> {
+) -> Result<Option<ServerOptionsRustls>, CliError> {
     if env_has_any_name(&[crt_pem_name, key_pem_name, client_pem_name]) {
         let crt_pem = env_string(crt_pem_name)?;
         let key_pem = env_string(key_pem_name)?;
         let client_pem = env_string_opt(client_pem_name);
 
-        Ok(Some(server::ConfigurationRustls::new(
-            crt_pem, key_pem, client_pem,
-        )))
+        Ok(Some(ServerOptionsRustls::new(crt_pem, key_pem, client_pem)))
     } else {
         Ok(None)
     }
@@ -210,23 +217,19 @@ pub fn env_rustls(
 
 /// Create an audit builder for local commands.
 pub fn audit_builder() -> core::audit::AuditBuilder {
-    core::audit::AuditBuilder::new(core::AuditMeta::new(
-        ClientOptions::default_user_agent(),
-        "127.0.0.1".to_owned(),
-        None,
-    ))
+    core::audit::AuditBuilder::new(core::AuditMeta::new("cli", "127.0.0.1", None))
 }
 
 /// Create a root key.
-pub fn create_root_key(driver: Box<Driver>, name: &str) -> Result<core::Key, Error> {
+pub fn create_root_key(driver: Box<Driver>, name: &str) -> Result<core::Key, CliError> {
     let mut audit = audit_builder();
-    core::key::create_root(driver.as_ref(), &mut audit, true, name).map_err(Error::Core)
+    core::key::create_root(driver.as_ref(), &mut audit, true, name).map_err(CliError::Core)
 }
 
 /// Delete all root keys.
-pub fn delete_root_keys(driver: Box<Driver>) -> Result<usize, Error> {
+pub fn delete_root_keys(driver: Box<Driver>) -> Result<usize, CliError> {
     let mut audit = audit_builder();
-    core::key::delete_root(driver.as_ref(), &mut audit).map_err(Error::Core)
+    core::key::delete_root(driver.as_ref(), &mut audit).map_err(CliError::Core)
 }
 
 /// Create a service with service key.
@@ -234,41 +237,40 @@ pub fn create_service_with_key(
     driver: Box<Driver>,
     name: &str,
     url: &str,
-) -> Result<(core::Service, core::Key), Error> {
+) -> Result<(core::Service, core::Key), CliError> {
     let mut audit = audit_builder();
-    let service =
-        core::service::create(driver.as_ref(), &mut audit, true, name, url).map_err(Error::Core)?;
+    let service = core::service::create(driver.as_ref(), &mut audit, true, name, url)
+        .map_err(CliError::Core)?;
     let key = core::key::create_service(driver.as_ref(), &mut audit, true, name, &service.id)
-        .map_err(Error::Core)?;
+        .map_err(CliError::Core)?;
     Ok((service, key))
 }
 
 /// Start server.
 /// Starts notify and client actors, and HTTP server.
-pub fn start_server(driver: Box<Driver>, configuration: Configuration) -> Result<(), Error> {
+pub fn start_server(driver: Box<Driver>, options: CliOptions) -> Result<(), CliError> {
     let system = System::new(crate_name!());
 
-    let notify_configuration = configuration.notify().clone();
-    let notify_addr = NotifyExecutor::start(configuration.notify_threads(), notify_configuration);
-
-    // TODO(refactor): Improve configuration interface.
-    let client_options = ClientExecutorConfiguration::new(ClientOptions::default_user_agent());
+    let client_options = options.client().clone();
     let client_addr = ClientExecutor::start(client_options);
 
-    let server_configuration = configuration.server().clone();
+    let notify_options = options.notify().clone();
+    let notify_addr = NotifyExecutor::start(options.notify_threads(), notify_options);
+
+    let server_options = options.server().clone();
     let server_notify_addr = notify_addr.clone();
     let server_client_addr = client_addr.clone();
     server::start(
-        configuration.server_threads(),
+        options.server_threads(),
         driver,
-        server_configuration,
+        server_options,
         server_notify_addr,
         server_client_addr,
     )
-    .map_err(Error::Server)?;
+    .map_err(CliError::Server)?;
 
     system
         .run()
         .map_err(server::Error::StdIo)
-        .map_err(Error::Server)
+        .map_err(CliError::Server)
 }

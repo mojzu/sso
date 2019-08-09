@@ -20,12 +20,13 @@ use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 use url::Url;
 
-/// ## Client Executor Configuration
-pub struct ClientExecutorConfiguration {
+/// ## Client Executor Options
+#[derive(Debug, Clone)]
+pub struct ClientExecutorOptions {
     user_agent: String,
 }
 
-impl ClientExecutorConfiguration {
+impl ClientExecutorOptions {
     pub fn new<T1>(user_agent: T1) -> Self
     where
         T1: Into<String>,
@@ -46,14 +47,11 @@ pub struct ClientExecutor {
 }
 
 impl ClientExecutor {
-    /// Start client actor with configuration.
-    pub fn start(configuration: ClientExecutorConfiguration) -> Addr<Self> {
+    /// Start client actor with options.
+    pub fn start(options: ClientExecutorOptions) -> Addr<Self> {
         Supervisor::start(move |_| {
             let mut headers = HeaderMap::new();
-            headers.insert(
-                header::USER_AGENT,
-                configuration.user_agent.parse().unwrap(),
-            );
+            headers.insert(header::USER_AGENT, options.user_agent.parse().unwrap());
 
             let client = ClientBuilder::new()
                 .use_rustls_tls()
@@ -74,10 +72,10 @@ impl Actor for ClientExecutor {
 /// ## Asynchronous Client GET Request
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Get {
-    pub url: String,
-    pub route: String,
-    pub content_type: String,
-    pub authorisation: Option<String>,
+    url: String,
+    route: String,
+    content_type: String,
+    authorisation: Option<String>,
 }
 
 impl Get {
@@ -544,13 +542,6 @@ impl Client for AsyncClient {
         AsyncClient { options, client }
     }
 }
-
-// impl actix::Supervised for AsyncClient {}
-
-// impl actix::Actor for AsyncClient {
-//     type Context = Context<Self>;
-//     // TODO(refactor): Use actor for external HTTP requests instead of recreating clients.
-// }
 
 // impl AsyncClient {
 //     /// Ping request.

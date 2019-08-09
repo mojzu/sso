@@ -28,7 +28,7 @@ pub enum Error {
     Forbidden,
     /// Driver error wrapper.
     #[fail(display = "CoreError::Driver {}", _0)]
-    Driver(#[fail(cause)] driver::Error),
+    Driver(#[fail(cause)] driver::DriverError),
     /// Bcrypt error wrapper.
     #[fail(display = "CoreError::Bcrypt {}", _0)]
     Bcrypt(#[fail(cause)] bcrypt::BcryptError),

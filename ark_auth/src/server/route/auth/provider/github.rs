@@ -5,7 +5,7 @@ use crate::core::AuditMeta;
 use crate::server::api::{path, AuthOauth2CallbackQuery, AuthOauth2UrlResponse};
 use crate::server::route::auth::provider::oauth2_redirect;
 use crate::server::route::{request_audit_meta, route_response_json};
-use crate::server::{ConfigurationProviderOauth2, Data, Error, FromJsonValue, Oauth2Error};
+use crate::server::{Data, Error, FromJsonValue, Oauth2Error, ServerOptionsProviderOauth2};
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
 use futures::{future, Future};
@@ -88,8 +88,8 @@ fn oauth2_callback_handler(
                     &service_id,
                     &mut audit,
                     &email,
-                    data.configuration().access_token_expires(),
-                    data.configuration().refresh_token_expires(),
+                    data.options().access_token_expires(),
+                    data.options().refresh_token_expires(),
                 )
                 .map_err(Into::into)
             })
@@ -107,7 +107,7 @@ fn github_authorise(
     _audit: &mut AuditBuilder,
 ) -> Result<String, Error> {
     // Generate the authorization URL to which we'll redirect the user.
-    let client = github_client(data.configuration().provider_github_oauth2())?;
+    let client = github_client(data.options().provider_github_oauth2())?;
     let (authorise_url, csrf_state) = client
         .authorize_url(CsrfToken::new_random)
         .add_scope(Scope::new("user:email".to_string()))
@@ -119,7 +119,7 @@ fn github_authorise(
         service,
         &csrf_state.secret(),
         &csrf_state.secret(),
-        data.configuration().access_token_expires(),
+        data.options().access_token_expires(),
     )
     .map_err(Error::Core)?;
 
@@ -137,7 +137,7 @@ fn github_callback(
     let csrf = csrf.ok_or_else(|| Error::Oauth2(Oauth2Error::Csrf))?;
 
     // Exchange the code with a token.
-    let client = github_client(data.configuration().provider_github_oauth2())?;
+    let client = github_client(data.options().provider_github_oauth2())?;
     let code = AuthorizationCode::new(code.to_owned());
     let token = client
         .exchange_code(code)
@@ -154,7 +154,7 @@ fn github_api_user_email(
 ) -> impl Future<Item = String, Error = Error> {
     let authorisation = format!("token {}", access_token);
     // TODO(refactor): Improve error handling.
-    data.client_addr
+    data.client()
         .send(Get::json("https://api.github.com", "/user").authorisation(authorisation))
         .map_err(|_err| unimplemented!())
         .and_then(|res| res.map_err(|_err| unimplemented!()))
@@ -162,7 +162,7 @@ fn github_api_user_email(
         .map(|res| res.email)
 }
 
-fn github_client(provider: Option<&ConfigurationProviderOauth2>) -> Result<BasicClient, Error> {
+fn github_client(provider: Option<&ServerOptionsProviderOauth2>) -> Result<BasicClient, Error> {
     let provider = provider.ok_or_else(|| {
         // Warn OAuth2 is disabled, return bad request error so internal server error
         // is not returned to the client.

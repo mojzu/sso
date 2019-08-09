@@ -3,9 +3,7 @@ mod async_impl;
 #[cfg(feature = "sync_client")]
 mod sync_impl;
 
-pub use crate::client::async_impl::{
-    AsyncClient, ClientExecutor, ClientExecutorConfiguration, Get,
-};
+pub use crate::client::async_impl::{AsyncClient, ClientExecutor, ClientExecutorOptions, Get};
 #[cfg(feature = "sync_client")]
 pub use crate::client::sync_impl::SyncClient;
 use http::header;
@@ -32,6 +30,8 @@ pub enum RequestError {
     #[fail(display = "RequestError::NotFound")]
     NotFound,
 }
+
+// TODO(refactor): Check and refactor client, server errors.
 
 /// ## Client Errors
 #[derive(Debug, Fail, PartialEq)]
@@ -75,6 +75,11 @@ impl From<ReqwestError> for Error {
     }
 }
 
+/// Default user agent constructed from crate name and version.
+pub fn default_user_agent() -> String {
+    format!("{}/{}", crate_name!(), crate_version!())
+}
+
 /// ## Client Options
 #[derive(Debug, Clone)]
 pub struct ClientOptions {
@@ -100,7 +105,7 @@ impl ClientOptions {
         let url = Url::parse(url).map_err(|err| Error::url(&err))?;
         let mut options = ClientOptions {
             url,
-            user_agent: ClientOptions::default_user_agent(),
+            user_agent: default_user_agent(),
             authorisation: authorisation.into(),
             forwarded,
             crt_pem: None,
@@ -167,11 +172,6 @@ impl ClientOptions {
             headers.insert(header::FORWARDED, forwarded.parse().unwrap());
         }
         headers
-    }
-
-    /// Default user agent constructed from crate name and version.
-    pub fn default_user_agent() -> String {
-        format!("{}/{}", crate_name!(), crate_version!())
     }
 
     /// Split value of `Authorization` HTTP header into a type and value, where format is `VALUE`, `TYPE VALUE`.

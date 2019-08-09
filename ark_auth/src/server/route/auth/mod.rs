@@ -57,7 +57,7 @@ fn password_meta_strength(password: &str) -> impl Future<Item = zxcvbn::Entropy,
 /// Returns true if password is present in `Pwned Passwords` index, else false.
 /// <https://haveibeenpwned.com/Passwords>
 fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, Error = Error> {
-    let password_pwned_enabled = data.configuration().password_pwned_enabled();
+    let password_pwned_enabled = data.options().password_pwned_enabled();
 
     if password_pwned_enabled {
         // Make request to API using first 5 characters of SHA1 password hash.
@@ -68,7 +68,7 @@ fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, 
 
         future::Either::A(
             // Make API request.
-            data.client_addr
+            data.client()
                 .send(Get::text("https://api.pwnedpasswords.com", route))
                 .map_err(|_err| unimplemented!())
                 .and_then(|res| res.map_err(|_err| unimplemented!()))
