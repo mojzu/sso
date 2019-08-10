@@ -1,4 +1,4 @@
-use crate::client::Get;
+use crate::client::{Client, Get};
 use crate::core;
 use crate::core::audit::AuditBuilder;
 use crate::core::AuditMeta;
@@ -165,8 +165,7 @@ fn microsoft_api_user_email(
     data.client()
         .send(Get::json("https://graph.microsoft.com", "/v1.0/me").authorisation(authorisation))
         .map_err(Error::ActixMailbox)
-        .and_then(|res| res.map_err(Error::Client))
-        .and_then(|text| serde_json::from_str::<MicrosoftUser>(&text).map_err(Error::SerdeJson))
+        .and_then(|res| Client::result_json::<MicrosoftUser>(res).map_err(Error::Client))
         .map(|res| res.mail)
 }
 

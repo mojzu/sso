@@ -8,4 +8,4 @@
 **Changed**
 
 - Changed configuration interfaces to improve consistency.
-- Improved server module public interface.
+- Improved server, client modules public interface.

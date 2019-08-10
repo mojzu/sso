@@ -1,11 +1,10 @@
-use crate::client::Error as ClientError;
+use crate::client::ClientError;
 use crate::core::Error as CoreError;
 use actix::MailboxError as ActixMailboxError;
 use actix_web::error::BlockingError as ActixWebBlockingError;
 use actix_web::{HttpResponse, ResponseError};
 use failure::Error as FailureError;
 use prometheus::Error as PrometheusError;
-use serde_json::Error as SerdeJsonError;
 use std::io::Error as StdIoError;
 use url::ParseError as UrlParseError;
 use zxcvbn::ZxcvbnError;
@@ -63,9 +62,6 @@ pub enum Error {
     /// Standard IO error wrapper.
     #[fail(display = "ServerError:StdIo {}", _0)]
     StdIo(#[fail(cause)] StdIoError),
-    /// Serde JSON error wrapper.
-    #[fail(display = "ServerError:SerdeJson {}", _0)]
-    SerdeJson(#[fail(cause)] SerdeJsonError),
     /// Zxcvbn error wrapper.
     #[fail(display = "ServerError:Zxcvbn {}", _0)]
     Zxcvbn(#[fail(cause)] ZxcvbnError),

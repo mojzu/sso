@@ -1,4 +1,4 @@
-use crate::client::Get;
+use crate::client::{Client, Get};
 use crate::core;
 use crate::core::audit::AuditBuilder;
 use crate::core::AuditMeta;
@@ -156,8 +156,7 @@ fn github_api_user_email(
     data.client()
         .send(Get::json("https://api.github.com", "/user").authorisation(authorisation))
         .map_err(Error::ActixMailbox)
-        .and_then(|res| res.map_err(Error::Client))
-        .and_then(|text| serde_json::from_str::<GithubUser>(&text).map_err(Error::SerdeJson))
+        .and_then(|res| Client::result_json::<GithubUser>(res).map_err(Error::Client))
         .map(|res| res.email)
 }
 

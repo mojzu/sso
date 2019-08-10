@@ -1,5 +1,5 @@
 //! # Asynchronous Client
-use crate::client::{Client, ClientOptions, Error, RequestError};
+use crate::client::{Client, ClientExecutor, ClientOptions, Error, Get};
 use crate::core::User;
 use crate::server::api::{
     route, AuditCreateBody, AuditDataRequest, AuditListQuery, AuditListResponse, AuditReadResponse,
@@ -14,150 +14,42 @@ use crate::server::api::{
 use actix::prelude::*;
 use futures::{future, Future};
 use http::StatusCode;
-use http::{header, HeaderMap};
-use reqwest::r#async::{Client as ReqwestClient, ClientBuilder, RequestBuilder, Response};
+use reqwest::r#async::{RequestBuilder, Response};
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
-use url::Url;
-
-/// ## Client Executor Options
-#[derive(Debug, Clone)]
-pub struct ClientExecutorOptions {
-    user_agent: String,
-}
-
-impl ClientExecutorOptions {
-    pub fn new<T1>(user_agent: T1) -> Self
-    where
-        T1: Into<String>,
-    {
-        Self {
-            user_agent: user_agent.into(),
-        }
-    }
-}
-
-/// ## Client Executor
-/// Reqwest advises not to recreate clients, and clients cannot be sent across threads.
-/// The primary use case for asynchronous client is in actix-web routes, which may
-/// run across many threads, so to avoid creating a client for each request, the client
-/// can be run in an actor thread and used by passing messages.
-pub struct ClientExecutor {
-    client: ReqwestClient,
-}
-
-impl ClientExecutor {
-    /// Start client actor with options.
-    pub fn start(options: ClientExecutorOptions) -> Addr<Self> {
-        Supervisor::start(move |_| {
-            let mut headers = HeaderMap::new();
-            headers.insert(header::USER_AGENT, options.user_agent.parse().unwrap());
-
-            let client = ClientBuilder::new()
-                .use_rustls_tls()
-                .default_headers(headers)
-                .build()
-                .unwrap();
-            Self { client }
-        })
-    }
-}
-
-impl Supervised for ClientExecutor {}
-
-impl Actor for ClientExecutor {
-    type Context = Context<Self>;
-}
-
-/// ## Asynchronous Client GET Request
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Get {
-    url: String,
-    route: String,
-    content_type: String,
-    authorisation: Option<String>,
-}
-
-impl Get {
-    /// Create new GET text request.
-    pub fn text<T1, T2>(url: T1, route: T2) -> Self
-    where
-        T1: Into<String>,
-        T2: Into<String>,
-    {
-        Self {
-            url: url.into(),
-            route: route.into(),
-            content_type: "text/plain".to_owned(),
-            authorisation: None,
-        }
-    }
-
-    /// Create new GET JSON request.
-    pub fn json<T1, T2>(url: T1, route: T2) -> Self
-    where
-        T1: Into<String>,
-        T2: Into<String>,
-    {
-        Self {
-            url: url.into(),
-            route: route.into(),
-            content_type: "application/json".to_owned(),
-            authorisation: None,
-        }
-    }
-
-    /// Set authorisation header on GET request.
-    pub fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
-        self.authorisation = Some(authorisation.into());
-        self
-    }
-
-    /// Build and return Url.
-    pub fn url(&self) -> Result<Url, Error> {
-        let u = Url::parse(&self.url).map_err(|err| Error::url(&err))?;
-        u.join(&self.route).map_err(|err| Error::url(&err))
-    }
-}
-
-impl Message for Get {
-    type Result = Result<String, Error>;
-}
-
-impl Handler<Get> for ClientExecutor {
-    type Result = ResponseActFuture<Self, String, Error>;
-
-    fn handle(&mut self, msg: Get, _ctx: &mut Context<Self>) -> Self::Result {
-        let url = msg.url().unwrap();
-        let req = self
-            .client
-            .get(url)
-            .header(header::CONTENT_TYPE, &msg.content_type);
-        let req = if let Some(authorisation) = &msg.authorisation {
-            req.header(header::AUTHORIZATION, authorisation)
-        } else {
-            req
-        };
-
-        let res = req
-            .send()
-            .map_err(Into::into)
-            .and_then(|res| res.error_for_status().map_err(Into::into))
-            .and_then(|mut res| res.text().map_err(Into::into));
-
-        let wrapped = actix::fut::wrap_future(res);
-        Box::new(wrapped)
-    }
-}
-
-//////////////////////////////
+use serde_json::Value;
 
 /// Asynchronous client handle.
 #[derive(Clone)]
 pub struct AsyncClient {
-    pub options: ClientOptions,
-    pub client: ReqwestClient,
+    options: ClientOptions,
+    addr: Addr<ClientExecutor>,
 }
+
+impl AsyncClient {
+    /// Create new client handle.
+    pub fn new(options: ClientOptions, addr: Addr<ClientExecutor>) -> Self {
+        AsyncClient { options, addr }
+    }
+
+    /// Ping request.
+    pub fn ping(&self) -> impl Future<Item = Value, Error = Error> {
+        self.addr
+            .send(Get::json(self.options.url(), route::PING))
+            .map_err(Into::into)
+            .and_then(|res| Client::result_json::<Value>(res))
+    }
+
+    /// Metrics request.
+    pub fn metrics(&self) -> impl Future<Item = String, Error = Error> {
+        self.addr
+            .send(Get::json(self.options.url(), route::METRICS))
+            .map_err(Into::into)
+            .and_then(|res| res)
+    }
+}
+
+////////////////////////////////
 
 impl AsyncClient {
     /// Authenticate user using token or key, returns user if successful.
@@ -458,31 +350,6 @@ impl AsyncClient {
         AsyncClient::send_response_empty(self.delete(&path))
     }
 
-    fn build_client(options: &ClientOptions) -> ReqwestClient {
-        let headers = options.default_headers();
-        let builder = ClientBuilder::new()
-            .use_rustls_tls()
-            .default_headers(headers);
-
-        // Optional CA and client certificates.
-        let builder = match &options.crt_pem {
-            Some(buf) => {
-                let crt_pem = reqwest::Certificate::from_pem(buf).unwrap();
-                builder.add_root_certificate(crt_pem)
-            }
-            None => builder,
-        };
-        let builder = match &options.client_pem {
-            Some(buf) => {
-                let client_pem = reqwest::Identity::from_pem(buf).unwrap();
-                builder.identity(client_pem)
-            }
-            None => builder,
-        };
-
-        builder.build().unwrap()
-    }
-
     fn get(&self, path: &str) -> RequestBuilder {
         let url = self.options.url_path(path).unwrap();
         self.client.get(url)
@@ -535,34 +402,3 @@ impl AsyncClient {
         future::result(ClientOptions::split_authorisation(type_value))
     }
 }
-
-impl Client for AsyncClient {
-    fn new(options: ClientOptions) -> Self {
-        let client = AsyncClient::build_client(&options);
-        AsyncClient { options, client }
-    }
-}
-
-// impl AsyncClient {
-//     /// Ping request.
-//     pub fn ping(addr: Addr<AsyncClient>) -> impl Future<Item = Value, Error = Error> {
-//         addr.send(Get::new(route::PING))
-//             .map_err(|_err| Error::Response)
-//             .and_then(AsyncClient::response_json)
-//     }
-
-//     /// Metrics request.
-//     pub fn metrics(addr: Addr<AsyncClient>) -> impl Future<Item = String, Error = Error> {
-//         addr.send(Get::new(route::METRICS))
-//             .map_err(|_err| Error::Response)
-//             .and_then(|res| res)
-//     }
-
-//     fn response_json(res: Result<String, Error>) -> Result<Value, Error> {
-//         res.map(|x| serde_json::from_str(&x).unwrap())
-//     }
-// }
-
-// TODO(refactor): Split actor and async client into...
-// AsyncClient (actor), move into mod.rs
-// async functions or another struct
