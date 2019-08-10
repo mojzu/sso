@@ -153,12 +153,11 @@ fn github_api_user_email(
     access_token: &str,
 ) -> impl Future<Item = String, Error = Error> {
     let authorisation = format!("token {}", access_token);
-    // TODO(refactor): Improve error handling.
     data.client()
         .send(Get::json("https://api.github.com", "/user").authorisation(authorisation))
-        .map_err(|_err| unimplemented!())
-        .and_then(|res| res.map_err(|_err| unimplemented!()))
-        .and_then(|text| serde_json::from_str::<GithubUser>(&text).map_err(|_err| unimplemented!()))
+        .map_err(Error::ActixMailbox)
+        .and_then(|res| res.map_err(Error::Client))
+        .and_then(|text| serde_json::from_str::<GithubUser>(&text).map_err(Error::SerdeJson))
         .map(|res| res.email)
 }
 
@@ -174,10 +173,11 @@ fn github_client(provider: Option<&ServerOptionsProviderOauth2>) -> Result<Basic
     let github_client_id = ClientId::new(provider.client_id.to_owned());
     let github_client_secret = ClientSecret::new(provider.client_secret.to_owned());
 
-    // Safe to unwrap here, known valid URLs.
-    let auth_url = Url::parse("https://github.com/login/oauth/authorize").unwrap();
+    let auth_url =
+        Url::parse("https://github.com/login/oauth/authorize").map_err(Error::UrlParse)?;
     let auth_url = AuthUrl::new(auth_url);
-    let token_url = Url::parse("https://github.com/login/oauth/access_token").unwrap();
+    let token_url =
+        Url::parse("https://github.com/login/oauth/access_token").map_err(Error::UrlParse)?;
     let token_url = TokenUrl::new(token_url);
 
     let redirect_url = Url::parse(&provider.redirect_url).map_err(Error::UrlParse)?;

@@ -7,4 +7,5 @@
 
 **Changed**
 
-- Changed configuration interface to improve consistency.
+- Changed configuration interfaces to improve consistency.
+- Improved server module public interface.

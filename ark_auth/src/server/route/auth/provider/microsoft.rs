@@ -162,14 +162,11 @@ fn microsoft_api_user_email(
     access_token: &str,
 ) -> impl Future<Item = String, Error = Error> {
     let authorisation = format!("Bearer {}", access_token);
-    // TODO(refactor): Improve error handling, check unimplemented/unwrap.
     data.client()
         .send(Get::json("https://graph.microsoft.com", "/v1.0/me").authorisation(authorisation))
-        .map_err(|_err| unimplemented!())
-        .and_then(|res| res.map_err(|_err| unimplemented!()))
-        .and_then(|text| {
-            serde_json::from_str::<MicrosoftUser>(&text).map_err(|_err| unimplemented!())
-        })
+        .map_err(Error::ActixMailbox)
+        .and_then(|res| res.map_err(Error::Client))
+        .and_then(|text| serde_json::from_str::<MicrosoftUser>(&text).map_err(Error::SerdeJson))
         .map(|res| res.mail)
 }
 
@@ -185,12 +182,11 @@ fn microsoft_client(provider: Option<&ServerOptionsProviderOauth2>) -> Result<Ba
     let graph_client_id = ClientId::new(provider.client_id.to_owned());
     let graph_client_secret = ClientSecret::new(provider.client_secret.to_owned());
 
-    // Safe to unwrap here, known valid URLs.
-    let auth_url =
-        Url::parse("https://login.microsoftonline.com/common/oauth2/v2.0/authorize").unwrap();
+    let auth_url = Url::parse("https://login.microsoftonline.com/common/oauth2/v2.0/authorize")
+        .map_err(Error::UrlParse)?;
     let auth_url = AuthUrl::new(auth_url);
-    let token_url =
-        Url::parse("https://login.microsoftonline.com/common/oauth2/v2.0/token").unwrap();
+    let token_url = Url::parse("https://login.microsoftonline.com/common/oauth2/v2.0/token")
+        .map_err(Error::UrlParse)?;
     let token_url = TokenUrl::new(token_url);
 
     let redirect_url = Url::parse(&provider.redirect_url).map_err(Error::UrlParse)?;

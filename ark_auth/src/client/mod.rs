@@ -31,7 +31,7 @@ pub enum RequestError {
     NotFound,
 }
 
-// TODO(refactor): Check and refactor client, server errors.
+// TODO(refactor): Check and refactor client errors.
 
 /// ## Client Errors
 #[derive(Debug, Fail, PartialEq)]

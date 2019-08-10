@@ -4,7 +4,7 @@ pub mod token;
 
 use crate::client::Get;
 use crate::server::api::{path, AuthPasswordMeta};
-use crate::server::{Data, Error, PwnedPasswordsError};
+use crate::server::{Data, Error};
 use actix_web::web;
 use futures::{future, Future};
 use sha1::{Digest, Sha1};
@@ -70,8 +70,8 @@ fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, 
             // Make API request.
             data.client()
                 .send(Get::text("https://api.pwnedpasswords.com", route))
-                .map_err(|_err| unimplemented!())
-                .and_then(|res| res.map_err(|_err| unimplemented!()))
+                .map_err(Error::ActixMailbox)
+                .and_then(|res| res.map_err(Error::Client))
                 // Compare suffix of hash to lines to determine if password is pwned.
                 .and_then(move |text| {
                     for line in text.lines() {
@@ -83,8 +83,6 @@ fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, 
                 }),
         )
     } else {
-        future::Either::B(future::err(Error::PwnedPasswords(
-            PwnedPasswordsError::Disabled,
-        )))
+        future::Either::B(future::err(Error::PwnedPasswordsDisabled))
     }
 }

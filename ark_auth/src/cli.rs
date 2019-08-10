@@ -1,10 +1,12 @@
 //! # Command Line Interface
 //! Functions for a command line interface and some helpers for integration.
 use crate::client::{ClientExecutor, ClientExecutorOptions};
+use crate::core;
 use crate::driver::Driver;
 use crate::notify::{NotifyExecutor, NotifyExecutorOptions, NotifyExecutorOptionsSmtp};
-use crate::server::{ServerOptions, ServerOptionsProviderOauth2, ServerOptionsRustls};
-use crate::{core, server};
+use crate::server::{
+    Server, ServerError, ServerOptions, ServerOptionsProviderOauth2, ServerOptionsRustls,
+};
 use actix_rt::System;
 use std::str::FromStr;
 
@@ -19,7 +21,7 @@ pub enum CliError {
     Core(#[fail(cause)] core::Error),
     /// Server error wrapper.
     #[fail(display = "CliError::Server {}", _0)]
-    Server(#[fail(cause)] server::Error),
+    Server(#[fail(cause)] ServerError),
     /// Standard environment variable error wrapper.
     #[fail(display = "CliError::StdEnvVar {}", _0)]
     StdEnvVar(#[fail(cause)] std::env::VarError),
@@ -260,7 +262,7 @@ pub fn start_server(driver: Box<Driver>, options: CliOptions) -> Result<(), CliE
     let server_options = options.server().clone();
     let server_notify_addr = notify_addr.clone();
     let server_client_addr = client_addr.clone();
-    server::start(
+    Server::start(
         options.server_threads(),
         driver,
         server_options,
@@ -271,6 +273,6 @@ pub fn start_server(driver: Box<Driver>, options: CliOptions) -> Result<(), CliE
 
     system
         .run()
-        .map_err(server::Error::StdIo)
+        .map_err(ServerError::StdIo)
         .map_err(CliError::Server)
 }
