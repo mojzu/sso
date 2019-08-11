@@ -7,7 +7,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(INVALID_SERVICE_KEY));
             let body = AuthKeyBody::new(INVALID_UUID, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -19,7 +19,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthKeyBody::new(INVALID_UUID, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -38,7 +38,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthKeyBody::new(&user_key.key, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -50,7 +50,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthKeyBody::new(&service_key.value, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -74,7 +74,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(INVALID_SERVICE_KEY));
             let body = AuthKeyBody::new(INVALID_UUID, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -86,7 +86,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthKeyBody::new(INVALID_UUID, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -105,7 +105,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthKeyBody::new(&user_key.key, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -117,7 +117,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthKeyBody::new(&service_key.value, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -135,7 +135,7 @@ macro_rules! auth_key_integration_test {
             client.auth_key_revoke(body).unwrap();
             let body = AuthKeyBody::new(&user_key.key, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
     };
 }

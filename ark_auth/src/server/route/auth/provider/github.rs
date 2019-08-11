@@ -154,7 +154,7 @@ fn github_api_user_email(
 ) -> impl Future<Item = String, Error = Error> {
     let authorisation = format!("token {}", access_token);
     data.client()
-        .send(Get::json("https://api.github.com", "/user").authorisation(authorisation))
+        .send(Get::new("https://api.github.com", "/user").authorisation(authorisation))
         .map_err(Error::ActixMailbox)
         .and_then(|res| Client::result_json::<GithubUser>(res).map_err(Error::Client))
         .map(|res| res.email)

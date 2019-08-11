@@ -7,7 +7,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(INVALID_SERVICE_KEY));
             let body = AuthTokenBody::new(INVALID_UUID, None);
             let res = client.auth_token_verify(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -19,7 +19,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthTokenBody::new(INVALID_UUID, None);
             let res = client.auth_token_verify(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -39,7 +39,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthTokenBody::new(&user_token.access_token, None);
             let res = client.auth_token_verify(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -65,7 +65,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(INVALID_SERVICE_KEY));
             let body = AuthTokenBody::new(INVALID_UUID, None);
             let res = client.auth_token_refresh(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -77,7 +77,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthTokenBody::new(INVALID_UUID, None);
             let res = client.auth_token_refresh(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -97,7 +97,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthTokenBody::new(&user_token.refresh_token, None);
             let res = client.auth_token_refresh(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -120,7 +120,7 @@ macro_rules! auth_token_integration_test {
 
             let body = AuthTokenBody::new(&user_token.refresh_token, None);
             let res = client.auth_token_refresh(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -148,7 +148,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(INVALID_SERVICE_KEY));
             let body = AuthTokenBody::new(INVALID_UUID, None);
             let res = client.auth_token_revoke(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -160,7 +160,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthTokenBody::new(INVALID_UUID, None);
             let res = client.auth_token_revoke(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -180,7 +180,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthTokenBody::new(&user_token.refresh_token, None);
             let res = client.auth_token_revoke(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -202,7 +202,7 @@ macro_rules! auth_token_integration_test {
             client.auth_token_revoke(body).unwrap();
             let body = AuthTokenBody::new(&user_token.access_token, None);
             let res = client.auth_token_verify(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
     };
 }

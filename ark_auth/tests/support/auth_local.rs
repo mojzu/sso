@@ -9,7 +9,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginBody::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -19,7 +19,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginBody::new(INVALID_EMAIL, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -30,7 +30,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginBody::new(&user_email, "");
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -43,7 +43,7 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthLoginBody::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -59,7 +59,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginBody::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -75,7 +75,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginBody::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -92,7 +92,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginBody::new(&user_email, INVALID_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -111,7 +111,7 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthLoginBody::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -139,7 +139,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthResetPasswordBody::new(&user_email);
             let res = client.auth_local_reset_password(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -151,7 +151,7 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthResetPasswordBody::new(INVALID_EMAIL);
             let res = client.auth_local_reset_password(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -208,7 +208,7 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(INVALID_SERVICE_KEY));
             let body = AuthResetPasswordConfirmBody::new(INVALID_UUID, USER_PASSWORD);
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -220,7 +220,7 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthResetPasswordConfirmBody::new("", USER_PASSWORD);
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -232,7 +232,7 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthResetPasswordConfirmBody::new(INVALID_UUID, "");
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
     };
 }

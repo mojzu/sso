@@ -13,7 +13,7 @@ macro_rules! user_integration_test {
                     email_eq: None,
                 })
                 .unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -151,7 +151,7 @@ macro_rules! user_integration_test {
             let user_email = email_create();
             let body = UserCreateBody::new(true, USER_NAME, &user_email);
             let res = client.user_create(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -166,7 +166,7 @@ macro_rules! user_integration_test {
 
             let body = UserCreateBody::new(true, USER_NAME, &user_email);
             let res = client.user_create(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
     };
 }

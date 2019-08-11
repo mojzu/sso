@@ -7,8 +7,8 @@ mod key;
 mod service;
 mod user;
 
-use ark_auth::client::{Client, ClientOptions, SyncClient};
-pub use ark_auth::client::{Error, RequestError};
+pub use ark_auth::client::ClientError;
+use ark_auth::client::{default_user_agent, ClientExecutorOptions, ClientOptions, SyncClient};
 use ark_auth::core::{Key, Service, User, UserKey, UserToken, UserTokenPartial};
 use ark_auth::server::api::AuthOauth2UrlResponse;
 pub use ark_auth::server::api::{
@@ -27,6 +27,17 @@ pub const USER_NAME: &str = "user-name";
 pub const USER_PASSWORD: &str = "user-name";
 pub const KEY_NAME: &str = "key-name";
 
+lazy_static! {
+    static ref CLIENT: SyncClient = {
+        let executor_options =
+            ClientExecutorOptions::new(default_user_agent(), None, None).unwrap();
+        let authorisation = env_test_ark_auth_key();
+        let options = ClientOptions::new(authorisation);
+        let url = env_test_ark_auth_url();
+        SyncClient::new(url, executor_options, options).unwrap()
+    };
+}
+
 fn env_test_ark_auth_url() -> String {
     std::env::var("TEST_ARK_AUTH_URL")
         .expect("TEST_ARK_AUTH_URL is undefined, integration test disabled")
@@ -38,12 +49,10 @@ fn env_test_ark_auth_key() -> String {
 }
 
 pub fn client_create(key: Option<&str>) -> SyncClient {
-    let url = env_test_ark_auth_url();
-    let key = key
-        .map(|x| x.to_owned())
-        .unwrap_or_else(|| env_test_ark_auth_key());
-    let options = ClientOptions::new(&url, &key, None, None, None).unwrap();
-    SyncClient::new(options)
+    match key {
+        Some(key) => CLIENT.with_options(ClientOptions::new(key.to_owned())),
+        None => CLIENT.clone(),
+    }
 }
 
 pub fn email_create() -> String {
@@ -126,7 +135,7 @@ pub fn user_key_verify(client: &SyncClient, key: &UserKey) -> UserKey {
 pub fn user_key_verify_bad_request(client: &SyncClient, key: &str) {
     let body = AuthKeyBody::new(key, None);
     let err = client.auth_key_verify(body).unwrap_err();
-    assert_eq!(err, Error::Request(RequestError::BadRequest));
+    assert_eq!(err, ClientError::BadRequest);
 }
 
 pub fn user_token_verify(client: &SyncClient, token: &UserToken) -> UserTokenPartial {

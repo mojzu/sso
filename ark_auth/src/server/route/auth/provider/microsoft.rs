@@ -163,7 +163,7 @@ fn microsoft_api_user_email(
 ) -> impl Future<Item = String, Error = Error> {
     let authorisation = format!("Bearer {}", access_token);
     data.client()
-        .send(Get::json("https://graph.microsoft.com", "/v1.0/me").authorisation(authorisation))
+        .send(Get::new("https://graph.microsoft.com", "/v1.0/me").authorisation(authorisation))
         .map_err(Error::ActixMailbox)
         .and_then(|res| Client::result_json::<MicrosoftUser>(res).map_err(Error::Client))
         .map(|res| res.mail)

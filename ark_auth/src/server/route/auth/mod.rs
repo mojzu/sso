@@ -69,7 +69,7 @@ fn password_meta_pwned(data: &Data, password: &str) -> impl Future<Item = bool, 
         future::Either::A(
             // Make API request.
             data.client()
-                .send(Get::text("https://api.pwnedpasswords.com", route))
+                .send(Get::new("https://api.pwnedpasswords.com", route))
                 .map_err(Error::ActixMailbox)
                 .and_then(|res| res.map_err(Error::Client))
                 // Compare suffix of hash to lines to determine if password is pwned.

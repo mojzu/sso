@@ -1,5 +1,7 @@
 //! # Asynchronous Client
-use crate::client::{Client, ClientExecutor, ClientOptions, Error, Get};
+use crate::client::{
+    Client, ClientExecutor, ClientOptions, Delete, Error, Get, PatchJson, PostJson,
+};
 use crate::core::User;
 use crate::server::api::{
     route, AuditCreateBody, AuditDataRequest, AuditListQuery, AuditListResponse, AuditReadResponse,
@@ -12,78 +14,33 @@ use crate::server::api::{
     UserReadResponse, UserUpdateBody,
 };
 use actix::prelude::*;
+use futures::future::Either;
 use futures::{future, Future};
-use http::StatusCode;
-use reqwest::r#async::{RequestBuilder, Response};
-use serde::de::DeserializeOwned;
-use serde::ser::Serialize;
 use serde_json::Value;
 
 /// Asynchronous client handle.
 #[derive(Clone)]
 pub struct AsyncClient {
+    url: String,
     options: ClientOptions,
     addr: Addr<ClientExecutor>,
 }
 
 impl AsyncClient {
-    /// Create new client handle.
-    pub fn new(options: ClientOptions, addr: Addr<ClientExecutor>) -> Self {
-        AsyncClient { options, addr }
-    }
-
     /// Ping request.
     pub fn ping(&self) -> impl Future<Item = Value, Error = Error> {
         self.addr
-            .send(Get::json(self.options.url(), route::PING))
+            .send(Get::new(self.url(), route::PING))
             .map_err(Into::into)
-            .and_then(|res| Client::result_json::<Value>(res))
+            .and_then(Client::result_json::<Value>)
     }
 
     /// Metrics request.
     pub fn metrics(&self) -> impl Future<Item = String, Error = Error> {
         self.addr
-            .send(Get::json(self.options.url(), route::METRICS))
+            .send(Get::new(self.url(), route::METRICS))
             .map_err(Into::into)
             .and_then(|res| res)
-    }
-}
-
-////////////////////////////////
-
-impl AsyncClient {
-    /// Authenticate user using token or key, returns user if successful.
-    pub fn authenticate(
-        &self,
-        key_or_token: Option<String>,
-        audit: Option<AuditDataRequest>,
-    ) -> impl Future<Item = User, Error = Error> {
-        match key_or_token {
-            Some(key_or_token) => {
-                let (s1, s2) = (self.clone(), self.clone());
-                future::Either::A(
-                    AsyncClient::split_authorisation(key_or_token)
-                        .and_then(move |(type_, value)| match type_.as_ref() {
-                            "key" => {
-                                let body = AuthKeyBody::new(value, audit);
-                                future::Either::A(future::Either::A(
-                                    s1.auth_key_verify(body).map(|res| res.data.user_id),
-                                ))
-                            }
-                            "token" => {
-                                let body = AuthTokenBody::new(value, audit);
-                                future::Either::A(future::Either::B(
-                                    s1.auth_token_verify(body).map(|res| res.data.user_id),
-                                ))
-                            }
-                            _ => future::Either::B(future::err(Error::InvalidKeyOrToken)),
-                        })
-                        .and_then(move |user_id| s2.user_read(&user_id))
-                        .map(|res| res.data),
-                )
-            }
-            None => future::Either::B(future::err(Error::InvalidKeyOrToken)),
-        }
     }
 
     /// Authentication local provider login request.
@@ -91,9 +48,14 @@ impl AsyncClient {
         &self,
         body: AuthLoginBody,
     ) -> impl Future<Item = AuthLoginResponse, Error = Error> {
-        AsyncClient::send_response_json::<AuthLoginResponse>(
-            self.post(route::AUTH_LOCAL_LOGIN).json(&body),
-        )
+        self.addr
+            .send(PostJson::new(
+                self.url(),
+                route::AUTH_LOCAL_LOGIN,
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuthLoginResponse>)
     }
 
     /// Authentication local provider reset password request.
@@ -101,7 +63,14 @@ impl AsyncClient {
         &self,
         body: AuthResetPasswordBody,
     ) -> impl Future<Item = (), Error = Error> {
-        AsyncClient::send_response_empty(self.post(route::AUTH_LOCAL_RESET_PASSWORD).json(&body))
+        self.addr
+            .send(PostJson::new(
+                self.url(),
+                route::AUTH_LOCAL_RESET_PASSWORD,
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_empty)
     }
 
     /// Authentication local provider reset password confirm request.
@@ -109,10 +78,14 @@ impl AsyncClient {
         &self,
         body: AuthResetPasswordConfirmBody,
     ) -> impl Future<Item = AuthPasswordMetaResponse, Error = Error> {
-        AsyncClient::send_response_json::<AuthPasswordMetaResponse>(
-            self.post(route::AUTH_LOCAL_RESET_PASSWORD_CONFIRM)
-                .json(&body),
-        )
+        self.addr
+            .send(PostJson::new(
+                self.url(),
+                route::AUTH_LOCAL_RESET_PASSWORD_CONFIRM,
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuthPasswordMetaResponse>)
     }
 
     /// Authentication local provider update email request.
@@ -120,7 +93,14 @@ impl AsyncClient {
         &self,
         body: AuthUpdateEmailBody,
     ) -> impl Future<Item = (), Error = Error> {
-        AsyncClient::send_response_empty(self.post(route::AUTH_LOCAL_UPDATE_EMAIL).json(&body))
+        self.addr
+            .send(PostJson::new(
+                self.url(),
+                route::AUTH_LOCAL_UPDATE_EMAIL,
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_empty)
     }
 
     /// Authentication local provider update email revoke request.
@@ -128,9 +108,14 @@ impl AsyncClient {
         &self,
         body: AuthTokenBody,
     ) -> impl Future<Item = (), Error = Error> {
-        AsyncClient::send_response_empty(
-            self.post(route::AUTH_LOCAL_UPDATE_EMAIL_REVOKE).json(&body),
-        )
+        self.addr
+            .send(PostJson::new(
+                self.url(),
+                route::AUTH_LOCAL_UPDATE_EMAIL_REVOKE,
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_empty)
     }
 
     /// Authentication local provider update password request.
@@ -138,7 +123,14 @@ impl AsyncClient {
         &self,
         body: AuthUpdatePasswordBody,
     ) -> impl Future<Item = (), Error = Error> {
-        AsyncClient::send_response_empty(self.post(route::AUTH_LOCAL_UPDATE_PASSWORD).json(&body))
+        self.addr
+            .send(PostJson::new(
+                self.url(),
+                route::AUTH_LOCAL_UPDATE_PASSWORD,
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_empty)
     }
 
     /// Authentication local provider update password revoke request.
@@ -146,28 +138,42 @@ impl AsyncClient {
         &self,
         body: AuthTokenBody,
     ) -> impl Future<Item = (), Error = Error> {
-        AsyncClient::send_response_empty(
-            self.post(route::AUTH_LOCAL_UPDATE_PASSWORD_REVOKE)
-                .json(&body),
-        )
+        self.addr
+            .send(PostJson::new(
+                self.url(),
+                route::AUTH_LOCAL_UPDATE_PASSWORD_REVOKE,
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_empty)
     }
 
     /// Authentication GitHub provider OAuth2 request.
     pub fn auth_github_oauth2_request(
         &self,
     ) -> impl Future<Item = AuthOauth2UrlResponse, Error = Error> {
-        AsyncClient::send_response_json::<AuthOauth2UrlResponse>(
-            self.post(route::AUTH_GITHUB_OAUTH2),
-        )
+        self.addr
+            .send(PostJson::<Value>::new(
+                self.url(),
+                route::AUTH_GITHUB_OAUTH2,
+                None,
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuthOauth2UrlResponse>)
     }
 
     /// Authentication Microsoft provider OAuth2 request.
     pub fn auth_microsoft_oauth2_request(
         &self,
     ) -> impl Future<Item = AuthOauth2UrlResponse, Error = Error> {
-        AsyncClient::send_response_json::<AuthOauth2UrlResponse>(
-            self.post(route::AUTH_MICROSOFT_OAUTH2),
-        )
+        self.addr
+            .send(PostJson::<Value>::new(
+                self.url(),
+                route::AUTH_MICROSOFT_OAUTH2,
+                None,
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuthOauth2UrlResponse>)
     }
 
     /// Authentication verify key.
@@ -175,14 +181,26 @@ impl AsyncClient {
         &self,
         body: AuthKeyBody,
     ) -> impl Future<Item = AuthKeyResponse, Error = Error> {
-        AsyncClient::send_response_json::<AuthKeyResponse>(
-            self.post(route::AUTH_KEY_VERIFY).json(&body),
-        )
+        self.addr
+            .send(PostJson::new(
+                self.url(),
+                route::AUTH_KEY_VERIFY,
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuthKeyResponse>)
     }
 
     /// Authentication revoke key.
     pub fn auth_key_revoke(&self, body: AuthKeyBody) -> impl Future<Item = (), Error = Error> {
-        AsyncClient::send_response_empty(self.post(route::AUTH_KEY_REVOKE).json(&body))
+        self.addr
+            .send(PostJson::new(
+                self.url(),
+                route::AUTH_KEY_REVOKE,
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_empty)
     }
 
     /// Authentication revoke token.
@@ -190,9 +208,14 @@ impl AsyncClient {
         &self,
         body: AuthTokenBody,
     ) -> impl Future<Item = AuthTokenPartialResponse, Error = Error> {
-        AsyncClient::send_response_json::<AuthTokenPartialResponse>(
-            self.post(route::AUTH_TOKEN_VERIFY).json(&body),
-        )
+        self.addr
+            .send(PostJson::new(
+                self.url(),
+                route::AUTH_TOKEN_VERIFY,
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuthTokenPartialResponse>)
     }
 
     /// Authentication revoke token.
@@ -200,14 +223,26 @@ impl AsyncClient {
         &self,
         body: AuthTokenBody,
     ) -> impl Future<Item = AuthTokenResponse, Error = Error> {
-        AsyncClient::send_response_json::<AuthTokenResponse>(
-            self.post(route::AUTH_TOKEN_REFRESH).json(&body),
-        )
+        self.addr
+            .send(PostJson::new(
+                self.url(),
+                route::AUTH_TOKEN_REFRESH,
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuthTokenResponse>)
     }
 
     /// Authentication revoke token.
     pub fn auth_token_revoke(&self, body: AuthTokenBody) -> impl Future<Item = (), Error = Error> {
-        AsyncClient::send_response_empty(self.post(route::AUTH_TOKEN_REVOKE).json(&body))
+        self.addr
+            .send(PostJson::new(
+                self.url(),
+                route::AUTH_TOKEN_REVOKE,
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_empty)
     }
 
     /// Audit list request.
@@ -215,7 +250,11 @@ impl AsyncClient {
         &self,
         query: AuditListQuery,
     ) -> impl Future<Item = AuditListResponse, Error = Error> {
-        AsyncClient::send_response_json::<AuditListResponse>(self.get_query(route::AUDIT, query))
+        let msg = Get::new(self.url(), route::AUDIT).query(query).unwrap();
+        self.addr
+            .send(msg)
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuditListResponse>)
     }
 
     /// Audit create request.
@@ -223,13 +262,18 @@ impl AsyncClient {
         &self,
         body: AuditCreateBody,
     ) -> impl Future<Item = AuditReadResponse, Error = Error> {
-        AsyncClient::send_response_json::<AuditReadResponse>(self.post(route::AUDIT).json(&body))
+        self.addr
+            .send(PostJson::new(self.url(), route::AUDIT, Some(body)))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuditReadResponse>)
     }
 
     /// Audit read by ID request.
     pub fn audit_read(&self, id: &str) -> impl Future<Item = AuditReadResponse, Error = Error> {
-        let path = route::audit_id(id);
-        AsyncClient::send_response_json::<AuditReadResponse>(self.get(&path))
+        self.addr
+            .send(Get::new(self.url(), route::audit_id(id)))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuditReadResponse>)
     }
 
     /// Key list request.
@@ -237,7 +281,11 @@ impl AsyncClient {
         &self,
         query: KeyListQuery,
     ) -> impl Future<Item = KeyListResponse, Error = Error> {
-        AsyncClient::send_response_json::<KeyListResponse>(self.get_query(route::KEY, query))
+        let msg = Get::new(self.url(), route::KEY).query(query).unwrap();
+        self.addr
+            .send(msg)
+            .map_err(Into::into)
+            .and_then(Client::result_json::<KeyListResponse>)
     }
 
     /// Key create request.
@@ -245,13 +293,18 @@ impl AsyncClient {
         &self,
         body: KeyCreateBody,
     ) -> impl Future<Item = KeyReadResponse, Error = Error> {
-        AsyncClient::send_response_json::<KeyReadResponse>(self.post(route::KEY).json(&body))
+        self.addr
+            .send(PostJson::new(self.url(), route::KEY, Some(body)))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<KeyReadResponse>)
     }
 
     /// Key read request.
     pub fn key_read(&self, id: &str) -> impl Future<Item = KeyReadResponse, Error = Error> {
-        let path = route::key_id(id);
-        AsyncClient::send_response_json::<KeyReadResponse>(self.get(&path))
+        self.addr
+            .send(Get::new(self.url(), route::key_id(id)))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<KeyReadResponse>)
     }
 
     /// Key update request.
@@ -260,14 +313,18 @@ impl AsyncClient {
         id: &str,
         body: KeyUpdateBody,
     ) -> impl Future<Item = KeyReadResponse, Error = Error> {
-        let path = route::key_id(id);
-        AsyncClient::send_response_json::<KeyReadResponse>(self.patch(&path).json(&body))
+        self.addr
+            .send(PatchJson::new(self.url(), route::key_id(id), Some(body)))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<KeyReadResponse>)
     }
 
     /// Key delete request.
     pub fn key_delete(&self, id: &str) -> impl Future<Item = (), Error = Error> {
-        let path = route::key_id(id);
-        AsyncClient::send_response_empty(self.delete(&path))
+        self.addr
+            .send(Delete::new(self.url(), route::key_id(id)))
+            .map_err(Into::into)
+            .and_then(Client::result_empty)
     }
 
     /// Service list request.
@@ -275,9 +332,11 @@ impl AsyncClient {
         &self,
         query: ServiceListQuery,
     ) -> impl Future<Item = ServiceListResponse, Error = Error> {
-        AsyncClient::send_response_json::<ServiceListResponse>(
-            self.get_query(route::SERVICE, query),
-        )
+        let msg = Get::new(self.url(), route::SERVICE).query(query).unwrap();
+        self.addr
+            .send(msg)
+            .map_err(Into::into)
+            .and_then(Client::result_json::<ServiceListResponse>)
     }
 
     /// Service create request.
@@ -285,15 +344,18 @@ impl AsyncClient {
         &self,
         body: ServiceCreateBody,
     ) -> impl Future<Item = ServiceReadResponse, Error = Error> {
-        AsyncClient::send_response_json::<ServiceReadResponse>(
-            self.post(route::SERVICE).json(&body),
-        )
+        self.addr
+            .send(PostJson::new(self.url(), route::SERVICE, Some(body)))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<ServiceReadResponse>)
     }
 
     /// Service read request.
     pub fn service_read(&self, id: &str) -> impl Future<Item = ServiceReadResponse, Error = Error> {
-        let path = route::service_id(id);
-        AsyncClient::send_response_json::<ServiceReadResponse>(self.get(&path))
+        self.addr
+            .send(Get::new(self.url(), route::service_id(id)))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<ServiceReadResponse>)
     }
 
     /// Service update request.
@@ -302,14 +364,22 @@ impl AsyncClient {
         id: &str,
         body: ServiceUpdateBody,
     ) -> impl Future<Item = ServiceReadResponse, Error = Error> {
-        let path = route::service_id(id);
-        AsyncClient::send_response_json::<ServiceReadResponse>(self.patch(&path).json(&body))
+        self.addr
+            .send(PatchJson::new(
+                self.url(),
+                route::service_id(id),
+                Some(body),
+            ))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<ServiceReadResponse>)
     }
 
     /// Service delete request.
     pub fn service_delete(&self, id: &str) -> impl Future<Item = (), Error = Error> {
-        let path = route::service_id(id);
-        AsyncClient::send_response_empty(self.delete(&path))
+        self.addr
+            .send(Delete::new(self.url(), route::service_id(id)))
+            .map_err(Into::into)
+            .and_then(Client::result_empty)
     }
 
     /// User list request.
@@ -317,7 +387,11 @@ impl AsyncClient {
         &self,
         query: UserListQuery,
     ) -> impl Future<Item = UserListResponse, Error = Error> {
-        AsyncClient::send_response_json::<UserListResponse>(self.get_query(route::USER, query))
+        let msg = Get::new(self.url(), route::USER).query(query).unwrap();
+        self.addr
+            .send(msg)
+            .map_err(Into::into)
+            .and_then(Client::result_json::<UserListResponse>)
     }
 
     /// User create request.
@@ -325,13 +399,18 @@ impl AsyncClient {
         &self,
         body: UserCreateBody,
     ) -> impl Future<Item = UserCreateResponse, Error = Error> {
-        AsyncClient::send_response_json::<UserCreateResponse>(self.post(route::USER).json(&body))
+        self.addr
+            .send(PostJson::new(self.url(), route::USER, Some(body)))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<UserCreateResponse>)
     }
 
     /// User read request.
     pub fn user_read(&self, id: &str) -> impl Future<Item = UserReadResponse, Error = Error> {
-        let path = route::user_id(id);
-        AsyncClient::send_response_json::<UserReadResponse>(self.get(&path))
+        self.addr
+            .send(Get::new(self.url(), route::user_id(id)))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<UserReadResponse>)
     }
 
     /// User update request.
@@ -340,65 +419,91 @@ impl AsyncClient {
         id: &str,
         body: UserUpdateBody,
     ) -> impl Future<Item = UserReadResponse, Error = Error> {
-        let path = route::user_id(id);
-        AsyncClient::send_response_json::<UserReadResponse>(self.patch(&path).json(&body))
+        self.addr
+            .send(PatchJson::new(self.url(), route::user_id(id), Some(body)))
+            .map_err(Into::into)
+            .and_then(Client::result_json::<UserReadResponse>)
     }
 
     /// User delete request.
     pub fn user_delete(&self, id: &str) -> impl Future<Item = (), Error = Error> {
-        let path = route::user_id(id);
-        AsyncClient::send_response_empty(self.delete(&path))
-    }
-
-    fn get(&self, path: &str) -> RequestBuilder {
-        let url = self.options.url_path(path).unwrap();
-        self.client.get(url)
-    }
-
-    fn get_query<T: Serialize>(&self, path: &str, query: T) -> RequestBuilder {
-        let url = self.options.url_path_query(path, query).unwrap();
-        self.client.get(url)
-    }
-
-    fn post(&self, path: &str) -> RequestBuilder {
-        let url = self.options.url_path(path).unwrap();
-        self.client.post(url)
-    }
-
-    fn patch(&self, path: &str) -> RequestBuilder {
-        let url = self.options.url_path(path).unwrap();
-        self.client.patch(url)
-    }
-
-    fn delete(&self, path: &str) -> RequestBuilder {
-        let url = self.options.url_path(path).unwrap();
-        self.client.delete(url)
-    }
-
-    fn send(request: RequestBuilder) -> impl Future<Item = Response, Error = Error> {
-        request
-            .send()
+        self.addr
+            .send(Delete::new(self.url(), route::user_id(id)))
             .map_err(Into::into)
-            .and_then(|response| match response.status() {
-                StatusCode::OK => future::ok(response),
-                StatusCode::BAD_REQUEST => future::err(Error::Request(RequestError::BadRequest)),
-                StatusCode::FORBIDDEN => future::err(Error::Request(RequestError::Forbidden)),
-                StatusCode::NOT_FOUND => future::err(Error::Request(RequestError::NotFound)),
-                _ => future::err(Error::Response),
-            })
+            .and_then(Client::result_empty)
+    }
+}
+
+impl AsyncClient {
+    /// Create new client handle.
+    pub fn new<T1: Into<String>>(
+        url: T1,
+        options: ClientOptions,
+        addr: Addr<ClientExecutor>,
+    ) -> Self {
+        AsyncClient {
+            url: url.into(),
+            options,
+            addr,
+        }
     }
 
-    fn send_response_empty(request: RequestBuilder) -> impl Future<Item = (), Error = Error> {
-        AsyncClient::send(request).map(|_| ())
+    /// Returns url reference.
+    pub fn url(&self) -> &str {
+        &self.url
     }
 
-    fn send_response_json<T: DeserializeOwned>(
-        request: RequestBuilder,
-    ) -> impl Future<Item = T, Error = Error> {
-        AsyncClient::send(request).and_then(|mut res| res.json::<T>().map_err(Into::into))
+    /// Clone client with options
+    pub fn with_options(&self, options: ClientOptions) -> Self {
+        Self {
+            url: self.url.clone(),
+            options,
+            addr: self.addr.clone(),
+        }
     }
 
-    fn split_authorisation(type_value: String) -> future::FutureResult<(String, String), Error> {
-        future::result(ClientOptions::split_authorisation(type_value))
+    /// Authenticate user using token or key, returns user if successful.
+    pub fn authenticate(
+        &self,
+        key_or_token: Option<String>,
+        audit: Option<AuditDataRequest>,
+    ) -> impl Future<Item = User, Error = Error> {
+        match key_or_token {
+            Some(key_or_token) => match Client::authorisation_type(key_or_token) {
+                Ok((type_, value)) => {
+                    let s1 = self.clone();
+                    Either::A(Either::A(
+                        self.authenticate_inner(type_, value, audit)
+                            .and_then(move |user_id| s1.user_read(&user_id))
+                            .map(|res| res.data),
+                    ))
+                }
+                Err(e) => Either::A(Either::B(future::err(e))),
+            },
+            None => Either::B(future::err(Error::Forbidden)),
+        }
+    }
+
+    fn authenticate_inner(
+        &self,
+        type_: String,
+        value: String,
+        audit: Option<AuditDataRequest>,
+    ) -> impl Future<Item = String, Error = Error> {
+        match type_.as_ref() {
+            "key" => {
+                let body = AuthKeyBody::new(value, audit);
+                Either::A(Either::A(
+                    self.auth_key_verify(body).map(|res| res.data.user_id),
+                ))
+            }
+            "token" => {
+                let body = AuthTokenBody::new(value, audit);
+                Either::A(Either::B(
+                    self.auth_token_verify(body).map(|res| res.data.user_id),
+                ))
+            }
+            _ => Either::B(future::err(Error::Forbidden)),
+        }
     }
 }

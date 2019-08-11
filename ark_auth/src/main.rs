@@ -179,7 +179,8 @@ fn configure() -> Result<(Box<Driver>, CliOptions), CliError> {
         unimplemented!();
     };
 
-    let client = client::ClientExecutorOptions::new(client::default_user_agent());
+    let client =
+        client::ClientExecutorOptions::new(client::default_user_agent(), None, None).unwrap();
     let notify = notify::NotifyExecutorOptionsBuilder::default()
         .smtp(smtp)
         .build()

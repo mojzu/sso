@@ -12,7 +12,7 @@ macro_rules! key_integration_test {
                     limit: None,
                 })
                 .unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -29,7 +29,7 @@ macro_rules! key_integration_test {
                     limit: None,
                 })
                 .unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -46,7 +46,7 @@ macro_rules! key_integration_test {
                     limit: None,
                 })
                 .unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -63,7 +63,7 @@ macro_rules! key_integration_test {
                     limit: Some("-1".to_owned()),
                 })
                 .unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -161,7 +161,7 @@ macro_rules! key_integration_test {
             let client = client_create(Some(INVALID_SERVICE_KEY));
             let body = KeyCreateBody::new(true, KEY_NAME);
             let res = client.key_create(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -169,7 +169,7 @@ macro_rules! key_integration_test {
         fn api_key_read_forbidden() {
             let client = client_create(Some(INVALID_SERVICE_KEY));
             let res = client.key_read(INVALID_UUID).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::Forbidden));
+            assert_eq!(res, ClientError::Forbidden);
         }
     };
 }

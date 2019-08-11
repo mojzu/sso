@@ -42,6 +42,10 @@ impl Error {
     pub fn url(err: &StdError) -> Error {
         Error::Url(err.description().into())
     }
+
+    pub fn stdio(err: &StdIoError) -> Error {
+        Error::StdIo(err.description().into())
+    }
 }
 
 impl From<ReqwestError> for Error {
@@ -68,11 +72,5 @@ impl From<SerdeJsonError> for Error {
 impl From<ActixMailboxError> for Error {
     fn from(e: ActixMailboxError) -> Error {
         Error::ActixMailbox(e.description().to_owned())
-    }
-}
-
-impl From<StdIoError> for Error {
-    fn from(e: StdIoError) -> Error {
-        Error::StdIo(e.description().to_owned())
     }
 }

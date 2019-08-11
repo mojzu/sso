@@ -18,7 +18,7 @@ pub struct SqliteDriver {
 
 type PooledConnection = r2d2::PooledConnection<ConnectionManager<SqliteConnection>>;
 
-// TODO(refactor): Implement SQLite driver, check unimplemented.
+// TODO(feature): Implement SQLite driver.
 
 impl SqliteDriver {
     /// Initialise driver with connection URL and number of pooled connections.

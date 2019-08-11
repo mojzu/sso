@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate lazy_static;
+
 mod support;
 
 use support::*;
@@ -10,11 +13,11 @@ use support::*;
 // User password is updated.
 // Cannot reuse token.
 
-guide_integration_test!();
-auth_local_integration_test!();
-auth_key_integration_test!();
-auth_token_integration_test!();
 audit_integration_test!();
+auth_key_integration_test!();
+auth_local_integration_test!();
+auth_token_integration_test!();
+guide_integration_test!();
 key_integration_test!();
 service_integration_test!();
 user_integration_test!();
@@ -32,7 +35,7 @@ fn api_ping_ok() {
 fn api_metrics_forbidden() {
     let client = client_create(Some(INVALID_SERVICE_KEY));
     let res = client.metrics().unwrap_err();
-    assert_eq!(res, Error::Request(RequestError::Forbidden));
+    assert_eq!(res, ClientError::Forbidden);
 }
 
 #[test]

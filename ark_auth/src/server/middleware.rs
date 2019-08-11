@@ -124,7 +124,7 @@ where
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
-        // TODO(refactor): Add path as label value (&[req.path()]).
+        // TODO(fix): Add path as label value (&[req.path()]).
         // <https://github.com/actix/actix-web/issues/833>
         let timer = self.latency.with_label_values(&["/"]).start_timer();
         let timer = ok::<HistogramTimer, Self::Error>(timer);

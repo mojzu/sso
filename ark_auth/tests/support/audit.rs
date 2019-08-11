@@ -341,7 +341,7 @@ macro_rules! audit_integration_test {
             let client = client_create(Some(&service_key.value));
 
             let res = client.audit_read(INVALID_UUID).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::NotFound));
+            assert_eq!(res, ClientError::NotFound);
         }
 
         #[test]
@@ -359,7 +359,7 @@ macro_rules! audit_integration_test {
 
             let client = client_create(Some(&service_key2.value));
             let res = client.audit_read(&a1.id).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::NotFound));
+            assert_eq!(res, ClientError::NotFound);
         }
     };
 }

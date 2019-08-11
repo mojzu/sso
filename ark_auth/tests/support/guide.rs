@@ -38,7 +38,7 @@ macro_rules! guide_integration_test {
 
             let body = AuthTokenBody::new(&user_token.refresh_token, None);
             let res = client.auth_token_verify(body).unwrap_err();
-            assert_eq!(res, Error::Request(RequestError::BadRequest));
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
