@@ -14,20 +14,21 @@ use std::str::FromStr;
 #[derive(Debug, Fail)]
 pub enum CliError {
     /// Environment variable parse error.
-    #[fail(display = "CliError::EnvParse {}", _0)]
+    #[fail(display = "CliError:EnvParse {}", _0)]
     EnvParse(String),
     /// Core error wrapper.
-    #[fail(display = "CliError::Core {}", _0)]
+    #[fail(display = "CliError:Core {}", _0)]
     Core(#[fail(cause)] core::Error),
     /// Server error wrapper.
-    #[fail(display = "CliError::Server {}", _0)]
+    #[fail(display = "CliError:Server {}", _0)]
     Server(#[fail(cause)] ServerError),
     /// Standard environment variable error wrapper.
-    #[fail(display = "CliError::StdEnvVar {}", _0)]
+    #[fail(display = "CliError:StdEnvVar {}", _0)]
     StdEnvVar(#[fail(cause)] std::env::VarError),
 }
 
 /// ## Command Line Interface Options
+#[derive(Debug, Clone)]
 pub struct CliOptions {
     client: ClientExecutorOptions,
     notify_threads: usize,

@@ -16,13 +16,13 @@ use serde_json::Value;
 #[derive(Debug, Fail)]
 pub enum DriverError {
     /// Diesel result error wrapper.
-    #[fail(display = "DriverError::Diesel {}", _0)]
+    #[fail(display = "DriverError:Diesel {}", _0)]
     Diesel(#[fail(cause)] diesel::result::Error),
     /// Diesel migrations error wrapper.
-    #[fail(display = "DriverError::DieselMigrations {}", _0)]
+    #[fail(display = "DriverError:DieselMigrations {}", _0)]
     DieselMigrations(#[fail(cause)] diesel_migrations::RunMigrationsError),
     /// R2d2 error wrapper.
-    #[fail(display = "DriverError::R2d2 {}", _0)]
+    #[fail(display = "DriverError:R2d2 {}", _0)]
     R2d2(#[fail(cause)] r2d2::Error),
 }
 

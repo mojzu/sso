@@ -10,16 +10,16 @@ use handlebars::Handlebars;
 #[derive(Debug, Fail)]
 pub enum NotifySmtpError {
     /// Integration disabled.
-    #[fail(display = "SmtpError::Disabled")]
+    #[fail(display = "SmtpError:Disabled")]
     Disabled,
     /// Native TLS error.
-    #[fail(display = "SmtpError::NativeTls {}", _0)]
+    #[fail(display = "SmtpError:NativeTls {}", _0)]
     NativeTls(native_tls::Error),
     /// Lettre email error.
-    #[fail(display = "SmtpError::LettreEmail {}", _0)]
+    #[fail(display = "SmtpError:LettreEmail {}", _0)]
     LettreEmail(lettre_email::error::Error),
     /// Lettre error.
-    #[fail(display = "SmtpError::Lettre {}", _0)]
+    #[fail(display = "SmtpError:Lettre {}", _0)]
     Lettre(lettre::smtp::error::Error),
 }
 
@@ -27,13 +27,13 @@ pub enum NotifySmtpError {
 #[derive(Debug, Fail)]
 pub enum NotifyError {
     /// SMTP error.
-    #[fail(display = "NotifyError::Smtp {}", _0)]
+    #[fail(display = "NotifyError:Smtp {}", _0)]
     Smtp(NotifySmtpError),
     /// Handlebars template error wrapper.
-    #[fail(display = "NotifyError::HandlebarsTemplate {}", _0)]
+    #[fail(display = "NotifyError:HandlebarsTemplate {}", _0)]
     HandlebarsTemplate(#[fail(cause)] handlebars::TemplateError),
     /// Handlebars render error wrapper.
-    #[fail(display = "NotifyError::HandlebarsRender {}", _0)]
+    #[fail(display = "NotifyError:HandlebarsRender {}", _0)]
     HandlebarsRender(#[fail(cause)] handlebars::RenderError),
 }
 

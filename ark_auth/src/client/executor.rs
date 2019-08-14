@@ -1,5 +1,5 @@
 use crate::client::error::Error;
-use crate::client::Client;
+use crate::client::{default_user_agent, Client};
 use actix::prelude::*;
 use http::{header, HeaderMap};
 use reqwest::r#async::{Client as ReqwestClient, ClientBuilder};
@@ -70,6 +70,12 @@ impl ClientExecutorOptions {
     /// Returns reference to client PEM certificate bytes.
     pub fn client_pem(&self) -> Option<&Vec<u8>> {
         self.client_pem.as_ref()
+    }
+}
+
+impl Default for ClientExecutorOptions {
+    fn default() -> Self {
+        ClientExecutorOptions::new(default_user_agent(), None, None).unwrap()
     }
 }
 
