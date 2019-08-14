@@ -5,13 +5,13 @@ pub mod middleware;
 mod route;
 pub mod validate;
 
-pub use error::{Error as ServerError, Oauth2Error as ServerOauth2Error};
-pub use validate::FromJsonValue;
+pub use crate::server::error::{Error as ServerError, Oauth2Error as ServerOauth2Error};
+pub use crate::server::validate::FromJsonValue;
 
 use crate::client::ClientExecutor;
 use crate::notify::NotifyExecutor;
 use crate::server::error::{Error, Oauth2Error};
-use crate::{core, driver};
+use crate::{core, driver::Driver};
 use actix::Addr;
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpResponse, HttpServer};
@@ -166,8 +166,10 @@ impl ServerOptions {
     }
 
     /// Returns rustls server configuration built from options.
-    pub fn rustls_server_config(&self) -> Result<Option<ServerConfig>, Error> {
-        if let Some(rustls_options) = &self.rustls {
+    pub fn rustls_server_config(
+        options: Option<&ServerOptionsRustls>,
+    ) -> Result<Option<ServerConfig>, Error> {
+        if let Some(rustls_options) = options {
             let crt_file = File::open(&rustls_options.crt_pem).map_err(Error::StdIo)?;
             let key_file = File::open(&rustls_options.key_pem).map_err(Error::StdIo)?;
             let crt_file_reader = &mut BufReader::new(crt_file);
@@ -200,7 +202,7 @@ impl ServerOptions {
 /// Server data.
 #[derive(Clone)]
 pub struct Data {
-    driver: Box<driver::Driver>,
+    driver: Box<Driver>,
     options: ServerOptions,
     notify_addr: Addr<NotifyExecutor>,
     client_addr: Addr<ClientExecutor>,
@@ -210,7 +212,7 @@ pub struct Data {
 impl Data {
     /// Create new data.
     pub fn new(
-        driver: Box<driver::Driver>,
+        driver: Box<Driver>,
         options: ServerOptions,
         notify_addr: Addr<NotifyExecutor>,
         client_addr: Addr<ClientExecutor>,
@@ -226,7 +228,7 @@ impl Data {
     }
 
     /// Get reference to driver.
-    pub fn driver(&self) -> &driver::Driver {
+    pub fn driver(&self) -> &Driver {
         self.driver.as_ref()
     }
 
@@ -258,7 +260,7 @@ impl Server {
     /// Start HTTP server.
     pub fn start(
         workers: usize,
-        driver: Box<driver::Driver>,
+        driver: Box<Driver>,
         options: ServerOptions,
         notify_addr: Addr<NotifyExecutor>,
         client_addr: Addr<ClientExecutor>,
@@ -292,7 +294,7 @@ impl Server {
         .workers(workers)
         .server_hostname(options.hostname());
 
-        let rustls_server_config = options.rustls_server_config()?;
+        let rustls_server_config = ServerOptions::rustls_server_config(options.rustls.as_ref())?;
         let server = if let Some(rustls_server_config) = rustls_server_config {
             server.bind_rustls(options.bind(), rustls_server_config)
         } else {
