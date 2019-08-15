@@ -12,7 +12,7 @@ dependencies = ["format"]
 [tasks.postgres-migrations]
 workspace = false
 script = [
-    "(cd ark_auth && DATABASE_URL=\"postgres://guest:guest@postgres:5432/ark_auth\" diesel database reset --migration-dir migrations/postgres)",
+    "(cd ark_auth && DATABASE_URL=\"postgres://ark_auth:guest@localhost:5432/ark_auth\" diesel database reset --migration-dir migrations/postgres)",
 ]
 
 [tasks.sqlite-migrations]
