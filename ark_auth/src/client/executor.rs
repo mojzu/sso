@@ -123,6 +123,13 @@ impl Actor for ClientExecutor {
     type Context = Context<Self>;
 }
 
+pub trait ClientExecutorRequest {
+    /// Set authorisation header on request.
+    fn authorisation<T1: Into<String>>(self, authorisation: T1) -> Self;
+    /// Set forwarded header on request.
+    fn forwarded<T1: Into<String>>(self, forwarded: T1) -> Self;
+}
+
 /// ## Asynchronous Client GET Request
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Get {
@@ -156,15 +163,15 @@ impl Get {
         self.query = Some(query);
         Ok(self)
     }
+}
 
-    /// Set authorisation header on GET request.
-    pub fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
+impl ClientExecutorRequest for Get {
+    fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
         self.authorisation = Some(authorisation.into());
         self
     }
 
-    /// Set forwarded header on GET request.
-    pub fn forwarded<T1: Into<String>>(mut self, forwarded: T1) -> Self {
+    fn forwarded<T1: Into<String>>(mut self, forwarded: T1) -> Self {
         self.forwarded = Some(forwarded.into());
         self
     }
@@ -217,15 +224,15 @@ impl<S: Serialize> PostJson<S> {
             body,
         }
     }
+}
 
-    /// Set authorisation header on GET request.
-    pub fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
+impl<S: Serialize> ClientExecutorRequest for PostJson<S> {
+    fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
         self.authorisation = Some(authorisation.into());
         self
     }
 
-    /// Set forwarded header on GET request.
-    pub fn forwarded<T1: Into<String>>(mut self, forwarded: T1) -> Self {
+    fn forwarded<T1: Into<String>>(mut self, forwarded: T1) -> Self {
         self.forwarded = Some(forwarded.into());
         self
     }
@@ -283,15 +290,15 @@ impl<S: Serialize> PatchJson<S> {
             body,
         }
     }
+}
 
-    /// Set authorisation header on GET request.
-    pub fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
+impl<S: Serialize> ClientExecutorRequest for PatchJson<S> {
+    fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
         self.authorisation = Some(authorisation.into());
         self
     }
 
-    /// Set forwarded header on GET request.
-    pub fn forwarded<T1: Into<String>>(mut self, forwarded: T1) -> Self {
+    fn forwarded<T1: Into<String>>(mut self, forwarded: T1) -> Self {
         self.forwarded = Some(forwarded.into());
         self
     }
@@ -348,15 +355,15 @@ impl Delete {
             forwarded: None,
         }
     }
+}
 
-    /// Set authorisation header on GET request.
-    pub fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
+impl ClientExecutorRequest for Delete {
+    fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
         self.authorisation = Some(authorisation.into());
         self
     }
 
-    /// Set forwarded header on GET request.
-    pub fn forwarded<T1: Into<String>>(mut self, forwarded: T1) -> Self {
+    fn forwarded<T1: Into<String>>(mut self, forwarded: T1) -> Self {
         self.forwarded = Some(forwarded.into());
         self
     }

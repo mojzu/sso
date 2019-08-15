@@ -24,6 +24,60 @@ pub struct SyncClient {
 }
 
 impl SyncClient {
+    /// Create new client.
+    pub fn new<T1: Into<String>>(
+        url: T1,
+        executor_options: ClientExecutorOptions,
+        options: ClientOptions,
+    ) -> Result<Self, Error> {
+        let headers = executor_options.default_headers();
+        let builder = reqwest::ClientBuilder::new()
+            .use_rustls_tls()
+            .default_headers(headers);
+        let builder = match executor_options.crt_pem() {
+            Some(buf) => {
+                let crt_pem = reqwest::Certificate::from_pem(buf).unwrap();
+                builder.add_root_certificate(crt_pem)
+            }
+            None => builder,
+        };
+        let builder = match executor_options.client_pem() {
+            Some(buf) => {
+                let client_pem = reqwest::Identity::from_pem(buf).unwrap();
+                builder.identity(client_pem)
+            }
+            None => builder,
+        };
+        let client = builder.build().unwrap();
+
+        Ok(Self {
+            url: url.into(),
+            options,
+            client,
+        })
+    }
+
+    /// Returns url reference.
+    pub fn url(&self) -> &str {
+        &self.url
+    }
+
+    /// Returns options reference.
+    pub fn options(&self) -> &ClientOptions {
+        &self.options
+    }
+
+    /// Clone client with options.
+    pub fn with_options(&self, options: ClientOptions) -> Self {
+        Self {
+            url: self.url.clone(),
+            options,
+            client: self.client.clone(),
+        }
+    }
+}
+
+impl SyncClient {
     /// Ping request.
     pub fn ping(&self) -> Result<Value, Error> {
         self.get(route::PING)
@@ -296,53 +350,6 @@ impl SyncClient {
 }
 
 impl SyncClient {
-    /// Create new client.
-    pub fn new<T1: Into<String>>(
-        url: T1,
-        executor_options: ClientExecutorOptions,
-        options: ClientOptions,
-    ) -> Result<Self, Error> {
-        let headers = executor_options.default_headers();
-        let builder = reqwest::ClientBuilder::new()
-            .use_rustls_tls()
-            .default_headers(headers);
-        let builder = match executor_options.crt_pem() {
-            Some(buf) => {
-                let crt_pem = reqwest::Certificate::from_pem(buf).unwrap();
-                builder.add_root_certificate(crt_pem)
-            }
-            None => builder,
-        };
-        let builder = match executor_options.client_pem() {
-            Some(buf) => {
-                let client_pem = reqwest::Identity::from_pem(buf).unwrap();
-                builder.identity(client_pem)
-            }
-            None => builder,
-        };
-        let client = builder.build().unwrap();
-
-        Ok(Self {
-            url: url.into(),
-            options,
-            client,
-        })
-    }
-
-    /// Returns url reference.
-    pub fn url(&self) -> &str {
-        &self.url
-    }
-
-    /// Clone client with options.
-    pub fn with_options(&self, options: ClientOptions) -> Self {
-        Self {
-            url: self.url.clone(),
-            options,
-            client: self.client.clone(),
-        }
-    }
-
     /// Authenticate user using token or key, returns user if successful.
     pub fn authenticate(
         &self,

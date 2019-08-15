@@ -10,7 +10,7 @@ mod sync_impl;
 pub use crate::client::async_impl::AsyncClient;
 pub use crate::client::error::Error as ClientError;
 pub use crate::client::executor::{
-    ClientExecutor, ClientExecutorOptions, Delete, Get, PatchJson, PostJson,
+    ClientExecutor, ClientExecutorOptions, ClientExecutorRequest, Delete, Get, PatchJson, PostJson,
 };
 #[cfg(feature = "sync_client")]
 pub use crate::client::sync_impl::SyncClient;
@@ -33,16 +33,15 @@ pub fn default_user_agent() -> String {
 #[derive(Debug, Clone)]
 pub struct ClientOptions {
     authorisation: String,
+    forwarded: String,
 }
 
 impl ClientOptions {
     /// Create new client options.
-    pub fn new<T1>(authorisation: T1) -> Self
-    where
-        T1: Into<String>,
-    {
+    pub fn new<T1: Into<String>>(authorisation: T1) -> Self {
         Self {
             authorisation: authorisation.into(),
+            forwarded: "unknown".to_owned(),
         }
     }
 
@@ -51,9 +50,15 @@ impl ClientOptions {
         &self.authorisation
     }
 
-    /// Set headers on asynchronous request builder.
+    /// Returns forwarded reference.
+    pub fn forwarded(&self) -> &str {
+        &self.forwarded
+    }
+
+    /// Set headers on synchronous request builder.
     pub fn request_headers(&self, req: RequestBuilder) -> RequestBuilder {
         req.header(header::AUTHORIZATION, &self.authorisation)
+            .header(header::FORWARDED, &self.forwarded)
     }
 }
 

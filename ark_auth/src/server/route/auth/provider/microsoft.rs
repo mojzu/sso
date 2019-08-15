@@ -1,4 +1,4 @@
-use crate::client::{Client, Get};
+use crate::client::{Client, ClientExecutorRequest, Get};
 use crate::core;
 use crate::core::audit::AuditBuilder;
 use crate::core::AuditMeta;
