@@ -8,6 +8,7 @@ use ark_auth::{client, driver, driver::Driver, notify, server};
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 
+const ENV_SENTRY_URL: &str = "SENTRY_URL";
 const ENV_DATABASE_URL: &str = "DATABASE_URL";
 const ENV_DATABASE_CONNECTIONS: &str = "DATABASE_CONNECTIONS";
 const ENV_SERVER_HOSTNAME: &str = "SERVER_HOSTNAME";
@@ -40,7 +41,7 @@ fn main() {
     std::env::set_var("RUST_LOG", "info");
 
     // If SENTRY_URL is defined, enable logging and panic handler integration.
-    let _guard = match std::env::var("SENTRY_URL") {
+    let _guard = match std::env::var(ENV_SENTRY_URL) {
         Ok(sentry_url) => {
             let guard = sentry::init(sentry_url);
             let mut options = LoggerOptions::default();

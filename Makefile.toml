@@ -41,7 +41,7 @@ args = ["test", "--", "--ignored"]
 [tasks.manual]
 workspace = false
 script = [
-    "pandoc docs/ark_auth/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/asset/pandoc.css --output=docs/ark_auth.html",
+    "pandoc docs/ark_auth/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/pandoc.css --output=docs/ark_auth.html",
 ]
 
 [tasks.release]

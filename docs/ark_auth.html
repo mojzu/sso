@@ -149,7 +149,16 @@ background-color: #f4f4f4;
 <li><a href="#changelog">Changelog</a><ul>
 <li><a href="#section">0.1.0 (2019-05-16)</a></li>
 <li><a href="#section-1">0.2.0 (2019-07-07)</a></li>
-<li><a href="#unreleased">0.3.0 (unreleased)</a></li>
+<li><a href="#section-2">0.3.0 (2019-08-03)</a></li>
+<li><a href="#unreleased">0.4.0 (unreleased)</a></li>
+</ul></li>
+<li><a href="#developer">Developer</a><ul>
+<li><a href="#tools">Tools</a></li>
+<li><a href="#manual">Manual</a></li>
+<li><a href="#environment">Environment</a></li>
+<li><a href="#database">Database</a></li>
+<li><a href="#test">Test</a></li>
+<li><a href="#build">Build</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -257,15 +266,17 @@ background-color: #f4f4f4;
 <li>Fixed duplicate user email address returned internal server error code.</li>
 <li>Fixed Lettre email error type handling.</li>
 </ul>
-<h2 id="unreleased">0.3.0 (unreleased)</h2>
+<h2 id="section-2">0.3.0 (2019-08-03)</h2>
 <p><strong>Added</strong></p>
 <ul>
-<li>Added email HTML templates, removed template parameters from routes.</li>
-<li>Defined server routes in <code>server::api</code> module.</li>
-<li>Finished client methods.</li>
-<li>Added support for audit list cases <code>gt AND lt</code>, <code>created_gte AND created_lte</code>.</li>
+<li>Improved email templates, removed template parameters from routes.</li>
+<li>Defined server routes and other constants in <code>server::api</code> module.</li>
+<li>Finished synchronous and asynchronous clients.</li>
+<li>Added support for audit list query cases <code>gt AND lt</code>, <code>created_gte AND created_lte</code>.</li>
 <li>Added <code>/v1/metrics</code> endpoint for Prometheus integration.</li>
 <li>Added support for optional audit logs to some authentication endpoints.</li>
+<li>Added TLS configuration support to server and clients.</li>
+<li>Added hostname configuration to server.</li>
 </ul>
 <p><strong>Changed</strong></p>
 <ul>
@@ -273,15 +284,173 @@ background-color: #f4f4f4;
 <li>Moved email handling from <code>server::smtp</code> module to <code>notify</code> module.</li>
 <li>Moved <code>main.rs:Error</code> into <code>cli</code> module, refactored error handling.</li>
 <li>Use <code>Forwarded</code> header instead of <code>X-Forwarded-For</code> for audit logs.</li>
-<li>Rename local authentication provider reset, update routes.</li>
-<li>Improved configuration interface using <code>derive_builder</code> crate.</li>
-<li>Added hostname configuration to server.</li>
-<li>Switched to <code>rustls</code> crate for TLS support in Actix, <code>ssl</code> feature still used for client HTTPS requests.</li>
+<li>Renamed local authentication provider reset, update routes.</li>
+<li>Improved configuration interfaces using <code>derive_builder</code> crate.</li>
 </ul>
 <p><strong>Fixed</strong></p>
 <ul>
-<li>Reset password route returns OK in cases where user email address does not exist.</li>
-<li>Audit log errors created for root key authentication when checking if service key.</li>
+<li>Reset password route now returns OK in cases where user email address does not exist.</li>
+<li>Fixed audit log errors were created for root key authentication when authenticating a service key.</li>
+<li>Fixed internal server errors returned to client when OAuth2 provider is disabled.</li>
 </ul>
+<h2 id="unreleased">0.4.0 (unreleased)</h2>
+<p><strong>Added</strong></p>
+<ul>
+<li>Added some process metrics to Prometheus integration.</li>
+<li>Created asynchronous client actor to handle outgoing HTTP requests.</li>
+</ul>
+<p><strong>Changed</strong></p>
+<ul>
+<li>Changed configuration interfaces to improve consistency.</li>
+<li>Improved server, client modules public interface.</li>
+</ul>
+<h1 id="developer">Developer</h1>
+<h2 id="tools">Tools</h2>
+<p>The ark_auth crate depends on <a href="https://www.postgresql.org/">PostgreSQL</a> and <a href="https://www.sqlite.org/index.html">SQLite</a> libraries, to install them on Debian Linux distributions.</p>
+<pre class="shell"><code>sudo apt install libpq-dev libsqlite3-dev libssl-dev libfuse-dev pkg-config</code></pre>
+<p>Install <a href="https://www.rust-lang.org/">Rust</a> using <a href="https://rustup.rs/">rustup</a>. Check required components are installed..</p>
+<pre class="shell"><code>rustup component add rustfmt
+rustup component add clippy</code></pre>
+<p>To update the toolchain.</p>
+<pre class="shell"><code>rustup self update
+rustup update</code></pre>
+<p>The ark_auth crate depends on <a href="https://github.com/sagiegurari/cargo-make">Cargo Make</a> and <a href="http://diesel.rs/">Diesel</a>, install them with Cargo.</p>
+<pre class="shell"><code>cargo install --force cargo-make
+cargo install --force diesel_cli --no-default-features --features &quot;postgres sqlite&quot;</code></pre>
+<p>To update crate dependencies.</p>
+<pre class="shell"><code>cargo update</code></pre>
+<p><a href="https://docs.docker.com/install/">Docker</a> and <a href="https://docs.docker.com/compose/">Docker Compose</a> are used for development, install them using the linked documentation.</p>
+<p>To start containers defined in <code>docker-compose.yml</code>.</p>
+<pre class="shell"><code>docker-compose up</code></pre>
+<p>To stop containers.</p>
+<pre class="shell"><code>docker-compose down</code></pre>
+<h2 id="manual">Manual</h2>
+<p>This manual is written in <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Markdown</a> and converted into other formats using <a href="https://pandoc.org/">Pandoc</a>.</p>
+<p>To build the HTML manual.</p>
+<pre class="shell"><code>cargo make manual</code></pre>
+<h2 id="environment">Environment</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SENTRY_URL</td>
+<td>Sentry URL for logging integration, optional.</td>
+</tr>
+<tr class="even">
+<td>DATABASE_URL</td>
+<td>Database connection URL, required.</td>
+</tr>
+<tr class="odd">
+<td>DATABASE_CONNECTIONS</td>
+<td>Database connections, optional.</td>
+</tr>
+<tr class="even">
+<td>SERVER_HOSTNAME</td>
+<td>Server hostname, optional.</td>
+</tr>
+<tr class="odd">
+<td>SERVER_BIND</td>
+<td>Server bind address, required.</td>
+</tr>
+<tr class="even">
+<td>SERVER_TLS_CRT_PEM</td>
+<td>Server TLS certificate files, optional.</td>
+</tr>
+<tr class="odd">
+<td>SERVER_TLS_KEY_PEM</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>SERVER_TLS_CLIENT_PEM</td>
+<td>Server mutual TLS authentication, optional.</td>
+</tr>
+<tr class="odd">
+<td>SMTP_HOST</td>
+<td>SMTP server, optional.</td>
+</tr>
+<tr class="even">
+<td>SMTP_PORT</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>SMTP_USER</td>
+<td>…</td>
+</tr>
+<tr class="even">
+<td>SMTP_PASSWORD</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>GITHUB_CLIENT_ID</td>
+<td>GitHub OAuth2 provider, optional.</td>
+</tr>
+<tr class="even">
+<td>GITHUB_CLIENT_SECRET</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>GITHUB_REDIRECT_URL</td>
+<td><code>$server_url/v1/auth/provider/github/oauth2</code></td>
+</tr>
+<tr class="even">
+<td>MICROSOFT_CLIENT_ID</td>
+<td>Microsoft OAuth2 provider, optional.</td>
+</tr>
+<tr class="odd">
+<td>MICROSOFT_CLIENT_SECRET</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>MICROSOFT_REDIRECT_URL</td>
+<td><code>$server_url/v1/auth/provider/microsoft/oauth2</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Linux</strong></p>
+<p>Write <code>export $NAME=&quot;$VALUE&quot;</code> statements to file <code>.env</code> and run <code>source .env</code> to export variables in open terminal. See <code>ark_auth/.env</code> for example.</p>
+<h2 id="database">Database</h2>
+<p>To create <a href="https://www.postgresql.org/">PostgreSQL</a> database migrations.</p>
+<pre class="shell"><code>cargo make postgres-migrations</code></pre>
+<p>To create <a href="https://www.sqlite.org/index.html">SQLite</a> database migrations.</p>
+<pre class="shell"><code>cargo make sqlite-migrations</code></pre>
+<h2 id="test">Test</h2>
+<p>To run unit tests.</p>
+<pre class="shell"><code>cargo make test</code></pre>
+<p>For integration tests, the following environment variables are required.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>TEST_ARK_AUTH_URL</td>
+<td>Server URL.</td>
+</tr>
+<tr class="even">
+<td>TEST_ARK_AUTH_KEY</td>
+<td>Root key value.</td>
+</tr>
+</tbody>
+</table>
+<p>To run integration tests.</p>
+<pre class="shell"><code>cargo make test-integration</code></pre>
+<h2 id="build">Build</h2>
+<p>To build libraries and binaries.</p>
+<pre class="shell"><code>cargo make build
+cargo make release</code></pre>
+<p>To lint source code using <a href="https://github.com/rust-lang/rust-clippy">clippy</a>.</p>
+<pre class="shell"><code>cargo make lint</code></pre>
+<p>To build documentation.</p>
+<pre class="shell"><code>cargo doc --no-deps --open</code></pre>
+<p>To build docker image.</p>
+<pre class="shell"><code>docker-compose build</code></pre>
 </body>
 </html>
