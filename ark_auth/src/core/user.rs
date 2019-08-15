@@ -1,10 +1,10 @@
 use crate::core::audit::AuditBuilder;
 use crate::core::{hash_password, Error, Service, User, UserQuery, DEFAULT_LIMIT};
-use crate::driver;
+use crate::driver::Driver;
 
 /// List users using query.
 pub fn list(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     query: &UserQuery,
@@ -36,7 +36,7 @@ pub fn list(
 /// Create user.
 /// Returns bad request if email address is not unique.
 pub fn create(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     service_mask: Option<&Service>,
     audit: &mut AuditBuilder,
     is_enabled: bool,
@@ -62,7 +62,7 @@ pub fn create(
 
 /// Read user by ID.
 pub fn read_by_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,
@@ -72,7 +72,7 @@ pub fn read_by_id(
 
 /// Read user by email.
 pub fn read_by_email(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     email: &str,
@@ -82,7 +82,7 @@ pub fn read_by_email(
 
 /// Update user by ID.
 pub fn update_by_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,
@@ -96,7 +96,7 @@ pub fn update_by_id(
 
 /// Update user email by ID.
 pub fn update_email_by_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,
@@ -109,7 +109,7 @@ pub fn update_email_by_id(
 
 /// Update user password by ID.
 pub fn update_password_by_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,
@@ -123,7 +123,7 @@ pub fn update_password_by_id(
 
 /// Delete user by ID.
 pub fn delete_by_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,

@@ -6,7 +6,7 @@ pub mod version;
 // TODO(refactor): Feature flag for fuse support.
 pub mod fuse;
 
-use crate::driver;
+use crate::driver::{Driver, Error as DriverError};
 use chrono::{DateTime, Utc};
 
 // TODO(feature): Read protect/write protect disks.
@@ -36,7 +36,7 @@ pub enum Error {
     Unwrap,
     /// Driver error wrapper.
     #[fail(display = "CoreError::Driver {}", _0)]
-    Driver(#[fail(cause)] driver::Error),
+    Driver(#[fail(cause)] DriverError),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -145,11 +145,11 @@ pub struct Data {
     pub version_id: String,
 }
 
-pub fn status(driver: &driver::Driver) -> Result<Status, Error> {
+pub fn status(driver: &dyn Driver) -> Result<Status, Error> {
     driver.status().map_err(Error::Driver)
 }
 
-pub fn poll(driver: &driver::Driver, vacuum: bool) -> Result<(), Error> {
+pub fn poll(driver: &dyn Driver, vacuum: bool) -> Result<(), Error> {
     let disks = self::disk::list(driver)?;
     for (_i, disk) in disks.into_iter().enumerate() {
         if disk.options.version_retention > 0 {

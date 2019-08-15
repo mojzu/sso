@@ -1,5 +1,5 @@
 use crate::core::{Audit, AuditMeta, AuditQuery, Error, Key, Service, User, DEFAULT_LIMIT};
-use crate::driver;
+use crate::driver::Driver;
 use chrono::Utc;
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -164,12 +164,7 @@ impl AuditBuilder {
     }
 
     /// Create audit log from internal parameters.
-    pub fn create(
-        &self,
-        driver: &driver::Driver,
-        path: &str,
-        data: &Value,
-    ) -> Result<Audit, Error> {
+    pub fn create(&self, driver: &dyn Driver, path: &str, data: &Value) -> Result<Audit, Error> {
         create(
             driver,
             &self.meta,
@@ -184,12 +179,7 @@ impl AuditBuilder {
 
     /// Create audit log from internal parameters.
     /// In case of error, log as warning and return None.
-    pub fn create_unchecked(
-        &self,
-        driver: &driver::Driver,
-        path: &str,
-        data: &Value,
-    ) -> Option<Audit> {
+    pub fn create_unchecked(&self, driver: &dyn Driver, path: &str, data: &Value) -> Option<Audit> {
         match self.create(driver, path, data) {
             Ok(audit) => Some(audit),
             Err(err) => {
@@ -203,7 +193,7 @@ impl AuditBuilder {
     /// In case of error, log as warning and return None.
     pub fn create_internal(
         &self,
-        driver: &driver::Driver,
+        driver: &dyn Driver,
         path: AuditPath,
         data: AuditMessage,
     ) -> Option<Audit> {
@@ -228,7 +218,7 @@ impl AuditBuilder {
 
 /// List audit IDs.
 pub fn list(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     query: &AuditQuery,
@@ -266,7 +256,7 @@ pub fn list(
 
 /// Create one audit log.
 pub fn create(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     meta: &AuditMeta,
     path: &str,
     data: &Value,
@@ -282,7 +272,7 @@ pub fn create(
 
 /// Create one audit log.
 pub fn create_internal(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     meta: &AuditMeta,
     path: AuditPath,
     data: AuditMessage,
@@ -301,7 +291,7 @@ pub fn create_internal(
 
 /// Read audit by ID.
 pub fn read_by_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,
@@ -312,7 +302,7 @@ pub fn read_by_id(
 }
 
 /// Delete many audit logs older than days.
-pub fn delete_by_age(driver: &driver::Driver, days: usize) -> Result<usize, Error> {
+pub fn delete_by_age(driver: &dyn Driver, days: usize) -> Result<usize, Error> {
     let days: i64 = 0 - days as i64;
     let created_at = Utc::now() + Duration::days(days);
     match driver.audit_delete_by_created_at(&created_at) {

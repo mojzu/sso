@@ -7,5 +7,9 @@
 
 **Changed**
 
-- Changed configuration interfaces to improve consistency.
-- Improved server, client modules public interface.
+- Renamed configuration structures to options to improve consistency.
+- Improved server, client modules public interfaces.
+
+**Fixed**
+
+- Fixed missing `dyn` keyword warnings.

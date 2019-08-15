@@ -115,7 +115,7 @@ impl SqliteDriver {
 }
 
 impl Driver for SqliteDriver {
-    fn box_clone(&self) -> Box<Driver> {
+    fn box_clone(&self) -> Box<dyn Driver> {
         Box::new((*self).clone())
     }
 

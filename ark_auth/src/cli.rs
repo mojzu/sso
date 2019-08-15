@@ -224,20 +224,20 @@ pub fn audit_builder() -> core::audit::AuditBuilder {
 }
 
 /// Create a root key.
-pub fn create_root_key(driver: Box<Driver>, name: &str) -> Result<core::Key, CliError> {
+pub fn create_root_key(driver: Box<dyn Driver>, name: &str) -> Result<core::Key, CliError> {
     let mut audit = audit_builder();
     core::key::create_root(driver.as_ref(), &mut audit, true, name).map_err(CliError::Core)
 }
 
 /// Delete all root keys.
-pub fn delete_root_keys(driver: Box<Driver>) -> Result<usize, CliError> {
+pub fn delete_root_keys(driver: Box<dyn Driver>) -> Result<usize, CliError> {
     let mut audit = audit_builder();
     core::key::delete_root(driver.as_ref(), &mut audit).map_err(CliError::Core)
 }
 
 /// Create a service with service key.
 pub fn create_service_with_key(
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     name: &str,
     url: &str,
 ) -> Result<(core::Service, core::Key), CliError> {
@@ -251,7 +251,7 @@ pub fn create_service_with_key(
 
 /// Start server.
 /// Starts notify and client actors, and HTTP server.
-pub fn start_server(driver: Box<Driver>, options: CliOptions) -> Result<(), CliError> {
+pub fn start_server(driver: Box<dyn Driver>, options: CliOptions) -> Result<(), CliError> {
     let system = System::new(crate_name!());
 
     let client_options = options.client().clone();

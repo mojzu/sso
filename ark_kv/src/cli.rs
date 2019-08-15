@@ -53,14 +53,14 @@ where
     }
 }
 
-pub fn secret_key_create(_driver: Box<Driver>, secret_key: &str) -> Result<String, Error> {
+pub fn secret_key_create(_driver: Box<dyn Driver>, secret_key: &str) -> Result<String, Error> {
     let secret_key_path = Path::new(secret_key);
     core::DiskEncryption::new(1)
         .write_to_file(secret_key_path)
         .map_err(Error::Core)
 }
 
-pub fn secret_key_verify(_driver: Box<Driver>, secret_key: &str) -> Result<bool, Error> {
+pub fn secret_key_verify(_driver: Box<dyn Driver>, secret_key: &str) -> Result<bool, Error> {
     let secret_key_path = Path::new(secret_key);
     core::DiskEncryption::read_from_file(secret_key_path)
         .map_err(Error::Core)?
@@ -68,20 +68,20 @@ pub fn secret_key_verify(_driver: Box<Driver>, secret_key: &str) -> Result<bool,
         .map_err(Error::Core)
 }
 
-pub fn status(driver: Box<Driver>) -> Result<core::Status, Error> {
+pub fn status(driver: Box<dyn Driver>) -> Result<core::Status, Error> {
     core::status(driver.as_ref()).map_err(Error::Core)
 }
 
-pub fn disk_list(driver: Box<Driver>) -> Result<Vec<core::Disk>, Error> {
+pub fn disk_list(driver: Box<dyn Driver>) -> Result<Vec<core::Disk>, Error> {
     core::disk::list(driver.as_ref()).map_err(Error::Core)
 }
 
-pub fn disk_status(driver: Box<Driver>, disk: &str) -> Result<core::DiskStatus, Error> {
+pub fn disk_status(driver: Box<dyn Driver>, disk: &str) -> Result<core::DiskStatus, Error> {
     core::disk::status(driver.as_ref(), disk).map_err(Error::Core)
 }
 
 pub fn disk_create(
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     disk: &str,
     secret_key: &str,
     version_retention: Option<&str>,
@@ -111,7 +111,7 @@ pub fn disk_create(
 }
 
 pub fn disk_read_to_directory(
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     disk: &str,
     secret_key: &str,
     d: &str,
@@ -141,14 +141,18 @@ pub fn disk_read_to_directory(
 }
 
 pub fn disk_read_to_stdout(
-    _driver: Box<Driver>,
+    _driver: Box<dyn Driver>,
     _disk: &str,
     _secret_key: &str,
 ) -> Result<(), Error> {
     unimplemented!();
 }
 
-pub fn disk_write_from_directory(driver: Box<Driver>, disk: &str, d: &str) -> Result<(), Error> {
+pub fn disk_write_from_directory(
+    driver: Box<dyn Driver>,
+    disk: &str,
+    d: &str,
+) -> Result<(), Error> {
     let directory_prefix = Path::new(d).canonicalize().unwrap();
     let glob_path = Path::new(d).join("**/*");
     let pattern = glob_path.to_str().unwrap();
@@ -178,26 +182,30 @@ pub fn disk_write_from_directory(driver: Box<Driver>, disk: &str, d: &str) -> Re
     Ok(())
 }
 
-pub fn disk_write_from_stdin(_driver: Box<Driver>, _disk: &str) -> Result<(), Error> {
+pub fn disk_write_from_stdin(_driver: Box<dyn Driver>, _disk: &str) -> Result<(), Error> {
     unimplemented!();
 }
 
-pub fn disk_delete(driver: Box<Driver>, disk: &str) -> Result<usize, Error> {
+pub fn disk_delete(driver: Box<dyn Driver>, disk: &str) -> Result<usize, Error> {
     core::disk::delete(driver.as_ref(), disk).map_err(Error::Core)
 }
 
-pub fn key_list(driver: Box<Driver>, disk: &str) -> Result<Vec<core::Key>, Error> {
+pub fn key_list(driver: Box<dyn Driver>, disk: &str) -> Result<Vec<core::Key>, Error> {
     let disk = core::disk::read_by_name(driver.as_ref(), disk).map_err(Error::Core)?;
     core::key::list(driver.as_ref(), &disk).map_err(Error::Core)
 }
 
-pub fn key_status(driver: Box<Driver>, disk: &str, key: &str) -> Result<core::KeyStatus, Error> {
+pub fn key_status(
+    driver: Box<dyn Driver>,
+    disk: &str,
+    key: &str,
+) -> Result<core::KeyStatus, Error> {
     let disk = core::disk::read_by_name(driver.as_ref(), disk).map_err(Error::Core)?;
     core::key::status(driver.as_ref(), &disk, key).map_err(Error::Core)
 }
 
 pub fn key_read_to_file(
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     disk: &str,
     key: &str,
     secret_key: &str,
@@ -211,7 +219,7 @@ pub fn key_read_to_file(
 }
 
 pub fn key_read_to_stdout(
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     disk: &str,
     key: &str,
     secret_key: &str,
@@ -224,7 +232,7 @@ pub fn key_read_to_stdout(
 }
 
 pub fn key_write_from_string(
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     disk: &str,
     key: &str,
     s: &str,
@@ -235,7 +243,7 @@ pub fn key_write_from_string(
 }
 
 pub fn key_write_from_file(
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     disk: &str,
     key: &str,
     f: &str,
@@ -248,7 +256,7 @@ pub fn key_write_from_file(
 }
 
 pub fn key_write_from_stdin(
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     disk: &str,
     key: &str,
 ) -> Result<(core::Key, core::Version), Error> {
@@ -259,7 +267,7 @@ pub fn key_write_from_stdin(
 }
 
 pub fn key_verify_from_string(
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     disk: &str,
     key: &str,
     secret_key: &str,
@@ -273,7 +281,7 @@ pub fn key_verify_from_string(
 }
 
 pub fn key_verify_from_file(
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     disk: &str,
     key: &str,
     secret_key: &str,
@@ -288,7 +296,7 @@ pub fn key_verify_from_file(
 }
 
 pub fn key_verify_from_stdin(
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     disk: &str,
     key: &str,
     secret_key: &str,
@@ -301,13 +309,13 @@ pub fn key_verify_from_stdin(
         .map_err(Error::Core)
 }
 
-pub fn key_delete(driver: Box<Driver>, disk: &str, key: &str) -> Result<usize, Error> {
+pub fn key_delete(driver: Box<dyn Driver>, disk: &str, key: &str) -> Result<usize, Error> {
     let disk = core::disk::read_by_name(driver.as_ref(), disk).map_err(Error::Core)?;
     core::key::delete(driver.as_ref(), &disk, key).map_err(Error::Core)
 }
 
 pub fn version_list(
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     disk: &str,
     key: &str,
 ) -> Result<Vec<core::Version>, Error> {
@@ -316,11 +324,11 @@ pub fn version_list(
     core::version::list(driver.as_ref(), &key).map_err(Error::Core)
 }
 
-pub fn poll(driver: Box<Driver>, vacuum: bool) -> Result<(), Error> {
+pub fn poll(driver: Box<dyn Driver>, vacuum: bool) -> Result<(), Error> {
     core::poll(driver.as_ref(), vacuum).map_err(Error::Core)
 }
 
-pub fn mount(driver: Box<Driver>, disk: &str, mountpoint: &str) -> Result<(), Error> {
+pub fn mount(driver: Box<dyn Driver>, disk: &str, mountpoint: &str) -> Result<(), Error> {
     core::fuse::mount(driver.as_ref(), disk, mountpoint).map_err(Error::Core)
 }
 

@@ -158,7 +158,7 @@ impl PostgresDriver {
 }
 
 impl Driver for PostgresDriver {
-    fn box_clone(&self) -> Box<Driver> {
+    fn box_clone(&self) -> Box<dyn Driver> {
         Box::new((*self).clone())
     }
 

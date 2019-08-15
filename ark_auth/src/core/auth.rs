@@ -8,7 +8,7 @@ use crate::notify::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword, N
 use actix::Addr;
 
 pub fn login(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     email: &str,
@@ -46,7 +46,7 @@ pub fn login(
 /// Reset user password via email request. In case of an error this function
 /// returns Ok to prevent the caller from inferring the existence of a user.
 pub fn reset_password(
-    driver: &Driver,
+    driver: &dyn Driver,
     notify: &Addr<NotifyExecutor>,
     service: &Service,
     audit: &mut AuditBuilder,
@@ -58,7 +58,7 @@ pub fn reset_password(
 }
 
 fn reset_password_inner(
-    driver: &Driver,
+    driver: &dyn Driver,
     notify: &Addr<NotifyExecutor>,
     service: &Service,
     audit: &mut AuditBuilder,
@@ -100,7 +100,7 @@ fn reset_password_inner(
 }
 
 pub fn reset_password_confirm(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
@@ -165,7 +165,7 @@ pub fn reset_password_confirm(
 }
 
 pub fn update_email(
-    driver: &Driver,
+    driver: &dyn Driver,
     notify: &Addr<NotifyExecutor>,
     service: &Service,
     audit: &mut AuditBuilder,
@@ -236,7 +236,7 @@ pub fn update_email(
 }
 
 pub fn update_email_revoke(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
@@ -308,7 +308,7 @@ pub fn update_email_revoke(
 }
 
 pub fn update_password(
-    driver: &Driver,
+    driver: &dyn Driver,
     notify: &Addr<NotifyExecutor>,
     service: &Service,
     audit: &mut AuditBuilder,
@@ -387,7 +387,7 @@ pub fn update_password(
 }
 
 pub fn update_password_revoke(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
@@ -464,7 +464,7 @@ pub fn update_password_revoke(
 }
 
 pub fn key_verify(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     key: &str,
@@ -494,7 +494,7 @@ pub fn key_verify(
 }
 
 pub fn key_revoke(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     key: &str,
@@ -523,7 +523,7 @@ pub fn key_revoke(
 }
 
 pub fn token_verify(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
@@ -575,7 +575,7 @@ pub fn token_verify(
 }
 
 pub fn token_refresh(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
@@ -636,7 +636,7 @@ pub fn token_refresh(
 }
 
 pub fn token_revoke(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     token: &str,
@@ -695,7 +695,7 @@ pub fn token_revoke(
 
 /// OAuth2 user login.
 pub fn oauth2_login(
-    driver: &Driver,
+    driver: &dyn Driver,
     service_id: &str,
     audit: &mut AuditBuilder,
     email: &str,
@@ -729,7 +729,7 @@ pub fn oauth2_login(
 /// Read service by ID.
 /// Also checks service is enabled, returns bad request if disabled.
 fn service_read_by_id(
-    driver: &Driver,
+    driver: &dyn Driver,
     service_id: &str,
     audit: &mut AuditBuilder,
     audit_path: AuditPath,
@@ -757,7 +757,7 @@ fn service_read_by_id(
 /// Read user by ID.
 /// Checks user is enabled, returns bad request if disabled.
 fn user_read_by_id(
-    driver: &Driver,
+    driver: &dyn Driver,
     service_mask: Option<&Service>,
     audit: &mut AuditBuilder,
     audit_path: AuditPath,
@@ -783,7 +783,7 @@ fn user_read_by_id(
 /// Unchecked read user by ID.
 /// Does not check user is enabled.
 fn user_read_by_id_unchecked(
-    driver: &Driver,
+    driver: &dyn Driver,
     service_mask: Option<&Service>,
     audit: &mut AuditBuilder,
     audit_path: AuditPath,
@@ -805,7 +805,7 @@ fn user_read_by_id_unchecked(
 /// Read user by email address.
 /// Also checks user is enabled, returns bad request if disabled.
 fn user_read_by_email(
-    driver: &Driver,
+    driver: &dyn Driver,
     service_mask: Option<&Service>,
     audit: &mut AuditBuilder,
     audit_path: AuditPath,
@@ -832,7 +832,7 @@ fn user_read_by_email(
 /// Read key by user reference.
 /// Also checks key is enabled and not revoked, returns bad request if disabled.
 fn key_read_by_user(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     audit_path: AuditPath,
@@ -858,7 +858,7 @@ fn key_read_by_user(
 /// Unchecked read key by user reference.
 /// Does not check key is enabled or not revoked.
 fn key_read_by_user_unchecked(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     audit_path: AuditPath,
@@ -880,7 +880,7 @@ fn key_read_by_user_unchecked(
 /// Read key by user value.
 /// Also checks key is enabled and not revoked, returns bad request if disabled.
 fn key_read_by_user_value(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     audit_path: AuditPath,
@@ -907,7 +907,7 @@ fn key_read_by_user_value(
 /// Unchecked read key by user value.
 /// Does not check key is enabled and not revoked.
 fn key_read_by_user_value_unchecked(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     audit_path: AuditPath,
@@ -929,7 +929,7 @@ fn key_read_by_user_value_unchecked(
 
 /// Get user ID from valid key or token.
 fn key_or_token_verify(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
     key: Option<&str>,
@@ -952,7 +952,7 @@ fn key_or_token_verify(
 
 /// Build user token by encoding access and refresh tokens.
 fn encode_user_token(
-    driver: &Driver,
+    driver: &dyn Driver,
     service: &Service,
     user: &User,
     key: &Key,
@@ -986,14 +986,14 @@ fn encode_user_token(
 }
 
 /// Create a new CSRF key, value pair using random UUID.
-fn csrf_create(driver: &Driver, service: &Service, token_expires: i64) -> Result<Csrf, Error> {
+fn csrf_create(driver: &dyn Driver, service: &Service, token_expires: i64) -> Result<Csrf, Error> {
     let csrf_key = uuid::Uuid::new_v4().to_simple().to_string();
     core::csrf::create(driver, service, &csrf_key, &csrf_key, token_expires)
 }
 
 /// Check a CSRF key is valid by reading it, this will also delete the key.
 fn csrf_check(
-    driver: &Driver,
+    driver: &dyn Driver,
     csrf_key: &str,
     audit: &AuditBuilder,
     audit_path: AuditPath,

@@ -8,7 +8,7 @@ pub mod metrics;
 pub mod service;
 pub mod user;
 
-use crate::driver;
+use crate::driver::DriverError;
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -28,7 +28,7 @@ pub enum Error {
     Forbidden,
     /// Driver error wrapper.
     #[fail(display = "CoreError::Driver {}", _0)]
-    Driver(#[fail(cause)] driver::DriverError),
+    Driver(#[fail(cause)] DriverError),
     /// Bcrypt error wrapper.
     #[fail(display = "CoreError::Bcrypt {}", _0)]
     Bcrypt(#[fail(cause)] bcrypt::BcryptError),

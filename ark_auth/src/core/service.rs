@@ -1,11 +1,11 @@
 use crate::core::audit::AuditBuilder;
 use crate::core::{Error, Service, ServiceQuery, DEFAULT_LIMIT};
-use crate::driver;
+use crate::driver::Driver;
 use url::Url;
 
 /// List services using query.
 pub fn list(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _audit: &mut AuditBuilder,
     query: &ServiceQuery,
 ) -> Result<Vec<String>, Error> {
@@ -28,7 +28,7 @@ pub fn list(
 
 /// Create service.
 pub fn create(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _audit: &mut AuditBuilder,
     is_enabled: bool,
     name: &str,
@@ -42,7 +42,7 @@ pub fn create(
 
 /// Read service by ID.
 pub fn read_by_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,
@@ -52,7 +52,7 @@ pub fn read_by_id(
 
 /// Update service by ID.
 pub fn update_by_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,
@@ -66,7 +66,7 @@ pub fn update_by_id(
 
 /// Delete service by ID.
 pub fn delete_by_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,

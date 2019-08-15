@@ -202,7 +202,7 @@ impl ServerOptions {
 /// Server data.
 #[derive(Clone)]
 pub struct Data {
-    driver: Box<Driver>,
+    driver: Box<dyn Driver>,
     options: ServerOptions,
     notify_addr: Addr<NotifyExecutor>,
     client_addr: Addr<ClientExecutor>,
@@ -212,7 +212,7 @@ pub struct Data {
 impl Data {
     /// Create new data.
     pub fn new(
-        driver: Box<Driver>,
+        driver: Box<dyn Driver>,
         options: ServerOptions,
         notify_addr: Addr<NotifyExecutor>,
         client_addr: Addr<ClientExecutor>,
@@ -228,7 +228,7 @@ impl Data {
     }
 
     /// Get reference to driver.
-    pub fn driver(&self) -> &Driver {
+    pub fn driver(&self) -> &dyn Driver {
         self.driver.as_ref()
     }
 
@@ -260,7 +260,7 @@ impl Server {
     /// Start HTTP server.
     pub fn start(
         workers: usize,
-        driver: Box<Driver>,
+        driver: Box<dyn Driver>,
         options: ServerOptions,
         notify_addr: Addr<NotifyExecutor>,
         client_addr: Addr<ClientExecutor>,

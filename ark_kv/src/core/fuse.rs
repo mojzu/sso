@@ -1,7 +1,7 @@
 use crate::core::Error;
 use crate::driver::Driver;
 
-pub fn mount(_driver: &Driver, _disk: &str, _mountpoint: &str) -> Result<(), Error> {
+pub fn mount(_driver: &dyn Driver, _disk: &str, _mountpoint: &str) -> Result<(), Error> {
     unimplemented!();
 }
 

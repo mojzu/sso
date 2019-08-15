@@ -6,7 +6,7 @@ use std::io::{Read, Write};
 
 // TODO(refactor): Improve arguments consistency.
 
-pub fn list(driver: &Driver, disk: &Disk) -> Result<Vec<Key>, Error> {
+pub fn list(driver: &dyn Driver, disk: &Disk) -> Result<Vec<Key>, Error> {
     let id_list = driver
         .key_list_where_name_gte("", None, 65536, &disk.id)
         .map_err(Error::Driver)?;
@@ -18,46 +18,46 @@ pub fn list(driver: &Driver, disk: &Disk) -> Result<Vec<Key>, Error> {
     Ok(key_list)
 }
 
-pub fn status(driver: &Driver, disk: &Disk, key: &str) -> Result<KeyStatus, Error> {
+pub fn status(driver: &dyn Driver, disk: &Disk, key: &str) -> Result<KeyStatus, Error> {
     let key = read_by_name(driver, disk, key)?;
     driver.key_status_by_id(&key.id).map_err(Error::Driver)
 }
 
-pub fn create(driver: &Driver, disk: &Disk, key: &str) -> Result<Key, Error> {
+pub fn create(driver: &dyn Driver, disk: &Disk, key: &str) -> Result<Key, Error> {
     driver.key_create(key, &disk.id).map_err(Error::Driver)
 }
 
-pub fn read_by_id(driver: &Driver, id: &str) -> Result<Key, Error> {
+pub fn read_by_id(driver: &dyn Driver, id: &str) -> Result<Key, Error> {
     read_opt_by_id(driver, id).and_then(|x| x.ok_or_else(|| Error::Unwrap))
 }
 
-pub fn read_opt_by_id(driver: &Driver, id: &str) -> Result<Option<Key>, Error> {
+pub fn read_opt_by_id(driver: &dyn Driver, id: &str) -> Result<Option<Key>, Error> {
     driver.key_read_by_id(id).map_err(Error::Driver)
 }
 
-pub fn read_by_name(driver: &Driver, disk: &Disk, key: &str) -> Result<Key, Error> {
+pub fn read_by_name(driver: &dyn Driver, disk: &Disk, key: &str) -> Result<Key, Error> {
     read_opt_by_name(driver, disk, key).and_then(|x| x.ok_or_else(|| Error::Unwrap))
 }
 
-pub fn read_opt_by_name(driver: &Driver, disk: &Disk, key: &str) -> Result<Option<Key>, Error> {
+pub fn read_opt_by_name(driver: &dyn Driver, disk: &Disk, key: &str) -> Result<Option<Key>, Error> {
     driver
         .key_read_by_name(key, &disk.id)
         .map_err(Error::Driver)
 }
 
-pub fn update_version(driver: &Driver, key: &Key, version: &Version) -> Result<usize, Error> {
+pub fn update_version(driver: &dyn Driver, key: &Key, version: &Version) -> Result<usize, Error> {
     driver
         .key_update_by_id(&key.id, None, Some(&version.id))
         .map_err(Error::Driver)
 }
 
-pub fn delete(driver: &Driver, disk: &Disk, key: &str) -> Result<usize, Error> {
+pub fn delete(driver: &dyn Driver, disk: &Disk, key: &str) -> Result<usize, Error> {
     let key = read_by_name(driver, disk, key)?;
     driver.key_delete_by_id(&key.id).map_err(Error::Driver)
 }
 
 pub fn read<W: Write>(
-    driver: &Driver,
+    driver: &dyn Driver,
     disk: &str,
     key: &str,
     disk_encryption: &DiskEncryption,
@@ -101,7 +101,7 @@ pub fn read<W: Write>(
 }
 
 pub fn write<R: Read>(
-    driver: &Driver,
+    driver: &dyn Driver,
     disk: &str,
     key_name: &str,
     input: &mut R,
@@ -151,7 +151,7 @@ pub fn write<R: Read>(
 }
 
 pub fn verify<R: Read>(
-    _driver: &Driver,
+    _driver: &dyn Driver,
     _disk: &str,
     _key_name: &str,
     _disk_encryption: &DiskEncryption,

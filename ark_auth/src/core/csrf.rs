@@ -1,11 +1,11 @@
 use crate::core::{Csrf, Error, Service};
-use crate::driver;
+use crate::driver::Driver;
 use chrono::Utc;
 use time::Duration;
 
 /// Create one CSRF key, value pair with time to live in seconds. Key must be unique.
 pub fn create(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     service: &Service,
     key: &str,
     value: &str,
@@ -20,7 +20,7 @@ pub fn create(
 }
 
 /// Read one CSRF key, value pair. CSRF key, value pair is deleted after one read.
-pub fn read_by_key(driver: &driver::Driver, key: &str) -> Result<Option<Csrf>, Error> {
+pub fn read_by_key(driver: &dyn Driver, key: &str) -> Result<Option<Csrf>, Error> {
     delete_by_ttl(driver)?;
 
     driver
@@ -35,7 +35,7 @@ pub fn read_by_key(driver: &driver::Driver, key: &str) -> Result<Option<Csrf>, E
 }
 
 /// Delete many CSRF key, value pairs that have expired using.
-fn delete_by_ttl(driver: &driver::Driver) -> Result<usize, Error> {
+fn delete_by_ttl(driver: &dyn Driver) -> Result<usize, Error> {
     let now = Utc::now();
     match driver.csrf_delete_by_ttl(&now) {
         Ok(count) => Ok(count),

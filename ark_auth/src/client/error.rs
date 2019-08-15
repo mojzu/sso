@@ -39,7 +39,7 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn url(err: &StdError) -> Error {
+    pub fn url(err: &dyn StdError) -> Error {
         Error::Url(err.description().into())
     }
 

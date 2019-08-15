@@ -510,7 +510,7 @@ fn main() {
     }
 }
 
-fn configure() -> Result<Box<Driver>, cli::Error> {
+fn configure() -> Result<Box<dyn Driver>, cli::Error> {
     let database_url =
         cli::env_string_opt(ENV_DATABASE_URL).unwrap_or_else(|| "db.sqlite3".to_owned());
     let database_connections = cli::env_value_opt::<u32>(ENV_DATABASE_CONNECTIONS)?;

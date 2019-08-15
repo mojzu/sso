@@ -1,6 +1,6 @@
 use crate::core::audit::AuditBuilder;
 use crate::core::{Error, Service};
-use crate::driver;
+use crate::driver::Driver;
 use prometheus::{Counter, Encoder, IntCounter, IntCounterVec, Opts, Registry, TextEncoder};
 use std::sync::Mutex;
 use sysinfo::{ProcessExt, System, SystemExt};
@@ -43,7 +43,7 @@ pub fn sysinfo_encoded() -> Result<String, Error> {
 }
 
 pub fn read(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     registry: &Registry,

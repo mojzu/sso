@@ -141,7 +141,7 @@ fn main() {
     }
 }
 
-fn configure() -> Result<(Box<Driver>, CliOptions), CliError> {
+fn configure() -> Result<(Box<dyn Driver>, CliOptions), CliError> {
     let database_url = env_string(ENV_DATABASE_URL)?;
     let database_connections = env_value_opt::<u32>(ENV_DATABASE_CONNECTIONS)?;
     let server_hostname =

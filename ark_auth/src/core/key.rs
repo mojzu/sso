@@ -1,7 +1,7 @@
 use crate::core::audit::{AuditBuilder, AuditMessage, AuditPath};
 use crate::core::service::read_by_id as service_read_by_id;
 use crate::core::{AuditMeta, Error, Key, KeyQuery, Service, User, DEFAULT_LIMIT};
-use crate::driver;
+use crate::driver::Driver;
 
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
 // TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
@@ -9,7 +9,7 @@ use crate::driver;
 
 /// Authenticate root key.
 pub fn authenticate_root(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     audit_meta: AuditMeta,
     key_value: Option<String>,
 ) -> Result<AuditBuilder, Error> {
@@ -45,7 +45,7 @@ pub fn authenticate_root(
 
 /// Authenticate service key.
 pub fn authenticate_service(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     audit_meta: AuditMeta,
     key_value: Option<String>,
 ) -> Result<(Service, AuditBuilder), Error> {
@@ -92,7 +92,7 @@ pub fn authenticate_service(
 
 /// Authenticate service or root key.
 pub fn authenticate(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     audit_meta: AuditMeta,
     key_value: Option<String>,
 ) -> Result<(Option<Service>, AuditBuilder), Error> {
@@ -113,7 +113,7 @@ pub fn authenticate(
 /// This is used in cases where a key may be a service or root key, audit logs will be created by root key
 /// handler in case the key does not exist or is invalid.
 fn try_authenticate_service(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     audit_meta: AuditMeta,
     key_value: Option<String>,
 ) -> Result<(Service, AuditBuilder), Error> {
@@ -129,7 +129,7 @@ fn try_authenticate_service(
 }
 
 fn authenticate_service_inner(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     mut audit: AuditBuilder,
     service_id: &str,
 ) -> Result<(Service, AuditBuilder), Error> {
@@ -153,7 +153,7 @@ fn authenticate_service_inner(
 
 /// List keys using query.
 pub fn list(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     query: &KeyQuery,
@@ -178,7 +178,7 @@ pub fn list(
 
 /// Create root key.
 pub fn create_root(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _audit: &mut AuditBuilder,
     is_enabled: bool,
     name: &str,
@@ -191,7 +191,7 @@ pub fn create_root(
 
 /// Create service key.
 pub fn create_service(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _audit: &mut AuditBuilder,
     is_enabled: bool,
     name: &str,
@@ -205,7 +205,7 @@ pub fn create_service(
 
 /// Create user key.
 pub fn create_user(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _audit: &mut AuditBuilder,
     is_enabled: bool,
     name: &str,
@@ -227,7 +227,7 @@ pub fn create_user(
 
 /// Read key by ID.
 pub fn read_by_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,
@@ -237,7 +237,7 @@ pub fn read_by_id(
 
 /// Read key by user.
 pub fn read_by_user(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     service: &Service,
     _audit: &mut AuditBuilder,
     user: &User,
@@ -249,7 +249,7 @@ pub fn read_by_user(
 
 /// Read key by value (root only).
 pub fn read_by_root_value(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _audit: &mut AuditBuilder,
     value: &str,
 ) -> Result<Option<Key>, Error> {
@@ -258,7 +258,7 @@ pub fn read_by_root_value(
 
 /// Read key by value (services only).
 pub fn read_by_service_value(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _audit: &mut AuditBuilder,
     value: &str,
 ) -> Result<Option<Key>, Error> {
@@ -269,7 +269,7 @@ pub fn read_by_service_value(
 
 /// Read key by value (users only).
 pub fn read_by_user_value(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     service: &Service,
     _audit: &mut AuditBuilder,
     value: &str,
@@ -281,7 +281,7 @@ pub fn read_by_user_value(
 
 /// Update key by ID.
 pub fn update_by_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,
@@ -296,7 +296,7 @@ pub fn update_by_id(
 
 /// Update many keys by user ID.
 pub fn update_many_by_user_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     user_id: &str,
@@ -311,7 +311,7 @@ pub fn update_many_by_user_id(
 
 /// Delete key by ID.
 pub fn delete_by_id(
-    driver: &driver::Driver,
+    driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     id: &str,
@@ -320,6 +320,6 @@ pub fn delete_by_id(
 }
 
 /// Delete all root keys.
-pub fn delete_root(driver: &driver::Driver, _audit: &mut AuditBuilder) -> Result<usize, Error> {
+pub fn delete_root(driver: &dyn Driver, _audit: &mut AuditBuilder) -> Result<usize, Error> {
     driver.key_delete_root().map_err(Error::Driver)
 }

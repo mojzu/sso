@@ -29,7 +29,7 @@ pub enum DriverError {
 /// ## Driver Interface
 pub trait Driver: Send + Sync {
     /// Return a boxed trait containing clone of self.
-    fn box_clone(&self) -> Box<Driver>;
+    fn box_clone(&self) -> Box<dyn Driver>;
 
     /// List audit logs where ID is less than.
     fn audit_list_where_id_lt(
@@ -282,8 +282,8 @@ pub trait Driver: Send + Sync {
     fn user_delete_by_id(&self, id: &str) -> Result<usize, DriverError>;
 }
 
-impl Clone for Box<Driver> {
-    fn clone(&self) -> Box<Driver> {
+impl Clone for Box<dyn Driver> {
+    fn clone(&self) -> Box<dyn Driver> {
         self.box_clone()
     }
 }

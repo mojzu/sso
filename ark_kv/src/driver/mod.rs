@@ -25,7 +25,7 @@ pub enum Error {
 /// Driver trait.
 pub trait Driver: Send + Sync {
     /// Return a boxed trait containing clone of self.
-    fn box_clone(&self) -> Box<Driver>;
+    fn box_clone(&self) -> Box<dyn Driver>;
 
     /// Get status information.
     fn status(&self) -> Result<Status, Error>;
@@ -113,8 +113,8 @@ pub trait Driver: Send + Sync {
     fn data_read_by_chunk(&self, chunk: i64, version_id: &str) -> Result<Option<Data>, Error>;
 }
 
-impl Clone for Box<Driver> {
-    fn clone(&self) -> Box<Driver> {
+impl Clone for Box<dyn Driver> {
+    fn clone(&self) -> Box<dyn Driver> {
         self.box_clone()
     }
 }
