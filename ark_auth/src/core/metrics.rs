@@ -28,7 +28,7 @@ pub fn sysinfo_encoded() -> Result<String, Error> {
     registry
         .register(Box::new(cpu_usage_counter.clone()))
         .unwrap();
-    cpu_usage_counter.inc_by(p.cpu_usage() as f64);
+    cpu_usage_counter.inc_by(f64::from(p.cpu_usage()));
 
     let memory_counter = IntCounter::new(
         "process_resident_memory_bytes",
