@@ -20,6 +20,7 @@ const ENV_SMTP_HOST: &str = "SMTP_HOST";
 const ENV_SMTP_PORT: &str = "SMTP_PORT";
 const ENV_SMTP_USER: &str = "SMTP_USER";
 const ENV_SMTP_PASSWORD: &str = "SMTP_PASSWORD";
+const ENV_PASSWORD_PWNED_ENABLED: &str = "PASSWORD_PWNED_ENABLED";
 const ENV_GITHUB_CLIENT_ID: &str = "GITHUB_CLIENT_ID";
 const ENV_GITHUB_CLIENT_SECRET: &str = "GITHUB_CLIENT_SECRET";
 const ENV_GITHUB_REDIRECT_URL: &str = "GITHUB_REDIRECT_URL";
@@ -153,6 +154,8 @@ fn configure() -> Result<(Box<dyn Driver>, CliOptions), CliError> {
         ENV_SMTP_USER,
         ENV_SMTP_PASSWORD,
     )?;
+    let password_pwned_enabled =
+        env_value_opt::<bool>(ENV_PASSWORD_PWNED_ENABLED)?.unwrap_or(false);
     let github = server::ServerOptionsProvider::new(env_oauth2(
         ENV_GITHUB_CLIENT_ID,
         ENV_GITHUB_CLIENT_SECRET,
@@ -189,7 +192,7 @@ fn configure() -> Result<(Box<dyn Driver>, CliOptions), CliError> {
     let server = server::ServerOptionsBuilder::default()
         .hostname(server_hostname)
         .bind(server_bind)
-        .password_pwned_enabled(true)
+        .password_pwned_enabled(password_pwned_enabled)
         .provider(server::ServerOptionsProviderGroup::new(github, microsoft))
         .rustls(rustls)
         .build()

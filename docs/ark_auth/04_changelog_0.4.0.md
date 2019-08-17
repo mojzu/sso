@@ -4,6 +4,7 @@
 
 - Added some process metrics to Prometheus integration.
 - Created asynchronous client actor to handle outgoing HTTP requests.
+- Added environment variable `PASSWORD_PWNED_ENABLED` to enable pwned passwords integration.
 
 **Changed**
 
