@@ -1,6 +1,6 @@
-pub mod github;
-pub mod local;
-pub mod microsoft;
+mod github;
+mod local;
+mod microsoft;
 
 use crate::core;
 use crate::server::api::path;

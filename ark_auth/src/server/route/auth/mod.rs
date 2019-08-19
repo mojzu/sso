@@ -1,6 +1,6 @@
-pub mod key;
-pub mod provider;
-pub mod token;
+mod key;
+mod provider;
+mod token;
 
 use crate::client::Get;
 use crate::server::api::{path, AuthPasswordMeta};
