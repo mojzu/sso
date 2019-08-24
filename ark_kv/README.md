@@ -2,11 +2,11 @@
 
 Encrypted key, value storage library and binary crate.
 
--   **Asymmetric encryption**, key value data is encrypted, reads require a secret key.
--   **Compression**, key value data is compressed to reduce disk use.
--   **Integrity**, key value data is hashed on write, hash is checked on read.
--   **Versioning**, key value writes are versioned.
--   **Retention**, key value version retention is configurable (number of versions and/or duration of time).
+- **Asymmetric encryption**, key value data is encrypted, reads require a secret key.
+- **Compression**, key value data is compressed to reduce disk use.
+- **Integrity**, key value data is hashed on write, hash is checked on read.
+- **Versioning**, key value writes are versioned.
+- **Retention**, key value version retention is configurable (number of versions and/or duration of time).
 
 ## CLI
 
@@ -232,3 +232,8 @@ diff -r /home/$USER/archive /home/$USER/archive2
 ark_kv read disk documents ~/ark.key --directory /home/$USER/documents2
 diff -r /home/$USER/documents /home/$USER/documents2
 ```
+
+## References
+
+- <https://en.wikipedia.org/wiki/Directed_acyclic_graph>
+- <https://github.com/zerotier/lf>
