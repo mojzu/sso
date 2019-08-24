@@ -2,18 +2,14 @@
 
 ## Tools
 
-The ark_auth crate depends on [PostgreSQL](https://www.postgresql.org/) and [SQLite](https://www.sqlite.org/index.html) libraries, to install them on Debian Linux distributions.
+The ark_auth crate depends on [PostgreSQL](https://www.postgresql.org/) and [SQLite](https://www.sqlite.org/index.html) libraries.
 
 ```shell
+# Install on Ubuntu.
 sudo apt install libpq-dev libsqlite3-dev libssl-dev libfuse-dev pkg-config
 ```
 
-Install [Rust](https://www.rust-lang.org/) using [rustup](https://rustup.rs/). Check required components are installed..
-
-```shell
-rustup component add rustfmt
-rustup component add clippy
-```
+Install [Rust](https://www.rust-lang.org/) using [rustup](https://rustup.rs/).
 
 To update the toolchain.
 
