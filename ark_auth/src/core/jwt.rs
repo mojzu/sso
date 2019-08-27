@@ -3,14 +3,24 @@ use jsonwebtoken::{dangerous_unsafe_decode, decode, encode, Header, Validation};
 
 #[derive(Debug)]
 pub enum ClaimsType {
-    AccessToken = 0,
-    RefreshToken = 1,
-    ResetPasswordToken = 2,
-    UpdateEmailRevokeToken = 3,
-    UpdatePasswordRevokeToken = 4,
+    AccessToken,
+    RefreshToken,
+    ResetPasswordToken,
+    UpdateEmailRevokeToken,
+    UpdatePasswordRevokeToken,
 }
 
 impl ClaimsType {
+    pub fn to_i64(&self) -> i64 {
+        match self {
+            ClaimsType::AccessToken => 0,
+            ClaimsType::RefreshToken => 1,
+            ClaimsType::ResetPasswordToken => 2,
+            ClaimsType::UpdateEmailRevokeToken => 3,
+            ClaimsType::UpdatePasswordRevokeToken => 4,
+        }
+    }
+
     pub fn from_i64(value: i64) -> Result<Self, Error> {
         match value {
             0 => Ok(ClaimsType::AccessToken),
@@ -40,7 +50,7 @@ impl Claims {
             iss: iss.to_owned(),
             sub: sub.to_owned(),
             exp,
-            x_type: x_type as i64,
+            x_type: x_type.to_i64(),
             x_csrf: x_csrf.map(|x| x.to_owned()),
         }
     }
@@ -105,7 +115,7 @@ fn decode_token_claims(
     let validation = Claims::validation(service_id, user_id);
     let data =
         decode::<Claims>(token, key_value.as_bytes(), &validation).map_err(Error::Jsonwebtoken)?;
-    if data.claims.x_type != x_type as i64 {
+    if data.claims.x_type != x_type.to_i64() {
         return Err(Error::BadRequest);
     }
     Ok(data.claims)

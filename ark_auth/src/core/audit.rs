@@ -278,8 +278,8 @@ pub fn read_by_id(
 }
 
 /// Delete many audit logs older than days.
-pub fn delete_by_age(driver: &dyn Driver, days: usize) -> Result<usize, Error> {
-    let days: i64 = 0 - days as i64;
+pub fn delete_by_age(driver: &dyn Driver, days: i64) -> Result<usize, Error> {
+    let days: i64 = 0 - days;
     let created_at = Utc::now() + Duration::days(days);
     match driver.audit_delete_by_created_at(&created_at) {
         Ok(count) => Ok(count),

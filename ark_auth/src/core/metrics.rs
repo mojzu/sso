@@ -1,8 +1,9 @@
-use crate::core::audit::AuditBuilder;
-use crate::core::{Error, Service};
-use crate::driver::Driver;
+use crate::{
+    core::{audit::AuditBuilder, Error, Service},
+    driver::Driver,
+};
 use prometheus::{Counter, Encoder, IntCounter, IntCounterVec, Opts, Registry, TextEncoder};
-use std::sync::Mutex;
+use std::{convert::TryInto, sync::Mutex};
 use sysinfo::{ProcessExt, System, SystemExt};
 
 lazy_static! {
@@ -36,8 +37,8 @@ pub fn sysinfo_encoded() -> Result<String, Error> {
     )
     .unwrap();
     registry.register(Box::new(memory_counter.clone())).unwrap();
-    let memory_bytes = p.memory() * 1024;
-    memory_counter.inc_by(memory_bytes as i64);
+    let memory_bytes: i64 = (p.memory() * 1024).try_into().map_err(|_e| Error::Cast)?;
+    memory_counter.inc_by(memory_bytes);
 
     encode_registry(&registry)
 }
