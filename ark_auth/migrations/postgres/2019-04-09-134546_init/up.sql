@@ -1,7 +1,7 @@
 CREATE TABLE auth_service (
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL,
-    service_id VARCHAR NOT NULL,
+    service_id UUID NOT NULL,
     service_is_enabled BOOLEAN NOT NULL,
     service_name VARCHAR NOT NULL,
     service_url VARCHAR NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE auth_service (
 CREATE TABLE auth_user (
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL,
-    user_id VARCHAR NOT NULL,
+    user_id UUID NOT NULL,
     user_is_enabled BOOLEAN NOT NULL,
     user_name VARCHAR NOT NULL,
     user_email VARCHAR NOT NULL,
@@ -23,13 +23,13 @@ CREATE TABLE auth_user (
 CREATE TABLE auth_key (
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL,
-    key_id VARCHAR NOT NULL,
+    key_id UUID NOT NULL,
     key_is_enabled BOOLEAN NOT NULL,
     key_is_revoked BOOLEAN NOT NULL,
     key_name VARCHAR NOT NULL,
     key_value VARCHAR NOT NULL,
-    service_id VARCHAR,
-    user_id VARCHAR,
+    service_id UUID,
+    user_id UUID,
     PRIMARY KEY (key_id),
     CONSTRAINT uq_auth_key_value UNIQUE(key_value),
     CONSTRAINT fk_auth_key_service
@@ -47,7 +47,7 @@ CREATE TABLE auth_csrf (
     csrf_key VARCHAR NOT NULL,
     csrf_value VARCHAR NOT NULL,
     csrf_ttl TIMESTAMPTZ NOT NULL,
-    service_id VARCHAR NOT NULL,
+    service_id UUID NOT NULL,
     PRIMARY KEY (csrf_key),
     CONSTRAINT fk_auth_csrf_service
         FOREIGN KEY (service_id)
@@ -57,16 +57,16 @@ CREATE TABLE auth_csrf (
 
 CREATE TABLE auth_audit (
     created_at TIMESTAMPTZ NOT NULL,
-    audit_id VARCHAR NOT NULL,
+    audit_id UUID NOT NULL,
     audit_user_agent VARCHAR NOT NULL,
     audit_remote VARCHAR NOT NULL,
     audit_forwarded VARCHAR,
     audit_path VARCHAR NOT NULL,
     audit_data JSONB NOT NULL,
-    key_id VARCHAR,
-    service_id VARCHAR,
-    user_id VARCHAR,
-    user_key_id VARCHAR,
+    key_id UUID,
+    service_id UUID,
+    user_id UUID,
+    user_key_id UUID,
     PRIMARY KEY (audit_id),
     CONSTRAINT fk_auth_audit_key
         FOREIGN KEY (key_id)

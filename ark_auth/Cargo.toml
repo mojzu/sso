@@ -28,7 +28,7 @@ bcrypt = "*"
 clap = "*"
 chrono = { version = "*", features = ["serde"] }
 derive_builder = "*"
-diesel = { version = "*", features = ["postgres", "sqlite", "r2d2", "chrono", "serde_json"] }
+diesel = { version = "*", features = ["postgres", "sqlite", "r2d2", "chrono", "serde_json", "uuidv07"] }
 diesel_migrations = { version = "*", features = ["postgres", "sqlite"] }
 env_logger = "*"
 failure = "*"
@@ -55,7 +55,7 @@ serde_urlencoded = "*"
 sha-1 = "*"
 sysinfo = "*"
 url = "^1.7.2"
-uuid = { version = "*", features = ["v4"] }
+uuid = { version = "^0.7.4", features = ["v4"] }
 time = "*"
 validator = "*"
 validator_derive = "*"

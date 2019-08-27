@@ -2,6 +2,7 @@ use crate::core;
 use crate::driver::postgres::schema::{auth_audit, auth_csrf, auth_key, auth_service, auth_user};
 use chrono::{DateTime, Utc};
 use serde_json::Value;
+use uuid::Uuid;
 
 #[derive(Debug, Identifiable, Queryable)]
 #[table_name = "auth_service"]
@@ -9,7 +10,7 @@ use serde_json::Value;
 pub struct AuthService {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
-    pub service_id: String,
+    pub service_id: Uuid,
     pub service_is_enabled: bool,
     pub service_name: String,
     pub service_url: String,
@@ -33,7 +34,7 @@ impl From<AuthService> for core::Service {
 pub struct AuthServiceInsert<'a> {
     pub created_at: &'a DateTime<Utc>,
     pub updated_at: &'a DateTime<Utc>,
-    pub service_id: &'a str,
+    pub service_id: Uuid,
     pub service_is_enabled: bool,
     pub service_name: &'a str,
     pub service_url: &'a str,
