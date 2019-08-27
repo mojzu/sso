@@ -55,7 +55,7 @@ serde_urlencoded = "*"
 sha-1 = "*"
 sysinfo = "*"
 url = "^1.7.2"
-uuid = { version = "^0.7.4", features = ["v4"] }
+uuid = { version = "^0.7.4", features = ["v4", "serde"] }
 time = "*"
 validator = "*"
 validator_derive = "*"

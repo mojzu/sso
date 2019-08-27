@@ -13,6 +13,7 @@ use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
 use url::Url;
+use uuid::Uuid;
 
 /// Default list limit.
 pub const DEFAULT_LIMIT: i64 = 50;
@@ -44,16 +45,16 @@ pub enum Error {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Audit {
     pub created_at: DateTime<Utc>,
-    pub id: String,
+    pub id: Uuid,
     pub user_agent: String,
     pub remote: String,
     pub forwarded: Option<String>,
     pub path: String,
     pub data: Value,
-    pub key_id: Option<String>,
-    pub service_id: Option<String>,
-    pub user_id: Option<String>,
-    pub user_key_id: Option<String>,
+    pub key_id: Option<Uuid>,
+    pub service_id: Option<Uuid>,
+    pub user_id: Option<Uuid>,
+    pub user_key_id: Option<Uuid>,
 }
 
 /// Audit metadata, HTTP request information.
@@ -99,10 +100,10 @@ pub struct AuditCreate<'a> {
     pub meta: &'a AuditMeta,
     pub path: &'a str,
     pub data: &'a Value,
-    pub key_id: Option<&'a str>,
-    pub service_id: Option<&'a str>,
-    pub user_id: Option<&'a str>,
-    pub user_key_id: Option<&'a str>,
+    pub key_id: Option<Uuid>,
+    pub service_id: Option<Uuid>,
+    pub user_id: Option<Uuid>,
+    pub user_key_id: Option<Uuid>,
 }
 
 impl<'a> AuditCreate<'a> {
@@ -111,10 +112,10 @@ impl<'a> AuditCreate<'a> {
         meta: &'a AuditMeta,
         path: &'a str,
         data: &'a Value,
-        key_id: Option<&'a str>,
-        service_id: Option<&'a str>,
-        user_id: Option<&'a str>,
-        user_key_id: Option<&'a str>,
+        key_id: Option<Uuid>,
+        service_id: Option<Uuid>,
+        user_id: Option<Uuid>,
+        user_key_id: Option<Uuid>,
     ) -> Self {
         Self {
             meta,
@@ -131,11 +132,11 @@ impl<'a> AuditCreate<'a> {
 /// Audit list query.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuditQuery {
-    pub gt: Option<String>,
-    pub lt: Option<String>,
+    pub gt: Option<Uuid>,
+    pub lt: Option<Uuid>,
     pub created_gte: Option<DateTime<Utc>>,
     pub created_lte: Option<DateTime<Utc>>,
-    pub offset_id: Option<String>,
+    pub offset_id: Option<Uuid>,
     pub limit: Option<i64>,
 }
 
@@ -153,7 +154,7 @@ pub struct Csrf {
     pub key: String,
     pub value: String,
     pub ttl: DateTime<Utc>,
-    pub service_id: String,
+    pub service_id: Uuid,
 }
 
 /// Key.
@@ -161,20 +162,20 @@ pub struct Csrf {
 pub struct Key {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
-    pub id: String,
+    pub id: Uuid,
     pub is_enabled: bool,
     pub is_revoked: bool,
     pub name: String,
     pub value: String,
-    pub service_id: Option<String>,
-    pub user_id: Option<String>,
+    pub service_id: Option<Uuid>,
+    pub user_id: Option<Uuid>,
 }
 
 /// Key query.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeyQuery {
-    pub gt: Option<String>,
-    pub lt: Option<String>,
+    pub gt: Option<Uuid>,
+    pub lt: Option<Uuid>,
     pub limit: Option<i64>,
 }
 
@@ -183,7 +184,7 @@ pub struct KeyQuery {
 pub struct Service {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
-    pub id: String,
+    pub id: Uuid,
     pub is_enabled: bool,
     pub name: String,
     pub url: String,
@@ -203,8 +204,8 @@ impl Service {
 /// Service query.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ServiceQuery {
-    pub gt: Option<String>,
-    pub lt: Option<String>,
+    pub gt: Option<Uuid>,
+    pub lt: Option<Uuid>,
     pub limit: Option<i64>,
 }
 
@@ -213,7 +214,7 @@ pub struct ServiceQuery {
 pub struct User {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
-    pub id: String,
+    pub id: Uuid,
     pub is_enabled: bool,
     pub name: String,
     pub email: String,
@@ -224,8 +225,8 @@ pub struct User {
 /// User query.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserQuery {
-    pub gt: Option<String>,
-    pub lt: Option<String>,
+    pub gt: Option<Uuid>,
+    pub lt: Option<Uuid>,
     pub limit: Option<i64>,
     pub email_eq: Option<String>,
 }
@@ -233,7 +234,7 @@ pub struct UserQuery {
 /// User token.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserToken {
-    pub user_id: String,
+    pub user_id: Uuid,
     pub access_token: String,
     pub access_token_expires: i64,
     pub refresh_token: String,
@@ -243,7 +244,7 @@ pub struct UserToken {
 /// Partial user token.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserTokenPartial {
-    pub user_id: String,
+    pub user_id: Uuid,
     pub access_token: String,
     pub access_token_expires: i64,
 }
@@ -251,7 +252,7 @@ pub struct UserTokenPartial {
 /// User key.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserKey {
-    pub user_id: String,
+    pub user_id: Uuid,
     pub key: String,
 }
 

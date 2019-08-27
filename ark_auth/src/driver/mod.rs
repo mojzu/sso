@@ -10,6 +10,7 @@ pub use crate::driver::postgres::PostgresDriver;
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::SqliteDriver;
 use chrono::{DateTime, Utc};
+use uuid::Uuid;
 
 /// ## Driver Errors
 #[derive(Debug, Fail)]
@@ -223,17 +224,17 @@ pub trait Driver: Send + Sync {
     fn service_delete_by_id(&self, id: &str) -> Result<usize, DriverError>;
 
     /// List users where ID is less than.
-    fn user_list_where_id_lt(&self, lt: &str, limit: i64) -> Result<Vec<String>, DriverError>;
+    fn user_list_where_id_lt(&self, lt: Uuid, limit: i64) -> Result<Vec<Uuid>, DriverError>;
 
     /// List users where ID is greater than.
-    fn user_list_where_id_gt(&self, gt: &str, limit: i64) -> Result<Vec<String>, DriverError>;
+    fn user_list_where_id_gt(&self, gt: Uuid, limit: i64) -> Result<Vec<Uuid>, DriverError>;
 
     /// List users where email is equal.
     fn user_list_where_email_eq(
         &self,
         email_eq: &str,
         limit: i64,
-    ) -> Result<Vec<String>, DriverError>;
+    ) -> Result<Vec<Uuid>, DriverError>;
 
     /// Create user.
     fn user_create(
@@ -245,7 +246,7 @@ pub trait Driver: Send + Sync {
     ) -> Result<User, DriverError>;
 
     /// Read user by ID.
-    fn user_read_by_id(&self, id: &str) -> Result<Option<User>, DriverError>;
+    fn user_read_by_id(&self, id: Uuid) -> Result<Option<User>, DriverError>;
 
     /// Read user by email address.
     fn user_read_by_email(&self, email: &str) -> Result<Option<User>, DriverError>;
@@ -253,23 +254,23 @@ pub trait Driver: Send + Sync {
     /// Update user by ID.
     fn user_update_by_id(
         &self,
-        id: &str,
+        id: Uuid,
         is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<User, DriverError>;
 
     /// Update user email by ID.
-    fn user_update_email_by_id(&self, id: &str, email: &str) -> Result<usize, DriverError>;
+    fn user_update_email_by_id(&self, id: Uuid, email: &str) -> Result<usize, DriverError>;
 
     /// Update user password by ID.
     fn user_update_password_by_id(
         &self,
-        id: &str,
+        id: Uuid,
         password_hash: &str,
     ) -> Result<usize, DriverError>;
 
     /// Delete user by ID.
-    fn user_delete_by_id(&self, id: &str) -> Result<usize, DriverError>;
+    fn user_delete_by_id(&self, id: Uuid) -> Result<usize, DriverError>;
 }
 
 impl Clone for Box<dyn Driver> {
