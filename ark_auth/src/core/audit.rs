@@ -1,5 +1,7 @@
-use crate::core::{Audit, AuditMeta, AuditQuery, Error, Key, Service, User, DEFAULT_LIMIT};
-use crate::driver::Driver;
+use crate::{
+    core::{Audit, AuditCreate, AuditMeta, AuditQuery, Error, Key, Service, User, DEFAULT_LIMIT},
+    driver::Driver,
+};
 use chrono::Utc;
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -165,8 +167,7 @@ impl AuditBuilder {
 
     /// Create audit log from internal parameters.
     pub fn create(&self, driver: &dyn Driver, path: &str, data: &Value) -> Result<Audit, Error> {
-        create(
-            driver,
+        let data = AuditCreate::new(
             &self.meta,
             path,
             data,
@@ -174,7 +175,8 @@ impl AuditBuilder {
             self.service.as_ref().map(|x| &**x),
             self.user.as_ref().map(|x| &**x),
             self.user_key.as_ref().map(|x| &**x),
-        )
+        );
+        create(driver, &data)
     }
 
     /// Create audit log from internal parameters.
@@ -197,16 +199,20 @@ impl AuditBuilder {
         path: AuditPath,
         data: AuditMessage,
     ) -> Option<Audit> {
-        match create_internal(
-            driver,
+        let path = path.to_string();
+        let data: AuditMessageObject<AuditMessage> = data.into();
+        let data = serde_json::to_value(data).unwrap();
+        let audit_data = AuditCreate::new(
             &self.meta,
-            path,
-            data,
+            &path,
+            &data,
             self.key.as_ref().map(|x| &**x),
             self.service.as_ref().map(|x| &**x),
             self.user.as_ref().map(|x| &**x),
             self.user_key.as_ref().map(|x| &**x),
-        ) {
+        );
+
+        match create(driver, &audit_data) {
             Ok(audit) => Some(audit),
             Err(err) => {
                 warn!("{}", err);
@@ -255,38 +261,8 @@ pub fn list(
 }
 
 /// Create one audit log.
-pub fn create(
-    driver: &dyn Driver,
-    meta: &AuditMeta,
-    path: &str,
-    data: &Value,
-    key: Option<&str>,
-    service: Option<&str>,
-    user: Option<&str>,
-    user_key: Option<&str>,
-) -> Result<Audit, Error> {
-    driver
-        .audit_create(meta, path, data, key, service, user, user_key)
-        .map_err(Error::Driver)
-}
-
-/// Create one audit log.
-pub fn create_internal(
-    driver: &dyn Driver,
-    meta: &AuditMeta,
-    path: AuditPath,
-    data: AuditMessage,
-    key: Option<&str>,
-    service: Option<&str>,
-    user: Option<&str>,
-    user_key: Option<&str>,
-) -> Result<Audit, Error> {
-    let path = path.to_string();
-    let data: AuditMessageObject<AuditMessage> = data.into();
-    let data = serde_json::to_value(data).unwrap();
-    driver
-        .audit_create(meta, &path, &data, key, service, user, user_key)
-        .map_err(Error::Driver)
+pub fn create(driver: &dyn Driver, data: &AuditCreate) -> Result<Audit, Error> {
+    driver.audit_create(data).map_err(Error::Driver)
 }
 
 /// Read audit by ID.

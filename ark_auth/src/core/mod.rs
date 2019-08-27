@@ -91,6 +91,40 @@ impl AuditMeta {
     }
 }
 
+/// Audit create data.
+pub struct AuditCreate<'a> {
+    pub meta: &'a AuditMeta,
+    pub path: &'a str,
+    pub data: &'a Value,
+    pub key_id: Option<&'a str>,
+    pub service_id: Option<&'a str>,
+    pub user_id: Option<&'a str>,
+    pub user_key_id: Option<&'a str>,
+}
+
+impl<'a> AuditCreate<'a> {
+    /// New create data reference.
+    pub fn new(
+        meta: &'a AuditMeta,
+        path: &'a str,
+        data: &'a Value,
+        key_id: Option<&'a str>,
+        service_id: Option<&'a str>,
+        user_id: Option<&'a str>,
+        user_key_id: Option<&'a str>,
+    ) -> Self {
+        Self {
+            meta,
+            path,
+            data,
+            key_id,
+            service_id,
+            user_id,
+            user_key_id,
+        }
+    }
+}
+
 /// Audit list query.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuditQuery {

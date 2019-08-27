@@ -4,13 +4,12 @@ mod postgres;
 #[cfg(feature = "sqlite")]
 mod sqlite;
 
-use crate::core::{Audit, AuditMeta, Csrf, Key, Service, User};
+use crate::core::{Audit, AuditCreate, Csrf, Key, Service, User};
 #[cfg(feature = "postgres")]
 pub use crate::driver::postgres::PostgresDriver;
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::SqliteDriver;
 use chrono::{DateTime, Utc};
-use serde_json::Value;
 
 /// ## Driver Errors
 #[derive(Debug, Fail)]
@@ -85,16 +84,7 @@ pub trait Driver: Send + Sync {
     ) -> Result<Vec<String>, DriverError>;
 
     /// Create one audit log.
-    fn audit_create(
-        &self,
-        meta: &AuditMeta,
-        path: &str,
-        data: &Value,
-        key_id: Option<&str>,
-        service_id: Option<&str>,
-        user_id: Option<&str>,
-        user_key_id: Option<&str>,
-    ) -> Result<Audit, DriverError>;
+    fn audit_create(&self, data: &AuditCreate) -> Result<Audit, DriverError>;
 
     /// Read one audit log by ID.
     fn audit_read_by_id(

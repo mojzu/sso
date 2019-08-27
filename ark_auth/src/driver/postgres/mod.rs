@@ -1,14 +1,13 @@
 mod model;
 mod schema;
 
-use crate::core::{Audit, AuditMeta, Csrf, Key, Service, User};
+use crate::core::{Audit, AuditCreate, Csrf, Key, Service, User};
 use crate::driver::{Driver, DriverError};
 use chrono::{DateTime, Utc};
 use diesel::dsl::sql;
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
 use diesel::sql_types::BigInt;
-use serde_json::Value;
 use std::convert::TryInto;
 
 embed_migrations!("migrations/postgres");
@@ -343,16 +342,7 @@ impl Driver for PostgresDriver {
         })
     }
 
-    fn audit_create(
-        &self,
-        meta: &AuditMeta,
-        path: &str,
-        data: &Value,
-        audit_key_id: Option<&str>,
-        audit_service_id: Option<&str>,
-        audit_user_id: Option<&str>,
-        audit_user_key_id: Option<&str>,
-    ) -> Result<Audit, DriverError> {
+    fn audit_create(&self, data: &AuditCreate) -> Result<Audit, DriverError> {
         use crate::driver::postgres::schema::auth_audit::dsl::*;
 
         let conn = self.connection()?;
@@ -361,15 +351,15 @@ impl Driver for PostgresDriver {
         let value = model::AuthAuditInsert {
             created_at: &now,
             audit_id: &id,
-            audit_user_agent: meta.user_agent(),
-            audit_remote: meta.remote(),
-            audit_forwarded: meta.forwarded(),
-            audit_path: path,
-            audit_data: data,
-            key_id: audit_key_id,
-            service_id: audit_service_id,
-            user_id: audit_user_id,
-            user_key_id: audit_user_key_id,
+            audit_user_agent: data.meta.user_agent(),
+            audit_remote: data.meta.remote(),
+            audit_forwarded: data.meta.forwarded(),
+            audit_path: data.path,
+            audit_data: data.data,
+            key_id: data.key_id,
+            service_id: data.service_id,
+            user_id: data.user_id,
+            user_key_id: data.user_key_id,
         };
         diesel::insert_into(auth_audit)
             .values(&value)

@@ -1,10 +1,10 @@
-use crate::core;
-use crate::core::audit::{AuditBuilder, AuditMessage, AuditPath};
-use crate::core::{
-    AuditData, Csrf, Error, Key, Service, User, UserKey, UserToken, UserTokenPartial,
+use crate::{
+    core,
+    core::audit::{AuditBuilder, AuditMessage, AuditPath},
+    core::{AuditData, Csrf, Error, Key, Service, User, UserKey, UserToken, UserTokenPartial},
+    driver::Driver,
+    notify::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword, NotifyExecutor},
 };
-use crate::driver::Driver;
-use crate::notify::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword, NotifyExecutor};
 use actix::Addr;
 
 pub fn login(
@@ -164,6 +164,7 @@ pub fn reset_password_confirm(
     Ok(count)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn update_email(
     driver: &dyn Driver,
     notify: &Addr<NotifyExecutor>,
@@ -307,6 +308,7 @@ pub fn update_email_revoke(
     Ok(count + 1)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn update_password(
     driver: &dyn Driver,
     notify: &Addr<NotifyExecutor>,
