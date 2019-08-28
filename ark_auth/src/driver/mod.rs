@@ -12,21 +12,18 @@ pub use crate::driver::sqlite::SqliteDriver;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-/// ## Driver Errors
+/// Driver errors.
 #[derive(Debug, Fail)]
 pub enum DriverError {
-    /// Diesel result error wrapper.
     #[fail(display = "DriverError:Diesel {}", _0)]
     Diesel(#[fail(cause)] diesel::result::Error),
-    /// Diesel migrations error wrapper.
     #[fail(display = "DriverError:DieselMigrations {}", _0)]
     DieselMigrations(#[fail(cause)] diesel_migrations::RunMigrationsError),
-    /// R2d2 error wrapper.
     #[fail(display = "DriverError:R2d2 {}", _0)]
     R2d2(#[fail(cause)] r2d2::Error),
 }
 
-/// ## Driver Interface
+/// Driver interface trait.
 pub trait Driver: Send + Sync {
     /// Return a boxed trait containing clone of self.
     fn box_clone(&self) -> Box<dyn Driver>;
@@ -34,55 +31,55 @@ pub trait Driver: Send + Sync {
     /// List audit logs where ID is less than.
     fn audit_list_where_id_lt(
         &self,
-        lt: &str,
+        lt: Uuid,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError>;
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError>;
 
     /// List audit logs where ID is greater than.
     fn audit_list_where_id_gt(
         &self,
-        gt: &str,
+        gt: Uuid,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError>;
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError>;
 
     /// List audit logs where ID is greater than and less than.
     fn audit_list_where_id_gt_and_lt(
         &self,
-        gt: &str,
-        lt: &str,
+        gt: Uuid,
+        lt: Uuid,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError>;
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError>;
 
     /// List audit logs where created datetime is less than.
     fn audit_list_where_created_lte(
         &self,
         created_lte: &DateTime<Utc>,
-        offset_id: Option<&str>,
+        offset_id: Option<Uuid>,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError>;
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError>;
 
     /// List audit logs where created datetime is greater than.
     fn audit_list_where_created_gte(
         &self,
         created_gte: &DateTime<Utc>,
-        offset_id: Option<&str>,
+        offset_id: Option<Uuid>,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError>;
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError>;
 
     /// List audit logs where created datetime is greater than and less than.
     fn audit_list_where_created_gte_and_lte(
         &self,
         created_gte: &DateTime<Utc>,
         created_lte: &DateTime<Utc>,
-        offset_id: Option<&str>,
+        offset_id: Option<Uuid>,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError>;
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError>;
 
     /// Create one audit log.
     fn audit_create(&self, data: &AuditCreate) -> Result<Audit, DriverError>;
@@ -90,14 +87,14 @@ pub trait Driver: Send + Sync {
     /// Read one audit log by ID.
     fn audit_read_by_id(
         &self,
-        id: &str,
-        service_id_mask: Option<&str>,
+        id: Uuid,
+        service_id_mask: Option<Uuid>,
     ) -> Result<Option<Audit>, DriverError>;
 
     /// Read audit metrics, returns array of counts for distinct audit paths.
     fn audit_read_metrics(
         &self,
-        service_id_mask: Option<&str>,
+        service_id_mask: Option<Uuid>,
     ) -> Result<Vec<(String, i64)>, DriverError>;
 
     /// Delete many audit logs by created at time.
@@ -109,7 +106,7 @@ pub trait Driver: Send + Sync {
         key: &str,
         value: &str,
         ttl: &DateTime<Utc>,
-        service_id: &str,
+        service_id: Uuid,
     ) -> Result<Csrf, DriverError>;
 
     /// Read one CSRF key, value pair.
@@ -124,18 +121,18 @@ pub trait Driver: Send + Sync {
     /// List keys where ID is less than.
     fn key_list_where_id_lt(
         &self,
-        lt: &str,
+        lt: Uuid,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError>;
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError>;
 
     /// List keys where ID is greater than.
     fn key_list_where_id_gt(
         &self,
-        gt: &str,
+        gt: Uuid,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError>;
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError>;
 
     /// Create key.
     fn key_create(
@@ -144,18 +141,18 @@ pub trait Driver: Send + Sync {
         is_revoked: bool,
         name: &str,
         value: &str,
-        service_id: Option<&str>,
-        user_id: Option<&str>,
+        service_id: Option<Uuid>,
+        user_id: Option<Uuid>,
     ) -> Result<Key, DriverError>;
 
     /// Read key by ID.
-    fn key_read_by_id(&self, id: &str) -> Result<Option<Key>, DriverError>;
+    fn key_read_by_id(&self, id: Uuid) -> Result<Option<Key>, DriverError>;
 
     /// Read key by service and user ID.
     fn key_read_by_user_id(
         &self,
-        service_id: &str,
-        user_id: &str,
+        service_id: Uuid,
+        user_id: Uuid,
     ) -> Result<Option<Key>, DriverError>;
 
     /// Read key by root key value.
@@ -167,14 +164,14 @@ pub trait Driver: Send + Sync {
     /// Read key by service ID and user key value.
     fn key_read_by_user_value(
         &self,
-        service_id: &str,
+        service_id: Uuid,
         value: &str,
     ) -> Result<Option<Key>, DriverError>;
 
     /// Update key by ID.
     fn key_update_by_id(
         &self,
-        id: &str,
+        id: Uuid,
         is_enabled: Option<bool>,
         is_revoked: Option<bool>,
         name: Option<&str>,
@@ -183,23 +180,23 @@ pub trait Driver: Send + Sync {
     /// Update many keys by user ID.
     fn key_update_many_by_user_id(
         &self,
-        user_id: &str,
+        user_id: Uuid,
         is_enabled: Option<bool>,
         is_revoked: Option<bool>,
         name: Option<&str>,
     ) -> Result<usize, DriverError>;
 
     /// Delete key by ID.
-    fn key_delete_by_id(&self, id: &str) -> Result<usize, DriverError>;
+    fn key_delete_by_id(&self, id: Uuid) -> Result<usize, DriverError>;
 
     /// Delete root keys.
     fn key_delete_root(&self) -> Result<usize, DriverError>;
 
     /// List services where ID is less than.
-    fn service_list_where_id_lt(&self, lt: &str, limit: i64) -> Result<Vec<String>, DriverError>;
+    fn service_list_where_id_lt(&self, lt: Uuid, limit: i64) -> Result<Vec<Uuid>, DriverError>;
 
     /// List services where ID is greater than.
-    fn service_list_where_id_gt(&self, gt: &str, limit: i64) -> Result<Vec<String>, DriverError>;
+    fn service_list_where_id_gt(&self, gt: Uuid, limit: i64) -> Result<Vec<Uuid>, DriverError>;
 
     /// Create service.
     fn service_create(
@@ -210,18 +207,18 @@ pub trait Driver: Send + Sync {
     ) -> Result<Service, DriverError>;
 
     /// Read service by ID.
-    fn service_read_by_id(&self, id: &str) -> Result<Option<Service>, DriverError>;
+    fn service_read_by_id(&self, id: Uuid) -> Result<Option<Service>, DriverError>;
 
     /// Update service by ID.
     fn service_update_by_id(
         &self,
-        id: &str,
+        id: Uuid,
         is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<Service, DriverError>;
 
     /// Delete service by ID.
-    fn service_delete_by_id(&self, id: &str) -> Result<usize, DriverError>;
+    fn service_delete_by_id(&self, id: Uuid) -> Result<usize, DriverError>;
 
     /// List users where ID is less than.
     fn user_list_where_id_lt(&self, lt: Uuid, limit: i64) -> Result<Vec<Uuid>, DriverError>;

@@ -1,10 +1,13 @@
-use crate::core::{
-    Audit, AuditData, AuditQuery, Key, KeyQuery, Service, ServiceQuery, User, UserKey, UserQuery,
-    UserToken, UserTokenPartial,
+use crate::{
+    core::{
+        Audit, AuditData, AuditQuery, Key, KeyQuery, Service, ServiceQuery, User, UserKey,
+        UserQuery, UserToken, UserTokenPartial,
+    },
+    server::{validate, FromJsonValue},
 };
-use crate::server::{validate, FromJsonValue};
 use chrono::{DateTime, Utc};
 use serde_json::Value;
+use uuid::Uuid;
 use validator::Validate;
 
 fn datetime_from_string(value: Option<String>) -> Option<DateTime<Utc>> {
@@ -94,16 +97,11 @@ pub mod route {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuditListQuery {
-    #[validate(custom = "validate::id")]
-    pub gt: Option<String>,
-    #[validate(custom = "validate::id")]
-    pub lt: Option<String>,
-    #[validate(custom = "validate::datetime")]
-    pub created_gte: Option<String>,
-    #[validate(custom = "validate::datetime")]
-    pub created_lte: Option<String>,
-    #[validate(custom = "validate::id")]
-    pub offset_id: Option<String>,
+    pub gt: Option<Uuid>,
+    pub lt: Option<Uuid>,
+    pub created_gte: Option<DateTime<Utc>>,
+    pub created_lte: Option<DateTime<Utc>>,
+    pub offset_id: Option<Uuid>,
     #[validate(custom = "validate::limit")]
     pub limit: Option<String>,
 }
@@ -115,8 +113,8 @@ impl From<AuditListQuery> for AuditQuery {
         AuditQuery {
             gt: query.gt,
             lt: query.lt,
-            created_gte: datetime_from_string(query.created_gte),
-            created_lte: datetime_from_string(query.created_lte),
+            created_gte: query.created_gte,
+            created_lte: query.created_lte,
             offset_id: query.offset_id,
             limit: i64_from_string(query.limit),
         }
@@ -127,7 +125,7 @@ impl From<AuditListQuery> for AuditQuery {
 #[serde(deny_unknown_fields)]
 pub struct AuditListResponse {
     pub meta: AuditQuery,
-    pub data: Vec<String>,
+    pub data: Vec<Uuid>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -136,21 +134,14 @@ pub struct AuditCreateBody {
     #[validate(custom = "validate::path")]
     pub path: String,
     pub data: Value,
-    #[validate(custom = "validate::id")]
-    pub user_id: Option<String>,
-    #[validate(custom = "validate::id")]
-    pub user_key_id: Option<String>,
+    pub user_id: Option<Uuid>,
+    pub user_key_id: Option<Uuid>,
 }
 
 impl FromJsonValue<AuditCreateBody> for AuditCreateBody {}
 
 impl AuditCreateBody {
-    pub fn new<T1>(
-        path: T1,
-        data: Value,
-        user_id: Option<String>,
-        user_key_id: Option<String>,
-    ) -> Self
+    pub fn new<T1>(path: T1, data: Value, user_id: Option<Uuid>, user_key_id: Option<Uuid>) -> Self
     where
         T1: Into<String>,
     {
@@ -413,10 +404,8 @@ impl FromJsonValue<AuthOauth2CallbackQuery> for AuthOauth2CallbackQuery {}
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct KeyListQuery {
-    #[validate(custom = "validate::id")]
-    pub gt: Option<String>,
-    #[validate(custom = "validate::id")]
-    pub lt: Option<String>,
+    pub gt: Option<Uuid>,
+    pub lt: Option<Uuid>,
     #[validate(custom = "validate::limit")]
     pub limit: Option<String>,
 }
@@ -437,7 +426,7 @@ impl From<KeyListQuery> for KeyQuery {
 #[serde(deny_unknown_fields)]
 pub struct KeyListResponse {
     pub meta: KeyQuery,
-    pub data: Vec<String>,
+    pub data: Vec<Uuid>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
@@ -446,10 +435,8 @@ pub struct KeyCreateBody {
     pub is_enabled: bool,
     #[validate(custom = "validate::name")]
     pub name: String,
-    #[validate(custom = "validate::id")]
-    pub service_id: Option<String>,
-    #[validate(custom = "validate::id")]
-    pub user_id: Option<String>,
+    pub service_id: Option<Uuid>,
+    pub user_id: Option<Uuid>,
 }
 
 impl FromJsonValue<KeyCreateBody> for KeyCreateBody {}
@@ -464,29 +451,27 @@ impl KeyCreateBody {
         }
     }
 
-    pub fn with_service_id<S1, S2>(is_enabled: bool, name: S1, service_id: S2) -> Self
+    pub fn with_service_id<S1, S2>(is_enabled: bool, name: S1, service_id: Uuid) -> Self
     where
         S1: Into<String>,
-        S2: Into<String>,
     {
         Self {
             is_enabled,
             name: name.into(),
-            service_id: Some(service_id.into()),
+            service_id: Some(service_id),
             user_id: None,
         }
     }
 
-    pub fn with_user_id<S1, S2>(is_enabled: bool, name: S1, user_id: S2) -> Self
+    pub fn with_user_id<S1, S2>(is_enabled: bool, name: S1, user_id: Uuid) -> Self
     where
         S1: Into<String>,
-        S2: Into<String>,
     {
         Self {
             is_enabled,
             name: name.into(),
             service_id: None,
-            user_id: Some(user_id.into()),
+            user_id: Some(user_id),
         }
     }
 }
@@ -512,10 +497,8 @@ impl FromJsonValue<KeyUpdateBody> for KeyUpdateBody {}
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceListQuery {
-    #[validate(custom = "validate::id")]
-    pub gt: Option<String>,
-    #[validate(custom = "validate::id")]
-    pub lt: Option<String>,
+    pub gt: Option<Uuid>,
+    pub lt: Option<Uuid>,
     #[validate(custom = "validate::limit")]
     pub limit: Option<String>,
 }
@@ -536,7 +519,7 @@ impl FromJsonValue<ServiceListQuery> for ServiceListQuery {}
 #[serde(deny_unknown_fields)]
 pub struct ServiceListResponse {
     pub meta: ServiceQuery,
-    pub data: Vec<String>,
+    pub data: Vec<Uuid>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -586,10 +569,8 @@ impl FromJsonValue<ServiceUpdateBody> for ServiceUpdateBody {}
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct UserListQuery {
-    #[validate(custom = "validate::id")]
-    pub gt: Option<String>,
-    #[validate(custom = "validate::id")]
-    pub lt: Option<String>,
+    pub gt: Option<Uuid>,
+    pub lt: Option<Uuid>,
     #[validate(custom = "validate::limit")]
     pub limit: Option<String>,
     #[validate(email)]
@@ -613,7 +594,7 @@ impl From<UserListQuery> for UserQuery {
 #[serde(deny_unknown_fields)]
 pub struct UserListResponse {
     pub meta: UserQuery,
-    pub data: Vec<String>,
+    pub data: Vec<Uuid>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]

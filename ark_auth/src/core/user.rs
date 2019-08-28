@@ -1,6 +1,8 @@
-use crate::core::audit::AuditBuilder;
-use crate::core::{hash_password, Error, Service, User, UserQuery, DEFAULT_LIMIT};
-use crate::driver::Driver;
+use crate::{
+    core::{audit::AuditBuilder, hash_password, Error, Service, User, UserQuery, DEFAULT_LIMIT},
+    driver::Driver,
+};
+use uuid::Uuid;
 
 /// List users using query.
 pub fn list(
@@ -8,7 +10,7 @@ pub fn list(
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     query: &UserQuery,
-) -> Result<Vec<String>, Error> {
+) -> Result<Vec<Uuid>, Error> {
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
 
     if let Some(email_eq) = &query.email_eq {
@@ -20,14 +22,14 @@ pub fn list(
 
     match &query.gt {
         Some(gt) => driver
-            .user_list_where_id_gt(gt, limit)
+            .user_list_where_id_gt(*gt, limit)
             .map_err(Error::Driver),
         None => match &query.lt {
             Some(lt) => driver
-                .user_list_where_id_lt(lt, limit)
+                .user_list_where_id_lt(*lt, limit)
                 .map_err(Error::Driver),
             None => driver
-                .user_list_where_id_gt("", limit)
+                .user_list_where_id_gt(Uuid::nil(), limit)
                 .map_err(Error::Driver),
         },
     }
@@ -65,7 +67,7 @@ pub fn read_by_id(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    id: &str,
+    id: Uuid,
 ) -> Result<Option<User>, Error> {
     driver.user_read_by_id(id).map_err(Error::Driver)
 }
@@ -85,7 +87,7 @@ pub fn update_by_id(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    id: &str,
+    id: Uuid,
     is_enabled: Option<bool>,
     name: Option<&str>,
 ) -> Result<User, Error> {
@@ -99,7 +101,7 @@ pub fn update_email_by_id(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    id: &str,
+    id: Uuid,
     email: &str,
 ) -> Result<usize, Error> {
     driver
@@ -112,7 +114,7 @@ pub fn update_password_by_id(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    id: &str,
+    id: Uuid,
     password: &str,
 ) -> Result<usize, Error> {
     let password_hash = hash_password(Some(password))?.ok_or_else(|| Error::Forbidden)?;
@@ -126,7 +128,7 @@ pub fn delete_by_id(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    id: &str,
+    id: Uuid,
 ) -> Result<usize, Error> {
     driver.user_delete_by_id(id).map_err(Error::Driver)
 }

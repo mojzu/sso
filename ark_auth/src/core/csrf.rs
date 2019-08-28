@@ -1,5 +1,7 @@
-use crate::core::{Csrf, Error, Service};
-use crate::driver::Driver;
+use crate::{
+    core::{Csrf, Error, Service},
+    driver::Driver,
+};
 use chrono::Utc;
 use time::Duration;
 
@@ -15,7 +17,7 @@ pub fn create(
 
     let ttl = Utc::now() + Duration::seconds(ttl);
     driver
-        .csrf_create(key, value, &ttl, &service.id)
+        .csrf_create(key, value, &ttl, service.id)
         .map_err(Error::Driver)
 }
 

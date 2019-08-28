@@ -21,24 +21,20 @@ pub const DEFAULT_LIMIT: i64 = 50;
 /// Core errors.
 #[derive(Debug, Fail)]
 pub enum Error {
-    /// Bad request.
     #[fail(display = "CoreError::BadRequest")]
     BadRequest,
-    /// Forbidden, authentication failure.
     #[fail(display = "CoreError::Forbidden")]
     Forbidden,
-    /// Cast error.
     #[fail(display = "CoreError::Cast")]
     Cast,
-    /// Driver error wrapper.
     #[fail(display = "CoreError::Driver {}", _0)]
     Driver(#[fail(cause)] DriverError),
-    /// Bcrypt error wrapper.
     #[fail(display = "CoreError::Bcrypt {}", _0)]
     Bcrypt(#[fail(cause)] bcrypt::BcryptError),
-    /// JSON web token error wrapper.
     #[fail(display = "CoreError::Jsonwebtoken {}", _0)]
     Jsonwebtoken(#[fail(cause)] jsonwebtoken::errors::Error),
+    #[fail(display = "CoreError::UuidParse {}", _0)]
+    UuidParse(#[fail(cause)] uuid::parser::ParseError),
 }
 
 /// Audit.
@@ -290,10 +286,12 @@ mod tests {
 
     #[test]
     fn builds_service_callback_url() {
+        let mut id = "6a9c6cfb7e15498b99e057153f0a212b";
+        let id = Uuid::parse_str(id).unwrap();
         let service = Service {
             created_at: Utc::now(),
             updated_at: Utc::now(),
-            id: "6a9c6cfb7e15498b99e057153f0a212b".to_owned(),
+            id,
             is_enabled: true,
             name: "Service Name".to_owned(),
             url: "http://localhost:9000".to_owned(),

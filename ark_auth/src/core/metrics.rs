@@ -50,7 +50,7 @@ pub fn read(
     registry: &Registry,
 ) -> Result<String, Error> {
     let audit_metrics = driver
-        .audit_read_metrics(service_mask.map(|s| s.id.as_ref()))
+        .audit_read_metrics(service_mask.map(|s| s.id))
         .map_err(Error::Driver)?;
 
     // TODO(refactor): More efficient way of handling audit metrics read.

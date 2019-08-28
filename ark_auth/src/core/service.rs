@@ -1,26 +1,28 @@
-use crate::core::audit::AuditBuilder;
-use crate::core::{Error, Service, ServiceQuery, DEFAULT_LIMIT};
-use crate::driver::Driver;
+use crate::{
+    core::{audit::AuditBuilder, Error, Service, ServiceQuery, DEFAULT_LIMIT},
+    driver::Driver,
+};
 use url::Url;
+use uuid::Uuid;
 
 /// List services using query.
 pub fn list(
     driver: &dyn Driver,
     _audit: &mut AuditBuilder,
     query: &ServiceQuery,
-) -> Result<Vec<String>, Error> {
+) -> Result<Vec<Uuid>, Error> {
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
 
     match &query.gt {
         Some(gt) => driver
-            .service_list_where_id_gt(gt, limit)
+            .service_list_where_id_gt(*gt, limit)
             .map_err(Error::Driver),
         None => match &query.lt {
             Some(lt) => driver
-                .service_list_where_id_lt(lt, limit)
+                .service_list_where_id_lt(*lt, limit)
                 .map_err(Error::Driver),
             None => driver
-                .service_list_where_id_gt("", limit)
+                .service_list_where_id_gt(Uuid::nil(), limit)
                 .map_err(Error::Driver),
         },
     }
@@ -45,7 +47,7 @@ pub fn read_by_id(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    id: &str,
+    id: Uuid,
 ) -> Result<Option<Service>, Error> {
     driver.service_read_by_id(id).map_err(Error::Driver)
 }
@@ -55,7 +57,7 @@ pub fn update_by_id(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    id: &str,
+    id: Uuid,
     is_enabled: Option<bool>,
     name: Option<&str>,
 ) -> Result<Service, Error> {
@@ -69,7 +71,7 @@ pub fn delete_by_id(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    id: &str,
+    id: Uuid,
 ) -> Result<usize, Error> {
     driver.service_delete_by_id(id).map_err(Error::Driver)
 }

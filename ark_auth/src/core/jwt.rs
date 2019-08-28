@@ -1,5 +1,6 @@
 use crate::core::Error;
 use jsonwebtoken::{dangerous_unsafe_decode, decode, encode, Header, Validation};
+use uuid::Uuid;
 
 #[derive(Debug)]
 pub enum ClaimsType {
@@ -43,22 +44,41 @@ struct Claims {
 }
 
 impl Claims {
-    pub fn new(iss: &str, sub: &str, exp: i64, x_type: ClaimsType, x_csrf: Option<&str>) -> Self {
+    pub fn new<T1, T2>(iss: T1, sub: T2, exp: i64, x_type: ClaimsType) -> Self
+    where
+        T1: Into<String>,
+        T2: Into<String>,
+    {
         let dt = chrono::Utc::now();
         let exp = dt.timestamp() + exp;
         Claims {
-            iss: iss.to_owned(),
-            sub: sub.to_owned(),
+            iss: iss.into(),
+            sub: sub.into(),
             exp,
             x_type: x_type.to_i64(),
-            x_csrf: x_csrf.map(|x| x.to_owned()),
+            x_csrf: None,
         }
     }
 
-    pub fn validation(iss: &str, sub: &str) -> Validation {
+    pub fn new_csrf<T1, T2, T3>(iss: T1, sub: T2, exp: i64, x_type: ClaimsType, x_csrf: T3) -> Self
+    where
+        T1: Into<String>,
+        T2: Into<String>,
+        T3: Into<String>,
+    {
+        let mut claims = Claims::new(iss, sub, exp, x_type);
+        claims.x_csrf = Some(x_csrf.into());
+        claims
+    }
+
+    pub fn validation<T1, T2>(iss: T1, sub: T2) -> Validation
+    where
+        T1: Into<String>,
+        T2: Into<String>,
+    {
         Validation {
-            iss: Some(iss.to_owned()),
-            sub: Some(sub.to_owned()),
+            iss: Some(iss.into()),
+            sub: Some(sub.into()),
             ..Validation::default()
         }
     }
@@ -66,14 +86,34 @@ impl Claims {
 
 /// Encode a token, returns token and expiry time.
 pub fn encode_token(
-    service_id: &str,
-    user_id: &str,
+    service_id: Uuid,
+    user_id: Uuid,
     x_type: ClaimsType,
-    x_csrf: Option<&str>,
     key_value: &str,
     exp: i64,
 ) -> Result<(String, i64), Error> {
-    let claims = Claims::new(service_id, user_id, exp, x_type, x_csrf);
+    let claims = Claims::new(service_id.to_string(), user_id.to_string(), exp, x_type);
+    let token =
+        encode(&Header::default(), &claims, key_value.as_bytes()).map_err(Error::Jsonwebtoken)?;
+    Ok((token, claims.exp))
+}
+
+/// Encode a CSRF token, returns token and expiry time.
+pub fn encode_token_csrf(
+    service_id: Uuid,
+    user_id: Uuid,
+    x_type: ClaimsType,
+    x_csrf: &str,
+    key_value: &str,
+    exp: i64,
+) -> Result<(String, i64), Error> {
+    let claims = Claims::new_csrf(
+        service_id.to_string(),
+        user_id.to_string(),
+        exp,
+        x_type,
+        x_csrf,
+    );
     let token =
         encode(&Header::default(), &claims, key_value.as_bytes()).map_err(Error::Jsonwebtoken)?;
     Ok((token, claims.exp))
@@ -81,8 +121,8 @@ pub fn encode_token(
 
 /// Safely decodes a token, returns expiry time and optional CSRF key.
 pub fn decode_token(
-    service_id: &str,
-    user_id: &str,
+    service_id: Uuid,
+    user_id: Uuid,
     x_type: ClaimsType,
     key_value: &str,
     token: &str,
@@ -94,25 +134,29 @@ pub fn decode_token(
 /// Unsafely decodes a token, checks if service ID matches `iss` claim.
 /// If matched, returns the `sub` claim, which may be a user ID.
 /// The user ID must then be used to read a key that can safely decode the token.
-pub fn decode_unsafe(token: &str, service_id: &str) -> Result<(String, ClaimsType), Error> {
+pub fn decode_unsafe(token: &str, service_id: Uuid) -> Result<(Uuid, ClaimsType), Error> {
     let claims: Claims = dangerous_unsafe_decode(token)
         .map_err(Error::Jsonwebtoken)?
         .claims;
-    if service_id != claims.iss {
+
+    let iss = Uuid::parse_str(&claims.iss).map_err(Error::UuidParse)?;
+    if service_id != iss {
         return Err(Error::BadRequest);
     }
+
+    let sub = Uuid::parse_str(&claims.sub).map_err(Error::UuidParse)?;
     let x_type = ClaimsType::from_i64(claims.x_type)?;
-    Ok((claims.sub, x_type))
+    Ok((sub, x_type))
 }
 
 fn decode_token_claims(
-    service_id: &str,
-    user_id: &str,
+    service_id: Uuid,
+    user_id: Uuid,
     x_type: ClaimsType,
     key_value: &str,
     token: &str,
 ) -> Result<Claims, Error> {
-    let validation = Claims::validation(service_id, user_id);
+    let validation = Claims::validation(service_id.to_string(), user_id.to_string());
     let data =
         decode::<Claims>(token, key_value.as_bytes(), &validation).map_err(Error::Jsonwebtoken)?;
     if data.claims.x_type != x_type.to_i64() {

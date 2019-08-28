@@ -6,6 +6,7 @@ use chrono::Utc;
 use serde::ser::Serialize;
 use serde_json::Value;
 use time::Duration;
+use uuid::Uuid;
 
 /// Audit paths.
 #[derive(Debug, Serialize, Deserialize)]
@@ -117,10 +118,10 @@ impl From<AuditMessage> for AuditMessageObject<AuditMessage> {
 /// Audit log builder pattern.
 pub struct AuditBuilder {
     meta: AuditMeta,
-    key: Option<String>,
-    service: Option<String>,
-    user: Option<String>,
-    user_key: Option<String>,
+    key: Option<Uuid>,
+    service: Option<Uuid>,
+    user: Option<Uuid>,
+    user_key: Option<Uuid>,
 }
 
 impl AuditBuilder {
@@ -136,32 +137,32 @@ impl AuditBuilder {
     }
 
     pub fn set_key(&mut self, key: Option<&Key>) -> &mut Self {
-        self.key = key.map(|x| x.id.to_owned());
+        self.key = key.map(|x| x.id);
         self
     }
 
     pub fn set_service(&mut self, service: Option<&Service>) -> &mut Self {
-        self.service = service.map(|x| x.id.to_owned());
+        self.service = service.map(|x| x.id);
         self
     }
 
     pub fn set_user(&mut self, user: Option<&User>) -> &mut Self {
-        self.user = user.map(|x| x.id.to_owned());
+        self.user = user.map(|x| x.id);
         self
     }
 
-    pub fn set_user_id<T: Into<Option<String>>>(&mut self, user: T) -> &mut Self {
-        self.user = user.into();
+    pub fn set_user_id(&mut self, user: Option<Uuid>) -> &mut Self {
+        self.user = user;
         self
     }
 
     pub fn set_user_key(&mut self, key: Option<&Key>) -> &mut Self {
-        self.user_key = key.map(|x| x.id.to_owned());
+        self.user_key = key.map(|x| x.id);
         self
     }
 
-    pub fn set_user_key_id<T: Into<Option<String>>>(&mut self, key: T) -> &mut Self {
-        self.user_key = key.into();
+    pub fn set_user_key_id(&mut self, key: Option<Uuid>) -> &mut Self {
+        self.user_key = key;
         self
     }
 
@@ -171,10 +172,10 @@ impl AuditBuilder {
             &self.meta,
             path,
             data,
-            self.key.as_ref().map(|x| &**x),
-            self.service.as_ref().map(|x| &**x),
-            self.user.as_ref().map(|x| &**x),
-            self.user_key.as_ref().map(|x| &**x),
+            self.key,
+            self.service,
+            self.user,
+            self.user_key,
         );
         create(driver, &data)
     }
@@ -206,10 +207,10 @@ impl AuditBuilder {
             &self.meta,
             &path,
             &data,
-            self.key.as_ref().map(|x| &**x),
-            self.service.as_ref().map(|x| &**x),
-            self.user.as_ref().map(|x| &**x),
-            self.user_key.as_ref().map(|x| &**x),
+            self.key,
+            self.service,
+            self.user,
+            self.user_key,
         );
 
         match create(driver, &audit_data) {
@@ -228,16 +229,16 @@ pub fn list(
     service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     query: &AuditQuery,
-) -> Result<Vec<String>, Error> {
+) -> Result<Vec<Uuid>, Error> {
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
-    let service_mask = service_mask.map(|s| s.id.as_ref());
+    let service_mask = service_mask.map(|s| s.id);
 
-    match (&query.gt, &query.lt) {
+    match (query.gt, query.lt) {
         (Some(gt), Some(lt)) => driver.audit_list_where_id_gt_and_lt(gt, lt, limit, service_mask),
         (Some(gt), None) => driver.audit_list_where_id_gt(gt, limit, service_mask),
         (None, Some(lt)) => driver.audit_list_where_id_lt(lt, limit, service_mask),
         (None, None) => {
-            let offset_id = query.offset_id.as_ref().map(|x| &**x);
+            let offset_id = query.offset_id;
             match (&query.created_gte, &query.created_lte) {
                 (Some(created_gte), Some(created_lte)) => driver
                     .audit_list_where_created_gte_and_lte(
@@ -253,7 +254,7 @@ pub fn list(
                 (None, Some(created_lte)) => {
                     driver.audit_list_where_created_lte(created_lte, offset_id, limit, service_mask)
                 }
-                (None, None) => driver.audit_list_where_id_gt("", limit, service_mask),
+                (None, None) => driver.audit_list_where_id_gt(Uuid::nil(), limit, service_mask),
             }
         }
     }
@@ -270,10 +271,10 @@ pub fn read_by_id(
     driver: &dyn Driver,
     service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    id: &str,
+    id: Uuid,
 ) -> Result<Option<Audit>, Error> {
     driver
-        .audit_read_by_id(id, service_mask.map(|s| s.id.as_ref()))
+        .audit_read_by_id(id, service_mask.map(|s| s.id))
         .map_err(Error::Driver)
 }
 

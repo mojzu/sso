@@ -1,7 +1,4 @@
-use crate::{
-    core::User as CoreUser,
-    driver::{postgres::schema::auth_user, DriverError},
-};
+use crate::driver::{postgres::schema::auth_user, DriverError};
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, PgConnection};
 use uuid::Uuid;
@@ -17,20 +14,6 @@ pub struct User {
     pub user_name: String,
     pub user_email: String,
     pub user_password_hash: Option<String>,
-}
-
-impl From<User> for CoreUser {
-    fn from(user: User) -> Self {
-        CoreUser {
-            created_at: user.created_at,
-            updated_at: user.updated_at,
-            id: user.user_id,
-            is_enabled: user.user_is_enabled,
-            name: user.user_name,
-            email: user.user_email,
-            password_hash: user.user_password_hash,
-        }
-    }
 }
 
 #[derive(Debug, Insertable)]
@@ -119,7 +102,7 @@ impl User {
         name: &str,
         email: &str,
         password_hash: Option<&str>,
-    ) -> Result<CoreUser, DriverError> {
+    ) -> Result<User, DriverError> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         let now = Utc::now();
@@ -136,32 +119,28 @@ impl User {
             .values(&value)
             .get_result::<User>(conn)
             .map_err(DriverError::Diesel)
-            .map(Into::into)
     }
 
-    pub fn read_by_id(conn: &PgConnection, id: Uuid) -> Result<Option<CoreUser>, DriverError> {
+    pub fn read_by_id(conn: &PgConnection, id: Uuid) -> Result<Option<User>, DriverError> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         auth_user
             .filter(user_id.eq(id))
             .get_result::<User>(conn)
-            .map(|user| Some(user.into()))
+            .map(|user| Some(user))
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
                 _ => Err(DriverError::Diesel(err)),
             })
     }
 
-    pub fn read_by_email(
-        conn: &PgConnection,
-        email: &str,
-    ) -> Result<Option<CoreUser>, DriverError> {
+    pub fn read_by_email(conn: &PgConnection, email: &str) -> Result<Option<User>, DriverError> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         auth_user
             .filter(user_email.eq(email))
             .get_result::<User>(conn)
-            .map(|user| Some(user.into()))
+            .map(|user| Some(user))
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
                 _ => Err(DriverError::Diesel(err)),
@@ -173,7 +152,7 @@ impl User {
         id: Uuid,
         is_enabled: Option<bool>,
         name: Option<&str>,
-    ) -> Result<CoreUser, DriverError> {
+    ) -> Result<User, DriverError> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         let now = Utc::now();
@@ -186,7 +165,6 @@ impl User {
             .set(&value)
             .get_result::<User>(conn)
             .map_err(DriverError::Diesel)
-            .map(Into::into)
     }
 
     pub fn update_email_by_id(

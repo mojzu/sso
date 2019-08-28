@@ -1,7 +1,4 @@
-use crate::{
-    core::Service as CoreService,
-    driver::{postgres::schema::auth_service, DriverError},
-};
+use crate::driver::{postgres::schema::auth_service, DriverError};
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, PgConnection};
 use uuid::Uuid;
@@ -16,19 +13,6 @@ pub struct Service {
     pub service_is_enabled: bool,
     pub service_name: String,
     pub service_url: String,
-}
-
-impl From<Service> for CoreService {
-    fn from(service: Service) -> Self {
-        CoreService {
-            created_at: service.created_at,
-            updated_at: service.updated_at,
-            id: service.service_id,
-            is_enabled: service.service_is_enabled,
-            name: service.service_name,
-            url: service.service_url,
-        }
-    }
 }
 
 #[derive(Debug, Insertable)]
@@ -92,7 +76,7 @@ impl Service {
         is_enabled: bool,
         name: &str,
         url: &str,
-    ) -> Result<CoreService, DriverError> {
+    ) -> Result<Service, DriverError> {
         use crate::driver::postgres::schema::auth_service::dsl::*;
 
         let now = Utc::now();
@@ -108,16 +92,15 @@ impl Service {
             .values(&value)
             .get_result::<Service>(conn)
             .map_err(DriverError::Diesel)
-            .map(Into::into)
     }
 
-    pub fn read_by_id(conn: &PgConnection, id: Uuid) -> Result<Option<CoreService>, DriverError> {
+    pub fn read_by_id(conn: &PgConnection, id: Uuid) -> Result<Option<Service>, DriverError> {
         use crate::driver::postgres::schema::auth_service::dsl::*;
 
         auth_service
             .filter(service_id.eq(id))
             .get_result::<Service>(conn)
-            .map(|service| Some(service.into()))
+            .map(|service| Some(service))
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
                 _ => Err(DriverError::Diesel(err)),
@@ -129,7 +112,7 @@ impl Service {
         id: Uuid,
         is_enabled: Option<bool>,
         name: Option<&str>,
-    ) -> Result<CoreService, DriverError> {
+    ) -> Result<Service, DriverError> {
         use crate::driver::postgres::schema::auth_service::dsl::*;
 
         let now = chrono::Utc::now();
@@ -142,7 +125,6 @@ impl Service {
             .set(&value)
             .get_result::<Service>(conn)
             .map_err(DriverError::Diesel)
-            .map(Into::into)
     }
 
     pub fn delete_by_id(conn: &PgConnection, id: Uuid) -> Result<usize, DriverError> {

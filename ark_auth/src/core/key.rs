@@ -1,7 +1,12 @@
-use crate::core::audit::{AuditBuilder, AuditMessage, AuditPath};
-use crate::core::service::read_by_id as service_read_by_id;
-use crate::core::{AuditMeta, Error, Key, KeyQuery, Service, User, DEFAULT_LIMIT};
-use crate::driver::Driver;
+use crate::{
+    core::{
+        audit::{AuditBuilder, AuditMessage, AuditPath},
+        service::read_by_id as service_read_by_id,
+        AuditMeta, Error, Key, KeyQuery, Service, User, DEFAULT_LIMIT,
+    },
+    driver::Driver,
+};
+use uuid::Uuid;
 
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
 // TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
@@ -78,7 +83,7 @@ pub fn authenticate_service(
                     Err(err)
                 }
             })
-            .and_then(|service_id| authenticate_service_inner(driver, audit, &service_id)),
+            .and_then(|service_id| authenticate_service_inner(driver, audit, service_id)),
         None => {
             audit.create_internal(
                 driver,
@@ -123,7 +128,7 @@ fn try_authenticate_service(
         Some(key_value) => read_by_service_value(driver, &mut audit, &key_value)
             .and_then(|key| key.ok_or_else(|| Error::Forbidden))
             .and_then(|key| key.service_id.ok_or_else(|| Error::Forbidden))
-            .and_then(|service_id| authenticate_service_inner(driver, audit, &service_id)),
+            .and_then(|service_id| authenticate_service_inner(driver, audit, service_id)),
         None => Err(Error::Forbidden),
     }
 }
@@ -131,7 +136,7 @@ fn try_authenticate_service(
 fn authenticate_service_inner(
     driver: &dyn Driver,
     mut audit: AuditBuilder,
-    service_id: &str,
+    service_id: Uuid,
 ) -> Result<(Service, AuditBuilder), Error> {
     service_read_by_id(driver, None, &mut audit, service_id).and_then(|service| {
         match service.ok_or_else(|| Error::Forbidden) {
@@ -157,20 +162,20 @@ pub fn list(
     service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
     query: &KeyQuery,
-) -> Result<Vec<String>, Error> {
+) -> Result<Vec<Uuid>, Error> {
     let limit = query.limit.unwrap_or(DEFAULT_LIMIT);
-    let service_mask = service_mask.map(|s| s.id.as_ref());
+    let service_mask = service_mask.map(|s| s.id);
 
     match &query.gt {
         Some(gt) => driver
-            .key_list_where_id_gt(gt, limit, service_mask)
+            .key_list_where_id_gt(*gt, limit, service_mask)
             .map_err(Error::Driver),
         None => match &query.lt {
             Some(lt) => driver
-                .key_list_where_id_lt(lt, limit, service_mask)
+                .key_list_where_id_lt(*lt, limit, service_mask)
                 .map_err(Error::Driver),
             None => driver
-                .key_list_where_id_gt("", limit, service_mask)
+                .key_list_where_id_gt(Uuid::nil(), limit, service_mask)
                 .map_err(Error::Driver),
         },
     }
@@ -195,7 +200,7 @@ pub fn create_service(
     _audit: &mut AuditBuilder,
     is_enabled: bool,
     name: &str,
-    service_id: &str,
+    service_id: Uuid,
 ) -> Result<Key, Error> {
     let value = uuid::Uuid::new_v4().to_simple().to_string();
     driver
@@ -209,8 +214,8 @@ pub fn create_user(
     _audit: &mut AuditBuilder,
     is_enabled: bool,
     name: &str,
-    service_id: &str,
-    user_id: &str,
+    service_id: Uuid,
+    user_id: Uuid,
 ) -> Result<Key, Error> {
     let value = uuid::Uuid::new_v4().to_simple().to_string();
     driver
@@ -230,7 +235,7 @@ pub fn read_by_id(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    id: &str,
+    id: Uuid,
 ) -> Result<Option<Key>, Error> {
     driver.key_read_by_id(id).map_err(Error::Driver)
 }
@@ -243,7 +248,7 @@ pub fn read_by_user(
     user: &User,
 ) -> Result<Option<Key>, Error> {
     driver
-        .key_read_by_user_id(&service.id, &user.id)
+        .key_read_by_user_id(service.id, user.id)
         .map_err(Error::Driver)
 }
 
@@ -275,7 +280,7 @@ pub fn read_by_user_value(
     value: &str,
 ) -> Result<Option<Key>, Error> {
     driver
-        .key_read_by_user_value(&service.id, value)
+        .key_read_by_user_value(service.id, value)
         .map_err(Error::Driver)
 }
 
@@ -284,7 +289,7 @@ pub fn update_by_id(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    id: &str,
+    id: Uuid,
     is_enabled: Option<bool>,
     is_revoked: Option<bool>,
     name: Option<&str>,
@@ -299,7 +304,7 @@ pub fn update_many_by_user_id(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    user_id: &str,
+    user_id: Uuid,
     is_enabled: Option<bool>,
     is_revoked: Option<bool>,
     name: Option<&str>,
@@ -314,7 +319,7 @@ pub fn delete_by_id(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     _audit: &mut AuditBuilder,
-    id: &str,
+    id: Uuid,
 ) -> Result<usize, Error> {
     driver.key_delete_by_id(id).map_err(Error::Driver)
 }

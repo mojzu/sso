@@ -1,19 +1,17 @@
 mod model;
 mod schema;
 
-use crate::core::{Audit, AuditCreate, Csrf, Key, Service, User};
-use crate::driver::{Driver, DriverError};
+use crate::{
+    core::{Audit, AuditCreate, Csrf, Key, Service, User},
+    driver::{Driver, DriverError},
+};
 use chrono::{DateTime, Utc};
-use diesel::dsl::sql;
-use diesel::prelude::*;
-use diesel::r2d2::ConnectionManager;
-use diesel::sql_types::BigInt;
-use std::convert::TryInto;
+use diesel::{r2d2::ConnectionManager, PgConnection};
 use uuid::Uuid;
 
 embed_migrations!("migrations/postgres");
 
-/// ## PostgreSQL Driver Implementation
+/// PostgreSQL driver.
 #[derive(Clone)]
 pub struct PostgresDriver {
     pool: r2d2::Pool<ConnectionManager<PgConnection>>,
@@ -46,115 +44,6 @@ impl PostgresDriver {
         let connection = self.connection()?;
         embedded_migrations::run(&connection).map_err(DriverError::DieselMigrations)
     }
-
-    fn uuid() -> String {
-        uuid::Uuid::new_v4().to_simple().to_string()
-    }
-
-    fn audit_list_where_created_lte_inner(
-        &self,
-        audit_created_lte: &DateTime<Utc>,
-        limit: i64,
-        offset: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
-        let conn = self.connection()?;
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .select(audit_id)
-                .filter(
-                    service_id
-                        .eq(service_id_mask)
-                        .and(created_at.le(audit_created_lte)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(created_at.desc())
-                .load::<String>(&conn),
-            None => auth_audit
-                .select(audit_id)
-                .filter(created_at.le(audit_created_lte))
-                .limit(limit)
-                .offset(offset)
-                .order(created_at.desc())
-                .load::<String>(&conn),
-        }
-        .map_err(DriverError::Diesel)
-    }
-
-    fn audit_list_where_created_gte_inner(
-        &self,
-        audit_created_gte: &DateTime<Utc>,
-        limit: i64,
-        offset: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
-        let conn = self.connection()?;
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .select(audit_id)
-                .filter(
-                    service_id
-                        .eq(service_id_mask)
-                        .and(created_at.ge(audit_created_gte)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(created_at.asc())
-                .load::<String>(&conn),
-            None => auth_audit
-                .select(audit_id)
-                .filter(created_at.ge(audit_created_gte))
-                .limit(limit)
-                .offset(offset)
-                .order(created_at.asc())
-                .load::<String>(&conn),
-        }
-        .map_err(DriverError::Diesel)
-    }
-
-    fn audit_list_where_created_gte_and_lte_inner(
-        &self,
-        audit_created_gte: &DateTime<Utc>,
-        audit_created_lte: &DateTime<Utc>,
-        limit: i64,
-        offset: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
-        let conn = self.connection()?;
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .select(audit_id)
-                .filter(
-                    service_id
-                        .eq(service_id_mask)
-                        .and(created_at.ge(audit_created_gte))
-                        .and(created_at.le(audit_created_lte)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(created_at.asc())
-                .load::<String>(&conn),
-            None => auth_audit
-                .select(audit_id)
-                .filter(
-                    created_at
-                        .ge(audit_created_gte)
-                        .and(created_at.le(audit_created_lte)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(created_at.asc())
-                .load::<String>(&conn),
-        }
-        .map_err(DriverError::Diesel)
-    }
 }
 
 impl Driver for PostgresDriver {
@@ -164,267 +53,107 @@ impl Driver for PostgresDriver {
 
     fn audit_list_where_id_lt(
         &self,
-        lt: &str,
+        lt: Uuid,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError> {
         let conn = self.connection()?;
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .select(audit_id)
-                .filter(service_id.eq(service_id_mask).and(audit_id.lt(lt)))
-                .limit(limit)
-                .order(audit_id.desc())
-                .load::<String>(&conn),
-            None => auth_audit
-                .select(audit_id)
-                .filter(audit_id.lt(lt))
-                .limit(limit)
-                .order(audit_id.desc())
-                .load::<String>(&conn),
-        }
-        .map_err(DriverError::Diesel)
-        .map(|mut v| {
-            v.reverse();
-            v
-        })
+        model::Audit::list_where_id_lt(&conn, lt, limit, service_id_mask).map(Into::into)
     }
 
     fn audit_list_where_id_gt(
         &self,
-        gt: &str,
+        gt: Uuid,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError> {
         let conn = self.connection()?;
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .select(audit_id)
-                .filter(service_id.eq(service_id_mask).and(audit_id.gt(gt)))
-                .limit(limit)
-                .order(audit_id.asc())
-                .load::<String>(&conn),
-            None => auth_audit
-                .select(audit_id)
-                .filter(audit_id.gt(gt))
-                .limit(limit)
-                .order(audit_id.asc())
-                .load::<String>(&conn),
-        }
-        .map_err(DriverError::Diesel)
+        model::Audit::list_where_id_gt(&conn, gt, limit, service_id_mask).map(Into::into)
     }
 
     fn audit_list_where_id_gt_and_lt(
         &self,
-        gt: &str,
-        lt: &str,
+        gt: Uuid,
+        lt: Uuid,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError> {
         let conn = self.connection()?;
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .select(audit_id)
-                .filter(
-                    service_id
-                        .eq(service_id_mask)
-                        .and(audit_id.gt(gt))
-                        .and(audit_id.lt(lt)),
-                )
-                .limit(limit)
-                .order(audit_id.asc())
-                .load::<String>(&conn),
-            None => auth_audit
-                .select(audit_id)
-                .filter(audit_id.gt(gt).and(audit_id.lt(lt)))
-                .limit(limit)
-                .order(audit_id.asc())
-                .load::<String>(&conn),
-        }
-        .map_err(DriverError::Diesel)
+        model::Audit::list_where_id_gt_and_lt(&conn, gt, lt, limit, service_id_mask).map(Into::into)
     }
 
     fn audit_list_where_created_lte(
         &self,
         created_lte: &DateTime<Utc>,
-        offset_id: Option<&str>,
+        offset_id: Option<Uuid>,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError> {
-        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
-        self.audit_list_where_created_lte_inner(created_lte, limit, offset, service_id_mask)
-            .and_then(|res| {
-                if let Some(offset_id) = offset_id {
-                    for (i, id) in res.iter().enumerate() {
-                        if id == offset_id {
-                            let offset: i64 = (i + 1).try_into().unwrap();
-                            return self.audit_list_where_created_lte_inner(
-                                created_lte,
-                                limit,
-                                offset,
-                                service_id_mask,
-                            );
-                        }
-                    }
-                }
-                Ok(res)
-            })
-            .map(|mut v| {
-                v.reverse();
-                v
-            })
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError> {
+        let conn = self.connection()?;
+        model::Audit::list_where_created_lte(&conn, created_lte, offset_id, limit, service_id_mask)
+            .map(Into::into)
     }
 
     fn audit_list_where_created_gte(
         &self,
         created_gte: &DateTime<Utc>,
-        offset_id: Option<&str>,
+        offset_id: Option<Uuid>,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError> {
-        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
-        self.audit_list_where_created_gte_inner(created_gte, limit, offset, service_id_mask)
-            .and_then(|res| {
-                if let Some(offset_id) = offset_id {
-                    for (i, id) in res.iter().enumerate() {
-                        if id == offset_id {
-                            let offset: i64 = (i + 1).try_into().unwrap();
-                            return self.audit_list_where_created_gte_inner(
-                                created_gte,
-                                limit,
-                                offset,
-                                service_id_mask,
-                            );
-                        }
-                    }
-                }
-                Ok(res)
-            })
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError> {
+        let conn = self.connection()?;
+        model::Audit::list_where_created_gte(&conn, created_gte, offset_id, limit, service_id_mask)
+            .map(Into::into)
     }
 
     fn audit_list_where_created_gte_and_lte(
         &self,
         created_gte: &DateTime<Utc>,
         created_lte: &DateTime<Utc>,
-        offset_id: Option<&str>,
+        offset_id: Option<Uuid>,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError> {
-        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
-        self.audit_list_where_created_gte_and_lte_inner(
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError> {
+        let conn = self.connection()?;
+        model::Audit::list_where_created_gte_and_lte(
+            &conn,
             created_gte,
             created_lte,
+            offset_id,
             limit,
-            offset,
             service_id_mask,
         )
-        .and_then(|res| {
-            if let Some(offset_id) = offset_id {
-                for (i, id) in res.iter().enumerate() {
-                    if id == offset_id {
-                        let offset: i64 = (i + 1).try_into().unwrap();
-                        return self.audit_list_where_created_gte_and_lte_inner(
-                            created_gte,
-                            created_lte,
-                            limit,
-                            offset,
-                            service_id_mask,
-                        );
-                    }
-                }
-            }
-            Ok(res)
-        })
+        .map(Into::into)
     }
 
     fn audit_create(&self, data: &AuditCreate) -> Result<Audit, DriverError> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
         let conn = self.connection()?;
-        let now = Utc::now();
-        let id = PostgresDriver::uuid();
-        let value = model::AuthAuditInsert {
-            created_at: &now,
-            audit_id: &id,
-            audit_user_agent: data.meta.user_agent(),
-            audit_remote: data.meta.remote(),
-            audit_forwarded: data.meta.forwarded(),
-            audit_path: data.path,
-            audit_data: data.data,
-            key_id: data.key_id,
-            service_id: data.service_id,
-            user_id: data.user_id,
-            user_key_id: data.user_key_id,
-        };
-        diesel::insert_into(auth_audit)
-            .values(&value)
-            .get_result::<model::AuthAudit>(&conn)
-            .map_err(DriverError::Diesel)
-            .map(Into::into)
+        model::Audit::create(&conn, data).map(Into::into)
     }
 
     fn audit_read_by_id(
         &self,
-        id: &str,
-        service_id_mask: Option<&str>,
+        id: Uuid,
+        service_id_mask: Option<Uuid>,
     ) -> Result<Option<Audit>, DriverError> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
         let conn = self.connection()?;
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .filter(service_id.eq(service_id_mask).and(audit_id.eq(id)))
-                .get_result::<model::AuthAudit>(&conn),
-            None => auth_audit
-                .filter(audit_id.eq(id))
-                .get_result::<model::AuthAudit>(&conn),
-        }
-        .map(|audit| Some(audit.into()))
-        .or_else(|err| match err {
-            diesel::result::Error::NotFound => Ok(None),
-            _ => Err(DriverError::Diesel(err)),
-        })
+        model::Audit::read_by_id(&conn, id, service_id_mask).map(|x| x.map(|x| x.into()))
     }
 
     fn audit_read_metrics(
         &self,
-        service_id_mask: Option<&str>,
+        service_id_mask: Option<Uuid>,
     ) -> Result<Vec<(String, i64)>, DriverError> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
         let conn = self.connection()?;
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .select((audit_path, sql::<BigInt>("count(*)")))
-                .group_by(audit_path)
-                .filter(service_id.eq(service_id_mask))
-                .order(audit_path.asc())
-                .load(&conn),
-            None => auth_audit
-                .select((audit_path, sql::<BigInt>("count(*)")))
-                .group_by(audit_path)
-                .order(audit_path.asc())
-                .load(&conn),
-        }
-        .map_err(DriverError::Diesel)
+        model::Audit::read_metrics(&conn, service_id_mask)
     }
 
     fn audit_delete_by_created_at(
         &self,
         audit_created_at: &DateTime<Utc>,
     ) -> Result<usize, DriverError> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
         let conn = self.connection()?;
-        diesel::delete(auth_audit.filter(created_at.le(audit_created_at)))
-            .execute(&conn)
-            .map_err(DriverError::Diesel)
+        model::Audit::delete_by_created_at(&conn, audit_created_at)
     }
 
     fn csrf_create(
@@ -432,112 +161,45 @@ impl Driver for PostgresDriver {
         key: &str,
         value: &str,
         ttl: &DateTime<Utc>,
-        csrf_service_id: &str,
+        csrf_service_id: Uuid,
     ) -> Result<Csrf, DriverError> {
-        use crate::driver::postgres::schema::auth_csrf::dsl::*;
-
         let conn = self.connection()?;
-        let now = Utc::now();
-        let value = model::AuthCsrfInsert {
-            created_at: &now,
-            csrf_key: key,
-            csrf_value: value,
-            csrf_ttl: ttl,
-            service_id: csrf_service_id,
-        };
-        diesel::insert_into(auth_csrf)
-            .values(&value)
-            .get_result::<model::AuthCsrf>(&conn)
-            .map_err(DriverError::Diesel)
-            .map(Into::into)
+        model::Csrf::create(&conn, key, value, ttl, csrf_service_id).map(Into::into)
     }
 
     fn csrf_read_by_key(&self, key: &str) -> Result<Option<Csrf>, DriverError> {
-        use crate::driver::postgres::schema::auth_csrf::dsl::*;
-
         let conn = self.connection()?;
-        auth_csrf
-            .filter(csrf_key.eq(key))
-            .get_result::<model::AuthCsrf>(&conn)
-            .map(|csrf| Some(csrf.into()))
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(DriverError::Diesel(err)),
-            })
+        model::Csrf::read_by_key(&conn, key).map(|x| x.map(|x| x.into()))
     }
 
     fn csrf_delete_by_key(&self, key: &str) -> Result<usize, DriverError> {
-        use crate::driver::postgres::schema::auth_csrf::dsl::*;
-
         let conn = self.connection()?;
-        diesel::delete(auth_csrf.filter(csrf_key.eq(key)))
-            .execute(&conn)
-            .map_err(DriverError::Diesel)
+        model::Csrf::delete_by_key(&conn, key)
     }
 
     fn csrf_delete_by_ttl(&self, now: &DateTime<Utc>) -> Result<usize, DriverError> {
-        use crate::driver::postgres::schema::auth_csrf::dsl::*;
-
         let conn = self.connection()?;
-        diesel::delete(auth_csrf.filter(csrf_ttl.le(now)))
-            .execute(&conn)
-            .map_err(DriverError::Diesel)
+        model::Csrf::delete_by_ttl(&conn, now)
     }
 
     fn key_list_where_id_lt(
         &self,
-        lt: &str,
+        lt: Uuid,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError> {
         let conn = self.connection()?;
-        match service_id_mask {
-            Some(service_id_mask) => auth_key
-                .select(key_id)
-                .filter(service_id.eq(service_id_mask).and(key_id.lt(lt)))
-                .limit(limit)
-                .order(key_id.desc())
-                .load::<String>(&conn),
-            None => auth_key
-                .select(key_id)
-                .filter(key_id.lt(lt))
-                .limit(limit)
-                .order(key_id.desc())
-                .load::<String>(&conn),
-        }
-        .map_err(DriverError::Diesel)
-        .map(|mut v| {
-            v.reverse();
-            v
-        })
+        model::Key::list_where_id_lt(&conn, lt, limit, service_id_mask).map(Into::into)
     }
 
     fn key_list_where_id_gt(
         &self,
-        gt: &str,
+        gt: Uuid,
         limit: i64,
-        service_id_mask: Option<&str>,
-    ) -> Result<Vec<String>, DriverError> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
+        service_id_mask: Option<Uuid>,
+    ) -> Result<Vec<Uuid>, DriverError> {
         let conn = self.connection()?;
-        match service_id_mask {
-            Some(service_id_mask) => auth_key
-                .select(key_id)
-                .filter(service_id.eq(service_id_mask).and(key_id.gt(gt)))
-                .limit(limit)
-                .order(key_id.asc())
-                .load::<String>(&conn),
-            None => auth_key
-                .select(key_id)
-                .filter(key_id.gt(gt))
-                .limit(limit)
-                .order(key_id.asc())
-                .load::<String>(&conn),
-        }
-        .map_err(DriverError::Diesel)
+        model::Key::list_where_id_gt(&conn, gt, limit, service_id_mask).map(Into::into)
     }
 
     fn key_create(
@@ -546,204 +208,95 @@ impl Driver for PostgresDriver {
         is_revoked: bool,
         name: &str,
         value: &str,
-        key_service_id: Option<&str>,
-        key_user_id: Option<&str>,
+        key_service_id: Option<Uuid>,
+        key_user_id: Option<Uuid>,
     ) -> Result<Key, DriverError> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
         let conn = self.connection()?;
-        let now = Utc::now();
-        let id = PostgresDriver::uuid();
-        let value = model::AuthKeyInsert {
-            created_at: &now,
-            updated_at: &now,
-            key_id: &id,
-            key_is_enabled: is_enabled,
-            key_is_revoked: is_revoked,
-            key_name: name,
-            key_value: value,
-            service_id: key_service_id,
-            user_id: key_user_id,
-        };
-        diesel::insert_into(auth_key)
-            .values(&value)
-            .get_result::<model::AuthKey>(&conn)
-            .map_err(DriverError::Diesel)
-            .map(Into::into)
+        model::Key::create(
+            &conn,
+            is_enabled,
+            is_revoked,
+            name,
+            value,
+            key_service_id,
+            key_user_id,
+        )
+        .map(Into::into)
     }
 
-    fn key_read_by_id(&self, id: &str) -> Result<Option<Key>, DriverError> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
+    fn key_read_by_id(&self, id: Uuid) -> Result<Option<Key>, DriverError> {
         let conn = self.connection()?;
-        auth_key
-            .filter(key_id.eq(id))
-            .get_result::<model::AuthKey>(&conn)
-            .map(|key| Some(key.into()))
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(DriverError::Diesel(err)),
-            })
+        model::Key::read_by_id(&conn, id).map(|x| x.map(|x| x.into()))
     }
 
     fn key_read_by_user_id(
         &self,
-        key_service_id: &str,
-        key_user_id: &str,
+        key_service_id: Uuid,
+        key_user_id: Uuid,
     ) -> Result<Option<Key>, DriverError> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
         let conn = self.connection()?;
-        auth_key
-            .filter(
-                user_id
-                    .eq(key_user_id)
-                    .and(service_id.eq(key_service_id))
-                    .and(key_is_enabled.eq(true))
-                    .and(key_is_revoked.eq(false)),
-            )
-            .order(created_at.asc())
-            .get_result::<model::AuthKey>(&conn)
-            .map(|key| Some(key.into()))
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(DriverError::Diesel(err)),
-            })
+        model::Key::read_by_user_id(&conn, key_service_id, key_user_id).map(|x| x.map(|x| x.into()))
     }
 
     fn key_read_by_root_value(&self, value: &str) -> Result<Option<Key>, DriverError> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
         let conn = self.connection()?;
-        auth_key
-            .filter(
-                key_value
-                    .eq(value)
-                    .and(service_id.is_null())
-                    .and(user_id.is_null()),
-            )
-            .get_result::<model::AuthKey>(&conn)
-            .map(|key| Some(key.into()))
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(DriverError::Diesel(err)),
-            })
+        model::Key::read_by_root_value(&conn, value).map(|x| x.map(|x| x.into()))
     }
 
     fn key_read_by_service_value(&self, value: &str) -> Result<Option<Key>, DriverError> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
         let conn = self.connection()?;
-        auth_key
-            .filter(
-                key_value
-                    .eq(value)
-                    .and(service_id.is_not_null())
-                    .and(user_id.is_null()),
-            )
-            .get_result::<model::AuthKey>(&conn)
-            .map(|key| Some(key.into()))
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(DriverError::Diesel(err)),
-            })
+        model::Key::read_by_service_value(&conn, value).map(|x| x.map(|x| x.into()))
     }
 
     fn key_read_by_user_value(
         &self,
-        key_service_id: &str,
+        key_service_id: Uuid,
         value: &str,
     ) -> Result<Option<Key>, DriverError> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
         let conn = self.connection()?;
-        auth_key
-            .filter(
-                key_value
-                    .eq(value)
-                    .and(service_id.eq(key_service_id).and(user_id.is_not_null())),
-            )
-            .get_result::<model::AuthKey>(&conn)
-            .map(|key| Some(key.into()))
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(DriverError::Diesel(err)),
-            })
+        model::Key::read_by_user_value(&conn, key_service_id, value).map(|x| x.map(|x| x.into()))
     }
 
     fn key_update_by_id(
         &self,
-        id: &str,
+        id: Uuid,
         is_enabled: Option<bool>,
         is_revoked: Option<bool>,
         name: Option<&str>,
     ) -> Result<Key, DriverError> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
         let conn = self.connection()?;
-        let now = chrono::Utc::now();
-        let value = model::AuthKeyUpdate {
-            updated_at: &now,
-            key_is_enabled: is_enabled,
-            key_is_revoked: is_revoked,
-            key_name: name,
-        };
-        diesel::update(auth_key.filter(key_id.eq(id)))
-            .set(&value)
-            .get_result::<model::AuthKey>(&conn)
-            .map_err(DriverError::Diesel)
-            .map(Into::into)
+        model::Key::update_by_id(&conn, id, is_enabled, is_revoked, name).map(Into::into)
     }
 
     fn key_update_many_by_user_id(
         &self,
-        key_user_id: &str,
+        key_user_id: Uuid,
         is_enabled: Option<bool>,
         is_revoked: Option<bool>,
         name: Option<&str>,
     ) -> Result<usize, DriverError> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
         let conn = self.connection()?;
-        let now = chrono::Utc::now();
-        let value = model::AuthKeyUpdate {
-            updated_at: &now,
-            key_is_enabled: is_enabled,
-            key_is_revoked: is_revoked,
-            key_name: name,
-        };
-        diesel::update(auth_key.filter(user_id.eq(key_user_id)))
-            .set(&value)
-            .execute(&conn)
-            .map_err(DriverError::Diesel)
+        model::Key::update_many_by_user_id(&conn, key_user_id, is_enabled, is_revoked, name)
     }
 
-    fn key_delete_by_id(&self, id: &str) -> Result<usize, DriverError> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
+    fn key_delete_by_id(&self, id: Uuid) -> Result<usize, DriverError> {
         let conn = self.connection()?;
-        diesel::delete(auth_key.filter(key_id.eq(id)))
-            .execute(&conn)
-            .map_err(DriverError::Diesel)
+        model::Key::delete_by_id(&conn, id)
     }
 
     fn key_delete_root(&self) -> Result<usize, DriverError> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
         let conn = self.connection()?;
-        diesel::delete(auth_key.filter(service_id.is_null().and(user_id.is_null())))
-            .execute(&conn)
-            .map_err(DriverError::Diesel)
+        model::Key::delete_root(&conn)
     }
 
-    fn service_list_where_id_lt(&self, lt: &str, limit: i64) -> Result<Vec<String>, DriverError> {
+    fn service_list_where_id_lt(&self, lt: Uuid, limit: i64) -> Result<Vec<Uuid>, DriverError> {
         let conn = self.connection()?;
-        model::Service::list_where_id_lt(&conn, lt, limit)
+        model::Service::list_where_id_lt(&conn, lt, limit).map(Into::into)
     }
 
-    fn service_list_where_id_gt(&self, gt: &str, limit: i64) -> Result<Vec<String>, DriverError> {
+    fn service_list_where_id_gt(&self, gt: Uuid, limit: i64) -> Result<Vec<Uuid>, DriverError> {
         let conn = self.connection()?;
-        model::Service::list_where_id_gt(&conn, gt, limit)
+        model::Service::list_where_id_gt(&conn, gt, limit).map(Into::into)
     }
 
     fn service_create(
@@ -753,25 +306,25 @@ impl Driver for PostgresDriver {
         url: &str,
     ) -> Result<Service, DriverError> {
         let conn = self.connection()?;
-        model::Service::create(&conn, is_enabled, name, url)
+        model::Service::create(&conn, is_enabled, name, url).map(Into::into)
     }
 
-    fn service_read_by_id(&self, id: &str) -> Result<Option<Service>, DriverError> {
+    fn service_read_by_id(&self, id: Uuid) -> Result<Option<Service>, DriverError> {
         let conn = self.connection()?;
-        model::Service::read_by_id(&conn, id)
+        model::Service::read_by_id(&conn, id).map(|x| x.map(|x| x.into()))
     }
 
     fn service_update_by_id(
         &self,
-        id: &str,
+        id: Uuid,
         is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> Result<Service, DriverError> {
         let conn = self.connection()?;
-        model::Service::update_by_id(&conn, id, is_enabled, name)
+        model::Service::update_by_id(&conn, id, is_enabled, name).map(Into::into)
     }
 
-    fn service_delete_by_id(&self, id: &str) -> Result<usize, DriverError> {
+    fn service_delete_by_id(&self, id: Uuid) -> Result<usize, DriverError> {
         let conn = self.connection()?;
         model::Service::delete_by_id(&conn, id)
     }
@@ -803,17 +356,17 @@ impl Driver for PostgresDriver {
         password_hash: Option<&str>,
     ) -> Result<User, DriverError> {
         let conn = self.connection()?;
-        model::User::create(&conn, is_enabled, name, email, password_hash)
+        model::User::create(&conn, is_enabled, name, email, password_hash).map(Into::into)
     }
 
     fn user_read_by_id(&self, id: Uuid) -> Result<Option<User>, DriverError> {
         let conn = self.connection()?;
-        model::User::read_by_id(&conn, id)
+        model::User::read_by_id(&conn, id).map(|x| x.map(|x| x.into()))
     }
 
     fn user_read_by_email(&self, email: &str) -> Result<Option<User>, DriverError> {
         let conn = self.connection()?;
-        model::User::read_by_email(&conn, email)
+        model::User::read_by_email(&conn, email).map(|x| x.map(|x| x.into()))
     }
 
     fn user_update_by_id(
@@ -823,7 +376,7 @@ impl Driver for PostgresDriver {
         name: Option<&str>,
     ) -> Result<User, DriverError> {
         let conn = self.connection()?;
-        model::User::update_by_id(&conn, id, is_enabled, name)
+        model::User::update_by_id(&conn, id, is_enabled, name).map(Into::into)
     }
 
     fn user_update_email_by_id(&self, id: Uuid, email: &str) -> Result<usize, DriverError> {
@@ -843,5 +396,78 @@ impl Driver for PostgresDriver {
     fn user_delete_by_id(&self, id: Uuid) -> Result<usize, DriverError> {
         let conn = self.connection()?;
         model::User::delete_by_id(&conn, id)
+    }
+}
+
+impl From<model::Audit> for Audit {
+    fn from(audit: model::Audit) -> Self {
+        Audit {
+            created_at: audit.created_at,
+            id: audit.audit_id,
+            user_agent: audit.audit_user_agent,
+            remote: audit.audit_remote,
+            forwarded: audit.audit_forwarded,
+            path: audit.audit_path,
+            data: audit.audit_data,
+            key_id: audit.key_id,
+            service_id: audit.service_id,
+            user_id: audit.user_id,
+            user_key_id: audit.user_key_id,
+        }
+    }
+}
+
+impl From<model::Csrf> for Csrf {
+    fn from(csrf: model::Csrf) -> Self {
+        Csrf {
+            created_at: csrf.created_at,
+            key: csrf.csrf_key,
+            value: csrf.csrf_value,
+            ttl: csrf.csrf_ttl,
+            service_id: csrf.service_id,
+        }
+    }
+}
+
+impl From<model::Key> for Key {
+    fn from(key: model::Key) -> Self {
+        Key {
+            created_at: key.created_at,
+            updated_at: key.updated_at,
+            id: key.key_id,
+            is_enabled: key.key_is_enabled,
+            is_revoked: key.key_is_revoked,
+            name: key.key_name,
+            value: key.key_value,
+            service_id: key.service_id,
+            user_id: key.user_id,
+        }
+    }
+}
+
+impl From<model::Service> for Service {
+    fn from(service: model::Service) -> Self {
+        Service {
+            created_at: service.created_at,
+            updated_at: service.updated_at,
+            id: service.service_id,
+            is_enabled: service.service_is_enabled,
+            name: service.service_name,
+            url: service.service_url,
+        }
+    }
+}
+
+impl From<model::User> for User {
+    fn from(user: model::User) -> Self {
+        User {
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+            id: user.user_id,
+            is_enabled: user.user_is_enabled,
+            name: user.user_name,
+            email: user.user_email,
+            password_hash: user.user_password_hash,
+        }
     }
 }
