@@ -7,7 +7,7 @@ use support::*;
 
 // TODO(test): Finish, improve tests.
 // TODO(test): Test TLS functionality.
-// TODO(test): Password reset tests, SMTP testing using mailin_embedded?
+// TODO(test): Password reset tests, SMTP testing using mailin_embedded or replace notify actor?
 // Service 2 cannot confirm reset password.
 // Confirm reset password success.
 // User password is updated.

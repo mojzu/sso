@@ -1,5 +1,6 @@
 use crate::driver::{postgres::schema::auth_user, DriverError};
 use chrono::{DateTime, Utc};
+use diesel::result::Error as DieselError;
 use diesel::{prelude::*, PgConnection};
 use uuid::Uuid;
 
@@ -127,9 +128,9 @@ impl User {
         auth_user
             .filter(user_id.eq(id))
             .get_result::<User>(conn)
-            .map(|user| Some(user))
+            .map(Some)
             .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
+                DieselError::NotFound => Ok(None),
                 _ => Err(DriverError::Diesel(err)),
             })
     }
@@ -140,9 +141,9 @@ impl User {
         auth_user
             .filter(user_email.eq(email))
             .get_result::<User>(conn)
-            .map(|user| Some(user))
+            .map(Some)
             .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
+                DieselError::NotFound => Ok(None),
                 _ => Err(DriverError::Diesel(err)),
             })
     }

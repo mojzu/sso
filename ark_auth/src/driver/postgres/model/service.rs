@@ -100,7 +100,7 @@ impl Service {
         auth_service
             .filter(service_id.eq(id))
             .get_result::<Service>(conn)
-            .map(|service| Some(service))
+            .map(Some)
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
                 _ => Err(DriverError::Diesel(err)),

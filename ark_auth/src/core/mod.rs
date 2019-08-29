@@ -286,7 +286,7 @@ mod tests {
 
     #[test]
     fn builds_service_callback_url() {
-        let mut id = "6a9c6cfb7e15498b99e057153f0a212b";
+        let id = "6a9c6cfb7e15498b99e057153f0a212b";
         let id = Uuid::parse_str(id).unwrap();
         let service = Service {
             created_at: Utc::now(),

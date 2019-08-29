@@ -3,7 +3,10 @@ use crate::{
     core::audit::{AuditBuilder, AuditMessage, AuditPath},
     core::{AuditData, Csrf, Error, Key, Service, User, UserKey, UserToken, UserTokenPartial},
     driver::Driver,
-    notify::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword, NotifyExecutor},
+    notify::{
+        msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
+        NotifyActor,
+    },
 };
 use actix::Addr;
 use uuid::Uuid;
@@ -48,7 +51,7 @@ pub fn login(
 /// returns Ok to prevent the caller from inferring the existence of a user.
 pub fn reset_password(
     driver: &dyn Driver,
-    notify: &Addr<NotifyExecutor>,
+    notify: &Addr<NotifyActor>,
     service: &Service,
     audit: &mut AuditBuilder,
     email: &str,
@@ -60,7 +63,7 @@ pub fn reset_password(
 
 fn reset_password_inner(
     driver: &dyn Driver,
-    notify: &Addr<NotifyExecutor>,
+    notify: &Addr<NotifyActor>,
     service: &Service,
     audit: &mut AuditBuilder,
     email: &str,
@@ -167,7 +170,7 @@ pub fn reset_password_confirm(
 #[allow(clippy::too_many_arguments)]
 pub fn update_email(
     driver: &dyn Driver,
-    notify: &Addr<NotifyExecutor>,
+    notify: &Addr<NotifyActor>,
     service: &Service,
     audit: &mut AuditBuilder,
     key: Option<&str>,
@@ -311,7 +314,7 @@ pub fn update_email_revoke(
 #[allow(clippy::too_many_arguments)]
 pub fn update_password(
     driver: &dyn Driver,
-    notify: &Addr<NotifyExecutor>,
+    notify: &Addr<NotifyActor>,
     service: &Service,
     audit: &mut AuditBuilder,
     key: Option<&str>,

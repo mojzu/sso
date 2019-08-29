@@ -15,39 +15,40 @@ macro_rules! key_integration_test {
             assert_eq!(res, ClientError::Forbidden);
         }
 
-        #[test]
-        #[ignore]
-        fn api_key_list_bad_request_invalid_gt() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        // TODO(test): Reimplement these tests.
+        // #[test]
+        // #[ignore]
+        // fn api_key_list_bad_request_invalid_gt() {
+        //     let client = client_create(None);
+        //     let (_service, service_key) = service_key_create(&client);
 
-            let client = client_create(Some(&service_key.value));
-            let res = client
-                .key_list(KeyListQuery {
-                    gt: Some("".to_owned()),
-                    lt: None,
-                    limit: None,
-                })
-                .unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
-        }
+        //     let client = client_create(Some(&service_key.value));
+        //     let res = client
+        //         .key_list(KeyListQuery {
+        //             gt: Some("".to_owned()),
+        //             lt: None,
+        //             limit: None,
+        //         })
+        //         .unwrap_err();
+        //     assert_eq!(res, ClientError::BadRequest);
+        // }
 
-        #[test]
-        #[ignore]
-        fn api_key_list_bad_request_invalid_lt() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        // #[test]
+        // #[ignore]
+        // fn api_key_list_bad_request_invalid_lt() {
+        //     let client = client_create(None);
+        //     let (_service, service_key) = service_key_create(&client);
 
-            let client = client_create(Some(&service_key.value));
-            let res = client
-                .key_list(KeyListQuery {
-                    gt: None,
-                    lt: Some("".to_owned()),
-                    limit: None,
-                })
-                .unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
-        }
+        //     let client = client_create(Some(&service_key.value));
+        //     let res = client
+        //         .key_list(KeyListQuery {
+        //             gt: None,
+        //             lt: Some("".to_owned()),
+        //             limit: None,
+        //         })
+        //         .unwrap_err();
+        //     assert_eq!(res, ClientError::BadRequest);
+        // }
 
         #[test]
         #[ignore]
@@ -77,7 +78,7 @@ macro_rules! key_integration_test {
             let user = user_create(&client, true, USER_NAME, &user_email);
             let limit = "3";
 
-            let body = KeyCreateBody::with_user_id(true, KEY_NAME, &user.id);
+            let body = KeyCreateBody::with_user_id(true, KEY_NAME, user.id);
             client.key_create(body.clone()).unwrap();
             client.key_create(body.clone()).unwrap();
             client.key_create(body.clone()).unwrap();
@@ -168,7 +169,7 @@ macro_rules! key_integration_test {
         #[ignore]
         fn api_key_read_forbidden() {
             let client = client_create(Some(INVALID_SERVICE_KEY));
-            let res = client.key_read(INVALID_UUID).unwrap_err();
+            let res = client.key_read(Uuid::nil()).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);
         }
     };

@@ -1,21 +1,19 @@
-use crate::client::error::Error;
-use crate::client::{default_user_agent, Client};
+use crate::client::{default_user_agent, error::Error, Client};
 use actix::prelude::*;
 use http::{header, HeaderMap};
 use reqwest::r#async::{Client as ReqwestClient, ClientBuilder};
 use serde::ser::Serialize;
-use std::fs::File;
-use std::io::Read;
+use std::{fs::File, io::Read};
 
-/// ## Client Executor Options
+/// Client actor options.
 #[derive(Debug, Clone)]
-pub struct ClientExecutorOptions {
+pub struct ClientActorOptions {
     user_agent: String,
     crt_pem: Option<Vec<u8>>,
     client_pem: Option<Vec<u8>>,
 }
 
-impl ClientExecutorOptions {
+impl ClientActorOptions {
     /// Create new options.
     /// Reads CA certificate PEM file into buffer if provided.
     /// Reads client key PEM file into buffer if provided.
@@ -73,24 +71,24 @@ impl ClientExecutorOptions {
     }
 }
 
-impl Default for ClientExecutorOptions {
+impl Default for ClientActorOptions {
     fn default() -> Self {
-        ClientExecutorOptions::new(default_user_agent(), None, None).unwrap()
+        ClientActorOptions::new(default_user_agent(), None, None).unwrap()
     }
 }
 
-/// ## Client Executor
+/// Client Actor.
 /// Reqwest advises not to recreate clients, and clients cannot be sent across threads.
 /// The primary use case for asynchronous client is in actix-web routes, which may
 /// run across many threads, so to avoid creating a client for each request, the client
 /// can be run in an actor thread and used by passing messages.
-pub struct ClientExecutor {
+pub struct ClientActor {
     client: ReqwestClient,
 }
 
-impl ClientExecutor {
+impl ClientActor {
     /// Start client actor with options.
-    pub fn start(options: ClientExecutorOptions) -> Addr<Self> {
+    pub fn start(options: ClientActorOptions) -> Addr<Self> {
         Supervisor::start(move |_| {
             let headers = options.default_headers();
             let builder = ClientBuilder::new()
@@ -117,20 +115,20 @@ impl ClientExecutor {
     }
 }
 
-impl Supervised for ClientExecutor {}
+impl Supervised for ClientActor {}
 
-impl Actor for ClientExecutor {
+impl Actor for ClientActor {
     type Context = Context<Self>;
 }
 
-pub trait ClientExecutorRequest {
+pub trait ClientActorRequest {
     /// Set authorisation header on request.
     fn authorisation<T1: Into<String>>(self, authorisation: T1) -> Self;
     /// Set forwarded header on request.
     fn forwarded<T1: Into<String>>(self, forwarded: T1) -> Self;
 }
 
-/// ## Asynchronous Client GET Request
+/// Asynchronous client GET request.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Get {
     url: String,
@@ -165,7 +163,7 @@ impl Get {
     }
 }
 
-impl ClientExecutorRequest for Get {
+impl ClientActorRequest for Get {
     fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
         self.authorisation = Some(authorisation.into());
         self
@@ -181,7 +179,7 @@ impl Message for Get {
     type Result = Result<String, Error>;
 }
 
-impl Handler<Get> for ClientExecutor {
+impl Handler<Get> for ClientActor {
     type Result = ResponseActFuture<Self, String, Error>;
 
     fn handle(&mut self, msg: Get, _ctx: &mut Context<Self>) -> Self::Result {
@@ -200,7 +198,7 @@ impl Handler<Get> for ClientExecutor {
     }
 }
 
-/// ## Asynchronous Client POST JSON Request
+/// Asynchronous client POST JSON request.
 pub struct PostJson<S: Serialize> {
     url: String,
     route: String,
@@ -226,7 +224,7 @@ impl<S: Serialize> PostJson<S> {
     }
 }
 
-impl<S: Serialize> ClientExecutorRequest for PostJson<S> {
+impl<S: Serialize> ClientActorRequest for PostJson<S> {
     fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
         self.authorisation = Some(authorisation.into());
         self
@@ -242,7 +240,7 @@ impl<S: Serialize> Message for PostJson<S> {
     type Result = Result<String, Error>;
 }
 
-impl<S: Serialize> Handler<PostJson<S>> for ClientExecutor {
+impl<S: Serialize> Handler<PostJson<S>> for ClientActor {
     type Result = ResponseActFuture<Self, String, Error>;
 
     fn handle(&mut self, msg: PostJson<S>, _ctx: &mut Context<Self>) -> Self::Result {
@@ -266,7 +264,7 @@ impl<S: Serialize> Handler<PostJson<S>> for ClientExecutor {
     }
 }
 
-/// ## Asynchronous Client PATCH Request
+/// Asynchronous client PATCH JSON request.
 pub struct PatchJson<S: Serialize> {
     url: String,
     route: String,
@@ -276,7 +274,7 @@ pub struct PatchJson<S: Serialize> {
 }
 
 impl<S: Serialize> PatchJson<S> {
-    /// Create new Serialize JSON request.
+    /// Create new PATCH JSON request.
     pub fn new<T1, T2>(url: T1, route: T2, body: Option<S>) -> Self
     where
         T1: Into<String>,
@@ -292,7 +290,7 @@ impl<S: Serialize> PatchJson<S> {
     }
 }
 
-impl<S: Serialize> ClientExecutorRequest for PatchJson<S> {
+impl<S: Serialize> ClientActorRequest for PatchJson<S> {
     fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
         self.authorisation = Some(authorisation.into());
         self
@@ -308,7 +306,7 @@ impl<S: Serialize> Message for PatchJson<S> {
     type Result = Result<String, Error>;
 }
 
-impl<S: Serialize> Handler<PatchJson<S>> for ClientExecutor {
+impl<S: Serialize> Handler<PatchJson<S>> for ClientActor {
     type Result = ResponseActFuture<Self, String, Error>;
 
     fn handle(&mut self, msg: PatchJson<S>, _ctx: &mut Context<Self>) -> Self::Result {
@@ -332,7 +330,7 @@ impl<S: Serialize> Handler<PatchJson<S>> for ClientExecutor {
     }
 }
 
-/// ## Asynchronous Client DELETE Request
+/// Asynchronous client DELETE request.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Delete {
     url: String,
@@ -357,7 +355,7 @@ impl Delete {
     }
 }
 
-impl ClientExecutorRequest for Delete {
+impl ClientActorRequest for Delete {
     fn authorisation<T1: Into<String>>(mut self, authorisation: T1) -> Self {
         self.authorisation = Some(authorisation.into());
         self
@@ -373,7 +371,7 @@ impl Message for Delete {
     type Result = Result<String, Error>;
 }
 
-impl Handler<Delete> for ClientExecutor {
+impl Handler<Delete> for ClientActor {
     type Result = ResponseActFuture<Self, String, Error>;
 
     fn handle(&mut self, msg: Delete, _ctx: &mut Context<Self>) -> Self::Result {

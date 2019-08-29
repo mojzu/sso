@@ -131,7 +131,7 @@ impl Key {
         auth_key
             .filter(key_id.eq(id))
             .get_result::<Key>(conn)
-            .map(|key| Some(key))
+            .map(Some)
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
                 _ => Err(DriverError::Diesel(err)),
@@ -155,7 +155,7 @@ impl Key {
             )
             .order(created_at.asc())
             .get_result::<Key>(conn)
-            .map(|key| Some(key))
+            .map(Some)
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
                 _ => Err(DriverError::Diesel(err)),
@@ -176,7 +176,7 @@ impl Key {
                     .and(user_id.is_null()),
             )
             .get_result::<Key>(conn)
-            .map(|key| Some(key))
+            .map(Some)
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
                 _ => Err(DriverError::Diesel(err)),
@@ -197,7 +197,7 @@ impl Key {
                     .and(user_id.is_null()),
             )
             .get_result::<Key>(conn)
-            .map(|key| Some(key))
+            .map(Some)
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
                 _ => Err(DriverError::Diesel(err)),
@@ -218,7 +218,7 @@ impl Key {
                     .and(service_id.eq(key_service_id).and(user_id.is_not_null())),
             )
             .get_result::<Key>(conn)
-            .map(|key| Some(key))
+            .map(Some)
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
                 _ => Err(DriverError::Diesel(err)),

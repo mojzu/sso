@@ -10,14 +10,6 @@ use serde_json::Value;
 use uuid::Uuid;
 use validator::Validate;
 
-fn datetime_from_string(value: Option<String>) -> Option<DateTime<Utc>> {
-    value.map(|x| {
-        DateTime::parse_from_rfc3339(&x)
-            .unwrap()
-            .with_timezone(&Utc)
-    })
-}
-
 fn i64_from_string(value: Option<String>) -> Option<i64> {
     value.map(|x| x.parse::<i64>().unwrap())
 }
@@ -52,6 +44,8 @@ pub mod path {
 
 /// Route definitions.
 pub mod route {
+    use std::fmt::Display;
+
     pub const PING: &str = "/v1/ping";
     pub const METRICS: &str = "/v1/metrics";
     pub const AUTH_LOCAL_LOGIN: &str = "/v1/auth/provider/local/login";
@@ -75,19 +69,19 @@ pub mod route {
     pub const SERVICE: &str = "/v1/service";
     pub const USER: &str = "/v1/user";
 
-    pub fn audit_id(id: &str) -> String {
+    pub fn audit_id<T: Display>(id: T) -> String {
         format!("{}/{}", AUDIT, id)
     }
 
-    pub fn key_id(id: &str) -> String {
+    pub fn key_id<T: Display>(id: T) -> String {
         format!("{}/{}", KEY, id)
     }
 
-    pub fn service_id(id: &str) -> String {
+    pub fn service_id<T: Display>(id: T) -> String {
         format!("{}/{}", SERVICE, id)
     }
 
-    pub fn user_id(id: &str) -> String {
+    pub fn user_id<T: Display>(id: T) -> String {
         format!("{}/{}", USER, id)
     }
 }
@@ -451,7 +445,7 @@ impl KeyCreateBody {
         }
     }
 
-    pub fn with_service_id<S1, S2>(is_enabled: bool, name: S1, service_id: Uuid) -> Self
+    pub fn with_service_id<S1>(is_enabled: bool, name: S1, service_id: Uuid) -> Self
     where
         S1: Into<String>,
     {
@@ -463,7 +457,7 @@ impl KeyCreateBody {
         }
     }
 
-    pub fn with_user_id<S1, S2>(is_enabled: bool, name: S1, user_id: Uuid) -> Self
+    pub fn with_user_id<S1>(is_enabled: bool, name: S1, user_id: Uuid) -> Self
     where
         S1: Into<String>,
     {

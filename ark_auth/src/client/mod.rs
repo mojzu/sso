@@ -1,27 +1,26 @@
 //! # Server Clients
+mod actor;
 #[cfg(feature = "async_client")]
 mod async_impl;
 mod error;
-mod executor;
 #[cfg(feature = "sync_client")]
 mod sync_impl;
 
 #[cfg(feature = "async_client")]
 pub use crate::client::async_impl::AsyncClient;
-pub use crate::client::error::Error as ClientError;
-pub use crate::client::executor::{
-    ClientExecutor, ClientExecutorOptions, ClientExecutorRequest, Delete, Get, PatchJson, PostJson,
-};
 #[cfg(feature = "sync_client")]
 pub use crate::client::sync_impl::SyncClient;
+pub use crate::client::{
+    actor::{
+        ClientActor, ClientActorOptions, ClientActorRequest, Delete, Get, PatchJson, PostJson,
+    },
+    error::Error as ClientError,
+};
 
 use crate::client::error::Error;
 use http::header;
-use reqwest::r#async::RequestBuilder as AsyncRequestBuilder;
-use reqwest::RequestBuilder;
-use reqwest::Response;
-use serde::de::DeserializeOwned;
-use serde::ser::Serialize;
+use reqwest::{r#async::RequestBuilder as AsyncRequestBuilder, RequestBuilder, Response};
+use serde::{de::DeserializeOwned, ser::Serialize};
 use url::Url;
 
 /// Default user agent constructed from crate name and version.
@@ -157,11 +156,12 @@ impl Client {
 mod tests {
     use super::*;
     use crate::server::api::ServiceListQuery;
+    use uuid::Uuid;
 
     #[test]
     fn builds_url_from_route_and_query() {
         let query = ServiceListQuery {
-            gt: Some("".to_owned()),
+            gt: Some(Uuid::nil()),
             lt: None,
             limit: Some("10".to_owned()),
         };

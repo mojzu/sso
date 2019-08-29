@@ -2,8 +2,7 @@ mod github;
 mod local;
 mod microsoft;
 
-use crate::core;
-use crate::server::api::path;
+use crate::{core, server::api::path};
 use actix_web::{http::header, web, HttpResponse};
 
 pub fn route_v1_scope() -> actix_web::Scope {

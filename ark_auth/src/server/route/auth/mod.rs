@@ -2,9 +2,11 @@ mod key;
 mod provider;
 mod token;
 
-use crate::client::Get;
-use crate::server::api::{path, AuthPasswordMeta};
-use crate::server::{Data, Error};
+use crate::{
+    client::Get,
+    server::api::{path, AuthPasswordMeta},
+    server::{Data, Error},
+};
 use actix_web::web;
 use futures::{future, Future};
 use sha1::{Digest, Sha1};

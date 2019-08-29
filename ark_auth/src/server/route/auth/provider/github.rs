@@ -1,21 +1,23 @@
-use crate::client::{Client, ClientExecutorRequest, Get};
-use crate::core;
-use crate::core::audit::AuditBuilder;
-use crate::core::AuditMeta;
-use crate::server::api::{path, AuthOauth2CallbackQuery, AuthOauth2UrlResponse};
-use crate::server::route::auth::provider::oauth2_redirect;
-use crate::server::route::{request_audit_meta, route_response_json};
-use crate::server::{Data, Error, FromJsonValue, Oauth2Error, ServerOptionsProviderOauth2};
+use crate::{
+    client::{Client, ClientActorRequest, Get},
+    core,
+    core::{audit::AuditBuilder, AuditMeta},
+    server::{
+        api::{path, AuthOauth2CallbackQuery, AuthOauth2UrlResponse},
+        route::{auth::provider::oauth2_redirect, request_audit_meta, route_response_json},
+        Data, Error, FromJsonValue, Oauth2Error, ServerOptionsProviderOauth2,
+    },
+};
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
 use futures::{future, Future};
-use oauth2::reqwest::http_client;
 use oauth2::{
-    basic::BasicClient, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl,
-    Scope, TokenResponse, TokenUrl,
+    basic::BasicClient, reqwest::http_client, AuthUrl, AuthorizationCode, ClientId, ClientSecret,
+    CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
 };
 use serde_json::Value;
 use url::Url;
+use uuid::Uuid;
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope(path::GITHUB).service(
@@ -85,7 +87,7 @@ fn oauth2_callback_handler(
             web::block(move || {
                 core::auth::oauth2_login(
                     data.driver(),
-                    &service_id,
+                    service_id,
                     &mut audit,
                     &email,
                     data.options().access_token_expires(),
@@ -131,7 +133,7 @@ fn github_callback(
     _audit: &mut AuditBuilder,
     code: &str,
     state: &str,
-) -> Result<(String, String), Error> {
+) -> Result<(Uuid, String), Error> {
     // Read the CSRF key using state value, rebuild code verifier from value.
     let csrf = core::csrf::read_by_key(data.driver(), &state).map_err(Error::Core)?;
     let csrf = csrf.ok_or_else(|| Error::Oauth2(Oauth2Error::Csrf))?;

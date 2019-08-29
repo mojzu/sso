@@ -1,19 +1,22 @@
 //! # Synchronous Client
-use crate::client::{Client, ClientExecutorOptions, ClientOptions, Error};
-use crate::core::User;
-use crate::server::api::{
-    route, AuditCreateBody, AuditDataRequest, AuditListQuery, AuditListResponse, AuditReadResponse,
-    AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse, AuthOauth2UrlResponse,
-    AuthPasswordMetaResponse, AuthResetPasswordBody, AuthResetPasswordConfirmBody, AuthTokenBody,
-    AuthTokenPartialResponse, AuthTokenResponse, AuthUpdateEmailBody, AuthUpdatePasswordBody,
-    KeyCreateBody, KeyListQuery, KeyListResponse, KeyReadResponse, KeyUpdateBody,
-    ServiceCreateBody, ServiceListQuery, ServiceListResponse, ServiceReadResponse,
-    ServiceUpdateBody, UserCreateBody, UserCreateResponse, UserListQuery, UserListResponse,
-    UserReadResponse, UserUpdateBody,
+use crate::{
+    client::{Client, ClientActorOptions, ClientOptions, Error},
+    core::User,
+    server::api::{
+        route, AuditCreateBody, AuditDataRequest, AuditListQuery, AuditListResponse,
+        AuditReadResponse, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
+        AuthOauth2UrlResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
+        AuthResetPasswordConfirmBody, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse,
+        AuthUpdateEmailBody, AuthUpdatePasswordBody, KeyCreateBody, KeyListQuery, KeyListResponse,
+        KeyReadResponse, KeyUpdateBody, ServiceCreateBody, ServiceListQuery, ServiceListResponse,
+        ServiceReadResponse, ServiceUpdateBody, UserCreateBody, UserCreateResponse, UserListQuery,
+        UserListResponse, UserReadResponse, UserUpdateBody,
+    },
 };
 use reqwest::{Client as ReqwestClient, Response};
 use serde::ser::Serialize;
 use serde_json::Value;
+use uuid::Uuid;
 
 /// Synchronous client.
 #[derive(Clone)]
@@ -27,21 +30,21 @@ impl SyncClient {
     /// Create new client.
     pub fn new<T1: Into<String>>(
         url: T1,
-        executor_options: ClientExecutorOptions,
+        actor_options: ClientActorOptions,
         options: ClientOptions,
     ) -> Result<Self, Error> {
-        let headers = executor_options.default_headers();
+        let headers = actor_options.default_headers();
         let builder = reqwest::ClientBuilder::new()
             .use_rustls_tls()
             .default_headers(headers);
-        let builder = match executor_options.crt_pem() {
+        let builder = match actor_options.crt_pem() {
             Some(buf) => {
                 let crt_pem = reqwest::Certificate::from_pem(buf).unwrap();
                 builder.add_root_certificate(crt_pem)
             }
             None => builder,
         };
-        let builder = match executor_options.client_pem() {
+        let builder = match actor_options.client_pem() {
             Some(buf) => {
                 let client_pem = reqwest::Identity::from_pem(buf).unwrap();
                 builder.identity(client_pem)
@@ -192,7 +195,7 @@ impl SyncClient {
     }
 
     /// Audit read by ID request.
-    pub fn audit_read(&self, id: &str) -> Result<AuditReadResponse, Error> {
+    pub fn audit_read(&self, id: Uuid) -> Result<AuditReadResponse, Error> {
         let route = route::audit_id(id);
         self.get(&route)
             .and_then(Client::response_json::<AuditReadResponse>)
@@ -211,21 +214,21 @@ impl SyncClient {
     }
 
     /// Key read request.
-    pub fn key_read(&self, id: &str) -> Result<KeyReadResponse, Error> {
+    pub fn key_read(&self, id: Uuid) -> Result<KeyReadResponse, Error> {
         let route = route::key_id(id);
         self.get(&route)
             .and_then(Client::response_json::<KeyReadResponse>)
     }
 
     /// Key update request.
-    pub fn key_update(&self, id: &str, body: KeyUpdateBody) -> Result<KeyReadResponse, Error> {
+    pub fn key_update(&self, id: Uuid, body: KeyUpdateBody) -> Result<KeyReadResponse, Error> {
         let route = route::key_id(id);
         self.patch(&route, &body)
             .and_then(Client::response_json::<KeyReadResponse>)
     }
 
     /// Key delete request.
-    pub fn key_delete(&self, id: &str) -> Result<(), Error> {
+    pub fn key_delete(&self, id: Uuid) -> Result<(), Error> {
         let route = route::key_id(id);
         self.delete(&route).and_then(Client::response_empty)
     }
@@ -243,7 +246,7 @@ impl SyncClient {
     }
 
     /// Service read request.
-    pub fn service_read(&self, id: &str) -> Result<ServiceReadResponse, Error> {
+    pub fn service_read(&self, id: Uuid) -> Result<ServiceReadResponse, Error> {
         let route = route::service_id(id);
         self.get(&route)
             .and_then(Client::response_json::<ServiceReadResponse>)
@@ -252,7 +255,7 @@ impl SyncClient {
     /// Service update request.
     pub fn service_update(
         &self,
-        id: &str,
+        id: Uuid,
         body: ServiceUpdateBody,
     ) -> Result<ServiceReadResponse, Error> {
         let route = route::service_id(id);
@@ -261,7 +264,7 @@ impl SyncClient {
     }
 
     /// Service delete request.
-    pub fn service_delete(&self, id: &str) -> Result<(), Error> {
+    pub fn service_delete(&self, id: Uuid) -> Result<(), Error> {
         let route = route::service_id(id);
         self.delete(&route).and_then(Client::response_empty)
     }
@@ -279,21 +282,21 @@ impl SyncClient {
     }
 
     /// User read request.
-    pub fn user_read(&self, id: &str) -> Result<UserReadResponse, Error> {
+    pub fn user_read(&self, id: Uuid) -> Result<UserReadResponse, Error> {
         let route = route::user_id(id);
         self.get(&route)
             .and_then(Client::response_json::<UserReadResponse>)
     }
 
     /// User update request.
-    pub fn user_update(&self, id: &str, body: UserUpdateBody) -> Result<UserReadResponse, Error> {
+    pub fn user_update(&self, id: Uuid, body: UserUpdateBody) -> Result<UserReadResponse, Error> {
         let route = route::user_id(id);
         self.patch(&route, &body)
             .and_then(Client::response_json::<UserReadResponse>)
     }
 
     /// User delete request.
-    pub fn user_delete(&self, id: &str) -> Result<(), Error> {
+    pub fn user_delete(&self, id: Uuid) -> Result<(), Error> {
         let route = route::user_id(id);
         self.delete(&route).and_then(Client::response_empty)
     }
@@ -370,7 +373,7 @@ impl SyncClient {
                     }
                     _ => Err(Error::Forbidden),
                 }
-                .and_then(|user_id| self.user_read(&user_id))
+                .and_then(|user_id| self.user_read(user_id))
                 .map(|res| res.data)
             }
             None => Err(Error::Forbidden),

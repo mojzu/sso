@@ -1,39 +1,38 @@
 //! # Asynchronous Client
-use crate::client::{
-    Client, ClientExecutor, ClientExecutorRequest, ClientOptions, Delete, Error, Get, PatchJson,
-    PostJson,
-};
-use crate::core::User;
-use crate::server::api::{
-    route, AuditCreateBody, AuditDataRequest, AuditListQuery, AuditListResponse, AuditReadResponse,
-    AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse, AuthOauth2UrlResponse,
-    AuthPasswordMetaResponse, AuthResetPasswordBody, AuthResetPasswordConfirmBody, AuthTokenBody,
-    AuthTokenPartialResponse, AuthTokenResponse, AuthUpdateEmailBody, AuthUpdatePasswordBody,
-    KeyCreateBody, KeyListQuery, KeyListResponse, KeyReadResponse, KeyUpdateBody,
-    ServiceCreateBody, ServiceListQuery, ServiceListResponse, ServiceReadResponse,
-    ServiceUpdateBody, UserCreateBody, UserCreateResponse, UserListQuery, UserListResponse,
-    UserReadResponse, UserUpdateBody,
+use crate::{
+    client::{
+        Client, ClientActor, ClientActorRequest, ClientOptions, Delete, Error, Get, PatchJson,
+        PostJson,
+    },
+    core::User,
+    server::api::{
+        route, AuditCreateBody, AuditDataRequest, AuditListQuery, AuditListResponse,
+        AuditReadResponse, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
+        AuthOauth2UrlResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
+        AuthResetPasswordConfirmBody, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse,
+        AuthUpdateEmailBody, AuthUpdatePasswordBody, KeyCreateBody, KeyListQuery, KeyListResponse,
+        KeyReadResponse, KeyUpdateBody, ServiceCreateBody, ServiceListQuery, ServiceListResponse,
+        ServiceReadResponse, ServiceUpdateBody, UserCreateBody, UserCreateResponse, UserListQuery,
+        UserListResponse, UserReadResponse, UserUpdateBody,
+    },
 };
 use actix::prelude::*;
 use futures::future::Either;
 use futures::{future, Future};
 use serde_json::Value;
+use uuid::Uuid;
 
 /// Asynchronous client handle.
 #[derive(Clone)]
 pub struct AsyncClient {
     url: String,
     options: ClientOptions,
-    addr: Addr<ClientExecutor>,
+    addr: Addr<ClientActor>,
 }
 
 impl AsyncClient {
     /// Create new client handle.
-    pub fn new<T1: Into<String>>(
-        url: T1,
-        options: ClientOptions,
-        addr: Addr<ClientExecutor>,
-    ) -> Self {
+    pub fn new<T1: Into<String>>(url: T1, options: ClientOptions, addr: Addr<ClientActor>) -> Self {
         AsyncClient {
             url: url.into(),
             options,
@@ -339,7 +338,7 @@ impl AsyncClient {
     }
 
     /// Audit read by ID request.
-    pub fn audit_read(&self, id: &str) -> impl Future<Item = AuditReadResponse, Error = Error> {
+    pub fn audit_read(&self, id: Uuid) -> impl Future<Item = AuditReadResponse, Error = Error> {
         self.addr
             .send(
                 Get::new(self.url(), route::audit_id(id))
@@ -382,7 +381,7 @@ impl AsyncClient {
     }
 
     /// Key read request.
-    pub fn key_read(&self, id: &str) -> impl Future<Item = KeyReadResponse, Error = Error> {
+    pub fn key_read(&self, id: Uuid) -> impl Future<Item = KeyReadResponse, Error = Error> {
         self.addr
             .send(
                 Get::new(self.url(), route::key_id(id))
@@ -396,7 +395,7 @@ impl AsyncClient {
     /// Key update request.
     pub fn key_update(
         &self,
-        id: &str,
+        id: Uuid,
         body: KeyUpdateBody,
     ) -> impl Future<Item = KeyReadResponse, Error = Error> {
         self.addr
@@ -410,7 +409,7 @@ impl AsyncClient {
     }
 
     /// Key delete request.
-    pub fn key_delete(&self, id: &str) -> impl Future<Item = (), Error = Error> {
+    pub fn key_delete(&self, id: Uuid) -> impl Future<Item = (), Error = Error> {
         self.addr
             .send(
                 Delete::new(self.url(), route::key_id(id))
@@ -453,7 +452,7 @@ impl AsyncClient {
     }
 
     /// Service read request.
-    pub fn service_read(&self, id: &str) -> impl Future<Item = ServiceReadResponse, Error = Error> {
+    pub fn service_read(&self, id: Uuid) -> impl Future<Item = ServiceReadResponse, Error = Error> {
         self.addr
             .send(
                 Get::new(self.url(), route::service_id(id))
@@ -467,7 +466,7 @@ impl AsyncClient {
     /// Service update request.
     pub fn service_update(
         &self,
-        id: &str,
+        id: Uuid,
         body: ServiceUpdateBody,
     ) -> impl Future<Item = ServiceReadResponse, Error = Error> {
         self.addr
@@ -481,7 +480,7 @@ impl AsyncClient {
     }
 
     /// Service delete request.
-    pub fn service_delete(&self, id: &str) -> impl Future<Item = (), Error = Error> {
+    pub fn service_delete(&self, id: Uuid) -> impl Future<Item = (), Error = Error> {
         self.addr
             .send(
                 Delete::new(self.url(), route::service_id(id))
@@ -524,7 +523,7 @@ impl AsyncClient {
     }
 
     /// User read request.
-    pub fn user_read(&self, id: &str) -> impl Future<Item = UserReadResponse, Error = Error> {
+    pub fn user_read(&self, id: Uuid) -> impl Future<Item = UserReadResponse, Error = Error> {
         self.addr
             .send(
                 Get::new(self.url(), route::user_id(id))
@@ -538,7 +537,7 @@ impl AsyncClient {
     /// User update request.
     pub fn user_update(
         &self,
-        id: &str,
+        id: Uuid,
         body: UserUpdateBody,
     ) -> impl Future<Item = UserReadResponse, Error = Error> {
         self.addr
@@ -552,7 +551,7 @@ impl AsyncClient {
     }
 
     /// User delete request.
-    pub fn user_delete(&self, id: &str) -> impl Future<Item = (), Error = Error> {
+    pub fn user_delete(&self, id: Uuid) -> impl Future<Item = (), Error = Error> {
         self.addr
             .send(
                 Delete::new(self.url(), route::user_id(id))
@@ -577,7 +576,7 @@ impl AsyncClient {
                     let s1 = self.clone();
                     Either::A(Either::A(
                         self.authenticate_inner(type_, value, audit)
-                            .and_then(move |user_id| s1.user_read(&user_id))
+                            .and_then(move |user_id| s1.user_read(user_id))
                             .map(|res| res.data),
                     ))
                 }
@@ -592,7 +591,7 @@ impl AsyncClient {
         type_: String,
         value: String,
         audit: Option<AuditDataRequest>,
-    ) -> impl Future<Item = String, Error = Error> {
+    ) -> impl Future<Item = Uuid, Error = Error> {
         match type_.as_ref() {
             "key" => {
                 let body = AuthKeyBody::new(value, audit);

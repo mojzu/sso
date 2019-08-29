@@ -6,7 +6,7 @@ use serde_urlencoded::ser::Error as SerdeUrlencodedSerError;
 use std::error::Error as StdError;
 use std::io::Error as StdIoError;
 
-/// ## Client Errors
+/// Client errors.
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
     /// Bad request error.

@@ -1,15 +1,18 @@
-use crate::core;
-use crate::core::{AuditMeta, AuditQuery};
-use crate::server::api::{
-    path, AuditCreateBody, AuditCreateResponse, AuditListQuery, AuditListResponse,
-    AuditReadResponse,
+use crate::{
+    core,
+    core::{AuditMeta, AuditQuery},
+    server::api::{
+        path, AuditCreateBody, AuditCreateResponse, AuditListQuery, AuditListResponse,
+        AuditReadResponse,
+    },
+    server::route::{request_audit_meta, route_response_json},
+    server::{Data, Error, FromJsonValue},
 };
-use crate::server::route::{request_audit_meta, route_response_json};
-use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
 use futures::Future;
 use serde_json::Value;
+use uuid::Uuid;
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope(path::AUDIT)
@@ -97,14 +100,14 @@ fn read_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    path: web::Path<(String,)>,
+    path: web::Path<(Uuid,)>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
 
     audit_meta
         .and_then(|audit_meta| {
-            web::block(move || read_inner(data.get_ref(), audit_meta, id, &path.0))
+            web::block(move || read_inner(data.get_ref(), audit_meta, id, path.0))
                 .map_err(Into::into)
         })
         .then(route_response_json)
@@ -114,7 +117,7 @@ fn read_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    audit_id: &str,
+    audit_id: Uuid,
 ) -> Result<AuditReadResponse, Error> {
     core::key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {

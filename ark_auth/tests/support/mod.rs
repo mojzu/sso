@@ -8,7 +8,7 @@ mod service;
 mod user;
 
 pub use ark_auth::client::ClientError;
-use ark_auth::client::{default_user_agent, ClientExecutorOptions, ClientOptions, SyncClient};
+use ark_auth::client::{default_user_agent, ClientActorOptions, ClientOptions, SyncClient};
 use ark_auth::core::{Key, Service, User, UserKey, UserToken, UserTokenPartial};
 use ark_auth::server::api::AuthOauth2UrlResponse;
 pub use ark_auth::server::api::{
@@ -18,10 +18,11 @@ pub use ark_auth::server::api::{
 };
 use chrono::Utc;
 pub use serde_json::Value;
+pub use uuid::Uuid;
 
 pub const INVALID_EMAIL: &str = "invalid-email";
 pub const INVALID_PASSWORD: &str = "guests";
-pub const INVALID_UUID: &str = "5a044d9035334e95a60ac0338904d37c";
+pub const INVALID_KEY: &str = "5a044d9035334e95a60ac0338904d37c";
 pub const INVALID_SERVICE_KEY: &str = "invalid-service-key";
 pub const USER_NAME: &str = "user-name";
 pub const USER_PASSWORD: &str = "user-name";
@@ -29,8 +30,7 @@ pub const KEY_NAME: &str = "key-name";
 
 lazy_static! {
     static ref CLIENT: SyncClient = {
-        let executor_options =
-            ClientExecutorOptions::new(default_user_agent(), None, None).unwrap();
+        let executor_options = ClientActorOptions::new(default_user_agent(), None, None).unwrap();
         let authorisation = env_test_ark_auth_key();
         let options = ClientOptions::new(authorisation);
         let url = env_test_ark_auth_url();
@@ -64,7 +64,7 @@ pub fn service_key_create(client: &SyncClient) -> (Service, Key) {
     let body = ServiceCreateBody::new(true, "test", "http://localhost");
     let create_service = client.service_create(body).unwrap();
 
-    let body = KeyCreateBody::with_service_id(true, "test", &create_service.data.id);
+    let body = KeyCreateBody::with_service_id(true, "test", create_service.data.id);
     let create_key = client.key_create(body).unwrap();
     (create_service.data, create_key.data)
 }
@@ -76,7 +76,7 @@ pub fn user_create(client: &SyncClient, is_enabled: bool, name: &str, email: &st
     let user = create.data;
     assert!(user.created_at.gt(&before));
     assert!(user.updated_at.gt(&before));
-    assert!(!user.id.is_empty());
+    assert!(!user.id.is_nil());
     assert_eq!(user.is_enabled, is_enabled);
     assert_eq!(user.name, name);
     assert_eq!(user.email, email);
@@ -97,7 +97,7 @@ pub fn user_create_with_password(
     let user = create.data;
     assert!(user.created_at.gt(&before));
     assert!(user.updated_at.gt(&before));
-    assert!(!user.id.is_empty());
+    assert!(!user.id.is_nil());
     assert_eq!(user.is_enabled, is_enabled);
     assert_eq!(user.name, name);
     assert_eq!(user.email, email);
@@ -108,8 +108,8 @@ pub fn user_create_with_password(
 pub fn user_key_create(
     client: &SyncClient,
     name: &str,
-    service_id: &str,
-    user_id: &str,
+    service_id: Uuid,
+    user_id: Uuid,
 ) -> UserKey {
     let body = KeyCreateBody::with_user_id(true, name, user_id);
     let create = client.key_create(body).unwrap();
@@ -163,7 +163,7 @@ pub fn user_token_refresh(client: &SyncClient, token: &UserToken) -> UserToken {
 
 pub fn auth_local_login(
     client: &SyncClient,
-    user_id: &str,
+    user_id: Uuid,
     email: &str,
     password: &str,
 ) -> UserToken {

@@ -261,7 +261,7 @@ impl Audit {
                 .get_result::<Audit>(conn),
             None => auth_audit.filter(audit_id.eq(id)).get_result::<Audit>(conn),
         }
-        .map(|audit| Some(audit))
+        .map(Some)
         .or_else(|err| match err {
             diesel::result::Error::NotFound => Ok(None),
             _ => Err(DriverError::Diesel(err)),

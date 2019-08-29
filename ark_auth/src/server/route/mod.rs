@@ -4,10 +4,12 @@ mod key;
 mod service;
 mod user;
 
-use crate::core;
-use crate::core::AuditMeta;
-use crate::server::api::path;
-use crate::server::{Data, Error};
+use crate::{
+    core,
+    core::AuditMeta,
+    server::api::path,
+    server::{Data, Error},
+};
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
 use futures::{future, Future};

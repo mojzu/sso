@@ -8,8 +8,8 @@ pub mod validate;
 pub use crate::server::error::{Error as ServerError, Oauth2Error as ServerOauth2Error};
 pub use crate::server::validate::FromJsonValue;
 
-use crate::client::ClientExecutor;
-use crate::notify::NotifyExecutor;
+use crate::client::ClientActor;
+use crate::notify::NotifyActor;
 use crate::server::error::{Error, Oauth2Error};
 use crate::{core, driver::Driver};
 use actix::Addr;
@@ -30,7 +30,7 @@ use std::io::BufReader;
 // <https://webauthn.guide/>
 // <https://webauthn.org/>
 // TODO(feature): Configurable canary routes.
-// TODO(feature): Improved public library API, function interfaces, use of Into?
+// TODO(feature): Improved public library API interface.
 // TODO(feature): All emails have 2 actions, ok or revoke, option to verify update email/password requests.
 // TODO(feature): Email translation/formatting using user locale and timezone.
 
@@ -204,8 +204,8 @@ impl ServerOptions {
 pub struct Data {
     driver: Box<dyn Driver>,
     options: ServerOptions,
-    notify_addr: Addr<NotifyExecutor>,
-    client_addr: Addr<ClientExecutor>,
+    notify_addr: Addr<NotifyActor>,
+    client_addr: Addr<ClientActor>,
     registry: Registry,
 }
 
@@ -214,8 +214,8 @@ impl Data {
     pub fn new(
         driver: Box<dyn Driver>,
         options: ServerOptions,
-        notify_addr: Addr<NotifyExecutor>,
-        client_addr: Addr<ClientExecutor>,
+        notify_addr: Addr<NotifyActor>,
+        client_addr: Addr<ClientActor>,
         registry: Registry,
     ) -> Self {
         Data {
@@ -238,12 +238,12 @@ impl Data {
     }
 
     /// Get reference to notify actor address.
-    pub fn notify(&self) -> &Addr<NotifyExecutor> {
+    pub fn notify(&self) -> &Addr<NotifyActor> {
         &self.notify_addr
     }
 
     /// Get reference to client actor address.
-    pub fn client(&self) -> &Addr<ClientExecutor> {
+    pub fn client(&self) -> &Addr<ClientActor> {
         &self.client_addr
     }
 
@@ -262,8 +262,8 @@ impl Server {
         workers: usize,
         driver: Box<dyn Driver>,
         options: ServerOptions,
-        notify_addr: Addr<NotifyExecutor>,
-        client_addr: Addr<ClientExecutor>,
+        notify_addr: Addr<NotifyActor>,
+        client_addr: Addr<ClientActor>,
     ) -> Result<(), Error> {
         let options_clone = options.clone();
         let (registry, counter, histogram) = metrics_registry()?;

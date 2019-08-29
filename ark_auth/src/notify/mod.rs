@@ -1,52 +1,48 @@
-//! # Notification Actor
-mod email;
+//! # Notify Actor
+//! Used to send emails via SMTP server.
+pub mod msg;
+mod smtp;
 mod template;
 
-use crate::core::{Audit, Service, User};
-use actix::{Actor, Addr, Handler, Message, SyncArbiter, SyncContext};
+use crate::core::Audit;
+use actix::{Actor, Addr, SyncArbiter, SyncContext};
 use handlebars::Handlebars;
+use serde_json::Value;
 
-/// ## SMTP Errors
+/// SMTP errors.
 #[derive(Debug, Fail)]
 pub enum NotifySmtpError {
-    /// Integration disabled.
     #[fail(display = "SmtpError:Disabled")]
     Disabled,
-    /// Native TLS error.
     #[fail(display = "SmtpError:NativeTls {}", _0)]
     NativeTls(native_tls::Error),
-    /// Lettre email error.
     #[fail(display = "SmtpError:LettreEmail {}", _0)]
     LettreEmail(lettre_email::error::Error),
-    /// Lettre error.
     #[fail(display = "SmtpError:Lettre {}", _0)]
     Lettre(lettre::smtp::error::Error),
 }
 
-/// ## Notify Errors
+/// Notify errors.
 #[derive(Debug, Fail)]
 pub enum NotifyError {
-    /// SMTP error.
     #[fail(display = "NotifyError:Smtp {}", _0)]
     Smtp(NotifySmtpError),
-    /// Handlebars template error wrapper.
     #[fail(display = "NotifyError:HandlebarsTemplate {}", _0)]
     HandlebarsTemplate(#[fail(cause)] handlebars::TemplateError),
-    /// Handlebars render error wrapper.
     #[fail(display = "NotifyError:HandlebarsRender {}", _0)]
     HandlebarsRender(#[fail(cause)] handlebars::RenderError),
 }
 
-/// ## SMTP Options
+/// Notify actor SMTP options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NotifyExecutorOptionsSmtp {
+pub struct NotifyActorOptionsSmtp {
     host: String,
     port: u16,
     user: String,
     password: String,
 }
 
-impl NotifyExecutorOptionsSmtp {
+impl NotifyActorOptionsSmtp {
     /// Create new SMTP options.
     pub fn new(host: String, port: u16, user: String, password: String) -> Self {
         Self {
@@ -58,26 +54,26 @@ impl NotifyExecutorOptionsSmtp {
     }
 }
 
-/// ## Notify Actor Options
+/// Notify actor options.
 #[derive(Debug, Clone, Serialize, Deserialize, Builder)]
-pub struct NotifyExecutorOptions {
+pub struct NotifyActorOptions {
     #[builder(default)]
-    smtp: Option<NotifyExecutorOptionsSmtp>,
+    smtp: Option<NotifyActorOptionsSmtp>,
 }
 
-/// ## Notify Actor Executor
-pub struct NotifyExecutor {
-    options: NotifyExecutorOptions,
+/// Notify actor.
+pub struct NotifyActor {
+    options: NotifyActorOptions,
     registry: Handlebars,
 }
 
-impl NotifyExecutor {
+impl NotifyActor {
     /// Start notifications actor on number of threads with options.
-    pub fn start(threads: usize, options: NotifyExecutorOptions) -> Addr<Self> {
+    pub fn start(threads: usize, options: NotifyActorOptions) -> Addr<Self> {
         SyncArbiter::start(threads, move || {
             // Register template strings.
             let mut handlebars = Handlebars::new();
-            template::register(&mut handlebars).unwrap();
+            NotifyActor::template_register_default(&mut handlebars).unwrap();
 
             Self {
                 options: options.clone(),
@@ -86,138 +82,32 @@ impl NotifyExecutor {
         })
     }
 
-    /// Returns SMTP provider reference.
-    pub fn smtp(&self) -> Result<&NotifyExecutorOptionsSmtp, NotifyError> {
-        self.options
-            .smtp
-            .as_ref()
-            .ok_or(NotifyError::Smtp(NotifySmtpError::Disabled))
-    }
-
     /// Returns template registry reference.
     pub fn registry(&self) -> &Handlebars {
         &self.registry
     }
+
+    /// Logs warning for error and returns ok.
+    fn warn_on_err(err: NotifyError) -> Result<(), NotifyError> {
+        warn!("{}", err);
+        Ok(())
+    }
+
+    /// Returns optional audit log template values.
+    fn audit_value(audit: Option<&Audit>) -> Option<Value> {
+        match audit {
+            Some(audit) => Some(json!({
+                "id": audit.id,
+                "created_at": audit.created_at,
+                "user_agent": audit.user_agent,
+                "remote": audit.remote,
+                "forwarded": audit.forwarded,
+            })),
+            None => None,
+        }
+    }
 }
 
-impl Actor for NotifyExecutor {
+impl Actor for NotifyActor {
     type Context = SyncContext<Self>;
-}
-
-/// ## Reset Password Email Message Data
-#[derive(Debug, Deserialize)]
-pub struct EmailResetPassword {
-    service: Service,
-    user: User,
-    token: String,
-    audit: Option<Audit>,
-}
-
-impl EmailResetPassword {
-    /// Create new message data.
-    pub fn new(service: Service, user: User, token: String, audit: Option<Audit>) -> Self {
-        Self {
-            service,
-            user,
-            token,
-            audit,
-        }
-    }
-}
-
-impl Message for EmailResetPassword {
-    type Result = Result<(), NotifyError>;
-}
-
-impl Handler<EmailResetPassword> for NotifyExecutor {
-    type Result = Result<(), NotifyError>;
-
-    fn handle(&mut self, msg: EmailResetPassword, _: &mut Self::Context) -> Self::Result {
-        self.smtp()
-            .and_then(|smtp| email::reset_password_handler(smtp, self.registry(), &msg))
-            .or_else(warn_on_err)
-    }
-}
-
-/// ## Update Email Email Message Data
-#[derive(Debug, Deserialize)]
-pub struct EmailUpdateEmail {
-    service: Service,
-    user: User,
-    old_email: String,
-    token: String,
-    audit: Option<Audit>,
-}
-
-impl EmailUpdateEmail {
-    /// Create new message data.
-    pub fn new(
-        service: Service,
-        user: User,
-        old_email: String,
-        token: String,
-        audit: Option<Audit>,
-    ) -> Self {
-        Self {
-            service,
-            user,
-            old_email,
-            token,
-            audit,
-        }
-    }
-}
-
-impl Message for EmailUpdateEmail {
-    type Result = Result<(), NotifyError>;
-}
-
-impl Handler<EmailUpdateEmail> for NotifyExecutor {
-    type Result = Result<(), NotifyError>;
-
-    fn handle(&mut self, msg: EmailUpdateEmail, _: &mut Self::Context) -> Self::Result {
-        self.smtp()
-            .and_then(|smtp| email::update_email_handler(smtp, self.registry(), &msg))
-            .or_else(warn_on_err)
-    }
-}
-
-/// ## Update Password Email Message Data
-#[derive(Debug, Deserialize)]
-pub struct EmailUpdatePassword {
-    service: Service,
-    user: User,
-    token: String,
-    audit: Option<Audit>,
-}
-
-impl EmailUpdatePassword {
-    /// Create new message data.
-    pub fn new(service: Service, user: User, token: String, audit: Option<Audit>) -> Self {
-        Self {
-            service,
-            user,
-            token,
-            audit,
-        }
-    }
-}
-
-impl Message for EmailUpdatePassword {
-    type Result = Result<(), NotifyError>;
-}
-
-impl Handler<EmailUpdatePassword> for NotifyExecutor {
-    type Result = Result<(), NotifyError>;
-
-    fn handle(&mut self, msg: EmailUpdatePassword, _: &mut Self::Context) -> Self::Result {
-        self.smtp()
-            .and_then(|smtp| email::update_password_handler(smtp, self.registry(), &msg))
-            .or_else(warn_on_err)
-    }
-}
-
-fn warn_on_err(err: NotifyError) -> Result<(), NotifyError> {
-    warn!("{}", err);
-    Ok(())
 }

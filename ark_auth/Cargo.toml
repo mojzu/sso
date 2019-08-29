@@ -22,7 +22,7 @@ actix-identity = "*"
 actix-http = "*"
 actix-rt = "*"
 actix-service = "*"
-actix-web = { version = "^1.0.5", features = ["rust-tls"] }
+actix-web = { version = "^1.0.7", features = ["rust-tls"] }
 awc = "*"
 bcrypt = "*"
 clap = "*"

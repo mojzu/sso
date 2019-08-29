@@ -1,11 +1,13 @@
 //! # Command Line Interface
 //! Functions for a command line interface and some helpers for integration.
-use crate::client::{ClientExecutor, ClientExecutorOptions};
-use crate::core;
-use crate::driver::Driver;
-use crate::notify::{NotifyExecutor, NotifyExecutorOptions, NotifyExecutorOptionsSmtp};
-use crate::server::{
-    Server, ServerError, ServerOptions, ServerOptionsProviderOauth2, ServerOptionsRustls,
+use crate::{
+    client::{ClientActor, ClientActorOptions},
+    core,
+    driver::Driver,
+    notify::{NotifyActor, NotifyActorOptions, NotifyActorOptionsSmtp},
+    server::{
+        Server, ServerError, ServerOptions, ServerOptionsProviderOauth2, ServerOptionsRustls,
+    },
 };
 use actix_rt::System;
 use std::str::FromStr;
@@ -30,9 +32,9 @@ pub enum CliError {
 /// ## Command Line Interface Options
 #[derive(Debug, Clone)]
 pub struct CliOptions {
-    client: ClientExecutorOptions,
+    client: ClientActorOptions,
     notify_threads: usize,
-    notify: NotifyExecutorOptions,
+    notify: NotifyActorOptions,
     server_threads: usize,
     server: ServerOptions,
 }
@@ -40,9 +42,9 @@ pub struct CliOptions {
 impl CliOptions {
     /// Create new options.
     pub fn new(
-        client: ClientExecutorOptions,
+        client: ClientActorOptions,
         notify_threads: usize,
-        notify: NotifyExecutorOptions,
+        notify: NotifyActorOptions,
         server_threads: usize,
         server: ServerOptions,
     ) -> Self {
@@ -56,7 +58,7 @@ impl CliOptions {
     }
 
     /// Returns client options reference.
-    pub fn client(&self) -> &ClientExecutorOptions {
+    pub fn client(&self) -> &ClientActorOptions {
         &self.client
     }
 
@@ -66,7 +68,7 @@ impl CliOptions {
     }
 
     /// Returns notify options reference.
-    pub fn notify(&self) -> &NotifyExecutorOptions {
+    pub fn notify(&self) -> &NotifyActorOptions {
         &self.notify
     }
 
@@ -153,7 +155,7 @@ pub fn env_smtp(
     smtp_port_name: &str,
     smtp_user_name: &str,
     smtp_password_name: &str,
-) -> Result<Option<NotifyExecutorOptionsSmtp>, CliError> {
+) -> Result<Option<NotifyActorOptionsSmtp>, CliError> {
     if env_has_any_name(&[
         smtp_host_name,
         smtp_port_name,
@@ -165,7 +167,7 @@ pub fn env_smtp(
         let smtp_user = env_string(smtp_user_name)?;
         let smtp_password = env_string(smtp_password_name)?;
 
-        Ok(Some(NotifyExecutorOptionsSmtp::new(
+        Ok(Some(NotifyActorOptionsSmtp::new(
             smtp_host,
             smtp_port,
             smtp_user,
@@ -244,7 +246,7 @@ pub fn create_service_with_key(
     let mut audit = audit_builder();
     let service = core::service::create(driver.as_ref(), &mut audit, true, name, url)
         .map_err(CliError::Core)?;
-    let key = core::key::create_service(driver.as_ref(), &mut audit, true, name, &service.id)
+    let key = core::key::create_service(driver.as_ref(), &mut audit, true, name, service.id)
         .map_err(CliError::Core)?;
     Ok((service, key))
 }
@@ -255,10 +257,10 @@ pub fn start_server(driver: Box<dyn Driver>, options: CliOptions) -> Result<(), 
     let system = System::new(crate_name!());
 
     let client_options = options.client().clone();
-    let client_addr = ClientExecutor::start(client_options);
+    let client_addr = ClientActor::start(client_options);
 
     let notify_options = options.notify().clone();
-    let notify_addr = NotifyExecutor::start(options.notify_threads(), notify_options);
+    let notify_addr = NotifyActor::start(options.notify_threads(), notify_options);
 
     let server_options = options.server().clone();
     let server_notify_addr = notify_addr.clone();

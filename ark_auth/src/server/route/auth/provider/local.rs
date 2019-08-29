@@ -1,12 +1,18 @@
-use crate::core;
-use crate::core::{AuditData, AuditMeta};
-use crate::server::api::{
-    path, AuthLoginBody, AuthLoginResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
-    AuthResetPasswordConfirmBody, AuthTokenBody, AuthUpdateEmailBody, AuthUpdatePasswordBody,
+use crate::{
+    core,
+    core::{AuditData, AuditMeta},
+    server::{
+        api::{
+            path, AuthLoginBody, AuthLoginResponse, AuthPasswordMetaResponse,
+            AuthResetPasswordBody, AuthResetPasswordConfirmBody, AuthTokenBody,
+            AuthUpdateEmailBody, AuthUpdatePasswordBody,
+        },
+        route::{
+            auth::password_meta, request_audit_meta, route_response_empty, route_response_json,
+        },
+        Data, Error, FromJsonValue,
+    },
 };
-use crate::server::route::auth::password_meta;
-use crate::server::route::{request_audit_meta, route_response_empty, route_response_json};
-use crate::server::{Data, Error, FromJsonValue};
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
 use futures::Future;

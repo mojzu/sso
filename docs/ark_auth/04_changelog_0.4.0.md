@@ -8,6 +8,7 @@
 
 **Changed**
 
+- Changed driver interface to use `Uuid` types instead of strings.
 - Renamed configuration structures to options to improve consistency.
 - Improved server, client modules public interfaces.
 

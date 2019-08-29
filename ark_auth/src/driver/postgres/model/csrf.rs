@@ -54,7 +54,7 @@ impl Csrf {
         auth_csrf
             .filter(csrf_key.eq(key))
             .get_result::<Csrf>(conn)
-            .map(|csrf| Some(csrf))
+            .map(Some)
             .or_else(|err| match err {
                 diesel::result::Error::NotFound => Ok(None),
                 _ => Err(DriverError::Diesel(err)),

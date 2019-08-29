@@ -3,8 +3,7 @@ extern crate clap;
 #[macro_use]
 extern crate log;
 
-use ark_auth::cli::*;
-use ark_auth::{client, driver, driver::Driver, notify, server};
+use ark_auth::{cli::*, client, driver, driver::Driver, notify, server};
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 
@@ -183,9 +182,8 @@ fn configure() -> Result<(Box<dyn Driver>, CliOptions), CliError> {
         unimplemented!();
     };
 
-    let client =
-        client::ClientExecutorOptions::new(client::default_user_agent(), None, None).unwrap();
-    let notify = notify::NotifyExecutorOptionsBuilder::default()
+    let client = client::ClientActorOptions::new(client::default_user_agent(), None, None).unwrap();
+    let notify = notify::NotifyActorOptionsBuilder::default()
         .smtp(smtp)
         .build()
         .unwrap();
