@@ -168,7 +168,7 @@ mod tests {
         let url = Client::url_query("http://localhost:9000", "/v1/service/", query).unwrap();
         assert_eq!(
             url.to_string(),
-            "http://localhost:9000/v1/service/?gt=&limit=10"
+            "http://localhost:9000/v1/service/?gt=00000000-0000-0000-0000-000000000000&limit=10"
         );
     }
 
