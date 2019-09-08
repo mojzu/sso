@@ -2,7 +2,7 @@ mod github;
 mod local;
 mod microsoft;
 
-use crate::{core, server::api::path};
+use crate::{server_api::path, Service, UserToken};
 use actix_web::{http::header, web, HttpResponse};
 
 pub fn route_v1_scope() -> actix_web::Scope {
@@ -12,7 +12,7 @@ pub fn route_v1_scope() -> actix_web::Scope {
         .service(microsoft::route_v1_scope())
 }
 
-pub fn oauth2_redirect(service: core::Service, token: core::UserToken) -> HttpResponse {
+pub fn oauth2_redirect(service: Service, token: UserToken) -> HttpResponse {
     let url = service.callback_url("oauth2", token);
     HttpResponse::Found()
         .header(header::LOCATION, url.as_str())

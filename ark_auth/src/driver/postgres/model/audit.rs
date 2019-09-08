@@ -1,7 +1,4 @@
-use crate::{
-    core::AuditCreate,
-    driver::{postgres::schema::auth_audit, DriverError},
-};
+use crate::{driver::postgres::schema::auth_audit, AuditCreate, DriverError};
 use chrono::{DateTime, Utc};
 use diesel::{dsl::sql, prelude::*, sql_types::BigInt, PgConnection};
 use serde_json::Value;

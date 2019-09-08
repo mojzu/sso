@@ -1,11 +1,10 @@
 use crate::{
-    core,
-    core::{AuditData, AuditMeta},
     server::{
-        api::{path, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse},
         route::{request_audit_meta, route_response_empty, route_response_json},
-        Data, Error, FromJsonValue,
+        Data,
     },
+    server_api::{path, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse},
+    AuditData, AuditMeta, Auth, Key, ServerResult, ServerValidateFromValue,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -52,10 +51,10 @@ fn verify_inner(
     id: Option<String>,
     token: String,
     audit_data: Option<AuditData>,
-) -> Result<AuthTokenPartialResponse, Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<AuthTokenPartialResponse> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::token_verify(
+            Auth::token_verify(
                 data.driver(),
                 &service,
                 &mut audit,
@@ -100,10 +99,10 @@ fn refresh_inner(
     id: Option<String>,
     token: String,
     audit_data: Option<AuditData>,
-) -> Result<AuthTokenResponse, Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<AuthTokenResponse> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::token_refresh(
+            Auth::token_refresh(
                 data.driver(),
                 &service,
                 &mut audit,
@@ -150,10 +149,10 @@ fn revoke_inner(
     id: Option<String>,
     token: String,
     audit_data: Option<AuditData>,
-) -> Result<usize, Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<usize> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::token_revoke(
+            Auth::token_revoke(
                 data.driver(),
                 &service,
                 &mut audit,

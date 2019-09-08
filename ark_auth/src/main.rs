@@ -3,7 +3,11 @@ extern crate clap;
 #[macro_use]
 extern crate log;
 
-use ark_auth::{cli::*, client, driver, driver::Driver, notify, server};
+use ark_auth::{
+    AuthResult, Cli, CliOptions, Client, ClientActorOptions, Driver, DriverPostgres, Env,
+    NotifyActorOptionsBuilder, ServerOptionsBuilder, ServerOptionsProvider,
+    ServerOptionsProviderGroup,
+};
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 
@@ -105,25 +109,22 @@ fn main() {
         match matches.subcommand() {
             (CMD_CREATE_ROOT_KEY, Some(submatches)) => {
                 let name = submatches.value_of(ARG_NAME).unwrap();
-                create_root_key(driver, name).map(|key| {
-                    println!("key.id: {}", key.id);
-                    println!("key.value: {}", key.value);
+                Cli::create_root_key(driver, name).map(|key| {
+                    println!("{}", key);
                     0
                 })
             }
-            (CMD_DELETE_ROOT_KEYS, Some(_submatches)) => delete_root_keys(driver).map(|_| 0),
+            (CMD_DELETE_ROOT_KEYS, Some(_submatches)) => Cli::delete_root_keys(driver).map(|_| 0),
             (CMD_CREATE_SERVICE_WITH_KEY, Some(submatches)) => {
                 let name = submatches.value_of(ARG_NAME).unwrap();
                 let url = submatches.value_of(ARG_URL).unwrap();
-                create_service_with_key(driver, name, url).map(|(service, key)| {
-                    println!("service.id: {}", service.id);
-                    println!("service.name: {}", service.name);
-                    println!("key.id: {}", key.id);
-                    println!("key.value: {}", key.value);
+                Cli::create_service_with_key(driver, name, url).map(|(service, key)| {
+                    println!("{}", service);
+                    println!("{}", key);
                     0
                 })
             }
-            (CMD_START_SERVER, Some(_submatches)) => start_server(driver, options).map(|_| 0),
+            (CMD_START_SERVER, Some(_submatches)) => Cli::start_server(driver, options).map(|_| 0),
             _ => {
                 println!("{}", matches.usage());
                 Ok(1)
@@ -141,57 +142,57 @@ fn main() {
     }
 }
 
-fn configure() -> Result<(Box<dyn Driver>, CliOptions), CliError> {
-    let database_url = env_string(ENV_DATABASE_URL)?;
-    let database_connections = env_value_opt::<u32>(ENV_DATABASE_CONNECTIONS)?;
+fn configure() -> AuthResult<(Box<dyn Driver>, CliOptions)> {
+    let database_url = Env::string(ENV_DATABASE_URL)?;
+    let database_connections = Env::value_opt::<u32>(ENV_DATABASE_CONNECTIONS)?;
     let server_hostname =
-        env_string_opt(ENV_SERVER_HOSTNAME).unwrap_or_else(|| "ark_auth".to_owned());
-    let server_bind = env_string(ENV_SERVER_BIND)?;
-    let smtp = env_smtp(
+        Env::string_opt(ENV_SERVER_HOSTNAME).unwrap_or_else(|| "ark_auth".to_owned());
+    let server_bind = Env::string(ENV_SERVER_BIND)?;
+    let smtp = Env::smtp(
         ENV_SMTP_HOST,
         ENV_SMTP_PORT,
         ENV_SMTP_USER,
         ENV_SMTP_PASSWORD,
     )?;
     let password_pwned_enabled =
-        env_value_opt::<bool>(ENV_PASSWORD_PWNED_ENABLED)?.unwrap_or(false);
-    let github = server::ServerOptionsProvider::new(env_oauth2(
+        Env::value_opt::<bool>(ENV_PASSWORD_PWNED_ENABLED)?.unwrap_or(false);
+    let github = ServerOptionsProvider::new(Env::oauth2(
         ENV_GITHUB_CLIENT_ID,
         ENV_GITHUB_CLIENT_SECRET,
         ENV_GITHUB_REDIRECT_URL,
     )?);
-    let microsoft = server::ServerOptionsProvider::new(env_oauth2(
+    let microsoft = ServerOptionsProvider::new(Env::oauth2(
         ENV_MICROSOFT_CLIENT_ID,
         ENV_MICROSOFT_CLIENT_SECRET,
         ENV_MICROSOFT_REDIRECT_URL,
     )?);
-    let rustls = env_rustls(
+    let rustls = Env::rustls(
         ENV_SERVER_TLS_CRT_PEM,
         ENV_SERVER_TLS_KEY_PEM,
         ENV_SERVER_TLS_CLIENT_PEM,
     )?;
 
     let driver = if database_url.starts_with("postgres") {
-        driver::PostgresDriver::initialise(&database_url, database_connections)
+        DriverPostgres::initialise(&database_url, database_connections)
             .unwrap()
             .box_clone()
     } else {
-        // driver::SqliteDriver::initialise(&database_url, database_connections)
+        // DriverSqlite::initialise(&database_url, database_connections)
         //     .unwrap()
         //     .box_clone()
         unimplemented!();
     };
 
-    let client = client::ClientActorOptions::new(client::default_user_agent(), None, None).unwrap();
-    let notify = notify::NotifyActorOptionsBuilder::default()
+    let client = ClientActorOptions::new(Client::default_user_agent(), None, None).unwrap();
+    let notify = NotifyActorOptionsBuilder::default()
         .smtp(smtp)
         .build()
         .unwrap();
-    let server = server::ServerOptionsBuilder::default()
+    let server = ServerOptionsBuilder::default()
         .hostname(server_hostname)
         .bind(server_bind)
         .password_pwned_enabled(password_pwned_enabled)
-        .provider(server::ServerOptionsProviderGroup::new(github, microsoft))
+        .provider(ServerOptionsProviderGroup::new(github, microsoft))
         .rustls(rustls)
         .build()
         .unwrap();

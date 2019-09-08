@@ -4,7 +4,7 @@ macro_rules! auth_token_integration_test {
         #[test]
         #[ignore]
         fn api_auth_token_verify_forbidden() {
-            let client = client_create(Some(INVALID_SERVICE_KEY));
+            let client = client_create(Some(INVALID_KEY));
             let body = AuthTokenBody::new(INVALID_KEY, None);
             let res = client.auth_token_verify(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);
@@ -62,7 +62,7 @@ macro_rules! auth_token_integration_test {
         #[test]
         #[ignore]
         fn api_auth_token_refresh_forbidden() {
-            let client = client_create(Some(INVALID_SERVICE_KEY));
+            let client = client_create(Some(INVALID_KEY));
             let body = AuthTokenBody::new(INVALID_KEY, None);
             let res = client.auth_token_refresh(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);
@@ -145,7 +145,7 @@ macro_rules! auth_token_integration_test {
         #[test]
         #[ignore]
         fn api_auth_token_revoke_forbidden() {
-            let client = client_create(Some(INVALID_SERVICE_KEY));
+            let client = client_create(Some(INVALID_KEY));
             let body = AuthTokenBody::new(INVALID_KEY, None);
             let res = client.auth_token_revoke(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);

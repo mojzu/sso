@@ -1,7 +1,4 @@
-use crate::{
-    core::{Audit, Service, User},
-    notify::{NotifyActor, NotifyActorOptionsSmtp, NotifyError},
-};
+use crate::{Audit, NotifyActor, NotifyActorOptionsSmtp, NotifyError, Service, User};
 use actix::{Handler, Message};
 
 /// Update email email message.

@@ -16,7 +16,7 @@ Authentication methods are exposed via a [REST](https://en.wikipedia.org/wiki/Re
   - Users can authenticate to a service using a unique email address and password. A successful login produces time-limited, revokable access and refresh [JSON web tokens](https://jwt.io/), which can be used to authenticate user requests and produce new tokens.
   - User passwords can be reset via email.
   - User email address and password can be updated, notification emails containing revokation links are emailed to the user in case of compromise.
-  - Passwords are stored as [Bcrypt](https://en.wikipedia.org/wiki/Bcrypt) hashes.
+  - Passwords are stored as [argon2](https://en.wikipedia.org/wiki/Argon2) hashes.
   - Password strength is checked by [zxcvbn](https://github.com/shssoichiro/zxcvbn-rs).
   - Password leaks are checked by [Pwned Passwords](https://haveibeenpwned.com/Passwords).
   - Users can be created without passwords to disable password login.

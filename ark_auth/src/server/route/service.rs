@@ -1,12 +1,13 @@
 use crate::{
-    core,
-    core::{AuditMeta, ServiceQuery},
-    server::api::{
+    server::{
+        route::{request_audit_meta, route_response_empty, route_response_json},
+        Data,
+    },
+    server_api::{
         path, ServiceCreateBody, ServiceListQuery, ServiceListResponse, ServiceReadResponse,
         ServiceUpdateBody,
     },
-    server::route::{request_audit_meta, route_response_empty, route_response_json},
-    server::{Data, Error, FromJsonValue},
+    AuditMeta, Key, ServerError, ServerResult, ServerValidateFromValue, Service, ServiceQuery,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -53,10 +54,10 @@ fn list_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     query: ServiceQuery,
-) -> Result<ServiceListResponse, Error> {
-    core::key::authenticate_root(data.driver(), audit_meta, id)
+) -> ServerResult<ServiceListResponse> {
+    Key::authenticate_root(data.driver(), audit_meta, id)
         .and_then(|mut audit| {
-            let service_ids = core::service::list(data.driver(), &mut audit, &query)?;
+            let service_ids = Service::list(data.driver(), &mut audit, &query)?;
             Ok(ServiceListResponse {
                 meta: query,
                 data: service_ids,
@@ -89,10 +90,10 @@ fn create_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     body: &ServiceCreateBody,
-) -> Result<ServiceReadResponse, Error> {
-    core::key::authenticate_root(data.driver(), audit_meta, id)
+) -> ServerResult<ServiceReadResponse> {
+    Key::authenticate_root(data.driver(), audit_meta, id)
         .and_then(|mut audit| {
-            core::service::create(
+            Service::create(
                 data.driver(),
                 &mut audit,
                 body.is_enabled,
@@ -126,13 +127,13 @@ fn read_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     service_id: Uuid,
-) -> Result<ServiceReadResponse, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<ServiceReadResponse> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::service::read_by_id(data.driver(), service.as_ref(), &mut audit, service_id)
+            Service::read_by_id(data.driver(), service.as_ref(), &mut audit, service_id)
         })
         .map_err(Into::into)
-        .and_then(|service| service.ok_or_else(|| Error::NotFound))
+        .and_then(|service| service.ok_or_else(|| ServerError::NotFound))
         .map(|service| ServiceReadResponse { data: service })
 }
 
@@ -162,10 +163,10 @@ fn update_inner(
     id: Option<String>,
     service_id: Uuid,
     body: &ServiceUpdateBody,
-) -> Result<ServiceReadResponse, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<ServiceReadResponse> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::service::update_by_id(
+            Service::update_by_id(
                 data.driver(),
                 service.as_ref(),
                 &mut audit,
@@ -200,10 +201,10 @@ fn delete_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     service_id: Uuid,
-) -> Result<usize, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<usize> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::service::delete_by_id(data.driver(), service.as_ref(), &mut audit, service_id)
+            Service::delete_by_id(data.driver(), service.as_ref(), &mut audit, service_id)
         })
         .map_err(Into::into)
 }

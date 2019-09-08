@@ -1,35 +1,10 @@
-//! # Command Line Interface
-//! Functions for a command line interface and some helpers for integration.
 use crate::{
-    client::{ClientActor, ClientActorOptions},
-    core,
-    driver::Driver,
-    notify::{NotifyActor, NotifyActorOptions, NotifyActorOptionsSmtp},
-    server::{
-        Server, ServerError, ServerOptions, ServerOptionsProviderOauth2, ServerOptionsRustls,
-    },
+    AuditBuilder, AuditMeta, AuthError, AuthResult, ClientActor, ClientActorOptions, Driver, Key,
+    NotifyActor, NotifyActorOptions, Server, ServerError, ServerOptions, Service,
 };
 use actix_rt::System;
-use std::str::FromStr;
 
-/// ## Command Line Interface Errors
-#[derive(Debug, Fail)]
-pub enum CliError {
-    /// Environment variable parse error.
-    #[fail(display = "CliError:EnvParse {}", _0)]
-    EnvParse(String),
-    /// Core error wrapper.
-    #[fail(display = "CliError:Core {}", _0)]
-    Core(#[fail(cause)] core::Error),
-    /// Server error wrapper.
-    #[fail(display = "CliError:Server {}", _0)]
-    Server(#[fail(cause)] ServerError),
-    /// Standard environment variable error wrapper.
-    #[fail(display = "CliError:StdEnvVar {}", _0)]
-    StdEnvVar(#[fail(cause)] std::env::VarError),
-}
-
-/// ## Command Line Interface Options
+/// CLI options.
 #[derive(Debug, Clone)]
 pub struct CliOptions {
     client: ClientActorOptions,
@@ -83,199 +58,64 @@ impl CliOptions {
     }
 }
 
-/// Read required environment variable string value.
-/// Logs an error message in case of error.
-pub fn env_string(name: &str) -> Result<String, CliError> {
-    std::env::var(name).map_err(|err| {
-        error!("{} is undefined, required ({})", name, err);
-        CliError::StdEnvVar(err)
-    })
-}
+/// CLI functions.
+pub struct Cli;
 
-/// Read optional environment variable string value.
-pub fn env_string_opt(name: &str) -> Option<String> {
-    std::env::var(name).ok()
-}
-
-/// Read environment variable value parsed from string.
-/// Logs an error message in case of error.
-pub fn env_value<T: FromStr>(name: &str) -> Result<T, CliError>
-where
-    <T as std::str::FromStr>::Err: std::fmt::Display,
-{
-    let value = std::env::var(name).map_err(|err| {
-        error!("{} is undefined, required ({})", name, err);
-        CliError::StdEnvVar(err)
-    })?;
-
-    match value.parse::<T>() {
-        Ok(x) => Ok(x),
-        Err(err) => {
-            error!("{} is invalid ({})", name, err);
-            Err(CliError::EnvParse(err.to_string()))
-        }
+impl Cli {
+    /// Create an audit builder for local commands.
+    pub fn audit_builder() -> AuditBuilder {
+        AuditBuilder::new(AuditMeta::new("cli", "127.0.0.1", None))
     }
-}
 
-/// Read optional environment variable value parsed from string.
-/// Logs an error message in case value is not parsed successfully.
-pub fn env_value_opt<T: FromStr>(name: &str) -> Result<Option<T>, CliError>
-where
-    <T as std::str::FromStr>::Err: std::fmt::Display,
-{
-    let value = std::env::var(name).ok();
-    if let Some(x) = value {
-        match x.parse::<T>() {
-            Ok(x) => Ok(Some(x)),
-            Err(err) => {
-                error!("{} is invalid ({})", name, err);
-                Err(CliError::EnvParse(err.to_string()))
-            }
-        }
-    } else {
-        Ok(None)
+    /// Create a root key.
+    pub fn create_root_key(driver: Box<dyn Driver>, name: &str) -> AuthResult<Key> {
+        let mut audit = Cli::audit_builder();
+        Key::create_root(driver.as_ref(), &mut audit, true, name).map_err(Into::into)
     }
-}
 
-/// Returns true if any name in string reference array is defined in environment.
-pub fn env_has_any_name(names: &[&str]) -> bool {
-    for name in names.iter() {
-        if std::env::var(name).is_ok() {
-            return true;
-        }
+    /// Delete all root keys.
+    pub fn delete_root_keys(driver: Box<dyn Driver>) -> AuthResult<usize> {
+        let mut audit = Cli::audit_builder();
+        Key::delete_root(driver.as_ref(), &mut audit).map_err(Into::into)
     }
-    false
-}
 
-/// Read SMTP environment variables into options.
-/// If no variables are defined, returns None. Else all variables
-/// are required and an error message logged for each missing variable.
-pub fn env_smtp(
-    smtp_host_name: &str,
-    smtp_port_name: &str,
-    smtp_user_name: &str,
-    smtp_password_name: &str,
-) -> Result<Option<NotifyActorOptionsSmtp>, CliError> {
-    if env_has_any_name(&[
-        smtp_host_name,
-        smtp_port_name,
-        smtp_user_name,
-        smtp_password_name,
-    ]) {
-        let smtp_host = env_string(smtp_host_name)?;
-        let smtp_port = env_value::<u16>(smtp_port_name)?;
-        let smtp_user = env_string(smtp_user_name)?;
-        let smtp_password = env_string(smtp_password_name)?;
-
-        Ok(Some(NotifyActorOptionsSmtp::new(
-            smtp_host,
-            smtp_port,
-            smtp_user,
-            smtp_password,
-        )))
-    } else {
-        Ok(None)
+    /// Create a service with service key.
+    pub fn create_service_with_key(
+        driver: Box<dyn Driver>,
+        name: &str,
+        url: &str,
+    ) -> AuthResult<(Service, Key)> {
+        let mut audit = Cli::audit_builder();
+        let service = Service::create(driver.as_ref(), &mut audit, true, name, url)
+            .map_err(AuthError::Core)?;
+        let key = Key::create_service(driver.as_ref(), &mut audit, true, name, service.id)
+            .map_err(AuthError::Core)?;
+        Ok((service, key))
     }
-}
 
-/// Read OAuth2 environment variables into options.
-/// If no variables are defined, returns None. Else all variables
-/// are required and an error message logged for each missing variable.
-pub fn env_oauth2(
-    client_id_name: &str,
-    client_secret_name: &str,
-    redirect_url_name: &str,
-) -> Result<Option<ServerOptionsProviderOauth2>, CliError> {
-    if env_has_any_name(&[client_id_name, client_secret_name, redirect_url_name]) {
-        let client_id = env_string(client_id_name)?;
-        let client_secret = env_string(client_secret_name)?;
-        let redirect_url = env_string(redirect_url_name)?;
+    /// Start server.
+    /// Starts notify and client actors, and HTTP server.
+    pub fn start_server(driver: Box<dyn Driver>, options: CliOptions) -> AuthResult<()> {
+        let system = System::new(crate_name!());
 
-        Ok(Some(ServerOptionsProviderOauth2::new(
-            client_id,
-            client_secret,
-            redirect_url,
-        )))
-    } else {
-        Ok(None)
+        let client_options = options.client().clone();
+        let client_addr = ClientActor::start(client_options);
+
+        let notify_options = options.notify().clone();
+        let notify_addr = NotifyActor::start(options.notify_threads(), notify_options);
+
+        let server_options = options.server().clone();
+        let server_notify_addr = notify_addr.clone();
+        let server_client_addr = client_addr.clone();
+        Server::start(
+            options.server_threads(),
+            driver,
+            server_options,
+            server_notify_addr,
+            server_client_addr,
+        )
+        .map_err(AuthError::Server)?;
+
+        system.run().map_err(ServerError::StdIo).map_err(Into::into)
     }
-}
-
-/// Read Rustls environment variables into options.
-/// If no variables are defined, returns None. Else all variables
-/// are required and an error message logged for each missing variable.
-pub fn env_rustls(
-    crt_pem_name: &str,
-    key_pem_name: &str,
-    client_pem_name: &str,
-) -> Result<Option<ServerOptionsRustls>, CliError> {
-    if env_has_any_name(&[crt_pem_name, key_pem_name, client_pem_name]) {
-        let crt_pem = env_string(crt_pem_name)?;
-        let key_pem = env_string(key_pem_name)?;
-        let client_pem = env_string_opt(client_pem_name);
-
-        Ok(Some(ServerOptionsRustls::new(crt_pem, key_pem, client_pem)))
-    } else {
-        Ok(None)
-    }
-}
-
-/// Create an audit builder for local commands.
-pub fn audit_builder() -> core::audit::AuditBuilder {
-    core::audit::AuditBuilder::new(core::AuditMeta::new("cli", "127.0.0.1", None))
-}
-
-/// Create a root key.
-pub fn create_root_key(driver: Box<dyn Driver>, name: &str) -> Result<core::Key, CliError> {
-    let mut audit = audit_builder();
-    core::key::create_root(driver.as_ref(), &mut audit, true, name).map_err(CliError::Core)
-}
-
-/// Delete all root keys.
-pub fn delete_root_keys(driver: Box<dyn Driver>) -> Result<usize, CliError> {
-    let mut audit = audit_builder();
-    core::key::delete_root(driver.as_ref(), &mut audit).map_err(CliError::Core)
-}
-
-/// Create a service with service key.
-pub fn create_service_with_key(
-    driver: Box<dyn Driver>,
-    name: &str,
-    url: &str,
-) -> Result<(core::Service, core::Key), CliError> {
-    let mut audit = audit_builder();
-    let service = core::service::create(driver.as_ref(), &mut audit, true, name, url)
-        .map_err(CliError::Core)?;
-    let key = core::key::create_service(driver.as_ref(), &mut audit, true, name, service.id)
-        .map_err(CliError::Core)?;
-    Ok((service, key))
-}
-
-/// Start server.
-/// Starts notify and client actors, and HTTP server.
-pub fn start_server(driver: Box<dyn Driver>, options: CliOptions) -> Result<(), CliError> {
-    let system = System::new(crate_name!());
-
-    let client_options = options.client().clone();
-    let client_addr = ClientActor::start(client_options);
-
-    let notify_options = options.notify().clone();
-    let notify_addr = NotifyActor::start(options.notify_threads(), notify_options);
-
-    let server_options = options.server().clone();
-    let server_notify_addr = notify_addr.clone();
-    let server_client_addr = client_addr.clone();
-    Server::start(
-        options.server_threads(),
-        driver,
-        server_options,
-        server_notify_addr,
-        server_client_addr,
-    )
-    .map_err(CliError::Server)?;
-
-    system
-        .run()
-        .map_err(ServerError::StdIo)
-        .map_err(CliError::Server)
 }

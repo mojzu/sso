@@ -4,7 +4,7 @@ macro_rules! user_integration_test {
         #[test]
         #[ignore]
         fn api_user_list_forbidden() {
-            let client = client_create(Some(INVALID_SERVICE_KEY));
+            let client = client_create(Some(INVALID_KEY));
             let res = client
                 .user_list(UserListQuery {
                     gt: None,
@@ -147,7 +147,7 @@ macro_rules! user_integration_test {
         #[test]
         #[ignore]
         fn api_user_create_forbidden() {
-            let client = client_create(Some(INVALID_SERVICE_KEY));
+            let client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
             let body = UserCreateBody::new(true, USER_NAME, &user_email);
             let res = client.user_create(body).unwrap_err();

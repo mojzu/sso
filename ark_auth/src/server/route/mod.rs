@@ -4,12 +4,7 @@ mod key;
 mod service;
 mod user;
 
-use crate::{
-    core,
-    core::AuditMeta,
-    server::api::path,
-    server::{Data, Error},
-};
+use crate::{server::Data, server_api::path, AuditMeta, Key, Metrics, ServerError, ServerResult};
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
 use futures::{future, Future};
@@ -50,30 +45,32 @@ fn metrics_handler(
         .then(route_response_text)
 }
 
-fn metrics_inner(data: &Data, audit_meta: AuditMeta, id: Option<String>) -> Result<String, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+fn metrics_inner(data: &Data, audit_meta: AuditMeta, id: Option<String>) -> ServerResult<String> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::metrics::read(data.driver(), service.as_ref(), &mut audit, data.registry())
+            Metrics::read(data.driver(), service.as_ref(), &mut audit, data.registry())
         })
         .map_err(Into::into)
 }
 
 /// Build audit meta from HTTP request.
-pub fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, Error> {
+pub fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, ServerError> {
     let connection_info = req.connection_info();
-    let remote = connection_info.remote().ok_or_else(|| Error::BadRequest);
+    let remote = connection_info
+        .remote()
+        .ok_or_else(|| ServerError::BadRequest);
 
     let user_agent = req
         .headers()
         .get(http::header::USER_AGENT)
-        .ok_or_else(|| Error::BadRequest)
-        .and_then(|x| x.to_str().map_err(|_err| Error::BadRequest));
+        .ok_or_else(|| ServerError::BadRequest)
+        .and_then(|x| x.to_str().map_err(|_err| ServerError::BadRequest));
 
     let forwarded = req.headers().get(http::header::FORWARDED);
     let forwarded = if let Some(forwarded) = forwarded {
         forwarded
             .to_str()
-            .map_err(|_err| Error::BadRequest)
+            .map_err(|_err| ServerError::BadRequest)
             .map(|x| Some(x.to_owned()))
     } else {
         Ok(None)
@@ -88,7 +85,7 @@ pub fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, 
 
 /// Route response empty handler.
 pub fn route_response_empty<T: Serialize>(
-    result: Result<T, Error>,
+    result: ServerResult<T>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     match result {
         Ok(_res) => future::ok(HttpResponse::Ok().finish()),
@@ -98,7 +95,7 @@ pub fn route_response_empty<T: Serialize>(
 
 /// Route response JSON handler.
 pub fn route_response_json<T: Serialize>(
-    result: Result<T, Error>,
+    result: ServerResult<T>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     match result {
         Ok(res) => future::ok(HttpResponse::Ok().json(res)),
@@ -108,7 +105,7 @@ pub fn route_response_json<T: Serialize>(
 
 /// Route response text handler.
 pub fn route_response_text(
-    result: Result<String, Error>,
+    result: ServerResult<String>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     match result {
         Ok(res) => future::ok(HttpResponse::Ok().body(res)),

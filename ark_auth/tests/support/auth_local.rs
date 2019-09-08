@@ -4,7 +4,7 @@ macro_rules! auth_local_integration_test {
         #[test]
         #[ignore]
         fn api_auth_local_login_forbidden() {
-            let client = client_create(Some(INVALID_SERVICE_KEY));
+            let client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
 
             let body = AuthLoginBody::new(&user_email, USER_PASSWORD);
@@ -134,7 +134,7 @@ macro_rules! auth_local_integration_test {
         #[test]
         #[ignore]
         fn api_auth_local_reset_password_forbidden() {
-            let client = client_create(Some(INVALID_SERVICE_KEY));
+            let client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
 
             let body = AuthResetPasswordBody::new(&user_email);
@@ -205,7 +205,7 @@ macro_rules! auth_local_integration_test {
         #[test]
         #[ignore]
         fn api_auth_local_reset_password_confirm_forbidden() {
-            let client = client_create(Some(INVALID_SERVICE_KEY));
+            let client = client_create(Some(INVALID_KEY));
             let body = AuthResetPasswordConfirmBody::new(INVALID_KEY, USER_PASSWORD);
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);

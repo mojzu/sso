@@ -1,12 +1,12 @@
 use crate::{
-    client::{Client, ClientActorRequest, Get},
-    core,
-    core::{audit::AuditBuilder, AuditMeta},
+    client_msg::Get,
     server::{
-        api::{path, AuthOauth2CallbackQuery, AuthOauth2UrlResponse},
         route::{auth::provider::oauth2_redirect, request_audit_meta, route_response_json},
-        Data, Error, FromJsonValue, Oauth2Error, ServerOptionsProviderOauth2,
+        Data,
     },
+    server_api::{path, AuthOauth2CallbackQuery, AuthOauth2UrlResponse},
+    AuditBuilder, AuditMeta, Auth, Client, ClientActorRequest, Csrf, Key, ServerError,
+    ServerOauth2Error, ServerOptionsProviderOauth2, ServerResult, ServerValidateFromValue, Service,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
@@ -51,8 +51,8 @@ fn request_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-) -> Result<AuthOauth2UrlResponse, Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<AuthOauth2UrlResponse> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .map_err(Into::into)
         .and_then(|(service, mut audit)| {
             microsoft_authorise(&data, &service, &mut audit).map_err(Into::into)
@@ -86,7 +86,7 @@ fn oauth2_callback_handler(
         })
         .and_then(|(email, (data, mut audit, service_id))| {
             web::block(move || {
-                core::auth::oauth2_login(
+                Auth::oauth2_login(
                     data.driver(),
                     service_id,
                     &mut audit,
@@ -106,9 +106,9 @@ fn oauth2_callback_handler(
 
 fn microsoft_authorise(
     data: &Data,
-    service: &core::Service,
+    service: &Service,
     _audit: &mut AuditBuilder,
-) -> Result<String, Error> {
+) -> ServerResult<String> {
     // Microsoft Graph supports Proof Key for Code Exchange (PKCE - https://oauth.net/2/pkce/).
     // Create a PKCE code verifier and SHA-256 encode it as a code challenge.
     let (pkce_code_challenge, pkce_code_verifier) = PkceCodeChallenge::new_random_sha256();
@@ -124,14 +124,14 @@ fn microsoft_authorise(
         .url();
 
     // Save the state and code verifier secrets as a CSRF key, value.
-    core::csrf::create(
+    Csrf::create(
         data.driver(),
         service,
         &csrf_state.secret(),
         &pkce_code_verifier.secret(),
         data.options().access_token_expires(),
     )
-    .map_err(Error::Core)?;
+    .map_err(ServerError::Core)?;
 
     Ok(authorize_url.to_string())
 }
@@ -141,10 +141,10 @@ fn microsoft_callback(
     _audit: &mut AuditBuilder,
     code: &str,
     state: &str,
-) -> Result<(Uuid, String), Error> {
+) -> ServerResult<(Uuid, String)> {
     // Read the CSRF key using state value, rebuild code verifier from value.
-    let csrf = core::csrf::read_by_key(data.driver(), &state).map_err(Error::Core)?;
-    let csrf = csrf.ok_or_else(|| Error::Oauth2(Oauth2Error::Csrf))?;
+    let csrf = Csrf::read_by_key(data.driver(), &state).map_err(ServerError::Core)?;
+    let csrf = csrf.ok_or_else(|| ServerError::Oauth2(ServerOauth2Error::Csrf))?;
 
     // Exchange the code with a token.
     let client = microsoft_client(data.options().provider_microsoft_oauth2())?;
@@ -154,7 +154,7 @@ fn microsoft_callback(
         .exchange_code(code)
         .set_pkce_verifier(pkce_code_verifier)
         .request(http_client)
-        .map_err(|err| Error::Oauth2(Oauth2Error::Oauth2Request(err.into())))?;
+        .map_err(|err| ServerError::Oauth2(ServerOauth2Error::Oauth2Request(err.into())))?;
 
     // Return access token value.
     Ok((csrf.service_id, token.access_token().secret().to_owned()))
@@ -163,35 +163,35 @@ fn microsoft_callback(
 fn microsoft_api_user_email(
     data: &Data,
     access_token: &str,
-) -> impl Future<Item = String, Error = Error> {
+) -> impl Future<Item = String, Error = ServerError> {
     let authorisation = format!("Bearer {}", access_token);
     data.client()
         .send(Get::new("https://graph.microsoft.com", "/v1.0/me").authorisation(authorisation))
-        .map_err(Error::ActixMailbox)
-        .and_then(|res| Client::result_json::<MicrosoftUser>(res).map_err(Error::Client))
+        .map_err(ServerError::ActixMailbox)
+        .and_then(|res| Client::result_json::<MicrosoftUser>(res).map_err(ServerError::Client))
         .map(|res| res.mail)
 }
 
-fn microsoft_client(provider: Option<&ServerOptionsProviderOauth2>) -> Result<BasicClient, Error> {
+fn microsoft_client(provider: Option<&ServerOptionsProviderOauth2>) -> ServerResult<BasicClient> {
     let provider = provider.ok_or_else(|| {
         // Warn OAuth2 is disabled, return bad request error so internal server error
         // is not returned to the client.
-        let err = Error::Oauth2(Oauth2Error::Disabled);
+        let err = ServerError::Oauth2(ServerOauth2Error::Disabled);
         warn!("{}", err);
-        Error::BadRequest
+        ServerError::BadRequest
     })?;
 
     let graph_client_id = ClientId::new(provider.client_id.to_owned());
     let graph_client_secret = ClientSecret::new(provider.client_secret.to_owned());
 
     let auth_url = Url::parse("https://login.microsoftonline.com/common/oauth2/v2.0/authorize")
-        .map_err(Error::UrlParse)?;
+        .map_err(ServerError::UrlParse)?;
     let auth_url = AuthUrl::new(auth_url);
     let token_url = Url::parse("https://login.microsoftonline.com/common/oauth2/v2.0/token")
-        .map_err(Error::UrlParse)?;
+        .map_err(ServerError::UrlParse)?;
     let token_url = TokenUrl::new(token_url);
 
-    let redirect_url = Url::parse(&provider.redirect_url).map_err(Error::UrlParse)?;
+    let redirect_url = Url::parse(&provider.redirect_url).map_err(ServerError::UrlParse)?;
     Ok(BasicClient::new(
         graph_client_id,
         Some(graph_client_secret),

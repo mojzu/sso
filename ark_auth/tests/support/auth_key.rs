@@ -4,7 +4,7 @@ macro_rules! auth_key_integration_test {
         #[test]
         #[ignore]
         fn api_auth_key_verify_forbidden() {
-            let client = client_create(Some(INVALID_SERVICE_KEY));
+            let client = client_create(Some(INVALID_KEY));
             let body = AuthKeyBody::new(INVALID_KEY, None);
             let res = client.auth_key_verify(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);
@@ -71,7 +71,7 @@ macro_rules! auth_key_integration_test {
         #[test]
         #[ignore]
         fn api_auth_key_revoke_forbidden() {
-            let client = client_create(Some(INVALID_SERVICE_KEY));
+            let client = client_create(Some(INVALID_KEY));
             let body = AuthKeyBody::new(INVALID_KEY, None);
             let res = client.auth_key_revoke(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);

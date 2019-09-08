@@ -1,11 +1,6 @@
-//! # Asynchronous Client
 use crate::{
-    client::{
-        Client, ClientActor, ClientActorRequest, ClientOptions, Delete, Error, Get, PatchJson,
-        PostJson,
-    },
-    core::User,
-    server::api::{
+    client_msg::{Delete, Get, PatchJson, PostJson},
+    server_api::{
         route, AuditCreateBody, AuditDataRequest, AuditListQuery, AuditListResponse,
         AuditReadResponse, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
         AuthOauth2UrlResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
@@ -15,6 +10,7 @@ use crate::{
         ServiceReadResponse, ServiceUpdateBody, UserCreateBody, UserCreateResponse, UserListQuery,
         UserListResponse, UserReadResponse, UserUpdateBody,
     },
+    Client, ClientActor, ClientActorRequest, ClientError, ClientOptions, User,
 };
 use actix::prelude::*;
 use futures::future::Either;
@@ -22,18 +18,18 @@ use futures::{future, Future};
 use serde_json::Value;
 use uuid::Uuid;
 
-/// Asynchronous client handle.
+/// Client (Asynchronous).
 #[derive(Clone)]
-pub struct AsyncClient {
+pub struct ClientAsync {
     url: String,
     options: ClientOptions,
     addr: Addr<ClientActor>,
 }
 
-impl AsyncClient {
+impl ClientAsync {
     /// Create new client handle.
     pub fn new<T1: Into<String>>(url: T1, options: ClientOptions, addr: Addr<ClientActor>) -> Self {
-        AsyncClient {
+        ClientAsync {
             url: url.into(),
             options,
             addr,
@@ -67,9 +63,9 @@ impl AsyncClient {
     }
 }
 
-impl AsyncClient {
+impl ClientAsync {
     /// Ping request.
-    pub fn ping(&self) -> impl Future<Item = Value, Error = Error> {
+    pub fn ping(&self) -> impl Future<Item = Value, Error = ClientError> {
         self.addr
             .send(
                 Get::new(self.url(), route::PING)
@@ -81,7 +77,7 @@ impl AsyncClient {
     }
 
     /// Metrics request.
-    pub fn metrics(&self) -> impl Future<Item = String, Error = Error> {
+    pub fn metrics(&self) -> impl Future<Item = String, Error = ClientError> {
         self.addr
             .send(
                 Get::new(self.url(), route::METRICS)
@@ -96,7 +92,7 @@ impl AsyncClient {
     pub fn auth_local_login(
         &self,
         body: AuthLoginBody,
-    ) -> impl Future<Item = AuthLoginResponse, Error = Error> {
+    ) -> impl Future<Item = AuthLoginResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::AUTH_LOCAL_LOGIN, Some(body))
@@ -111,7 +107,7 @@ impl AsyncClient {
     pub fn auth_local_reset_password(
         &self,
         body: AuthResetPasswordBody,
-    ) -> impl Future<Item = (), Error = Error> {
+    ) -> impl Future<Item = (), Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::AUTH_LOCAL_RESET_PASSWORD, Some(body))
@@ -126,7 +122,7 @@ impl AsyncClient {
     pub fn auth_local_reset_password_confirm(
         &self,
         body: AuthResetPasswordConfirmBody,
-    ) -> impl Future<Item = AuthPasswordMetaResponse, Error = Error> {
+    ) -> impl Future<Item = AuthPasswordMetaResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(
@@ -145,7 +141,7 @@ impl AsyncClient {
     pub fn auth_local_update_email(
         &self,
         body: AuthUpdateEmailBody,
-    ) -> impl Future<Item = (), Error = Error> {
+    ) -> impl Future<Item = (), Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::AUTH_LOCAL_UPDATE_EMAIL, Some(body))
@@ -160,7 +156,7 @@ impl AsyncClient {
     pub fn auth_local_update_email_revoke(
         &self,
         body: AuthTokenBody,
-    ) -> impl Future<Item = (), Error = Error> {
+    ) -> impl Future<Item = (), Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(
@@ -179,7 +175,7 @@ impl AsyncClient {
     pub fn auth_local_update_password(
         &self,
         body: AuthUpdatePasswordBody,
-    ) -> impl Future<Item = (), Error = Error> {
+    ) -> impl Future<Item = (), Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::AUTH_LOCAL_UPDATE_PASSWORD, Some(body))
@@ -194,7 +190,7 @@ impl AsyncClient {
     pub fn auth_local_update_password_revoke(
         &self,
         body: AuthTokenBody,
-    ) -> impl Future<Item = (), Error = Error> {
+    ) -> impl Future<Item = (), Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(
@@ -212,7 +208,7 @@ impl AsyncClient {
     /// Authentication GitHub provider OAuth2 request.
     pub fn auth_github_oauth2_request(
         &self,
-    ) -> impl Future<Item = AuthOauth2UrlResponse, Error = Error> {
+    ) -> impl Future<Item = AuthOauth2UrlResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::<Value>::new(self.url(), route::AUTH_GITHUB_OAUTH2, None)
@@ -226,7 +222,7 @@ impl AsyncClient {
     /// Authentication Microsoft provider OAuth2 request.
     pub fn auth_microsoft_oauth2_request(
         &self,
-    ) -> impl Future<Item = AuthOauth2UrlResponse, Error = Error> {
+    ) -> impl Future<Item = AuthOauth2UrlResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::<Value>::new(self.url(), route::AUTH_MICROSOFT_OAUTH2, None)
@@ -241,7 +237,7 @@ impl AsyncClient {
     pub fn auth_key_verify(
         &self,
         body: AuthKeyBody,
-    ) -> impl Future<Item = AuthKeyResponse, Error = Error> {
+    ) -> impl Future<Item = AuthKeyResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::AUTH_KEY_VERIFY, Some(body))
@@ -253,7 +249,10 @@ impl AsyncClient {
     }
 
     /// Authentication revoke key.
-    pub fn auth_key_revoke(&self, body: AuthKeyBody) -> impl Future<Item = (), Error = Error> {
+    pub fn auth_key_revoke(
+        &self,
+        body: AuthKeyBody,
+    ) -> impl Future<Item = (), Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::AUTH_KEY_REVOKE, Some(body))
@@ -268,7 +267,7 @@ impl AsyncClient {
     pub fn auth_token_verify(
         &self,
         body: AuthTokenBody,
-    ) -> impl Future<Item = AuthTokenPartialResponse, Error = Error> {
+    ) -> impl Future<Item = AuthTokenPartialResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::AUTH_TOKEN_VERIFY, Some(body))
@@ -283,7 +282,7 @@ impl AsyncClient {
     pub fn auth_token_refresh(
         &self,
         body: AuthTokenBody,
-    ) -> impl Future<Item = AuthTokenResponse, Error = Error> {
+    ) -> impl Future<Item = AuthTokenResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::AUTH_TOKEN_REFRESH, Some(body))
@@ -295,7 +294,10 @@ impl AsyncClient {
     }
 
     /// Authentication revoke token.
-    pub fn auth_token_revoke(&self, body: AuthTokenBody) -> impl Future<Item = (), Error = Error> {
+    pub fn auth_token_revoke(
+        &self,
+        body: AuthTokenBody,
+    ) -> impl Future<Item = (), Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::AUTH_TOKEN_REVOKE, Some(body))
@@ -310,7 +312,7 @@ impl AsyncClient {
     pub fn audit_list(
         &self,
         query: AuditListQuery,
-    ) -> impl Future<Item = AuditListResponse, Error = Error> {
+    ) -> impl Future<Item = AuditListResponse, Error = ClientError> {
         let msg = Get::new(self.url(), route::AUDIT)
             .authorisation(self.options.authorisation())
             .forwarded(self.options.forwarded())
@@ -326,7 +328,7 @@ impl AsyncClient {
     pub fn audit_create(
         &self,
         body: AuditCreateBody,
-    ) -> impl Future<Item = AuditReadResponse, Error = Error> {
+    ) -> impl Future<Item = AuditReadResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::AUDIT, Some(body))
@@ -338,7 +340,10 @@ impl AsyncClient {
     }
 
     /// Audit read by ID request.
-    pub fn audit_read(&self, id: Uuid) -> impl Future<Item = AuditReadResponse, Error = Error> {
+    pub fn audit_read(
+        &self,
+        id: Uuid,
+    ) -> impl Future<Item = AuditReadResponse, Error = ClientError> {
         self.addr
             .send(
                 Get::new(self.url(), route::audit_id(id))
@@ -353,7 +358,7 @@ impl AsyncClient {
     pub fn key_list(
         &self,
         query: KeyListQuery,
-    ) -> impl Future<Item = KeyListResponse, Error = Error> {
+    ) -> impl Future<Item = KeyListResponse, Error = ClientError> {
         let msg = Get::new(self.url(), route::KEY)
             .authorisation(self.options.authorisation())
             .forwarded(self.options.forwarded())
@@ -369,7 +374,7 @@ impl AsyncClient {
     pub fn key_create(
         &self,
         body: KeyCreateBody,
-    ) -> impl Future<Item = KeyReadResponse, Error = Error> {
+    ) -> impl Future<Item = KeyReadResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::KEY, Some(body))
@@ -381,7 +386,7 @@ impl AsyncClient {
     }
 
     /// Key read request.
-    pub fn key_read(&self, id: Uuid) -> impl Future<Item = KeyReadResponse, Error = Error> {
+    pub fn key_read(&self, id: Uuid) -> impl Future<Item = KeyReadResponse, Error = ClientError> {
         self.addr
             .send(
                 Get::new(self.url(), route::key_id(id))
@@ -397,7 +402,7 @@ impl AsyncClient {
         &self,
         id: Uuid,
         body: KeyUpdateBody,
-    ) -> impl Future<Item = KeyReadResponse, Error = Error> {
+    ) -> impl Future<Item = KeyReadResponse, Error = ClientError> {
         self.addr
             .send(
                 PatchJson::new(self.url(), route::key_id(id), Some(body))
@@ -409,7 +414,7 @@ impl AsyncClient {
     }
 
     /// Key delete request.
-    pub fn key_delete(&self, id: Uuid) -> impl Future<Item = (), Error = Error> {
+    pub fn key_delete(&self, id: Uuid) -> impl Future<Item = (), Error = ClientError> {
         self.addr
             .send(
                 Delete::new(self.url(), route::key_id(id))
@@ -424,7 +429,7 @@ impl AsyncClient {
     pub fn service_list(
         &self,
         query: ServiceListQuery,
-    ) -> impl Future<Item = ServiceListResponse, Error = Error> {
+    ) -> impl Future<Item = ServiceListResponse, Error = ClientError> {
         let msg = Get::new(self.url(), route::SERVICE)
             .authorisation(self.options.authorisation())
             .forwarded(self.options.forwarded())
@@ -440,7 +445,7 @@ impl AsyncClient {
     pub fn service_create(
         &self,
         body: ServiceCreateBody,
-    ) -> impl Future<Item = ServiceReadResponse, Error = Error> {
+    ) -> impl Future<Item = ServiceReadResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::SERVICE, Some(body))
@@ -452,7 +457,10 @@ impl AsyncClient {
     }
 
     /// Service read request.
-    pub fn service_read(&self, id: Uuid) -> impl Future<Item = ServiceReadResponse, Error = Error> {
+    pub fn service_read(
+        &self,
+        id: Uuid,
+    ) -> impl Future<Item = ServiceReadResponse, Error = ClientError> {
         self.addr
             .send(
                 Get::new(self.url(), route::service_id(id))
@@ -468,7 +476,7 @@ impl AsyncClient {
         &self,
         id: Uuid,
         body: ServiceUpdateBody,
-    ) -> impl Future<Item = ServiceReadResponse, Error = Error> {
+    ) -> impl Future<Item = ServiceReadResponse, Error = ClientError> {
         self.addr
             .send(
                 PatchJson::new(self.url(), route::service_id(id), Some(body))
@@ -480,7 +488,7 @@ impl AsyncClient {
     }
 
     /// Service delete request.
-    pub fn service_delete(&self, id: Uuid) -> impl Future<Item = (), Error = Error> {
+    pub fn service_delete(&self, id: Uuid) -> impl Future<Item = (), Error = ClientError> {
         self.addr
             .send(
                 Delete::new(self.url(), route::service_id(id))
@@ -495,7 +503,7 @@ impl AsyncClient {
     pub fn user_list(
         &self,
         query: UserListQuery,
-    ) -> impl Future<Item = UserListResponse, Error = Error> {
+    ) -> impl Future<Item = UserListResponse, Error = ClientError> {
         let msg = Get::new(self.url(), route::USER)
             .authorisation(self.options.authorisation())
             .forwarded(self.options.forwarded())
@@ -511,7 +519,7 @@ impl AsyncClient {
     pub fn user_create(
         &self,
         body: UserCreateBody,
-    ) -> impl Future<Item = UserCreateResponse, Error = Error> {
+    ) -> impl Future<Item = UserCreateResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::USER, Some(body))
@@ -523,7 +531,7 @@ impl AsyncClient {
     }
 
     /// User read request.
-    pub fn user_read(&self, id: Uuid) -> impl Future<Item = UserReadResponse, Error = Error> {
+    pub fn user_read(&self, id: Uuid) -> impl Future<Item = UserReadResponse, Error = ClientError> {
         self.addr
             .send(
                 Get::new(self.url(), route::user_id(id))
@@ -539,7 +547,7 @@ impl AsyncClient {
         &self,
         id: Uuid,
         body: UserUpdateBody,
-    ) -> impl Future<Item = UserReadResponse, Error = Error> {
+    ) -> impl Future<Item = UserReadResponse, Error = ClientError> {
         self.addr
             .send(
                 PatchJson::new(self.url(), route::user_id(id), Some(body))
@@ -551,7 +559,7 @@ impl AsyncClient {
     }
 
     /// User delete request.
-    pub fn user_delete(&self, id: Uuid) -> impl Future<Item = (), Error = Error> {
+    pub fn user_delete(&self, id: Uuid) -> impl Future<Item = (), Error = ClientError> {
         self.addr
             .send(
                 Delete::new(self.url(), route::user_id(id))
@@ -563,13 +571,13 @@ impl AsyncClient {
     }
 }
 
-impl AsyncClient {
+impl ClientAsync {
     /// Authenticate user using token or key, returns user if successful.
     pub fn authenticate(
         &self,
         key_or_token: Option<String>,
         audit: Option<AuditDataRequest>,
-    ) -> impl Future<Item = User, Error = Error> {
+    ) -> impl Future<Item = User, Error = ClientError> {
         match key_or_token {
             Some(key_or_token) => match Client::authorisation_type(key_or_token) {
                 Ok((type_, value)) => {
@@ -582,7 +590,7 @@ impl AsyncClient {
                 }
                 Err(e) => Either::A(Either::B(future::err(e))),
             },
-            None => Either::B(future::err(Error::Forbidden)),
+            None => Either::B(future::err(ClientError::Forbidden)),
         }
     }
 
@@ -591,7 +599,7 @@ impl AsyncClient {
         type_: String,
         value: String,
         audit: Option<AuditDataRequest>,
-    ) -> impl Future<Item = Uuid, Error = Error> {
+    ) -> impl Future<Item = Uuid, Error = ClientError> {
         match type_.as_ref() {
             "key" => {
                 let body = AuthKeyBody::new(value, audit);
@@ -605,7 +613,7 @@ impl AsyncClient {
                     self.auth_token_verify(body).map(|res| res.data.user_id),
                 ))
             }
-            _ => Either::B(future::err(Error::Forbidden)),
+            _ => Either::B(future::err(ClientError::Forbidden)),
         }
     }
 }

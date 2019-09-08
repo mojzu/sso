@@ -1,9 +1,7 @@
+//! # Server API Types
 use crate::{
-    core::{
-        Audit, AuditData, AuditQuery, Key, KeyQuery, Service, ServiceQuery, User, UserKey,
-        UserQuery, UserToken, UserTokenPartial,
-    },
-    server::{validate, FromJsonValue},
+    Audit, AuditData, AuditQuery, Key, KeyQuery, ServerValidate, ServerValidateFromValue, Service,
+    ServiceQuery, User, UserAccessToken, UserKey, UserPasswordMeta, UserQuery, UserToken,
 };
 use chrono::{DateTime, Utc};
 use serde_json::Value;
@@ -96,11 +94,11 @@ pub struct AuditListQuery {
     pub created_gte: Option<DateTime<Utc>>,
     pub created_lte: Option<DateTime<Utc>>,
     pub offset_id: Option<Uuid>,
-    #[validate(custom = "validate::limit")]
+    #[validate(custom = "ServerValidate::limit")]
     pub limit: Option<String>,
 }
 
-impl FromJsonValue<AuditListQuery> for AuditListQuery {}
+impl ServerValidateFromValue<AuditListQuery> for AuditListQuery {}
 
 impl From<AuditListQuery> for AuditQuery {
     fn from(query: AuditListQuery) -> AuditQuery {
@@ -125,14 +123,14 @@ pub struct AuditListResponse {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuditCreateBody {
-    #[validate(custom = "validate::path")]
+    #[validate(custom = "ServerValidate::path")]
     pub path: String,
     pub data: Value,
     pub user_id: Option<Uuid>,
     pub user_key_id: Option<Uuid>,
 }
 
-impl FromJsonValue<AuditCreateBody> for AuditCreateBody {}
+impl ServerValidateFromValue<AuditCreateBody> for AuditCreateBody {}
 
 impl AuditCreateBody {
     pub fn new<T1>(path: T1, data: Value, user_id: Option<Uuid>, user_key_id: Option<Uuid>) -> Self
@@ -163,12 +161,12 @@ pub struct AuditReadResponse {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuditDataRequest {
-    #[validate(custom = "validate::path")]
+    #[validate(custom = "ServerValidate::path")]
     pub path: String,
     pub data: Value,
 }
 
-impl FromJsonValue<AuditDataRequest> for AuditDataRequest {}
+impl ServerValidateFromValue<AuditDataRequest> for AuditDataRequest {}
 
 impl AuditDataRequest {
     pub fn new<T1>(path: T1, data: Value) -> Self
@@ -193,31 +191,15 @@ impl From<AuditDataRequest> for AuditData {
 
 // Authentication types.
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct AuthPasswordMeta {
-    pub password_strength: Option<u8>,
-    pub password_pwned: Option<bool>,
-}
-
-impl Default for AuthPasswordMeta {
-    fn default() -> Self {
-        AuthPasswordMeta {
-            password_strength: None,
-            password_pwned: None,
-        }
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuthTokenBody {
-    #[validate(custom = "validate::token")]
+    #[validate(custom = "ServerValidate::token")]
     pub token: String,
     pub audit: Option<AuditDataRequest>,
 }
 
-impl FromJsonValue<AuthTokenBody> for AuthTokenBody {}
+impl ServerValidateFromValue<AuthTokenBody> for AuthTokenBody {}
 
 impl AuthTokenBody {
     pub fn new<S1: Into<String>>(token: S1, audit: Option<AuditDataRequest>) -> Self {
@@ -237,18 +219,18 @@ pub struct AuthTokenResponse {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthTokenPartialResponse {
-    pub data: UserTokenPartial,
+    pub data: UserAccessToken,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuthKeyBody {
-    #[validate(custom = "validate::key")]
+    #[validate(custom = "ServerValidate::key")]
     pub key: String,
     pub audit: Option<AuditDataRequest>,
 }
 
-impl FromJsonValue<AuthKeyBody> for AuthKeyBody {}
+impl ServerValidateFromValue<AuthKeyBody> for AuthKeyBody {}
 
 impl AuthKeyBody {
     pub fn new<S1: Into<String>>(key: S1, audit: Option<AuditDataRequest>) -> Self {
@@ -272,11 +254,11 @@ pub struct AuthKeyResponse {
 pub struct AuthLoginBody {
     #[validate(email)]
     pub email: String,
-    #[validate(custom = "validate::password")]
+    #[validate(custom = "ServerValidate::password")]
     pub password: String,
 }
 
-impl FromJsonValue<AuthLoginBody> for AuthLoginBody {}
+impl ServerValidateFromValue<AuthLoginBody> for AuthLoginBody {}
 
 impl AuthLoginBody {
     pub fn new<S1, S2>(email: S1, password: S2) -> Self
@@ -294,7 +276,7 @@ impl AuthLoginBody {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthLoginResponse {
-    pub meta: AuthPasswordMeta,
+    pub meta: UserPasswordMeta,
     pub data: UserToken,
 }
 
@@ -305,7 +287,7 @@ pub struct AuthResetPasswordBody {
     pub email: String,
 }
 
-impl FromJsonValue<AuthResetPasswordBody> for AuthResetPasswordBody {}
+impl ServerValidateFromValue<AuthResetPasswordBody> for AuthResetPasswordBody {}
 
 impl AuthResetPasswordBody {
     pub fn new<S1: Into<String>>(email: S1) -> Self {
@@ -318,13 +300,13 @@ impl AuthResetPasswordBody {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuthResetPasswordConfirmBody {
-    #[validate(custom = "validate::token")]
+    #[validate(custom = "ServerValidate::token")]
     pub token: String,
-    #[validate(custom = "validate::password")]
+    #[validate(custom = "ServerValidate::password")]
     pub password: String,
 }
 
-impl FromJsonValue<AuthResetPasswordConfirmBody> for AuthResetPasswordConfirmBody {}
+impl ServerValidateFromValue<AuthResetPasswordConfirmBody> for AuthResetPasswordConfirmBody {}
 
 impl AuthResetPasswordConfirmBody {
     pub fn new<S1, S2>(token: S1, password: S2) -> Self
@@ -342,38 +324,38 @@ impl AuthResetPasswordConfirmBody {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthPasswordMetaResponse {
-    pub meta: AuthPasswordMeta,
+    pub meta: UserPasswordMeta,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuthUpdateEmailBody {
-    #[validate(custom = "validate::key")]
+    #[validate(custom = "ServerValidate::key")]
     pub key: Option<String>,
-    #[validate(custom = "validate::token")]
+    #[validate(custom = "ServerValidate::token")]
     pub token: Option<String>,
-    #[validate(custom = "validate::password")]
+    #[validate(custom = "ServerValidate::password")]
     pub password: String,
     #[validate(email)]
     pub new_email: String,
 }
 
-impl FromJsonValue<AuthUpdateEmailBody> for AuthUpdateEmailBody {}
+impl ServerValidateFromValue<AuthUpdateEmailBody> for AuthUpdateEmailBody {}
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuthUpdatePasswordBody {
-    #[validate(custom = "validate::key")]
+    #[validate(custom = "ServerValidate::key")]
     pub key: Option<String>,
-    #[validate(custom = "validate::token")]
+    #[validate(custom = "ServerValidate::token")]
     pub token: Option<String>,
-    #[validate(custom = "validate::password")]
+    #[validate(custom = "ServerValidate::password")]
     pub password: String,
-    #[validate(custom = "validate::password")]
+    #[validate(custom = "ServerValidate::password")]
     pub new_password: String,
 }
 
-impl FromJsonValue<AuthUpdatePasswordBody> for AuthUpdatePasswordBody {}
+impl ServerValidateFromValue<AuthUpdatePasswordBody> for AuthUpdatePasswordBody {}
 
 // Authentication OAuth2 provider types.
 
@@ -385,13 +367,13 @@ pub struct AuthOauth2UrlResponse {
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct AuthOauth2CallbackQuery {
-    #[validate(custom = "validate::token")]
+    #[validate(custom = "ServerValidate::token")]
     pub code: String,
-    #[validate(custom = "validate::token")]
+    #[validate(custom = "ServerValidate::token")]
     pub state: String,
 }
 
-impl FromJsonValue<AuthOauth2CallbackQuery> for AuthOauth2CallbackQuery {}
+impl ServerValidateFromValue<AuthOauth2CallbackQuery> for AuthOauth2CallbackQuery {}
 
 // Key types.
 
@@ -400,11 +382,11 @@ impl FromJsonValue<AuthOauth2CallbackQuery> for AuthOauth2CallbackQuery {}
 pub struct KeyListQuery {
     pub gt: Option<Uuid>,
     pub lt: Option<Uuid>,
-    #[validate(custom = "validate::limit")]
+    #[validate(custom = "ServerValidate::limit")]
     pub limit: Option<String>,
 }
 
-impl FromJsonValue<KeyListQuery> for KeyListQuery {}
+impl ServerValidateFromValue<KeyListQuery> for KeyListQuery {}
 
 impl From<KeyListQuery> for KeyQuery {
     fn from(query: KeyListQuery) -> KeyQuery {
@@ -427,13 +409,13 @@ pub struct KeyListResponse {
 #[serde(deny_unknown_fields)]
 pub struct KeyCreateBody {
     pub is_enabled: bool,
-    #[validate(custom = "validate::name")]
+    #[validate(custom = "ServerValidate::name")]
     pub name: String,
     pub service_id: Option<Uuid>,
     pub user_id: Option<Uuid>,
 }
 
-impl FromJsonValue<KeyCreateBody> for KeyCreateBody {}
+impl ServerValidateFromValue<KeyCreateBody> for KeyCreateBody {}
 
 impl KeyCreateBody {
     pub fn new<S1: Into<String>>(is_enabled: bool, name: S1) -> Self {
@@ -480,11 +462,11 @@ pub struct KeyReadResponse {
 #[serde(deny_unknown_fields)]
 pub struct KeyUpdateBody {
     pub is_enabled: Option<bool>,
-    #[validate(custom = "validate::name")]
+    #[validate(custom = "ServerValidate::name")]
     pub name: Option<String>,
 }
 
-impl FromJsonValue<KeyUpdateBody> for KeyUpdateBody {}
+impl ServerValidateFromValue<KeyUpdateBody> for KeyUpdateBody {}
 
 // Service types.
 
@@ -493,7 +475,7 @@ impl FromJsonValue<KeyUpdateBody> for KeyUpdateBody {}
 pub struct ServiceListQuery {
     pub gt: Option<Uuid>,
     pub lt: Option<Uuid>,
-    #[validate(custom = "validate::limit")]
+    #[validate(custom = "ServerValidate::limit")]
     pub limit: Option<String>,
 }
 
@@ -507,7 +489,7 @@ impl From<ServiceListQuery> for ServiceQuery {
     }
 }
 
-impl FromJsonValue<ServiceListQuery> for ServiceListQuery {}
+impl ServerValidateFromValue<ServiceListQuery> for ServiceListQuery {}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -520,13 +502,13 @@ pub struct ServiceListResponse {
 #[serde(deny_unknown_fields)]
 pub struct ServiceCreateBody {
     pub is_enabled: bool,
-    #[validate(custom = "validate::name")]
+    #[validate(custom = "ServerValidate::name")]
     pub name: String,
     #[validate(url)]
     pub url: String,
 }
 
-impl FromJsonValue<ServiceCreateBody> for ServiceCreateBody {}
+impl ServerValidateFromValue<ServiceCreateBody> for ServiceCreateBody {}
 
 impl ServiceCreateBody {
     pub fn new<S1, S2>(is_enabled: bool, name: S1, url: S2) -> Self
@@ -552,11 +534,11 @@ pub struct ServiceReadResponse {
 #[serde(deny_unknown_fields)]
 pub struct ServiceUpdateBody {
     pub is_enabled: Option<bool>,
-    #[validate(custom = "validate::name")]
+    #[validate(custom = "ServerValidate::name")]
     pub name: Option<String>,
 }
 
-impl FromJsonValue<ServiceUpdateBody> for ServiceUpdateBody {}
+impl ServerValidateFromValue<ServiceUpdateBody> for ServiceUpdateBody {}
 
 // User types.
 
@@ -565,13 +547,13 @@ impl FromJsonValue<ServiceUpdateBody> for ServiceUpdateBody {}
 pub struct UserListQuery {
     pub gt: Option<Uuid>,
     pub lt: Option<Uuid>,
-    #[validate(custom = "validate::limit")]
+    #[validate(custom = "ServerValidate::limit")]
     pub limit: Option<String>,
     #[validate(email)]
     pub email_eq: Option<String>,
 }
 
-impl FromJsonValue<UserListQuery> for UserListQuery {}
+impl ServerValidateFromValue<UserListQuery> for UserListQuery {}
 
 impl From<UserListQuery> for UserQuery {
     fn from(query: UserListQuery) -> UserQuery {
@@ -595,15 +577,15 @@ pub struct UserListResponse {
 #[serde(deny_unknown_fields)]
 pub struct UserCreateBody {
     pub is_enabled: bool,
-    #[validate(custom = "validate::name")]
+    #[validate(custom = "ServerValidate::name")]
     pub name: String,
     #[validate(email)]
     pub email: String,
-    #[validate(custom = "validate::password")]
+    #[validate(custom = "ServerValidate::password")]
     pub password: Option<String>,
 }
 
-impl FromJsonValue<UserCreateBody> for UserCreateBody {}
+impl ServerValidateFromValue<UserCreateBody> for UserCreateBody {}
 
 impl UserCreateBody {
     pub fn new<S1, S2>(is_enabled: bool, name: S1, email: S2) -> Self
@@ -636,7 +618,7 @@ impl UserCreateBody {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserCreateResponse {
-    pub meta: AuthPasswordMeta,
+    pub meta: UserPasswordMeta,
     pub data: User,
 }
 
@@ -649,8 +631,8 @@ pub struct UserReadResponse {
 #[serde(deny_unknown_fields)]
 pub struct UserUpdateBody {
     pub is_enabled: Option<bool>,
-    #[validate(custom = "validate::name")]
+    #[validate(custom = "ServerValidate::name")]
     pub name: Option<String>,
 }
 
-impl FromJsonValue<UserUpdateBody> for UserUpdateBody {}
+impl ServerValidateFromValue<UserUpdateBody> for UserUpdateBody {}

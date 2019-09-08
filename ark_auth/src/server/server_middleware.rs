@@ -1,10 +1,15 @@
-use crate::server::error::Error;
+//! # Server Actix Web Middleware
+use crate::ServerError;
 use actix_identity::{IdentityPolicy, IdentityService};
 use actix_service::{Service, Transform};
-use actix_web::dev::{ServiceRequest, ServiceResponse};
-use actix_web::{Error as ActixWebError, Result as ActixWebResult};
-use futures::future::{ok, FutureResult};
-use futures::{Future, Poll};
+use actix_web::{
+    dev::{ServiceRequest, ServiceResponse},
+    Error as ActixWebError, Result as ActixWebResult,
+};
+use futures::{
+    future::{ok, FutureResult},
+    Future, Poll,
+};
 use prometheus::{HistogramTimer, HistogramVec, IntCounterVec};
 
 /// Authorisation identity policy middleware.
@@ -34,7 +39,7 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
     fn from_request(&self, request: &mut ServiceRequest) -> Self::Future {
         let key = match request.headers().get(&self.header) {
             Some(value) => {
-                let value = value.to_str().map_err(|_err| Error::Forbidden)?;
+                let value = value.to_str().map_err(|_err| ServerError::Forbidden)?;
                 trim_authorisation(value)
             }
             None => None,

@@ -1,11 +1,12 @@
 use crate::{
-    core,
-    core::{AuditMeta, KeyQuery},
-    server::api::{
+    server::{
+        route::{request_audit_meta, route_response_empty, route_response_json},
+        Data,
+    },
+    server_api::{
         path, KeyCreateBody, KeyListQuery, KeyListResponse, KeyReadResponse, KeyUpdateBody,
     },
-    server::route::{request_audit_meta, route_response_empty, route_response_json},
-    server::{Data, Error, FromJsonValue},
+    AuditMeta, CoreError, Key, KeyQuery, ServerError, ServerResult, ServerValidateFromValue,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -52,10 +53,10 @@ fn list_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     query: KeyQuery,
-) -> Result<KeyListResponse, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<KeyListResponse> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            let key_ids = core::key::list(data.driver(), service.as_ref(), &mut audit, &query)?;
+            let key_ids = Key::list(data.driver(), service.as_ref(), &mut audit, &query)?;
             Ok(KeyListResponse {
                 meta: query,
                 data: key_ids,
@@ -88,14 +89,14 @@ fn create_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     body: &KeyCreateBody,
-) -> Result<KeyReadResponse, Error> {
+) -> ServerResult<KeyReadResponse> {
     // If service ID is some, root key is required to create service keys.
     match body.service_id {
         Some(service_id) => {
-            core::key::authenticate_root(data.driver(), audit_meta, id).and_then(|mut audit| {
+            Key::authenticate_root(data.driver(), audit_meta, id).and_then(|mut audit| {
                 match body.user_id {
                     // User ID is defined, creating user key for service.
-                    Some(user_id) => core::key::create_user(
+                    Some(user_id) => Key::create_user(
                         data.driver(),
                         &mut audit,
                         body.is_enabled,
@@ -104,7 +105,7 @@ fn create_inner(
                         user_id,
                     ),
                     // Creating service key.
-                    None => core::key::create_service(
+                    None => Key::create_service(
                         data.driver(),
                         &mut audit,
                         body.is_enabled,
@@ -114,11 +115,11 @@ fn create_inner(
                 }
             })
         }
-        None => core::key::authenticate_service(data.driver(), audit_meta, id).and_then(
+        None => Key::authenticate_service(data.driver(), audit_meta, id).and_then(
             |(service, mut audit)| {
                 match body.user_id {
                     // User ID is defined, creating user key for service.
-                    Some(user_id) => core::key::create_user(
+                    Some(user_id) => Key::create_user(
                         data.driver(),
                         &mut audit,
                         body.is_enabled,
@@ -127,7 +128,7 @@ fn create_inner(
                         user_id,
                     ),
                     // Service cannot create service keys.
-                    None => Err(core::Error::BadRequest),
+                    None => Err(CoreError::BadRequest),
                 }
             },
         ),
@@ -158,13 +159,13 @@ fn read_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     key_id: Uuid,
-) -> Result<KeyReadResponse, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<KeyReadResponse> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::key::read_by_id(data.driver(), service.as_ref(), &mut audit, key_id)
+            Key::read_by_id(data.driver(), service.as_ref(), &mut audit, key_id)
         })
         .map_err(Into::into)
-        .and_then(|key| key.ok_or_else(|| Error::NotFound))
+        .and_then(|key| key.ok_or_else(|| ServerError::NotFound))
         .map(|key| KeyReadResponse { data: key })
 }
 
@@ -194,10 +195,10 @@ fn update_inner(
     id: Option<String>,
     key_id: Uuid,
     body: &KeyUpdateBody,
-) -> Result<KeyReadResponse, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<KeyReadResponse> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::key::update_by_id(
+            Key::update_by_id(
                 data.driver(),
                 service.as_ref(),
                 &mut audit,
@@ -233,10 +234,10 @@ fn delete_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     key_id: Uuid,
-) -> Result<usize, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<usize> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::key::delete_by_id(data.driver(), service.as_ref(), &mut audit, key_id)
+            Key::delete_by_id(data.driver(), service.as_ref(), &mut audit, key_id)
         })
         .map_err(Into::into)
 }

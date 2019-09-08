@@ -1,6 +1,5 @@
 use crate::{
-    core::Service,
-    notify::{NotifyActor, NotifyActorOptionsSmtp, NotifyError, NotifySmtpError},
+    NotifyActor, NotifyActorOptionsSmtp, NotifyError, NotifyResult, NotifySmtpError, Service,
 };
 use lettre::{
     smtp::authentication::{Credentials, Mechanism},
@@ -11,7 +10,7 @@ use native_tls::{Protocol, TlsConnector};
 
 impl NotifyActor {
     /// Returns SMTP provider reference.
-    pub fn smtp(&self) -> Result<&NotifyActorOptionsSmtp, NotifyError> {
+    pub fn smtp(&self) -> NotifyResult<&NotifyActorOptionsSmtp> {
         self.options
             .smtp
             .as_ref()
@@ -27,7 +26,7 @@ impl NotifyActor {
         name: String,
         subject: &str,
         text: &str,
-    ) -> Result<(), NotifyError> {
+    ) -> NotifyResult<()> {
         let email = Email::builder()
             .to((to, name))
             .from((smtp.user.to_owned(), service.name.to_owned()))

@@ -1,9 +1,13 @@
-use crate::core::Error;
+use crate::{CoreError, CoreResult};
 use jsonwebtoken::{dangerous_unsafe_decode, decode, encode, Header, Validation};
 use uuid::Uuid;
 
+/// JSON web token maximum length.
+pub const JWT_MAX_LEN: usize = 1000;
+
+/// JSON web token claims types.
 #[derive(Debug)]
-pub enum ClaimsType {
+pub enum JwtClaimsType {
     AccessToken,
     RefreshToken,
     ResetPasswordToken,
@@ -11,31 +15,31 @@ pub enum ClaimsType {
     UpdatePasswordRevokeToken,
 }
 
-impl ClaimsType {
+impl JwtClaimsType {
     pub fn to_i64(&self) -> i64 {
         match self {
-            ClaimsType::AccessToken => 0,
-            ClaimsType::RefreshToken => 1,
-            ClaimsType::ResetPasswordToken => 2,
-            ClaimsType::UpdateEmailRevokeToken => 3,
-            ClaimsType::UpdatePasswordRevokeToken => 4,
+            JwtClaimsType::AccessToken => 0,
+            JwtClaimsType::RefreshToken => 1,
+            JwtClaimsType::ResetPasswordToken => 2,
+            JwtClaimsType::UpdateEmailRevokeToken => 3,
+            JwtClaimsType::UpdatePasswordRevokeToken => 4,
         }
     }
 
-    pub fn from_i64(value: i64) -> Result<Self, Error> {
+    pub fn from_i64(value: i64) -> CoreResult<Self> {
         match value {
-            0 => Ok(ClaimsType::AccessToken),
-            1 => Ok(ClaimsType::RefreshToken),
-            2 => Ok(ClaimsType::ResetPasswordToken),
-            3 => Ok(ClaimsType::UpdateEmailRevokeToken),
-            4 => Ok(ClaimsType::UpdatePasswordRevokeToken),
-            _ => Err(Error::BadRequest),
+            0 => Ok(JwtClaimsType::AccessToken),
+            1 => Ok(JwtClaimsType::RefreshToken),
+            2 => Ok(JwtClaimsType::ResetPasswordToken),
+            3 => Ok(JwtClaimsType::UpdateEmailRevokeToken),
+            4 => Ok(JwtClaimsType::UpdatePasswordRevokeToken),
+            _ => Err(CoreError::BadRequest),
         }
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Claims {
+struct JwtClaims {
     iss: String,
     sub: String,
     exp: i64,
@@ -43,15 +47,15 @@ struct Claims {
     x_csrf: Option<String>,
 }
 
-impl Claims {
-    pub fn new<T1, T2>(iss: T1, sub: T2, exp: i64, x_type: ClaimsType) -> Self
+impl JwtClaims {
+    pub fn new<T1, T2>(iss: T1, sub: T2, exp: i64, x_type: JwtClaimsType) -> Self
     where
         T1: Into<String>,
         T2: Into<String>,
     {
         let dt = chrono::Utc::now();
         let exp = dt.timestamp() + exp;
-        Claims {
+        JwtClaims {
             iss: iss.into(),
             sub: sub.into(),
             exp,
@@ -60,13 +64,19 @@ impl Claims {
         }
     }
 
-    pub fn new_csrf<T1, T2, T3>(iss: T1, sub: T2, exp: i64, x_type: ClaimsType, x_csrf: T3) -> Self
+    pub fn new_csrf<T1, T2, T3>(
+        iss: T1,
+        sub: T2,
+        exp: i64,
+        x_type: JwtClaimsType,
+        x_csrf: T3,
+    ) -> Self
     where
         T1: Into<String>,
         T2: Into<String>,
         T3: Into<String>,
     {
-        let mut claims = Claims::new(iss, sub, exp, x_type);
+        let mut claims = JwtClaims::new(iss, sub, exp, x_type);
         claims.x_csrf = Some(x_csrf.into());
         claims
     }
@@ -84,83 +94,88 @@ impl Claims {
     }
 }
 
-/// Encode a token, returns token and expiry time.
-pub fn encode_token(
-    service_id: Uuid,
-    user_id: Uuid,
-    x_type: ClaimsType,
-    key_value: &str,
-    exp: i64,
-) -> Result<(String, i64), Error> {
-    let claims = Claims::new(service_id.to_string(), user_id.to_string(), exp, x_type);
-    let token =
-        encode(&Header::default(), &claims, key_value.as_bytes()).map_err(Error::Jsonwebtoken)?;
-    Ok((token, claims.exp))
-}
+/// JSON web token.
+pub struct Jwt;
 
-/// Encode a CSRF token, returns token and expiry time.
-pub fn encode_token_csrf(
-    service_id: Uuid,
-    user_id: Uuid,
-    x_type: ClaimsType,
-    x_csrf: &str,
-    key_value: &str,
-    exp: i64,
-) -> Result<(String, i64), Error> {
-    let claims = Claims::new_csrf(
-        service_id.to_string(),
-        user_id.to_string(),
-        exp,
-        x_type,
-        x_csrf,
-    );
-    let token =
-        encode(&Header::default(), &claims, key_value.as_bytes()).map_err(Error::Jsonwebtoken)?;
-    Ok((token, claims.exp))
-}
-
-/// Safely decodes a token, returns expiry time and optional CSRF key.
-pub fn decode_token(
-    service_id: Uuid,
-    user_id: Uuid,
-    x_type: ClaimsType,
-    key_value: &str,
-    token: &str,
-) -> Result<(i64, Option<String>), Error> {
-    let claims = decode_token_claims(service_id, user_id, x_type, key_value, token)?;
-    Ok((claims.exp, claims.x_csrf))
-}
-
-/// Unsafely decodes a token, checks if service ID matches `iss` claim.
-/// If matched, returns the `sub` claim, which may be a user ID.
-/// The user ID must then be used to read a key that can safely decode the token.
-pub fn decode_unsafe(token: &str, service_id: Uuid) -> Result<(Uuid, ClaimsType), Error> {
-    let claims: Claims = dangerous_unsafe_decode(token)
-        .map_err(Error::Jsonwebtoken)?
-        .claims;
-
-    let iss = Uuid::parse_str(&claims.iss).map_err(Error::UuidParse)?;
-    if service_id != iss {
-        return Err(Error::BadRequest);
+impl Jwt {
+    /// Encode a token, returns token and expiry time.
+    pub fn encode_token(
+        service_id: Uuid,
+        user_id: Uuid,
+        x_type: JwtClaimsType,
+        key_value: &str,
+        exp: i64,
+    ) -> CoreResult<(String, i64)> {
+        let claims = JwtClaims::new(service_id.to_string(), user_id.to_string(), exp, x_type);
+        let token = encode(&Header::default(), &claims, key_value.as_bytes())
+            .map_err(CoreError::Jsonwebtoken)?;
+        Ok((token, claims.exp))
     }
 
-    let sub = Uuid::parse_str(&claims.sub).map_err(Error::UuidParse)?;
-    let x_type = ClaimsType::from_i64(claims.x_type)?;
-    Ok((sub, x_type))
-}
-
-fn decode_token_claims(
-    service_id: Uuid,
-    user_id: Uuid,
-    x_type: ClaimsType,
-    key_value: &str,
-    token: &str,
-) -> Result<Claims, Error> {
-    let validation = Claims::validation(service_id.to_string(), user_id.to_string());
-    let data =
-        decode::<Claims>(token, key_value.as_bytes(), &validation).map_err(Error::Jsonwebtoken)?;
-    if data.claims.x_type != x_type.to_i64() {
-        return Err(Error::BadRequest);
+    /// Encode a CSRF token, returns token and expiry time.
+    pub fn encode_token_csrf(
+        service_id: Uuid,
+        user_id: Uuid,
+        x_type: JwtClaimsType,
+        x_csrf: &str,
+        key_value: &str,
+        exp: i64,
+    ) -> CoreResult<(String, i64)> {
+        let claims = JwtClaims::new_csrf(
+            service_id.to_string(),
+            user_id.to_string(),
+            exp,
+            x_type,
+            x_csrf,
+        );
+        let token = encode(&Header::default(), &claims, key_value.as_bytes())
+            .map_err(CoreError::Jsonwebtoken)?;
+        Ok((token, claims.exp))
     }
-    Ok(data.claims)
+
+    /// Safely decodes a token, returns expiry time and optional CSRF key.
+    pub fn decode_token(
+        service_id: Uuid,
+        user_id: Uuid,
+        x_type: JwtClaimsType,
+        key_value: &str,
+        token: &str,
+    ) -> CoreResult<(i64, Option<String>)> {
+        let claims = Jwt::decode_token_claims(service_id, user_id, x_type, key_value, token)?;
+        Ok((claims.exp, claims.x_csrf))
+    }
+
+    /// Unsafely decodes a token, checks if service ID matches `iss` claim.
+    /// If matched, returns the `sub` claim, which may be a user ID.
+    /// The user ID must then be used to read a key that can safely decode the token.
+    pub fn decode_unsafe(token: &str, service_id: Uuid) -> CoreResult<(Uuid, JwtClaimsType)> {
+        let claims: JwtClaims = dangerous_unsafe_decode(token)
+            .map_err(CoreError::Jsonwebtoken)?
+            .claims;
+
+        let iss = Uuid::parse_str(&claims.iss).map_err(CoreError::UuidParse)?;
+        if service_id != iss {
+            return Err(CoreError::BadRequest);
+        }
+
+        let sub = Uuid::parse_str(&claims.sub).map_err(CoreError::UuidParse)?;
+        let x_type = JwtClaimsType::from_i64(claims.x_type)?;
+        Ok((sub, x_type))
+    }
+
+    fn decode_token_claims(
+        service_id: Uuid,
+        user_id: Uuid,
+        x_type: JwtClaimsType,
+        key_value: &str,
+        token: &str,
+    ) -> CoreResult<JwtClaims> {
+        let validation = JwtClaims::validation(service_id.to_string(), user_id.to_string());
+        let data = decode::<JwtClaims>(token, key_value.as_bytes(), &validation)
+            .map_err(CoreError::Jsonwebtoken)?;
+        if data.claims.x_type != x_type.to_i64() {
+            return Err(CoreError::BadRequest);
+        }
+        Ok(data.claims)
+    }
 }

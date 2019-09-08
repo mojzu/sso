@@ -1,16 +1,13 @@
 use crate::{
-    core,
-    core::{AuditMeta, UserQuery},
-    server::route::{
-        auth::password_meta, request_audit_meta, route_response_empty, route_response_json,
-    },
     server::{
-        api::{
-            path, UserCreateBody, UserCreateResponse, UserListQuery, UserListResponse,
-            UserReadResponse, UserUpdateBody,
-        },
-        Data, Error, FromJsonValue,
+        route::{request_audit_meta, route_response_empty, route_response_json},
+        Data,
     },
+    server_api::{
+        path, UserCreateBody, UserCreateResponse, UserListQuery, UserListResponse,
+        UserReadResponse, UserUpdateBody,
+    },
+    AuditMeta, Key, ServerError, ServerResult, ServerValidateFromValue, User, UserQuery,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -57,10 +54,10 @@ fn list_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     query: UserQuery,
-) -> Result<UserListResponse, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<UserListResponse> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            let user_ids = core::user::list(data.driver(), service.as_ref(), &mut audit, &query)?;
+            let user_ids = User::list(data.driver(), service.as_ref(), &mut audit, &query)?;
             Ok(UserListResponse {
                 meta: query,
                 data: user_ids,
@@ -89,7 +86,12 @@ fn create_handler(
             .map_err(Into::into)
         })
         .and_then(|(data, body, user)| {
-            let password_meta = password_meta(data.get_ref(), body.password.as_ref().map(|x| &**x));
+            let password_meta = User::password_meta(
+                data.options().password_pwned_enabled(),
+                data.client(),
+                body.password.as_ref().map(|x| &**x),
+            )
+            .map_err(Into::into);
             let user = future::ok(user);
             password_meta.join(user)
         })
@@ -102,10 +104,10 @@ fn create_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     body: &UserCreateBody,
-) -> Result<core::User, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<User> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::user::create(
+            User::create(
                 data.driver(),
                 service.as_ref(),
                 &mut audit,
@@ -140,13 +142,13 @@ fn read_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     user_id: Uuid,
-) -> Result<UserReadResponse, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<UserReadResponse> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::user::read_by_id(data.driver(), service.as_ref(), &mut audit, user_id)
+            User::read_by_id(data.driver(), service.as_ref(), &mut audit, user_id)
         })
         .map_err(Into::into)
-        .and_then(|user| user.ok_or_else(|| Error::NotFound))
+        .and_then(|user| user.ok_or_else(|| ServerError::NotFound))
         .map(|user| UserReadResponse { data: user })
 }
 
@@ -176,10 +178,10 @@ fn update_inner(
     id: Option<String>,
     user_id: Uuid,
     body: &UserUpdateBody,
-) -> Result<UserReadResponse, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<UserReadResponse> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::user::update_by_id(
+            User::update_by_id(
                 data.driver(),
                 service.as_ref(),
                 &mut audit,
@@ -214,10 +216,10 @@ fn delete_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     user_id: Uuid,
-) -> Result<usize, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<usize> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::user::delete_by_id(data.driver(), service.as_ref(), &mut audit, user_id)
+            User::delete_by_id(data.driver(), service.as_ref(), &mut audit, user_id)
         })
         .map_err(Into::into)
 }

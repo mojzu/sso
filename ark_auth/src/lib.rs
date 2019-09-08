@@ -1,7 +1,7 @@
-//! # ark_auth
+//! # Library
 //! Library for binary application.
 #![recursion_limit = "1024"]
-// // TODO(docs): Require documentation.
+// TODO(docs): Require documentation.
 // #![deny(missing_docs)]
 
 #[macro_use]
@@ -25,9 +25,13 @@ extern crate serde_json;
 #[macro_use]
 extern crate validator_derive;
 
-pub mod cli;
-pub mod client;
-pub mod core;
-pub mod driver;
-pub mod notify;
-pub mod server;
+mod cli;
+mod client;
+mod core;
+mod driver;
+mod env;
+mod notify;
+mod result;
+mod server;
+
+pub use crate::{cli::*, client::*, core::*, driver::*, env::*, notify::*, result::*, server::*};

@@ -1,29 +1,33 @@
-//! # Server
-pub mod api;
-mod error;
-pub mod middleware;
 mod route;
-pub mod validate;
+pub mod server_api;
+pub mod server_middleware;
+mod validate;
 
-pub use crate::server::error::{Error as ServerError, Oauth2Error as ServerOauth2Error};
-pub use crate::server::validate::FromJsonValue;
+pub use crate::server::validate::*;
 
-use crate::client::ClientActor;
-use crate::notify::NotifyActor;
-use crate::server::error::{Error, Oauth2Error};
-use crate::{core, driver::Driver};
-use actix::Addr;
-use actix_web::middleware::Logger;
-use actix_web::{web, App, HttpResponse, HttpServer};
-use prometheus::{HistogramOpts, HistogramVec, IntCounterVec, Opts, Registry};
-use rustls::internal::pemfile::{certs, rsa_private_keys};
-use rustls::{AllowAnyAuthenticatedClient, NoClientAuth, RootCertStore, ServerConfig};
+use crate::{ClientActor, ClientError, CoreError, Driver, Metrics, NotifyActor};
+use actix::{Addr, MailboxError as ActixMailboxError};
+use actix_web::{
+    error::BlockingError as ActixWebBlockingError, middleware::Logger, web, App, HttpResponse,
+    HttpServer, ResponseError,
+};
+use failure::Error as FailureError;
+use prometheus::{
+    Error as PrometheusError, HistogramOpts, HistogramVec, IntCounterVec, Opts, Registry,
+};
+use rustls::{
+    internal::pemfile::{certs, rsa_private_keys},
+    AllowAnyAuthenticatedClient, NoClientAuth, RootCertStore, ServerConfig,
+};
 use serde::Serialize;
-use std::fs::File;
-use std::io::BufReader;
+use std::{
+    fs::File,
+    io::{BufReader, Error as StdIoError},
+};
+use url::ParseError as UrlParseError;
 
 // TODO(feature): User sessions route for active tokens/keys.
-// TODO(feature): Better method to handle multiple keys?
+// TODO(feature): Better method to handle multiple keys? Use index to allow one non-revoked key?
 // Allow or require specifying key ID via argument?
 // TODO(feature): Support more OAuth2 providers.
 // TODO(feature): Webauthn support.
@@ -33,11 +37,100 @@ use std::io::BufReader;
 // TODO(feature): Improved public library API interface.
 // TODO(feature): All emails have 2 actions, ok or revoke, option to verify update email/password requests.
 // TODO(feature): Email translation/formatting using user locale and timezone.
+// TODO(feature): Handle changes to password hash version.
+// TODO(feature): Patchable audit logs, append data only for ID.
 
-/// Default JSON payload size limit.
-const DEFAULT_JSON_LIMIT: usize = 1024;
+/// Server OAuth2 errors.
+#[derive(Debug, Fail)]
+pub enum ServerOauth2Error {
+    #[fail(display = "ServerOauth2Error:Disabled")]
+    Disabled,
 
-/// Provider OAuth2 options.
+    #[fail(display = "ServerOauth2Error:Csrf")]
+    Csrf,
+
+    #[fail(display = "ServerOauth2Error:Oauth2Request {}", _0)]
+    Oauth2Request(FailureError),
+}
+
+/// Server errors.
+#[derive(Debug, Fail)]
+pub enum ServerError {
+    #[fail(display = "ServerError:BadRequest")]
+    BadRequest,
+
+    #[fail(display = "ServerError:Forbidden")]
+    Forbidden,
+
+    #[fail(display = "ServerError:NotFound")]
+    NotFound,
+
+    #[fail(display = "ServerError:Oauth2 {}", _0)]
+    Oauth2(ServerOauth2Error),
+
+    #[fail(display = "ServerError:Core {}", _0)]
+    Core(#[fail(cause)] CoreError),
+
+    #[fail(display = "ServerError:Client {}", _0)]
+    Client(#[fail(cause)] ClientError),
+
+    #[fail(display = "ServerError:Rustls")]
+    Rustls,
+
+    #[fail(display = "ServerError:UrlParse {}", _0)]
+    UrlParse(#[fail(cause)] UrlParseError),
+
+    #[fail(display = "ServerError:ActixWebBlockingCancelled")]
+    ActixWebBlockingCancelled,
+
+    #[fail(display = "ServerError:ActixMailbox {}", _0)]
+    ActixMailbox(#[fail(cause)] ActixMailboxError),
+
+    #[fail(display = "ServerError:StdIo {}", _0)]
+    StdIo(#[fail(cause)] StdIoError),
+
+    #[fail(display = "ServerError:Prometheus {}", _0)]
+    Prometheus(#[fail(cause)] PrometheusError),
+}
+
+/// Server result wrapper type.
+pub type ServerResult<T> = Result<T, ServerError>;
+
+impl From<CoreError> for ServerError {
+    fn from(e: CoreError) -> Self {
+        match e {
+            CoreError::BadRequest => Self::BadRequest,
+            CoreError::Forbidden => Self::Forbidden,
+            CoreError::Jsonwebtoken(_e) => Self::BadRequest,
+            _ => Self::Core(e),
+        }
+    }
+}
+
+impl From<ActixWebBlockingError<ServerError>> for ServerError {
+    fn from(e: ActixWebBlockingError<ServerError>) -> Self {
+        match e {
+            ActixWebBlockingError::Error(e) => e,
+            ActixWebBlockingError::Canceled => Self::ActixWebBlockingCancelled,
+        }
+    }
+}
+
+impl ResponseError for ServerError {
+    fn error_response(&self) -> HttpResponse {
+        match self {
+            Self::BadRequest => HttpResponse::BadRequest().finish(),
+            Self::Forbidden => HttpResponse::Forbidden().finish(),
+            Self::NotFound => HttpResponse::NotFound().finish(),
+            _ => {
+                error!("{}", self);
+                HttpResponse::InternalServerError().finish()
+            }
+        }
+    }
+}
+
+/// Server provider OAuth2 options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerOptionsProviderOauth2 {
     client_id: String,
@@ -55,7 +148,7 @@ impl ServerOptionsProviderOauth2 {
     }
 }
 
-/// Provider options.
+/// Server provider options.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ServerOptionsProvider {
     oauth2: Option<ServerOptionsProviderOauth2>,
@@ -67,7 +160,7 @@ impl ServerOptionsProvider {
     }
 }
 
-// Provider group options.
+/// Server provider group options.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ServerOptionsProviderGroup {
     github: ServerOptionsProvider,
@@ -80,7 +173,7 @@ impl ServerOptionsProviderGroup {
     }
 }
 
-// Rustls options.
+/// Server Rustls options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerOptionsRustls {
     crt_pem: String,
@@ -168,24 +261,24 @@ impl ServerOptions {
     /// Returns rustls server configuration built from options.
     pub fn rustls_server_config(
         options: Option<&ServerOptionsRustls>,
-    ) -> Result<Option<ServerConfig>, Error> {
+    ) -> ServerResult<Option<ServerConfig>> {
         if let Some(rustls_options) = options {
-            let crt_file = File::open(&rustls_options.crt_pem).map_err(Error::StdIo)?;
-            let key_file = File::open(&rustls_options.key_pem).map_err(Error::StdIo)?;
+            let crt_file = File::open(&rustls_options.crt_pem).map_err(ServerError::StdIo)?;
+            let key_file = File::open(&rustls_options.key_pem).map_err(ServerError::StdIo)?;
             let crt_file_reader = &mut BufReader::new(crt_file);
             let key_file_reader = &mut BufReader::new(key_file);
 
-            let cert_chain = certs(crt_file_reader).map_err(|_err| Error::Rustls)?;
-            let mut keys = rsa_private_keys(key_file_reader).map_err(|_err| Error::Rustls)?;
+            let cert_chain = certs(crt_file_reader).map_err(|_err| ServerError::Rustls)?;
+            let mut keys = rsa_private_keys(key_file_reader).map_err(|_err| ServerError::Rustls)?;
 
             let mut config = if let Some(client_pem) = &rustls_options.client_pem {
-                let client_file = File::open(client_pem).map_err(Error::StdIo)?;
+                let client_file = File::open(client_pem).map_err(ServerError::StdIo)?;
                 let client_file_reader = &mut BufReader::new(client_file);
 
                 let mut roots = RootCertStore::empty();
                 roots
                     .add_pem_file(client_file_reader)
-                    .map_err(|_err| Error::Rustls)?;
+                    .map_err(|_err| ServerError::Rustls)?;
                 ServerConfig::new(AllowAnyAuthenticatedClient::new(roots))
             } else {
                 ServerConfig::new(NoClientAuth::new())
@@ -201,7 +294,7 @@ impl ServerOptions {
 
 /// Server data.
 #[derive(Clone)]
-pub struct Data {
+struct Data {
     driver: Box<dyn Driver>,
     options: ServerOptions,
     notify_addr: Addr<NotifyActor>,
@@ -253,7 +346,7 @@ impl Data {
     }
 }
 
-/// Server unit struct.
+/// Server.
 pub struct Server;
 
 impl Server {
@@ -264,9 +357,10 @@ impl Server {
         options: ServerOptions,
         notify_addr: Addr<NotifyActor>,
         client_addr: Addr<ClientActor>,
-    ) -> Result<(), Error> {
+    ) -> ServerResult<()> {
         let options_clone = options.clone();
-        let (registry, counter, histogram) = metrics_registry()?;
+        let (registry, counter, histogram) = Server::metrics_registry()?;
+        let default_json_limit: usize = 1024;
 
         let server = HttpServer::new(move || {
             App::new()
@@ -279,11 +373,14 @@ impl Server {
                     registry.clone(),
                 ))
                 // Global JSON configuration.
-                .data(web::JsonConfig::default().limit(DEFAULT_JSON_LIMIT))
+                .data(web::JsonConfig::default().limit(default_json_limit))
                 // Authorisation header identity middleware.
-                .wrap(middleware::AuthorisationIdentityPolicy::identity_service())
+                .wrap(server_middleware::AuthorisationIdentityPolicy::identity_service())
                 // Metrics middleware.
-                .wrap(middleware::Metrics::new(counter.clone(), histogram.clone()))
+                .wrap(server_middleware::Metrics::new(
+                    counter.clone(),
+                    histogram.clone(),
+                ))
                 // Logger middleware.
                 .wrap(Logger::default())
                 // Route service.
@@ -300,32 +397,34 @@ impl Server {
         } else {
             server.bind(options.bind())
         }
-        .map_err(Error::StdIo)?;
+        .map_err(ServerError::StdIo)?;
 
         server.start();
         Ok(())
     }
-}
 
-fn metrics_registry() -> Result<(Registry, IntCounterVec, HistogramVec), Error> {
-    let registry = Registry::new();
-    let count_opts = Opts::new(
-        core::metrics::name("http_count"),
-        "HTTP request counter".to_owned(),
-    );
-    let count = IntCounterVec::new(count_opts, &["path", "status"]).map_err(Error::Prometheus)?;
+    fn metrics_registry() -> ServerResult<(Registry, IntCounterVec, HistogramVec)> {
+        let registry = Registry::new();
+        let count_opts = Opts::new(
+            Metrics::name("http_count"),
+            "HTTP request counter".to_owned(),
+        );
+        let count =
+            IntCounterVec::new(count_opts, &["path", "status"]).map_err(ServerError::Prometheus)?;
 
-    let latency_opts = HistogramOpts::new(
-        core::metrics::name("http_latency"),
-        "HTTP request latency".to_owned(),
-    );
-    let latency = HistogramVec::new(latency_opts, &["path"]).map_err(Error::Prometheus)?;
+        let latency_opts = HistogramOpts::new(
+            Metrics::name("http_latency"),
+            "HTTP request latency".to_owned(),
+        );
+        let latency =
+            HistogramVec::new(latency_opts, &["path"]).map_err(ServerError::Prometheus)?;
 
-    registry
-        .register(Box::new(count.clone()))
-        .map_err(Error::Prometheus)?;
-    registry
-        .register(Box::new(latency.clone()))
-        .map_err(Error::Prometheus)?;
-    Ok((registry, count, latency))
+        registry
+            .register(Box::new(count.clone()))
+            .map_err(ServerError::Prometheus)?;
+        registry
+            .register(Box::new(latency.clone()))
+            .map_err(ServerError::Prometheus)?;
+        Ok((registry, count, latency))
+    }
 }

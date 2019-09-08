@@ -30,7 +30,7 @@ RUN rm ./target/release/deps/ark_auth*
 RUN cargo build --release
 
 # Final stage.
-FROM rust:1.36.0-slim-stretch
+FROM rust:1.37.0-slim-stretch
 
 # Dependencies.
 ENV DEBIAN_FRONTEND=noninteractive

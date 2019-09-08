@@ -173,7 +173,7 @@ background-color: #f4f4f4;
 <li>Users can authenticate to a service using a unique email address and password. A successful login produces time-limited, revokable access and refresh <a href="https://jwt.io/">JSON web tokens</a>, which can be used to authenticate user requests and produce new tokens.</li>
 <li>User passwords can be reset via email.</li>
 <li>User email address and password can be updated, notification emails containing revokation links are emailed to the user in case of compromise.</li>
-<li>Passwords are stored as <a href="https://en.wikipedia.org/wiki/Bcrypt">Bcrypt</a> hashes.</li>
+<li>Passwords are stored as <a href="https://en.wikipedia.org/wiki/Argon2">argon2</a> hashes.</li>
 <li>Password strength is checked by <a href="https://github.com/shssoichiro/zxcvbn-rs">zxcvbn</a>.</li>
 <li>Password leaks are checked by <a href="https://haveibeenpwned.com/Passwords">Pwned Passwords</a>.</li>
 <li>Users can be created without passwords to disable password login.</li>
@@ -298,11 +298,15 @@ background-color: #f4f4f4;
 <ul>
 <li>Added some process metrics to Prometheus integration.</li>
 <li>Created asynchronous client actor to handle outgoing HTTP requests.</li>
+<li>Added environment variable <code>PASSWORD_PWNED_ENABLED</code> to enable pwned passwords integration.</li>
 </ul>
 <p><strong>Changed</strong></p>
 <ul>
+<li>Replaced <code>bcrypt</code> with <code>libreauth</code> crate for password hashing.</li>
+<li>Use <code>libreauth</code> key generation for CSRF keys and <code>Key</code> values.</li>
+<li>Improved modules public interfaces.</li>
+<li>Changed driver interface to use <code>Uuid</code> types instead of strings.</li>
 <li>Renamed configuration structures to options to improve consistency.</li>
-<li>Improved server, client modules public interfaces.</li>
 </ul>
 <p><strong>Fixed</strong></p>
 <ul>
@@ -310,11 +314,10 @@ background-color: #f4f4f4;
 </ul>
 <h1 id="developer">Developer</h1>
 <h2 id="tools">Tools</h2>
-<p>The ark_auth crate depends on <a href="https://www.postgresql.org/">PostgreSQL</a> and <a href="https://www.sqlite.org/index.html">SQLite</a> libraries, to install them on Debian Linux distributions.</p>
-<pre class="shell"><code>sudo apt install libpq-dev libsqlite3-dev libssl-dev libfuse-dev pkg-config</code></pre>
-<p>Install <a href="https://www.rust-lang.org/">Rust</a> using <a href="https://rustup.rs/">rustup</a>. Check required components are installed..</p>
-<pre class="shell"><code>rustup component add rustfmt
-rustup component add clippy</code></pre>
+<p>The ark_auth crate depends on <a href="https://www.postgresql.org/">PostgreSQL</a> and <a href="https://www.sqlite.org/index.html">SQLite</a> libraries.</p>
+<pre class="shell"><code># Install on Ubuntu.
+sudo apt install libpq-dev libsqlite3-dev libssl-dev libfuse-dev pkg-config</code></pre>
+<p>Install <a href="https://www.rust-lang.org/">Rust</a> using <a href="https://rustup.rs/">rustup</a>.</p>
 <p>To update the toolchain.</p>
 <pre class="shell"><code>rustup self update
 rustup update</code></pre>

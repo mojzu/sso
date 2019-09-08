@@ -1,4 +1,4 @@
-## 0.4.0 (unreleased)
+## 0.4.0 (2019/09/09)
 
 **Added**
 
@@ -8,9 +8,11 @@
 
 **Changed**
 
+- Replaced `bcrypt` with `libreauth` crate for password hashing.
+- Use `libreauth` key generation for CSRF keys and `Key` values.
+- Improved modules public interfaces.
 - Changed driver interface to use `Uuid` types instead of strings.
 - Renamed configuration structures to options to improve consistency.
-- Improved server, client modules public interfaces.
 
 **Fixed**
 

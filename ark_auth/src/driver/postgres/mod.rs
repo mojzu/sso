@@ -1,25 +1,22 @@
 mod model;
 mod schema;
 
-use crate::{
-    core::{Audit, AuditCreate, Csrf, Key, Service, User},
-    driver::{Driver, DriverError},
-};
+use crate::{Audit, AuditCreate, Csrf, Driver, DriverError, Key, Service, User};
 use chrono::{DateTime, Utc};
 use diesel::{r2d2::ConnectionManager, PgConnection};
 use uuid::Uuid;
 
 embed_migrations!("migrations/postgres");
 
-/// PostgreSQL driver.
+/// Driver for PostgreSQL.
 #[derive(Clone)]
-pub struct PostgresDriver {
+pub struct DriverPostgres {
     pool: r2d2::Pool<ConnectionManager<PgConnection>>,
 }
 
 type PooledConnection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
 
-impl PostgresDriver {
+impl DriverPostgres {
     /// Initialise driver with connection URL and number of pooled connections.
     pub fn initialise(
         database_url: &str,
@@ -31,7 +28,7 @@ impl PostgresDriver {
             pool = pool.max_size(max_connections);
         }
         let pool = pool.build(manager).map_err(DriverError::R2d2)?;
-        let driver = PostgresDriver { pool };
+        let driver = DriverPostgres { pool };
         driver.run_migrations()?;
         Ok(driver)
     }
@@ -46,7 +43,7 @@ impl PostgresDriver {
     }
 }
 
-impl Driver for PostgresDriver {
+impl Driver for DriverPostgres {
     fn box_clone(&self) -> Box<dyn Driver> {
         Box::new((*self).clone())
     }

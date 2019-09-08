@@ -1,11 +1,10 @@
 use crate::{
-    core,
-    core::{AuditData, AuditMeta},
     server::{
-        api::{path, AuthKeyBody, AuthKeyResponse},
         route::{request_audit_meta, route_response_empty, route_response_json},
-        Data, Error, FromJsonValue,
+        Data,
     },
+    server_api::{path, AuthKeyBody, AuthKeyResponse},
+    AuditData, AuditMeta, Auth, Key, ServerResult, ServerValidateFromValue,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -51,10 +50,10 @@ fn verify_inner(
     id: Option<String>,
     key: String,
     audit_data: Option<AuditData>,
-) -> Result<AuthKeyResponse, Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<AuthKeyResponse> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::key_verify(
+            Auth::key_verify(
                 data.driver(),
                 &service,
                 &mut audit,
@@ -99,10 +98,10 @@ fn revoke_inner(
     id: Option<String>,
     key: String,
     audit_data: Option<AuditData>,
-) -> Result<usize, Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<usize> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::key_revoke(
+            Auth::key_revoke(
                 data.driver(),
                 &service,
                 &mut audit,

@@ -1,23 +1,27 @@
-//! # Notify Actor
-//! Used to send emails via SMTP server.
-pub mod msg;
+pub mod notify_msg;
 mod smtp;
-mod template;
 
-use crate::core::Audit;
+use crate::Audit;
 use actix::{Actor, Addr, SyncArbiter, SyncContext};
 use handlebars::Handlebars;
 use serde_json::Value;
 
-/// SMTP errors.
+const EMAIL_RESET_PASSWORD: &str = "email_reset_password";
+const EMAIL_UPDATE_EMAIL: &str = "email_update_email";
+const EMAIL_UPDATE_PASSWORD: &str = "email_update_password";
+
+/// Notify SMTP errors.
 #[derive(Debug, Fail)]
 pub enum NotifySmtpError {
     #[fail(display = "SmtpError:Disabled")]
     Disabled,
+
     #[fail(display = "SmtpError:NativeTls {}", _0)]
     NativeTls(native_tls::Error),
+
     #[fail(display = "SmtpError:LettreEmail {}", _0)]
     LettreEmail(lettre_email::error::Error),
+
     #[fail(display = "SmtpError:Lettre {}", _0)]
     Lettre(lettre::smtp::error::Error),
 }
@@ -27,11 +31,16 @@ pub enum NotifySmtpError {
 pub enum NotifyError {
     #[fail(display = "NotifyError:Smtp {}", _0)]
     Smtp(NotifySmtpError),
+
     #[fail(display = "NotifyError:HandlebarsTemplate {}", _0)]
     HandlebarsTemplate(#[fail(cause)] handlebars::TemplateError),
+
     #[fail(display = "NotifyError:HandlebarsRender {}", _0)]
     HandlebarsRender(#[fail(cause)] handlebars::RenderError),
 }
+
+/// Notify result wrapper type.
+pub type NotifyResult<T> = Result<T, NotifyError>;
 
 /// Notify actor SMTP options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -85,6 +94,53 @@ impl NotifyActor {
     /// Returns template registry reference.
     pub fn registry(&self) -> &Handlebars {
         &self.registry
+    }
+
+    /// Render reset password email template.
+    pub fn template_email_reset_password(&self, parameters: &Value) -> Result<String, NotifyError> {
+        self.registry()
+            .render(EMAIL_RESET_PASSWORD, parameters)
+            .map_err(NotifyError::HandlebarsRender)
+    }
+
+    /// Render update email email template.
+    pub fn template_email_update_email(&self, parameters: &Value) -> Result<String, NotifyError> {
+        self.registry()
+            .render(EMAIL_UPDATE_EMAIL, parameters)
+            .map_err(NotifyError::HandlebarsRender)
+    }
+
+    /// Render update password email template.
+    pub fn template_email_update_password(
+        &self,
+        parameters: &Value,
+    ) -> Result<String, NotifyError> {
+        self.registry()
+            .render(EMAIL_UPDATE_PASSWORD, parameters)
+            .map_err(NotifyError::HandlebarsRender)
+    }
+
+    /// Register default template strings.
+    fn template_register_default(registry: &mut Handlebars) -> Result<(), NotifyError> {
+        registry
+            .register_template_string(
+                EMAIL_RESET_PASSWORD,
+                include_str!("template/email_reset_password.hbs"),
+            )
+            .map_err(NotifyError::HandlebarsTemplate)?;
+        registry
+            .register_template_string(
+                EMAIL_UPDATE_EMAIL,
+                include_str!("template/email_update_email.hbs"),
+            )
+            .map_err(NotifyError::HandlebarsTemplate)?;
+        registry
+            .register_template_string(
+                EMAIL_UPDATE_PASSWORD,
+                include_str!("template/email_update_password.hbs"),
+            )
+            .map_err(NotifyError::HandlebarsTemplate)?;
+        Ok(())
     }
 
     /// Logs warning for error and returns ok.

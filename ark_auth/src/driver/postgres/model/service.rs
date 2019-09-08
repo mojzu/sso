@@ -1,4 +1,4 @@
-use crate::driver::{postgres::schema::auth_service, DriverError};
+use crate::{driver::postgres::schema::auth_service, DriverError};
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, PgConnection};
 use uuid::Uuid;

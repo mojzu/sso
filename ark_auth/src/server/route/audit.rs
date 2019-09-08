@@ -1,12 +1,13 @@
 use crate::{
-    core,
-    core::{AuditMeta, AuditQuery},
-    server::api::{
+    server::{
+        route::{request_audit_meta, route_response_json},
+        Data,
+    },
+    server_api::{
         path, AuditCreateBody, AuditCreateResponse, AuditListQuery, AuditListResponse,
         AuditReadResponse,
     },
-    server::route::{request_audit_meta, route_response_json},
-    server::{Data, Error, FromJsonValue},
+    Audit, AuditMeta, AuditQuery, Key, ServerError, ServerResult, ServerValidateFromValue,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -48,10 +49,10 @@ fn list_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     query: AuditQuery,
-) -> Result<AuditListResponse, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<AuditListResponse> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            let audit_ids = core::audit::list(data.driver(), service.as_ref(), &mut audit, &query)?;
+            let audit_ids = Audit::list(data.driver(), service.as_ref(), &mut audit, &query)?;
             Ok(AuditListResponse {
                 meta: query,
                 data: audit_ids,
@@ -84,8 +85,8 @@ fn create_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     body: &AuditCreateBody,
-) -> Result<AuditCreateResponse, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<AuditCreateResponse> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(move |(_, mut audit)| {
             audit
                 .set_user_id(body.user_id.to_owned())
@@ -118,12 +119,12 @@ fn read_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     audit_id: Uuid,
-) -> Result<AuditReadResponse, Error> {
-    core::key::authenticate(data.driver(), audit_meta, id)
+) -> ServerResult<AuditReadResponse> {
+    Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::audit::read_by_id(data.driver(), service.as_ref(), &mut audit, audit_id)
+            Audit::read_by_id(data.driver(), service.as_ref(), &mut audit, audit_id)
         })
         .map_err(Into::into)
-        .and_then(|audit| audit.ok_or_else(|| Error::NotFound))
+        .and_then(|audit| audit.ok_or_else(|| ServerError::NotFound))
         .map(|audit| AuditReadResponse { data: audit })
 }

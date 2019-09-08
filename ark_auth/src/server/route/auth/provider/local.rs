@@ -1,17 +1,13 @@
 use crate::{
-    core,
-    core::{AuditData, AuditMeta},
     server::{
-        api::{
-            path, AuthLoginBody, AuthLoginResponse, AuthPasswordMetaResponse,
-            AuthResetPasswordBody, AuthResetPasswordConfirmBody, AuthTokenBody,
-            AuthUpdateEmailBody, AuthUpdatePasswordBody,
-        },
-        route::{
-            auth::password_meta, request_audit_meta, route_response_empty, route_response_json,
-        },
-        Data, Error, FromJsonValue,
+        route::{request_audit_meta, route_response_empty, route_response_json},
+        Data,
     },
+    server_api::{
+        path, AuthLoginBody, AuthLoginResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
+        AuthResetPasswordConfirmBody, AuthTokenBody, AuthUpdateEmailBody, AuthUpdatePasswordBody,
+    },
+    AuditData, AuditMeta, Auth, Key, ServerResult, ServerValidateFromValue, User, UserToken,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -66,7 +62,12 @@ fn login_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            let password_meta = password_meta(data.get_ref(), Some(&body.password));
+            let password_meta = User::password_meta(
+                data.options().password_pwned_enabled(),
+                data.client(),
+                Some(&body.password),
+            )
+            .map_err(Into::into);
             let user_token = web::block(move || login_inner(data.get_ref(), audit_meta, id, &body))
                 .map_err(Into::into);
             password_meta.join(user_token)
@@ -83,10 +84,10 @@ fn login_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     body: &AuthLoginBody,
-) -> Result<core::UserToken, Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<UserToken> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::login(
+            Auth::login(
                 data.driver(),
                 &service,
                 &mut audit,
@@ -123,10 +124,10 @@ fn reset_password_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     body: &AuthResetPasswordBody,
-) -> Result<(), Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<()> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::reset_password(
+            Auth::reset_password(
                 data.driver(),
                 data.notify(),
                 &service,
@@ -151,7 +152,12 @@ fn reset_password_confirm_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            let password_meta = password_meta(data.get_ref(), Some(&body.password));
+            let password_meta = User::password_meta(
+                data.options().password_pwned_enabled(),
+                data.client(),
+                Some(&body.password),
+            )
+            .map_err(Into::into);
             let password_confirm = web::block(move || {
                 let password_confirm =
                     reset_password_confirm_inner(data.get_ref(), audit_meta, id, &body)?;
@@ -169,10 +175,10 @@ fn reset_password_confirm_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     body: &AuthResetPasswordConfirmBody,
-) -> Result<usize, Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<usize> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::reset_password_confirm(
+            Auth::reset_password_confirm(
                 data.driver(),
                 &service,
                 &mut audit,
@@ -207,10 +213,10 @@ fn update_email_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     body: &AuthUpdateEmailBody,
-) -> Result<(), Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<()> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::update_email(
+            Auth::update_email(
                 data.driver(),
                 data.notify(),
                 &service,
@@ -258,10 +264,10 @@ fn update_email_revoke_inner(
     id: Option<String>,
     token: String,
     audit_data: Option<AuditData>,
-) -> Result<usize, Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<usize> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::update_email_revoke(
+            Auth::update_email_revoke(
                 data.driver(),
                 &service,
                 &mut audit,
@@ -285,7 +291,12 @@ fn update_password_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            let password_meta = password_meta(data.get_ref(), Some(&body.password));
+            let password_meta = User::password_meta(
+                data.options().password_pwned_enabled(),
+                data.client(),
+                Some(&body.password),
+            )
+            .map_err(Into::into);
             let update_password =
                 web::block(move || update_password_inner(data.get_ref(), audit_meta, id, &body))
                     .map_err(Into::into);
@@ -300,10 +311,10 @@ fn update_password_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     body: &AuthUpdatePasswordBody,
-) -> Result<(), Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<()> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::update_password(
+            Auth::update_password(
                 data.driver(),
                 data.notify(),
                 &service,
@@ -351,10 +362,10 @@ fn update_password_revoke_inner(
     id: Option<String>,
     token: String,
     audit_data: Option<AuditData>,
-) -> Result<usize, Error> {
-    core::key::authenticate_service(data.driver(), audit_meta, id)
+) -> ServerResult<usize> {
+    Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            core::auth::update_password_revoke(
+            Auth::update_password_revoke(
                 data.driver(),
                 &service,
                 &mut audit,

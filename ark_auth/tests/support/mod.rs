@@ -7,34 +7,34 @@ mod key;
 mod service;
 mod user;
 
-pub use ark_auth::client::ClientError;
-use ark_auth::client::{default_user_agent, ClientActorOptions, ClientOptions, SyncClient};
-use ark_auth::core::{Key, Service, User, UserKey, UserToken, UserTokenPartial};
-use ark_auth::server::api::AuthOauth2UrlResponse;
-pub use ark_auth::server::api::{
+pub use ark_auth::server_api::{
     AuditCreateBody, AuditListQuery, AuthKeyBody, AuthLoginBody, AuthResetPasswordBody,
     AuthResetPasswordConfirmBody, AuthTokenBody, KeyCreateBody, KeyListQuery, ServiceCreateBody,
     ServiceListQuery, UserCreateBody, UserListQuery,
 };
+use ark_auth::{
+    server_api::AuthOauth2UrlResponse, Key, Service, User, UserAccessToken, UserKey, UserToken,
+};
+pub use ark_auth::{Client, ClientActorOptions, ClientError, ClientOptions, ClientSync};
 use chrono::Utc;
 pub use serde_json::Value;
 pub use uuid::Uuid;
 
 pub const INVALID_EMAIL: &str = "invalid-email";
 pub const INVALID_PASSWORD: &str = "guests";
-pub const INVALID_KEY: &str = "5a044d9035334e95a60ac0338904d37c";
-pub const INVALID_SERVICE_KEY: &str = "invalid-service-key";
+pub const INVALID_KEY: &str = "af8731c10c739d8cce50ea556d0b1d77d3614fdc39";
 pub const USER_NAME: &str = "user-name";
 pub const USER_PASSWORD: &str = "user-name";
 pub const KEY_NAME: &str = "key-name";
 
 lazy_static! {
-    static ref CLIENT: SyncClient = {
-        let executor_options = ClientActorOptions::new(default_user_agent(), None, None).unwrap();
+    static ref CLIENT: ClientSync = {
+        let executor_options =
+            ClientActorOptions::new(Client::default_user_agent(), None, None).unwrap();
         let authorisation = env_test_ark_auth_key();
         let options = ClientOptions::new(authorisation);
         let url = env_test_ark_auth_url();
-        SyncClient::new(url, executor_options, options).unwrap()
+        ClientSync::new(url, executor_options, options).unwrap()
     };
 }
 
@@ -48,7 +48,7 @@ fn env_test_ark_auth_key() -> String {
         .expect("TEST_ARK_AUTH_KEY is undefined, integration test disabled")
 }
 
-pub fn client_create(key: Option<&str>) -> SyncClient {
+pub fn client_create(key: Option<&str>) -> ClientSync {
     match key {
         Some(key) => CLIENT.with_options(ClientOptions::new(key.to_owned())),
         None => CLIENT.clone(),
@@ -56,11 +56,11 @@ pub fn client_create(key: Option<&str>) -> SyncClient {
 }
 
 pub fn email_create() -> String {
-    let random = uuid::Uuid::new_v4().to_simple().to_string();
+    let random = Uuid::new_v4().to_simple().to_string();
     format!("{}@test.com", random)
 }
 
-pub fn service_key_create(client: &SyncClient) -> (Service, Key) {
+pub fn service_key_create(client: &ClientSync) -> (Service, Key) {
     let body = ServiceCreateBody::new(true, "test", "http://localhost");
     let create_service = client.service_create(body).unwrap();
 
@@ -69,7 +69,7 @@ pub fn service_key_create(client: &SyncClient) -> (Service, Key) {
     (create_service.data, create_key.data)
 }
 
-pub fn user_create(client: &SyncClient, is_enabled: bool, name: &str, email: &str) -> User {
+pub fn user_create(client: &ClientSync, is_enabled: bool, name: &str, email: &str) -> User {
     let before = Utc::now();
     let body = UserCreateBody::new(is_enabled, name, email);
     let create = client.user_create(body).unwrap();
@@ -85,7 +85,7 @@ pub fn user_create(client: &SyncClient, is_enabled: bool, name: &str, email: &st
 }
 
 pub fn user_create_with_password(
-    client: &SyncClient,
+    client: &ClientSync,
     is_enabled: bool,
     name: &str,
     email: &str,
@@ -106,7 +106,7 @@ pub fn user_create_with_password(
 }
 
 pub fn user_key_create(
-    client: &SyncClient,
+    client: &ClientSync,
     name: &str,
     service_id: Uuid,
     user_id: Uuid,
@@ -123,7 +123,7 @@ pub fn user_key_create(
     }
 }
 
-pub fn user_key_verify(client: &SyncClient, key: &UserKey) -> UserKey {
+pub fn user_key_verify(client: &ClientSync, key: &UserKey) -> UserKey {
     let body = AuthKeyBody::new(&key.key, None);
     let verify = client.auth_key_verify(body).unwrap();
     let user_key = verify.data;
@@ -132,13 +132,13 @@ pub fn user_key_verify(client: &SyncClient, key: &UserKey) -> UserKey {
     user_key
 }
 
-pub fn user_key_verify_bad_request(client: &SyncClient, key: &str) {
+pub fn user_key_verify_bad_request(client: &ClientSync, key: &str) {
     let body = AuthKeyBody::new(key, None);
     let err = client.auth_key_verify(body).unwrap_err();
     assert_eq!(err, ClientError::BadRequest);
 }
 
-pub fn user_token_verify(client: &SyncClient, token: &UserToken) -> UserTokenPartial {
+pub fn user_token_verify(client: &ClientSync, token: &UserToken) -> UserAccessToken {
     let body = AuthTokenBody::new(&token.access_token, None);
     let verify = client.auth_token_verify(body).unwrap();
     let user_token = verify.data;
@@ -148,7 +148,7 @@ pub fn user_token_verify(client: &SyncClient, token: &UserToken) -> UserTokenPar
     user_token
 }
 
-pub fn user_token_refresh(client: &SyncClient, token: &UserToken) -> UserToken {
+pub fn user_token_refresh(client: &ClientSync, token: &UserToken) -> UserToken {
     std::thread::sleep(std::time::Duration::from_secs(1));
     let body = AuthTokenBody::new(&token.refresh_token, None);
     let refresh = client.auth_token_refresh(body).unwrap();
@@ -162,7 +162,7 @@ pub fn user_token_refresh(client: &SyncClient, token: &UserToken) -> UserToken {
 }
 
 pub fn auth_local_login(
-    client: &SyncClient,
+    client: &ClientSync,
     user_id: Uuid,
     email: &str,
     password: &str,
@@ -174,7 +174,7 @@ pub fn auth_local_login(
     user_token
 }
 
-pub fn auth_microsoft_oauth2_request(client: &SyncClient) -> AuthOauth2UrlResponse {
+pub fn auth_microsoft_oauth2_request(client: &ClientSync) -> AuthOauth2UrlResponse {
     let response = client.auth_microsoft_oauth2_request().unwrap();
     assert!(!response.url.is_empty());
     response
