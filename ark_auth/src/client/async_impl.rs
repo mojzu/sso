@@ -4,11 +4,11 @@ use crate::{
         route, AuditCreateBody, AuditDataRequest, AuditListQuery, AuditListResponse,
         AuditReadResponse, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
         AuthOauth2UrlResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
-        AuthResetPasswordConfirmBody, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse,
-        AuthUpdateEmailBody, AuthUpdatePasswordBody, KeyCreateBody, KeyListQuery, KeyListResponse,
-        KeyReadResponse, KeyUpdateBody, ServiceCreateBody, ServiceListQuery, ServiceListResponse,
-        ServiceReadResponse, ServiceUpdateBody, UserCreateBody, UserCreateResponse, UserListQuery,
-        UserListResponse, UserReadResponse, UserUpdateBody,
+        AuthResetPasswordConfirmBody, AuthTokenAccessResponse, AuthTokenBody, AuthTokenResponse,
+        AuthTotpBody, AuthUpdateEmailBody, AuthUpdatePasswordBody, KeyCreateBody, KeyListQuery,
+        KeyListResponse, KeyReadResponse, KeyUpdateBody, ServiceCreateBody, ServiceListQuery,
+        ServiceListResponse, ServiceReadResponse, ServiceUpdateBody, UserCreateBody,
+        UserCreateResponse, UserListQuery, UserListResponse, UserReadResponse, UserUpdateBody,
     },
     Client, ClientActor, ClientActorRequest, ClientError, ClientOptions, User,
 };
@@ -267,7 +267,7 @@ impl ClientAsync {
     pub fn auth_token_verify(
         &self,
         body: AuthTokenBody,
-    ) -> impl Future<Item = AuthTokenPartialResponse, Error = ClientError> {
+    ) -> impl Future<Item = AuthTokenAccessResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), route::AUTH_TOKEN_VERIFY, Some(body))
@@ -275,7 +275,7 @@ impl ClientAsync {
                     .forwarded(self.options.forwarded()),
             )
             .map_err(Into::into)
-            .and_then(Client::result_json::<AuthTokenPartialResponse>)
+            .and_then(Client::result_json::<AuthTokenAccessResponse>)
     }
 
     /// Authentication revoke token.
@@ -301,6 +301,18 @@ impl ClientAsync {
         self.addr
             .send(
                 PostJson::new(self.url(), route::AUTH_TOKEN_REVOKE, Some(body))
+                    .authorisation(self.options.authorisation())
+                    .forwarded(self.options.forwarded()),
+            )
+            .map_err(Into::into)
+            .and_then(Client::result_empty)
+    }
+
+    /// Authentication TOTP.
+    pub fn auth_totp(&self, body: AuthTotpBody) -> impl Future<Item = (), Error = ClientError> {
+        self.addr
+            .send(
+                PostJson::new(self.url(), route::AUTH_TOTP, Some(body))
                     .authorisation(self.options.authorisation())
                     .forwarded(self.options.forwarded()),
             )

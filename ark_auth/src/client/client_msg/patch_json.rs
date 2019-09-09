@@ -2,7 +2,7 @@ use crate::{Client, ClientActor, ClientActorRequest, ClientError};
 use actix::prelude::*;
 use serde::ser::Serialize;
 
-/// Asynchronous client PATCH JSON request.
+/// PATCH JSON request message.
 pub struct PatchJson<S: Serialize> {
     url: String,
     route: String,

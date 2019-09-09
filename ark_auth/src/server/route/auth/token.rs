@@ -3,7 +3,7 @@ use crate::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
     },
-    server_api::{path, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse},
+    server_api::{path, AuthTokenAccessResponse, AuthTokenBody, AuthTokenResponse},
     AuditData, AuditMeta, Auth, Key, ServerResult, ServerValidateFromValue,
 };
 use actix_identity::Identity;
@@ -51,7 +51,7 @@ fn verify_inner(
     id: Option<String>,
     token: String,
     audit_data: Option<AuditData>,
-) -> ServerResult<AuthTokenPartialResponse> {
+) -> ServerResult<AuthTokenAccessResponse> {
     Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
             Auth::token_verify(
@@ -63,7 +63,7 @@ fn verify_inner(
             )
         })
         .map_err(Into::into)
-        .map(|user_token| AuthTokenPartialResponse { data: user_token })
+        .map(|user_token| AuthTokenAccessResponse { data: user_token })
 }
 
 fn refresh_handler(

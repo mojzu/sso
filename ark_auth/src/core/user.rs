@@ -6,6 +6,7 @@ use chrono::{DateTime, Utc};
 use futures::{future, Future};
 use libreauth::pass::HashBuilder;
 use sha1::{Digest, Sha1};
+use std::fmt;
 use uuid::Uuid;
 
 /// User name maximum length.
@@ -31,6 +32,17 @@ pub struct User {
     pub email: String,
     #[serde(skip)]
     pub password_hash: Option<String>,
+}
+
+impl fmt::Display for User {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "User {}", self.id)?;
+        write!(f, "\n\tcreated_at {}", self.created_at)?;
+        write!(f, "\n\tupdated_at {}", self.updated_at)?;
+        write!(f, "\n\tis_enabled {}", self.is_enabled)?;
+        write!(f, "\n\tname {}", self.name)?;
+        write!(f, "\n\temail {}", self.email)
+    }
 }
 
 /// User password metadata.
@@ -70,7 +82,7 @@ pub struct UserToken {
 
 /// User access token.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserAccessToken {
+pub struct UserTokenAccess {
     pub user_id: Uuid,
     pub access_token: String,
     pub access_token_expires: i64,
@@ -224,9 +236,9 @@ impl User {
                     .min_len(USER_PASSWORD_MIN_LEN)
                     .max_len(USER_PASSWORD_MAX_LEN)
                     .finalize()
-                    .map_err(CoreError::libreauth)?;
+                    .map_err(CoreError::libreauth_pass)?;
 
-                let hashed = hasher.hash(password).map_err(CoreError::libreauth)?;
+                let hashed = hasher.hash(password).map_err(CoreError::libreauth_pass)?;
                 Ok(Some(hashed))
             }
             None => Ok(None),
@@ -238,7 +250,8 @@ impl User {
     pub fn password_check(password_hash: Option<&str>, password: &str) -> CoreResult<bool> {
         match password_hash {
             Some(password_hash) => {
-                let checker = HashBuilder::from_phc(password_hash).map_err(CoreError::libreauth)?;
+                let checker =
+                    HashBuilder::from_phc(password_hash).map_err(CoreError::libreauth_pass)?;
 
                 if checker.is_valid(password) {
                     Ok(checker.needs_update(Some(USER_PASSWORD_HASH_VERSION)))

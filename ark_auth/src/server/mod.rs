@@ -28,6 +28,7 @@ use url::ParseError as UrlParseError;
 
 // TODO(feature): User sessions route for active tokens/keys.
 // TODO(feature): Better method to handle multiple keys? Use index to allow one non-revoked key?
+// Key flags for is_token, is_key, is_totp?
 // Allow or require specifying key ID via argument?
 // TODO(feature): Support more OAuth2 providers.
 // TODO(feature): Webauthn support.

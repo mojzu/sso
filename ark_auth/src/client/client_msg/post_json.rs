@@ -2,7 +2,7 @@ use crate::{Client, ClientActor, ClientActorRequest, ClientError};
 use actix::prelude::*;
 use serde::ser::Serialize;
 
-/// Asynchronous client POST JSON request.
+/// POST JSON request message.
 pub struct PostJson<S: Serialize> {
     url: String,
     route: String,

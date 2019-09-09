@@ -13,7 +13,7 @@ pub use ark_auth::server_api::{
     ServiceListQuery, UserCreateBody, UserListQuery,
 };
 use ark_auth::{
-    server_api::AuthOauth2UrlResponse, Key, Service, User, UserAccessToken, UserKey, UserToken,
+    server_api::AuthOauth2UrlResponse, Key, Service, User, UserKey, UserToken, UserTokenAccess,
 };
 pub use ark_auth::{Client, ClientActorOptions, ClientError, ClientOptions, ClientSync};
 use chrono::Utc;
@@ -138,7 +138,7 @@ pub fn user_key_verify_bad_request(client: &ClientSync, key: &str) {
     assert_eq!(err, ClientError::BadRequest);
 }
 
-pub fn user_token_verify(client: &ClientSync, token: &UserToken) -> UserAccessToken {
+pub fn user_token_verify(client: &ClientSync, token: &UserToken) -> UserTokenAccess {
     let body = AuthTokenBody::new(&token.access_token, None);
     let verify = client.auth_token_verify(body).unwrap();
     let user_token = verify.data;

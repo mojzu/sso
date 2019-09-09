@@ -76,4 +76,12 @@ impl ServerValidate {
             Ok(())
         }
     }
+
+    pub fn totp(totp: &str) -> Result<(), ValidationError> {
+        if totp.is_empty() || totp.len() > 10 {
+            Err(ValidationError::new("invalid_totp"))
+        } else {
+            Ok(())
+        }
+    }
 }

@@ -150,6 +150,7 @@ impl Key {
                 user_id
                     .eq(key_user_id)
                     .and(service_id.eq(key_service_id))
+                    // TODO(refactor): Pass these as arguments.
                     .and(key_is_enabled.eq(true))
                     .and(key_is_revoked.eq(false)),
             )

@@ -3,11 +3,11 @@ use crate::{
         route, AuditCreateBody, AuditDataRequest, AuditListQuery, AuditListResponse,
         AuditReadResponse, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
         AuthOauth2UrlResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
-        AuthResetPasswordConfirmBody, AuthTokenBody, AuthTokenPartialResponse, AuthTokenResponse,
-        AuthUpdateEmailBody, AuthUpdatePasswordBody, KeyCreateBody, KeyListQuery, KeyListResponse,
-        KeyReadResponse, KeyUpdateBody, ServiceCreateBody, ServiceListQuery, ServiceListResponse,
-        ServiceReadResponse, ServiceUpdateBody, UserCreateBody, UserCreateResponse, UserListQuery,
-        UserListResponse, UserReadResponse, UserUpdateBody,
+        AuthResetPasswordConfirmBody, AuthTokenAccessResponse, AuthTokenBody, AuthTokenResponse,
+        AuthTotpBody, AuthUpdateEmailBody, AuthUpdatePasswordBody, KeyCreateBody, KeyListQuery,
+        KeyListResponse, KeyReadResponse, KeyUpdateBody, ServiceCreateBody, ServiceListQuery,
+        ServiceListResponse, ServiceReadResponse, ServiceUpdateBody, UserCreateBody,
+        UserCreateResponse, UserListQuery, UserListResponse, UserReadResponse, UserUpdateBody,
     },
     Client, ClientActorOptions, ClientError, ClientOptions, ClientResult, User,
 };
@@ -160,9 +160,9 @@ impl ClientSync {
     }
 
     /// Authentication revoke token.
-    pub fn auth_token_verify(&self, body: AuthTokenBody) -> ClientResult<AuthTokenPartialResponse> {
+    pub fn auth_token_verify(&self, body: AuthTokenBody) -> ClientResult<AuthTokenAccessResponse> {
         self.post_json(route::AUTH_TOKEN_VERIFY, &body)
-            .and_then(Client::response_json::<AuthTokenPartialResponse>)
+            .and_then(Client::response_json::<AuthTokenAccessResponse>)
     }
 
     /// Authentication revoke token.
@@ -174,6 +174,12 @@ impl ClientSync {
     /// Authentication revoke token.
     pub fn auth_token_revoke(&self, body: AuthTokenBody) -> ClientResult<()> {
         self.post_json(route::AUTH_TOKEN_REVOKE, &body)
+            .and_then(Client::response_empty)
+    }
+
+    /// Authentication TOTP.
+    pub fn auth_totp(&self, body: AuthTotpBody) -> ClientResult<()> {
+        self.post_json(route::AUTH_TOTP, &body)
             .and_then(Client::response_empty)
     }
 

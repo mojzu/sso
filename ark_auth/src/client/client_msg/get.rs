@@ -2,7 +2,7 @@ use crate::{Client, ClientActor, ClientActorRequest, ClientError, ClientResult};
 use actix::prelude::*;
 use serde::ser::Serialize;
 
-/// Asynchronous client GET request.
+/// GET request message.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Get {
     url: String,

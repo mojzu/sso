@@ -1,7 +1,7 @@
 use crate::{Client, ClientActor, ClientActorRequest, ClientError};
 use actix::prelude::*;
 
-/// Asynchronous client DELETE request.
+/// DELETE request message.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Delete {
     url: String,

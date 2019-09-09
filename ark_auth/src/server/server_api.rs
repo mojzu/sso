@@ -1,7 +1,7 @@
 //! # Server API Types
 use crate::{
     Audit, AuditData, AuditQuery, Key, KeyQuery, ServerValidate, ServerValidateFromValue, Service,
-    ServiceQuery, User, UserAccessToken, UserKey, UserPasswordMeta, UserQuery, UserToken,
+    ServiceQuery, User, UserKey, UserPasswordMeta, UserQuery, UserToken, UserTokenAccess,
 };
 use chrono::{DateTime, Utc};
 use serde_json::Value;
@@ -35,6 +35,7 @@ pub mod path {
     pub const VERIFY: &str = "/verify";
     pub const REFRESH: &str = "/refresh";
     pub const REVOKE: &str = "/revoke";
+    pub const TOTP: &str = "/totp";
     pub const AUDIT: &str = "/audit";
     pub const SERVICE: &str = "/service";
     pub const USER: &str = "/user";
@@ -62,6 +63,7 @@ pub mod route {
     pub const AUTH_TOKEN_VERIFY: &str = "/v1/auth/token/verify";
     pub const AUTH_TOKEN_REFRESH: &str = "/v1/auth/token/refresh";
     pub const AUTH_TOKEN_REVOKE: &str = "/v1/auth/token/revoke";
+    pub const AUTH_TOTP: &str = "/v1/auth/totp";
     pub const AUDIT: &str = "/v1/audit";
     pub const KEY: &str = "/v1/key";
     pub const SERVICE: &str = "/v1/service";
@@ -218,8 +220,8 @@ pub struct AuthTokenResponse {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct AuthTokenPartialResponse {
-    pub data: UserAccessToken,
+pub struct AuthTokenAccessResponse {
+    pub data: UserTokenAccess,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -246,6 +248,16 @@ impl AuthKeyBody {
 pub struct AuthKeyResponse {
     pub data: UserKey,
 }
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthTotpBody {
+    pub key_id: Uuid,
+    #[validate(custom = "ServerValidate::totp")]
+    pub totp: String,
+}
+
+impl ServerValidateFromValue<AuthTotpBody> for AuthTotpBody {}
 
 // Authentication local provider types.
 

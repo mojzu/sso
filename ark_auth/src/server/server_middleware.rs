@@ -22,6 +22,22 @@ impl AuthorisationIdentityPolicy {
     pub fn identity_service() -> IdentityService<Self> {
         IdentityService::new(AuthorisationIdentityPolicy::default())
     }
+
+    /// Returns key value from formats: `$KEY`, `Bearer $KEY`.
+    fn trim_authorisation(value: &str) -> Option<String> {
+        let value = value.to_owned();
+        if value.starts_with("Bearer ") {
+            let parts: Vec<&str> = value.split(' ').collect();
+            if parts.len() > 1 {
+                let value = parts[1].trim().to_owned();
+                Some(value)
+            } else {
+                None
+            }
+        } else {
+            Some(value)
+        }
+    }
 }
 
 impl Default for AuthorisationIdentityPolicy {
@@ -40,7 +56,7 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
         let key = match request.headers().get(&self.header) {
             Some(value) => {
                 let value = value.to_str().map_err(|_err| ServerError::Forbidden)?;
-                trim_authorisation(value)
+                AuthorisationIdentityPolicy::trim_authorisation(value)
             }
             None => None,
         };
@@ -54,22 +70,6 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
         _response: &mut ServiceResponse<B>,
     ) -> Self::ResponseFuture {
         Ok(())
-    }
-}
-
-/// Returns key value from formats: `$KEY`, `Bearer $KEY`.
-fn trim_authorisation(value: &str) -> Option<String> {
-    let value = value.to_owned();
-    if value.starts_with("Bearer ") {
-        let parts: Vec<&str> = value.split(' ').collect();
-        if parts.len() > 1 {
-            let value = parts[1].trim().to_owned();
-            Some(value)
-        } else {
-            None
-        }
-    } else {
-        Some(value)
     }
 }
 
@@ -107,6 +107,7 @@ where
     }
 }
 
+/// Metrics middleware.
 pub struct MetricsMiddleware<S> {
     service: S,
     count: IntCounterVec,

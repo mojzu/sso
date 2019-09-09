@@ -2,6 +2,7 @@ use crate::{Core, CoreError, CoreResult, Driver, Key, Service, User};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
+use std::fmt;
 use time::Duration;
 use uuid::Uuid;
 
@@ -22,6 +23,33 @@ pub struct Audit {
     pub service_id: Option<Uuid>,
     pub user_id: Option<Uuid>,
     pub user_key_id: Option<Uuid>,
+}
+
+impl fmt::Display for Audit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Audit {}", self.id)?;
+        write!(f, "\n\tcreated_at {}", self.created_at)?;
+        write!(f, "\n\tuser_agent {}", self.user_agent)?;
+        write!(f, "\n\tremote {}", self.remote)?;
+        if let Some(forwarded) = &self.forwarded {
+            write!(f, "\n\tforwarded {}", forwarded)?;
+        }
+        write!(f, "\n\tpath {}", self.path)?;
+        write!(f, "\n\tdata {}", self.data)?;
+        if let Some(key_id) = &self.key_id {
+            write!(f, "\n\tkey_id {}", key_id)?;
+        }
+        if let Some(service_id) = &self.service_id {
+            write!(f, "\n\tservice_id {}", service_id)?;
+        }
+        if let Some(user_id) = &self.user_id {
+            write!(f, "\n\tuser_id {}", user_id)?;
+        }
+        if let Some(user_key_id) = &self.user_key_id {
+            write!(f, "\n\tuser_key_id {}", user_key_id)?;
+        }
+        Ok(())
+    }
 }
 
 /// Audit metadata, HTTP request information.
@@ -142,6 +170,7 @@ pub enum AuditPath {
     TokenRefreshError,
     TokenRevoke,
     TokenRevokeError,
+    TotpError,
 }
 
 impl AuditPath {
@@ -149,35 +178,36 @@ impl AuditPath {
     pub fn to_string(&self) -> String {
         let prefix = crate_name!();
         match self {
-            AuditPath::AuthenticateError => format!("{}.authenticate_error", prefix),
+            AuditPath::AuthenticateError => format!("{}.error.authenticate", prefix),
             AuditPath::Login => format!("{}.login", prefix),
-            AuditPath::LoginError => format!("{}.login_error", prefix),
+            AuditPath::LoginError => format!("{}.error.login", prefix),
             AuditPath::ResetPassword => format!("{}.reset_password", prefix),
-            AuditPath::ResetPasswordError => format!("{}.reset_password_error", prefix),
+            AuditPath::ResetPasswordError => format!("{}.error.reset_password", prefix),
             AuditPath::ResetPasswordConfirm => format!("{}.reset_password_confirm", prefix),
             AuditPath::ResetPasswordConfirmError => {
-                format!("{}.reset_password_confirm_error", prefix)
+                format!("{}.error.reset_password_confirm", prefix)
             }
             AuditPath::UpdateEmail => format!("{}.update_email", prefix),
-            AuditPath::UpdateEmailError => format!("{}.update_email_error", prefix),
+            AuditPath::UpdateEmailError => format!("{}.error.update_email", prefix),
             AuditPath::UpdateEmailRevoke => format!("{}.update_email_revoke", prefix),
-            AuditPath::UpdateEmailRevokeError => format!("{}.update_email_revoke_error", prefix),
+            AuditPath::UpdateEmailRevokeError => format!("{}.error.update_email_revoke", prefix),
             AuditPath::UpdatePassword => format!("{}.update_password", prefix),
-            AuditPath::UpdatePasswordError => format!("{}.update_password_error", prefix),
+            AuditPath::UpdatePasswordError => format!("{}.error.update_password", prefix),
             AuditPath::UpdatePasswordRevoke => format!("{}.update_password_revoke", prefix),
             AuditPath::UpdatePasswordRevokeError => {
-                format!("{}.update_password_revoke_error", prefix)
+                format!("{}.error.update_password_revoke", prefix)
             }
             AuditPath::Oauth2Login => format!("{}.oauth2_login", prefix),
-            AuditPath::Oauth2LoginError => format!("{}.oauth2_login_error", prefix),
-            AuditPath::KeyVerifyError => format!("{}.key_verify_error", prefix),
+            AuditPath::Oauth2LoginError => format!("{}.error.oauth2_login", prefix),
+            AuditPath::KeyVerifyError => format!("{}.error.key_verify", prefix),
             AuditPath::KeyRevoke => format!("{}.key_revoke", prefix),
-            AuditPath::KeyRevokeError => format!("{}.key_revoke_error", prefix),
-            AuditPath::TokenVerifyError => format!("{}.token_verify_error", prefix),
+            AuditPath::KeyRevokeError => format!("{}.error.key_revoke", prefix),
+            AuditPath::TokenVerifyError => format!("{}.error.token_verify", prefix),
             AuditPath::TokenRefresh => format!("{}.token_refresh", prefix),
-            AuditPath::TokenRefreshError => format!("{}.token_refresh_error", prefix),
+            AuditPath::TokenRefreshError => format!("{}.error.token_refresh", prefix),
             AuditPath::TokenRevoke => format!("{}.token_revoke", prefix),
-            AuditPath::TokenRevokeError => format!("{}.token_revoke_error", prefix),
+            AuditPath::TokenRevokeError => format!("{}.error.token_revoke", prefix),
+            AuditPath::TotpError => format!("{}.error.totp", prefix),
         }
     }
 }
@@ -207,6 +237,7 @@ pub enum AuditMessage {
     KeyRevoke,
     TokenRefresh,
     TokenRevoke,
+    TotpInvalid,
 }
 
 /// Audit data message container.

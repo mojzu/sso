@@ -13,7 +13,7 @@ pub use crate::core::{
 
 use crate::{ClientError, DriverError};
 use actix::MailboxError as ActixMailboxError;
-use libreauth::pass::ErrorCode as LibreauthPassError;
+use libreauth::{oath::ErrorCode as LibreauthOathError, pass::ErrorCode as LibreauthPassError};
 use zxcvbn::ZxcvbnError;
 
 /// Core errors.
@@ -37,6 +37,9 @@ pub enum CoreError {
     #[fail(display = "CoreError::LibreauthPass {}", _0)]
     LibreauthPass(usize),
 
+    #[fail(display = "CoreError::LibreauthOath {}", _0)]
+    LibreauthOath(usize),
+
     #[fail(display = "CoreError::Jsonwebtoken {}", _0)]
     Jsonwebtoken(#[fail(cause)] jsonwebtoken::errors::Error),
 
@@ -57,8 +60,12 @@ pub enum CoreError {
 pub type CoreResult<T> = Result<T, CoreError>;
 
 impl CoreError {
-    pub fn libreauth(e: LibreauthPassError) -> Self {
+    pub fn libreauth_pass(e: LibreauthPassError) -> Self {
         Self::LibreauthPass(e as usize)
+    }
+
+    pub fn libreauth_oath(e: LibreauthOathError) -> Self {
+        Self::LibreauthOath(e as usize)
     }
 }
 

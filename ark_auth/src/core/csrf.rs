@@ -1,5 +1,6 @@
 use crate::{CoreError, CoreResult, Driver, Service};
 use chrono::{DateTime, Utc};
+use std::fmt;
 use time::Duration;
 use uuid::Uuid;
 
@@ -11,6 +12,16 @@ pub struct Csrf {
     pub value: String,
     pub ttl: DateTime<Utc>,
     pub service_id: Uuid,
+}
+
+impl fmt::Display for Csrf {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Csrf {}", self.key)?;
+        write!(f, "\n\tcreated_at {}", self.created_at)?;
+        write!(f, "\n\tvalue {}", self.value)?;
+        write!(f, "\n\tttl {}", self.ttl)?;
+        write!(f, "\n\tservice_id {}", self.service_id)
+    }
 }
 
 impl Csrf {

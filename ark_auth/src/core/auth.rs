@@ -1,9 +1,10 @@
 use crate::{
     notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
     AuditBuilder, AuditData, AuditMessage, AuditPath, CoreError, CoreResult, Csrf, Driver, Jwt,
-    JwtClaimsType, Key, NotifyActor, Service, User, UserAccessToken, UserKey, UserToken,
+    JwtClaimsType, Key, NotifyActor, Service, User, UserKey, UserToken, UserTokenAccess,
 };
 use actix::Addr;
+use libreauth::oath::TOTPBuilder;
 use uuid::Uuid;
 
 /// Authentication.
@@ -545,7 +546,7 @@ impl Auth {
         audit: &mut AuditBuilder,
         token: &str,
         audit_data: Option<&AuditData>,
-    ) -> CoreResult<UserAccessToken> {
+    ) -> CoreResult<UserTokenAccess> {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) = Jwt::decode_unsafe(token, service.id)?;
 
@@ -580,7 +581,7 @@ impl Auth {
         };
 
         // Successful token verify.
-        let user_token = UserAccessToken {
+        let user_token = UserTokenAccess {
             user_id: user.id.to_owned(),
             access_token: token.to_owned(),
             access_token_expires,
@@ -714,6 +715,30 @@ impl Auth {
             audit.create_unchecked(driver, &audit_data.path, &audit_data.data);
         }
         Ok(1)
+    }
+
+    /// TOTP code verification.
+    pub fn totp(
+        driver: &dyn Driver,
+        service: &Service,
+        audit: &mut AuditBuilder,
+        key_id: Uuid,
+        totp_code: &str,
+    ) -> CoreResult<()> {
+        // TODO(docs): Add guide, documentation for TOTP.
+        // TODO(test): Add tests for TOTP.
+        let key = Auth::key_read_by_id(driver, service, audit, AuditPath::TotpError, key_id)?;
+        let totp = TOTPBuilder::new()
+            .hex_key(&key.value)
+            .finalize()
+            .map_err(CoreError::libreauth_oath)?;
+
+        if !totp.is_valid(totp_code) {
+            audit.create_internal(driver, AuditPath::TotpError, AuditMessage::TotpInvalid);
+            Err(CoreError::BadRequest)
+        } else {
+            Ok(())
+        }
     }
 
     /// OAuth2 user login.
@@ -851,6 +876,33 @@ impl Auth {
             }
             Err(err) => {
                 audit.create_internal(driver, audit_path, AuditMessage::UserNotFound);
+                Err(err)
+            }
+        }
+    }
+
+    /// Read key by ID.
+    /// Also checks key is enabled and not revoked, returns bad request if disabled.
+    fn key_read_by_id(
+        driver: &dyn Driver,
+        service: &Service,
+        audit: &mut AuditBuilder,
+        audit_path: AuditPath,
+        key_id: Uuid,
+    ) -> CoreResult<Key> {
+        match Key::read_by_id(driver, Some(&service), audit, key_id)?
+            .ok_or_else(|| CoreError::BadRequest)
+        {
+            Ok(key) => {
+                audit.set_user_key(Some(&key));
+                if !key.is_enabled || key.is_revoked {
+                    audit.create_internal(driver, audit_path, AuditMessage::KeyDisabledOrRevoked);
+                    return Err(CoreError::BadRequest);
+                }
+                Ok(key)
+            }
+            Err(err) => {
+                audit.create_internal(driver, audit_path, AuditMessage::KeyNotFound);
                 Err(err)
             }
         }
