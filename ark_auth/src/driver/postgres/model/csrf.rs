@@ -1,6 +1,6 @@
-use crate::{driver::postgres::schema::auth_csrf, DriverError};
+use crate::driver::postgres::schema::auth_csrf;
 use chrono::{DateTime, Utc};
-use diesel::{prelude::*, PgConnection};
+use diesel::{prelude::*, result::QueryResult, PgConnection};
 use uuid::Uuid;
 
 #[derive(Debug, Identifiable, Queryable)]
@@ -25,55 +25,32 @@ pub struct CsrfInsert<'a> {
 }
 
 impl Csrf {
-    pub fn create(
-        conn: &PgConnection,
-        key: &str,
-        value: &str,
-        ttl: &DateTime<Utc>,
-        csrf_service_id: Uuid,
-    ) -> Result<Csrf, DriverError> {
+    pub fn create(conn: &PgConnection, value: &CsrfInsert) -> QueryResult<Csrf> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
-        let now = Utc::now();
-        let value = CsrfInsert {
-            created_at: &now,
-            csrf_key: key,
-            csrf_value: value,
-            csrf_ttl: ttl,
-            service_id: csrf_service_id,
-        };
         diesel::insert_into(auth_csrf)
-            .values(&value)
+            .values(value)
             .get_result::<Csrf>(conn)
-            .map_err(DriverError::Diesel)
     }
 
-    pub fn read_by_key(conn: &PgConnection, key: &str) -> Result<Option<Csrf>, DriverError> {
+    pub fn read_by_key(conn: &PgConnection, key: &str) -> QueryResult<Option<Csrf>> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
         auth_csrf
             .filter(csrf_key.eq(key))
             .get_result::<Csrf>(conn)
-            .map(Some)
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(DriverError::Diesel(err)),
-            })
+            .optional()
     }
 
-    pub fn delete_by_key(conn: &PgConnection, key: &str) -> Result<usize, DriverError> {
+    pub fn delete_by_key(conn: &PgConnection, key: &str) -> QueryResult<usize> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
-        diesel::delete(auth_csrf.filter(csrf_key.eq(key)))
-            .execute(conn)
-            .map_err(DriverError::Diesel)
+        diesel::delete(auth_csrf.filter(csrf_key.eq(key))).execute(conn)
     }
 
-    pub fn delete_by_ttl(conn: &PgConnection, now: &DateTime<Utc>) -> Result<usize, DriverError> {
+    pub fn delete_by_ttl(conn: &PgConnection, now: &DateTime<Utc>) -> QueryResult<usize> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
-        diesel::delete(auth_csrf.filter(csrf_ttl.le(now)))
-            .execute(conn)
-            .map_err(DriverError::Diesel)
+        diesel::delete(auth_csrf.filter(csrf_ttl.le(now))).execute(conn)
     }
 }

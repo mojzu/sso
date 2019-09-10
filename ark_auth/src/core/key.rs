@@ -287,7 +287,7 @@ impl Key {
         driver.key_read_by_id(id).map_err(CoreError::Driver)
     }
 
-    /// Read key by user.
+    /// Read key by user where key is enabled and not revoked.
     pub fn read_by_user(
         driver: &dyn Driver,
         service: &Service,
@@ -295,7 +295,7 @@ impl Key {
         user: &User,
     ) -> CoreResult<Option<Key>> {
         driver
-            .key_read_by_user_id(service.id, user.id)
+            .key_read_by_user_id(service.id, user.id, true, false)
             .map_err(CoreError::Driver)
     }
 

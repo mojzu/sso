@@ -8,29 +8,60 @@ use crate::core::{Audit, AuditCreate, Csrf, Key, Service, User};
 pub use crate::driver::postgres::*;
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::*;
+
 use chrono::{DateTime, Utc};
+use diesel::result::Error as DieselResultError;
+use diesel_migrations::RunMigrationsError;
+use r2d2::Error as R2d2Error;
 use uuid::Uuid;
 
 /// Driver errors.
 #[derive(Debug, Fail)]
 pub enum DriverError {
-    #[fail(display = "DriverError:Diesel {}", _0)]
-    Diesel(#[fail(cause)] diesel::result::Error),
+    #[fail(display = "DriverError:DieselResult {}", _0)]
+    DieselResult(#[fail(cause)] DieselResultError),
 
     #[fail(display = "DriverError:DieselMigrations {}", _0)]
-    DieselMigrations(#[fail(cause)] diesel_migrations::RunMigrationsError),
+    DieselMigrations(#[fail(cause)] RunMigrationsError),
 
     #[fail(display = "DriverError:R2d2 {}", _0)]
-    R2d2(#[fail(cause)] r2d2::Error),
+    R2d2(#[fail(cause)] R2d2Error),
+}
+
+impl From<DieselResultError> for DriverError {
+    fn from(e: DieselResultError) -> Self {
+        Self::DieselResult(e)
+    }
+}
+
+impl From<RunMigrationsError> for DriverError {
+    fn from(e: RunMigrationsError) -> Self {
+        Self::DieselMigrations(e)
+    }
+}
+
+impl From<R2d2Error> for DriverError {
+    fn from(e: R2d2Error) -> Self {
+        Self::R2d2(e)
+    }
 }
 
 /// Driver result wrapper type.
 pub type DriverResult<T> = Result<T, DriverError>;
 
+/// Driver closure function type.
+pub type DriverLockFn = Box<dyn FnOnce(&dyn Driver) -> ()>;
+
 /// Driver interface trait.
 pub trait Driver: Send + Sync {
     /// Return a boxed trait containing clone of self.
     fn box_clone(&self) -> Box<dyn Driver>;
+
+    /// Run closure with an exclusive lock.
+    fn exclusive_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<()>;
+
+    /// Run closure with a shared lock.
+    fn shared_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<()>;
 
     /// List audit logs where ID is less than.
     fn audit_list_where_id_lt(
@@ -151,7 +182,13 @@ pub trait Driver: Send + Sync {
     fn key_read_by_id(&self, id: Uuid) -> DriverResult<Option<Key>>;
 
     /// Read key by service and user ID.
-    fn key_read_by_user_id(&self, service_id: Uuid, user_id: Uuid) -> DriverResult<Option<Key>>;
+    fn key_read_by_user_id(
+        &self,
+        service_id: Uuid,
+        user_id: Uuid,
+        is_enabled: bool,
+        is_revoked: bool,
+    ) -> DriverResult<Option<Key>>;
 
     /// Read key by root key value.
     fn key_read_by_root_value(&self, value: &str) -> DriverResult<Option<Key>>;

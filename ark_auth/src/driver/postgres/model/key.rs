@@ -1,6 +1,6 @@
-use crate::{driver::postgres::schema::auth_key, DriverError};
+use crate::driver::postgres::schema::auth_key;
 use chrono::{DateTime, Utc};
-use diesel::{prelude::*, PgConnection};
+use diesel::{prelude::*, result::QueryResult, PgConnection};
 use uuid::Uuid;
 
 #[derive(Debug, Identifiable, Queryable)]
@@ -47,7 +47,7 @@ impl Key {
         lt: Uuid,
         limit: i64,
         service_id_mask: Option<Uuid>,
-    ) -> Result<Vec<Uuid>, DriverError> {
+    ) -> QueryResult<Vec<Uuid>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         match service_id_mask {
@@ -64,7 +64,6 @@ impl Key {
                 .order(key_id.desc())
                 .load::<Uuid>(conn),
         }
-        .map_err(DriverError::Diesel)
         .map(|mut v| {
             v.reverse();
             v
@@ -76,7 +75,7 @@ impl Key {
         gt: Uuid,
         limit: i64,
         service_id_mask: Option<Uuid>,
-    ) -> Result<Vec<Uuid>, DriverError> {
+    ) -> QueryResult<Vec<Uuid>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         match service_id_mask {
@@ -93,7 +92,6 @@ impl Key {
                 .order(key_id.asc())
                 .load::<Uuid>(conn),
         }
-        .map_err(DriverError::Diesel)
     }
 
     pub fn create(
@@ -104,7 +102,7 @@ impl Key {
         value: &str,
         key_service_id: Option<Uuid>,
         key_user_id: Option<Uuid>,
-    ) -> Result<Key, DriverError> {
+    ) -> QueryResult<Key> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         let now = Utc::now();
@@ -122,27 +120,24 @@ impl Key {
         diesel::insert_into(auth_key)
             .values(&value)
             .get_result::<Key>(conn)
-            .map_err(DriverError::Diesel)
     }
 
-    pub fn read_by_id(conn: &PgConnection, id: Uuid) -> Result<Option<Key>, DriverError> {
+    pub fn read_by_id(conn: &PgConnection, id: Uuid) -> QueryResult<Option<Key>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         auth_key
             .filter(key_id.eq(id))
             .get_result::<Key>(conn)
-            .map(Some)
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(DriverError::Diesel(err)),
-            })
+            .optional()
     }
 
     pub fn read_by_user_id(
         conn: &PgConnection,
         key_service_id: Uuid,
         key_user_id: Uuid,
-    ) -> Result<Option<Key>, DriverError> {
+        is_enabled: bool,
+        is_revoked: bool,
+    ) -> QueryResult<Option<Key>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         auth_key
@@ -150,23 +145,15 @@ impl Key {
                 user_id
                     .eq(key_user_id)
                     .and(service_id.eq(key_service_id))
-                    // TODO(refactor): Pass these as arguments.
-                    .and(key_is_enabled.eq(true))
-                    .and(key_is_revoked.eq(false)),
+                    .and(key_is_enabled.eq(is_enabled))
+                    .and(key_is_revoked.eq(is_revoked)),
             )
             .order(created_at.asc())
             .get_result::<Key>(conn)
-            .map(Some)
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(DriverError::Diesel(err)),
-            })
+            .optional()
     }
 
-    pub fn read_by_root_value(
-        conn: &PgConnection,
-        value: &str,
-    ) -> Result<Option<Key>, DriverError> {
+    pub fn read_by_root_value(conn: &PgConnection, value: &str) -> QueryResult<Option<Key>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         auth_key
@@ -177,17 +164,10 @@ impl Key {
                     .and(user_id.is_null()),
             )
             .get_result::<Key>(conn)
-            .map(Some)
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(DriverError::Diesel(err)),
-            })
+            .optional()
     }
 
-    pub fn read_by_service_value(
-        conn: &PgConnection,
-        value: &str,
-    ) -> Result<Option<Key>, DriverError> {
+    pub fn read_by_service_value(conn: &PgConnection, value: &str) -> QueryResult<Option<Key>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         auth_key
@@ -198,18 +178,14 @@ impl Key {
                     .and(user_id.is_null()),
             )
             .get_result::<Key>(conn)
-            .map(Some)
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(DriverError::Diesel(err)),
-            })
+            .optional()
     }
 
     pub fn read_by_user_value(
         conn: &PgConnection,
         key_service_id: Uuid,
         value: &str,
-    ) -> Result<Option<Key>, DriverError> {
+    ) -> QueryResult<Option<Key>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         auth_key
@@ -219,11 +195,7 @@ impl Key {
                     .and(service_id.eq(key_service_id).and(user_id.is_not_null())),
             )
             .get_result::<Key>(conn)
-            .map(Some)
-            .or_else(|err| match err {
-                diesel::result::Error::NotFound => Ok(None),
-                _ => Err(DriverError::Diesel(err)),
-            })
+            .optional()
     }
 
     pub fn update_by_id(
@@ -232,7 +204,7 @@ impl Key {
         is_enabled: Option<bool>,
         is_revoked: Option<bool>,
         name: Option<&str>,
-    ) -> Result<Key, DriverError> {
+    ) -> QueryResult<Key> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         let now = chrono::Utc::now();
@@ -245,7 +217,6 @@ impl Key {
         diesel::update(auth_key.filter(key_id.eq(id)))
             .set(&value)
             .get_result::<Key>(conn)
-            .map_err(DriverError::Diesel)
     }
 
     pub fn update_many_by_user_id(
@@ -254,7 +225,7 @@ impl Key {
         is_enabled: Option<bool>,
         is_revoked: Option<bool>,
         name: Option<&str>,
-    ) -> Result<usize, DriverError> {
+    ) -> QueryResult<usize> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         let now = chrono::Utc::now();
@@ -267,22 +238,17 @@ impl Key {
         diesel::update(auth_key.filter(user_id.eq(key_user_id)))
             .set(&value)
             .execute(conn)
-            .map_err(DriverError::Diesel)
     }
 
-    pub fn delete_by_id(conn: &PgConnection, id: Uuid) -> Result<usize, DriverError> {
+    pub fn delete_by_id(conn: &PgConnection, id: Uuid) -> QueryResult<usize> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
-        diesel::delete(auth_key.filter(key_id.eq(id)))
-            .execute(conn)
-            .map_err(DriverError::Diesel)
+        diesel::delete(auth_key.filter(key_id.eq(id))).execute(conn)
     }
 
-    pub fn delete_root(conn: &PgConnection) -> Result<usize, DriverError> {
+    pub fn delete_root(conn: &PgConnection) -> QueryResult<usize> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
-        diesel::delete(auth_key.filter(service_id.is_null().and(user_id.is_null())))
-            .execute(conn)
-            .map_err(DriverError::Diesel)
+        diesel::delete(auth_key.filter(service_id.is_null().and(user_id.is_null()))).execute(conn)
     }
 }
