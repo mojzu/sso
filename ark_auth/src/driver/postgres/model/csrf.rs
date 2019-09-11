@@ -1,56 +1,90 @@
-use crate::driver::postgres::schema::auth_csrf;
+use crate::{driver::postgres::schema::auth_csrf, Csrf, CsrfCreate, DriverResult};
 use chrono::{DateTime, Utc};
-use diesel::{prelude::*, result::QueryResult, PgConnection};
+use diesel::{prelude::*, PgConnection};
 use uuid::Uuid;
 
 #[derive(Debug, Identifiable, Queryable)]
 #[table_name = "auth_csrf"]
 #[primary_key(csrf_key)]
-pub struct Csrf {
-    pub created_at: DateTime<Utc>,
-    pub csrf_key: String,
-    pub csrf_value: String,
-    pub csrf_ttl: DateTime<Utc>,
-    pub service_id: Uuid,
+pub struct ModelCsrf {
+    created_at: DateTime<Utc>,
+    csrf_key: String,
+    csrf_value: String,
+    csrf_ttl: DateTime<Utc>,
+    service_id: Uuid,
+}
+
+impl From<ModelCsrf> for Csrf {
+    fn from(csrf: ModelCsrf) -> Self {
+        Self {
+            created_at: csrf.created_at,
+            key: csrf.csrf_key,
+            value: csrf.csrf_value,
+            ttl: csrf.csrf_ttl,
+            service_id: csrf.service_id,
+        }
+    }
 }
 
 #[derive(Debug, Insertable)]
 #[table_name = "auth_csrf"]
-pub struct CsrfInsert<'a> {
-    pub created_at: &'a DateTime<Utc>,
-    pub csrf_key: &'a str,
-    pub csrf_value: &'a str,
-    pub csrf_ttl: &'a DateTime<Utc>,
-    pub service_id: Uuid,
+struct ModelCsrfInsert<'a> {
+    created_at: &'a DateTime<Utc>,
+    csrf_key: &'a str,
+    csrf_value: &'a str,
+    csrf_ttl: &'a DateTime<Utc>,
+    service_id: &'a Uuid,
 }
 
-impl Csrf {
-    pub fn create(conn: &PgConnection, value: &CsrfInsert) -> QueryResult<Csrf> {
+impl<'a> ModelCsrfInsert<'a> {
+    fn from_create(now: &'a DateTime<Utc>, create: &'a CsrfCreate) -> Self {
+        Self {
+            created_at: now,
+            csrf_key: create.key,
+            csrf_value: create.value,
+            csrf_ttl: create.ttl,
+            service_id: create.service_id,
+        }
+    }
+}
+
+impl ModelCsrf {
+    pub fn create(conn: &PgConnection, create: &CsrfCreate) -> DriverResult<Csrf> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
+        let now = Utc::now();
+        let value = ModelCsrfInsert::from_create(&now, create);
         diesel::insert_into(auth_csrf)
-            .values(value)
-            .get_result::<Csrf>(conn)
+            .values(&value)
+            .get_result::<ModelCsrf>(conn)
+            .map_err(Into::into)
+            .map(Into::into)
     }
 
-    pub fn read_by_key(conn: &PgConnection, key: &str) -> QueryResult<Option<Csrf>> {
+    pub fn read_by_key(conn: &PgConnection, key: &str) -> DriverResult<Option<Csrf>> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
         auth_csrf
             .filter(csrf_key.eq(key))
-            .get_result::<Csrf>(conn)
+            .get_result::<ModelCsrf>(conn)
             .optional()
+            .map_err(Into::into)
+            .map(|x| x.map(Into::into))
     }
 
-    pub fn delete_by_key(conn: &PgConnection, key: &str) -> QueryResult<usize> {
+    pub fn delete_by_key(conn: &PgConnection, key: &str) -> DriverResult<usize> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
-        diesel::delete(auth_csrf.filter(csrf_key.eq(key))).execute(conn)
+        diesel::delete(auth_csrf.filter(csrf_key.eq(key)))
+            .execute(conn)
+            .map_err(Into::into)
     }
 
-    pub fn delete_by_ttl(conn: &PgConnection, now: &DateTime<Utc>) -> QueryResult<usize> {
+    pub fn delete_by_ttl(conn: &PgConnection, now: &DateTime<Utc>) -> DriverResult<usize> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
-        diesel::delete(auth_csrf.filter(csrf_ttl.le(now))).execute(conn)
+        diesel::delete(auth_csrf.filter(csrf_ttl.le(now)))
+            .execute(conn)
+            .map_err(Into::into)
     }
 }

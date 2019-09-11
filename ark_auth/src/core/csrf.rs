@@ -24,6 +24,14 @@ impl fmt::Display for Csrf {
     }
 }
 
+/// CSRF create data.
+pub struct CsrfCreate<'a> {
+    pub key: &'a str,
+    pub value: &'a str,
+    pub ttl: &'a DateTime<Utc>,
+    pub service_id: &'a Uuid,
+}
+
 impl Csrf {
     /// Create one CSRF key, value pair with time to live in seconds. Key must be unique.
     pub fn create(
@@ -36,9 +44,13 @@ impl Csrf {
         Csrf::delete_by_ttl(driver)?;
 
         let ttl = Utc::now() + Duration::seconds(ttl);
-        driver
-            .csrf_create(key, value, &ttl, service.id)
-            .map_err(CoreError::Driver)
+        let create = CsrfCreate {
+            key,
+            value,
+            ttl: &ttl,
+            service_id: &service.id,
+        };
+        driver.csrf_create(&create).map_err(CoreError::Driver)
     }
 
     /// Read one CSRF key, value pair. CSRF key, value pair is deleted after one read.

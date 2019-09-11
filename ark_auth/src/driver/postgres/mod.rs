@@ -3,7 +3,9 @@ mod model;
 mod schema;
 
 use crate::{
-    Audit, AuditCreate, Csrf, Driver, DriverError, DriverLockFn, DriverResult, Key, Service, User,
+    driver::postgres::model::{ModelAudit, ModelCsrf, ModelKey},
+    Audit, AuditCreate, Csrf, CsrfCreate, Driver, DriverError, DriverIf, DriverLockFn,
+    DriverResult, Key, KeyCreate, KeyUpdate, Service, User,
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager, PgConnection};
@@ -11,13 +13,13 @@ use uuid::Uuid;
 
 embed_migrations!("migrations/postgres");
 
+type PooledConnection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
+
 /// Driver for PostgreSQL.
 #[derive(Clone)]
 pub struct DriverPostgres {
     pool: r2d2::Pool<ConnectionManager<PgConnection>>,
 }
-
-type PooledConnection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
 
 impl DriverPostgres {
     /// Initialise driver with connection URL and number of pooled connections.
@@ -43,11 +45,7 @@ impl DriverPostgres {
     }
 }
 
-impl Driver for DriverPostgres {
-    fn box_clone(&self) -> Box<dyn Driver> {
-        Box::new((*self).clone())
-    }
-
+impl DriverIf for DriverPostgres {
     fn exclusive_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<()> {
         use diesel_admin::*;
 
@@ -81,9 +79,7 @@ impl Driver for DriverPostgres {
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         let conn = self.connection()?;
-        model::Audit::list_where_id_lt(&conn, lt, limit, service_id_mask)
-            .map_err(Into::into)
-            .map(Into::into)
+        ModelAudit::list_where_id_lt(&conn, lt, limit, service_id_mask)
     }
 
     fn audit_list_where_id_gt(
@@ -93,9 +89,7 @@ impl Driver for DriverPostgres {
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         let conn = self.connection()?;
-        model::Audit::list_where_id_gt(&conn, gt, limit, service_id_mask)
-            .map_err(Into::into)
-            .map(Into::into)
+        ModelAudit::list_where_id_gt(&conn, gt, limit, service_id_mask)
     }
 
     fn audit_list_where_id_gt_and_lt(
@@ -106,9 +100,7 @@ impl Driver for DriverPostgres {
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         let conn = self.connection()?;
-        model::Audit::list_where_id_gt_and_lt(&conn, gt, lt, limit, service_id_mask)
-            .map_err(Into::into)
-            .map(Into::into)
+        ModelAudit::list_where_id_gt_and_lt(&conn, gt, lt, limit, service_id_mask)
     }
 
     fn audit_list_where_created_lte(
@@ -119,9 +111,7 @@ impl Driver for DriverPostgres {
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         let conn = self.connection()?;
-        model::Audit::list_where_created_lte(&conn, created_lte, offset_id, limit, service_id_mask)
-            .map_err(Into::into)
-            .map(Into::into)
+        ModelAudit::list_where_created_lte(&conn, created_lte, offset_id, limit, service_id_mask)
     }
 
     fn audit_list_where_created_gte(
@@ -132,9 +122,7 @@ impl Driver for DriverPostgres {
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         let conn = self.connection()?;
-        model::Audit::list_where_created_gte(&conn, created_gte, offset_id, limit, service_id_mask)
-            .map_err(Into::into)
-            .map(Into::into)
+        ModelAudit::list_where_created_gte(&conn, created_gte, offset_id, limit, service_id_mask)
     }
 
     fn audit_list_where_created_gte_and_lte(
@@ -146,7 +134,7 @@ impl Driver for DriverPostgres {
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         let conn = self.connection()?;
-        model::Audit::list_where_created_gte_and_lte(
+        ModelAudit::list_where_created_gte_and_lte(
             &conn,
             created_gte,
             created_lte,
@@ -154,18 +142,11 @@ impl Driver for DriverPostgres {
             limit,
             service_id_mask,
         )
-        .map_err(Into::into)
-        .map(Into::into)
     }
 
-    fn audit_create(&self, data: &AuditCreate) -> DriverResult<Audit> {
+    fn audit_create(&self, create: &AuditCreate) -> DriverResult<Audit> {
         let conn = self.connection()?;
-        let now = Utc::now();
-        let id = Uuid::new_v4();
-        let value = model::AuditInsert::from_create(&now, id, data);
-        model::Audit::create(&conn, &value)
-            .map_err(Into::into)
-            .map(Into::into)
+        ModelAudit::create(&conn, create)
     }
 
     fn audit_read_by_id(
@@ -174,9 +155,7 @@ impl Driver for DriverPostgres {
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Option<Audit>> {
         let conn = self.connection()?;
-        model::Audit::read_by_id(&conn, id, service_id_mask)
-            .map_err(Into::into)
-            .map(|x| x.map(Into::into))
+        ModelAudit::read_by_id(&conn, id, service_id_mask)
     }
 
     fn audit_read_metrics(
@@ -184,44 +163,32 @@ impl Driver for DriverPostgres {
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Vec<(String, i64)>> {
         let conn = self.connection()?;
-        model::Audit::read_metrics(&conn, service_id_mask).map_err(Into::into)
+        ModelAudit::read_metrics(&conn, service_id_mask)
     }
 
     fn audit_delete_by_created_at(&self, audit_created_at: &DateTime<Utc>) -> DriverResult<usize> {
         let conn = self.connection()?;
-        model::Audit::delete_by_created_at(&conn, audit_created_at).map_err(Into::into)
+        ModelAudit::delete_by_created_at(&conn, audit_created_at)
     }
 
-    fn csrf_create(
-        &self,
-        key: &str,
-        value: &str,
-        ttl: &DateTime<Utc>,
-        service_id: Uuid,
-    ) -> DriverResult<Csrf> {
+    fn csrf_create(&self, create: &CsrfCreate) -> DriverResult<Csrf> {
         let conn = self.connection()?;
-        let now = Utc::now();
-        let value = model::CsrfInsert::from(&now, key, value, ttl, service_id);
-        model::Csrf::create(&conn, &value)
-            .map_err(Into::into)
-            .map(Into::into)
+        ModelCsrf::create(&conn, create)
     }
 
     fn csrf_read_by_key(&self, key: &str) -> DriverResult<Option<Csrf>> {
         let conn = self.connection()?;
-        model::Csrf::read_by_key(&conn, key)
-            .map_err(Into::into)
-            .map(|x| x.map(Into::into))
+        ModelCsrf::read_by_key(&conn, key)
     }
 
     fn csrf_delete_by_key(&self, key: &str) -> DriverResult<usize> {
         let conn = self.connection()?;
-        model::Csrf::delete_by_key(&conn, key).map_err(Into::into)
+        ModelCsrf::delete_by_key(&conn, key)
     }
 
     fn csrf_delete_by_ttl(&self, now: &DateTime<Utc>) -> DriverResult<usize> {
         let conn = self.connection()?;
-        model::Csrf::delete_by_ttl(&conn, now).map_err(Into::into)
+        ModelCsrf::delete_by_ttl(&conn, now)
     }
 
     fn key_list_where_id_lt(
@@ -231,9 +198,7 @@ impl Driver for DriverPostgres {
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         let conn = self.connection()?;
-        model::Key::list_where_id_lt(&conn, lt, limit, service_id_mask)
-            .map_err(Into::into)
-            .map(Into::into)
+        ModelKey::list_where_id_lt(&conn, lt, limit, service_id_mask)
     }
 
     fn key_list_where_id_gt(
@@ -243,39 +208,17 @@ impl Driver for DriverPostgres {
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         let conn = self.connection()?;
-        model::Key::list_where_id_gt(&conn, gt, limit, service_id_mask)
-            .map_err(Into::into)
-            .map(Into::into)
+        ModelKey::list_where_id_gt(&conn, gt, limit, service_id_mask)
     }
 
-    fn key_create(
-        &self,
-        is_enabled: bool,
-        is_revoked: bool,
-        name: &str,
-        value: &str,
-        key_service_id: Option<Uuid>,
-        key_user_id: Option<Uuid>,
-    ) -> DriverResult<Key> {
+    fn key_create(&self, create: &KeyCreate) -> DriverResult<Key> {
         let conn = self.connection()?;
-        model::Key::create(
-            &conn,
-            is_enabled,
-            is_revoked,
-            name,
-            value,
-            key_service_id,
-            key_user_id,
-        )
-        .map_err(Into::into)
-        .map(Into::into)
+        ModelKey::create(&conn, create)
     }
 
     fn key_read_by_id(&self, id: Uuid) -> DriverResult<Option<Key>> {
         let conn = self.connection()?;
-        model::Key::read_by_id(&conn, id)
-            .map_err(Into::into)
-            .map(|x| x.map(Into::into))
+        ModelKey::read_by_id(&conn, id)
     }
 
     fn key_read_by_user_id(
@@ -286,23 +229,17 @@ impl Driver for DriverPostgres {
         is_revoked: bool,
     ) -> DriverResult<Option<Key>> {
         let conn = self.connection()?;
-        model::Key::read_by_user_id(&conn, service_id, user_id, is_enabled, is_revoked)
-            .map_err(Into::into)
-            .map(|x| x.map(Into::into))
+        ModelKey::read_by_user_id(&conn, service_id, user_id, is_enabled, is_revoked)
     }
 
     fn key_read_by_root_value(&self, value: &str) -> DriverResult<Option<Key>> {
         let conn = self.connection()?;
-        model::Key::read_by_root_value(&conn, value)
-            .map_err(Into::into)
-            .map(|x| x.map(Into::into))
+        ModelKey::read_by_root_value(&conn, value)
     }
 
     fn key_read_by_service_value(&self, value: &str) -> DriverResult<Option<Key>> {
         let conn = self.connection()?;
-        model::Key::read_by_service_value(&conn, value)
-            .map_err(Into::into)
-            .map(|x| x.map(Into::into))
+        ModelKey::read_by_service_value(&conn, value)
     }
 
     fn key_read_by_user_value(
@@ -311,44 +248,27 @@ impl Driver for DriverPostgres {
         value: &str,
     ) -> DriverResult<Option<Key>> {
         let conn = self.connection()?;
-        model::Key::read_by_user_value(&conn, key_service_id, value)
-            .map_err(Into::into)
-            .map(|x| x.map(Into::into))
+        ModelKey::read_by_user_value(&conn, key_service_id, value)
     }
 
-    fn key_update_by_id(
-        &self,
-        id: Uuid,
-        is_enabled: Option<bool>,
-        is_revoked: Option<bool>,
-        name: Option<&str>,
-    ) -> DriverResult<Key> {
+    fn key_update_by_id(&self, id: Uuid, update: &KeyUpdate) -> DriverResult<Key> {
         let conn = self.connection()?;
-        model::Key::update_by_id(&conn, id, is_enabled, is_revoked, name)
-            .map_err(Into::into)
-            .map(Into::into)
+        ModelKey::update_by_id(&conn, id, update)
     }
 
-    fn key_update_many_by_user_id(
-        &self,
-        key_user_id: Uuid,
-        is_enabled: Option<bool>,
-        is_revoked: Option<bool>,
-        name: Option<&str>,
-    ) -> DriverResult<usize> {
+    fn key_update_many_by_user_id(&self, user_id: Uuid, update: &KeyUpdate) -> DriverResult<usize> {
         let conn = self.connection()?;
-        model::Key::update_many_by_user_id(&conn, key_user_id, is_enabled, is_revoked, name)
-            .map_err(Into::into)
+        ModelKey::update_many_by_user_id(&conn, user_id, update)
     }
 
     fn key_delete_by_id(&self, id: Uuid) -> DriverResult<usize> {
         let conn = self.connection()?;
-        model::Key::delete_by_id(&conn, id).map_err(Into::into)
+        ModelKey::delete_by_id(&conn, id)
     }
 
     fn key_delete_root(&self) -> DriverResult<usize> {
         let conn = self.connection()?;
-        model::Key::delete_root(&conn).map_err(Into::into)
+        ModelKey::delete_root(&conn)
     }
 
     fn service_list_where_id_lt(&self, lt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>> {
@@ -466,87 +386,29 @@ impl Driver for DriverPostgres {
     }
 }
 
-impl From<model::Audit> for Audit {
-    fn from(audit: model::Audit) -> Self {
-        Audit {
-            created_at: audit.created_at,
-            id: audit.audit_id,
-            user_agent: audit.audit_user_agent,
-            remote: audit.audit_remote,
-            forwarded: audit.audit_forwarded,
-            path: audit.audit_path,
-            data: audit.audit_data,
-            key_id: audit.key_id,
-            service_id: audit.service_id,
-            user_id: audit.user_id,
-            user_key_id: audit.user_key_id,
-        }
+impl Driver for DriverPostgres {
+    fn box_clone(&self) -> Box<dyn Driver> {
+        Box::new((*self).clone())
+    }
+
+    fn as_if(&self) -> &dyn DriverIf {
+        self
     }
 }
 
-impl<'a> model::AuditInsert<'a> {
-    pub fn from_create(now: &'a DateTime<Utc>, id: Uuid, create: &'a AuditCreate) -> Self {
-        Self {
-            created_at: now,
-            audit_id: id,
-            audit_user_agent: create.meta.user_agent(),
-            audit_remote: create.meta.remote(),
-            audit_forwarded: create.meta.forwarded(),
-            audit_path: create.path,
-            audit_data: create.data,
-            key_id: create.key_id,
-            service_id: create.service_id,
-            user_id: create.user_id,
-            user_key_id: create.user_key_id,
-        }
+/// Driver for PostgreSQL connection reference.
+pub struct DriverPostgresConn<'a> {
+    pub conn: &'a PgConnection,
+}
+
+impl<'a> DriverPostgresConn<'a> {
+    pub fn new(conn: &'a PgConnection) -> Self {
+        Self { conn }
     }
 }
 
-impl From<model::Csrf> for Csrf {
-    fn from(csrf: model::Csrf) -> Self {
-        Csrf {
-            created_at: csrf.created_at,
-            key: csrf.csrf_key,
-            value: csrf.csrf_value,
-            ttl: csrf.csrf_ttl,
-            service_id: csrf.service_id,
-        }
-    }
-}
-
-impl<'a> model::CsrfInsert<'a> {
-    pub fn from(
-        now: &'a DateTime<Utc>,
-        key: &'a str,
-        value: &'a str,
-        ttl: &'a DateTime<Utc>,
-        service_id: Uuid,
-    ) -> Self {
-        Self {
-            created_at: now,
-            csrf_key: key,
-            csrf_value: value,
-            csrf_ttl: ttl,
-            service_id,
-        }
-    }
-}
-
-impl From<model::Key> for Key {
-    fn from(key: model::Key) -> Self {
-        Key {
-            created_at: key.created_at,
-            updated_at: key.updated_at,
-            id: key.key_id,
-            is_enabled: key.key_is_enabled,
-            is_revoked: key.key_is_revoked,
-            name: key.key_name,
-            value: key.key_value,
-            service_id: key.service_id,
-            user_id: key.user_id,
-        }
-    }
-}
+// TODO(refactor): Implement this.
+// impl DriverIf for DriverPostgresConn {}
 
 impl From<model::Service> for Service {
     fn from(service: model::Service) -> Self {

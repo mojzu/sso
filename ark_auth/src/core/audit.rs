@@ -95,10 +95,10 @@ pub struct AuditCreate<'a> {
     pub meta: &'a AuditMeta,
     pub path: &'a str,
     pub data: &'a Value,
-    pub key_id: Option<Uuid>,
-    pub service_id: Option<Uuid>,
-    pub user_id: Option<Uuid>,
-    pub user_key_id: Option<Uuid>,
+    pub key_id: Option<&'a Uuid>,
+    pub service_id: Option<&'a Uuid>,
+    pub user_id: Option<&'a Uuid>,
+    pub user_key_id: Option<&'a Uuid>,
 }
 
 impl<'a> AuditCreate<'a> {
@@ -107,10 +107,10 @@ impl<'a> AuditCreate<'a> {
         meta: &'a AuditMeta,
         path: &'a str,
         data: &'a Value,
-        key_id: Option<Uuid>,
-        service_id: Option<Uuid>,
-        user_id: Option<Uuid>,
-        user_key_id: Option<Uuid>,
+        key_id: Option<&'a Uuid>,
+        service_id: Option<&'a Uuid>,
+        user_id: Option<&'a Uuid>,
+        user_key_id: Option<&'a Uuid>,
     ) -> Self {
         Self {
             meta,
@@ -309,10 +309,10 @@ impl AuditBuilder {
             &self.meta,
             path,
             data,
-            self.key,
-            self.service,
-            self.user,
-            self.user_key,
+            self.key.as_ref(),
+            self.service.as_ref(),
+            self.user.as_ref(),
+            self.user_key.as_ref(),
         );
         Audit::create(driver, &data)
     }
@@ -344,10 +344,10 @@ impl AuditBuilder {
             &self.meta,
             &path,
             &data,
-            self.key,
-            self.service,
-            self.user,
-            self.user_key,
+            self.key.as_ref(),
+            self.service.as_ref(),
+            self.user.as_ref(),
+            self.user_key.as_ref(),
         );
 
         match Audit::create(driver, &audit_data) {

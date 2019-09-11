@@ -47,6 +47,23 @@ impl fmt::Display for Key {
     }
 }
 
+/// Key create data.
+pub struct KeyCreate<'a> {
+    pub is_enabled: bool,
+    pub is_revoked: bool,
+    pub name: &'a str,
+    pub value: &'a str,
+    pub service_id: Option<&'a Uuid>,
+    pub user_id: Option<&'a Uuid>,
+}
+
+/// Key update data.
+pub struct KeyUpdate<'a> {
+    pub is_enabled: Option<bool>,
+    pub is_revoked: Option<bool>,
+    pub name: Option<&'a str>,
+}
+
 /// Key query.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeyQuery {
@@ -236,9 +253,15 @@ impl Key {
         name: &str,
     ) -> CoreResult<Key> {
         let value = Key::value_generate();
-        driver
-            .key_create(is_enabled, false, name, &value, None, None)
-            .map_err(CoreError::Driver)
+        let create = KeyCreate {
+            is_enabled,
+            is_revoked: false,
+            name,
+            value: &value,
+            service_id: None,
+            user_id: None,
+        };
+        driver.key_create(&create).map_err(CoreError::Driver)
     }
 
     /// Create service key.
@@ -250,9 +273,15 @@ impl Key {
         service_id: Uuid,
     ) -> CoreResult<Key> {
         let value = Key::value_generate();
-        driver
-            .key_create(is_enabled, false, name, &value, Some(service_id), None)
-            .map_err(CoreError::Driver)
+        let create = KeyCreate {
+            is_enabled,
+            is_revoked: false,
+            name,
+            value: &value,
+            service_id: Some(&service_id),
+            user_id: None,
+        };
+        driver.key_create(&create).map_err(CoreError::Driver)
     }
 
     /// Create user key.
@@ -265,16 +294,15 @@ impl Key {
         user_id: Uuid,
     ) -> CoreResult<Key> {
         let value = Key::value_generate();
-        driver
-            .key_create(
-                is_enabled,
-                false,
-                name,
-                &value,
-                Some(service_id),
-                Some(user_id),
-            )
-            .map_err(CoreError::Driver)
+        let create = KeyCreate {
+            is_enabled,
+            is_revoked: false,
+            name,
+            value: &value,
+            service_id: Some(&service_id),
+            user_id: Some(&user_id),
+        };
+        driver.key_create(&create).map_err(CoreError::Driver)
     }
 
     /// Read key by ID.
@@ -343,8 +371,13 @@ impl Key {
         is_revoked: Option<bool>,
         name: Option<&str>,
     ) -> CoreResult<Key> {
+        let update = KeyUpdate {
+            is_enabled,
+            is_revoked,
+            name,
+        };
         driver
-            .key_update_by_id(id, is_enabled, is_revoked, name)
+            .key_update_by_id(id, &update)
             .map_err(CoreError::Driver)
     }
 
@@ -358,8 +391,13 @@ impl Key {
         is_revoked: Option<bool>,
         name: Option<&str>,
     ) -> CoreResult<usize> {
+        let update = KeyUpdate {
+            is_enabled,
+            is_revoked,
+            name,
+        };
         driver
-            .key_update_many_by_user_id(user_id, is_enabled, is_revoked, name)
+            .key_update_many_by_user_id(user_id, &update)
             .map_err(CoreError::Driver)
     }
 

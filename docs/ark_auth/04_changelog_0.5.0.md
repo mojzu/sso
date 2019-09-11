@@ -6,4 +6,6 @@
 
 **Changed**
 
+- Code consistency improvements.
+
 **Fixed**

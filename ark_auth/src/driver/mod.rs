@@ -3,45 +3,42 @@ mod postgres;
 #[cfg(feature = "sqlite")]
 mod sqlite;
 
-use crate::core::{Audit, AuditCreate, Csrf, Key, Service, User};
 #[cfg(feature = "postgres")]
 pub use crate::driver::postgres::*;
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::*;
 
+use crate::core::{Audit, AuditCreate, Csrf, CsrfCreate, Key, KeyCreate, KeyUpdate, Service, User};
 use chrono::{DateTime, Utc};
-use diesel::result::Error as DieselResultError;
-use diesel_migrations::RunMigrationsError;
-use r2d2::Error as R2d2Error;
 use uuid::Uuid;
 
 /// Driver errors.
 #[derive(Debug, Fail)]
 pub enum DriverError {
     #[fail(display = "DriverError:DieselResult {}", _0)]
-    DieselResult(#[fail(cause)] DieselResultError),
+    DieselResult(#[fail(cause)] diesel::result::Error),
 
     #[fail(display = "DriverError:DieselMigrations {}", _0)]
-    DieselMigrations(#[fail(cause)] RunMigrationsError),
+    DieselMigrations(#[fail(cause)] diesel_migrations::RunMigrationsError),
 
     #[fail(display = "DriverError:R2d2 {}", _0)]
-    R2d2(#[fail(cause)] R2d2Error),
+    R2d2(#[fail(cause)] r2d2::Error),
 }
 
-impl From<DieselResultError> for DriverError {
-    fn from(e: DieselResultError) -> Self {
+impl From<diesel::result::Error> for DriverError {
+    fn from(e: diesel::result::Error) -> Self {
         Self::DieselResult(e)
     }
 }
 
-impl From<RunMigrationsError> for DriverError {
-    fn from(e: RunMigrationsError) -> Self {
+impl From<diesel_migrations::RunMigrationsError> for DriverError {
+    fn from(e: diesel_migrations::RunMigrationsError) -> Self {
         Self::DieselMigrations(e)
     }
 }
 
-impl From<R2d2Error> for DriverError {
-    fn from(e: R2d2Error) -> Self {
+impl From<r2d2::Error> for DriverError {
+    fn from(e: r2d2::Error) -> Self {
         Self::R2d2(e)
     }
 }
@@ -53,15 +50,16 @@ pub type DriverResult<T> = Result<T, DriverError>;
 pub type DriverLockFn = Box<dyn FnOnce(&dyn Driver) -> ()>;
 
 /// Driver interface trait.
-pub trait Driver: Send + Sync {
-    /// Return a boxed trait containing clone of self.
-    fn box_clone(&self) -> Box<dyn Driver>;
-
+pub trait DriverIf {
     /// Run closure with an exclusive lock.
     fn exclusive_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<()>;
 
     /// Run closure with a shared lock.
     fn shared_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<()>;
+
+    // ---------------
+    // Audit Functions
+    // ---------------
 
     /// List audit logs where ID is less than.
     fn audit_list_where_id_lt(
@@ -133,14 +131,12 @@ pub trait Driver: Send + Sync {
     /// Delete many audit logs by created at time.
     fn audit_delete_by_created_at(&self, created_at: &DateTime<Utc>) -> DriverResult<usize>;
 
+    // --------------
+    // CSRF Functions
+    // --------------
+
     /// Create one CSRF key, value pair with time to live in seconds. Key must be unique.
-    fn csrf_create(
-        &self,
-        key: &str,
-        value: &str,
-        ttl: &DateTime<Utc>,
-        service_id: Uuid,
-    ) -> DriverResult<Csrf>;
+    fn csrf_create(&self, create: &CsrfCreate) -> DriverResult<Csrf>;
 
     /// Read one CSRF key, value pair.
     fn csrf_read_by_key(&self, key: &str) -> DriverResult<Option<Csrf>>;
@@ -150,6 +146,10 @@ pub trait Driver: Send + Sync {
 
     /// Delete many CSRF key, value pairs by time to live timestamp.
     fn csrf_delete_by_ttl(&self, now: &DateTime<Utc>) -> DriverResult<usize>;
+
+    // -------------
+    // Key Functions
+    // -------------
 
     /// List keys where ID is less than.
     fn key_list_where_id_lt(
@@ -168,15 +168,7 @@ pub trait Driver: Send + Sync {
     ) -> DriverResult<Vec<Uuid>>;
 
     /// Create key.
-    fn key_create(
-        &self,
-        is_enabled: bool,
-        is_revoked: bool,
-        name: &str,
-        value: &str,
-        service_id: Option<Uuid>,
-        user_id: Option<Uuid>,
-    ) -> DriverResult<Key>;
+    fn key_create(&self, create: &KeyCreate) -> DriverResult<Key>;
 
     /// Read key by ID.
     fn key_read_by_id(&self, id: Uuid) -> DriverResult<Option<Key>>;
@@ -200,28 +192,20 @@ pub trait Driver: Send + Sync {
     fn key_read_by_user_value(&self, service_id: Uuid, value: &str) -> DriverResult<Option<Key>>;
 
     /// Update key by ID.
-    fn key_update_by_id(
-        &self,
-        id: Uuid,
-        is_enabled: Option<bool>,
-        is_revoked: Option<bool>,
-        name: Option<&str>,
-    ) -> DriverResult<Key>;
+    fn key_update_by_id(&self, id: Uuid, update: &KeyUpdate) -> DriverResult<Key>;
 
     /// Update many keys by user ID.
-    fn key_update_many_by_user_id(
-        &self,
-        user_id: Uuid,
-        is_enabled: Option<bool>,
-        is_revoked: Option<bool>,
-        name: Option<&str>,
-    ) -> DriverResult<usize>;
+    fn key_update_many_by_user_id(&self, user_id: Uuid, update: &KeyUpdate) -> DriverResult<usize>;
 
     /// Delete key by ID.
     fn key_delete_by_id(&self, id: Uuid) -> DriverResult<usize>;
 
     /// Delete root keys.
     fn key_delete_root(&self) -> DriverResult<usize>;
+
+    // -----------------
+    // Service Functions
+    // -----------------
 
     /// List services where ID is less than.
     fn service_list_where_id_lt(&self, lt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>>;
@@ -245,6 +229,10 @@ pub trait Driver: Send + Sync {
 
     /// Delete service by ID.
     fn service_delete_by_id(&self, id: Uuid) -> DriverResult<usize>;
+
+    // --------------
+    // User Functions
+    // --------------
 
     /// List users where ID is less than.
     fn user_list_where_id_lt(&self, lt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>>;
@@ -286,6 +274,15 @@ pub trait Driver: Send + Sync {
 
     /// Delete user by ID.
     fn user_delete_by_id(&self, id: Uuid) -> DriverResult<usize>;
+}
+
+/// Driver trait.
+pub trait Driver: DriverIf + Send + Sync {
+    /// Return a boxed trait containing clone of self.
+    fn box_clone(&self) -> Box<dyn Driver>;
+
+    /// Return a reference to driver interface.
+    fn as_if(&self) -> &dyn DriverIf;
 }
 
 impl Clone for Box<dyn Driver> {
