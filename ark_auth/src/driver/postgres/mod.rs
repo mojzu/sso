@@ -9,7 +9,7 @@ use crate::{
     UserCreate, UserUpdate,
 };
 use chrono::{DateTime, Utc};
-use diesel::{prelude::*, r2d2::ConnectionManager, PgConnection};
+use diesel::{prelude::*, r2d2::ConnectionManager};
 use uuid::Uuid;
 
 embed_migrations!("migrations/postgres");
