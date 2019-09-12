@@ -27,6 +27,19 @@ impl fmt::Display for Service {
     }
 }
 
+/// Service create data.
+pub struct ServiceCreate<'a> {
+    pub is_enabled: bool,
+    pub name: &'a str,
+    pub url: &'a str,
+}
+
+/// Service update data.
+pub struct ServiceUpdate<'a> {
+    pub is_enabled: Option<bool>,
+    pub name: Option<&'a str>,
+}
+
 /// Service query.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ServiceQuery {
@@ -77,9 +90,12 @@ impl Service {
         url: &str,
     ) -> CoreResult<Service> {
         Url::parse(url).map_err(|_err| CoreError::BadRequest)?;
-        driver
-            .service_create(is_enabled, name, url)
-            .map_err(CoreError::Driver)
+        let create = ServiceCreate {
+            is_enabled,
+            name,
+            url,
+        };
+        driver.service_create(&create).map_err(CoreError::Driver)
     }
 
     /// Read service by ID.
@@ -101,8 +117,9 @@ impl Service {
         is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> CoreResult<Service> {
+        let update = ServiceUpdate { is_enabled, name };
         driver
-            .service_update_by_id(id, is_enabled, name)
+            .service_update_by_id(id, &update)
             .map_err(CoreError::Driver)
     }
 

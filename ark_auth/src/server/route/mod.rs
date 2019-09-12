@@ -10,7 +10,11 @@ use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
 use futures::{future, Future};
 use serde::Serialize;
 
-pub fn route_v1_scope() -> actix_web::Scope {
+pub fn route_service(config: &mut web::ServiceConfig) {
+    config.service(route_v1_scope());
+}
+
+fn route_v1_scope() -> actix_web::Scope {
     web::scope(path::V1)
         .service(web::resource(path::PING).route(web::get().to(ping_handler)))
         .service(web::resource(path::METRICS).route(web::get().to_async(metrics_handler)))
@@ -19,10 +23,6 @@ pub fn route_v1_scope() -> actix_web::Scope {
         .service(key::route_v1_scope())
         .service(service::route_v1_scope())
         .service(user::route_v1_scope())
-}
-
-pub fn route_service(config: &mut web::ServiceConfig) {
-    config.service(route_v1_scope());
 }
 
 fn ping_handler() -> actix_web::Result<HttpResponse> {
@@ -54,7 +54,7 @@ fn metrics_inner(data: &Data, audit_meta: AuditMeta, id: Option<String>) -> Serv
 }
 
 /// Build audit meta from HTTP request.
-pub fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, ServerError> {
+fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, ServerError> {
     let connection_info = req.connection_info();
     let remote = connection_info
         .remote()
@@ -84,7 +84,7 @@ pub fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, 
 }
 
 /// Route response empty handler.
-pub fn route_response_empty<T: Serialize>(
+fn route_response_empty<T: Serialize>(
     result: ServerResult<T>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     match result {
@@ -94,7 +94,7 @@ pub fn route_response_empty<T: Serialize>(
 }
 
 /// Route response JSON handler.
-pub fn route_response_json<T: Serialize>(
+fn route_response_json<T: Serialize>(
     result: ServerResult<T>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     match result {
@@ -104,7 +104,7 @@ pub fn route_response_json<T: Serialize>(
 }
 
 /// Route response text handler.
-pub fn route_response_text(
+fn route_response_text(
     result: ServerResult<String>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     match result {

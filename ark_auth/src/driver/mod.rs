@@ -8,7 +8,10 @@ pub use crate::driver::postgres::*;
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::*;
 
-use crate::core::{Audit, AuditCreate, Csrf, CsrfCreate, Key, KeyCreate, KeyUpdate, Service, User};
+use crate::core::{
+    Audit, AuditCreate, Csrf, CsrfCreate, Key, KeyCreate, KeyUpdate, Service, ServiceCreate,
+    ServiceUpdate, User, UserCreate, UserUpdate,
+};
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
@@ -47,7 +50,7 @@ impl From<r2d2::Error> for DriverError {
 pub type DriverResult<T> = Result<T, DriverError>;
 
 /// Driver closure function type.
-pub type DriverLockFn = Box<dyn FnOnce(&dyn Driver) -> ()>;
+pub type DriverLockFn = Box<dyn FnOnce(&dyn DriverIf) -> ()>;
 
 /// Driver interface trait.
 pub trait DriverIf {
@@ -214,18 +217,13 @@ pub trait DriverIf {
     fn service_list_where_id_gt(&self, gt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>>;
 
     /// Create service.
-    fn service_create(&self, is_enabled: bool, name: &str, url: &str) -> DriverResult<Service>;
+    fn service_create(&self, create: &ServiceCreate) -> DriverResult<Service>;
 
     /// Read service by ID.
     fn service_read_by_id(&self, id: Uuid) -> DriverResult<Option<Service>>;
 
     /// Update service by ID.
-    fn service_update_by_id(
-        &self,
-        id: Uuid,
-        is_enabled: Option<bool>,
-        name: Option<&str>,
-    ) -> DriverResult<Service>;
+    fn service_update_by_id(&self, id: Uuid, update: &ServiceUpdate) -> DriverResult<Service>;
 
     /// Delete service by ID.
     fn service_delete_by_id(&self, id: Uuid) -> DriverResult<usize>;
@@ -244,13 +242,7 @@ pub trait DriverIf {
     fn user_list_where_email_eq(&self, email_eq: &str, limit: i64) -> DriverResult<Vec<Uuid>>;
 
     /// Create user.
-    fn user_create(
-        &self,
-        is_enabled: bool,
-        name: &str,
-        email: &str,
-        password_hash: Option<&str>,
-    ) -> DriverResult<User>;
+    fn user_create(&self, create: &UserCreate) -> DriverResult<User>;
 
     /// Read user by ID.
     fn user_read_by_id(&self, id: Uuid) -> DriverResult<Option<User>>;
@@ -259,12 +251,7 @@ pub trait DriverIf {
     fn user_read_by_email(&self, email: &str) -> DriverResult<Option<User>>;
 
     /// Update user by ID.
-    fn user_update_by_id(
-        &self,
-        id: Uuid,
-        is_enabled: Option<bool>,
-        name: Option<&str>,
-    ) -> DriverResult<User>;
+    fn user_update_by_id(&self, id: Uuid, update: &UserUpdate) -> DriverResult<User>;
 
     /// Update user email by ID.
     fn user_update_email_by_id(&self, id: Uuid, email: &str) -> DriverResult<usize>;

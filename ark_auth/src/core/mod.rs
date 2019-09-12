@@ -28,11 +28,14 @@ pub enum CoreError {
     #[fail(display = "ServerError:PwnedPasswordsDisabled")]
     PwnedPasswordsDisabled,
 
-    #[fail(display = "CoreError::Cast")]
-    Cast,
+    #[fail(display = "CoreError::Metrics")]
+    Metrics,
 
     #[fail(display = "CoreError::Driver {}", _0)]
     Driver(#[fail(cause)] DriverError),
+
+    #[fail(display = "ServerError:Client {}", _0)]
+    Client(#[fail(cause)] ClientError),
 
     #[fail(display = "CoreError::LibreauthPass {}", _0)]
     LibreauthPass(usize),
@@ -46,18 +49,12 @@ pub enum CoreError {
     #[fail(display = "CoreError::UuidParse {}", _0)]
     UuidParse(#[fail(cause)] uuid::parser::ParseError),
 
-    #[fail(display = "ServerError:Client {}", _0)]
-    Client(#[fail(cause)] ClientError),
-
     #[fail(display = "ServerError:ActixMailbox {}", _0)]
     ActixMailbox(#[fail(cause)] ActixMailboxError),
 
     #[fail(display = "ServerError:Zxcvbn {}", _0)]
     Zxcvbn(#[fail(cause)] ZxcvbnError),
 }
-
-/// Core result wrapper type.
-pub type CoreResult<T> = Result<T, CoreError>;
 
 impl CoreError {
     pub fn libreauth_pass(e: LibreauthPassError) -> Self {
@@ -68,6 +65,21 @@ impl CoreError {
         Self::LibreauthOath(e as usize)
     }
 }
+
+impl From<DriverError> for CoreError {
+    fn from(e: DriverError) -> Self {
+        Self::Driver(e)
+    }
+}
+
+impl From<ClientError> for CoreError {
+    fn from(e: ClientError) -> Self {
+        Self::Client(e)
+    }
+}
+
+/// Core result wrapper type.
+pub type CoreResult<T> = Result<T, CoreError>;
 
 /// Core.
 pub struct Core;

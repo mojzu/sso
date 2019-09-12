@@ -40,7 +40,7 @@ impl Metrics {
         registry.register(Box::new(memory_counter.clone())).unwrap();
         let memory_bytes: i64 = (p.memory() * 1024)
             .try_into()
-            .map_err(|_e| CoreError::Cast)?;
+            .map_err(|_e| CoreError::Metrics)?;
         memory_counter.inc_by(memory_bytes);
 
         Metrics::encode_registry(&registry)

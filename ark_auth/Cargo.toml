@@ -19,11 +19,9 @@ sync_client = []
 [dependencies]
 actix = "^0.8.3"
 actix-identity = "^0.1.0"
-actix-http = "^0.2.9"
 actix-rt = "^0.2.5"
 actix-service = "^0.4.2"
 actix-web = { version = "^1.0.7", features = ["rust-tls"] }
-awc = "^0.2.4"
 clap = "^2.33.0"
 chrono = { version = "^0.4.9", features = ["serde"] }
 derive_builder = "^0.7.2"

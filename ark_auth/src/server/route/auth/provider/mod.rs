@@ -12,7 +12,7 @@ pub fn route_v1_scope() -> actix_web::Scope {
         .service(microsoft::route_v1_scope())
 }
 
-pub fn oauth2_redirect(service: Service, token: UserToken) -> HttpResponse {
+fn oauth2_redirect(service: Service, token: UserToken) -> HttpResponse {
     let url = service.callback_url("oauth2", token);
     HttpResponse::Found()
         .header(header::LOCATION, url.as_str())

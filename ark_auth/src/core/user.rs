@@ -61,6 +61,20 @@ impl Default for UserPasswordMeta {
     }
 }
 
+/// User create data.
+pub struct UserCreate<'a> {
+    pub is_enabled: bool,
+    pub name: &'a str,
+    pub email: &'a str,
+    pub password_hash: Option<&'a str>,
+}
+
+/// User update data.
+pub struct UserUpdate<'a> {
+    pub is_enabled: Option<bool>,
+    pub name: Option<&'a str>,
+}
+
 /// User query.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserQuery {
@@ -144,14 +158,13 @@ impl User {
         }
 
         let password_hash = User::password_hash(password)?;
-        driver
-            .user_create(
-                is_enabled,
-                name,
-                email,
-                password_hash.as_ref().map(|x| &**x),
-            )
-            .map_err(CoreError::Driver)
+        let create = UserCreate {
+            is_enabled,
+            name,
+            email,
+            password_hash: password_hash.as_ref().map(|x| &**x),
+        };
+        driver.user_create(&create).map_err(CoreError::Driver)
     }
 
     /// Read user by ID.
@@ -183,8 +196,9 @@ impl User {
         is_enabled: Option<bool>,
         name: Option<&str>,
     ) -> CoreResult<User> {
+        let update = UserUpdate { is_enabled, name };
         driver
-            .user_update_by_id(id, is_enabled, name)
+            .user_update_by_id(id, &update)
             .map_err(CoreError::Driver)
     }
 
