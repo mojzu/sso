@@ -1,13 +1,8 @@
-[tasks.clean]
-workspace = false
-command = "cargo"
-args = ["clean"]
-
-[tasks.lint]
-workspace = false
-command = "cargo"
-args = ["clippy"]
-dependencies = ["format"]
+# Default targets:
+# - clean
+# - clippy
+# - format (fmt)
+# - check
 
 [tasks.postgres-migrations]
 workspace = false
@@ -22,6 +17,12 @@ script = [
     "(cd ark_kv && DATABASE_URL=\"db.sqlite3\" diesel database reset --migration-dir migrations/sqlite)",
 ]
 
+[tasks.manual]
+workspace = false
+script = [
+    "pandoc docs/ark_auth/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/pandoc.css --output=docs/ark_auth.html",
+]
+
 [tasks.build]
 workspace = false
 command = "cargo"
@@ -32,19 +33,26 @@ dependencies = ["format"]
 workspace = false
 command = "cargo"
 args = ["test"]
+dependencies = ["format"]
 
 [tasks.test-integration]
 workspace = false
 command = "cargo"
 args = ["test", "--", "--ignored"]
+dependencies = ["format"]
 
-[tasks.manual]
+[tasks.doc]
 workspace = false
-script = [
-    "pandoc docs/ark_auth/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/pandoc.css --output=docs/ark_auth.html",
-]
+command = "cargo"
+args = ["doc", "--no-deps", "--open"]
+dependencies = ["format"]
 
 [tasks.release]
 workspace = false
 command = "cargo"
 args = ["build", "--release"]
+dependencies = ["format"]
+
+[tasks.release-flow]
+workspace = false
+dependencies = ["manual", "test", "doc", "release"]
