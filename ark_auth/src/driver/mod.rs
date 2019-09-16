@@ -4,13 +4,13 @@ mod postgres;
 mod sqlite;
 
 #[cfg(feature = "postgres")]
-pub use crate::driver::postgres::*;
+pub use crate::driver::postgres::DriverPostgres;
 #[cfg(feature = "sqlite")]
-pub use crate::driver::sqlite::*;
+pub use crate::driver::sqlite::DriverSqlite;
 
 use crate::core::{
-    Audit, AuditCreate, Csrf, CsrfCreate, Key, KeyCreate, KeyUpdate, Service, ServiceCreate,
-    ServiceUpdate, User, UserCreate, UserUpdate,
+    Audit, AuditCreate, AuditList, CoreError, Csrf, CsrfCreate, Key, KeyCreate, KeyUpdate, Service,
+    ServiceCreate, ServiceUpdate, User, UserCreate, UserUpdate,
 };
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -18,6 +18,9 @@ use uuid::Uuid;
 /// Driver errors.
 #[derive(Debug, Fail)]
 pub enum DriverError {
+    #[fail(display = "DriverError:LockFn {}", _0)]
+    LockFn(String),
+
     #[fail(display = "DriverError:DieselResult {}", _0)]
     DieselResult(#[fail(cause)] diesel::result::Error),
 
@@ -26,6 +29,12 @@ pub enum DriverError {
 
     #[fail(display = "DriverError:R2d2 {}", _0)]
     R2d2(#[fail(cause)] r2d2::Error),
+}
+
+impl From<CoreError> for DriverError {
+    fn from(e: CoreError) -> Self {
+        Self::LockFn(format!("{}", e))
+    }
 }
 
 impl From<diesel::result::Error> for DriverError {
@@ -49,73 +58,28 @@ impl From<r2d2::Error> for DriverError {
 /// Driver result wrapper type.
 pub type DriverResult<T> = Result<T, DriverError>;
 
+/// Driver lock keys.
+pub enum DriverLock {
+    Transaction = 1,
+}
+
 /// Driver closure function type.
-pub type DriverLockFn = Box<dyn FnOnce(&dyn DriverIf) -> ()>;
+pub type DriverLockFn = Box<dyn FnOnce(&dyn DriverIf) -> DriverResult<usize>>;
 
 /// Driver interface trait.
 pub trait DriverIf {
     /// Run closure with an exclusive lock.
-    fn exclusive_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<()>;
+    fn exclusive_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<usize>;
 
     /// Run closure with a shared lock.
-    fn shared_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<()>;
+    fn shared_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<usize>;
 
     // ---------------
     // Audit Functions
     // ---------------
 
-    /// List audit logs where ID is less than.
-    fn audit_list_where_id_lt(
-        &self,
-        lt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>>;
-
-    /// List audit logs where ID is greater than.
-    fn audit_list_where_id_gt(
-        &self,
-        gt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>>;
-
-    /// List audit logs where ID is greater than and less than.
-    fn audit_list_where_id_gt_and_lt(
-        &self,
-        gt: Uuid,
-        lt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>>;
-
-    /// List audit logs where created datetime is less than.
-    fn audit_list_where_created_lte(
-        &self,
-        created_lte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>>;
-
-    /// List audit logs where created datetime is greater than.
-    fn audit_list_where_created_gte(
-        &self,
-        created_gte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>>;
-
-    /// List audit logs where created datetime is greater than and less than.
-    fn audit_list_where_created_gte_and_lte(
-        &self,
-        created_gte: &DateTime<Utc>,
-        created_lte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>>;
+    /// List audit logs.
+    fn audit_list(&self, list: &AuditList) -> DriverResult<Vec<Uuid>>;
 
     /// Create one audit log.
     fn audit_create(&self, data: &AuditCreate) -> DriverResult<Audit>;

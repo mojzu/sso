@@ -1,6 +1,6 @@
-use crate::{driver::postgres::schema::auth_audit, Audit, AuditCreate, DriverResult};
+use crate::{driver::postgres::schema::auth_audit, Audit, AuditCreate, AuditList, DriverResult};
 use chrono::{DateTime, Utc};
-use diesel::{dsl::sql, prelude::*, sql_types::BigInt, PgConnection};
+use diesel::{dsl::sql, prelude::*, sql_types::BigInt};
 use serde_json::Value;
 use std::convert::TryInto;
 use uuid::Uuid;
@@ -75,186 +75,12 @@ impl<'a> ModelAuditInsert<'a> {
 }
 
 impl ModelAudit {
-    pub fn list_where_id_lt(
-        conn: &PgConnection,
-        lt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .select(audit_id)
-                .filter(service_id.eq(service_id_mask).and(audit_id.lt(lt)))
-                .limit(limit)
-                .order(audit_id.desc())
-                .load::<Uuid>(conn),
-            None => auth_audit
-                .select(audit_id)
-                .filter(audit_id.lt(lt))
-                .limit(limit)
-                .order(audit_id.desc())
-                .load::<Uuid>(conn),
+    pub fn list(conn: &PgConnection, list: &AuditList) -> DriverResult<Vec<Uuid>> {
+        match list {
+            AuditList::CreatedLe(l) => Self::list_where_created_le(conn),
+            AuditList::CreatedGe(l) => Self::list_where_created_ge(conn),
+            AuditList::CreatedLeAndGe(l) => Self::list_where_created_le_and_ge(conn),
         }
-        .map_err(Into::into)
-        .map(|mut v| {
-            v.reverse();
-            v
-        })
-    }
-
-    pub fn list_where_id_gt(
-        conn: &PgConnection,
-        gt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .select(audit_id)
-                .filter(service_id.eq(service_id_mask).and(audit_id.gt(gt)))
-                .limit(limit)
-                .order(audit_id.asc())
-                .load::<Uuid>(conn),
-            None => auth_audit
-                .select(audit_id)
-                .filter(audit_id.gt(gt))
-                .limit(limit)
-                .order(audit_id.asc())
-                .load::<Uuid>(conn),
-        }
-        .map_err(Into::into)
-    }
-
-    pub fn list_where_id_gt_and_lt(
-        conn: &PgConnection,
-        gt: Uuid,
-        lt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        use crate::driver::postgres::schema::auth_audit::dsl::*;
-
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
-                .select(audit_id)
-                .filter(
-                    service_id
-                        .eq(service_id_mask)
-                        .and(audit_id.gt(gt))
-                        .and(audit_id.lt(lt)),
-                )
-                .limit(limit)
-                .order(audit_id.asc())
-                .load::<Uuid>(conn),
-            None => auth_audit
-                .select(audit_id)
-                .filter(audit_id.gt(gt).and(audit_id.lt(lt)))
-                .limit(limit)
-                .order(audit_id.asc())
-                .load::<Uuid>(conn),
-        }
-        .map_err(Into::into)
-    }
-
-    pub fn list_where_created_lte(
-        conn: &PgConnection,
-        created_lte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
-        ModelAudit::list_where_created_lte_inner(conn, created_lte, limit, offset, service_id_mask)
-            .and_then(|res| {
-                if let Some(offset_id) = offset_id {
-                    for (i, id) in res.iter().enumerate() {
-                        if id == &offset_id {
-                            let offset: i64 = (i + 1).try_into().unwrap();
-                            return ModelAudit::list_where_created_lte_inner(
-                                conn,
-                                created_lte,
-                                limit,
-                                offset,
-                                service_id_mask,
-                            );
-                        }
-                    }
-                }
-                Ok(res)
-            })
-            .map(|mut v| {
-                v.reverse();
-                v
-            })
-    }
-
-    pub fn list_where_created_gte(
-        conn: &PgConnection,
-        created_gte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
-        ModelAudit::list_where_created_gte_inner(conn, created_gte, limit, offset, service_id_mask)
-            .and_then(|res| {
-                if let Some(offset_id) = offset_id {
-                    for (i, id) in res.iter().enumerate() {
-                        if id == &offset_id {
-                            let offset: i64 = (i + 1).try_into().unwrap();
-                            return ModelAudit::list_where_created_gte_inner(
-                                conn,
-                                created_gte,
-                                limit,
-                                offset,
-                                service_id_mask,
-                            );
-                        }
-                    }
-                }
-                Ok(res)
-            })
-    }
-
-    pub fn list_where_created_gte_and_lte(
-        conn: &PgConnection,
-        created_gte: &DateTime<Utc>,
-        created_lte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
-        ModelAudit::list_where_created_gte_and_lte_inner(
-            conn,
-            created_gte,
-            created_lte,
-            limit,
-            offset,
-            service_id_mask,
-        )
-        .and_then(|res| {
-            if let Some(offset_id) = offset_id {
-                for (i, id) in res.iter().enumerate() {
-                    if id == &offset_id {
-                        let offset: i64 = (i + 1).try_into().unwrap();
-                        return ModelAudit::list_where_created_gte_and_lte_inner(
-                            conn,
-                            created_gte,
-                            created_lte,
-                            limit,
-                            offset,
-                            service_id_mask,
-                        );
-                    }
-                }
-            }
-            Ok(res)
-        })
     }
 
     pub fn create(conn: &PgConnection, create: &AuditCreate) -> DriverResult<Audit> {
@@ -323,7 +149,39 @@ impl ModelAudit {
             .map_err(Into::into)
     }
 
-    fn list_where_created_lte_inner(
+    fn list_where_created_le(
+        conn: &PgConnection,
+        created_lte: &DateTime<Utc>,
+        offset_id: Option<Uuid>,
+        limit: i64,
+        service_id_mask: Option<Uuid>,
+    ) -> DriverResult<Vec<Uuid>> {
+        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
+        ModelAudit::list_where_created_le_inner(conn, created_lte, limit, offset, service_id_mask)
+            .and_then(|res| {
+                if let Some(offset_id) = offset_id {
+                    for (i, id) in res.iter().enumerate() {
+                        if id == &offset_id {
+                            let offset: i64 = (i + 1).try_into().unwrap();
+                            return ModelAudit::list_where_created_le_inner(
+                                conn,
+                                created_lte,
+                                limit,
+                                offset,
+                                service_id_mask,
+                            );
+                        }
+                    }
+                }
+                Ok(res)
+            })
+            .map(|mut v| {
+                v.reverse();
+                v
+            })
+    }
+
+    fn list_where_created_le_inner(
         conn: &PgConnection,
         audit_created_lte: &DateTime<Utc>,
         limit: i64,
@@ -355,7 +213,35 @@ impl ModelAudit {
         .map_err(Into::into)
     }
 
-    fn list_where_created_gte_inner(
+    fn list_where_created_ge(
+        conn: &PgConnection,
+        created_gte: &DateTime<Utc>,
+        offset_id: Option<Uuid>,
+        limit: i64,
+        service_id_mask: Option<Uuid>,
+    ) -> DriverResult<Vec<Uuid>> {
+        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
+        ModelAudit::list_where_created_ge_inner(conn, created_gte, limit, offset, service_id_mask)
+            .and_then(|res| {
+                if let Some(offset_id) = offset_id {
+                    for (i, id) in res.iter().enumerate() {
+                        if id == &offset_id {
+                            let offset: i64 = (i + 1).try_into().unwrap();
+                            return ModelAudit::list_where_created_ge_inner(
+                                conn,
+                                created_gte,
+                                limit,
+                                offset,
+                                service_id_mask,
+                            );
+                        }
+                    }
+                }
+                Ok(res)
+            })
+    }
+
+    fn list_where_created_ge_inner(
         conn: &PgConnection,
         audit_created_gte: &DateTime<Utc>,
         limit: i64,
@@ -387,7 +273,44 @@ impl ModelAudit {
         .map_err(Into::into)
     }
 
-    fn list_where_created_gte_and_lte_inner(
+    fn list_where_created_le_and_ge(
+        conn: &PgConnection,
+        created_gte: &DateTime<Utc>,
+        created_lte: &DateTime<Utc>,
+        offset_id: Option<Uuid>,
+        limit: i64,
+        service_id_mask: Option<Uuid>,
+    ) -> DriverResult<Vec<Uuid>> {
+        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
+        ModelAudit::list_where_created_le_and_ge_inner(
+            conn,
+            created_gte,
+            created_lte,
+            limit,
+            offset,
+            service_id_mask,
+        )
+        .and_then(|res| {
+            if let Some(offset_id) = offset_id {
+                for (i, id) in res.iter().enumerate() {
+                    if id == &offset_id {
+                        let offset: i64 = (i + 1).try_into().unwrap();
+                        return ModelAudit::list_where_created_le_and_ge_inner(
+                            conn,
+                            created_gte,
+                            created_lte,
+                            limit,
+                            offset,
+                            service_id_mask,
+                        );
+                    }
+                }
+            }
+            Ok(res)
+        })
+    }
+
+    fn list_where_created_le_and_ge_inner(
         conn: &PgConnection,
         audit_created_gte: &DateTime<Utc>,
         audit_created_lte: &DateTime<Utc>,

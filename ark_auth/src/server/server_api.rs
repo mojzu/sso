@@ -1,7 +1,8 @@
 //! # Server API Types
 use crate::{
-    Audit, AuditData, AuditQuery, Key, KeyQuery, ServerValidate, ServerValidateFromValue, Service,
-    ServiceQuery, User, UserKey, UserPasswordMeta, UserQuery, UserToken, UserTokenAccess,
+    Audit, AuditData, AuditList, AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe,
+    Core, Key, KeyQuery, ServerValidate, ServerValidateFromValue, Service, ServiceQuery, User,
+    UserKey, UserPasswordMeta, UserQuery, UserToken, UserTokenAccess,
 };
 use chrono::{DateTime, Utc};
 use serde_json::Value;
@@ -91,10 +92,8 @@ pub mod route {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuditListQuery {
-    pub gt: Option<Uuid>,
-    pub lt: Option<Uuid>,
-    pub created_gte: Option<DateTime<Utc>>,
-    pub created_lte: Option<DateTime<Utc>>,
+    pub ge: Option<DateTime<Utc>>,
+    pub le: Option<DateTime<Utc>>,
     pub offset_id: Option<Uuid>,
     #[validate(custom = "ServerValidate::limit")]
     pub limit: Option<String>,
@@ -102,15 +101,41 @@ pub struct AuditListQuery {
 
 impl ServerValidateFromValue<AuditListQuery> for AuditListQuery {}
 
-impl From<AuditListQuery> for AuditQuery {
-    fn from(query: AuditListQuery) -> AuditQuery {
-        AuditQuery {
-            gt: query.gt,
-            lt: query.lt,
-            created_gte: query.created_gte,
-            created_lte: query.created_lte,
-            offset_id: query.offset_id,
-            limit: i64_from_string(query.limit),
+impl<'a> AuditListQuery {
+    pub fn to_audit_list(
+        &'a self,
+        now: &'a DateTime<Utc>,
+        service_id_mask: Option<&'a Uuid>,
+    ) -> AuditList<'a> {
+        let limit = i64_from_string(self.limit).unwrap_or_else(Core::default_limit);
+        let offset_id = self.offset_id.as_ref();
+
+        match (&self.ge, &self.le) {
+            (Some(ge), Some(le)) => AuditList::CreatedLeAndGe(AuditListCreatedLeAndGe {
+                ge,
+                le,
+                limit,
+                offset_id,
+                service_id_mask,
+            }),
+            (Some(ge), None) => AuditList::CreatedGe(AuditListCreatedGe {
+                ge,
+                limit,
+                offset_id,
+                service_id_mask,
+            }),
+            (None, Some(le)) => AuditList::CreatedLe(AuditListCreatedLe {
+                le,
+                limit,
+                offset_id,
+                service_id_mask,
+            }),
+            (None, None) => AuditList::CreatedLe(AuditListCreatedLe {
+                le: now,
+                limit,
+                offset_id,
+                service_id_mask,
+            }),
         }
     }
 }
@@ -118,7 +143,8 @@ impl From<AuditListQuery> for AuditQuery {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuditListResponse {
-    pub meta: AuditQuery,
+    // TODO(refactor): Return audit list parameters.
+    // pub meta: AuditQuery,
     pub data: Vec<Uuid>,
 }
 

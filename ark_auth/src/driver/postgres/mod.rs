@@ -4,9 +4,9 @@ mod schema;
 
 use crate::{
     driver::postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
-    Audit, AuditCreate, Csrf, CsrfCreate, Driver, DriverError, DriverIf, DriverLockFn,
-    DriverResult, Key, KeyCreate, KeyUpdate, Service, ServiceCreate, ServiceUpdate, User,
-    UserCreate, UserUpdate,
+    Audit, AuditCreate, AuditList, Csrf, CsrfCreate, Driver, DriverError, DriverIf, DriverLock,
+    DriverLockFn, DriverResult, Key, KeyCreate, KeyUpdate, Service, ServiceCreate, ServiceUpdate,
+    User, UserCreate, UserUpdate,
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
@@ -47,102 +47,31 @@ impl DriverPostgres {
 }
 
 impl DriverIf for DriverPostgres {
-    fn exclusive_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<()> {
+    fn exclusive_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<usize> {
         use diesel_admin::*;
 
         let conn = self.conn()?;
         conn.transaction(|| {
-            diesel::select(pg_advisory_xact_lock(1, key)).execute(&conn)?;
+            diesel::select(pg_advisory_xact_lock(1, key as i32)).execute(&conn)?;
             let conn_driver = DriverPostgresConn::new(&conn);
-            func(&conn_driver);
-            Ok(())
+            func(&conn_driver)
         })
-        .map_err(DriverError::DieselResult)
     }
 
-    fn shared_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<()> {
+    fn shared_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<usize> {
         use diesel_admin::*;
 
         let conn = self.conn()?;
         conn.transaction(|| {
-            diesel::select(pg_advisory_xact_lock_shared(1, key)).execute(&conn)?;
+            diesel::select(pg_advisory_xact_lock_shared(1, key as i32)).execute(&conn)?;
             let conn_driver = DriverPostgresConn::new(&conn);
-            func(&conn_driver);
-            Ok(())
+            func(&conn_driver)
         })
-        .map_err(DriverError::DieselResult)
     }
 
-    fn audit_list_where_id_lt(
-        &self,
-        lt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
+    fn audit_list(&self, list: &AuditList) -> DriverResult<Vec<Uuid>> {
         let conn = self.conn()?;
-        ModelAudit::list_where_id_lt(&conn, lt, limit, service_id_mask)
-    }
-
-    fn audit_list_where_id_gt(
-        &self,
-        gt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        let conn = self.conn()?;
-        ModelAudit::list_where_id_gt(&conn, gt, limit, service_id_mask)
-    }
-
-    fn audit_list_where_id_gt_and_lt(
-        &self,
-        gt: Uuid,
-        lt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        let conn = self.conn()?;
-        ModelAudit::list_where_id_gt_and_lt(&conn, gt, lt, limit, service_id_mask)
-    }
-
-    fn audit_list_where_created_lte(
-        &self,
-        created_lte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        let conn = self.conn()?;
-        ModelAudit::list_where_created_lte(&conn, created_lte, offset_id, limit, service_id_mask)
-    }
-
-    fn audit_list_where_created_gte(
-        &self,
-        created_gte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        let conn = self.conn()?;
-        ModelAudit::list_where_created_gte(&conn, created_gte, offset_id, limit, service_id_mask)
-    }
-
-    fn audit_list_where_created_gte_and_lte(
-        &self,
-        created_gte: &DateTime<Utc>,
-        created_lte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        let conn = self.conn()?;
-        ModelAudit::list_where_created_gte_and_lte(
-            &conn,
-            created_gte,
-            created_lte,
-            offset_id,
-            limit,
-            service_id_mask,
-        )
+        ModelAudit::list(&conn, list)
     }
 
     fn audit_create(&self, create: &AuditCreate) -> DriverResult<Audit> {
@@ -379,108 +308,30 @@ impl<'a> DriverPostgresConn<'a> {
 }
 
 impl<'a> DriverIf for DriverPostgresConn<'a> {
-    fn exclusive_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<()> {
+    fn exclusive_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<usize> {
         use diesel_admin::*;
 
         let conn = self.conn();
         conn.transaction(|| {
-            diesel::select(pg_advisory_xact_lock(1, key)).execute(conn)?;
+            diesel::select(pg_advisory_xact_lock(1, key as i32)).execute(conn)?;
             let conn_driver = DriverPostgresConn::new(conn);
-            func(&conn_driver);
-            Ok(())
+            func(&conn_driver)
         })
-        .map_err(DriverError::DieselResult)
     }
 
-    fn shared_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<()> {
+    fn shared_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<usize> {
         use diesel_admin::*;
 
         let conn = self.conn();
         conn.transaction(|| {
-            diesel::select(pg_advisory_xact_lock_shared(1, key)).execute(conn)?;
+            diesel::select(pg_advisory_xact_lock_shared(1, key as i32)).execute(conn)?;
             let conn_driver = DriverPostgresConn::new(conn);
-            func(&conn_driver);
-            Ok(())
+            func(&conn_driver)
         })
-        .map_err(DriverError::DieselResult)
     }
 
-    fn audit_list_where_id_lt(
-        &self,
-        lt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        ModelAudit::list_where_id_lt(self.conn(), lt, limit, service_id_mask)
-    }
-
-    fn audit_list_where_id_gt(
-        &self,
-        gt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        ModelAudit::list_where_id_gt(self.conn(), gt, limit, service_id_mask)
-    }
-
-    fn audit_list_where_id_gt_and_lt(
-        &self,
-        gt: Uuid,
-        lt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        ModelAudit::list_where_id_gt_and_lt(self.conn(), gt, lt, limit, service_id_mask)
-    }
-
-    fn audit_list_where_created_lte(
-        &self,
-        created_lte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        ModelAudit::list_where_created_lte(
-            self.conn(),
-            created_lte,
-            offset_id,
-            limit,
-            service_id_mask,
-        )
-    }
-
-    fn audit_list_where_created_gte(
-        &self,
-        created_gte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        ModelAudit::list_where_created_gte(
-            self.conn(),
-            created_gte,
-            offset_id,
-            limit,
-            service_id_mask,
-        )
-    }
-
-    fn audit_list_where_created_gte_and_lte(
-        &self,
-        created_gte: &DateTime<Utc>,
-        created_lte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        ModelAudit::list_where_created_gte_and_lte(
-            self.conn(),
-            created_gte,
-            created_lte,
-            offset_id,
-            limit,
-            service_id_mask,
-        )
+    fn audit_list(&self, list: &AuditList) -> DriverResult<Vec<Uuid>> {
+        ModelAudit::list(self.conn(), list)
     }
 
     fn audit_create(&self, create: &AuditCreate) -> DriverResult<Audit> {

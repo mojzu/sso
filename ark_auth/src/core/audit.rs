@@ -1,4 +1,4 @@
-use crate::{Core, CoreError, CoreResult, Driver, Key, Service, User};
+use crate::{CoreError, CoreResult, Driver, Key, Service, User};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -124,15 +124,40 @@ impl<'a> AuditCreate<'a> {
     }
 }
 
-/// Audit list query.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AuditQuery {
-    pub gt: Option<Uuid>,
-    pub lt: Option<Uuid>,
-    pub created_gte: Option<DateTime<Utc>>,
-    pub created_lte: Option<DateTime<Utc>>,
-    pub offset_id: Option<Uuid>,
-    pub limit: Option<i64>,
+/// Audit list where created less than or equal.
+#[derive(Debug)]
+pub struct AuditListCreatedLe<'a> {
+    le: &'a DateTime<Utc>,
+    limit: i64,
+    offset_id: Option<&'a Uuid>,
+    service_id_mask: Option<&'a Uuid>,
+}
+
+/// Audit list where created greater than or equal.
+#[derive(Debug)]
+pub struct AuditListCreatedGe<'a> {
+    ge: &'a DateTime<Utc>,
+    limit: i64,
+    offset_id: Option<&'a Uuid>,
+    service_id_mask: Option<&'a Uuid>,
+}
+
+/// Audit list where created less than or equal and greater than or equal.
+#[derive(Debug)]
+pub struct AuditListCreatedLeAndGe<'a> {
+    le: &'a DateTime<Utc>,
+    ge: &'a DateTime<Utc>,
+    limit: i64,
+    offset_id: Option<&'a Uuid>,
+    service_id_mask: Option<&'a Uuid>,
+}
+
+/// Audit list.
+#[derive(Debug)]
+pub enum AuditList<'a> {
+    CreatedLe(AuditListCreatedLe<'a>),
+    CreatedGe(AuditListCreatedGe<'a>),
+    CreatedLeAndGe(AuditListCreatedLeAndGe<'a>),
 }
 
 /// Audit data.
@@ -366,45 +391,9 @@ impl Audit {
         driver: &dyn Driver,
         service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
-        query: &AuditQuery,
+        list: &AuditList,
     ) -> CoreResult<Vec<Uuid>> {
-        let limit = query.limit.unwrap_or_else(Core::default_limit);
-        let service_mask = service_mask.map(|s| s.id);
-
-        match (query.gt, query.lt) {
-            (Some(gt), Some(lt)) => {
-                driver.audit_list_where_id_gt_and_lt(gt, lt, limit, service_mask)
-            }
-            (Some(gt), None) => driver.audit_list_where_id_gt(gt, limit, service_mask),
-            (None, Some(lt)) => driver.audit_list_where_id_lt(lt, limit, service_mask),
-            (None, None) => {
-                let offset_id = query.offset_id;
-                match (&query.created_gte, &query.created_lte) {
-                    (Some(created_gte), Some(created_lte)) => driver
-                        .audit_list_where_created_gte_and_lte(
-                            created_gte,
-                            created_lte,
-                            offset_id,
-                            limit,
-                            service_mask,
-                        ),
-                    (Some(created_gte), None) => driver.audit_list_where_created_gte(
-                        created_gte,
-                        offset_id,
-                        limit,
-                        service_mask,
-                    ),
-                    (None, Some(created_lte)) => driver.audit_list_where_created_lte(
-                        created_lte,
-                        offset_id,
-                        limit,
-                        service_mask,
-                    ),
-                    (None, None) => driver.audit_list_where_id_gt(Uuid::nil(), limit, service_mask),
-                }
-            }
-        }
-        .map_err(CoreError::Driver)
+        driver.audit_list(list).map_err(Into::into)
     }
 
     /// Create one audit log.
