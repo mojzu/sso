@@ -54,8 +54,8 @@ fn list_inner(
     Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
             let now = Utc::now();
-            let list = query.to_audit_list(&now, service.map(|x| &x.id));
-            let audit_ids = Audit::list(data.driver(), service.as_ref(), &mut audit, &list)?;
+            let list = query.to_audit_list(&now, service.as_ref().map(|x| &x.id));
+            let audit_ids = Audit::list(data.driver(), &mut audit, &list)?;
             Ok(AuditListResponse { data: audit_ids })
         })
         .map_err(Into::into)

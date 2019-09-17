@@ -9,7 +9,7 @@ use serde_json::Value;
 use uuid::Uuid;
 use validator::Validate;
 
-fn i64_from_string(value: Option<String>) -> Option<i64> {
+fn i64_from_string(value: Option<&str>) -> Option<i64> {
     value.map(|x| x.parse::<i64>().unwrap())
 }
 
@@ -107,7 +107,8 @@ impl<'a> AuditListQuery {
         now: &'a DateTime<Utc>,
         service_id_mask: Option<&'a Uuid>,
     ) -> AuditList<'a> {
-        let limit = i64_from_string(self.limit).unwrap_or_else(Core::default_limit);
+        let limit =
+            i64_from_string(self.limit.as_ref().map(|x| &**x)).unwrap_or_else(Core::default_limit);
         let offset_id = self.offset_id.as_ref();
 
         match (&self.ge, &self.le) {
@@ -431,7 +432,7 @@ impl From<KeyListQuery> for KeyQuery {
         KeyQuery {
             gt: query.gt,
             lt: query.lt,
-            limit: i64_from_string(query.limit),
+            limit: i64_from_string(query.limit.as_ref().map(|x| &**x)),
         }
     }
 }
@@ -522,7 +523,7 @@ impl From<ServiceListQuery> for ServiceQuery {
         ServiceQuery {
             gt: query.gt,
             lt: query.lt,
-            limit: i64_from_string(query.limit),
+            limit: i64_from_string(query.limit.as_ref().map(|x| &**x)),
         }
     }
 }
@@ -598,7 +599,7 @@ impl From<UserListQuery> for UserQuery {
         UserQuery {
             gt: query.gt,
             lt: query.lt,
-            limit: i64_from_string(query.limit),
+            limit: i64_from_string(query.limit.as_ref().map(|x| &**x)),
             email_eq: query.email_eq,
         }
     }

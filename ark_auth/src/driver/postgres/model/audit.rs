@@ -77,9 +77,20 @@ impl<'a> ModelAuditInsert<'a> {
 impl ModelAudit {
     pub fn list(conn: &PgConnection, list: &AuditList) -> DriverResult<Vec<Uuid>> {
         match list {
-            AuditList::CreatedLe(l) => Self::list_where_created_le(conn),
-            AuditList::CreatedGe(l) => Self::list_where_created_ge(conn),
-            AuditList::CreatedLeAndGe(l) => Self::list_where_created_le_and_ge(conn),
+            AuditList::CreatedLe(l) => {
+                Self::list_where_created_le(conn, l.le, l.offset_id, l.limit, l.service_id_mask)
+            }
+            AuditList::CreatedGe(l) => {
+                Self::list_where_created_ge(conn, l.ge, l.offset_id, l.limit, l.service_id_mask)
+            }
+            AuditList::CreatedLeAndGe(l) => Self::list_where_created_le_and_ge(
+                conn,
+                l.le,
+                l.ge,
+                l.offset_id,
+                l.limit,
+                l.service_id_mask,
+            ),
         }
     }
 
@@ -151,21 +162,21 @@ impl ModelAudit {
 
     fn list_where_created_le(
         conn: &PgConnection,
-        created_lte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
+        created_le: &DateTime<Utc>,
+        offset_id: Option<&Uuid>,
         limit: i64,
-        service_id_mask: Option<Uuid>,
+        service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
-        ModelAudit::list_where_created_le_inner(conn, created_lte, limit, offset, service_id_mask)
+        ModelAudit::list_where_created_le_inner(conn, created_le, limit, offset, service_id_mask)
             .and_then(|res| {
                 if let Some(offset_id) = offset_id {
                     for (i, id) in res.iter().enumerate() {
-                        if id == &offset_id {
+                        if id == offset_id {
                             let offset: i64 = (i + 1).try_into().unwrap();
                             return ModelAudit::list_where_created_le_inner(
                                 conn,
-                                created_lte,
+                                created_le,
                                 limit,
                                 offset,
                                 service_id_mask,
@@ -183,10 +194,10 @@ impl ModelAudit {
 
     fn list_where_created_le_inner(
         conn: &PgConnection,
-        audit_created_lte: &DateTime<Utc>,
+        audit_created_le: &DateTime<Utc>,
         limit: i64,
         offset: i64,
-        service_id_mask: Option<Uuid>,
+        service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         use crate::driver::postgres::schema::auth_audit::dsl::*;
 
@@ -196,7 +207,7 @@ impl ModelAudit {
                 .filter(
                     service_id
                         .eq(service_id_mask)
-                        .and(created_at.le(audit_created_lte)),
+                        .and(created_at.le(audit_created_le)),
                 )
                 .limit(limit)
                 .offset(offset)
@@ -204,7 +215,7 @@ impl ModelAudit {
                 .load::<Uuid>(conn),
             None => auth_audit
                 .select(audit_id)
-                .filter(created_at.le(audit_created_lte))
+                .filter(created_at.le(audit_created_le))
                 .limit(limit)
                 .offset(offset)
                 .order(created_at.desc())
@@ -215,21 +226,21 @@ impl ModelAudit {
 
     fn list_where_created_ge(
         conn: &PgConnection,
-        created_gte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
+        created_ge: &DateTime<Utc>,
+        offset_id: Option<&Uuid>,
         limit: i64,
-        service_id_mask: Option<Uuid>,
+        service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
-        ModelAudit::list_where_created_ge_inner(conn, created_gte, limit, offset, service_id_mask)
+        ModelAudit::list_where_created_ge_inner(conn, created_ge, limit, offset, service_id_mask)
             .and_then(|res| {
                 if let Some(offset_id) = offset_id {
                     for (i, id) in res.iter().enumerate() {
-                        if id == &offset_id {
+                        if id == offset_id {
                             let offset: i64 = (i + 1).try_into().unwrap();
                             return ModelAudit::list_where_created_ge_inner(
                                 conn,
-                                created_gte,
+                                created_ge,
                                 limit,
                                 offset,
                                 service_id_mask,
@@ -243,10 +254,10 @@ impl ModelAudit {
 
     fn list_where_created_ge_inner(
         conn: &PgConnection,
-        audit_created_gte: &DateTime<Utc>,
+        audit_created_ge: &DateTime<Utc>,
         limit: i64,
         offset: i64,
-        service_id_mask: Option<Uuid>,
+        service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         use crate::driver::postgres::schema::auth_audit::dsl::*;
 
@@ -256,7 +267,7 @@ impl ModelAudit {
                 .filter(
                     service_id
                         .eq(service_id_mask)
-                        .and(created_at.ge(audit_created_gte)),
+                        .and(created_at.ge(audit_created_ge)),
                 )
                 .limit(limit)
                 .offset(offset)
@@ -264,7 +275,7 @@ impl ModelAudit {
                 .load::<Uuid>(conn),
             None => auth_audit
                 .select(audit_id)
-                .filter(created_at.ge(audit_created_gte))
+                .filter(created_at.ge(audit_created_ge))
                 .limit(limit)
                 .offset(offset)
                 .order(created_at.asc())
@@ -275,17 +286,17 @@ impl ModelAudit {
 
     fn list_where_created_le_and_ge(
         conn: &PgConnection,
-        created_gte: &DateTime<Utc>,
-        created_lte: &DateTime<Utc>,
-        offset_id: Option<Uuid>,
+        created_le: &DateTime<Utc>,
+        created_ge: &DateTime<Utc>,
+        offset_id: Option<&Uuid>,
         limit: i64,
-        service_id_mask: Option<Uuid>,
+        service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
         ModelAudit::list_where_created_le_and_ge_inner(
             conn,
-            created_gte,
-            created_lte,
+            created_le,
+            created_ge,
             limit,
             offset,
             service_id_mask,
@@ -293,12 +304,12 @@ impl ModelAudit {
         .and_then(|res| {
             if let Some(offset_id) = offset_id {
                 for (i, id) in res.iter().enumerate() {
-                    if id == &offset_id {
+                    if id == offset_id {
                         let offset: i64 = (i + 1).try_into().unwrap();
                         return ModelAudit::list_where_created_le_and_ge_inner(
                             conn,
-                            created_gte,
-                            created_lte,
+                            created_le,
+                            created_ge,
                             limit,
                             offset,
                             service_id_mask,
@@ -312,11 +323,11 @@ impl ModelAudit {
 
     fn list_where_created_le_and_ge_inner(
         conn: &PgConnection,
-        audit_created_gte: &DateTime<Utc>,
-        audit_created_lte: &DateTime<Utc>,
+        audit_created_le: &DateTime<Utc>,
+        audit_created_ge: &DateTime<Utc>,
         limit: i64,
         offset: i64,
-        service_id_mask: Option<Uuid>,
+        service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Uuid>> {
         use crate::driver::postgres::schema::auth_audit::dsl::*;
 
@@ -326,8 +337,8 @@ impl ModelAudit {
                 .filter(
                     service_id
                         .eq(service_id_mask)
-                        .and(created_at.ge(audit_created_gte))
-                        .and(created_at.le(audit_created_lte)),
+                        .and(created_at.ge(audit_created_ge))
+                        .and(created_at.le(audit_created_le)),
                 )
                 .limit(limit)
                 .offset(offset)
@@ -337,8 +348,8 @@ impl ModelAudit {
                 .select(audit_id)
                 .filter(
                     created_at
-                        .ge(audit_created_gte)
-                        .and(created_at.le(audit_created_lte)),
+                        .ge(audit_created_ge)
+                        .and(created_at.le(audit_created_le)),
                 )
                 .limit(limit)
                 .offset(offset)

@@ -127,29 +127,29 @@ impl<'a> AuditCreate<'a> {
 /// Audit list where created less than or equal.
 #[derive(Debug)]
 pub struct AuditListCreatedLe<'a> {
-    le: &'a DateTime<Utc>,
-    limit: i64,
-    offset_id: Option<&'a Uuid>,
-    service_id_mask: Option<&'a Uuid>,
+    pub le: &'a DateTime<Utc>,
+    pub limit: i64,
+    pub offset_id: Option<&'a Uuid>,
+    pub service_id_mask: Option<&'a Uuid>,
 }
 
 /// Audit list where created greater than or equal.
 #[derive(Debug)]
 pub struct AuditListCreatedGe<'a> {
-    ge: &'a DateTime<Utc>,
-    limit: i64,
-    offset_id: Option<&'a Uuid>,
-    service_id_mask: Option<&'a Uuid>,
+    pub ge: &'a DateTime<Utc>,
+    pub limit: i64,
+    pub offset_id: Option<&'a Uuid>,
+    pub service_id_mask: Option<&'a Uuid>,
 }
 
 /// Audit list where created less than or equal and greater than or equal.
 #[derive(Debug)]
 pub struct AuditListCreatedLeAndGe<'a> {
-    le: &'a DateTime<Utc>,
-    ge: &'a DateTime<Utc>,
-    limit: i64,
-    offset_id: Option<&'a Uuid>,
-    service_id_mask: Option<&'a Uuid>,
+    pub le: &'a DateTime<Utc>,
+    pub ge: &'a DateTime<Utc>,
+    pub limit: i64,
+    pub offset_id: Option<&'a Uuid>,
+    pub service_id_mask: Option<&'a Uuid>,
 }
 
 /// Audit list.
@@ -389,7 +389,6 @@ impl Audit {
     /// List audit IDs.
     pub fn list(
         driver: &dyn Driver,
-        service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         list: &AuditList,
     ) -> CoreResult<Vec<Uuid>> {
