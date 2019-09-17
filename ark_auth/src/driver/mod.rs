@@ -91,7 +91,7 @@ pub trait DriverIf {
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Option<Audit>>;
 
-    /// Read audit metrics, returns array of counts for distinct audit paths.
+    /// Read audit metrics, returns array of counts for distinct audit types.
     fn audit_read_metrics(&self, service_id_mask: Option<Uuid>)
         -> DriverResult<Vec<(String, i64)>>;
 

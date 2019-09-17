@@ -1,3 +1,7 @@
+mod type_;
+
+pub use crate::core::audit::type_::*;
+
 use crate::{CoreError, CoreResult, Driver, Key, Service, User};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
@@ -6,8 +10,8 @@ use std::fmt;
 use time::Duration;
 use uuid::Uuid;
 
-/// Audit path maximum length.
-pub const AUDIT_PATH_MAX_LEN: usize = 200;
+/// Audit type maximum length.
+pub const AUDIT_TYPE_MAX_LEN: usize = 200;
 
 /// Audit.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,7 +21,7 @@ pub struct Audit {
     pub user_agent: String,
     pub remote: String,
     pub forwarded: Option<String>,
-    pub path: String,
+    pub type_: String,
     pub data: Value,
     pub key_id: Option<Uuid>,
     pub service_id: Option<Uuid>,
@@ -34,7 +38,7 @@ impl fmt::Display for Audit {
         if let Some(forwarded) = &self.forwarded {
             write!(f, "\n\tforwarded {}", forwarded)?;
         }
-        write!(f, "\n\tpath {}", self.path)?;
+        write!(f, "\n\ttype {}", self.type_)?;
         write!(f, "\n\tdata {}", self.data)?;
         if let Some(key_id) = &self.key_id {
             write!(f, "\n\tkey_id {}", key_id)?;
@@ -50,6 +54,77 @@ impl fmt::Display for Audit {
         }
         Ok(())
     }
+}
+
+/// Audit create data.
+pub struct AuditCreate<'a> {
+    pub meta: &'a AuditMeta,
+    pub type_: &'a str,
+    pub data: &'a Value,
+    pub key_id: Option<&'a Uuid>,
+    pub service_id: Option<&'a Uuid>,
+    pub user_id: Option<&'a Uuid>,
+    pub user_key_id: Option<&'a Uuid>,
+}
+
+impl<'a> AuditCreate<'a> {
+    /// New create data reference.
+    pub fn new(
+        meta: &'a AuditMeta,
+        type_: &'a str,
+        data: &'a Value,
+        key_id: Option<&'a Uuid>,
+        service_id: Option<&'a Uuid>,
+        user_id: Option<&'a Uuid>,
+        user_key_id: Option<&'a Uuid>,
+    ) -> Self {
+        Self {
+            meta,
+            type_,
+            data,
+            key_id,
+            service_id,
+            user_id,
+            user_key_id,
+        }
+    }
+}
+
+/// Audit list where created less than or equal.
+#[derive(Debug)]
+pub struct AuditListCreatedLe<'a> {
+    pub le: &'a DateTime<Utc>,
+    pub limit: i64,
+    pub offset_id: Option<&'a Uuid>,
+    pub service_id_mask: Option<&'a Uuid>,
+    // TODO(refactor): Types filter, data matches filter, user filter.
+}
+
+/// Audit list where created greater than or equal.
+#[derive(Debug)]
+pub struct AuditListCreatedGe<'a> {
+    pub ge: &'a DateTime<Utc>,
+    pub limit: i64,
+    pub offset_id: Option<&'a Uuid>,
+    pub service_id_mask: Option<&'a Uuid>,
+}
+
+/// Audit list where created less than or equal and greater than or equal.
+#[derive(Debug)]
+pub struct AuditListCreatedLeAndGe<'a> {
+    pub le: &'a DateTime<Utc>,
+    pub ge: &'a DateTime<Utc>,
+    pub limit: i64,
+    pub offset_id: Option<&'a Uuid>,
+    pub service_id_mask: Option<&'a Uuid>,
+}
+
+/// Audit list.
+#[derive(Debug)]
+pub enum AuditList<'a> {
+    CreatedLe(AuditListCreatedLe<'a>),
+    CreatedGe(AuditListCreatedGe<'a>),
+    CreatedLeAndGe(AuditListCreatedLeAndGe<'a>),
 }
 
 /// Audit metadata, HTTP request information.
@@ -90,151 +165,11 @@ impl AuditMeta {
     }
 }
 
-/// Audit create data.
-pub struct AuditCreate<'a> {
-    pub meta: &'a AuditMeta,
-    pub path: &'a str,
-    pub data: &'a Value,
-    pub key_id: Option<&'a Uuid>,
-    pub service_id: Option<&'a Uuid>,
-    pub user_id: Option<&'a Uuid>,
-    pub user_key_id: Option<&'a Uuid>,
-}
-
-impl<'a> AuditCreate<'a> {
-    /// New create data reference.
-    pub fn new(
-        meta: &'a AuditMeta,
-        path: &'a str,
-        data: &'a Value,
-        key_id: Option<&'a Uuid>,
-        service_id: Option<&'a Uuid>,
-        user_id: Option<&'a Uuid>,
-        user_key_id: Option<&'a Uuid>,
-    ) -> Self {
-        Self {
-            meta,
-            path,
-            data,
-            key_id,
-            service_id,
-            user_id,
-            user_key_id,
-        }
-    }
-}
-
-/// Audit list where created less than or equal.
-#[derive(Debug)]
-pub struct AuditListCreatedLe<'a> {
-    pub le: &'a DateTime<Utc>,
-    pub limit: i64,
-    pub offset_id: Option<&'a Uuid>,
-    pub service_id_mask: Option<&'a Uuid>,
-}
-
-/// Audit list where created greater than or equal.
-#[derive(Debug)]
-pub struct AuditListCreatedGe<'a> {
-    pub ge: &'a DateTime<Utc>,
-    pub limit: i64,
-    pub offset_id: Option<&'a Uuid>,
-    pub service_id_mask: Option<&'a Uuid>,
-}
-
-/// Audit list where created less than or equal and greater than or equal.
-#[derive(Debug)]
-pub struct AuditListCreatedLeAndGe<'a> {
-    pub le: &'a DateTime<Utc>,
-    pub ge: &'a DateTime<Utc>,
-    pub limit: i64,
-    pub offset_id: Option<&'a Uuid>,
-    pub service_id_mask: Option<&'a Uuid>,
-}
-
-/// Audit list.
-#[derive(Debug)]
-pub enum AuditList<'a> {
-    CreatedLe(AuditListCreatedLe<'a>),
-    CreatedGe(AuditListCreatedGe<'a>),
-    CreatedLeAndGe(AuditListCreatedLeAndGe<'a>),
-}
-
 /// Audit data.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuditData {
-    pub path: String,
+    pub type_: String,
     pub data: Value,
-}
-
-/// Audit paths.
-#[derive(Debug, Serialize, Deserialize)]
-pub enum AuditPath {
-    AuthenticateError,
-    Login,
-    LoginError,
-    ResetPassword,
-    ResetPasswordError,
-    ResetPasswordConfirm,
-    ResetPasswordConfirmError,
-    UpdateEmail,
-    UpdateEmailError,
-    UpdateEmailRevoke,
-    UpdateEmailRevokeError,
-    UpdatePassword,
-    UpdatePasswordError,
-    UpdatePasswordRevoke,
-    UpdatePasswordRevokeError,
-    Oauth2Login,
-    Oauth2LoginError,
-    KeyVerifyError,
-    KeyRevoke,
-    KeyRevokeError,
-    TokenVerifyError,
-    TokenRefresh,
-    TokenRefreshError,
-    TokenRevoke,
-    TokenRevokeError,
-    TotpError,
-}
-
-impl AuditPath {
-    /// Return string representation and JSON value of key.
-    pub fn to_string(&self) -> String {
-        let prefix = crate_name!();
-        match self {
-            AuditPath::AuthenticateError => format!("{}.error.authenticate", prefix),
-            AuditPath::Login => format!("{}.login", prefix),
-            AuditPath::LoginError => format!("{}.error.login", prefix),
-            AuditPath::ResetPassword => format!("{}.reset_password", prefix),
-            AuditPath::ResetPasswordError => format!("{}.error.reset_password", prefix),
-            AuditPath::ResetPasswordConfirm => format!("{}.reset_password_confirm", prefix),
-            AuditPath::ResetPasswordConfirmError => {
-                format!("{}.error.reset_password_confirm", prefix)
-            }
-            AuditPath::UpdateEmail => format!("{}.update_email", prefix),
-            AuditPath::UpdateEmailError => format!("{}.error.update_email", prefix),
-            AuditPath::UpdateEmailRevoke => format!("{}.update_email_revoke", prefix),
-            AuditPath::UpdateEmailRevokeError => format!("{}.error.update_email_revoke", prefix),
-            AuditPath::UpdatePassword => format!("{}.update_password", prefix),
-            AuditPath::UpdatePasswordError => format!("{}.error.update_password", prefix),
-            AuditPath::UpdatePasswordRevoke => format!("{}.update_password_revoke", prefix),
-            AuditPath::UpdatePasswordRevokeError => {
-                format!("{}.error.update_password_revoke", prefix)
-            }
-            AuditPath::Oauth2Login => format!("{}.oauth2_login", prefix),
-            AuditPath::Oauth2LoginError => format!("{}.error.oauth2_login", prefix),
-            AuditPath::KeyVerifyError => format!("{}.error.key_verify", prefix),
-            AuditPath::KeyRevoke => format!("{}.key_revoke", prefix),
-            AuditPath::KeyRevokeError => format!("{}.error.key_revoke", prefix),
-            AuditPath::TokenVerifyError => format!("{}.error.token_verify", prefix),
-            AuditPath::TokenRefresh => format!("{}.token_refresh", prefix),
-            AuditPath::TokenRefreshError => format!("{}.error.token_refresh", prefix),
-            AuditPath::TokenRevoke => format!("{}.token_revoke", prefix),
-            AuditPath::TokenRevokeError => format!("{}.error.token_revoke", prefix),
-            AuditPath::TotpError => format!("{}.error.totp", prefix),
-        }
-    }
 }
 
 /// Audit messages.
@@ -329,10 +264,10 @@ impl AuditBuilder {
     }
 
     /// Create audit log from internal parameters.
-    pub fn create(&self, driver: &dyn Driver, path: &str, data: &Value) -> CoreResult<Audit> {
+    pub fn create(&self, driver: &dyn Driver, type_: &str, data: &Value) -> CoreResult<Audit> {
         let data = AuditCreate::new(
             &self.meta,
-            path,
+            type_,
             data,
             self.key.as_ref(),
             self.service.as_ref(),
@@ -344,8 +279,13 @@ impl AuditBuilder {
 
     /// Create audit log from internal parameters.
     /// In case of error, log as warning and return None.
-    pub fn create_unchecked(&self, driver: &dyn Driver, path: &str, data: &Value) -> Option<Audit> {
-        match self.create(driver, path, data) {
+    pub fn create_unchecked(
+        &self,
+        driver: &dyn Driver,
+        type_: &str,
+        data: &Value,
+    ) -> Option<Audit> {
+        match self.create(driver, type_, data) {
             Ok(audit) => Some(audit),
             Err(err) => {
                 warn!("{}", err);
@@ -359,15 +299,14 @@ impl AuditBuilder {
     pub fn create_internal(
         &self,
         driver: &dyn Driver,
-        path: AuditPath,
+        type_: AuditType,
         data: AuditMessage,
     ) -> Option<Audit> {
-        let path = path.to_string();
         let data: AuditMessageObject<AuditMessage> = data.into();
         let data = serde_json::to_value(data).unwrap();
         let audit_data = AuditCreate::new(
             &self.meta,
-            &path,
+            type_.as_str(),
             &data,
             self.key.as_ref(),
             self.service.as_ref(),
@@ -392,6 +331,7 @@ impl Audit {
         _audit: &mut AuditBuilder,
         list: &AuditList,
     ) -> CoreResult<Vec<Uuid>> {
+        // TODO(refactor): Read many.
         driver.audit_list(list).map_err(Into::into)
     }
 
@@ -401,7 +341,7 @@ impl Audit {
     }
 
     /// Read audit by ID.
-    pub fn read_by_id(
+    pub fn read(
         driver: &dyn Driver,
         service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
@@ -413,7 +353,7 @@ impl Audit {
     }
 
     /// Delete many audit logs older than days.
-    pub fn delete_by_age(driver: &dyn Driver, days: i64) -> CoreResult<usize> {
+    pub fn delete_many(driver: &dyn Driver, days: i64) -> CoreResult<usize> {
         let days: i64 = 0 - days;
         let created_at = Utc::now() + Duration::days(days);
         match driver.audit_delete_by_created_at(&created_at) {

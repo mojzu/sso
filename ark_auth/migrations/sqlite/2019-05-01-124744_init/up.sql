@@ -61,7 +61,7 @@ CREATE TABLE auth_audit (
     audit_user_agent TEXT NOT NULL,
     audit_remote TEXT NOT NULL,
     audit_forwarded TEXT,
-    audit_path TEXT NOT NULL,
+    audit_type TEXT NOT NULL,
     audit_data BLOB NOT NULL,
     key_id TEXT,
     service_id TEXT,

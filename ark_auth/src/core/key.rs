@@ -1,5 +1,5 @@
 use crate::{
-    AuditBuilder, AuditMessage, AuditMeta, AuditPath, Core, CoreError, CoreResult, Driver, Service,
+    AuditBuilder, AuditMessage, AuditMeta, AuditType, Core, CoreError, CoreResult, Driver, Service,
     User,
 };
 use chrono::{DateTime, Utc};
@@ -91,7 +91,7 @@ impl Key {
                     Err(err) => {
                         audit.create_internal(
                             driver,
-                            AuditPath::AuthenticateError,
+                            AuditType::AuthenticateError,
                             AuditMessage::KeyNotFound,
                         );
                         Err(err)
@@ -101,7 +101,7 @@ impl Key {
             None => {
                 audit.create_internal(
                     driver,
-                    AuditPath::AuthenticateError,
+                    AuditType::AuthenticateError,
                     AuditMessage::KeyUndefined,
                 );
                 Err(CoreError::Forbidden)
@@ -127,7 +127,7 @@ impl Key {
                     Err(err) => {
                         audit.create_internal(
                             driver,
-                            AuditPath::AuthenticateError,
+                            AuditType::AuthenticateError,
                             AuditMessage::KeyNotFound,
                         );
                         Err(err)
@@ -139,7 +139,7 @@ impl Key {
                         Err(err) => {
                             audit.create_internal(
                                 driver,
-                                AuditPath::AuthenticateError,
+                                AuditType::AuthenticateError,
                                 AuditMessage::KeyInvalid,
                             );
                             Err(err)
@@ -150,7 +150,7 @@ impl Key {
             None => {
                 audit.create_internal(
                     driver,
-                    AuditPath::AuthenticateError,
+                    AuditType::AuthenticateError,
                     AuditMessage::KeyUndefined,
                 );
                 Err(CoreError::Forbidden)
@@ -212,7 +212,7 @@ impl Key {
             Err(err) => {
                 audit.create_internal(
                     driver,
-                    AuditPath::AuthenticateError,
+                    AuditType::AuthenticateError,
                     AuditMessage::ServiceNotFound,
                 );
                 Err(err)

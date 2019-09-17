@@ -152,8 +152,9 @@ pub struct AuditListResponse {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuditCreateBody {
-    #[validate(custom = "ServerValidate::path")]
-    pub path: String,
+    #[serde(alias = "type")]
+    #[validate(custom = "ServerValidate::audit_type")]
+    pub type_: String,
     pub data: Value,
     pub user_id: Option<Uuid>,
     pub user_key_id: Option<Uuid>,
@@ -162,12 +163,12 @@ pub struct AuditCreateBody {
 impl ServerValidateFromValue<AuditCreateBody> for AuditCreateBody {}
 
 impl AuditCreateBody {
-    pub fn new<T1>(path: T1, data: Value, user_id: Option<Uuid>, user_key_id: Option<Uuid>) -> Self
+    pub fn new<T1>(type_: T1, data: Value, user_id: Option<Uuid>, user_key_id: Option<Uuid>) -> Self
     where
         T1: Into<String>,
     {
         Self {
-            path: path.into(),
+            type_: type_.into(),
             data,
             user_id,
             user_key_id,
@@ -190,20 +191,21 @@ pub struct AuditReadResponse {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuditDataRequest {
-    #[validate(custom = "ServerValidate::path")]
-    pub path: String,
+    #[serde(alias = "type")]
+    #[validate(custom = "ServerValidate::audit_type")]
+    pub type_: String,
     pub data: Value,
 }
 
 impl ServerValidateFromValue<AuditDataRequest> for AuditDataRequest {}
 
 impl AuditDataRequest {
-    pub fn new<T1>(path: T1, data: Value) -> Self
+    pub fn new<T1>(type_: T1, data: Value) -> Self
     where
         T1: Into<String>,
     {
         Self {
-            path: path.into(),
+            type_: type_.into(),
             data,
         }
     }
@@ -212,7 +214,7 @@ impl AuditDataRequest {
 impl From<AuditDataRequest> for AuditData {
     fn from(data: AuditDataRequest) -> AuditData {
         AuditData {
-            path: data.path,
+            type_: data.type_,
             data: data.data,
         }
     }

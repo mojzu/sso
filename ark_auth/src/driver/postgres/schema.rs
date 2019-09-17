@@ -5,7 +5,7 @@ table! {
         audit_user_agent -> Varchar,
         audit_remote -> Varchar,
         audit_forwarded -> Nullable<Varchar>,
-        audit_path -> Varchar,
+        audit_type -> Varchar,
         audit_data -> Jsonb,
         key_id -> Nullable<Uuid>,
         service_id -> Nullable<Uuid>,

@@ -61,7 +61,7 @@ CREATE TABLE auth_audit (
     audit_user_agent VARCHAR NOT NULL,
     audit_remote VARCHAR NOT NULL,
     audit_forwarded VARCHAR,
-    audit_path VARCHAR NOT NULL,
+    audit_type VARCHAR NOT NULL,
     audit_data JSONB NOT NULL,
     key_id UUID,
     service_id UUID,

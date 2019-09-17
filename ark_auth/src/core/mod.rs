@@ -19,40 +19,43 @@ use zxcvbn::ZxcvbnError;
 /// Core errors.
 #[derive(Debug, Fail)]
 pub enum CoreError {
-    #[fail(display = "CoreError::BadRequest")]
+    #[fail(display = "CoreError:BadRequest")]
     BadRequest,
 
-    #[fail(display = "CoreError::Forbidden")]
+    #[fail(display = "CoreError:Forbidden")]
     Forbidden,
 
-    #[fail(display = "ServerError:PwnedPasswordsDisabled")]
+    #[fail(display = "CoreError:PwnedPasswordsDisabled")]
     PwnedPasswordsDisabled,
 
-    #[fail(display = "CoreError::Metrics")]
+    #[fail(display = "CoreError:Metrics")]
     Metrics,
 
-    #[fail(display = "CoreError::Driver {}", _0)]
+    #[fail(display = "CoreError:AuditType")]
+    AuditType,
+
+    #[fail(display = "CoreError:Driver {}", _0)]
     Driver(#[fail(cause)] DriverError),
 
-    #[fail(display = "ServerError:Client {}", _0)]
+    #[fail(display = "CoreError:Client {}", _0)]
     Client(#[fail(cause)] ClientError),
 
-    #[fail(display = "CoreError::LibreauthPass {}", _0)]
+    #[fail(display = "CoreError:LibreauthPass {}", _0)]
     LibreauthPass(usize),
 
-    #[fail(display = "CoreError::LibreauthOath {}", _0)]
+    #[fail(display = "CoreError:LibreauthOath {}", _0)]
     LibreauthOath(usize),
 
-    #[fail(display = "CoreError::Jsonwebtoken {}", _0)]
+    #[fail(display = "CoreError:Jsonwebtoken {}", _0)]
     Jsonwebtoken(#[fail(cause)] jsonwebtoken::errors::Error),
 
-    #[fail(display = "CoreError::UuidParse {}", _0)]
+    #[fail(display = "CoreError:UuidParse {}", _0)]
     UuidParse(#[fail(cause)] uuid::parser::ParseError),
 
-    #[fail(display = "ServerError:ActixMailbox {}", _0)]
+    #[fail(display = "CoreError:ActixMailbox {}", _0)]
     ActixMailbox(#[fail(cause)] ActixMailboxError),
 
-    #[fail(display = "ServerError:Zxcvbn {}", _0)]
+    #[fail(display = "CoreError:Zxcvbn {}", _0)]
     Zxcvbn(#[fail(cause)] ZxcvbnError),
 }
 

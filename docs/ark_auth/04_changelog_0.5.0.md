@@ -7,5 +7,6 @@
 **Changed**
 
 - Code consistency improvements.
+- Renamed audit `path` to `type` string.
 
 **Fixed**

@@ -91,7 +91,7 @@ fn create_inner(
             audit
                 .set_user_id(body.user_id.to_owned())
                 .set_user_key_id(body.user_key_id.to_owned())
-                .create(data.driver(), &body.path, &body.data)
+                .create(data.driver(), &body.type_, &body.data)
         })
         .map_err(Into::into)
         .map(|audit| AuditCreateResponse { data: audit })
@@ -122,7 +122,7 @@ fn read_inner(
 ) -> ServerResult<AuditReadResponse> {
     Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            Audit::read_by_id(data.driver(), service.as_ref(), &mut audit, audit_id)
+            Audit::read(data.driver(), service.as_ref(), &mut audit, audit_id)
         })
         .map_err(Into::into)
         .and_then(|audit| audit.ok_or_else(|| ServerError::NotFound))

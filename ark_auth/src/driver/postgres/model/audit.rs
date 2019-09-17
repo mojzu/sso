@@ -14,7 +14,7 @@ pub struct ModelAudit {
     audit_user_agent: String,
     audit_remote: String,
     audit_forwarded: Option<String>,
-    audit_path: String,
+    audit_type: String,
     audit_data: Value,
     key_id: Option<Uuid>,
     service_id: Option<Uuid>,
@@ -30,7 +30,7 @@ impl From<ModelAudit> for Audit {
             user_agent: audit.audit_user_agent,
             remote: audit.audit_remote,
             forwarded: audit.audit_forwarded,
-            path: audit.audit_path,
+            type_: audit.audit_type,
             data: audit.audit_data,
             key_id: audit.key_id,
             service_id: audit.service_id,
@@ -48,7 +48,7 @@ struct ModelAuditInsert<'a> {
     audit_user_agent: &'a str,
     audit_remote: &'a str,
     audit_forwarded: Option<&'a str>,
-    audit_path: &'a str,
+    audit_type: &'a str,
     audit_data: &'a Value,
     key_id: Option<&'a Uuid>,
     service_id: Option<&'a Uuid>,
@@ -64,7 +64,7 @@ impl<'a> ModelAuditInsert<'a> {
             audit_user_agent: create.meta.user_agent(),
             audit_remote: create.meta.remote(),
             audit_forwarded: create.meta.forwarded(),
-            audit_path: create.path,
+            audit_type: create.type_,
             audit_data: create.data,
             key_id: create.key_id,
             service_id: create.service_id,
@@ -135,15 +135,15 @@ impl ModelAudit {
 
         match service_id_mask {
             Some(service_id_mask) => auth_audit
-                .select((audit_path, sql::<BigInt>("count(*)")))
-                .group_by(audit_path)
+                .select((audit_type, sql::<BigInt>("count(*)")))
+                .group_by(audit_type)
                 .filter(service_id.eq(service_id_mask))
-                .order(audit_path.asc())
+                .order(audit_type.asc())
                 .load(conn),
             None => auth_audit
-                .select((audit_path, sql::<BigInt>("count(*)")))
-                .group_by(audit_path)
-                .order(audit_path.asc())
+                .select((audit_type, sql::<BigInt>("count(*)")))
+                .group_by(audit_type)
+                .order(audit_type.asc())
                 .load(conn),
         }
         .map_err(Into::into)

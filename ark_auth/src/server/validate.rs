@@ -1,5 +1,5 @@
 use crate::{
-    ServerError, AUDIT_PATH_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, USER_NAME_MAX_LEN,
+    ServerError, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, USER_NAME_MAX_LEN,
     USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
 };
 use futures::future;
@@ -53,9 +53,9 @@ impl ServerValidate {
         }
     }
 
-    pub fn path(path: &str) -> Result<(), ValidationError> {
-        if path.is_empty() || path.len() > AUDIT_PATH_MAX_LEN {
-            Err(ValidationError::new("invalid_path"))
+    pub fn audit_type(audit_type: &str) -> Result<(), ValidationError> {
+        if audit_type.is_empty() || audit_type.len() > AUDIT_TYPE_MAX_LEN {
+            Err(ValidationError::new("invalid_audit_type"))
         } else {
             Ok(())
         }
