@@ -11,6 +11,7 @@ pub use crate::client::async_impl::*;
 #[cfg(feature = "sync_client")]
 pub use crate::client::sync_impl::*;
 
+use crate::{CoreError, CoreUtil};
 use actix::MailboxError as ActixMailboxError;
 use http::{header, StatusCode};
 use reqwest::{
@@ -18,7 +19,6 @@ use reqwest::{
 };
 use serde::{de::DeserializeOwned, ser::Serialize};
 use serde_json::Error as SerdeJsonError;
-use serde_urlencoded::ser::Error as SerdeUrlencodedSerError;
 use std::{error::Error as StdError, io::Error as StdIoError};
 use url::Url;
 
@@ -37,11 +37,11 @@ pub enum ClientError {
     #[fail(display = "ClientError:Client {}", _0)]
     Client(String),
 
+    #[fail(display = "ClientError:Core {}", _0)]
+    Core(String),
+
     #[fail(display = "ClientError:SerdeJson {}", _0)]
     SerdeJson(String),
-
-    #[fail(display = "ClientError:SerdeUrlencodedSer {}", _0)]
-    SerdeUrlencodedSer(#[fail(cause)] SerdeUrlencodedSerError),
 
     #[fail(display = "ClientError:Url {}", _0)]
     Url(String),
@@ -57,12 +57,16 @@ pub enum ClientError {
 pub type ClientResult<T> = Result<T, ClientError>;
 
 impl ClientError {
-    pub fn url(err: &dyn StdError) -> Self {
-        Self::Url(err.description().into())
+    pub fn core(e: CoreError) -> Self {
+        Self::Core(format!("{}", e))
     }
 
-    pub fn stdio(err: &StdIoError) -> Self {
-        Self::StdIo(err.description().into())
+    pub fn url(e: &dyn StdError) -> Self {
+        Self::Url(e.description().into())
+    }
+
+    pub fn stdio(e: &StdIoError) -> Self {
+        Self::StdIo(e.description().into())
     }
 }
 
@@ -144,14 +148,9 @@ impl Client {
     /// Build and return Url with serialised query parameters.
     pub fn url_query<T: Serialize>(url: &str, route: &str, query: T) -> ClientResult<Url> {
         let mut url = Client::url(url, route)?;
-        let query = serde_urlencoded::to_string(query).map_err(ClientError::SerdeUrlencodedSer)?;
+        let query = CoreUtil::qs_ser(&query).map_err(ClientError::core)?;
         url.set_query(Some(&query));
         Ok(url)
-    }
-
-    /// Serialize value as URL encoded query parameters string.
-    pub fn query_string<S: Serialize>(query: S) -> ClientResult<String> {
-        serde_urlencoded::to_string(query).map_err(ClientError::SerdeUrlencodedSer)
     }
 
     /// Split value of `Authorization` HTTP header into a type and value, where format is `VALUE` or `TYPE VALUE`.

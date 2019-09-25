@@ -6,9 +6,10 @@ mod key;
 mod metrics;
 mod service;
 mod user;
+mod util;
 
 pub use crate::core::{
-    audit::*, auth::*, csrf::*, jwt::*, key::*, metrics::*, service::*, user::*,
+    audit::*, auth::*, csrf::*, jwt::*, key::*, metrics::*, service::*, user::*, util::*,
 };
 
 use crate::{ClientError, DriverError};
@@ -55,6 +56,12 @@ pub enum CoreError {
     #[fail(display = "CoreError:ActixMailbox {}", _0)]
     ActixMailbox(#[fail(cause)] ActixMailboxError),
 
+    #[fail(display = "CoreError:SerdeJson {}", _0)]
+    SerdeJson(#[fail(cause)] serde_json::Error),
+
+    #[fail(display = "CoreError:SerdeQs {}", _0)]
+    SerdeQs(String),
+
     #[fail(display = "CoreError:Zxcvbn {}", _0)]
     Zxcvbn(#[fail(cause)] ZxcvbnError),
 }
@@ -78,6 +85,12 @@ impl From<DriverError> for CoreError {
 impl From<ClientError> for CoreError {
     fn from(e: ClientError) -> Self {
         Self::Client(e)
+    }
+}
+
+impl From<serde_qs::Error> for CoreError {
+    fn from(e: serde_qs::Error) -> Self {
+        Self::SerdeQs(e.description().to_owned())
     }
 }
 

@@ -1,7 +1,7 @@
 pub mod notify_msg;
 mod smtp;
 
-use crate::Audit;
+use crate::{Audit, CoreError};
 use actix::{Actor, Addr, SyncArbiter, SyncContext};
 use handlebars::Handlebars;
 use serde_json::Value;
@@ -17,20 +17,23 @@ pub enum NotifySmtpError {
     Disabled,
 
     #[fail(display = "SmtpError:NativeTls {}", _0)]
-    NativeTls(native_tls::Error),
+    NativeTls(#[fail(cause)] native_tls::Error),
 
     #[fail(display = "SmtpError:LettreEmail {}", _0)]
-    LettreEmail(lettre_email::error::Error),
+    LettreEmail(#[fail(cause)] lettre_email::error::Error),
 
     #[fail(display = "SmtpError:Lettre {}", _0)]
-    Lettre(lettre::smtp::error::Error),
+    Lettre(#[fail(cause)] lettre::smtp::error::Error),
 }
 
 /// Notify errors.
 #[derive(Debug, Fail)]
 pub enum NotifyError {
     #[fail(display = "NotifyError:Smtp {}", _0)]
-    Smtp(NotifySmtpError),
+    Smtp(#[fail(cause)] NotifySmtpError),
+
+    #[fail(display = "SmtpError:Core {}", _0)]
+    Core(#[fail(cause)] CoreError),
 
     #[fail(display = "NotifyError:HandlebarsTemplate {}", _0)]
     HandlebarsTemplate(#[fail(cause)] handlebars::TemplateError),

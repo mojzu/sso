@@ -13,7 +13,7 @@ pub fn route_v1_scope() -> actix_web::Scope {
 }
 
 fn oauth2_redirect(service: Service, token: UserToken) -> HttpResponse {
-    let url = service.callback_url("oauth2", token);
+    let url = service.callback_url("oauth2", token).unwrap();
     HttpResponse::Found()
         .header(header::LOCATION, url.as_str())
         .finish()

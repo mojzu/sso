@@ -1,4 +1,4 @@
-use crate::{Audit, NotifyActor, NotifyActorOptionsSmtp, NotifyError, Service, User};
+use crate::{Audit, NotifyActor, NotifyActorOptionsSmtp, NotifyError, NotifyResult, Service, User};
 use actix::{Handler, Message};
 
 /// Reset password email message.
@@ -23,11 +23,11 @@ impl EmailResetPassword {
 }
 
 impl Message for EmailResetPassword {
-    type Result = Result<(), NotifyError>;
+    type Result = NotifyResult<()>;
 }
 
 impl Handler<EmailResetPassword> for NotifyActor {
-    type Result = Result<(), NotifyError>;
+    type Result = NotifyResult<()>;
 
     fn handle(&mut self, msg: EmailResetPassword, _: &mut Self::Context) -> Self::Result {
         self.smtp()
@@ -41,9 +41,13 @@ impl NotifyActor {
         &self,
         smtp: &NotifyActorOptionsSmtp,
         data: &EmailResetPassword,
-    ) -> Result<(), NotifyError> {
+    ) -> NotifyResult<()> {
+        // TODO(fix): This will cause serde_qs errors.
         let callback_data = &[("email", &data.user.email), ("token", &data.token)];
-        let url = data.service.callback_url("reset_password", callback_data);
+        let url = data
+            .service
+            .callback_url("reset_password", callback_data)
+            .map_err(NotifyError::Core)?;
 
         let parameters = json!({
             "user_email": &data.user.email,

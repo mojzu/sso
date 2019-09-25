@@ -33,6 +33,7 @@ macro_rules! audit_integration_test {
                     le: None,
                     offset_id: None,
                     limit: Some(limit.to_owned()),
+                    type_: None,
                 })
                 .unwrap();
             assert_eq!(res1.data.len(), 3);
@@ -48,6 +49,7 @@ macro_rules! audit_integration_test {
                     le: None,
                     offset_id: Some(a1.id),
                     limit: Some(limit.to_owned()),
+                    type_: None,
                 })
                 .unwrap();
             assert_eq!(res2.data.len(), 3);
@@ -64,6 +66,7 @@ macro_rules! audit_integration_test {
                     le: None,
                     offset_id: Some(a2.id),
                     limit: Some(limit.to_owned()),
+                    type_: None,
                 })
                 .unwrap();
             assert_eq!(res3.data.len(), 3);
@@ -80,6 +83,7 @@ macro_rules! audit_integration_test {
                     le: Some(a5.created_at),
                     offset_id: Some(a5.id),
                     limit: Some(limit.to_owned()),
+                    type_: None,
                 })
                 .unwrap();
             assert_eq!(res4.data.len(), 3);
@@ -97,6 +101,7 @@ macro_rules! audit_integration_test {
                     le: Some(a4.created_at),
                     offset_id: Some(a4.id),
                     limit: Some(limit.to_owned()),
+                    type_: None,
                 })
                 .unwrap();
             assert_eq!(res5.data.len(), 3);
@@ -134,6 +139,7 @@ macro_rules! audit_integration_test {
                     le: None,
                     offset_id: None,
                     limit: Some(limit.to_owned()),
+                    type_: None,
                 })
                 .unwrap();
             assert_eq!(res1.data.len(), 3);
@@ -150,6 +156,7 @@ macro_rules! audit_integration_test {
                     le: Some(a3.created_at),
                     offset_id: Some(a1.id),
                     limit: Some(limit.to_owned()),
+                    type_: None,
                 })
                 .unwrap();
             assert_eq!(res2.data.len(), 2);

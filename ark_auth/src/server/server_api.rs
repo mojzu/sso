@@ -97,6 +97,8 @@ pub struct AuditListQuery {
     pub offset_id: Option<Uuid>,
     #[validate(custom = "ServerValidate::limit")]
     pub limit: Option<String>,
+    #[serde(rename = "type")]
+    pub type_: Option<Vec<String>>,
 }
 
 impl ServerValidateFromValue<AuditListQuery> for AuditListQuery {}

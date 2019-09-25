@@ -1,4 +1,4 @@
-use crate::{Audit, NotifyActor, NotifyActorOptionsSmtp, NotifyError, Service, User};
+use crate::{Audit, NotifyActor, NotifyActorOptionsSmtp, NotifyError, NotifyResult, Service, User};
 use actix::{Handler, Message};
 
 /// Update email email message.
@@ -31,11 +31,11 @@ impl EmailUpdateEmail {
 }
 
 impl Message for EmailUpdateEmail {
-    type Result = Result<(), NotifyError>;
+    type Result = NotifyResult<()>;
 }
 
 impl Handler<EmailUpdateEmail> for NotifyActor {
-    type Result = Result<(), NotifyError>;
+    type Result = NotifyResult<()>;
 
     fn handle(&mut self, msg: EmailUpdateEmail, _: &mut Self::Context) -> Self::Result {
         self.smtp()
@@ -49,13 +49,16 @@ impl NotifyActor {
         &self,
         smtp: &NotifyActorOptionsSmtp,
         data: &EmailUpdateEmail,
-    ) -> Result<(), NotifyError> {
+    ) -> NotifyResult<()> {
         let callback_data = &[
             ("email", &data.user.email),
             ("old_email", &data.old_email),
             ("token", &data.token),
         ];
-        let url = data.service.callback_url("update_email", callback_data);
+        let url = data
+            .service
+            .callback_url("update_email", callback_data)
+            .map_err(NotifyError::Core)?;
 
         let parameters = json!({
             "user_old_email": &data.old_email,

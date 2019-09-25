@@ -1,4 +1,4 @@
-use crate::{AuditBuilder, Core, CoreError, CoreResult, Driver};
+use crate::{AuditBuilder, Core, CoreError, CoreResult, CoreUtil, Driver};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use std::fmt;
@@ -48,14 +48,31 @@ pub struct ServiceQuery {
     pub limit: Option<i64>,
 }
 
+/// Service callback URL query.
+#[derive(Serialize, Deserialize)]
+struct ServiceCallbackQuery<S: Serialize> {
+    #[serde(rename = "type")]
+    type_: String,
+    #[serde(flatten)]
+    data: S,
+}
+
+impl<S: Serialize> ServiceCallbackQuery<S> {
+    pub fn new<T: Into<String>>(type_: T, data: S) -> Self {
+        Self {
+            type_: type_.into(),
+            data,
+        }
+    }
+}
+
 impl Service {
-    pub fn callback_url<S: Serialize>(&self, type_: &str, data: S) -> Url {
+    pub fn callback_url<S: Serialize>(&self, type_: &str, data: S) -> CoreResult<Url> {
         let mut url = Url::parse(&self.url).unwrap();
-        let type_query = serde_urlencoded::to_string(&[("type", type_)]).unwrap();
-        let data_query = serde_urlencoded::to_string(data).unwrap();
-        let query = format!("{}&{}", type_query, data_query);
+        let query = ServiceCallbackQuery::new(type_, data);
+        let query = CoreUtil::qs_ser(&query)?;
         url.set_query(Some(&query));
-        url
+        Ok(url)
     }
 
     /// List services using query.
@@ -139,6 +156,12 @@ mod tests {
     use super::*;
     use chrono::Utc;
 
+    #[derive(Serialize)]
+    struct CallbackData {
+        email: String,
+        token: String,
+    }
+
     #[test]
     fn builds_service_callback_url() {
         let id = "6a9c6cfb7e15498b99e057153f0a212b";
@@ -151,11 +174,13 @@ mod tests {
             name: "Service Name".to_owned(),
             url: "http://localhost:9000".to_owned(),
         };
-        let callback_data = &[
-            ("email", "user@test.com"),
-            ("token", "6a9c6cfb7e15498b99e057153f0a212b"),
-        ];
-        let url = service.callback_url("reset_password", callback_data);
+        let callback_data = CallbackData {
+            email: "user@test.com".to_owned(),
+            token: "6a9c6cfb7e15498b99e057153f0a212b".to_owned(),
+        };
+        let url = service
+            .callback_url("reset_password", &callback_data)
+            .unwrap();
         assert_eq!(
             url.to_string(),
             "http://localhost:9000/?type=reset_password&email=user%40test.com&token=6a9c6cfb7e15498b99e057153f0a212b"

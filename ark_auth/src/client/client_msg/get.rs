@@ -1,4 +1,4 @@
-use crate::{Client, ClientActor, ClientActorRequest, ClientError, ClientResult};
+use crate::{Client, ClientActor, ClientActorRequest, ClientError, ClientResult, CoreUtil};
 use actix::prelude::*;
 use serde::ser::Serialize;
 
@@ -31,7 +31,7 @@ impl Get {
 
     /// Set query string on GET request URL.
     pub fn query<S: Serialize>(mut self, query: S) -> ClientResult<Self> {
-        let query = Client::query_string(query)?;
+        let query = CoreUtil::qs_ser(&query).map_err(ClientError::core)?;
         self.query = Some(query);
         Ok(self)
     }
