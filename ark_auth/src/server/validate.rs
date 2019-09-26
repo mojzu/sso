@@ -1,6 +1,6 @@
 use crate::{
     ServerError, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, USER_NAME_MAX_LEN,
-    USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
+    USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN, CoreUtil,
 };
 use futures::future;
 use serde::de::DeserializeOwned;
@@ -13,9 +13,36 @@ pub trait ServerValidateFromValue<T: DeserializeOwned + Validate> {
     fn from_value(value: Value) -> future::FutureResult<T, ServerError> {
         future::result(
             serde_json::from_value::<T>(value)
-                .map_err(|_err| ServerError::BadRequest)
+                .map_err(|_e| {
+                    debug!("{}", _e);
+                    ServerError::BadRequest
+                })
                 .and_then(|body| {
-                    body.validate().map_err(|_err| ServerError::BadRequest)?;
+                    body.validate().map_err(|_e| {
+                        debug!("{}", _e);
+                        ServerError::BadRequest
+                    })?;
+                    Ok(body)
+                }),
+        )
+    }
+}
+
+/// Server validate query string value trait.
+pub trait ServerValidateQueryFromValue<T: DeserializeOwned + Validate> {
+    /// Extract and validate data from query string value.
+    fn from_str(value: &str) -> future::FutureResult<T, ServerError> {
+        future::result(
+            CoreUtil::qs_de::<T>(value)
+                .map_err(|_e| {
+                    debug!("{}", _e);
+                    ServerError::BadRequest
+                })
+                .and_then(|body| {
+                    body.validate().map_err(|_e| {
+                        debug!("{}", _e);
+                        ServerError::BadRequest
+                    })?;
                     Ok(body)
                 }),
         )
@@ -29,7 +56,7 @@ impl ServerValidate {
     pub fn limit(limit: &str) -> Result<(), ValidationError> {
         let limit = limit
             .parse::<i64>()
-            .map_err(|_err| ValidationError::new("invalid_limit"))?;
+            .map_err(|_e| ValidationError::new("invalid_limit"))?;
         if limit < 0 {
             Err(ValidationError::new("invalid_limit"))
         } else {
@@ -59,6 +86,13 @@ impl ServerValidate {
         } else {
             Ok(())
         }
+    }
+
+    pub fn audit_type_vec(audit_type: &Vec<String>) -> Result<(), ValidationError> {
+        for v in audit_type {
+            Self::audit_type(v)?;
+        }
+        Ok(())
     }
 
     pub fn token(token: &str) -> Result<(), ValidationError> {

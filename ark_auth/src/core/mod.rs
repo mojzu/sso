@@ -74,6 +74,10 @@ impl CoreError {
     pub fn libreauth_oath(e: LibreauthOathError) -> Self {
         Self::LibreauthOath(e as usize)
     }
+
+    pub fn serde_qs(e: serde_qs::Error) -> Self {
+        Self::SerdeQs(e.description().to_owned())
+    }
 }
 
 impl From<DriverError> for CoreError {
@@ -85,12 +89,6 @@ impl From<DriverError> for CoreError {
 impl From<ClientError> for CoreError {
     fn from(e: ClientError) -> Self {
         Self::Client(e)
-    }
-}
-
-impl From<serde_qs::Error> for CoreError {
-    fn from(e: serde_qs::Error) -> Self {
-        Self::SerdeQs(e.description().to_owned())
     }
 }
 

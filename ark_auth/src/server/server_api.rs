@@ -1,7 +1,7 @@
 //! # Server API Types
 use crate::{
     Audit, AuditData, AuditList, AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe,
-    Core, Key, KeyQuery, ServerValidate, ServerValidateFromValue, Service, ServiceQuery, User,
+    Core, Key, KeyQuery, ServerValidate, ServerValidateFromValue, ServerValidateQueryFromValue, Service, ServiceQuery, User,
     UserKey, UserPasswordMeta, UserQuery, UserToken, UserTokenAccess,
 };
 use chrono::{DateTime, Utc};
@@ -94,49 +94,55 @@ pub mod route {
 pub struct AuditListQuery {
     pub ge: Option<DateTime<Utc>>,
     pub le: Option<DateTime<Utc>>,
-    pub offset_id: Option<Uuid>,
     #[validate(custom = "ServerValidate::limit")]
     pub limit: Option<String>,
+    pub offset_id: Option<Uuid>,
     #[serde(rename = "type")]
+    #[validate(custom = "ServerValidate::audit_type_vec")]
     pub type_: Option<Vec<String>>,
 }
 
-impl ServerValidateFromValue<AuditListQuery> for AuditListQuery {}
+impl ServerValidateQueryFromValue<AuditListQuery> for AuditListQuery {}
 
-impl<'a> AuditListQuery {
+impl<'a, T: AsRef<str>> AuditListQuery {
     pub fn to_audit_list(
         &'a self,
         now: &'a DateTime<Utc>,
         service_id_mask: Option<&'a Uuid>,
-    ) -> AuditList<'a> {
+    ) -> AuditList<'a, T> {
         let limit =
             i64_from_string(self.limit.as_ref().map(|x| &**x)).unwrap_or_else(Core::default_limit);
         let offset_id = self.offset_id.as_ref();
+        let type_ = self.type_.map(|x| &x[..]);
 
         match (&self.ge, &self.le) {
-            (Some(ge), Some(le)) => AuditList::CreatedLeAndGe(AuditListCreatedLeAndGe {
+            (Some(ge), Some(le)) => AuditList::CreatedLeAndGe::<T>(AuditListCreatedLeAndGe {
                 ge,
                 le,
                 limit,
                 offset_id,
+                type_,
                 service_id_mask,
             }),
-            (Some(ge), None) => AuditList::CreatedGe(AuditListCreatedGe {
+            (Some(ge), None) => AuditList::CreatedGe::<T>(AuditListCreatedGe {
                 ge,
                 limit,
                 offset_id,
+                type_,
                 service_id_mask,
             }),
-            (None, Some(le)) => AuditList::CreatedLe(AuditListCreatedLe {
+            (None, Some(le)) => AuditList::CreatedLe::<T>(AuditListCreatedLe {
                 le,
                 limit,
                 offset_id,
+                type_,
                 service_id_mask,
             }),
-            (None, None) => AuditList::CreatedLe(AuditListCreatedLe {
+            (None, None) => AuditList::CreatedLe::<T>(AuditListCreatedLe {
                 le: now,
                 limit,
                 offset_id,
+                type_,
                 service_id_mask,
             }),
         }

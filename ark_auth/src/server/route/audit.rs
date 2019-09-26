@@ -7,7 +7,7 @@ use crate::{
         path, AuditCreateBody, AuditCreateResponse, AuditListQuery, AuditListResponse,
         AuditReadResponse,
     },
-    Audit, AuditMeta, Key, ServerError, ServerResult, ServerValidateFromValue,
+    Audit, AuditMeta, Key, ServerError, ServerResult, ServerValidateQueryFromValue, ServerValidateFromValue,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -30,11 +30,10 @@ fn list_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    query: web::Query<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let query = AuditListQuery::from_value(query.into_inner());
+    let query = AuditListQuery::from_str(req.query_string());
 
     audit_meta
         .join(query)
