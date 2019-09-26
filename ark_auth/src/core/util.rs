@@ -22,3 +22,22 @@ impl CoreUtil {
         serde_qs::from_str(&s).map_err(Into::into)
     }
 }
+
+/// Implement `to_string` and `from_string` on simple enums that implement
+/// serde `Serialize` and `Deserialize` traits.
+#[macro_export]
+macro_rules! impl_enum_to_from_string {
+    ($x:ident) => {
+        impl $x {
+            pub fn to_string(self) -> CoreResult<String> {
+                let s = serde_json::to_string(&self).map_err(CoreError::SerdeJson)?;
+                Ok(String::from(s.trim_matches('"')))
+            }
+
+            pub fn from_string(s: &str) -> CoreResult<Self> {
+                let s = format!("\"{}\"", s);
+                serde_json::from_str(&s).map_err(CoreError::SerdeJson)
+            }
+        }
+    };
+}
