@@ -121,42 +121,42 @@ impl<'a> AuditCreate<'a> {
 
 /// Audit list where created less than or equal.
 #[derive(Debug)]
-pub struct AuditListCreatedLe<'a, T: AsRef<str>> {
+pub struct AuditListCreatedLe<'a> {
     pub le: &'a DateTime<Utc>,
     pub limit: i64,
     pub offset_id: Option<&'a Uuid>,
-    pub type_: Option<&'a [T]>,
+    pub type_: Option<&'a Vec<String>>,
     pub service_id_mask: Option<&'a Uuid>,
     // TODO(refactor): Data matches filter, user filter.
 }
 
 /// Audit list where created greater than or equal.
 #[derive(Debug)]
-pub struct AuditListCreatedGe<'a, T: AsRef<str>> {
+pub struct AuditListCreatedGe<'a> {
     pub ge: &'a DateTime<Utc>,
     pub limit: i64,
     pub offset_id: Option<&'a Uuid>,
-    pub type_: Option<&'a [T]>,
+    pub type_: Option<&'a Vec<String>>,
     pub service_id_mask: Option<&'a Uuid>,
 }
 
 /// Audit list where created less than or equal and greater than or equal.
 #[derive(Debug)]
-pub struct AuditListCreatedLeAndGe<'a, T: AsRef<str>> {
+pub struct AuditListCreatedLeAndGe<'a> {
     pub le: &'a DateTime<Utc>,
     pub ge: &'a DateTime<Utc>,
     pub limit: i64,
     pub offset_id: Option<&'a Uuid>,
-    pub type_: Option<&'a [T]>,
+    pub type_: Option<&'a Vec<String>>,
     pub service_id_mask: Option<&'a Uuid>,
 }
 
 /// Audit list.
 #[derive(Debug)]
-pub enum AuditList<'a, T: AsRef<str>> {
-    CreatedLe(AuditListCreatedLe<'a, T>),
-    CreatedGe(AuditListCreatedGe<'a, T>),
-    CreatedLeAndGe(AuditListCreatedLeAndGe<'a, T>),
+pub enum AuditList<'a> {
+    CreatedLe(AuditListCreatedLe<'a>),
+    CreatedGe(AuditListCreatedGe<'a>),
+    CreatedLeAndGe(AuditListCreatedLeAndGe<'a>),
 }
 
 /// Audit metadata, HTTP request information.
@@ -359,10 +359,10 @@ impl AuditBuilder {
 
 impl Audit {
     /// List audit IDs.
-    pub fn list<T: AsRef<str>>(
+    pub fn list(
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
-        list: &AuditList<T>,
+        list: &AuditList,
     ) -> CoreResult<Vec<Uuid>> {
         // TODO(refactor): Read many.
         driver.audit_list(list).map_err(Into::into)

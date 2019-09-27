@@ -1,6 +1,6 @@
 use crate::{
-    ServerError, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, USER_NAME_MAX_LEN,
-    USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN, CoreUtil,
+    CoreUtil, ServerError, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, USER_NAME_MAX_LEN,
+    USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
 };
 use futures::future;
 use serde::de::DeserializeOwned;
@@ -29,7 +29,7 @@ pub trait ServerValidateFromValue<T: DeserializeOwned + Validate> {
 }
 
 /// Server validate query string value trait.
-pub trait ServerValidateQueryFromValue<T: DeserializeOwned + Validate> {
+pub trait ServerValidateFromStr<T: DeserializeOwned + Validate> {
     /// Extract and validate data from query string value.
     fn from_str(value: &str) -> future::FutureResult<T, ServerError> {
         future::result(
@@ -88,7 +88,7 @@ impl ServerValidate {
         }
     }
 
-    pub fn audit_type_vec(audit_type: &Vec<String>) -> Result<(), ValidationError> {
+    pub fn audit_type_vec(audit_type: &[String]) -> Result<(), ValidationError> {
         for v in audit_type {
             Self::audit_type(v)?;
         }

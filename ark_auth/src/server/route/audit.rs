@@ -7,7 +7,8 @@ use crate::{
         path, AuditCreateBody, AuditCreateResponse, AuditListQuery, AuditListResponse,
         AuditReadResponse,
     },
-    Audit, AuditMeta, Key, ServerError, ServerResult, ServerValidateQueryFromValue, ServerValidateFromValue,
+    Audit, AuditMeta, Key, ServerError, ServerResult, ServerValidateFromStr,
+    ServerValidateFromValue,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
