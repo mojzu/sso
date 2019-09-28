@@ -66,10 +66,116 @@ background-color: #f4f4f4;
 <nav id="TOC" role="doc-toc">
 <ul>
 <li><a href="#introduction">Introduction</a></li>
+<li><a href="#guides">Guides</a><ul>
+<li><a href="#quickstart">Quickstart</a></li>
+</ul></li>
+<li><a href="#changelog">Changelog</a><ul>
+<li><a href="#section">0.1.0 (2019-05-16)</a></li>
+<li><a href="#section-1">0.2.0 (2019-07-07)</a></li>
+<li><a href="#section-2">0.3.0 (2019-08-03)</a></li>
+<li><a href="#section-3">0.4.0 (2019/09/09)</a></li>
+<li><a href="#unreleased">0.5.0 (unreleased)</a></li>
+</ul></li>
 </ul>
 </nav>
 <h1 id="introduction">Introduction</h1>
 <p><strong>Warning: The author of this application is not a security expert, and the code has not undergone any kind of review or verification. Use it at your own risk!</strong></p>
 <p>The crate <code>mz_auth</code> is an authentication server binary. It is intended to be used as a backend for other services, such as API servers, which must authenticate user requests.</p>
+<h1 id="guides">Guides</h1>
+<h2 id="quickstart">Quickstart</h2>
+<p>TODO(docs): Write quickstart guide.</p>
+<h1 id="changelog">Changelog</h1>
+<h2 id="section">0.1.0 (2019-05-16)</h2>
+<ul>
+<li>First version.</li>
+</ul>
+<h2 id="section-1">0.2.0 (2019-07-07)</h2>
+<p><strong>Added</strong></p>
+<ul>
+<li>Added audit logging to authentication routes.</li>
+<li>Added is enabled flag to services, users and keys, added is revoked flag to keys.</li>
+<li>Added synchronous and asynchronous clients to library.</li>
+<li>Added <code>email_eq</code> query option to user list route.</li>
+<li>Added local provider update user email, password routes.</li>
+<li>Added type parameter to service URL callback queries.</li>
+</ul>
+<p><strong>Changed</strong></p>
+<ul>
+<li>Changed database schema to use strings as IDs.</li>
+<li>Changed list route endpoints to return data ID arrays.</li>
+<li>Changed CSRF key, value pairs to use TTL in seconds.</li>
+<li>Changed token type handling, user token split into access and refresh tokens.</li>
+<li>Moved OAuth2 routes into provider groups.</li>
+<li>Moved login, reset routes into local provider group.</li>
+<li>Upgraded to version 3 of <code>oauth2</code> library.</li>
+<li>Removed <code>skeptic</code> from tests, use Cargo test runner.</li>
+<li>Moved route types to public api module.</li>
+</ul>
+<p><strong>Fixed</strong></p>
+<ul>
+<li>Fixed not validating service URLs before save using URL parse, improved URL error handling.</li>
+<li>Fixed inconsistent core error display strings.</li>
+<li>Fixed duplicate user email address returned internal server error code.</li>
+<li>Fixed Lettre email error type handling.</li>
+</ul>
+<h2 id="section-2">0.3.0 (2019-08-03)</h2>
+<p><strong>Added</strong></p>
+<ul>
+<li>Improved email templates, removed template parameters from routes.</li>
+<li>Defined server routes and other constants in <code>server::api</code> module.</li>
+<li>Finished synchronous and asynchronous clients.</li>
+<li>Added support for audit list query cases <code>gt AND lt</code>, <code>created_gte AND created_lte</code>.</li>
+<li>Added <code>/v1/metrics</code> endpoint for Prometheus integration.</li>
+<li>Added support for optional audit logs to some authentication endpoints.</li>
+<li>Added TLS configuration support to server and clients.</li>
+<li>Added hostname configuration to server.</li>
+</ul>
+<p><strong>Changed</strong></p>
+<ul>
+<li>Changed audit list query parameters when using <code>created_gte</code> or <code>created_lte</code> options, added optional <code>offset_id</code> parameter to exclude previous results.</li>
+<li>Moved email handling from <code>server::smtp</code> module to <code>notify</code> module.</li>
+<li>Moved <code>main.rs:Error</code> into <code>cli</code> module, refactored error handling.</li>
+<li>Use <code>Forwarded</code> header instead of <code>X-Forwarded-For</code> for audit logs.</li>
+<li>Renamed local authentication provider reset, update routes.</li>
+<li>Improved configuration interfaces using <code>derive_builder</code> crate.</li>
+</ul>
+<p><strong>Fixed</strong></p>
+<ul>
+<li>Reset password route now returns OK in cases where user email address does not exist.</li>
+<li>Fixed audit log errors were created for root key authentication when authenticating a service key.</li>
+<li>Fixed internal server errors returned to client when OAuth2 provider is disabled.</li>
+</ul>
+<h2 id="section-3">0.4.0 (2019/09/09)</h2>
+<p><strong>Added</strong></p>
+<ul>
+<li>Added some process metrics to Prometheus integration.</li>
+<li>Created asynchronous client actor to handle outgoing HTTP requests.</li>
+<li>Added environment variable <code>PASSWORD_PWNED_ENABLED</code> to enable pwned passwords integration.</li>
+</ul>
+<p><strong>Changed</strong></p>
+<ul>
+<li>Replaced <code>bcrypt</code> with <code>libreauth</code> crate for password hashing.</li>
+<li>Use <code>libreauth</code> key generation for CSRF keys and <code>Key</code> values.</li>
+<li>Improved modules public interfaces.</li>
+<li>Changed driver interface to use <code>Uuid</code> types instead of strings.</li>
+<li>Renamed configuration structures to options to improve consistency.</li>
+</ul>
+<p><strong>Fixed</strong></p>
+<ul>
+<li>Fixed missing <code>dyn</code> keyword warnings.</li>
+</ul>
+<h2 id="unreleased">0.5.0 (unreleased)</h2>
+<p><strong>Added</strong></p>
+<ul>
+<li>Added TOTP validation route.</li>
+</ul>
+<p><strong>Changed</strong></p>
+<ul>
+<li>Renamed project <code>mz_auth</code>, ark was taken by various products and crates.</li>
+<li>Code consistency improvements.</li>
+<li>Renamed audit <code>path</code> to <code>type</code> string.</li>
+<li>Replaced <code>serde_urlencoded</code> with <code>serde_qs</code> for more advanced query string support.</li>
+</ul>
+<p><strong>Fixed</strong></p>
 </body>
 </html>
