@@ -6,7 +6,7 @@ use crate::{
     driver::postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
     Audit, AuditCreate, AuditList, Csrf, CsrfCreate, Driver, DriverError, DriverIf, DriverLock,
     DriverLockFn, DriverResult, Key, KeyCreate, KeyUpdate, Service, ServiceCreate, ServiceUpdate,
-    User, UserCreate, UserUpdate,
+    User, UserCreate, UserList, UserUpdate,
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
@@ -231,19 +231,9 @@ impl DriverIf for DriverPostgres {
         ModelService::delete_by_id(&conn, id)
     }
 
-    fn user_list_where_id_lt(&self, lt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>> {
+    fn user_list(&self, list: &UserList) -> DriverResult<Vec<User>> {
         let conn = self.conn()?;
-        ModelUser::list_where_id_lt(&conn, lt, limit)
-    }
-
-    fn user_list_where_id_gt(&self, gt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>> {
-        let conn = self.conn()?;
-        ModelUser::list_where_id_gt(&conn, gt, limit)
-    }
-
-    fn user_list_where_email_eq(&self, email_eq: &str, limit: i64) -> DriverResult<Vec<Uuid>> {
-        let conn = self.conn()?;
-        ModelUser::list_where_email_eq(&conn, email_eq, limit)
+        ModelUser::list(&conn, list)
     }
 
     fn user_create(&self, create: &UserCreate) -> DriverResult<User> {
@@ -465,16 +455,8 @@ impl<'a> DriverIf for DriverPostgresConn<'a> {
         ModelService::delete_by_id(self.conn(), id)
     }
 
-    fn user_list_where_id_lt(&self, lt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>> {
-        ModelUser::list_where_id_lt(self.conn(), lt, limit)
-    }
-
-    fn user_list_where_id_gt(&self, gt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>> {
-        ModelUser::list_where_id_gt(self.conn(), gt, limit)
-    }
-
-    fn user_list_where_email_eq(&self, email_eq: &str, limit: i64) -> DriverResult<Vec<Uuid>> {
-        ModelUser::list_where_email_eq(self.conn(), email_eq, limit)
+    fn user_list(&self, list: &UserList) -> DriverResult<Vec<User>> {
+        ModelUser::list(self.conn(), list)
     }
 
     fn user_create(&self, create: &UserCreate) -> DriverResult<User> {

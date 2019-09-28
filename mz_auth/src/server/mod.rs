@@ -27,16 +27,13 @@ use std::{
 use url::ParseError as UrlParseError;
 
 // TODO(feature): User sessions route for active tokens/keys.
-// TODO(feature): Better method to handle multiple keys? Use index to allow one non-revoked key?
-// Key flags for is_token, is_key, is_totp?
-// Allow or require specifying key ID via argument?
+// TODO(feature): Use key allow flags in migrations.
 // TODO(feature): Support more OAuth2 providers.
 // TODO(feature): Webauthn support.
 // <https://webauthn.guide/>
 // <https://webauthn.org/>
 // TODO(feature): Configurable canary routes.
 // TODO(feature): Improved public library API interface.
-// TODO(feature): All emails have 2 actions, ok or revoke, option to verify update email/password requests.
 // TODO(feature): Email translation/formatting using user locale and timezone.
 // TODO(feature): Handle changes to password hash version.
 // TODO(feature): Patchable audit logs, append data only for ID.

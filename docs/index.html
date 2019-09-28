@@ -12,6 +12,71 @@
       span.underline{text-decoration: underline;}
       div.column{display: inline-block; vertical-align: top; width: 50%;}
   </style>
+  <style>
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
   <style type="text/css">
 body {
 color: #111111;
@@ -65,25 +130,379 @@ background-color: #f4f4f4;
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
-<li><a href="#introduction">Introduction</a></li>
+<li><a href="#introduction">Introduction</a><ul>
+<li><a href="#definitions">Definitions</a></li>
+</ul></li>
 <li><a href="#guides">Guides</a><ul>
 <li><a href="#quickstart">Quickstart</a></li>
+<li><a href="#deployment">Deployment</a></li>
+<li><a href="#integration">Integration</a></li>
+<li><a href="#login">Login</a></li>
+<li><a href="#reset-password">Reset Password</a></li>
+<li><a href="#update-email">Update Email</a></li>
+<li><a href="#update-password">Update Password</a></li>
+<li><a href="#api-key">API Key</a></li>
+<li><a href="#oauth2-login">OAuth2 Login</a></li>
 </ul></li>
+<li><a href="#cli">CLI</a></li>
 <li><a href="#changelog">Changelog</a><ul>
 <li><a href="#section">0.1.0 (2019-05-16)</a></li>
 <li><a href="#section-1">0.2.0 (2019-07-07)</a></li>
 <li><a href="#section-2">0.3.0 (2019-08-03)</a></li>
-<li><a href="#section-3">0.4.0 (2019/09/09)</a></li>
-<li><a href="#unreleased">0.5.0 (unreleased)</a></li>
+<li><a href="#section-3">0.4.0 (2019-09-09)</a></li>
+<li><a href="#section-4">0.5.0 (?)</a></li>
+</ul></li>
+<li><a href="#developer">Developer</a><ul>
+<li><a href="#tools">Tools</a></li>
+<li><a href="#manual">Manual</a></li>
+<li><a href="#environment">Environment</a></li>
+<li><a href="#database">Database</a></li>
+<li><a href="#test">Test</a></li>
+<li><a href="#build">Build</a></li>
 </ul></li>
 </ul>
 </nav>
 <h1 id="introduction">Introduction</h1>
 <p><strong>Warning: The author of this application is not a security expert, and the code has not undergone any kind of review or verification. Use it at your own risk!</strong></p>
 <p>The crate <code>mz_auth</code> is an authentication server binary. It is intended to be used as a backend for other services, such as API servers, which must authenticate user requests.</p>
+<p>Authentication methods are organised into provider groups. The following provider groups are currently supported: <code>local</code>, <code>github</code>, <code>microsoft</code>. Depending on the provider, the following user authentication methods are supported.</p>
+<ul>
+<li><strong>Password Login (Local)</strong>
+<ul>
+<li>Users can authenticate to a service using a unique email address and password.</li>
+<li>Successful login returns time-limited, revokable access and refresh <a href="https://jwt.io/">JSON web tokens</a>.</li>
+<li>Access tokens are used to authenticate user requests.</li>
+<li>Refresh tokens are used to produce new access and refresh tokens.</li>
+<li>User passwords can be reset via email.</li>
+<li>User email address and password updates cause notification emails to be sent to the user.</li>
+<li>Notification emails contain revokation links in case a login is compromised.</li>
+<li>Passwords are stored as <a href="https://en.wikipedia.org/wiki/Argon2">argon2</a> hashes.</li>
+<li>Password strength is checked by <a href="https://github.com/shssoichiro/zxcvbn-rs">zxcvbn</a>.</li>
+<li>Password leaks are checked by <a href="https://haveibeenpwned.com/Passwords">Pwned Passwords</a>.</li>
+<li>Users can be created without passwords to disable password login.</li>
+</ul></li>
+<li><strong>API Key (Local)</strong>
+<ul>
+<li>Users can authenticate requests to a service using a unique, random key.</li>
+<li>Keys are not time-limited, but are revokable.</li>
+</ul></li>
+<li><strong>OAuth2 (GitHub, Microsoft)</strong>
+<ul>
+<li>Users can authenticate to a service via supported OAuth2 providers.</li>
+<li>Successful login returns time-limited, revokable access and refresh <a href="https://jwt.io/">JSON web tokens</a>.</li>
+<li>Access tokens are used to authenticate user requests.</li>
+<li>Refresh tokens are used to produce new access and refresh tokens.</li>
+</ul></li>
+</ul>
+<h2 id="definitions">Definitions</h2>
+<p>The following terms are used throughout this manual.</p>
+<ul>
+<li><strong>User</strong>
+<ul>
+<li>A person or other external API consumer identified by a unique email address who wants to interact with one or more services registered with <code>mz_auth</code>.</li>
+</ul></li>
+<li><strong>Service</strong>
+<ul>
+<li>An application that must authenticate user requests, registered as a service with <code>mz_auth</code> using a name and callback URL.</li>
+</ul></li>
+<li><strong>Key</strong>
+<ul>
+<li>Random, unique keys produced by <code>mz_auth</code>. Keys may be revoked to prevent use.</li>
+</ul></li>
+<li><strong>Root Key</strong>
+<ul>
+<li>Keys linked to no services or users, produced by command line and can be used to manage <code>mz_auth</code> via HTTP requests.</li>
+</ul></li>
+<li><strong>Service Key</strong>
+<ul>
+<li>Keys linked to one service, used by <code>mz_auth</code> to authenticate HTTP requests from services.</li>
+</ul></li>
+<li><strong>User Key</strong>
+<ul>
+<li>Keys linked to one user and one service, allows user to authenticate with the linked service.</li>
+</ul></li>
+<li><strong>Token</strong>
+<ul>
+<li><a href="https://jwt.io/">JSON web tokens</a> used for time-limited authentication, produced for users from a user key. Revoking the key used to produce a token also revokes the token.</li>
+</ul></li>
+</ul>
 <h1 id="guides">Guides</h1>
 <h2 id="quickstart">Quickstart</h2>
 <p>TODO(docs): Write quickstart guide.</p>
+<h2 id="deployment">Deployment</h2>
+<p>TODO(docs): How to deploy mz_auth server.</p>
+<p><strong>Nginx</strong></p>
+<p>Example <a href="https://www.nginx.com/">nginx</a> configuration.</p>
+<pre class="nginx"><code>http {
+    # HTTPS and headers configuration.
+    # https://www.nginx.com/blog/using-free-ssltls-certificates-from-lets-encrypt-with-nginx/
+    # https://www.owasp.org/index.php/OWASP_Secure_Headers_Project
+
+    # API request rate limit.
+    # https://www.nginx.com/blog/rate-limiting-nginx/
+    limit_req_zone $binary_remote_addr zone=api_zone:10m rate=50r/s;
+
+    # API proxy server.
+    # https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
+    location /api {
+        limit_req zone=api_zone burst=100 nodelay;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass http://127.0.0.1:4000;
+    }
+}</code></pre>
+<p><strong>Prometheus</strong></p>
+<p>Example <a href="https://prometheus.io/">Prometheus</a> configuration.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1"></a><span class="fu">scrape_configs</span><span class="kw">:</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="co">    # ...</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a></span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">job_name</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;mz_auth&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="at">      </span><span class="fu">metrics_path</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;/v1/metrics&quot;</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a><span class="at">      </span><span class="fu">bearer_token</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;$root_or_service_key&quot;</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a><span class="at">      </span><span class="fu">static_configs</span><span class="kw">:</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a><span class="at">          </span><span class="kw">-</span><span class="at"> </span><span class="fu">targets</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="st">&quot;$server_url&quot;</span><span class="kw">]</span></span></code></pre></div>
+<pre class="shell"><code>curl --header &quot;Authorization: $root_or_service_key&quot; $server_url/v1/metrics</code></pre>
+<h2 id="integration">Integration</h2>
+<p>The following diagram illustrates how services and mz_auth integrate to authenticate user requests.</p>
+<figure>
+<img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiIHN0YW5kYWxvbmU9Im5vIj8+PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAyMDAxMDkwNC8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MzIiIGhlaWdodD0iNTMzIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PHNvdXJjZT48IVtDREFUQVtOb3RlIG92ZXIgVXNlcjogMS4gVXNlciBUb2tlbiBvciBLZXkKVXNlci0+PlNlcnZpY2U6IEhUVFAgUmVxdWVzdApOb3RlIG92ZXIgU2VydmljZTogMi4gU2VydmljZSBLZXkKU2VydmljZS0+Pm16X2F1dGg6IEhUVFAgUmVxdWVzdApOb3RlIG92ZXIgbXpfYXV0aDogMy4gVmVyaWZ5Cm16X2F1dGgtPj5TZXJ2aWNlOiBIVFRQIFJlc3BvbnNlCk5vdGUgb3ZlciBTZXJ2aWNlOiA0LiBSZXF1ZXN0IEhhbmRsZXIKU2VydmljZS0+PlVzZXI6IEhUVFAgUmVzcG9uc2UKTm90ZSBvdmVyIFVzZXI6IDUuIFJlc3BvbnNlIEhhbmRsZXJdXT48L3NvdXJjZT48ZGVzYz48L2Rlc2M+PGRlZnM+PG1hcmtlciB2aWV3Qm94PSIwIDAgNSA1IiBtYXJrZXJXaWR0aD0iNSIgbWFya2VySGVpZ2h0PSI1IiBvcmllbnQ9ImF1dG8iIHJlZlg9IjUiIHJlZlk9IjIuNSIgaWQ9Im1hcmtlckFycm93QmxvY2siPjxwYXRoIGQ9Ik0gMCAwIEwgNSAyLjUgTCAwIDUgeiI+PC9wYXRoPjwvbWFya2VyPjxtYXJrZXIgdmlld0JveD0iMCAwIDkuNiAxNiIgbWFya2VyV2lkdGg9IjQiIG1hcmtlckhlaWdodD0iMTYiIG9yaWVudD0iYXV0byIgcmVmWD0iOS42IiByZWZZPSI4IiBpZD0ibWFya2VyQXJyb3dPcGVuIj48cGF0aCBkPSJNIDkuNiw4IDEuOTIsMTYgMCwxMy43IDUuNzYsOCAwLDIuMjg2IDEuOTIsMCA5LjYsOCB6Ij48L3BhdGg+PC9tYXJrZXI+PC9kZWZzPjxnIGNsYXNzPSJ0aXRsZSI+PC9nPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iODEiIHk9IjIwIiB3aWR0aD0iNTgiIGhlaWdodD0iMzguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjkxIiB5PSI0NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iOTEiPlVzZXI8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9ImFjdG9yIj48cmVjdCB4PSI4MSIgeT0iNDc1IiB3aWR0aD0iNTgiIGhlaWdodD0iMzguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjkxIiB5PSI1MDAiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjkxIj5Vc2VyPC90c3Bhbj48L3RleHQ+PC9nPjxsaW5lIHgxPSIxMTAiIHgyPSIxMTAiIHkxPSI1OC41IiB5Mj0iNDc1IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIj48L2xpbmU+PGcgY2xhc3M9ImFjdG9yIj48cmVjdCB4PSIyMTAuMjUiIHk9IjIwIiB3aWR0aD0iODYuNSIgaGVpZ2h0PSIzOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMjIwLjI1IiB5PSI0NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjIwLjI1Ij5TZXJ2aWNlPC90c3Bhbj48L3RleHQ+PC9nPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iMjEwLjI1IiB5PSI0NzUiIHdpZHRoPSI4Ni41IiBoZWlnaHQ9IjM4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIyMjAuMjUiIHk9IjUwMCIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjIwLjI1Ij5TZXJ2aWNlPC90c3Bhbj48L3RleHQ+PC9nPjxsaW5lIHgxPSIyNTMuNSIgeDI9IjI1My41IiB5MT0iNTguNSIgeTI9IjQ3NSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iMzQ5IiB5PSIyMCIgd2lkdGg9Ijk2IiBoZWlnaHQ9IjM4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIzNTkiIHk9IjQ1IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIzNTkiPm16X2F1dGg8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9ImFjdG9yIj48cmVjdCB4PSIzNDkiIHk9IjQ3NSIgd2lkdGg9Ijk2IiBoZWlnaHQ9IjM4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIzNTkiIHk9IjUwMCIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMzU5Ij5tel9hdXRoPC90c3Bhbj48L3RleHQ+PC9nPjxsaW5lIHgxPSIzOTciIHgyPSIzOTciIHkxPSI1OC41IiB5Mj0iNDc1IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIj48L2xpbmU+PGcgY2xhc3M9Im5vdGUiPjxyZWN0IHg9IjEwIiB5PSI3OC41IiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjI4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIxNSIgeT0iOTguNSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMTUiPjEuIFVzZXIgVG9rZW4gb3IgS2V5PC90c3Bhbj48L3RleHQ+PC9nPjxnIGNsYXNzPSJzaWduYWwiPjx0ZXh0IHg9IjEyNC43NSIgeT0iMTM3Ljc1IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIxMjQuNzUiPkhUVFAgUmVxdWVzdDwvdHNwYW4+PC90ZXh0PjxsaW5lIHgxPSIxMTAiIHgyPSIyNTMuNSIgeTE9IjE0NS41IiB5Mj0iMTQ1LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IG1hcmtlci1lbmQ6IHVybCgmcXVvdDsjbWFya2VyQXJyb3dPcGVuJnF1b3Q7KTsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjwvZz48ZyBjbGFzcz0ibm90ZSI+PHJlY3QgeD0iMTgyIiB5PSIxNjUuNSIgd2lkdGg9IjE0MyIgaGVpZ2h0PSIyOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMTg3IiB5PSIxODUuNSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMTg3Ij4yLiBTZXJ2aWNlIEtleTwvdHNwYW4+PC90ZXh0PjwvZz48ZyBjbGFzcz0ic2lnbmFsIj48dGV4dCB4PSIyNjguMjUiIHk9IjIyNC43NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjY4LjI1Ij5IVFRQIFJlcXVlc3Q8L3RzcGFuPjwvdGV4dD48bGluZSB4MT0iMjUzLjUiIHgyPSIzOTciIHkxPSIyMzIuNSIgeTI9IjIzMi41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBtYXJrZXItZW5kOiB1cmwoJnF1b3Q7I21hcmtlckFycm93T3BlbiZxdW90Oyk7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9Im5vbmUiPjwvbGluZT48L2c+PGcgY2xhc3M9Im5vdGUiPjxyZWN0IHg9IjM0OS4yNSIgeT0iMjUyLjUiIHdpZHRoPSI5NS41IiBoZWlnaHQ9IjI4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIzNTQuMjUiIHk9IjI3Mi41IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIzNTQuMjUiPjMuIFZlcmlmeTwvdHNwYW4+PC90ZXh0PjwvZz48ZyBjbGFzcz0ic2lnbmFsIj48dGV4dCB4PSIyNjMuNSIgeT0iMzExLjc1IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIyNjMuNSI+SFRUUCBSZXNwb25zZTwvdHNwYW4+PC90ZXh0PjxsaW5lIHgxPSIzOTciIHgyPSIyNTMuNSIgeTE9IjMxOS41IiB5Mj0iMzE5LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IG1hcmtlci1lbmQ6IHVybCgmcXVvdDsjbWFya2VyQXJyb3dPcGVuJnF1b3Q7KTsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjwvZz48ZyBjbGFzcz0ibm90ZSI+PHJlY3QgeD0iMTYzIiB5PSIzMzkuNSIgd2lkdGg9IjE4MSIgaGVpZ2h0PSIyOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMTY4IiB5PSIzNTkuNSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMTY4Ij40LiBSZXF1ZXN0IEhhbmRsZXI8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9InNpZ25hbCI+PHRleHQgeD0iMTIwIiB5PSIzOTguNzUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjEyMCI+SFRUUCBSZXNwb25zZTwvdHNwYW4+PC90ZXh0PjxsaW5lIHgxPSIyNTMuNSIgeDI9IjExMCIgeTE9IjQwNi41IiB5Mj0iNDA2LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IG1hcmtlci1lbmQ6IHVybCgmcXVvdDsjbWFya2VyQXJyb3dPcGVuJnF1b3Q7KTsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjwvZz48ZyBjbGFzcz0ibm90ZSI+PHJlY3QgeD0iMTQuNzUiIHk9IjQyNi41IiB3aWR0aD0iMTkwLjUiIGhlaWdodD0iMjguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjE5Ljc1IiB5PSI0NDYuNSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMTkuNzUiPjUuIFJlc3BvbnNlIEhhbmRsZXI8L3RzcGFuPjwvdGV4dD48L2c+PC9zdmc+Cg==" alt /><figcaption>User request verification</figcaption>
+</figure>
+<ol type="1">
+<li>User with token or key acquired by authentication method sends HTTP request to service.</li>
+<li>Service sends HTTP request to mz_auth with its own service key, and the users token or key.</li>
+<li>mz_auth authenticates service using the service key, and verifies user token or key.</li>
+<li>If authenticated/verified, service handles request and sends HTTP response to user.</li>
+<li>User handles HTTP response.</li>
+</ol>
+<p><strong>Callbacks</strong></p>
+<p>A service integrating with mz_auth can provide the following HTTPS endpoints as callbacks.</p>
+<pre class="shell"><code>GET $service_url?type=oauth2&amp;user_id=$id&amp;access_token=$token&amp;access_token_expires=$token_expires&amp;refresh_token=$token&amp;refresh_token_expires=$token_expires</code></pre>
+<p>User is redirected to this URL after successful authentication by an OAuth2 provider. The service can verify the <code>access_token</code> query parameter to authenticate the user and their requests.</p>
+<pre class="shell"><code>GET $service_url?type=reset_password&amp;email=$email&amp;token=$token</code></pre>
+<p>User requests this URL by clicking reset password email link. The service can take password input from the user, and then make a reset password confirm request with the <code>token</code> query parameter.</p>
+<pre class="shell"><code>GET $service_url?type=update_email&amp;email=$email&amp;old_email=$email&amp;token=$token</code></pre>
+<p>User requests this URL by clicking update email revoke link. The service can present the user information on securing their account, and then make an update email revoke request with the <code>token</code> query parameter. This will disable the user and all user keys.</p>
+<pre class="shell"><code>GET $service_url?type=update_password&amp;email=$email&amp;token=$token</code></pre>
+<p>User requests this URL by clicking update password revoke link. The service can present the user information on securing their account, and then make an update password revoke request with the <code>token</code> query parameter. This will disable the user and all user keys.</p>
+<h2 id="login">Login</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url
+mz_auth start-server</code></pre>
+<p>Service creates a user with password.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>User makes login request to service, services makes a login request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/auth/provider/local/login</code></pre>
+<p>Service receives token response, access token can be verified to authenticate requests.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$access_token&quot;}&#39; \
+  $server_url/v1/auth/token/verify</code></pre>
+<p>Refresh token can be used to refresh token.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$refresh_token&quot;}&#39; \
+  $server_url/v1/auth/token/refresh</code></pre>
+<p>Access or refresh token can be revoked, this will disable the key created earlier and prevent verify and refresh.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
+  $server_url/v1/auth/token/revoke</code></pre>
+<h2 id="reset-password">Reset Password</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url
+mz_auth start-server</code></pre>
+<p>Service creates a user with password.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>User makes reset password request to service, service makes a reset password request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;email&quot;:&quot;$user_email&quot;}&#39; \
+  $server_url/v1/auth/provider/local/reset-password</code></pre>
+<p>Email containing URL is sent to user email address, URL in format <code>$service_url?email=$user_email&amp;reset_password_token=$token</code>.</p>
+<p>Service receives token via query parameter and makes reset password confirm request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$token&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/auth/provider/local/reset-password/confirm</code></pre>
+<p>User makes login request to service, service makes a login request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/auth/provider/local/login</code></pre>
+<h2 id="update-email">Update Email</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url
+mz_auth start-server</code></pre>
+<p>Service creates a user with password.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>User makes update email request to service, service makes an update email request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;key&quot;:&quot;$user_key&quot;,&quot;password&quot;:&quot;$user_password&quot;,&quot;new_email&quot;:&quot;$new_user_email&quot;}&#39; \
+  $server_url/v1/auth/provider/local/update-email</code></pre>
+<p>User makes login request to service, service makes a login request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;email&quot;:&quot;$new_user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/auth/provider/local/login</code></pre>
+<p>After successful update, an email containing URL is sent to the old user email address, URL in format: <code>$service_url?email=$email&amp;update_email_token=$token</code>.</p>
+<p>If user opens URL, service receives token via query parameter and makes update email revoke request, this will disable user and all linked keys and prevent login.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
+  $server_url/v1/auth/provider/local/update-email/revoke</code></pre>
+<h2 id="update-password">Update Password</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url
+mz_auth start-server</code></pre>
+<p>Service creates a user with password.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>User makes update password request to service, service makes an update password request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;key&quot;:&quot;$user_key&quot;,&quot;password&quot;:&quot;$user_password&quot;,&quot;new_password&quot;:&quot;$new_user_password&quot;}&#39; \
+  $server_url/v1/auth/provider/local/update-password</code></pre>
+<p>User makes login request to service, service makes a login request.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$new_user_password&quot;}&#39; \
+  $server_url/v1/auth/provider/local/login</code></pre>
+<p>After successful update, an email containing URL is sent to user email address, URL in format: <code>$service_url?email=$email&amp;update_password_token=$token</code>.</p>
+<p>If user opens URL, service receives token via query parameter and makes update password revoke request, this will disable user and all linked keys and prevent login.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
+  $server_url/v1/auth/provider/local/update-password/revoke</code></pre>
+<h2 id="api-key">API Key</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url
+mz_auth start-server</code></pre>
+<p>Service creates a user without password.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>User makes requests to service with key value, key can be verified to authenticate requests.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39; \
+  $server_url/v1/auth/key/verify</code></pre>
+<p>Key can be revoked, this will disable the key created earlier and prevent verify.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39; \
+  $server_url/v1/auth/key/revoke</code></pre>
+<h2 id="oauth2-login">OAuth2 Login</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url
+mz_auth start-server</code></pre>
+<p>Service creates a user with email address matching OAuth2 provider.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>User makes OAuth2 login request to service.</p>
+<p>Service requests a redirect URL for OAuth2 provider, supported providers are <code>github</code>, <code>microsoft</code>.</p>
+<pre class="shell"><code>curl --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  $server_url/v1/auth/provider/$oauth2_provider/oauth2</code></pre>
+<p>Service redirects user to returned URL, OAuth2 provider authentication occurs.</p>
+<p>If successful, OAuth2 provider redirects user to <code>$server_url/v1/auth/provider/$oauth2_provider/oauth2</code> with required query parameters.</p>
+<p>Query parameters are exchanged for API access token, authenticated email address is requested from OAuth2 provider APIs.</p>
+<p>If authenticated email returned by API matches a user email address, and user has key for specified service, a user token is produced and the user is redirected to <code>$service_url?access_token=$token&amp;refresh_token=$token</code>.</p>
+<p>Service receives access token and refresh token via query parameters. Service can verify access token to authenticate requests.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$access_token&quot;}&#39; \
+  $server_url/v1/auth/token/verify</code></pre>
+<p>Refresh token can be used to refresh token.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$refresh_token&quot;}&#39; \
+  $server_url/v1/auth/token/refresh</code></pre>
+<p>Access or refresh token can be revoked, this will disable the key created earlier and prevent verify and refresh.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
+  $server_url/v1/auth/token/revoke</code></pre>
+<h1 id="cli">CLI</h1>
+<p>TODO(docs): CLI documentation.</p>
 <h1 id="changelog">Changelog</h1>
 <h2 id="section">0.1.0 (2019-05-16)</h2>
 <ul>
@@ -145,7 +564,7 @@ background-color: #f4f4f4;
 <li>Fixed audit log errors were created for root key authentication when authenticating a service key.</li>
 <li>Fixed internal server errors returned to client when OAuth2 provider is disabled.</li>
 </ul>
-<h2 id="section-3">0.4.0 (2019/09/09)</h2>
+<h2 id="section-3">0.4.0 (2019-09-09)</h2>
 <p><strong>Added</strong></p>
 <ul>
 <li>Added some process metrics to Prometheus integration.</li>
@@ -164,7 +583,7 @@ background-color: #f4f4f4;
 <ul>
 <li>Fixed missing <code>dyn</code> keyword warnings.</li>
 </ul>
-<h2 id="unreleased">0.5.0 (unreleased)</h2>
+<h2 id="section-4">0.5.0 (?)</h2>
 <p><strong>Added</strong></p>
 <ul>
 <li>Added TOTP validation route.</li>
@@ -177,5 +596,152 @@ background-color: #f4f4f4;
 <li>Replaced <code>serde_urlencoded</code> with <code>serde_qs</code> for more advanced query string support.</li>
 </ul>
 <p><strong>Fixed</strong></p>
+<h1 id="developer">Developer</h1>
+<h2 id="tools">Tools</h2>
+<p>The mz_auth crate depends on <a href="https://www.postgresql.org/">PostgreSQL</a> and <a href="https://www.sqlite.org/index.html">SQLite</a> libraries.</p>
+<pre class="shell"><code># Install on Ubuntu.
+sudo apt install libpq-dev libsqlite3-dev libssl-dev libfuse-dev pkg-config</code></pre>
+<p>Install <a href="https://www.rust-lang.org/">Rust</a> using <a href="https://rustup.rs/">rustup</a>.</p>
+<p>To update the toolchain.</p>
+<pre class="shell"><code>rustup self update
+rustup update</code></pre>
+<p>The mz_auth crate depends on <a href="https://github.com/sagiegurari/cargo-make">Cargo Make</a> and <a href="http://diesel.rs/">Diesel</a>, install them with Cargo.</p>
+<pre class="shell"><code>cargo install --force cargo-make
+cargo install --force diesel_cli --no-default-features --features &quot;postgres sqlite&quot;</code></pre>
+<p>To update crate dependencies.</p>
+<pre class="shell"><code>cargo update</code></pre>
+<p><a href="https://docs.docker.com/install/">Docker</a> and <a href="https://docs.docker.com/compose/">Docker Compose</a> are used for development, install them using the linked documentation.</p>
+<p>To start containers defined in <code>docker-compose.yml</code>.</p>
+<pre class="shell"><code>docker-compose up</code></pre>
+<p>To stop containers.</p>
+<pre class="shell"><code>docker-compose down</code></pre>
+<h2 id="manual">Manual</h2>
+<p>This manual is written in <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Markdown</a> and converted into other formats using <a href="https://pandoc.org/">Pandoc</a>.</p>
+<p>To build the HTML manual.</p>
+<pre class="shell"><code>cargo make manual</code></pre>
+<h2 id="environment">Environment</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SENTRY_URL</td>
+<td>Sentry URL for logging integration, optional.</td>
+</tr>
+<tr class="even">
+<td>DATABASE_URL</td>
+<td>Database connection URL, required.</td>
+</tr>
+<tr class="odd">
+<td>DATABASE_CONNECTIONS</td>
+<td>Database connections, optional.</td>
+</tr>
+<tr class="even">
+<td>SERVER_HOSTNAME</td>
+<td>Server hostname, optional.</td>
+</tr>
+<tr class="odd">
+<td>SERVER_BIND</td>
+<td>Server bind address, required.</td>
+</tr>
+<tr class="even">
+<td>SERVER_TLS_CRT_PEM</td>
+<td>Server TLS certificate files, optional.</td>
+</tr>
+<tr class="odd">
+<td>SERVER_TLS_KEY_PEM</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>SERVER_TLS_CLIENT_PEM</td>
+<td>Server mutual TLS authentication, optional.</td>
+</tr>
+<tr class="odd">
+<td>SMTP_HOST</td>
+<td>SMTP server, optional.</td>
+</tr>
+<tr class="even">
+<td>SMTP_PORT</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>SMTP_USER</td>
+<td>…</td>
+</tr>
+<tr class="even">
+<td>SMTP_PASSWORD</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>GITHUB_CLIENT_ID</td>
+<td>GitHub OAuth2 provider, optional.</td>
+</tr>
+<tr class="even">
+<td>GITHUB_CLIENT_SECRET</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>GITHUB_REDIRECT_URL</td>
+<td><code>$server_url/v1/auth/provider/github/oauth2</code></td>
+</tr>
+<tr class="even">
+<td>MICROSOFT_CLIENT_ID</td>
+<td>Microsoft OAuth2 provider, optional.</td>
+</tr>
+<tr class="odd">
+<td>MICROSOFT_CLIENT_SECRET</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>MICROSOFT_REDIRECT_URL</td>
+<td><code>$server_url/v1/auth/provider/microsoft/oauth2</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Linux</strong></p>
+<p>Write <code>export $NAME=&quot;$VALUE&quot;</code> statements to file <code>.env</code> and run <code>source .env</code> to export variables in open terminal. See <code>mz_auth/.env</code> for example.</p>
+<h2 id="database">Database</h2>
+<p>To create <a href="https://www.postgresql.org/">PostgreSQL</a> database migrations.</p>
+<pre class="shell"><code>cargo make postgres-migrations</code></pre>
+<p>To create <a href="https://www.sqlite.org/index.html">SQLite</a> database migrations.</p>
+<pre class="shell"><code>cargo make sqlite-migrations</code></pre>
+<h2 id="test">Test</h2>
+<p>To run unit tests.</p>
+<pre class="shell"><code>cargo make test</code></pre>
+<p>For integration tests, the following environment variables are required.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>TEST_MZ_AUTH_URL</td>
+<td>Server URL.</td>
+</tr>
+<tr class="even">
+<td>TEST_MZ_AUTH_KEY</td>
+<td>Root key value.</td>
+</tr>
+</tbody>
+</table>
+<p>To run integration tests.</p>
+<pre class="shell"><code>cargo make test-integration</code></pre>
+<h2 id="build">Build</h2>
+<p>To build libraries and binaries.</p>
+<pre class="shell"><code>cargo make build
+cargo make release</code></pre>
+<p>To lint source code using <a href="https://github.com/rust-lang/rust-clippy">clippy</a>.</p>
+<pre class="shell"><code>cargo make lint</code></pre>
+<p>To build documentation.</p>
+<pre class="shell"><code>cargo doc --no-deps --open</code></pre>
+<p>To build docker image.</p>
+<pre class="shell"><code>docker-compose build</code></pre>
 </body>
 </html>

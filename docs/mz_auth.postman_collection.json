@@ -1258,7 +1258,8 @@
 						"v1",
 						"ping"
 					]
-				}
+				},
+				"description": "Uptime test route, authentication is not required for this route."
 			},
 			"response": [
 				{
@@ -1314,7 +1315,7 @@
 						"metrics"
 					]
 				},
-				"description": "Server metrics in prometheus exposition format.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+				"description": "Server metrics in [Prometheus exposition format]((https://prometheus.io/docs/instrumenting/exposition_formats/)).\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
 			},
 			"response": [
 				{
@@ -1396,73 +1397,73 @@
 	],
 	"variable": [
 		{
-			"id": "04ca3064-d74e-4ddc-8088-6dacec6b3cbb",
+			"id": "4fd89ad4-89e9-48b1-9e0e-0fc95ecf6fe7",
 			"key": "server_url",
 			"value": "localhost:9000",
 			"type": "string"
 		},
 		{
-			"id": "bce11c41-2c05-451e-aaed-5c9fd29cdaf6",
+			"id": "ed872799-e98a-4ef4-a909-87a66b70f184",
 			"key": "key",
 			"value": "{{root_key}}",
 			"type": "string"
 		},
 		{
-			"id": "435e2649-e5aa-42c1-8681-207d40d38dbc",
+			"id": "041c479b-e6c4-48a9-8017-216e5a81e3f6",
 			"key": "root_key",
 			"value": "6578ab1726ffd588c3332661a4a1978e696b4e8dc9",
 			"type": "string"
 		},
 		{
-			"id": "07239bc2-cb32-48ce-9160-0d143f13e98b",
+			"id": "678f8c12-ed8b-42b1-8107-5e88c95a6c9e",
 			"key": "service_key",
 			"value": "255f70162ce8651841b72ea2113e49137a3831975b",
 			"type": "string"
 		},
 		{
-			"id": "f57e0ee5-c8c3-4523-80b1-7e7f44d2edfc",
+			"id": "10782153-5295-4ac2-9c85-4b96882bf41a",
 			"key": "service_id",
 			"value": "360914c0-2e2f-43b2-aa06-4678c9039c3d",
 			"type": "string"
 		},
 		{
-			"id": "ca3a8642-1e62-4e67-a12b-e59cf06beef5",
+			"id": "378a6014-c5e1-4e16-9c2a-91b712e6b932",
 			"key": "key_id",
 			"value": "f8a6be4b-1477-4620-bec2-caa5b6a4bfd6",
 			"type": "string"
 		},
 		{
-			"id": "f32d998e-e9d1-4d0b-a537-68c834a2f352",
+			"id": "98cf94d5-a945-481d-afc7-2a30242bdedd",
 			"key": "user_id",
 			"value": "d6cd0520-885a-45b9-9a77-31ee9a22cbfe",
 			"type": "string"
 		},
 		{
-			"id": "711e205a-175a-4bbb-b719-89e7b20add39",
+			"id": "2659df3a-4df8-445d-8f29-a08ddd49932d",
 			"key": "user_email",
 			"value": "e8786842e35342cb95aa76b31d952cf9@test.com",
 			"type": "string"
 		},
 		{
-			"id": "c0ff5ee6-9097-4b37-a544-10c06795d2ff",
+			"id": "0df584a6-1b95-4bce-b929-de1e6c2be5ae",
 			"key": "audit_id",
 			"value": "961359b5-4d89-49e6-a3d2-714a73857eeb",
 			"type": "string"
 		},
 		{
-			"id": "0cc80ab9-66a1-4e6a-95ee-8aae8ba9e8b3",
+			"id": "213d4cee-001f-4e41-b83d-ce9e0b11ebec",
 			"key": "user_access_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIzNjA5MTRjMC0yZTJmLTQzYjItYWEwNi00Njc4YzkwMzljM2QiLCJzdWIiOiJkNmNkMDUyMC04ODVhLTQ1YjktOWE3Ny0zMWVlOWEyMmNiZmUiLCJleHAiOjE1Njk3MDU2NDgsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.Xp_uYl6f6yxsYgu8RwWGS6vEi9j5sX_kIsrykBmshC0",
 			"type": "string"
 		},
 		{
-			"id": "cc9cf275-f568-4fab-82f9-b04cdf5f38d2",
+			"id": "47311def-9513-45d3-9b34-7950b9918d4b",
 			"key": "user_refresh_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIzNjA5MTRjMC0yZTJmLTQzYjItYWEwNi00Njc4YzkwMzljM2QiLCJzdWIiOiJkNmNkMDUyMC04ODVhLTQ1YjktOWE3Ny0zMWVlOWEyMmNiZmUiLCJleHAiOjE1Njk3ODg0NDgsInhfdHlwZSI6MSwieF9jc3JmIjoiYzY5YzE5OGZmYTBhMGNhODg5MTM4YjBhMzNhNjQ5MDMyYzZjMjM0ZjA3In0.a0-t0KgIPnP1EkZwQb2P_LXiEKQpSE3RDIy-aax2tYI",
 			"type": "string"
 		},
 		{
-			"id": "e79bbdfa-0510-4a83-908a-07e9996288cc",
+			"id": "f0e1465d-5638-4930-b04b-e3c8c7291438",
 			"key": "user_key",
 			"value": "1b4b29ab8f1fd3833583de094e104a4726e0a20f28",
 			"type": "string"

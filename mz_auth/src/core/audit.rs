@@ -364,7 +364,6 @@ impl Audit {
         _audit: &mut AuditBuilder,
         list: &AuditList,
     ) -> CoreResult<Vec<Uuid>> {
-        // TODO(refactor): Read many.
         driver.audit_list(list).map_err(Into::into)
     }
 

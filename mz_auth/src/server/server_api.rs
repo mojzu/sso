@@ -2,7 +2,7 @@
 use crate::{
     Audit, AuditData, AuditList, AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe,
     Core, Key, KeyQuery, ServerValidate, ServerValidateFromStr, ServerValidateFromValue, Service,
-    ServiceQuery, User, UserKey, UserPasswordMeta, UserQuery, UserToken, UserTokenAccess,
+    ServiceQuery, User, UserKey, UserList, UserPasswordMeta, UserToken, UserTokenAccess,
 };
 use chrono::{DateTime, Utc};
 use serde_json::Value;
@@ -602,15 +602,22 @@ pub struct UserListQuery {
     pub email_eq: Option<String>,
 }
 
-impl ServerValidateFromValue<UserListQuery> for UserListQuery {}
+impl ServerValidateFromStr<UserListQuery> for UserListQuery {}
 
-impl From<UserListQuery> for UserQuery {
-    fn from(query: UserListQuery) -> UserQuery {
-        UserQuery {
-            gt: query.gt,
-            lt: query.lt,
-            limit: i64_from_string(query.limit.as_ref().map(|x| &**x)),
-            email_eq: query.email_eq,
+impl<'a> UserListQuery {
+    pub fn to_user_list(&'a self) -> UserList<'a> {
+        let limit =
+            i64_from_string(self.limit.as_ref().map(|x| &**x)).unwrap_or_else(Core::default_limit);
+
+        if let Some(email_eq) = self.email_eq.as_ref() {
+            return UserList::EmailEq(email_eq, limit);
+        }
+
+        match (&self.gt, &self.lt) {
+            (Some(gt), Some(_lt)) => UserList::IdGt(gt, limit),
+            (Some(gt), None) => UserList::IdGt(gt, limit),
+            (None, Some(lt)) => UserList::IdLt(lt, limit),
+            (None, None) => UserList::Limit(limit),
         }
     }
 }
@@ -618,8 +625,9 @@ impl From<UserListQuery> for UserQuery {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct UserListResponse {
-    pub meta: UserQuery,
-    pub data: Vec<Uuid>,
+    // TODO(refactor): Return user list parameters.
+    // pub meta: UserQuery,
+    pub data: Vec<User>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]

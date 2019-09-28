@@ -1,6 +1,4 @@
-use crate::{
-    client_msg::Get, AuditBuilder, ClientActor, Core, CoreError, CoreResult, Driver, Service,
-};
+use crate::{client_msg::Get, AuditBuilder, ClientActor, CoreError, CoreResult, Driver, Service};
 use actix::Addr;
 use chrono::{DateTime, Utc};
 use futures::{future, Future};
@@ -61,7 +59,15 @@ impl Default for UserPasswordMeta {
     }
 }
 
-/// User create data.
+/// User list.
+pub enum UserList<'a> {
+    Limit(i64),
+    IdGt(&'a Uuid, i64),
+    IdLt(&'a Uuid, i64),
+    EmailEq(&'a str, i64),
+}
+
+/// User create.
 pub struct UserCreate<'a> {
     pub is_enabled: bool,
     pub name: &'a str,
@@ -69,19 +75,10 @@ pub struct UserCreate<'a> {
     pub password_hash: Option<&'a str>,
 }
 
-/// User update data.
+/// User update.
 pub struct UserUpdate<'a> {
     pub is_enabled: Option<bool>,
     pub name: Option<&'a str>,
-}
-
-/// User query.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct UserQuery {
-    pub gt: Option<Uuid>,
-    pub lt: Option<Uuid>,
-    pub limit: Option<i64>,
-    pub email_eq: Option<String>,
 }
 
 /// User token.
@@ -110,35 +107,14 @@ pub struct UserKey {
 }
 
 impl User {
-    /// List users using query.
+    /// List usersy.
     pub fn list(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
-        query: &UserQuery,
-    ) -> CoreResult<Vec<Uuid>> {
-        let limit = query.limit.unwrap_or_else(Core::default_limit);
-
-        if let Some(email_eq) = &query.email_eq {
-            let users = driver
-                .user_list_where_email_eq(email_eq, limit)
-                .map_err(CoreError::Driver)?;
-            return Ok(users);
-        }
-
-        match &query.gt {
-            Some(gt) => driver
-                .user_list_where_id_gt(*gt, limit)
-                .map_err(CoreError::Driver),
-            None => match &query.lt {
-                Some(lt) => driver
-                    .user_list_where_id_lt(*lt, limit)
-                    .map_err(CoreError::Driver),
-                None => driver
-                    .user_list_where_id_gt(Uuid::nil(), limit)
-                    .map_err(CoreError::Driver),
-            },
-        }
+        list: &UserList,
+    ) -> CoreResult<Vec<User>> {
+        driver.user_list(list).map_err(CoreError::Driver)
     }
 
     /// Create user.

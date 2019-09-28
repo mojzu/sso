@@ -10,7 +10,7 @@ pub use crate::driver::sqlite::DriverSqlite;
 
 use crate::core::{
     Audit, AuditCreate, AuditList, CoreError, Csrf, CsrfCreate, Key, KeyCreate, KeyUpdate, Service,
-    ServiceCreate, ServiceUpdate, User, UserCreate, UserUpdate,
+    ServiceCreate, ServiceUpdate, User, UserCreate, UserList, UserUpdate,
 };
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -196,14 +196,8 @@ pub trait DriverIf {
     // User Functions
     // --------------
 
-    /// List users where ID is less than.
-    fn user_list_where_id_lt(&self, lt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>>;
-
-    /// List users where ID is greater than.
-    fn user_list_where_id_gt(&self, gt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>>;
-
-    /// List users where email is equal.
-    fn user_list_where_email_eq(&self, email_eq: &str, limit: i64) -> DriverResult<Vec<Uuid>>;
+    /// List users.
+    fn user_list(&self, list: &UserList) -> DriverResult<Vec<User>>;
 
     /// Create user.
     fn user_create(&self, create: &UserCreate) -> DriverResult<User>;

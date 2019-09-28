@@ -15,7 +15,10 @@ CREATE TABLE auth_user (
     user_is_enabled BOOLEAN NOT NULL,
     user_name VARCHAR NOT NULL,
     user_email VARCHAR NOT NULL,
+    user_locale VARCHAR NOT NULL,
+    user_timezone VARCHAR NOT NULL,
     user_password_hash VARCHAR,
+    user_password_update_required BOOLEAN,
     PRIMARY KEY (user_id),
     CONSTRAINT uq_auth_user_email UNIQUE(user_email)
 );
@@ -26,6 +29,9 @@ CREATE TABLE auth_key (
     key_id UUID NOT NULL,
     key_is_enabled BOOLEAN NOT NULL,
     key_is_revoked BOOLEAN NOT NULL,
+    key_allow_key BOOLEAN NOT NULL,
+    key_allow_token BOOLEAN NOT NULL,
+    key_allow_totp BOOLEAN NOT NULL,
     key_name VARCHAR NOT NULL,
     key_value VARCHAR NOT NULL,
     service_id UUID,
@@ -41,6 +47,8 @@ CREATE TABLE auth_key (
         REFERENCES auth_user(user_id)
         ON DELETE RESTRICT
 );
+CREATE UNIQUE INDEX idx_auth_key_allow_token ON auth_key (service_id, user_id)
+    WHERE key_is_enabled IS TRUE AND key_allow_token IS TRUE;
 
 CREATE TABLE auth_csrf (
     created_at TIMESTAMPTZ NOT NULL,

@@ -1,4 +1,6 @@
-use crate::{driver::postgres::schema::auth_user, DriverResult, User, UserCreate, UserUpdate};
+use crate::{
+    driver::postgres::schema::auth_user, DriverResult, User, UserCreate, UserList, UserUpdate,
+};
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, PgConnection};
 use uuid::Uuid;
@@ -75,48 +77,59 @@ impl<'a> ModelUserUpdate<'a> {
 }
 
 impl ModelUser {
-    pub fn list_where_id_lt(conn: &PgConnection, lt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>> {
-        use crate::driver::postgres::schema::auth_user::dsl::*;
-
-        auth_user
-            .select(user_id)
-            .filter(user_id.lt(lt))
-            .limit(limit)
-            .order(user_id.desc())
-            .load::<Uuid>(conn)
-            .map_err(Into::into)
-            .map(|mut v| {
-                v.reverse();
-                v
-            })
+    pub fn list(conn: &PgConnection, list: &UserList) -> DriverResult<Vec<User>> {
+        match list {
+            UserList::Limit(limit) => {
+                let id = Uuid::nil();
+                Self::list_where_id_gt(conn, &id, *limit)
+            }
+            UserList::IdGt(gt, limit) => Self::list_where_id_gt(conn, *gt, *limit),
+            UserList::IdLt(lt, limit) => Self::list_where_id_lt(conn, *lt, *limit),
+            UserList::EmailEq(email_eq, limit) => Self::list_where_email_eq(conn, email_eq, *limit),
+        }
     }
 
-    pub fn list_where_id_gt(conn: &PgConnection, gt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>> {
+    fn list_where_id_gt(conn: &PgConnection, gt: &Uuid, limit: i64) -> DriverResult<Vec<User>> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         auth_user
-            .select(user_id)
             .filter(user_id.gt(gt))
             .limit(limit)
             .order(user_id.asc())
-            .load::<Uuid>(conn)
+            .load::<ModelUser>(conn)
             .map_err(Into::into)
+            .map(|x| x.into_iter().map(|x| x.into()).collect())
     }
 
-    pub fn list_where_email_eq(
-        conn: &PgConnection,
-        email_eq: &str,
-        limit: i64,
-    ) -> DriverResult<Vec<Uuid>> {
+    fn list_where_id_lt(conn: &PgConnection, lt: &Uuid, limit: i64) -> DriverResult<Vec<User>> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         auth_user
-            .select(user_id)
+            .filter(user_id.lt(lt))
+            .limit(limit)
+            .order(user_id.desc())
+            .load::<ModelUser>(conn)
+            .map_err(Into::into)
+            .map(|mut x| {
+                x.reverse();
+                x.into_iter().map(|x| x.into()).collect()
+            })
+    }
+
+    fn list_where_email_eq(
+        conn: &PgConnection,
+        email_eq: &str,
+        limit: i64,
+    ) -> DriverResult<Vec<User>> {
+        use crate::driver::postgres::schema::auth_user::dsl::*;
+
+        auth_user
             .filter(user_email.eq(email_eq))
             .limit(limit)
             .order(user_id.asc())
-            .load::<Uuid>(conn)
+            .load::<ModelUser>(conn)
             .map_err(Into::into)
+            .map(|x| x.into_iter().map(|x| x.into()).collect())
     }
 
     pub fn create(conn: &PgConnection, create: &UserCreate) -> DriverResult<User> {
@@ -198,3 +211,24 @@ impl ModelUser {
             .map_err(Into::into)
     }
 }
+
+// if let Some(email_eq) = &query.email_eq {
+//     let users = driver
+//         .user_list_where_email_eq(email_eq, limit)
+//         .map_err(CoreError::Driver)?;
+//     return Ok(users);
+// }
+
+// match &query.gt {
+//     Some(gt) => driver
+//         .user_list_where_id_gt(*gt, limit)
+//         .map_err(CoreError::Driver),
+//     None => match &query.lt {
+//         Some(lt) => driver
+//             .user_list_where_id_lt(*lt, limit)
+//             .map_err(CoreError::Driver),
+//         None => driver
+//             .user_list_where_id_gt(Uuid::nil(), limit)
+//             .map_err(CoreError::Driver),
+//     },
+// }
