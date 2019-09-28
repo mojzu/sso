@@ -1,0 +1,419 @@
+{
+	"info": {
+		"_postman_id": "8adebe21-5051-406a-8ce6-4d88ed05e85b",
+		"name": "mz_auth",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "List Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server_url}}/v1/user?",
+							"host": [
+								"{{server_url}}"
+							],
+							"path": [
+								"v1",
+								"user"
+							],
+							"query": [
+								{
+									"key": "gt",
+									"value": "{{user_id}}",
+									"description": "Greater than ID (optional).",
+									"disabled": true
+								},
+								{
+									"key": "lt",
+									"value": "{{user_id}}",
+									"description": "Less than ID (optional).",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Limit number of returned users (optional).",
+									"disabled": true
+								},
+								{
+									"key": "email_eq",
+									"value": "{{user_email}}",
+									"description": "Filter users by email address (optional).",
+									"disabled": true
+								}
+							]
+						},
+						"description": "**400, Bad Request**\n\n- Request query is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"is_enabled\": true,\n  \"name\": \"User Name\",\n  \"email\": \"user@example.com\",\n  \"password\": \"guestguest\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server_url}}/v1/user",
+							"host": [
+								"{{server_url}}"
+							],
+							"path": [
+								"v1",
+								"user"
+							]
+						},
+						"description": "Users can be created without a password.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User name is invalid.\n- User email address is invalid or not unique.\n- User password is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+					},
+					"response": []
+				},
+				{
+					"name": "Read User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server_url}}/v1/user/{{user_id}}",
+							"host": [
+								"{{server_url}}"
+							],
+							"path": [
+								"v1",
+								"user",
+								"{{user_id}}"
+							]
+						},
+						"description": "**403, Forbidden**\n\n- Authorisation header is invalid.\n\n**404, Not Found**\n\n- User ID not found."
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"New Name\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server_url}}/v1/user/{{user_id}}",
+							"host": [
+								"{{server_url}}"
+							],
+							"path": [
+								"v1",
+								"user",
+								"{{user_id}}"
+							]
+						},
+						"description": "**400, Bad Request**\n\n- Request body is invalid.\n- User name is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{server_url}}/v1/user/{{user_id}}",
+							"host": [
+								"{{server_url}}"
+							],
+							"path": [
+								"v1",
+								"user",
+								"{{user_id}}"
+							]
+						},
+						"description": "**400, Bad Request**\n\n- User ID is invalid or user does not exist.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Service",
+			"item": [
+				{
+					"name": "List Services",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server_url}}/v1/service?",
+							"host": [
+								"{{server_url}}"
+							],
+							"path": [
+								"v1",
+								"service"
+							],
+							"query": [
+								{
+									"key": "gt",
+									"value": "{{service_id}}",
+									"description": "Greater than ID (optional).",
+									"disabled": true
+								},
+								{
+									"key": "lt",
+									"value": "{{service_id}}",
+									"description": "Less than ID (optional).",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Limit number of returned services (optional).",
+									"disabled": true
+								}
+							]
+						},
+						"description": "**400, Bad Request**\n\n- Request query is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Ping",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_url}}/v1/ping",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"v1",
+						"ping"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Ping",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server_url}}/v1/ping",
+							"host": [
+								"{{server_url}}"
+							],
+							"path": [
+								"v1",
+								"ping"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "content-length",
+							"value": "6"
+						},
+						{
+							"key": "content-type",
+							"value": "application/json"
+						},
+						{
+							"key": "date",
+							"value": "Sat, 28 Sep 2019 18:26:47 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "\"pong\""
+				}
+			]
+		},
+		{
+			"name": "Metrics",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_url}}/v1/metrics",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"v1",
+						"metrics"
+					]
+				},
+				"description": "Server metrics in prometheus exposition format.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+			},
+			"response": [
+				{
+					"name": "Metrics",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{server_url}}/v1/metrics",
+							"host": [
+								"{{server_url}}"
+							],
+							"path": [
+								"v1",
+								"metrics"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "plain",
+					"header": [
+						{
+							"key": "content-length",
+							"value": "1745"
+						},
+						{
+							"key": "date",
+							"value": "Sat, 28 Sep 2019 18:28:57 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "# HELP process_cpu_usage CPU usage (%).\n# TYPE process_cpu_usage counter\nprocess_cpu_usage 0\n# HELP process_resident_memory_bytes Resident memory size in bytes.\n# TYPE process_resident_memory_bytes counter\nprocess_resident_memory_bytes 23310336\n\n# HELP mz_auth_http_count HTTP request counter\n# TYPE mz_auth_http_count counter\nmz_auth_http_count{path=\"/\",status=\"200\"} 5\nmz_auth_http_count{path=\"/\",status=\"403\"} 1\n# HELP mz_auth_http_latency HTTP request latency\n# TYPE mz_auth_http_latency histogram\nmz_auth_http_latency_bucket{path=\"/\",le=\"0.005\"} 4\nmz_auth_http_latency_bucket{path=\"/\",le=\"0.01\"} 5\nmz_auth_http_latency_bucket{path=\"/\",le=\"0.025\"} 6\nmz_auth_http_latency_bucket{path=\"/\",le=\"0.05\"} 6\nmz_auth_http_latency_bucket{path=\"/\",le=\"0.1\"} 6\nmz_auth_http_latency_bucket{path=\"/\",le=\"0.25\"} 6\nmz_auth_http_latency_bucket{path=\"/\",le=\"0.5\"} 6\nmz_auth_http_latency_bucket{path=\"/\",le=\"1\"} 6\nmz_auth_http_latency_bucket{path=\"/\",le=\"2.5\"} 6\nmz_auth_http_latency_bucket{path=\"/\",le=\"5\"} 6\nmz_auth_http_latency_bucket{path=\"/\",le=\"10\"} 6\nmz_auth_http_latency_bucket{path=\"/\",le=\"+Inf\"} 6\nmz_auth_http_latency_sum{path=\"/\"} 0.031017071000000004\nmz_auth_http_latency_count{path=\"/\"} 6\n\n# HELP mz_auth_audit Audit log counter\n# TYPE mz_auth_audit counter\nmz_auth_audit{path=\"AuthenticateError\"} 16\nmz_auth_audit{path=\"KeyRevoke\"} 2\nmz_auth_audit{path=\"KeyRevokeError\"} 3\nmz_auth_audit{path=\"KeyVerifyError\"} 5\nmz_auth_audit{path=\"Login\"} 9\nmz_auth_audit{path=\"LoginError\"} 4\nmz_auth_audit{path=\"ResetPassword\"} 2\nmz_auth_audit{path=\"ResetPasswordError\"} 2\nmz_auth_audit{path=\"TokenRefresh\"} 3\nmz_auth_audit{path=\"TokenRefreshError\"} 1\nmz_auth_audit{path=\"TokenRevoke\"} 2\nmz_auth_audit{path=\"TokenVerifyError\"} 2\nmz_auth_audit{path=\"test_1\"} 9\n"
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "{{key}}",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "Authorization",
+				"type": "string"
+			},
+			{
+				"key": "in",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "5e94c294-1684-48b8-a1a7-edf77a00cebd",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "0eeafc26-6a82-40ea-bf61-ea1d0e2a95a9",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "5aa97142-cfb1-4d2e-b35f-aea5e12f2504",
+			"key": "server_url",
+			"value": "localhost:9000",
+			"type": "string"
+		},
+		{
+			"id": "f1e66dd9-06b4-45a9-a479-303bfa27b57b",
+			"key": "key",
+			"value": "{{root_key}}",
+			"type": "string"
+		},
+		{
+			"id": "b7e8063b-d913-46e8-b1f0-b8e0bc2d75ff",
+			"key": "root_key",
+			"value": "6578ab1726ffd588c3332661a4a1978e696b4e8dc9",
+			"type": "string"
+		},
+		{
+			"id": "a1f7f761-8719-4ab0-b589-25a5c2646f20",
+			"key": "service_key",
+			"value": "255f70162ce8651841b72ea2113e49137a3831975b",
+			"type": "string"
+		},
+		{
+			"id": "6976254b-8086-466a-9d89-7dec134df3e8",
+			"key": "service_id",
+			"value": "360914c0-2e2f-43b2-aa06-4678c9039c3d",
+			"type": "string"
+		},
+		{
+			"id": "b4f086fe-15a6-4278-bc99-dab4ab0f8578",
+			"key": "key_id",
+			"value": "a13d4f51-8173-465c-82fb-fb8d9cf3346a",
+			"type": "string"
+		},
+		{
+			"id": "4875fa65-c1ab-4646-a680-9e8d8f988871",
+			"key": "user_id",
+			"value": "8c657816-8093-40c9-8ea5-d16270221b35",
+			"type": "string"
+		},
+		{
+			"id": "a52e2d39-cf9d-47ea-ab59-4c4abec4e394",
+			"key": "user_email",
+			"value": "e8786842e35342cb95aa76b31d952cf9@test.com",
+			"type": "string"
+		}
+	],
+	"protocolProfileBehavior": {}
+}

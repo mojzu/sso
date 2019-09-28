@@ -4,23 +4,54 @@
 # - format (fmt)
 # - check
 
-[tasks.postgres-migrations]
+[tasks.postgres-reset]
 workspace = false
 script = [
-    "(cd ark_auth && DATABASE_URL=\"postgres://ark_auth:guest@localhost:5432/ark_auth\" diesel database reset --migration-dir migrations/postgres)",
+    "(cd mz_auth && DATABASE_URL=\"postgres://mz_auth:guest@localhost:5432/mz_auth\" diesel database reset --migration-dir migrations/postgres)",
 ]
 
-[tasks.sqlite-migrations]
+[tasks.postgres-migration]
 workspace = false
 script = [
-    "(cd ark_auth && DATABASE_URL=\"db.sqlite3\" diesel database reset --migration-dir migrations/sqlite)",
-    "(cd ark_kv && DATABASE_URL=\"db.sqlite3\" diesel database reset --migration-dir migrations/sqlite)",
+    "(cd mz_auth && DATABASE_URL=\"postgres://mz_auth:guest@localhost:5432/mz_auth\" diesel migration generate ${@} --migration-dir migrations/postgres)",
+]
+
+[tasks.sqlite-reset]
+workspace = false
+script = [
+    "(cd mz_auth && DATABASE_URL=\"db.sqlite3\" diesel database reset --migration-dir migrations/sqlite)",
+    "(cd mz_data && DATABASE_URL=\"db.sqlite3\" diesel database reset --migration-dir migrations/sqlite)",
+]
+
+[tasks.sqlite-migration]
+workspace = false
+script = [
+    "(cd mz_auth && DATABASE_URL=\"db.sqlite3\" diesel migration generate ${@} --migration-dir migrations/sqlite)",
+    "(cd mz_data && DATABASE_URL=\"db.sqlite3\" diesel migration generate ${@} --migration-dir migrations/sqlite)",
+]
+
+[tasks.docker-up]
+workspace = false
+script = [
+    "(cd docker && docker-compose up)",
+]
+
+[tasks.docker-stop]
+workspace = false
+script = [
+    "(cd docker && docker-compose stop)",
+]
+
+[tasks.docker-down]
+workspace = false
+script = [
+    "(cd docker && docker-compose down)",
 ]
 
 [tasks.manual]
 workspace = false
 script = [
-    "pandoc docs/ark_auth/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/pandoc.css --output=docs/ark_auth.html",
+    "pandoc docs/manual/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/pandoc.css --output=docs/index.html",
 ]
 
 [tasks.build]
@@ -55,4 +86,5 @@ dependencies = ["format"]
 
 [tasks.release-flow]
 workspace = false
-dependencies = ["manual", "test", "doc", "release"]
+dependencies = ["manual", "doc", "test", "release"]
+# test-integration

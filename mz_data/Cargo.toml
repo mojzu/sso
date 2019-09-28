@@ -1,0 +1,34 @@
+[package]
+name = "mz_data"
+version = "0.1.0"
+description = "Encrypted key, value storage"
+authors = ["Sam Ward <git@mojzu.net>"]
+license = "Unlicense"
+readme = "README.md"
+edition = "2018"
+
+[features]
+default = ["file", "sqlite"]
+file = []
+sqlite = []
+
+[dependencies]
+clap = "*"
+chrono = { version = "*", features = ["serde"] }
+derive_builder = "*"
+diesel = { version = "*", features = ["postgres", "sqlite", "r2d2", "chrono", "serde_json", "uuidv07"] }
+diesel_migrations = { version = "*", features = ["postgres", "sqlite"] }
+dirs = "*"
+env_logger = "*"
+failure = "*"
+flate2 = "*"
+futures = "*"
+glob = "*"
+log = { version = "*", features = ["max_level_trace", "release_max_level_info"] }
+r2d2 = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+sodiumoxide = "*"
+uuid = { version = "^0.7.4", features = ["v4"] }
+time = "*"
