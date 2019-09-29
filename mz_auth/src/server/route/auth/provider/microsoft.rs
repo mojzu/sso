@@ -6,7 +6,7 @@ use crate::{
     },
     server_api::{path, AuthOauth2CallbackQuery, AuthOauth2UrlResponse},
     AuditBuilder, AuditMeta, Auth, Client, ClientActorRequest, Csrf, Key, ServerError,
-    ServerOauth2Error, ServerOptionsProviderOauth2, ServerResult, ServerValidateFromValue, Service,
+    ServerOauth2Error, ServerOptionsProviderOauth2, ServerResult, ServerValidateFromStr, Service,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse, ResponseError};
@@ -16,7 +16,6 @@ use oauth2::{
     ClientSecret, CsrfToken, PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, Scope,
     TokenResponse, TokenUrl,
 };
-use serde_json::Value;
 use url::Url;
 use uuid::Uuid;
 
@@ -63,10 +62,9 @@ fn request_inner(
 fn oauth2_callback_handler(
     data: web::Data<Data>,
     req: HttpRequest,
-    query: web::Query<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let audit_meta = request_audit_meta(&req);
-    let query = AuthOauth2CallbackQuery::from_value(query.into_inner());
+    let query = AuthOauth2CallbackQuery::from_str(req.query_string());
 
     audit_meta
         .join(query)

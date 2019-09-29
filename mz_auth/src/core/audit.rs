@@ -121,42 +121,45 @@ impl<'a> AuditCreate<'a> {
 
 /// Audit list where created less than or equal.
 #[derive(Debug)]
-pub struct AuditListCreatedLe<'a> {
-    pub le: &'a DateTime<Utc>,
+pub struct AuditListCreatedLe {
+    pub le: DateTime<Utc>,
     pub limit: i64,
-    pub offset_id: Option<&'a Uuid>,
-    pub type_: Option<&'a Vec<String>>,
-    pub service_id_mask: Option<&'a Uuid>,
-    // TODO(refactor): Data matches filter, user filter.
+    pub offset_id: Option<Uuid>,
+    pub type_: Option<Vec<String>>,
+    pub service_id: Option<Vec<Uuid>>,
+    pub user_id: Option<Vec<Uuid>>,
+    // TODO(!refactor): Data matches filter.
 }
 
 /// Audit list where created greater than or equal.
 #[derive(Debug)]
-pub struct AuditListCreatedGe<'a> {
-    pub ge: &'a DateTime<Utc>,
+pub struct AuditListCreatedGe {
+    pub ge: DateTime<Utc>,
     pub limit: i64,
-    pub offset_id: Option<&'a Uuid>,
-    pub type_: Option<&'a Vec<String>>,
-    pub service_id_mask: Option<&'a Uuid>,
+    pub offset_id: Option<Uuid>,
+    pub type_: Option<Vec<String>>,
+    pub service_id: Option<Vec<Uuid>>,
+    pub user_id: Option<Vec<Uuid>>,
 }
 
 /// Audit list where created less than or equal and greater than or equal.
 #[derive(Debug)]
-pub struct AuditListCreatedLeAndGe<'a> {
-    pub le: &'a DateTime<Utc>,
-    pub ge: &'a DateTime<Utc>,
+pub struct AuditListCreatedLeAndGe {
+    pub le: DateTime<Utc>,
+    pub ge: DateTime<Utc>,
     pub limit: i64,
-    pub offset_id: Option<&'a Uuid>,
-    pub type_: Option<&'a Vec<String>>,
-    pub service_id_mask: Option<&'a Uuid>,
+    pub offset_id: Option<Uuid>,
+    pub type_: Option<Vec<String>>,
+    pub service_id: Option<Vec<Uuid>>,
+    pub user_id: Option<Vec<Uuid>>,
 }
 
 /// Audit list.
 #[derive(Debug)]
-pub enum AuditList<'a> {
-    CreatedLe(AuditListCreatedLe<'a>),
-    CreatedGe(AuditListCreatedGe<'a>),
-    CreatedLeAndGe(AuditListCreatedLeAndGe<'a>),
+pub enum AuditList {
+    CreatedLe(AuditListCreatedLe),
+    CreatedGe(AuditListCreatedGe),
+    CreatedLeAndGe(AuditListCreatedLeAndGe),
 }
 
 /// Audit metadata, HTTP request information.
@@ -361,10 +364,13 @@ impl Audit {
     /// List audit IDs.
     pub fn list(
         driver: &dyn Driver,
+        service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         list: &AuditList,
-    ) -> CoreResult<Vec<Uuid>> {
-        driver.audit_list(list).map_err(Into::into)
+    ) -> CoreResult<Vec<Audit>> {
+        driver
+            .audit_list(list, service_mask.map(|s| &s.id))
+            .map_err(Into::into)
     }
 
     /// Create one audit log.
@@ -380,7 +386,7 @@ impl Audit {
         id: Uuid,
     ) -> CoreResult<Option<Audit>> {
         driver
-            .audit_read_by_id(id, service_mask.map(|s| s.id))
+            .audit_read_opt(&id, service_mask.map(|s| &s.id))
             .map_err(CoreError::Driver)
     }
 
@@ -388,7 +394,7 @@ impl Audit {
     pub fn delete_many(driver: &dyn Driver, days: i64) -> CoreResult<usize> {
         let days: i64 = 0 - days;
         let created_at = Utc::now() + Duration::days(days);
-        match driver.audit_delete_by_created_at(&created_at) {
+        match driver.audit_delete(&created_at) {
             Ok(count) => Ok(count),
             Err(err) => {
                 warn!("{}", CoreError::Driver(err));

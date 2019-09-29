@@ -725,8 +725,8 @@ impl Auth {
         key_id: Uuid,
         totp_code: &str,
     ) -> CoreResult<()> {
-        // TODO(docs): Add guide, documentation for TOTP.
-        // TODO(test): Add tests for TOTP.
+        // TODO(!docs): Add guide, documentation for TOTP.
+        // TODO(!test): Add tests for TOTP.
         let key = Auth::key_read_by_id(driver, service, audit, AuditType::TotpError, key_id)?;
         let totp = TOTPBuilder::new()
             .hex_key(&key.value)
@@ -785,7 +785,7 @@ impl Auth {
         audit_type: AuditType,
     ) -> CoreResult<Service> {
         match driver
-            .service_read_by_id(service_id)
+            .service_read_opt(&service_id)
             .map_err(CoreError::Driver)?
             .ok_or_else(|| CoreError::BadRequest)
         {

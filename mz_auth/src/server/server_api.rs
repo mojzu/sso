@@ -1,17 +1,13 @@
 //! # Server API Types
 use crate::{
     Audit, AuditData, AuditList, AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe,
-    Core, Key, KeyQuery, ServerValidate, ServerValidateFromStr, ServerValidateFromValue, Service,
-    ServiceQuery, User, UserKey, UserList, UserPasswordMeta, UserToken, UserTokenAccess,
+    Core, Key, KeyList, ServerValidate, ServerValidateFromStr, ServerValidateFromValue, Service,
+    ServiceList, User, UserKey, UserList, UserPasswordMeta, UserToken, UserTokenAccess,
 };
 use chrono::{DateTime, Utc};
 use serde_json::Value;
 use uuid::Uuid;
 use validator::Validate;
-
-fn i64_from_string(value: Option<&str>) -> Option<i64> {
-    value.map(|x| x.parse::<i64>().unwrap())
-}
 
 /// Path definitions.
 pub mod path {
@@ -95,56 +91,89 @@ pub struct AuditListQuery {
     pub ge: Option<DateTime<Utc>>,
     pub le: Option<DateTime<Utc>>,
     #[validate(custom = "ServerValidate::limit")]
-    pub limit: Option<String>,
+    pub limit: Option<i64>,
     pub offset_id: Option<Uuid>,
     #[serde(rename = "type")]
     #[validate(custom = "ServerValidate::audit_type_vec")]
     pub type_: Option<Vec<String>>,
+    pub service_id: Option<Vec<Uuid>>,
+    pub user_id: Option<Vec<Uuid>>,
 }
 
 impl ServerValidateFromStr<AuditListQuery> for AuditListQuery {}
 
-impl<'a> AuditListQuery {
-    pub fn to_audit_list(
-        &'a self,
-        now: &'a DateTime<Utc>,
-        service_id_mask: Option<&'a Uuid>,
-    ) -> AuditList<'a> {
-        let limit =
-            i64_from_string(self.limit.as_ref().map(|x| &**x)).unwrap_or_else(Core::default_limit);
-        let offset_id = self.offset_id.as_ref();
-        let type_ = self.type_.as_ref();
+impl From<AuditListQuery> for AuditList {
+    fn from(query: AuditListQuery) -> Self {
+        let limit = query.limit.unwrap_or_else(Core::default_limit);
 
-        match (&self.ge, &self.le) {
-            (Some(ge), Some(le)) => AuditList::CreatedLeAndGe(AuditListCreatedLeAndGe {
+        match (query.ge, query.le) {
+            (Some(ge), Some(le)) => Self::CreatedLeAndGe(AuditListCreatedLeAndGe {
                 ge,
                 le,
                 limit,
-                offset_id,
-                type_,
-                service_id_mask,
+                offset_id: query.offset_id,
+                type_: query.type_,
+                service_id: query.service_id,
+                user_id: query.user_id,
             }),
-            (Some(ge), None) => AuditList::CreatedGe(AuditListCreatedGe {
+            (Some(ge), None) => Self::CreatedGe(AuditListCreatedGe {
                 ge,
                 limit,
-                offset_id,
-                type_,
-                service_id_mask,
+                offset_id: query.offset_id,
+                type_: query.type_,
+                service_id: query.service_id,
+                user_id: query.user_id,
             }),
-            (None, Some(le)) => AuditList::CreatedLe(AuditListCreatedLe {
+            (None, Some(le)) => Self::CreatedLe(AuditListCreatedLe {
                 le,
                 limit,
-                offset_id,
-                type_,
-                service_id_mask,
+                offset_id: query.offset_id,
+                type_: query.type_,
+                service_id: query.service_id,
+                user_id: query.user_id,
             }),
-            (None, None) => AuditList::CreatedLe(AuditListCreatedLe {
-                le: now,
+            (None, None) => Self::CreatedLe(AuditListCreatedLe {
+                le: Utc::now(),
                 limit,
-                offset_id,
-                type_,
-                service_id_mask,
+                offset_id: query.offset_id,
+                type_: query.type_,
+                service_id: query.service_id,
+                user_id: query.user_id,
             }),
+        }
+    }
+}
+
+impl From<AuditList> for AuditListQuery {
+    fn from(list: AuditList) -> Self {
+        match list {
+            AuditList::CreatedLe(l) => Self {
+                ge: None,
+                le: Some(l.le),
+                limit: Some(l.limit),
+                offset_id: l.offset_id,
+                type_: l.type_,
+                service_id: l.service_id,
+                user_id: l.user_id,
+            },
+            AuditList::CreatedGe(l) => Self {
+                ge: Some(l.ge),
+                le: None,
+                limit: Some(l.limit),
+                offset_id: l.offset_id,
+                type_: l.type_,
+                service_id: l.service_id,
+                user_id: l.user_id,
+            },
+            AuditList::CreatedLeAndGe(l) => Self {
+                ge: Some(l.ge),
+                le: Some(l.le),
+                limit: Some(l.limit),
+                offset_id: l.offset_id,
+                type_: l.type_,
+                service_id: l.service_id,
+                user_id: l.user_id,
+            },
         }
     }
 }
@@ -152,9 +181,8 @@ impl<'a> AuditListQuery {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuditListResponse {
-    // TODO(refactor): Return audit list parameters.
-    // pub meta: AuditQuery,
-    pub data: Vec<Uuid>,
+    pub meta: AuditListQuery,
+    pub data: Vec<Audit>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -422,7 +450,7 @@ pub struct AuthOauth2CallbackQuery {
     pub state: String,
 }
 
-impl ServerValidateFromValue<AuthOauth2CallbackQuery> for AuthOauth2CallbackQuery {}
+impl ServerValidateFromStr<AuthOauth2CallbackQuery> for AuthOauth2CallbackQuery {}
 
 // Key types.
 
@@ -432,17 +460,42 @@ pub struct KeyListQuery {
     pub gt: Option<Uuid>,
     pub lt: Option<Uuid>,
     #[validate(custom = "ServerValidate::limit")]
-    pub limit: Option<String>,
+    pub limit: Option<i64>,
 }
 
-impl ServerValidateFromValue<KeyListQuery> for KeyListQuery {}
+impl ServerValidateFromStr<KeyListQuery> for KeyListQuery {}
 
-impl From<KeyListQuery> for KeyQuery {
-    fn from(query: KeyListQuery) -> KeyQuery {
-        KeyQuery {
-            gt: query.gt,
-            lt: query.lt,
-            limit: i64_from_string(query.limit.as_ref().map(|x| &**x)),
+impl From<KeyListQuery> for KeyList {
+    fn from(query: KeyListQuery) -> KeyList {
+        let limit = query.limit.unwrap_or_else(Core::default_limit);
+
+        match (query.gt, query.lt) {
+            (Some(gt), Some(_lt)) => Self::IdGt(gt, limit),
+            (Some(gt), None) => Self::IdGt(gt, limit),
+            (None, Some(lt)) => Self::IdLt(lt, limit),
+            (None, None) => Self::Limit(limit),
+        }
+    }
+}
+
+impl From<KeyList> for KeyListQuery {
+    fn from(list: KeyList) -> Self {
+        match list {
+            KeyList::Limit(limit) => Self {
+                gt: None,
+                lt: None,
+                limit: Some(limit),
+            },
+            KeyList::IdGt(gt, limit) => Self {
+                gt: Some(gt),
+                lt: None,
+                limit: Some(limit),
+            },
+            KeyList::IdLt(lt, limit) => Self {
+                gt: None,
+                lt: Some(lt),
+                limit: Some(limit),
+            },
         }
     }
 }
@@ -450,8 +503,8 @@ impl From<KeyListQuery> for KeyQuery {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct KeyListResponse {
-    pub meta: KeyQuery,
-    pub data: Vec<Uuid>,
+    pub meta: KeyListQuery,
+    pub data: Vec<Key>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
@@ -525,26 +578,51 @@ pub struct ServiceListQuery {
     pub gt: Option<Uuid>,
     pub lt: Option<Uuid>,
     #[validate(custom = "ServerValidate::limit")]
-    pub limit: Option<String>,
+    pub limit: Option<i64>,
 }
 
-impl From<ServiceListQuery> for ServiceQuery {
-    fn from(query: ServiceListQuery) -> ServiceQuery {
-        ServiceQuery {
-            gt: query.gt,
-            lt: query.lt,
-            limit: i64_from_string(query.limit.as_ref().map(|x| &**x)),
+impl ServerValidateFromStr<ServiceListQuery> for ServiceListQuery {}
+
+impl From<ServiceListQuery> for ServiceList {
+    fn from(query: ServiceListQuery) -> ServiceList {
+        let limit = query.limit.unwrap_or_else(Core::default_limit);
+
+        match (query.gt, query.lt) {
+            (Some(gt), Some(_lt)) => Self::IdGt(gt, limit),
+            (Some(gt), None) => Self::IdGt(gt, limit),
+            (None, Some(lt)) => Self::IdLt(lt, limit),
+            (None, None) => Self::Limit(limit),
         }
     }
 }
 
-impl ServerValidateFromValue<ServiceListQuery> for ServiceListQuery {}
+impl From<ServiceList> for ServiceListQuery {
+    fn from(list: ServiceList) -> Self {
+        match list {
+            ServiceList::Limit(limit) => Self {
+                gt: None,
+                lt: None,
+                limit: Some(limit),
+            },
+            ServiceList::IdGt(gt, limit) => Self {
+                gt: Some(gt),
+                lt: None,
+                limit: Some(limit),
+            },
+            ServiceList::IdLt(lt, limit) => Self {
+                gt: None,
+                lt: Some(lt),
+                limit: Some(limit),
+            },
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceListResponse {
-    pub meta: ServiceQuery,
-    pub data: Vec<Uuid>,
+    pub meta: ServiceListQuery,
+    pub data: Vec<Service>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -597,27 +675,56 @@ pub struct UserListQuery {
     pub gt: Option<Uuid>,
     pub lt: Option<Uuid>,
     #[validate(custom = "ServerValidate::limit")]
-    pub limit: Option<String>,
+    pub limit: Option<i64>,
     #[validate(email)]
     pub email_eq: Option<String>,
 }
 
 impl ServerValidateFromStr<UserListQuery> for UserListQuery {}
 
-impl<'a> UserListQuery {
-    pub fn to_user_list(&'a self) -> UserList<'a> {
-        let limit =
-            i64_from_string(self.limit.as_ref().map(|x| &**x)).unwrap_or_else(Core::default_limit);
+impl From<UserListQuery> for UserList {
+    fn from(query: UserListQuery) -> UserList {
+        let limit = query.limit.unwrap_or_else(Core::default_limit);
 
-        if let Some(email_eq) = self.email_eq.as_ref() {
+        if let Some(email_eq) = query.email_eq {
             return UserList::EmailEq(email_eq, limit);
         }
+        match (query.gt, query.lt) {
+            (Some(gt), Some(_lt)) => Self::IdGt(gt, limit),
+            (Some(gt), None) => Self::IdGt(gt, limit),
+            (None, Some(lt)) => Self::IdLt(lt, limit),
+            (None, None) => Self::Limit(limit),
+        }
+    }
+}
 
-        match (&self.gt, &self.lt) {
-            (Some(gt), Some(_lt)) => UserList::IdGt(gt, limit),
-            (Some(gt), None) => UserList::IdGt(gt, limit),
-            (None, Some(lt)) => UserList::IdLt(lt, limit),
-            (None, None) => UserList::Limit(limit),
+impl From<UserList> for UserListQuery {
+    fn from(list: UserList) -> Self {
+        match list {
+            UserList::Limit(limit) => Self {
+                gt: None,
+                lt: None,
+                limit: Some(limit),
+                email_eq: None,
+            },
+            UserList::IdGt(gt, limit) => Self {
+                gt: Some(gt),
+                lt: None,
+                limit: Some(limit),
+                email_eq: None,
+            },
+            UserList::IdLt(lt, limit) => Self {
+                gt: None,
+                lt: Some(lt),
+                limit: Some(limit),
+                email_eq: None,
+            },
+            UserList::EmailEq(email_eq, limit) => Self {
+                gt: None,
+                lt: None,
+                limit: Some(limit),
+                email_eq: Some(email_eq),
+            },
         }
     }
 }
@@ -625,8 +732,7 @@ impl<'a> UserListQuery {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct UserListResponse {
-    // TODO(refactor): Return user list parameters.
-    // pub meta: UserQuery,
+    pub meta: UserListQuery,
     pub data: Vec<User>,
 }
 

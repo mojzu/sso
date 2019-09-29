@@ -24,12 +24,19 @@ impl fmt::Display for Csrf {
     }
 }
 
-/// CSRF create data.
-pub struct CsrfCreate<'a> {
-    pub key: &'a str,
-    pub value: &'a str,
-    pub ttl: &'a DateTime<Utc>,
-    pub service_id: &'a Uuid,
+/// CSRF create.
+pub struct CsrfCreate {
+    pub key: String,
+    pub value: String,
+    pub ttl: DateTime<Utc>,
+    pub service_id: Uuid,
+}
+
+/// CSRF delete.
+#[derive(Debug)]
+pub enum CsrfDelete {
+    Key(String),
+    Ttl(DateTime<Utc>),
 }
 
 impl Csrf {

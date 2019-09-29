@@ -7,9 +7,9 @@ use libreauth::key::KeyBuilder;
 use std::fmt;
 use uuid::Uuid;
 
-// TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
-// TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
-// TODO(refactor): Improve key, user, service list query options (order by name, ...).
+// TODO(!refactor): Use service_mask in functions to limit results, etc. Add tests for this.
+// TODO(!refactor): Use _audit unused, finish audit logs for routes, add optional properties.
+// TODO(!refactor): Improve key, user, service list query options (order by name, ...).
 
 /// Key value size in bytes.
 pub const KEY_VALUE_BYTES: usize = 21;
@@ -47,29 +47,48 @@ impl fmt::Display for Key {
     }
 }
 
+/// Key list.
+#[derive(Debug)]
+pub enum KeyList {
+    Limit(i64),
+    IdGt(Uuid, i64),
+    IdLt(Uuid, i64),
+}
+
 /// Key create data.
-pub struct KeyCreate<'a> {
+pub struct KeyCreate {
     pub is_enabled: bool,
     pub is_revoked: bool,
-    pub name: &'a str,
-    pub value: &'a str,
-    pub service_id: Option<&'a Uuid>,
-    pub user_id: Option<&'a Uuid>,
+    pub name: String,
+    pub value: String,
+    pub service_id: Option<Uuid>,
+    pub user_id: Option<Uuid>,
+}
+
+/// Key read by service ID and user ID.
+#[derive(Debug)]
+pub struct KeyReadUserId {
+    pub service_id: Uuid,
+    pub user_id: Uuid,
+    pub is_enabled: bool,
+    pub is_revoked: bool,
+}
+
+/// Key read.
+#[derive(Debug)]
+pub enum KeyRead {
+    Id(Uuid),
+    UserId(KeyReadUserId),
+    RootValue(String),
+    ServiceValue(String),
+    UserValue(Uuid, String),
 }
 
 /// Key update data.
-pub struct KeyUpdate<'a> {
+pub struct KeyUpdate {
     pub is_enabled: Option<bool>,
     pub is_revoked: Option<bool>,
-    pub name: Option<&'a str>,
-}
-
-/// Key query.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct KeyQuery {
-    pub gt: Option<Uuid>,
-    pub lt: Option<Uuid>,
-    pub limit: Option<i64>,
+    pub name: Option<String>,
 }
 
 impl Key {
@@ -225,8 +244,8 @@ impl Key {
         driver: &dyn Driver,
         service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
-        query: &KeyQuery,
-    ) -> CoreResult<Vec<Uuid>> {
+        list: &KeyList,
+    ) -> CoreResult<Vec<Key>> {
         let limit = query.limit.unwrap_or_else(Core::default_limit);
         let service_mask = service_mask.map(|s| s.id);
 

@@ -31,11 +31,11 @@ mod functions {
     }
     sql_function! {
         /// Obtain exclusive transaction level advisory lock if available.
-        fn pg_try_advisory_xact_lock(key1: Integer, key2: Integer) -> Void;
+        fn pg_try_advisory_xact_lock(key1: Integer, key2: Integer) -> Bool;
     }
     sql_function! {
         /// Obtain shared transaction level advisory lock if available.
-        fn pg_try_advisory_xact_lock_shared(key1: Integer, key2: Integer) -> Void;
+        fn pg_try_advisory_xact_lock_shared(key1: Integer, key2: Integer) -> Bool;
     }
 }
 

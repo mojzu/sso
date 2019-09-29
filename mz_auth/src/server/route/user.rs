@@ -8,7 +8,7 @@ use crate::{
         UserReadResponse, UserUpdateBody,
     },
     AuditMeta, Key, ServerError, ServerResult, ServerValidateFromStr, ServerValidateFromValue,
-    User,
+    User, UserList,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -57,9 +57,12 @@ fn list_inner(
 ) -> ServerResult<UserListResponse> {
     Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            let list = query.to_user_list();
+            let list: UserList = query.into();
             let data = User::list(data.driver(), service.as_ref(), &mut audit, &list)?;
-            Ok(UserListResponse { data })
+            Ok(UserListResponse {
+                meta: list.into(),
+                data,
+            })
         })
         .map_err(Into::into)
 }

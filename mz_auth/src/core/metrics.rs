@@ -19,7 +19,7 @@ impl Metrics {
     pub fn sysinfo_encoded() -> CoreResult<String> {
         let registry = Registry::new();
 
-        // TODO(feature): Support more process/other metrics, check units.
+        // TODO(!feature): Support more process/other metrics, check units.
         // <https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors>
         let mut system = SYSTEM.lock().unwrap();
         let pid = sysinfo::get_current_pid().unwrap();
@@ -56,7 +56,7 @@ impl Metrics {
             .audit_read_metrics(service_mask.map(|s| s.id))
             .map_err(CoreError::Driver)?;
 
-        // TODO(refactor): More efficient way of handling audit metrics read.
+        // TODO(!refactor): More efficient way of handling audit metrics read.
         // Keep audit registry and counter alive, only query metrics since last query.
         let audit_registry = Registry::new();
         let opts = Opts::new(Metrics::name("audit"), "Audit log counter".to_owned());

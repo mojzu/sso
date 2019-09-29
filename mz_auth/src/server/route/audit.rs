@@ -7,12 +7,11 @@ use crate::{
         path, AuditCreateBody, AuditCreateResponse, AuditListQuery, AuditListResponse,
         AuditReadResponse,
     },
-    Audit, AuditMeta, Key, ServerError, ServerResult, ServerValidateFromStr,
+    Audit, AuditList, AuditMeta, Key, ServerError, ServerResult, ServerValidateFromStr,
     ServerValidateFromValue,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
-use chrono::Utc;
 use futures::Future;
 use serde_json::Value;
 use uuid::Uuid;
@@ -53,10 +52,12 @@ fn list_inner(
 ) -> ServerResult<AuditListResponse> {
     Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            let now = Utc::now();
-            let list = query.to_audit_list(&now, service.as_ref().map(|x| &x.id));
-            let audit_ids = Audit::list(data.driver(), &mut audit, &list)?;
-            Ok(AuditListResponse { data: audit_ids })
+            let list: AuditList = query.into();
+            let data = Audit::list(data.driver(), service.as_ref(), &mut audit, &list)?;
+            Ok(AuditListResponse {
+                meta: list.into(),
+                data,
+            })
         })
         .map_err(Into::into)
 }

@@ -7,7 +7,8 @@ use crate::{
         path, ServiceCreateBody, ServiceListQuery, ServiceListResponse, ServiceReadResponse,
         ServiceUpdateBody,
     },
-    AuditMeta, Key, ServerError, ServerResult, ServerValidateFromValue, Service, ServiceQuery,
+    AuditMeta, Key, ServerError, ServerResult, ServerValidateFromStr, ServerValidateFromValue,
+    Service, ServiceList,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -34,16 +35,15 @@ fn list_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    query: web::Query<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let query = ServiceListQuery::from_value(query.into_inner());
+    let query = ServiceListQuery::from_str(req.query_string());
 
     audit_meta
         .join(query)
         .and_then(|(audit_meta, query)| {
-            web::block(move || list_inner(data.get_ref(), audit_meta, id, query.into()))
+            web::block(move || list_inner(data.get_ref(), audit_meta, id, query))
                 .map_err(Into::into)
         })
         .then(route_response_json)
@@ -53,14 +53,15 @@ fn list_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    query: ServiceQuery,
+    query: ServiceListQuery,
 ) -> ServerResult<ServiceListResponse> {
     Key::authenticate_root(data.driver(), audit_meta, id)
         .and_then(|mut audit| {
-            let service_ids = Service::list(data.driver(), &mut audit, &query)?;
+            let list: ServiceList = query.into();
+            let data = Service::list(data.driver(), &mut audit, &list)?;
             Ok(ServiceListResponse {
-                meta: query,
-                data: service_ids,
+                meta: list.into(),
+                data,
             })
         })
         .map_err(Into::into)

@@ -53,10 +53,7 @@ pub trait ServerValidateFromStr<T: DeserializeOwned + Validate> {
 pub struct ServerValidate;
 
 impl ServerValidate {
-    pub fn limit(limit: &str) -> Result<(), ValidationError> {
-        let limit = limit
-            .parse::<i64>()
-            .map_err(|_e| ValidationError::new("invalid_limit"))?;
+    pub fn limit(limit: i64) -> Result<(), ValidationError> {
         if limit < 0 {
             Err(ValidationError::new("invalid_limit"))
         } else {

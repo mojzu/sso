@@ -4,9 +4,9 @@ mod schema;
 
 use crate::{
     driver::postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
-    Audit, AuditCreate, AuditList, Csrf, CsrfCreate, Driver, DriverError, DriverIf, DriverLock,
-    DriverLockFn, DriverResult, Key, KeyCreate, KeyUpdate, Service, ServiceCreate, ServiceUpdate,
-    User, UserCreate, UserList, UserUpdate,
+    Audit, AuditCreate, AuditList, Csrf, CsrfCreate, CsrfDelete, Driver, DriverError, DriverIf,
+    DriverLock, DriverLockFn, DriverResult, Key, KeyCreate, KeyList, KeyRead, KeyUpdate, Service,
+    ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserList, UserRead, UserUpdate,
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
@@ -47,31 +47,43 @@ impl DriverPostgres {
 }
 
 impl DriverIf for DriverPostgres {
-    fn exclusive_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<usize> {
+    fn exclusive_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<bool> {
         use diesel_admin::*;
 
         let conn = self.conn()?;
         conn.transaction(|| {
-            diesel::select(pg_advisory_xact_lock(1, key as i32)).execute(&conn)?;
-            let conn_driver = DriverPostgresConn::new(&conn);
-            func(&conn_driver)
+            if diesel::select(pg_try_advisory_xact_lock(1, key as i32)).get_result::<bool>(&conn)? {
+                let conn_driver = DriverPostgresConnRef::new(&conn);
+                func(&conn_driver)
+            } else {
+                Err(DriverError::Locked(key))
+            }
         })
     }
 
-    fn shared_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<usize> {
+    fn shared_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<bool> {
         use diesel_admin::*;
 
         let conn = self.conn()?;
         conn.transaction(|| {
-            diesel::select(pg_advisory_xact_lock_shared(1, key as i32)).execute(&conn)?;
-            let conn_driver = DriverPostgresConn::new(&conn);
-            func(&conn_driver)
+            if diesel::select(pg_try_advisory_xact_lock_shared(1, key as i32))
+                .get_result::<bool>(&conn)?
+            {
+                let conn_driver = DriverPostgresConnRef::new(&conn);
+                func(&conn_driver)
+            } else {
+                Err(DriverError::Locked(key))
+            }
         })
     }
 
-    fn audit_list(&self, list: &AuditList) -> DriverResult<Vec<Uuid>> {
+    fn audit_list(
+        &self,
+        list: &AuditList,
+        service_id_mask: Option<&Uuid>,
+    ) -> DriverResult<Vec<Audit>> {
         let conn = self.conn()?;
-        ModelAudit::list(&conn, list)
+        ModelAudit::list(&conn, list, service_id_mask)
     }
 
     fn audit_create(&self, create: &AuditCreate) -> DriverResult<Audit> {
@@ -79,26 +91,26 @@ impl DriverIf for DriverPostgres {
         ModelAudit::create(&conn, create)
     }
 
-    fn audit_read_by_id(
+    fn audit_read_opt(
         &self,
-        id: Uuid,
-        service_id_mask: Option<Uuid>,
+        id: &Uuid,
+        service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Option<Audit>> {
         let conn = self.conn()?;
-        ModelAudit::read_by_id(&conn, id, service_id_mask)
+        ModelAudit::read_opt(&conn, id, service_id_mask)
     }
 
     fn audit_read_metrics(
         &self,
-        service_id_mask: Option<Uuid>,
+        service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<(String, i64)>> {
         let conn = self.conn()?;
         ModelAudit::read_metrics(&conn, service_id_mask)
     }
 
-    fn audit_delete_by_created_at(&self, audit_created_at: &DateTime<Utc>) -> DriverResult<usize> {
+    fn audit_delete(&self, created_at: &DateTime<Utc>) -> DriverResult<usize> {
         let conn = self.conn()?;
-        ModelAudit::delete_by_created_at(&conn, audit_created_at)
+        ModelAudit::delete(&conn, created_at)
     }
 
     fn csrf_create(&self, create: &CsrfCreate) -> DriverResult<Csrf> {
@@ -106,39 +118,19 @@ impl DriverIf for DriverPostgres {
         ModelCsrf::create(&conn, create)
     }
 
-    fn csrf_read_by_key(&self, key: &str) -> DriverResult<Option<Csrf>> {
+    fn csrf_read_opt(&self, key: &str) -> DriverResult<Option<Csrf>> {
         let conn = self.conn()?;
-        ModelCsrf::read_by_key(&conn, key)
+        ModelCsrf::read_opt(&conn, key)
     }
 
-    fn csrf_delete_by_key(&self, key: &str) -> DriverResult<usize> {
+    fn csrf_delete(&self, delete: &CsrfDelete) -> DriverResult<usize> {
         let conn = self.conn()?;
-        ModelCsrf::delete_by_key(&conn, key)
+        ModelCsrf::delete(&conn, delete)
     }
 
-    fn csrf_delete_by_ttl(&self, now: &DateTime<Utc>) -> DriverResult<usize> {
+    fn key_list(&self, list: &KeyList, service_id_mask: Option<&Uuid>) -> DriverResult<Vec<Key>> {
         let conn = self.conn()?;
-        ModelCsrf::delete_by_ttl(&conn, now)
-    }
-
-    fn key_list_where_id_lt(
-        &self,
-        lt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        let conn = self.conn()?;
-        ModelKey::list_where_id_lt(&conn, lt, limit, service_id_mask)
-    }
-
-    fn key_list_where_id_gt(
-        &self,
-        gt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        let conn = self.conn()?;
-        ModelKey::list_where_id_gt(&conn, gt, limit, service_id_mask)
+        ModelKey::list(&conn, list, service_id_mask)
     }
 
     fn key_create(&self, create: &KeyCreate) -> DriverResult<Key> {
@@ -146,69 +138,29 @@ impl DriverIf for DriverPostgres {
         ModelKey::create(&conn, create)
     }
 
-    fn key_read_by_id(&self, id: Uuid) -> DriverResult<Option<Key>> {
+    fn key_read_opt(&self, read: &KeyRead) -> DriverResult<Option<Key>> {
         let conn = self.conn()?;
-        ModelKey::read_by_id(&conn, id)
+        ModelKey::read_opt(&conn, read)
     }
 
-    fn key_read_by_user_id(
-        &self,
-        service_id: Uuid,
-        user_id: Uuid,
-        is_enabled: bool,
-        is_revoked: bool,
-    ) -> DriverResult<Option<Key>> {
+    fn key_update(&self, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key> {
         let conn = self.conn()?;
-        ModelKey::read_by_user_id(&conn, service_id, user_id, is_enabled, is_revoked)
+        ModelKey::update(&conn, id, update)
     }
 
-    fn key_read_by_root_value(&self, value: &str) -> DriverResult<Option<Key>> {
+    fn key_update_many(&self, user_id: &Uuid, update: &KeyUpdate) -> DriverResult<usize> {
         let conn = self.conn()?;
-        ModelKey::read_by_root_value(&conn, value)
+        ModelKey::update_many(&conn, user_id, update)
     }
 
-    fn key_read_by_service_value(&self, value: &str) -> DriverResult<Option<Key>> {
+    fn key_delete(&self, id: &Uuid) -> DriverResult<usize> {
         let conn = self.conn()?;
-        ModelKey::read_by_service_value(&conn, value)
+        ModelKey::delete(&conn, id)
     }
 
-    fn key_read_by_user_value(
-        &self,
-        key_service_id: Uuid,
-        value: &str,
-    ) -> DriverResult<Option<Key>> {
+    fn service_list(&self, list: &ServiceList) -> DriverResult<Vec<Service>> {
         let conn = self.conn()?;
-        ModelKey::read_by_user_value(&conn, key_service_id, value)
-    }
-
-    fn key_update_by_id(&self, id: Uuid, update: &KeyUpdate) -> DriverResult<Key> {
-        let conn = self.conn()?;
-        ModelKey::update_by_id(&conn, id, update)
-    }
-
-    fn key_update_many_by_user_id(&self, user_id: Uuid, update: &KeyUpdate) -> DriverResult<usize> {
-        let conn = self.conn()?;
-        ModelKey::update_many_by_user_id(&conn, user_id, update)
-    }
-
-    fn key_delete_by_id(&self, id: Uuid) -> DriverResult<usize> {
-        let conn = self.conn()?;
-        ModelKey::delete_by_id(&conn, id)
-    }
-
-    fn key_delete_root(&self) -> DriverResult<usize> {
-        let conn = self.conn()?;
-        ModelKey::delete_root(&conn)
-    }
-
-    fn service_list_where_id_lt(&self, lt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>> {
-        let conn = self.conn()?;
-        ModelService::list_where_id_lt(&conn, lt, limit)
-    }
-
-    fn service_list_where_id_gt(&self, gt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>> {
-        let conn = self.conn()?;
-        ModelService::list_where_id_gt(&conn, gt, limit)
+        ModelService::list(&conn, list)
     }
 
     fn service_create(&self, create: &ServiceCreate) -> DriverResult<Service> {
@@ -216,19 +168,19 @@ impl DriverIf for DriverPostgres {
         ModelService::create(&conn, create)
     }
 
-    fn service_read_by_id(&self, id: Uuid) -> DriverResult<Option<Service>> {
+    fn service_read_opt(&self, id: &Uuid) -> DriverResult<Option<Service>> {
         let conn = self.conn()?;
-        ModelService::read_by_id(&conn, id)
+        ModelService::read_opt(&conn, id)
     }
 
-    fn service_update_by_id(&self, id: Uuid, update: &ServiceUpdate) -> DriverResult<Service> {
+    fn service_update(&self, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service> {
         let conn = self.conn()?;
-        ModelService::update_by_id(&conn, id, update)
+        ModelService::update(&conn, id, update)
     }
 
-    fn service_delete_by_id(&self, id: Uuid) -> DriverResult<usize> {
+    fn service_delete(&self, id: &Uuid) -> DriverResult<usize> {
         let conn = self.conn()?;
-        ModelService::delete_by_id(&conn, id)
+        ModelService::delete(&conn, id)
     }
 
     fn user_list(&self, list: &UserList) -> DriverResult<Vec<User>> {
@@ -241,34 +193,19 @@ impl DriverIf for DriverPostgres {
         ModelUser::create(&conn, create)
     }
 
-    fn user_read_by_id(&self, id: Uuid) -> DriverResult<Option<User>> {
+    fn user_read_opt(&self, read: &UserRead) -> DriverResult<Option<User>> {
         let conn = self.conn()?;
-        ModelUser::read_by_id(&conn, id)
+        ModelUser::read_opt(&conn, read)
     }
 
-    fn user_read_by_email(&self, email: &str) -> DriverResult<Option<User>> {
+    fn user_update(&self, id: &Uuid, update: &UserUpdate) -> DriverResult<User> {
         let conn = self.conn()?;
-        ModelUser::read_by_email(&conn, email)
+        ModelUser::update(&conn, id, update)
     }
 
-    fn user_update_by_id(&self, id: Uuid, update: &UserUpdate) -> DriverResult<User> {
+    fn user_delete(&self, id: &Uuid) -> DriverResult<usize> {
         let conn = self.conn()?;
-        ModelUser::update_by_id(&conn, id, update)
-    }
-
-    fn user_update_email_by_id(&self, id: Uuid, email: &str) -> DriverResult<usize> {
-        let conn = self.conn()?;
-        ModelUser::update_email_by_id(&conn, id, email)
-    }
-
-    fn user_update_password_by_id(&self, id: Uuid, password_hash: &str) -> DriverResult<usize> {
-        let conn = self.conn()?;
-        ModelUser::update_password_by_id(&conn, id, password_hash)
-    }
-
-    fn user_delete_by_id(&self, id: Uuid) -> DriverResult<usize> {
-        let conn = self.conn()?;
-        ModelUser::delete_by_id(&conn, id)
+        ModelUser::delete(&conn, id)
     }
 }
 
@@ -283,11 +220,11 @@ impl Driver for DriverPostgres {
 }
 
 /// Driver for PostgreSQL connection reference.
-struct DriverPostgresConn<'a> {
+struct DriverPostgresConnRef<'a> {
     conn: &'a PgConnection,
 }
 
-impl<'a> DriverPostgresConn<'a> {
+impl<'a> DriverPostgresConnRef<'a> {
     fn new(conn: &'a PgConnection) -> Self {
         Self { conn }
     }
@@ -297,162 +234,122 @@ impl<'a> DriverPostgresConn<'a> {
     }
 }
 
-impl<'a> DriverIf for DriverPostgresConn<'a> {
-    fn exclusive_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<usize> {
+impl<'a> DriverIf for DriverPostgresConnRef<'a> {
+    fn exclusive_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<bool> {
         use diesel_admin::*;
 
         let conn = self.conn();
         conn.transaction(|| {
-            diesel::select(pg_advisory_xact_lock(1, key as i32)).execute(conn)?;
-            let conn_driver = DriverPostgresConn::new(conn);
-            func(&conn_driver)
+            if diesel::select(pg_try_advisory_xact_lock(1, key as i32)).get_result::<bool>(conn)? {
+                let conn_driver = DriverPostgresConnRef::new(conn);
+                func(&conn_driver)
+            } else {
+                Err(DriverError::Locked(key))
+            }
         })
     }
 
-    fn shared_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<usize> {
+    fn shared_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<bool> {
         use diesel_admin::*;
 
         let conn = self.conn();
         conn.transaction(|| {
-            diesel::select(pg_advisory_xact_lock_shared(1, key as i32)).execute(conn)?;
-            let conn_driver = DriverPostgresConn::new(conn);
-            func(&conn_driver)
+            if diesel::select(pg_try_advisory_xact_lock_shared(1, key as i32))
+                .get_result::<bool>(conn)?
+            {
+                let conn_driver = DriverPostgresConnRef::new(conn);
+                func(&conn_driver)
+            } else {
+                Err(DriverError::Locked(key))
+            }
         })
     }
 
-    fn audit_list(&self, list: &AuditList) -> DriverResult<Vec<Uuid>> {
-        ModelAudit::list(self.conn(), list)
+    fn audit_list(
+        &self,
+        list: &AuditList,
+        service_id_mask: Option<&Uuid>,
+    ) -> DriverResult<Vec<Audit>> {
+        ModelAudit::list(self.conn(), list, service_id_mask)
     }
 
     fn audit_create(&self, create: &AuditCreate) -> DriverResult<Audit> {
         ModelAudit::create(self.conn(), create)
     }
 
-    fn audit_read_by_id(
+    fn audit_read_opt(
         &self,
-        id: Uuid,
-        service_id_mask: Option<Uuid>,
+        id: &Uuid,
+        service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Option<Audit>> {
-        ModelAudit::read_by_id(self.conn(), id, service_id_mask)
+        ModelAudit::read_opt(self.conn(), id, service_id_mask)
     }
 
     fn audit_read_metrics(
         &self,
-        service_id_mask: Option<Uuid>,
+        service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<(String, i64)>> {
         ModelAudit::read_metrics(self.conn(), service_id_mask)
     }
 
-    fn audit_delete_by_created_at(&self, audit_created_at: &DateTime<Utc>) -> DriverResult<usize> {
-        ModelAudit::delete_by_created_at(self.conn(), audit_created_at)
+    fn audit_delete(&self, created_at: &DateTime<Utc>) -> DriverResult<usize> {
+        ModelAudit::delete(self.conn(), created_at)
     }
 
     fn csrf_create(&self, create: &CsrfCreate) -> DriverResult<Csrf> {
         ModelCsrf::create(self.conn(), create)
     }
 
-    fn csrf_read_by_key(&self, key: &str) -> DriverResult<Option<Csrf>> {
-        ModelCsrf::read_by_key(self.conn(), key)
+    fn csrf_read_opt(&self, key: &str) -> DriverResult<Option<Csrf>> {
+        ModelCsrf::read_opt(self.conn(), key)
     }
 
-    fn csrf_delete_by_key(&self, key: &str) -> DriverResult<usize> {
-        ModelCsrf::delete_by_key(self.conn(), key)
+    fn csrf_delete(&self, delete: &CsrfDelete) -> DriverResult<usize> {
+        ModelCsrf::delete(self.conn(), delete)
     }
 
-    fn csrf_delete_by_ttl(&self, now: &DateTime<Utc>) -> DriverResult<usize> {
-        ModelCsrf::delete_by_ttl(self.conn(), now)
-    }
-
-    fn key_list_where_id_lt(
-        &self,
-        lt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        ModelKey::list_where_id_lt(self.conn(), lt, limit, service_id_mask)
-    }
-
-    fn key_list_where_id_gt(
-        &self,
-        gt: Uuid,
-        limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
-        ModelKey::list_where_id_gt(self.conn(), gt, limit, service_id_mask)
+    fn key_list(&self, list: &KeyList, service_id_mask: Option<&Uuid>) -> DriverResult<Vec<Key>> {
+        ModelKey::list(self.conn(), list, service_id_mask)
     }
 
     fn key_create(&self, create: &KeyCreate) -> DriverResult<Key> {
         ModelKey::create(self.conn(), create)
     }
 
-    fn key_read_by_id(&self, id: Uuid) -> DriverResult<Option<Key>> {
-        ModelKey::read_by_id(self.conn(), id)
+    fn key_read_opt(&self, read: &KeyRead) -> DriverResult<Option<Key>> {
+        ModelKey::read_opt(self.conn(), read)
     }
 
-    fn key_read_by_user_id(
-        &self,
-        service_id: Uuid,
-        user_id: Uuid,
-        is_enabled: bool,
-        is_revoked: bool,
-    ) -> DriverResult<Option<Key>> {
-        ModelKey::read_by_user_id(self.conn(), service_id, user_id, is_enabled, is_revoked)
+    fn key_update(&self, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key> {
+        ModelKey::update(self.conn(), id, update)
     }
 
-    fn key_read_by_root_value(&self, value: &str) -> DriverResult<Option<Key>> {
-        ModelKey::read_by_root_value(self.conn(), value)
+    fn key_update_many(&self, user_id: &Uuid, update: &KeyUpdate) -> DriverResult<usize> {
+        ModelKey::update_many(self.conn(), user_id, update)
     }
 
-    fn key_read_by_service_value(&self, value: &str) -> DriverResult<Option<Key>> {
-        ModelKey::read_by_service_value(self.conn(), value)
+    fn key_delete(&self, id: &Uuid) -> DriverResult<usize> {
+        ModelKey::delete(self.conn(), id)
     }
 
-    fn key_read_by_user_value(
-        &self,
-        key_service_id: Uuid,
-        value: &str,
-    ) -> DriverResult<Option<Key>> {
-        ModelKey::read_by_user_value(self.conn(), key_service_id, value)
-    }
-
-    fn key_update_by_id(&self, id: Uuid, update: &KeyUpdate) -> DriverResult<Key> {
-        ModelKey::update_by_id(self.conn(), id, update)
-    }
-
-    fn key_update_many_by_user_id(&self, user_id: Uuid, update: &KeyUpdate) -> DriverResult<usize> {
-        ModelKey::update_many_by_user_id(self.conn(), user_id, update)
-    }
-
-    fn key_delete_by_id(&self, id: Uuid) -> DriverResult<usize> {
-        ModelKey::delete_by_id(self.conn(), id)
-    }
-
-    fn key_delete_root(&self) -> DriverResult<usize> {
-        ModelKey::delete_root(self.conn())
-    }
-
-    fn service_list_where_id_lt(&self, lt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>> {
-        ModelService::list_where_id_lt(self.conn(), lt, limit)
-    }
-
-    fn service_list_where_id_gt(&self, gt: Uuid, limit: i64) -> DriverResult<Vec<Uuid>> {
-        ModelService::list_where_id_gt(self.conn(), gt, limit)
+    fn service_list(&self, list: &ServiceList) -> DriverResult<Vec<Service>> {
+        ModelService::list(self.conn(), list)
     }
 
     fn service_create(&self, create: &ServiceCreate) -> DriverResult<Service> {
         ModelService::create(self.conn(), create)
     }
 
-    fn service_read_by_id(&self, id: Uuid) -> DriverResult<Option<Service>> {
-        ModelService::read_by_id(self.conn(), id)
+    fn service_read_opt(&self, id: &Uuid) -> DriverResult<Option<Service>> {
+        ModelService::read_opt(self.conn(), id)
     }
 
-    fn service_update_by_id(&self, id: Uuid, update: &ServiceUpdate) -> DriverResult<Service> {
-        ModelService::update_by_id(self.conn(), id, update)
+    fn service_update(&self, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service> {
+        ModelService::update(self.conn(), id, update)
     }
 
-    fn service_delete_by_id(&self, id: Uuid) -> DriverResult<usize> {
-        ModelService::delete_by_id(self.conn(), id)
+    fn service_delete(&self, id: &Uuid) -> DriverResult<usize> {
+        ModelService::delete(self.conn(), id)
     }
 
     fn user_list(&self, list: &UserList) -> DriverResult<Vec<User>> {
@@ -463,27 +360,15 @@ impl<'a> DriverIf for DriverPostgresConn<'a> {
         ModelUser::create(self.conn(), create)
     }
 
-    fn user_read_by_id(&self, id: Uuid) -> DriverResult<Option<User>> {
-        ModelUser::read_by_id(self.conn(), id)
+    fn user_read_opt(&self, read: &UserRead) -> DriverResult<Option<User>> {
+        ModelUser::read_opt(self.conn(), read)
     }
 
-    fn user_read_by_email(&self, email: &str) -> DriverResult<Option<User>> {
-        ModelUser::read_by_email(self.conn(), email)
+    fn user_update(&self, id: &Uuid, update: &UserUpdate) -> DriverResult<User> {
+        ModelUser::update(self.conn(), id, update)
     }
 
-    fn user_update_by_id(&self, id: Uuid, update: &UserUpdate) -> DriverResult<User> {
-        ModelUser::update_by_id(self.conn(), id, update)
-    }
-
-    fn user_update_email_by_id(&self, id: Uuid, email: &str) -> DriverResult<usize> {
-        ModelUser::update_email_by_id(self.conn(), id, email)
-    }
-
-    fn user_update_password_by_id(&self, id: Uuid, password_hash: &str) -> DriverResult<usize> {
-        ModelUser::update_password_by_id(self.conn(), id, password_hash)
-    }
-
-    fn user_delete_by_id(&self, id: Uuid) -> DriverResult<usize> {
-        ModelUser::delete_by_id(self.conn(), id)
+    fn user_delete(&self, id: &Uuid) -> DriverResult<usize> {
+        ModelUser::delete(self.conn(), id)
     }
 }

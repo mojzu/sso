@@ -60,25 +60,35 @@ impl Default for UserPasswordMeta {
 }
 
 /// User list.
-pub enum UserList<'a> {
+#[derive(Debug)]
+pub enum UserList {
     Limit(i64),
-    IdGt(&'a Uuid, i64),
-    IdLt(&'a Uuid, i64),
-    EmailEq(&'a str, i64),
+    IdGt(Uuid, i64),
+    IdLt(Uuid, i64),
+    EmailEq(String, i64),
 }
 
 /// User create.
-pub struct UserCreate<'a> {
+pub struct UserCreate {
     pub is_enabled: bool,
-    pub name: &'a str,
-    pub email: &'a str,
-    pub password_hash: Option<&'a str>,
+    pub name: String,
+    pub email: String,
+    pub password_hash: Option<String>,
+}
+
+/// User read.
+#[derive(Debug)]
+pub enum UserRead {
+    Id(Uuid),
+    Email(String),
 }
 
 /// User update.
-pub struct UserUpdate<'a> {
+pub struct UserUpdate {
     pub is_enabled: Option<bool>,
-    pub name: Option<&'a str>,
+    pub name: Option<String>,
+    pub email: Option<String>,
+    pub password_hash: Option<String>,
 }
 
 /// User token.

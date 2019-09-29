@@ -27,25 +27,25 @@ impl fmt::Display for Service {
     }
 }
 
+/// Service list.
+#[derive(Debug)]
+pub enum ServiceList {
+    Limit(i64),
+    IdGt(Uuid, i64),
+    IdLt(Uuid, i64),
+}
+
 /// Service create data.
-pub struct ServiceCreate<'a> {
+pub struct ServiceCreate {
     pub is_enabled: bool,
-    pub name: &'a str,
-    pub url: &'a str,
+    pub name: String,
+    pub url: String,
 }
 
 /// Service update data.
-pub struct ServiceUpdate<'a> {
+pub struct ServiceUpdate {
     pub is_enabled: Option<bool>,
-    pub name: Option<&'a str>,
-}
-
-/// Service query.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ServiceQuery {
-    pub gt: Option<Uuid>,
-    pub lt: Option<Uuid>,
-    pub limit: Option<i64>,
+    pub name: Option<String>,
 }
 
 /// Service callback URL query.
@@ -79,8 +79,8 @@ impl Service {
     pub fn list(
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
-        query: &ServiceQuery,
-    ) -> CoreResult<Vec<Uuid>> {
+        list: &ServiceList,
+    ) -> CoreResult<Vec<Service>> {
         let limit = query.limit.unwrap_or_else(Core::default_limit);
 
         match &query.gt {

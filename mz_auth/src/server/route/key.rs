@@ -6,7 +6,8 @@ use crate::{
     server_api::{
         path, KeyCreateBody, KeyListQuery, KeyListResponse, KeyReadResponse, KeyUpdateBody,
     },
-    AuditMeta, CoreError, Key, KeyQuery, ServerError, ServerResult, ServerValidateFromValue,
+    AuditMeta, CoreError, Key, KeyList, ServerError, ServerResult, ServerValidateFromStr,
+    ServerValidateFromValue,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -33,16 +34,15 @@ fn list_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    query: web::Query<Value>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let query = KeyListQuery::from_value(query.into_inner());
+    let query = KeyListQuery::from_str(req.query_string());
 
     audit_meta
         .join(query)
         .and_then(|(audit_meta, query)| {
-            web::block(move || list_inner(data.get_ref(), audit_meta, id, query.into()))
+            web::block(move || list_inner(data.get_ref(), audit_meta, id, query))
                 .map_err(Into::into)
         })
         .then(route_response_json)
@@ -52,14 +52,15 @@ fn list_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    query: KeyQuery,
+    query: KeyListQuery,
 ) -> ServerResult<KeyListResponse> {
     Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            let key_ids = Key::list(data.driver(), service.as_ref(), &mut audit, &query)?;
+            let list: KeyList = query.into();
+            let data = Key::list(data.driver(), service.as_ref(), &mut audit, &list)?;
             Ok(KeyListResponse {
-                meta: query,
-                data: key_ids,
+                meta: list.into(),
+                data,
             })
         })
         .map_err(Into::into)

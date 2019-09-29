@@ -1,8 +1,9 @@
 use crate::{
-    driver::postgres::schema::auth_user, DriverResult, User, UserCreate, UserList, UserUpdate,
+    driver::postgres::schema::auth_user, DriverResult, User, UserCreate, UserList, UserRead,
+    UserUpdate,
 };
 use chrono::{DateTime, Utc};
-use diesel::{prelude::*, PgConnection};
+use diesel::prelude::*;
 use uuid::Uuid;
 
 #[derive(Debug, Identifiable, Queryable)]
@@ -51,9 +52,9 @@ impl<'a> ModelUserInsert<'a> {
             updated_at: now,
             user_id: id,
             user_is_enabled: create.is_enabled,
-            user_name: create.name,
-            user_email: create.email,
-            user_password_hash: create.password_hash,
+            user_name: &create.name,
+            user_email: &create.email,
+            user_password_hash: create.password_hash.as_ref().map(|x| &**x),
         }
     }
 }
@@ -71,7 +72,7 @@ impl<'a> ModelUserUpdate<'a> {
         Self {
             updated_at: now,
             user_is_enabled: update.is_enabled,
-            user_name: update.name,
+            user_name: update.name.as_ref().map(|x| &**x),
         }
     }
 }
@@ -83,8 +84,8 @@ impl ModelUser {
                 let id = Uuid::nil();
                 Self::list_where_id_gt(conn, &id, *limit)
             }
-            UserList::IdGt(gt, limit) => Self::list_where_id_gt(conn, *gt, *limit),
-            UserList::IdLt(lt, limit) => Self::list_where_id_lt(conn, *lt, *limit),
+            UserList::IdGt(gt, limit) => Self::list_where_id_gt(conn, gt, *limit),
+            UserList::IdLt(lt, limit) => Self::list_where_id_lt(conn, lt, *limit),
             UserList::EmailEq(email_eq, limit) => Self::list_where_email_eq(conn, email_eq, *limit),
         }
     }
@@ -145,7 +146,14 @@ impl ModelUser {
             .map(Into::into)
     }
 
-    pub fn read_by_id(conn: &PgConnection, id: Uuid) -> DriverResult<Option<User>> {
+    pub fn read_opt(conn: &PgConnection, read: &UserRead) -> DriverResult<Option<User>> {
+        match read {
+            UserRead::Id(id) => Self::read_by_id(conn, id),
+            UserRead::Email(email) => Self::read_by_email(conn, email),
+        }
+    }
+
+    fn read_by_id(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<User>> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         auth_user
@@ -156,7 +164,7 @@ impl ModelUser {
             .map(|x| x.map(Into::into))
     }
 
-    pub fn read_by_email(conn: &PgConnection, email: &str) -> DriverResult<Option<User>> {
+    fn read_by_email(conn: &PgConnection, email: &str) -> DriverResult<Option<User>> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         auth_user
@@ -167,7 +175,7 @@ impl ModelUser {
             .map(|x| x.map(Into::into))
     }
 
-    pub fn update_by_id(conn: &PgConnection, id: Uuid, update: &UserUpdate) -> DriverResult<User> {
+    pub fn update(conn: &PgConnection, id: &Uuid, update: &UserUpdate) -> DriverResult<User> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         let now = Utc::now();
@@ -179,31 +187,7 @@ impl ModelUser {
             .map(Into::into)
     }
 
-    pub fn update_email_by_id(conn: &PgConnection, id: Uuid, email: &str) -> DriverResult<usize> {
-        use crate::driver::postgres::schema::auth_user::dsl::*;
-
-        let now = Utc::now();
-        diesel::update(auth_user.filter(user_id.eq(id)))
-            .set((updated_at.eq(now), user_email.eq(email)))
-            .execute(conn)
-            .map_err(Into::into)
-    }
-
-    pub fn update_password_by_id(
-        conn: &PgConnection,
-        id: Uuid,
-        password_hash: &str,
-    ) -> DriverResult<usize> {
-        use crate::driver::postgres::schema::auth_user::dsl::*;
-
-        let now = Utc::now();
-        diesel::update(auth_user.filter(user_id.eq(id)))
-            .set((updated_at.eq(now), user_password_hash.eq(password_hash)))
-            .execute(conn)
-            .map_err(Into::into)
-    }
-
-    pub fn delete_by_id(conn: &PgConnection, id: Uuid) -> DriverResult<usize> {
+    pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<usize> {
         use crate::driver::postgres::schema::auth_user::dsl::*;
 
         diesel::delete(auth_user.filter(user_id.eq(id)))
@@ -211,24 +195,3 @@ impl ModelUser {
             .map_err(Into::into)
     }
 }
-
-// if let Some(email_eq) = &query.email_eq {
-//     let users = driver
-//         .user_list_where_email_eq(email_eq, limit)
-//         .map_err(CoreError::Driver)?;
-//     return Ok(users);
-// }
-
-// match &query.gt {
-//     Some(gt) => driver
-//         .user_list_where_id_gt(*gt, limit)
-//         .map_err(CoreError::Driver),
-//     None => match &query.lt {
-//         Some(lt) => driver
-//             .user_list_where_id_lt(*lt, limit)
-//             .map_err(CoreError::Driver),
-//         None => driver
-//             .user_list_where_id_gt(Uuid::nil(), limit)
-//             .map_err(CoreError::Driver),
-//     },
-// }

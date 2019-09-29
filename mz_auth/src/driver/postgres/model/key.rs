@@ -1,4 +1,7 @@
-use crate::{driver::postgres::schema::auth_key, DriverResult, Key, KeyCreate, KeyUpdate};
+use crate::{
+    driver::postgres::schema::auth_key, DriverResult, Key, KeyCreate, KeyList, KeyRead,
+    KeyReadUserId, KeyUpdate,
+};
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, PgConnection};
 use uuid::Uuid;
@@ -56,10 +59,10 @@ impl<'a> ModelKeyInsert<'a> {
             key_id: id,
             key_is_enabled: create.is_enabled,
             key_is_revoked: create.is_revoked,
-            key_name: create.name,
-            key_value: create.value,
-            service_id: create.service_id,
-            user_id: create.user_id,
+            key_name: &create.name,
+            key_value: &create.value,
+            service_id: create.service_id.as_ref(),
+            user_id: create.user_id.as_ref(),
         }
     }
 }
@@ -79,64 +82,76 @@ impl<'a> ModelKeyUpdate<'a> {
             updated_at: now,
             key_is_enabled: update.is_enabled,
             key_is_revoked: update.is_revoked,
-            key_name: update.name,
+            key_name: update.name.as_ref().map(|x| &**x),
         }
     }
 }
 
 impl ModelKey {
-    pub fn list_where_id_lt(
+    pub fn list(
         conn: &PgConnection,
-        lt: Uuid,
+        list: &KeyList,
+        service_id_mask: Option<&Uuid>,
+    ) -> DriverResult<Vec<Key>> {
+        match list {
+            KeyList::Limit(limit) => {
+                let gt = Uuid::nil();
+                Self::list_where_id_gt(conn, &gt, *limit, service_id_mask)
+            }
+            KeyList::IdGt(gt, limit) => Self::list_where_id_gt(conn, gt, *limit, service_id_mask),
+            KeyList::IdLt(lt, limit) => Self::list_where_id_lt(conn, lt, *limit, service_id_mask),
+        }
+    }
+
+    fn list_where_id_lt(
+        conn: &PgConnection,
+        lt: &Uuid,
         limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
+        service_id_mask: Option<&Uuid>,
+    ) -> DriverResult<Vec<Key>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         match service_id_mask {
             Some(service_id_mask) => auth_key
-                .select(key_id)
                 .filter(service_id.eq(service_id_mask).and(key_id.lt(lt)))
                 .limit(limit)
                 .order(key_id.desc())
-                .load::<Uuid>(conn),
+                .load::<ModelKey>(conn),
             None => auth_key
-                .select(key_id)
                 .filter(key_id.lt(lt))
                 .limit(limit)
                 .order(key_id.desc())
-                .load::<Uuid>(conn),
+                .load::<ModelKey>(conn),
         }
         .map_err(Into::into)
-        .map(|mut v| {
-            v.reverse();
-            v
+        .map(|mut x| {
+            x.reverse();
+            x.into_iter().map(|x| x.into()).collect()
         })
     }
 
-    pub fn list_where_id_gt(
+    fn list_where_id_gt(
         conn: &PgConnection,
-        gt: Uuid,
+        gt: &Uuid,
         limit: i64,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Vec<Uuid>> {
+        service_id_mask: Option<&Uuid>,
+    ) -> DriverResult<Vec<Key>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         match service_id_mask {
             Some(service_id_mask) => auth_key
-                .select(key_id)
                 .filter(service_id.eq(service_id_mask).and(key_id.gt(gt)))
                 .limit(limit)
                 .order(key_id.asc())
-                .load::<Uuid>(conn),
+                .load::<ModelKey>(conn),
             None => auth_key
-                .select(key_id)
                 .filter(key_id.gt(gt))
                 .limit(limit)
                 .order(key_id.asc())
-                .load::<Uuid>(conn),
+                .load::<ModelKey>(conn),
         }
         .map_err(Into::into)
+        .map(|x| x.into_iter().map(|x| x.into()).collect())
     }
 
     pub fn create(conn: &PgConnection, create: &KeyCreate) -> DriverResult<Key> {
@@ -152,7 +167,19 @@ impl ModelKey {
             .map(Into::into)
     }
 
-    pub fn read_by_id(conn: &PgConnection, id: Uuid) -> DriverResult<Option<Key>> {
+    pub fn read_opt(conn: &PgConnection, read: &KeyRead) -> DriverResult<Option<Key>> {
+        match read {
+            KeyRead::Id(id) => Self::read_by_id(conn, id),
+            KeyRead::UserId(r) => Self::read_by_user_id(conn, r),
+            KeyRead::RootValue(value) => Self::read_by_root_value(conn, value),
+            KeyRead::ServiceValue(value) => Self::read_by_service_value(conn, value),
+            KeyRead::UserValue(service_id, value) => {
+                Self::read_by_user_value(conn, service_id, value)
+            }
+        }
+    }
+
+    fn read_by_id(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<Key>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         auth_key
@@ -163,22 +190,16 @@ impl ModelKey {
             .map(|x| x.map(Into::into))
     }
 
-    pub fn read_by_user_id(
-        conn: &PgConnection,
-        key_service_id: Uuid,
-        key_user_id: Uuid,
-        is_enabled: bool,
-        is_revoked: bool,
-    ) -> DriverResult<Option<Key>> {
+    fn read_by_user_id(conn: &PgConnection, read: &KeyReadUserId) -> DriverResult<Option<Key>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         auth_key
             .filter(
                 user_id
-                    .eq(key_user_id)
-                    .and(service_id.eq(key_service_id))
-                    .and(key_is_enabled.eq(is_enabled))
-                    .and(key_is_revoked.eq(is_revoked)),
+                    .eq(read.user_id)
+                    .and(service_id.eq(read.service_id))
+                    .and(key_is_enabled.eq(read.is_enabled))
+                    .and(key_is_revoked.eq(read.is_revoked)),
             )
             .order(created_at.asc())
             .get_result::<ModelKey>(conn)
@@ -187,7 +208,7 @@ impl ModelKey {
             .map(|x| x.map(Into::into))
     }
 
-    pub fn read_by_root_value(conn: &PgConnection, value: &str) -> DriverResult<Option<Key>> {
+    fn read_by_root_value(conn: &PgConnection, value: &str) -> DriverResult<Option<Key>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         auth_key
@@ -203,7 +224,7 @@ impl ModelKey {
             .map(|x| x.map(Into::into))
     }
 
-    pub fn read_by_service_value(conn: &PgConnection, value: &str) -> DriverResult<Option<Key>> {
+    fn read_by_service_value(conn: &PgConnection, value: &str) -> DriverResult<Option<Key>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         auth_key
@@ -219,9 +240,9 @@ impl ModelKey {
             .map(|x| x.map(Into::into))
     }
 
-    pub fn read_by_user_value(
+    fn read_by_user_value(
         conn: &PgConnection,
-        key_service_id: Uuid,
+        key_service_id: &Uuid,
         value: &str,
     ) -> DriverResult<Option<Key>> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
@@ -238,7 +259,7 @@ impl ModelKey {
             .map(|x| x.map(Into::into))
     }
 
-    pub fn update_by_id(conn: &PgConnection, id: Uuid, update: &KeyUpdate) -> DriverResult<Key> {
+    pub fn update(conn: &PgConnection, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         let now = chrono::Utc::now();
@@ -250,9 +271,9 @@ impl ModelKey {
             .map(Into::into)
     }
 
-    pub fn update_many_by_user_id(
+    pub fn update_many(
         conn: &PgConnection,
-        key_user_id: Uuid,
+        key_user_id: &Uuid,
         update: &KeyUpdate,
     ) -> DriverResult<usize> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
@@ -265,18 +286,10 @@ impl ModelKey {
             .map_err(Into::into)
     }
 
-    pub fn delete_by_id(conn: &PgConnection, id: Uuid) -> DriverResult<usize> {
+    pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<usize> {
         use crate::driver::postgres::schema::auth_key::dsl::*;
 
         diesel::delete(auth_key.filter(key_id.eq(id)))
-            .execute(conn)
-            .map_err(Into::into)
-    }
-
-    pub fn delete_root(conn: &PgConnection) -> DriverResult<usize> {
-        use crate::driver::postgres::schema::auth_key::dsl::*;
-
-        diesel::delete(auth_key.filter(service_id.is_null().and(user_id.is_null())))
             .execute(conn)
             .map_err(Into::into)
     }

@@ -1,4 +1,4 @@
-use crate::{driver::postgres::schema::auth_csrf, Csrf, CsrfCreate, DriverResult};
+use crate::{driver::postgres::schema::auth_csrf, Csrf, CsrfCreate, CsrfDelete, DriverResult};
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, PgConnection};
 use uuid::Uuid;
@@ -40,10 +40,10 @@ impl<'a> ModelCsrfInsert<'a> {
     fn from_create(now: &'a DateTime<Utc>, create: &'a CsrfCreate) -> Self {
         Self {
             created_at: now,
-            csrf_key: create.key,
-            csrf_value: create.value,
-            csrf_ttl: create.ttl,
-            service_id: create.service_id,
+            csrf_key: &create.key,
+            csrf_value: &create.value,
+            csrf_ttl: &create.ttl,
+            service_id: &create.service_id,
         }
     }
 }
@@ -61,7 +61,7 @@ impl ModelCsrf {
             .map(Into::into)
     }
 
-    pub fn read_by_key(conn: &PgConnection, key: &str) -> DriverResult<Option<Csrf>> {
+    pub fn read_opt(conn: &PgConnection, key: &str) -> DriverResult<Option<Csrf>> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
         auth_csrf
@@ -72,7 +72,14 @@ impl ModelCsrf {
             .map(|x| x.map(Into::into))
     }
 
-    pub fn delete_by_key(conn: &PgConnection, key: &str) -> DriverResult<usize> {
+    pub fn delete(conn: &PgConnection, delete: &CsrfDelete) -> DriverResult<usize> {
+        match delete {
+            CsrfDelete::Key(key) => Self::delete_by_key(conn, key),
+            CsrfDelete::Ttl(now) => Self::delete_by_ttl(conn, now),
+        }
+    }
+
+    fn delete_by_key(conn: &PgConnection, key: &str) -> DriverResult<usize> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
         diesel::delete(auth_csrf.filter(csrf_key.eq(key)))
@@ -80,7 +87,7 @@ impl ModelCsrf {
             .map_err(Into::into)
     }
 
-    pub fn delete_by_ttl(conn: &PgConnection, now: &DateTime<Utc>) -> DriverResult<usize> {
+    fn delete_by_ttl(conn: &PgConnection, now: &DateTime<Utc>) -> DriverResult<usize> {
         use crate::driver::postgres::schema::auth_csrf::dsl::*;
 
         diesel::delete(auth_csrf.filter(csrf_ttl.le(now)))
