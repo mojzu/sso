@@ -52,7 +52,7 @@ fn totp_inner(
 ) -> ServerResult<()> {
     Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            Auth::totp(data.driver(), &service, &mut audit, key_id, &totp)
+            Auth::totp(data.driver(), &service, &mut audit, key_id, totp)
         })
         .map_err(Into::into)
 }

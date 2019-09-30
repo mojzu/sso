@@ -80,7 +80,7 @@ fn create_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || create_inner(data.get_ref(), audit_meta, id, &body))
+            web::block(move || create_inner(data.get_ref(), audit_meta, id, body))
                 .map_err(Into::into)
         })
         .then(route_response_json)
@@ -90,7 +90,7 @@ fn create_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &ServiceCreateBody,
+    body: ServiceCreateBody,
 ) -> ServerResult<ServiceReadResponse> {
     Key::authenticate_root(data.driver(), audit_meta, id)
         .and_then(|mut audit| {
@@ -98,8 +98,8 @@ fn create_inner(
                 data.driver(),
                 &mut audit,
                 body.is_enabled,
-                &body.name,
-                &body.url,
+                body.name,
+                body.url,
             )
         })
         .map_err(Into::into)
@@ -131,7 +131,7 @@ fn read_inner(
 ) -> ServerResult<ServiceReadResponse> {
     Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            Service::read_by_id(data.driver(), service.as_ref(), &mut audit, service_id)
+            Service::read_opt(data.driver(), service.as_ref(), &mut audit, service_id)
         })
         .map_err(Into::into)
         .and_then(|service| service.ok_or_else(|| ServerError::NotFound))
@@ -152,7 +152,7 @@ fn update_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || update_inner(data.get_ref(), audit_meta, id, path.0, &body))
+            web::block(move || update_inner(data.get_ref(), audit_meta, id, path.0, body))
                 .map_err(Into::into)
         })
         .then(route_response_json)
@@ -163,17 +163,17 @@ fn update_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     service_id: Uuid,
-    body: &ServiceUpdateBody,
+    body: ServiceUpdateBody,
 ) -> ServerResult<ServiceReadResponse> {
     Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            Service::update_by_id(
+            Service::update(
                 data.driver(),
                 service.as_ref(),
                 &mut audit,
                 service_id,
                 body.is_enabled,
-                body.name.as_ref().map(|x| &**x),
+                body.name,
             )
         })
         .map_err(Into::into)
@@ -205,7 +205,7 @@ fn delete_inner(
 ) -> ServerResult<usize> {
     Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            Service::delete_by_id(data.driver(), service.as_ref(), &mut audit, service_id)
+            Service::delete(data.driver(), service.as_ref(), &mut audit, service_id)
         })
         .map_err(Into::into)
 }

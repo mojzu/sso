@@ -58,7 +58,7 @@ fn verify_inner(
                 data.driver(),
                 &service,
                 &mut audit,
-                &token,
+                token,
                 audit_data.as_ref(),
             )
         })
@@ -106,7 +106,7 @@ fn refresh_inner(
                 data.driver(),
                 &service,
                 &mut audit,
-                &token,
+                token,
                 audit_data.as_ref(),
                 data.options().access_token_expires(),
                 data.options().refresh_token_expires(),
@@ -156,7 +156,7 @@ fn revoke_inner(
                 data.driver(),
                 &service,
                 &mut audit,
-                &token,
+                token,
                 audit_data.as_ref(),
             )
         })

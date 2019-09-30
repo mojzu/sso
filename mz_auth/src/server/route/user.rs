@@ -8,11 +8,11 @@ use crate::{
         UserReadResponse, UserUpdateBody,
     },
     AuditMeta, Key, ServerError, ServerResult, ServerValidateFromStr, ServerValidateFromValue,
-    User, UserList,
+    User, UserList, UserRead,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
-use futures::{future, Future};
+use futures::Future;
 use serde_json::Value;
 use uuid::Uuid;
 
@@ -80,21 +80,16 @@ fn create_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || {
-                let user = create_inner(data.get_ref(), audit_meta, id, &body)?;
-                Ok((data, body, user))
-            })
-            .map_err(Into::into)
-        })
-        .and_then(|(data, body, user)| {
             let password_meta = User::password_meta(
                 data.options().password_pwned_enabled(),
                 data.client(),
                 body.password.as_ref().map(|x| &**x),
             )
             .map_err(Into::into);
-            let user = future::ok(user);
-            password_meta.join(user)
+            let create_user =
+                web::block(move || create_inner(data.get_ref(), audit_meta, id, body))
+                    .map_err(Into::into);
+            password_meta.join(create_user)
         })
         .map(|(meta, user)| UserCreateResponse { meta, data: user })
         .then(route_response_json)
@@ -104,7 +99,7 @@ fn create_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &UserCreateBody,
+    body: UserCreateBody,
 ) -> ServerResult<User> {
     Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
@@ -113,9 +108,9 @@ fn create_inner(
                 service.as_ref(),
                 &mut audit,
                 body.is_enabled,
-                &body.name,
-                &body.email,
-                body.password.as_ref().map(|x| &**x),
+                body.name,
+                body.email,
+                body.password,
             )
         })
         .map_err(Into::into)
@@ -146,7 +141,8 @@ fn read_inner(
 ) -> ServerResult<UserReadResponse> {
     Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            User::read_by_id(data.driver(), service.as_ref(), &mut audit, user_id)
+            let read = UserRead::Id(user_id);
+            User::read_opt(data.driver(), service.as_ref(), &mut audit, &read)
         })
         .map_err(Into::into)
         .and_then(|user| user.ok_or_else(|| ServerError::NotFound))
@@ -167,7 +163,7 @@ fn update_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || update_inner(data.get_ref(), audit_meta, id, path.0, &body))
+            web::block(move || update_inner(data.get_ref(), audit_meta, id, path.0, body))
                 .map_err(Into::into)
         })
         .then(route_response_json)
@@ -178,17 +174,17 @@ fn update_inner(
     audit_meta: AuditMeta,
     id: Option<String>,
     user_id: Uuid,
-    body: &UserUpdateBody,
+    body: UserUpdateBody,
 ) -> ServerResult<UserReadResponse> {
     Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            User::update_by_id(
+            User::update(
                 data.driver(),
                 service.as_ref(),
                 &mut audit,
                 user_id,
                 body.is_enabled,
-                body.name.as_ref().map(|x| &**x),
+                body.name,
             )
         })
         .map_err(Into::into)
@@ -220,7 +216,7 @@ fn delete_inner(
 ) -> ServerResult<usize> {
     Key::authenticate(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            User::delete_by_id(data.driver(), service.as_ref(), &mut audit, user_id)
+            User::delete(data.driver(), service.as_ref(), &mut audit, user_id)
         })
         .map_err(Into::into)
 }

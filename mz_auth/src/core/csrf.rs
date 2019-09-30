@@ -44,8 +44,8 @@ impl Csrf {
     pub fn create(
         driver: &dyn Driver,
         service: &Service,
-        key: &str,
-        value: &str,
+        key: String,
+        value: String,
         ttl: i64,
     ) -> CoreResult<Csrf> {
         Csrf::delete_by_ttl(driver)?;
@@ -54,22 +54,23 @@ impl Csrf {
         let create = CsrfCreate {
             key,
             value,
-            ttl: &ttl,
-            service_id: &service.id,
+            ttl,
+            service_id: service.id,
         };
         driver.csrf_create(&create).map_err(CoreError::Driver)
     }
 
     /// Read one CSRF key, value pair. CSRF key, value pair is deleted after one read.
-    pub fn read_by_key(driver: &dyn Driver, key: &str) -> CoreResult<Option<Csrf>> {
+    pub fn read_opt(driver: &dyn Driver, key: String) -> CoreResult<Option<Csrf>> {
         Csrf::delete_by_ttl(driver)?;
 
         driver
-            .csrf_read_by_key(key)
+            .csrf_read_opt(&key)
             .map_err(CoreError::Driver)
             .and_then(|csrf| {
                 if csrf.is_some() {
-                    driver.csrf_delete_by_key(key).map_err(CoreError::Driver)?;
+                    let delete = CsrfDelete::Key(key);
+                    driver.csrf_delete(&delete).map_err(CoreError::Driver)?;
                 }
                 Ok(csrf)
             })
@@ -78,7 +79,8 @@ impl Csrf {
     /// Delete many CSRF key, value pairs that have expired using.
     fn delete_by_ttl(driver: &dyn Driver) -> CoreResult<usize> {
         let now = Utc::now();
-        match driver.csrf_delete_by_ttl(&now) {
+        let delete = CsrfDelete::Ttl(now);
+        match driver.csrf_delete(&delete) {
             Ok(count) => Ok(count),
             Err(err) => {
                 warn!("{}", CoreError::Driver(err));

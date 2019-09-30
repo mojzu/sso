@@ -38,7 +38,6 @@ const ENV_MICROSOFT_CLIENT_SECRET: &str = "MICROSOFT_CLIENT_SECRET";
 const ENV_MICROSOFT_REDIRECT_URL: &str = "MICROSOFT_REDIRECT_URL";
 
 const CMD_CREATE_ROOT_KEY: &str = "create-root-key";
-const CMD_DELETE_ROOT_KEYS: &str = "delete-root-keys";
 const CMD_CREATE_SERVICE_WITH_KEY: &str = "create-service-with-key";
 const CMD_START_SERVER: &str = "start-server";
 
@@ -84,10 +83,6 @@ fn main() {
                         .required(true)
                         .index(1),
                 ),
-            SubCommand::with_name(CMD_DELETE_ROOT_KEYS)
-                .version(CRATE_VERSION)
-                .about("Delete all root keys")
-                .author(CRATE_AUTHORS),
             SubCommand::with_name(CMD_CREATE_SERVICE_WITH_KEY)
                 .version(CRATE_VERSION)
                 .about("Create service with service key")
@@ -120,7 +115,6 @@ fn main() {
                     0
                 })
             }
-            (CMD_DELETE_ROOT_KEYS, Some(_submatches)) => Cli::delete_root_keys(driver).map(|_| 0),
             (CMD_CREATE_SERVICE_WITH_KEY, Some(submatches)) => {
                 let name = submatches.value_of(ARG_NAME).unwrap();
                 let url = submatches.value_of(ARG_URL).unwrap();

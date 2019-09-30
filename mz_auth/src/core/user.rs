@@ -134,96 +134,98 @@ impl User {
         service_mask: Option<&Service>,
         audit: &mut AuditBuilder,
         is_enabled: bool,
-        name: &str,
-        email: &str,
-        password: Option<&str>,
+        name: String,
+        email: String,
+        password: Option<String>,
     ) -> CoreResult<User> {
-        let user = User::read_by_email(driver, service_mask, audit, email)?;
+        let read = UserRead::Email(email.clone());
+        let user = User::read_opt(driver, service_mask, audit, &read)?;
         if user.is_some() {
             return Err(CoreError::BadRequest);
         }
 
-        let password_hash = User::password_hash(password)?;
+        let password_hash = User::password_hash(password.as_ref().map(|x| &**x))?;
         let create = UserCreate {
             is_enabled,
             name,
             email,
-            password_hash: password_hash.as_ref().map(|x| &**x),
+            password_hash,
         };
         driver.user_create(&create).map_err(CoreError::Driver)
     }
 
-    /// Read user by ID.
-    pub fn read_by_id(
+    /// Read user (optional).
+    pub fn read_opt(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
-        id: Uuid,
+        read: &UserRead,
     ) -> CoreResult<Option<User>> {
-        driver.user_read_by_id(id).map_err(CoreError::Driver)
+        driver.user_read_opt(read).map_err(CoreError::Driver)
     }
 
-    /// Read user by email.
-    pub fn read_by_email(
-        driver: &dyn Driver,
-        _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
-        email: &str,
-    ) -> CoreResult<Option<User>> {
-        driver.user_read_by_email(email).map_err(CoreError::Driver)
-    }
-
-    /// Update user by ID.
-    pub fn update_by_id(
+    /// Update user.
+    pub fn update(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
         is_enabled: Option<bool>,
-        name: Option<&str>,
+        name: Option<String>,
     ) -> CoreResult<User> {
-        let update = UserUpdate { is_enabled, name };
-        driver
-            .user_update_by_id(id, &update)
-            .map_err(CoreError::Driver)
+        let update = UserUpdate {
+            is_enabled,
+            name,
+            email: None,
+            password_hash: None,
+        };
+        driver.user_update(&id, &update).map_err(CoreError::Driver)
     }
 
     /// Update user email by ID.
-    pub fn update_email_by_id(
+    pub fn update_email(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
-        email: &str,
-    ) -> CoreResult<usize> {
-        driver
-            .user_update_email_by_id(id, email)
-            .map_err(CoreError::Driver)
+        email: String,
+    ) -> CoreResult<User> {
+        let update = UserUpdate {
+            is_enabled: None,
+            name: None,
+            email: Some(email),
+            password_hash: None,
+        };
+        driver.user_update(&id, &update).map_err(CoreError::Driver)
     }
 
     /// Update user password by ID.
-    pub fn update_password_by_id(
+    pub fn update_password(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
-        password: &str,
-    ) -> CoreResult<usize> {
+        password: String,
+    ) -> CoreResult<User> {
         let password_hash =
-            User::password_hash(Some(password))?.ok_or_else(|| CoreError::Forbidden)?;
-        driver
-            .user_update_password_by_id(id, &password_hash)
-            .map_err(CoreError::Driver)
+            User::password_hash(Some(&password))?.ok_or_else(|| CoreError::Forbidden)?;
+        let update = UserUpdate {
+            is_enabled: None,
+            name: None,
+            email: None,
+            password_hash: Some(password_hash),
+        };
+        driver.user_update(&id, &update).map_err(CoreError::Driver)
     }
 
-    /// Delete user by ID.
-    pub fn delete_by_id(
+    /// Delete user.
+    pub fn delete(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
     ) -> CoreResult<usize> {
-        driver.user_delete_by_id(id).map_err(CoreError::Driver)
+        driver.user_delete(&id).map_err(CoreError::Driver)
     }
 
     /// Hash password string, none is returned if none is given as the input.

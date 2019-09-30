@@ -70,13 +70,7 @@ impl Cli {
     /// Create a root key.
     pub fn create_root_key(driver: Box<dyn Driver>, name: &str) -> AuthResult<Key> {
         let mut audit = Cli::audit_builder();
-        Key::create_root(driver.as_ref(), &mut audit, true, name).map_err(Into::into)
-    }
-
-    /// Delete all root keys.
-    pub fn delete_root_keys(driver: Box<dyn Driver>) -> AuthResult<usize> {
-        let mut audit = Cli::audit_builder();
-        Key::delete_root(driver.as_ref(), &mut audit).map_err(Into::into)
+        Key::create_root(driver.as_ref(), &mut audit, true, String::from(name)).map_err(Into::into)
     }
 
     /// Create a service with service key.
@@ -86,10 +80,22 @@ impl Cli {
         url: &str,
     ) -> AuthResult<(Service, Key)> {
         let mut audit = Cli::audit_builder();
-        let service = Service::create(driver.as_ref(), &mut audit, true, name, url)
-            .map_err(AuthError::Core)?;
-        let key = Key::create_service(driver.as_ref(), &mut audit, true, name, service.id)
-            .map_err(AuthError::Core)?;
+        let service = Service::create(
+            driver.as_ref(),
+            &mut audit,
+            true,
+            String::from(name),
+            String::from(url),
+        )
+        .map_err(AuthError::Core)?;
+        let key = Key::create_service(
+            driver.as_ref(),
+            &mut audit,
+            true,
+            String::from(name),
+            service.id,
+        )
+        .map_err(AuthError::Core)?;
         Ok((service, key))
     }
 

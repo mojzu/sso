@@ -1,6 +1,5 @@
 use crate::{
-    AuditBuilder, AuditMessage, AuditMeta, AuditType, Core, CoreError, CoreResult, Driver, Service,
-    User,
+    AuditBuilder, AuditMessage, AuditMeta, AuditType, CoreError, CoreResult, Driver, Service, User,
 };
 use chrono::{DateTime, Utc};
 use libreauth::key::KeyBuilder;
@@ -101,7 +100,7 @@ impl Key {
         let mut audit = AuditBuilder::new(audit_meta);
 
         match key_value {
-            Some(key_value) => Key::read_by_root_value(driver, &mut audit, &key_value)
+            Some(key_value) => Key::read_by_root_value(driver, &mut audit, key_value)
                 .and_then(|key| match key.ok_or_else(|| CoreError::Forbidden) {
                     Ok(key) => {
                         audit.set_key(Some(&key));
@@ -137,7 +136,7 @@ impl Key {
         let mut audit = AuditBuilder::new(audit_meta);
 
         match key_value {
-            Some(key_value) => Key::read_by_service_value(driver, &mut audit, &key_value)
+            Some(key_value) => Key::read_by_service_value(driver, &mut audit, key_value)
                 .and_then(|key| match key.ok_or_else(|| CoreError::Forbidden) {
                     Ok(key) => {
                         audit.set_key(Some(&key));
@@ -208,7 +207,7 @@ impl Key {
         let mut audit = AuditBuilder::new(audit_meta);
 
         match key_value {
-            Some(key_value) => Key::read_by_service_value(driver, &mut audit, &key_value)
+            Some(key_value) => Key::read_by_service_value(driver, &mut audit, key_value)
                 .and_then(|key| key.ok_or_else(|| CoreError::Forbidden))
                 .and_then(|key| key.service_id.ok_or_else(|| CoreError::Forbidden))
                 .and_then(|service_id| Key::authenticate_service_inner(driver, audit, service_id)),
@@ -221,20 +220,20 @@ impl Key {
         mut audit: AuditBuilder,
         service_id: Uuid,
     ) -> CoreResult<(Service, AuditBuilder)> {
-        Service::read_by_id(driver, None, &mut audit, service_id).and_then(|service| match service
-            .ok_or_else(|| CoreError::Forbidden)
-        {
-            Ok(service) => {
-                audit.set_service(Some(&service));
-                Ok((service, audit))
-            }
-            Err(err) => {
-                audit.create_internal(
-                    driver,
-                    AuditType::AuthenticateError,
-                    AuditMessage::ServiceNotFound,
-                );
-                Err(err)
+        Service::read_opt(driver, None, &mut audit, service_id).and_then(|service| {
+            match service.ok_or_else(|| CoreError::Forbidden) {
+                Ok(service) => {
+                    audit.set_service(Some(&service));
+                    Ok((service, audit))
+                }
+                Err(err) => {
+                    audit.create_internal(
+                        driver,
+                        AuditType::AuthenticateError,
+                        AuditMessage::ServiceNotFound,
+                    );
+                    Err(err)
+                }
             }
         })
     }
@@ -246,22 +245,10 @@ impl Key {
         _audit: &mut AuditBuilder,
         list: &KeyList,
     ) -> CoreResult<Vec<Key>> {
-        let limit = query.limit.unwrap_or_else(Core::default_limit);
-        let service_mask = service_mask.map(|s| s.id);
-
-        match &query.gt {
-            Some(gt) => driver
-                .key_list_where_id_gt(*gt, limit, service_mask)
-                .map_err(CoreError::Driver),
-            None => match &query.lt {
-                Some(lt) => driver
-                    .key_list_where_id_lt(*lt, limit, service_mask)
-                    .map_err(CoreError::Driver),
-                None => driver
-                    .key_list_where_id_gt(Uuid::nil(), limit, service_mask)
-                    .map_err(CoreError::Driver),
-            },
-        }
+        let service_id_mask = service_mask.map(|s| &s.id);
+        driver
+            .key_list(list, service_id_mask)
+            .map_err(CoreError::Driver)
     }
 
     /// Create root key.
@@ -269,14 +256,14 @@ impl Key {
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
         is_enabled: bool,
-        name: &str,
+        name: String,
     ) -> CoreResult<Key> {
         let value = Key::value_generate();
         let create = KeyCreate {
             is_enabled,
             is_revoked: false,
             name,
-            value: &value,
+            value,
             service_id: None,
             user_id: None,
         };
@@ -288,7 +275,7 @@ impl Key {
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
         is_enabled: bool,
-        name: &str,
+        name: String,
         service_id: Uuid,
     ) -> CoreResult<Key> {
         let value = Key::value_generate();
@@ -296,8 +283,8 @@ impl Key {
             is_enabled,
             is_revoked: false,
             name,
-            value: &value,
-            service_id: Some(&service_id),
+            value,
+            service_id: Some(service_id),
             user_id: None,
         };
         driver.key_create(&create).map_err(CoreError::Driver)
@@ -308,7 +295,7 @@ impl Key {
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
         is_enabled: bool,
-        name: &str,
+        name: String,
         service_id: Uuid,
         user_id: Uuid,
     ) -> CoreResult<Key> {
@@ -317,21 +304,22 @@ impl Key {
             is_enabled,
             is_revoked: false,
             name,
-            value: &value,
-            service_id: Some(&service_id),
-            user_id: Some(&user_id),
+            value,
+            service_id: Some(service_id),
+            user_id: Some(user_id),
         };
         driver.key_create(&create).map_err(CoreError::Driver)
     }
 
-    /// Read key by ID.
-    pub fn read_by_id(
+    /// Read key (optional).
+    pub fn read_opt(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
     ) -> CoreResult<Option<Key>> {
-        driver.key_read_by_id(id).map_err(CoreError::Driver)
+        let read = KeyRead::Id(id);
+        driver.key_read_opt(&read).map_err(CoreError::Driver)
     }
 
     /// Read key by user where key is enabled and not revoked.
@@ -341,31 +329,34 @@ impl Key {
         _audit: &mut AuditBuilder,
         user: &User,
     ) -> CoreResult<Option<Key>> {
-        driver
-            .key_read_by_user_id(service.id, user.id, true, false)
-            .map_err(CoreError::Driver)
+        // TODO(refactor): Key allow flags support.
+        let read = KeyRead::UserId(KeyReadUserId {
+            service_id: service.id,
+            user_id: user.id,
+            is_enabled: true,
+            is_revoked: false,
+        });
+        driver.key_read_opt(&read).map_err(CoreError::Driver)
     }
 
     /// Read key by value (root only).
     pub fn read_by_root_value(
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
-        value: &str,
+        value: String,
     ) -> CoreResult<Option<Key>> {
-        driver
-            .key_read_by_root_value(value)
-            .map_err(CoreError::Driver)
+        let read = KeyRead::RootValue(value);
+        driver.key_read_opt(&read).map_err(CoreError::Driver)
     }
 
     /// Read key by value (services only).
     pub fn read_by_service_value(
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
-        value: &str,
+        value: String,
     ) -> CoreResult<Option<Key>> {
-        driver
-            .key_read_by_service_value(value)
-            .map_err(CoreError::Driver)
+        let read = KeyRead::ServiceValue(value);
+        driver.key_read_opt(&read).map_err(CoreError::Driver)
     }
 
     /// Read key by value (users only).
@@ -373,42 +364,39 @@ impl Key {
         driver: &dyn Driver,
         service: &Service,
         _audit: &mut AuditBuilder,
-        value: &str,
+        value: String,
     ) -> CoreResult<Option<Key>> {
-        driver
-            .key_read_by_user_value(service.id, value)
-            .map_err(CoreError::Driver)
+        let read = KeyRead::UserValue(service.id, value);
+        driver.key_read_opt(&read).map_err(CoreError::Driver)
     }
 
-    /// Update key by ID.
-    pub fn update_by_id(
+    /// Update key.
+    pub fn update(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
         is_enabled: Option<bool>,
         is_revoked: Option<bool>,
-        name: Option<&str>,
+        name: Option<String>,
     ) -> CoreResult<Key> {
         let update = KeyUpdate {
             is_enabled,
             is_revoked,
             name,
         };
-        driver
-            .key_update_by_id(id, &update)
-            .map_err(CoreError::Driver)
+        driver.key_update(&id, &update).map_err(CoreError::Driver)
     }
 
     /// Update many keys by user ID.
-    pub fn update_many_by_user_id(
+    pub fn update_many(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         user_id: Uuid,
         is_enabled: Option<bool>,
         is_revoked: Option<bool>,
-        name: Option<&str>,
+        name: Option<String>,
     ) -> CoreResult<usize> {
         let update = KeyUpdate {
             is_enabled,
@@ -416,23 +404,18 @@ impl Key {
             name,
         };
         driver
-            .key_update_many_by_user_id(user_id, &update)
+            .key_update_many(&user_id, &update)
             .map_err(CoreError::Driver)
     }
 
-    /// Delete key by ID.
-    pub fn delete_by_id(
+    /// Delete key.
+    pub fn delete(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
     ) -> CoreResult<usize> {
-        driver.key_delete_by_id(id).map_err(CoreError::Driver)
-    }
-
-    /// Delete all root keys.
-    pub fn delete_root(driver: &dyn Driver, _audit: &mut AuditBuilder) -> CoreResult<usize> {
-        driver.key_delete_root().map_err(CoreError::Driver)
+        driver.key_delete(&id).map_err(CoreError::Driver)
     }
 
     /// Create new key value from random bytes.

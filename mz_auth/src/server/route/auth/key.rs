@@ -57,7 +57,7 @@ fn verify_inner(
                 data.driver(),
                 &service,
                 &mut audit,
-                &key,
+                key,
                 audit_data.as_ref(),
             )
         })
@@ -105,7 +105,7 @@ fn revoke_inner(
                 data.driver(),
                 &service,
                 &mut audit,
-                &key,
+                key,
                 audit_data.as_ref(),
             )
         })

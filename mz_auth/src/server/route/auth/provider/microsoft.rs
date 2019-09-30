@@ -72,13 +72,13 @@ fn oauth2_callback_handler(
             web::block(move || {
                 let mut audit = AuditBuilder::new(audit_meta);
                 let (service_id, access_token) =
-                    microsoft_callback(data.get_ref(), &mut audit, &query.code, &query.state)?;
+                    microsoft_callback(data.get_ref(), &mut audit, query.code, query.state)?;
                 Ok((data, audit, service_id, access_token))
             })
             .map_err(Into::into)
         })
         .and_then(|(data, audit, service_id, access_token)| {
-            let email = microsoft_api_user_email(data.get_ref(), &access_token);
+            let email = microsoft_api_user_email(data.get_ref(), access_token);
             let args = future::ok((data, audit, service_id));
             email.join(args)
         })
@@ -88,7 +88,7 @@ fn oauth2_callback_handler(
                     data.driver(),
                     service_id,
                     &mut audit,
-                    &email,
+                    email,
                     data.options().access_token_expires(),
                     data.options().refresh_token_expires(),
                 )
@@ -122,11 +122,13 @@ fn microsoft_authorise(
         .url();
 
     // Save the state and code verifier secrets as a CSRF key, value.
+    let csrf_key = csrf_state.secret();
+    let csrf_value = pkce_code_verifier.secret();
     Csrf::create(
         data.driver(),
         service,
-        &csrf_state.secret(),
-        &pkce_code_verifier.secret(),
+        String::from(csrf_key),
+        String::from(csrf_value),
         data.options().access_token_expires(),
     )
     .map_err(ServerError::Core)?;
@@ -137,11 +139,11 @@ fn microsoft_authorise(
 fn microsoft_callback(
     data: &Data,
     _audit: &mut AuditBuilder,
-    code: &str,
-    state: &str,
+    code: String,
+    state: String,
 ) -> ServerResult<(Uuid, String)> {
     // Read the CSRF key using state value, rebuild code verifier from value.
-    let csrf = Csrf::read_by_key(data.driver(), &state).map_err(ServerError::Core)?;
+    let csrf = Csrf::read_opt(data.driver(), state).map_err(ServerError::Core)?;
     let csrf = csrf.ok_or_else(|| ServerError::Oauth2(ServerOauth2Error::Csrf))?;
 
     // Exchange the code with a token.
@@ -160,7 +162,7 @@ fn microsoft_callback(
 
 fn microsoft_api_user_email(
     data: &Data,
-    access_token: &str,
+    access_token: String,
 ) -> impl Future<Item = String, Error = ServerError> {
     let authorisation = format!("Bearer {}", access_token);
     data.client()

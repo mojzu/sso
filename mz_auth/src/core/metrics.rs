@@ -53,7 +53,7 @@ impl Metrics {
         registry: &Registry,
     ) -> CoreResult<String> {
         let audit_metrics = driver
-            .audit_read_metrics(service_mask.map(|s| s.id))
+            .audit_read_metrics(service_mask.map(|s| &s.id))
             .map_err(CoreError::Driver)?;
 
         // TODO(!refactor): More efficient way of handling audit metrics read.

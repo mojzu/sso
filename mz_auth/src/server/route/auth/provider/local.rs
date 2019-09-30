@@ -68,7 +68,7 @@ fn login_handler(
                 Some(&body.password),
             )
             .map_err(Into::into);
-            let user_token = web::block(move || login_inner(data.get_ref(), audit_meta, id, &body))
+            let user_token = web::block(move || login_inner(data.get_ref(), audit_meta, id, body))
                 .map_err(Into::into);
             password_meta.join(user_token)
         })
@@ -83,7 +83,7 @@ fn login_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthLoginBody,
+    body: AuthLoginBody,
 ) -> ServerResult<UserToken> {
     Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
@@ -91,8 +91,8 @@ fn login_inner(
                 data.driver(),
                 &service,
                 &mut audit,
-                &body.email,
-                &body.password,
+                body.email,
+                body.password,
                 data.options().access_token_expires(),
                 data.options().refresh_token_expires(),
             )
@@ -113,7 +113,7 @@ fn reset_password_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || reset_password_inner(data.get_ref(), audit_meta, id, &body))
+            web::block(move || reset_password_inner(data.get_ref(), audit_meta, id, body))
                 .map_err(Into::into)
         })
         .then(route_response_empty)
@@ -123,7 +123,7 @@ fn reset_password_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthResetPasswordBody,
+    body: AuthResetPasswordBody,
 ) -> ServerResult<()> {
     Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
@@ -132,7 +132,7 @@ fn reset_password_inner(
                 data.notify(),
                 &service,
                 &mut audit,
-                &body.email,
+                body.email,
                 data.options().access_token_expires(),
             )
         })
@@ -159,14 +159,12 @@ fn reset_password_confirm_handler(
             )
             .map_err(Into::into);
             let password_confirm = web::block(move || {
-                let password_confirm =
-                    reset_password_confirm_inner(data.get_ref(), audit_meta, id, &body)?;
-                Ok((data, body, password_confirm))
+                reset_password_confirm_inner(data.get_ref(), audit_meta, id, body)
             })
             .map_err(Into::into);
             password_meta.join(password_confirm)
         })
-        .map(|(meta, _password_confirm)| AuthPasswordMetaResponse { meta })
+        .map(|(meta, _)| AuthPasswordMetaResponse { meta })
         .then(route_response_json)
 }
 
@@ -174,16 +172,16 @@ fn reset_password_confirm_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthResetPasswordConfirmBody,
-) -> ServerResult<usize> {
+    body: AuthResetPasswordConfirmBody,
+) -> ServerResult<()> {
     Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
             Auth::reset_password_confirm(
                 data.driver(),
                 &service,
                 &mut audit,
-                &body.token,
-                &body.password,
+                body.token,
+                body.password,
             )
         })
         .map_err(Into::into)
@@ -202,7 +200,7 @@ fn update_email_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || update_email_inner(data.get_ref(), audit_meta, id, &body))
+            web::block(move || update_email_inner(data.get_ref(), audit_meta, id, body))
                 .map_err(Into::into)
         })
         .then(route_response_empty)
@@ -212,7 +210,7 @@ fn update_email_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthUpdateEmailBody,
+    body: AuthUpdateEmailBody,
 ) -> ServerResult<()> {
     Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
@@ -221,10 +219,10 @@ fn update_email_inner(
                 data.notify(),
                 &service,
                 &mut audit,
-                body.key.as_ref().map(|x| &**x),
-                body.token.as_ref().map(|x| &**x),
-                &body.password,
-                &body.new_email,
+                body.key,
+                body.token,
+                body.password,
+                body.new_email,
                 data.options().revoke_token_expires(),
             )
         })
@@ -271,7 +269,7 @@ fn update_email_revoke_inner(
                 data.driver(),
                 &service,
                 &mut audit,
-                &token,
+                token,
                 audit_data.as_ref(),
             )
         })
@@ -298,7 +296,7 @@ fn update_password_handler(
             )
             .map_err(Into::into);
             let update_password =
-                web::block(move || update_password_inner(data.get_ref(), audit_meta, id, &body))
+                web::block(move || update_password_inner(data.get_ref(), audit_meta, id, body))
                     .map_err(Into::into);
             password_meta.join(update_password)
         })
@@ -310,7 +308,7 @@ fn update_password_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    body: &AuthUpdatePasswordBody,
+    body: AuthUpdatePasswordBody,
 ) -> ServerResult<()> {
     Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
@@ -319,10 +317,10 @@ fn update_password_inner(
                 data.notify(),
                 &service,
                 &mut audit,
-                body.key.as_ref().map(|x| &**x),
-                body.token.as_ref().map(|x| &**x),
-                &body.password,
-                &body.new_password,
+                body.key,
+                body.token,
+                body.password,
+                body.new_password,
                 data.options().revoke_token_expires(),
             )
         })
@@ -369,7 +367,7 @@ fn update_password_revoke_inner(
                 data.driver(),
                 &service,
                 &mut audit,
-                &token,
+                token,
                 audit_data.as_ref(),
             )
         })

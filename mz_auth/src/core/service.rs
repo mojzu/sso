@@ -1,4 +1,4 @@
-use crate::{AuditBuilder, Core, CoreError, CoreResult, CoreUtil, Driver};
+use crate::{AuditBuilder, CoreError, CoreResult, CoreUtil, Driver};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use std::fmt;
@@ -81,21 +81,7 @@ impl Service {
         _audit: &mut AuditBuilder,
         list: &ServiceList,
     ) -> CoreResult<Vec<Service>> {
-        let limit = query.limit.unwrap_or_else(Core::default_limit);
-
-        match &query.gt {
-            Some(gt) => driver
-                .service_list_where_id_gt(*gt, limit)
-                .map_err(CoreError::Driver),
-            None => match &query.lt {
-                Some(lt) => driver
-                    .service_list_where_id_lt(*lt, limit)
-                    .map_err(CoreError::Driver),
-                None => driver
-                    .service_list_where_id_gt(Uuid::nil(), limit)
-                    .map_err(CoreError::Driver),
-            },
-        }
+        driver.service_list(list).map_err(CoreError::Driver)
     }
 
     /// Create service.
@@ -103,10 +89,10 @@ impl Service {
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
         is_enabled: bool,
-        name: &str,
-        url: &str,
+        name: String,
+        url: String,
     ) -> CoreResult<Service> {
-        Url::parse(url).map_err(|_err| CoreError::BadRequest)?;
+        Url::parse(&url).map_err(|_err| CoreError::BadRequest)?;
         let create = ServiceCreate {
             is_enabled,
             name,
@@ -115,39 +101,39 @@ impl Service {
         driver.service_create(&create).map_err(CoreError::Driver)
     }
 
-    /// Read service by ID.
-    pub fn read_by_id(
+    /// Read service (optional).
+    pub fn read_opt(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
     ) -> CoreResult<Option<Service>> {
-        driver.service_read_by_id(id).map_err(CoreError::Driver)
+        driver.service_read_opt(&id).map_err(CoreError::Driver)
     }
 
     /// Update service by ID.
-    pub fn update_by_id(
+    pub fn update(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
         is_enabled: Option<bool>,
-        name: Option<&str>,
+        name: Option<String>,
     ) -> CoreResult<Service> {
         let update = ServiceUpdate { is_enabled, name };
         driver
-            .service_update_by_id(id, &update)
+            .service_update(&id, &update)
             .map_err(CoreError::Driver)
     }
 
     /// Delete service by ID.
-    pub fn delete_by_id(
+    pub fn delete(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
     ) -> CoreResult<usize> {
-        driver.service_delete_by_id(id).map_err(CoreError::Driver)
+        driver.service_delete(&id).map_err(CoreError::Driver)
     }
 }
 

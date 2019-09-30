@@ -71,13 +71,13 @@ fn oauth2_callback_handler(
             web::block(move || {
                 let mut audit = AuditBuilder::new(audit_meta);
                 let (service_id, access_token) =
-                    github_callback(data.get_ref(), &mut audit, &query.code, &query.state)?;
+                    github_callback(data.get_ref(), &mut audit, query.code, query.state)?;
                 Ok((data, audit, service_id, access_token))
             })
             .map_err(Into::into)
         })
         .and_then(|(data, audit, service_id, access_token)| {
-            let email = github_api_user_email(data.get_ref(), &access_token);
+            let email = github_api_user_email(data.get_ref(), access_token);
             let args = future::ok((data, audit, service_id));
             email.join(args)
         })
@@ -87,7 +87,7 @@ fn oauth2_callback_handler(
                     data.driver(),
                     service_id,
                     &mut audit,
-                    &email,
+                    email,
                     data.options().access_token_expires(),
                     data.options().refresh_token_expires(),
                 )
@@ -114,11 +114,12 @@ fn github_authorise(
         .url();
 
     // Save the state and code verifier secrets as a CSRF key, value.
+    let csrf_key = csrf_state.secret();
     Csrf::create(
         data.driver(),
         service,
-        &csrf_state.secret(),
-        &csrf_state.secret(),
+        String::from(csrf_key),
+        String::from(csrf_key),
         data.options().access_token_expires(),
     )
     .map_err(ServerError::Core)?;
@@ -129,11 +130,11 @@ fn github_authorise(
 fn github_callback(
     data: &Data,
     _audit: &mut AuditBuilder,
-    code: &str,
-    state: &str,
+    code: String,
+    state: String,
 ) -> ServerResult<(Uuid, String)> {
     // Read the CSRF key using state value, rebuild code verifier from value.
-    let csrf = Csrf::read_by_key(data.driver(), &state).map_err(ServerError::Core)?;
+    let csrf = Csrf::read_opt(data.driver(), state).map_err(ServerError::Core)?;
     let csrf = csrf.ok_or_else(|| ServerError::Oauth2(ServerOauth2Error::Csrf))?;
 
     // Exchange the code with a token.
@@ -150,7 +151,7 @@ fn github_callback(
 
 fn github_api_user_email(
     data: &Data,
-    access_token: &str,
+    access_token: String,
 ) -> impl Future<Item = String, Error = ServerError> {
     let authorisation = format!("token {}", access_token);
     data.client()

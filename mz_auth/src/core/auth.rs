@@ -1,7 +1,7 @@
 use crate::{
     notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
     AuditBuilder, AuditData, AuditMessage, AuditType, CoreError, CoreResult, Csrf, Driver, Jwt,
-    JwtClaimsType, Key, NotifyActor, Service, User, UserKey, UserToken, UserTokenAccess,
+    JwtClaimsType, Key, NotifyActor, Service, User, UserKey, UserRead, UserToken, UserTokenAccess,
 };
 use actix::Addr;
 use libreauth::oath::TOTPBuilder;
@@ -15,8 +15,8 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         audit: &mut AuditBuilder,
-        email: &str,
-        password: &str,
+        email: String,
+        password: String,
         access_token_expires: i64,
         refresh_token_expires: i64,
     ) -> CoreResult<UserToken> {
@@ -56,7 +56,7 @@ impl Auth {
         notify: &Addr<NotifyActor>,
         service: &Service,
         audit: &mut AuditBuilder,
-        email: &str,
+        email: String,
         token_expires: i64,
     ) -> CoreResult<()> {
         Auth::reset_password_inner(driver, notify, service, audit, email, token_expires)
@@ -68,7 +68,7 @@ impl Auth {
         notify: &Addr<NotifyActor>,
         service: &Service,
         audit: &mut AuditBuilder,
-        email: &str,
+        email: String,
         token_expires: i64,
     ) -> CoreResult<()> {
         let user = Auth::user_read_by_email(
@@ -110,11 +110,11 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         audit: &mut AuditBuilder,
-        token: &str,
-        password: &str,
-    ) -> CoreResult<usize> {
+        token: String,
+        password: String,
+    ) -> CoreResult<()> {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
-        let (user_id, _) = Jwt::decode_unsafe(token, service.id)?;
+        let (user_id, _) = Jwt::decode_unsafe(&token, service.id)?;
 
         let user = Auth::user_read_by_id(
             driver,
@@ -137,7 +137,7 @@ impl Auth {
             user.id,
             JwtClaimsType::ResetPasswordToken,
             &key.value,
-            token,
+            &token,
         );
         let csrf_key = match decoded {
             Ok((_, csrf_key)) => csrf_key.ok_or_else(|| CoreError::BadRequest)?,
@@ -154,20 +154,19 @@ impl Auth {
         // Check the CSRF key to prevent reuse.
         Auth::csrf_check(
             driver,
-            &csrf_key,
+            csrf_key,
             &audit,
             AuditType::ResetPasswordConfirmError,
         )?;
 
         // Sucessful reset password confirm, update user password.
-        let count = User::update_password_by_id(driver, Some(service), audit, user.id, password)?;
-
+        User::update_password(driver, Some(service), audit, user.id, password)?;
         audit.create_internal(
             driver,
             AuditType::ResetPasswordConfirm,
             AuditMessage::ResetPasswordConfirm,
         );
-        Ok(count)
+        Ok(())
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -176,10 +175,10 @@ impl Auth {
         notify: &Addr<NotifyActor>,
         service: &Service,
         audit: &mut AuditBuilder,
-        key: Option<&str>,
-        token: Option<&str>,
-        password: &str,
-        new_email: &str,
+        key: Option<String>,
+        token: Option<String>,
+        password: String,
+        new_email: String,
         revoke_token_expires: i64,
     ) -> CoreResult<()> {
         // Verify key or token argument to get user ID.
@@ -219,7 +218,7 @@ impl Auth {
         )?;
 
         // Update user email.
-        User::update_email_by_id(driver, Some(service), audit, user.id, new_email)?;
+        User::update_email(driver, Some(service), audit, user.id, new_email)?;
         let user = Auth::user_read_by_id(
             driver,
             Some(service),
@@ -249,11 +248,11 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         audit: &mut AuditBuilder,
-        token: &str,
+        token: String,
         audit_data: Option<&AuditData>,
     ) -> CoreResult<usize> {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
-        let (user_id, _) = Jwt::decode_unsafe(token, service.id)?;
+        let (user_id, _) = Jwt::decode_unsafe(&token, service.id)?;
 
         // Do not check user, key is enabled or not revoked.
         let user = Auth::user_read_by_id_unchecked(
@@ -277,7 +276,7 @@ impl Auth {
             user.id,
             JwtClaimsType::UpdateEmailRevokeToken,
             &key.value,
-            token,
+            &token,
         );
         let csrf_key = match decoded {
             Ok((_, csrf_key)) => csrf_key.ok_or_else(|| CoreError::BadRequest)?,
@@ -292,11 +291,11 @@ impl Auth {
         };
 
         // Check the CSRF key to prevent reuse.
-        Auth::csrf_check(driver, &csrf_key, &audit, AuditType::UpdateEmailRevokeError)?;
+        Auth::csrf_check(driver, csrf_key, &audit, AuditType::UpdateEmailRevokeError)?;
 
         // Successful update email revoke, disable user and disable and revoke all keys associated with user.
-        User::update_by_id(driver, Some(service), audit, user.id, Some(false), None)?;
-        let count = Key::update_many_by_user_id(
+        User::update(driver, Some(service), audit, user.id, Some(false), None)?;
+        let count = Key::update_many(
             driver,
             Some(service),
             audit,
@@ -323,10 +322,10 @@ impl Auth {
         notify: &Addr<NotifyActor>,
         service: &Service,
         audit: &mut AuditBuilder,
-        key: Option<&str>,
-        token: Option<&str>,
-        password: &str,
-        new_password: &str,
+        key: Option<String>,
+        token: Option<String>,
+        password: String,
+        new_password: String,
         revoke_token_expires: i64,
     ) -> CoreResult<()> {
         // Verify key or token argument to get user ID.
@@ -370,7 +369,7 @@ impl Auth {
         )?;
 
         // Update user password, reread from driver.
-        User::update_password_by_id(driver, Some(service), audit, user.id, new_password)?;
+        User::update_password(driver, Some(service), audit, user.id, new_password)?;
         let user = Auth::user_read_by_id(
             driver,
             Some(service),
@@ -402,11 +401,11 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         audit: &mut AuditBuilder,
-        token: &str,
+        token: String,
         audit_data: Option<&AuditData>,
     ) -> CoreResult<usize> {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
-        let (user_id, _) = Jwt::decode_unsafe(token, service.id)?;
+        let (user_id, _) = Jwt::decode_unsafe(&token, service.id)?;
 
         // Do not check user, key is enabled or not revoked.
         let user = Auth::user_read_by_id_unchecked(
@@ -430,7 +429,7 @@ impl Auth {
             user.id,
             JwtClaimsType::UpdatePasswordRevokeToken,
             &key.value,
-            token,
+            &token,
         );
         let csrf_key = match decoded {
             Ok((_, csrf_key)) => csrf_key.ok_or_else(|| CoreError::BadRequest)?,
@@ -447,14 +446,14 @@ impl Auth {
         // Check the CSRF key to prevent reuse.
         Auth::csrf_check(
             driver,
-            &csrf_key,
+            csrf_key,
             &audit,
             AuditType::UpdatePasswordRevokeError,
         )?;
 
         // Successful update password revoke, disable user and disable and revoke all keys associated with user.
-        User::update_by_id(driver, Some(service), audit, user.id, Some(false), None)?;
-        let count = Key::update_many_by_user_id(
+        User::update(driver, Some(service), audit, user.id, Some(false), None)?;
+        let count = Key::update_many(
             driver,
             Some(service),
             audit,
@@ -479,7 +478,7 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         audit: &mut AuditBuilder,
-        key: &str,
+        key: String,
         audit_data: Option<&AuditData>,
     ) -> CoreResult<UserKey> {
         let key =
@@ -510,7 +509,7 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         audit: &mut AuditBuilder,
-        key: &str,
+        key: String,
         audit_data: Option<&AuditData>,
     ) -> CoreResult<usize> {
         // Do not check key is enabled or not revoked.
@@ -523,7 +522,7 @@ impl Auth {
         )?;
 
         // Successful key revoke, disable and revoke key.
-        Key::update_by_id(
+        Key::update(
             driver,
             Some(service),
             audit,
@@ -544,11 +543,11 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         audit: &mut AuditBuilder,
-        token: &str,
+        token: String,
         audit_data: Option<&AuditData>,
     ) -> CoreResult<UserTokenAccess> {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
-        let (user_id, _) = Jwt::decode_unsafe(token, service.id)?;
+        let (user_id, _) = Jwt::decode_unsafe(&token, service.id)?;
 
         let user = Auth::user_read_by_id(
             driver,
@@ -566,7 +565,7 @@ impl Auth {
             user.id,
             JwtClaimsType::AccessToken,
             &key.value,
-            token,
+            &token,
         );
         let access_token_expires = match decoded {
             Ok((access_token_expires, _)) => access_token_expires,
@@ -597,13 +596,13 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         audit: &mut AuditBuilder,
-        token: &str,
+        token: String,
         audit_data: Option<&AuditData>,
         access_token_expires: i64,
         refresh_token_expires: i64,
     ) -> CoreResult<UserToken> {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
-        let (user_id, _) = Jwt::decode_unsafe(token, service.id)?;
+        let (user_id, _) = Jwt::decode_unsafe(&token, service.id)?;
 
         let user = Auth::user_read_by_id(
             driver,
@@ -621,7 +620,7 @@ impl Auth {
             user.id,
             JwtClaimsType::RefreshToken,
             &key.value,
-            token,
+            &token,
         );
         let csrf_key = match decoded {
             Ok((_, csrf_key)) => csrf_key.ok_or_else(|| CoreError::BadRequest)?,
@@ -636,7 +635,7 @@ impl Auth {
         };
 
         // Check the CSRF key to prevent reuse.
-        Auth::csrf_check(driver, &csrf_key, &audit, AuditType::TokenRefreshError)?;
+        Auth::csrf_check(driver, csrf_key, &audit, AuditType::TokenRefreshError)?;
 
         // Successful token refresh, encode user token.
         let user_token = Auth::encode_user_token(
@@ -659,11 +658,11 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         audit: &mut AuditBuilder,
-        token: &str,
+        token: String,
         audit_data: Option<&AuditData>,
     ) -> CoreResult<usize> {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
-        let (user_id, token_type) = Jwt::decode_unsafe(token, service.id)?;
+        let (user_id, token_type) = Jwt::decode_unsafe(&token, service.id)?;
 
         // Do not check user, key is enabled or not revoked.
         let user = Auth::user_read_by_id_unchecked(
@@ -682,7 +681,8 @@ impl Auth {
         )?;
 
         // Safely decode token with user key.
-        let csrf_key = match Jwt::decode_token(service.id, user.id, token_type, &key.value, token) {
+        let csrf_key = match Jwt::decode_token(service.id, user.id, token_type, &key.value, &token)
+        {
             Ok((_, csrf_key)) => csrf_key,
             Err(err) => {
                 audit.create_internal(
@@ -696,11 +696,11 @@ impl Auth {
 
         // If token has CSRF key, invalidate it now.
         if let Some(csrf_key) = csrf_key {
-            Csrf::read_by_key(driver, &csrf_key)?;
+            Csrf::read_opt(driver, csrf_key)?;
         }
 
         // Successful token revoke, disable and revoke key associated with token.
-        Key::update_by_id(
+        Key::update(
             driver,
             Some(service),
             audit,
@@ -723,7 +723,7 @@ impl Auth {
         service: &Service,
         audit: &mut AuditBuilder,
         key_id: Uuid,
-        totp_code: &str,
+        totp_code: String,
     ) -> CoreResult<()> {
         // TODO(!docs): Add guide, documentation for TOTP.
         // TODO(!test): Add tests for TOTP.
@@ -733,7 +733,7 @@ impl Auth {
             .finalize()
             .map_err(CoreError::libreauth_oath)?;
 
-        if !totp.is_valid(totp_code) {
+        if !totp.is_valid(&totp_code) {
             audit.create_internal(driver, AuditType::TotpError, AuditMessage::TotpInvalid);
             Err(CoreError::BadRequest)
         } else {
@@ -746,7 +746,7 @@ impl Auth {
         driver: &dyn Driver,
         service_id: Uuid,
         audit: &mut AuditBuilder,
-        email: &str,
+        email: String,
         access_token_expires: i64,
         refresh_token_expires: i64,
     ) -> CoreResult<(Service, UserToken)> {
@@ -813,7 +813,8 @@ impl Auth {
         audit_type: AuditType,
         id: Uuid,
     ) -> CoreResult<User> {
-        match User::read_by_id(driver, service_mask, audit, id)?
+        let read = UserRead::Id(id);
+        match User::read_opt(driver, service_mask, audit, &read)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(user) => {
@@ -840,7 +841,8 @@ impl Auth {
         audit_type: AuditType,
         id: Uuid,
     ) -> CoreResult<User> {
-        match User::read_by_id(driver, service_mask, audit, id)?
+        let read = UserRead::Id(id);
+        match User::read_opt(driver, service_mask, audit, &read)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(user) => {
@@ -861,9 +863,10 @@ impl Auth {
         service_mask: Option<&Service>,
         audit: &mut AuditBuilder,
         audit_type: AuditType,
-        email: &str,
+        email: String,
     ) -> CoreResult<User> {
-        match User::read_by_email(driver, service_mask, audit, email)?
+        let read = UserRead::Email(email);
+        match User::read_opt(driver, service_mask, audit, &read)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(user) => {
@@ -890,7 +893,7 @@ impl Auth {
         audit_type: AuditType,
         key_id: Uuid,
     ) -> CoreResult<Key> {
-        match Key::read_by_id(driver, Some(&service), audit, key_id)?
+        match Key::read_opt(driver, Some(&service), audit, key_id)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
@@ -965,7 +968,7 @@ impl Auth {
         service: &Service,
         audit: &mut AuditBuilder,
         audit_type: AuditType,
-        key: &str,
+        key: String,
     ) -> CoreResult<Key> {
         match Key::read_by_user_value(driver, service, audit, key)?
             .ok_or_else(|| CoreError::BadRequest)
@@ -992,7 +995,7 @@ impl Auth {
         service: &Service,
         audit: &mut AuditBuilder,
         audit_type: AuditType,
-        key: &str,
+        key: String,
     ) -> CoreResult<Key> {
         match Key::read_by_user_value(driver, service, audit, key)?
             .ok_or_else(|| CoreError::BadRequest)
@@ -1013,8 +1016,8 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         audit: &mut AuditBuilder,
-        key: Option<&str>,
-        token: Option<&str>,
+        key: Option<String>,
+        token: Option<String>,
     ) -> CoreResult<Uuid> {
         match key {
             Some(key) => {
@@ -1065,20 +1068,20 @@ impl Auth {
         })
     }
 
-    /// Create a new CSRF key, value pair using random UUID.
+    /// Create a new CSRF key, value pair using random key.
     fn csrf_create(driver: &dyn Driver, service: &Service, token_expires: i64) -> CoreResult<Csrf> {
         let csrf_key = Key::value_generate();
-        Csrf::create(driver, service, &csrf_key, &csrf_key, token_expires)
+        Csrf::create(driver, service, csrf_key.clone(), csrf_key, token_expires)
     }
 
     /// Check a CSRF key is valid by reading it, this will also delete the key.
     fn csrf_check(
         driver: &dyn Driver,
-        csrf_key: &str,
+        csrf_key: String,
         audit: &AuditBuilder,
         audit_type: AuditType,
     ) -> CoreResult<()> {
-        let res = Csrf::read_by_key(driver, csrf_key)?
+        let res = Csrf::read_opt(driver, csrf_key)?
             .ok_or_else(|| CoreError::BadRequest)
             .map(|_| ());
 
