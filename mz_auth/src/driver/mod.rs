@@ -9,9 +9,9 @@ pub use crate::driver::postgres::DriverPostgres;
 pub use crate::driver::sqlite::DriverSqlite;
 
 use crate::core::{
-    Audit, AuditCreate, AuditList, CoreError, Csrf, CsrfCreate, CsrfDelete, Key, KeyCreate,
-    KeyList, KeyRead, KeyUpdate, Service, ServiceCreate, ServiceList, ServiceUpdate, User,
-    UserCreate, UserList, UserRead, UserUpdate,
+    Audit, AuditCreate, AuditList, CoreError, Csrf, CsrfCreate, CsrfDelete, Key, KeyCount,
+    KeyCreate, KeyList, KeyRead, KeyUpdate, Service, ServiceCreate, ServiceList, ServiceUpdate,
+    User, UserCreate, UserList, UserRead, UserUpdate,
 };
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -103,6 +103,7 @@ pub trait DriverIf {
     /// Read audit metrics, returns array of counts for distinct audit types.
     fn audit_read_metrics(
         &self,
+        from: &DateTime<Utc>,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<(String, i64)>>;
 
@@ -128,6 +129,9 @@ pub trait DriverIf {
 
     /// List keys.
     fn key_list(&self, list: &KeyList, service_id_mask: Option<&Uuid>) -> DriverResult<Vec<Key>>;
+
+    /// Count keys.
+    fn key_count(&self, count: &KeyCount) -> DriverResult<usize>;
 
     /// Create key.
     fn key_create(&self, create: &KeyCreate) -> DriverResult<Key>;

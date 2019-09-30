@@ -10,6 +10,12 @@ use uuid::Uuid;
 /// User name maximum length.
 pub const USER_NAME_MAX_LEN: usize = 100;
 
+/// User locale maximum length.
+pub const USER_LOCALE_MAX_LEN: usize = 10;
+
+/// User timezone maximum length.
+pub const USER_TIMEZONE_MAX_LEN: usize = 50;
+
 /// User password hash version passed to libreauth hash builder.
 pub const USER_PASSWORD_HASH_VERSION: usize = 1;
 
@@ -28,8 +34,12 @@ pub struct User {
     pub is_enabled: bool,
     pub name: String,
     pub email: String,
+    pub locale: String,
+    pub timezone: String,
     #[serde(skip)]
     pub password_hash: Option<String>,
+    #[serde(skip)]
+    pub password_update_required: Option<bool>,
 }
 
 impl fmt::Display for User {
@@ -39,7 +49,9 @@ impl fmt::Display for User {
         write!(f, "\n\tupdated_at {}", self.updated_at)?;
         write!(f, "\n\tis_enabled {}", self.is_enabled)?;
         write!(f, "\n\tname {}", self.name)?;
-        write!(f, "\n\temail {}", self.email)
+        write!(f, "\n\temail {}", self.email)?;
+        write!(f, "\n\tlocale {}", self.locale)?;
+        write!(f, "\n\ttimezone {}", self.timezone)
     }
 }
 
@@ -73,7 +85,10 @@ pub struct UserCreate {
     pub is_enabled: bool,
     pub name: String,
     pub email: String,
+    pub locale: String,
+    pub timezone: String,
     pub password_hash: Option<String>,
+    pub password_update_required: Option<bool>,
 }
 
 /// User read.
@@ -88,7 +103,10 @@ pub struct UserUpdate {
     pub is_enabled: Option<bool>,
     pub name: Option<String>,
     pub email: Option<String>,
+    pub locale: Option<String>,
+    pub timezone: Option<String>,
     pub password_hash: Option<String>,
+    pub password_update_required: Option<bool>,
 }
 
 /// User token.
@@ -136,7 +154,10 @@ impl User {
         is_enabled: bool,
         name: String,
         email: String,
+        locale: String,
+        timezone: String,
         password: Option<String>,
+        password_update_required: Option<bool>,
     ) -> CoreResult<User> {
         let read = UserRead::Email(email.clone());
         let user = User::read_opt(driver, service_mask, audit, &read)?;
@@ -149,7 +170,10 @@ impl User {
             is_enabled,
             name,
             email,
+            locale,
+            timezone,
             password_hash,
+            password_update_required,
         };
         driver.user_create(&create).map_err(CoreError::Driver)
     }
@@ -172,12 +196,18 @@ impl User {
         id: Uuid,
         is_enabled: Option<bool>,
         name: Option<String>,
+        locale: Option<String>,
+        timezone: Option<String>,
+        password_update_required: Option<bool>,
     ) -> CoreResult<User> {
         let update = UserUpdate {
             is_enabled,
             name,
             email: None,
+            locale,
+            timezone,
             password_hash: None,
+            password_update_required,
         };
         driver.user_update(&id, &update).map_err(CoreError::Driver)
     }
@@ -194,7 +224,10 @@ impl User {
             is_enabled: None,
             name: None,
             email: Some(email),
+            locale: None,
+            timezone: None,
             password_hash: None,
+            password_update_required: None,
         };
         driver.user_update(&id, &update).map_err(CoreError::Driver)
     }
@@ -213,7 +246,10 @@ impl User {
             is_enabled: None,
             name: None,
             email: None,
+            locale: None,
+            timezone: None,
             password_hash: Some(password_hash),
+            password_update_required: None,
         };
         driver.user_update(&id, &update).map_err(CoreError::Driver)
     }

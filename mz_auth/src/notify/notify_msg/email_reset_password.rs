@@ -42,7 +42,7 @@ impl NotifyActor {
         smtp: &NotifyActorOptionsSmtp,
         data: &EmailResetPassword,
     ) -> NotifyResult<()> {
-        // TODO(!fix): This will cause serde_qs errors.
+        // TODO(fix): This will cause serde_qs errors.
         let callback_data = &[("email", &data.user.email), ("token", &data.token)];
         let url = data
             .service

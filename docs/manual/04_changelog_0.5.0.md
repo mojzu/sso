@@ -3,6 +3,8 @@
 **Added**
 
 - Added TOTP validation route.
+- Added key flags: `allow_key`, `allow_token`, `allow_totp`.
+- Added user fields: `locale`, `timezone`.
 
 **Changed**
 
@@ -10,5 +12,6 @@
 - Code consistency improvements.
 - Renamed audit `path` to `type` string.
 - Replaced `serde_urlencoded` with `serde_qs` for more advanced query string support.
+- Improved audit metric collection efficiency.
 
 **Fixed**

@@ -1,9 +1,9 @@
 use crate::{
-    driver::postgres::schema::auth_key, DriverResult, Key, KeyCreate, KeyList, KeyRead,
+    driver::postgres::schema::auth_key, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead,
     KeyReadUserId, KeyUpdate,
 };
 use chrono::{DateTime, Utc};
-use diesel::{prelude::*, PgConnection};
+use diesel::{dsl::sql, prelude::*, sql_types::BigInt, PgConnection};
 use uuid::Uuid;
 
 #[derive(Debug, Identifiable, Queryable)]
@@ -15,6 +15,9 @@ pub struct ModelKey {
     key_id: Uuid,
     key_is_enabled: bool,
     key_is_revoked: bool,
+    key_allow_key: bool,
+    key_allow_token: bool,
+    key_allow_totp: bool,
     key_name: String,
     key_value: String,
     service_id: Option<Uuid>,
@@ -29,6 +32,9 @@ impl From<ModelKey> for Key {
             id: key.key_id,
             is_enabled: key.key_is_enabled,
             is_revoked: key.key_is_revoked,
+            allow_key: key.key_allow_key,
+            allow_token: key.key_allow_token,
+            allow_totp: key.key_allow_totp,
             name: key.key_name,
             value: key.key_value,
             service_id: key.service_id,
@@ -45,6 +51,9 @@ struct ModelKeyInsert<'a> {
     key_id: &'a Uuid,
     key_is_enabled: bool,
     key_is_revoked: bool,
+    key_allow_key: bool,
+    key_allow_token: bool,
+    key_allow_totp: bool,
     key_name: &'a str,
     key_value: &'a str,
     service_id: Option<&'a Uuid>,
@@ -59,6 +68,9 @@ impl<'a> ModelKeyInsert<'a> {
             key_id: id,
             key_is_enabled: create.is_enabled,
             key_is_revoked: create.is_revoked,
+            key_allow_key: create.allow_key,
+            key_allow_token: create.allow_token,
+            key_allow_totp: create.allow_totp,
             key_name: &create.name,
             key_value: &create.value,
             service_id: create.service_id.as_ref(),
@@ -73,6 +85,9 @@ struct ModelKeyUpdate<'a> {
     updated_at: &'a DateTime<Utc>,
     key_is_enabled: Option<bool>,
     key_is_revoked: Option<bool>,
+    key_allow_key: Option<bool>,
+    key_allow_token: Option<bool>,
+    key_allow_totp: Option<bool>,
     key_name: Option<&'a str>,
 }
 
@@ -82,6 +97,9 @@ impl<'a> ModelKeyUpdate<'a> {
             updated_at: now,
             key_is_enabled: update.is_enabled,
             key_is_revoked: update.is_revoked,
+            key_allow_key: update.allow_key,
+            key_allow_token: update.allow_token,
+            key_allow_totp: update.allow_totp,
             key_name: update.name.as_ref().map(|x| &**x),
         }
     }
@@ -152,6 +170,35 @@ impl ModelKey {
         }
         .map_err(Into::into)
         .map(|x| x.into_iter().map(|x| x.into()).collect())
+    }
+
+    pub fn count(conn: &PgConnection, count: &KeyCount) -> DriverResult<usize> {
+        use crate::driver::postgres::schema::auth_key::dsl::*;
+
+        match count {
+            KeyCount::AllowToken(count_service_id, count_user_id) => auth_key
+                .select(sql::<BigInt>("count(*)"))
+                .filter(
+                    key_is_enabled
+                        .eq(true)
+                        .and(key_allow_token.eq(true))
+                        .and(service_id.eq(count_service_id))
+                        .and(user_id.eq(count_user_id)),
+                )
+                .get_result::<i64>(conn),
+            KeyCount::AllowTotp(count_service_id, count_user_id) => auth_key
+                .select(sql::<BigInt>("count(*)"))
+                .filter(
+                    key_is_enabled
+                        .eq(true)
+                        .and(key_allow_totp.eq(true))
+                        .and(service_id.eq(count_service_id))
+                        .and(user_id.eq(count_user_id)),
+                )
+                .get_result::<i64>(conn),
+        }
+        .map_err(Into::into)
+        .map(|x| x as usize)
     }
 
     pub fn create(conn: &PgConnection, create: &KeyCreate) -> DriverResult<Key> {

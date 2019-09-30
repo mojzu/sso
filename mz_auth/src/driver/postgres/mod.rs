@@ -5,8 +5,9 @@ mod schema;
 use crate::{
     driver::postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
     Audit, AuditCreate, AuditList, Csrf, CsrfCreate, CsrfDelete, Driver, DriverError, DriverIf,
-    DriverLock, DriverLockFn, DriverResult, Key, KeyCreate, KeyList, KeyRead, KeyUpdate, Service,
-    ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserList, UserRead, UserUpdate,
+    DriverLock, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate,
+    Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserList, UserRead,
+    UserUpdate,
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
@@ -102,10 +103,11 @@ impl DriverIf for DriverPostgres {
 
     fn audit_read_metrics(
         &self,
+        from: &DateTime<Utc>,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<(String, i64)>> {
         let conn = self.conn()?;
-        ModelAudit::read_metrics(&conn, service_id_mask)
+        ModelAudit::read_metrics(&conn, from, service_id_mask)
     }
 
     fn audit_delete(&self, created_at: &DateTime<Utc>) -> DriverResult<usize> {
@@ -131,6 +133,11 @@ impl DriverIf for DriverPostgres {
     fn key_list(&self, list: &KeyList, service_id_mask: Option<&Uuid>) -> DriverResult<Vec<Key>> {
         let conn = self.conn()?;
         ModelKey::list(&conn, list, service_id_mask)
+    }
+
+    fn key_count(&self, count: &KeyCount) -> DriverResult<usize> {
+        let conn = self.conn()?;
+        ModelKey::count(&conn, count)
     }
 
     fn key_create(&self, create: &KeyCreate) -> DriverResult<Key> {
@@ -287,9 +294,10 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
 
     fn audit_read_metrics(
         &self,
+        from: &DateTime<Utc>,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<(String, i64)>> {
-        ModelAudit::read_metrics(self.conn(), service_id_mask)
+        ModelAudit::read_metrics(self.conn(), from, service_id_mask)
     }
 
     fn audit_delete(&self, created_at: &DateTime<Utc>) -> DriverResult<usize> {
@@ -310,6 +318,10 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
 
     fn key_list(&self, list: &KeyList, service_id_mask: Option<&Uuid>) -> DriverResult<Vec<Key>> {
         ModelKey::list(self.conn(), list, service_id_mask)
+    }
+
+    fn key_count(&self, count: &KeyCount) -> DriverResult<usize> {
+        ModelKey::count(self.conn(), count)
     }
 
     fn key_create(&self, create: &KeyCreate) -> DriverResult<Key> {

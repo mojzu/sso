@@ -294,7 +294,17 @@ impl Auth {
         Auth::csrf_check(driver, csrf_key, &audit, AuditType::UpdateEmailRevokeError)?;
 
         // Successful update email revoke, disable user and disable and revoke all keys associated with user.
-        User::update(driver, Some(service), audit, user.id, Some(false), None)?;
+        User::update(
+            driver,
+            Some(service),
+            audit,
+            user.id,
+            Some(false),
+            None,
+            None,
+            None,
+            None,
+        )?;
         let count = Key::update_many(
             driver,
             Some(service),
@@ -452,7 +462,17 @@ impl Auth {
         )?;
 
         // Successful update password revoke, disable user and disable and revoke all keys associated with user.
-        User::update(driver, Some(service), audit, user.id, Some(false), None)?;
+        User::update(
+            driver,
+            Some(service),
+            audit,
+            user.id,
+            Some(false),
+            None,
+            None,
+            None,
+            None,
+        )?;
         let count = Key::update_many(
             driver,
             Some(service),
@@ -529,6 +549,9 @@ impl Auth {
             key.id,
             Some(false),
             Some(true),
+            None,
+            None,
+            None,
             None,
         )?;
 
@@ -708,6 +731,9 @@ impl Auth {
             Some(false),
             Some(true),
             None,
+            None,
+            None,
+            None,
         )?;
 
         audit.create_internal(driver, AuditType::TokenRevoke, AuditMessage::TokenRevoke);
@@ -725,8 +751,8 @@ impl Auth {
         key_id: Uuid,
         totp_code: String,
     ) -> CoreResult<()> {
-        // TODO(!docs): Add guide, documentation for TOTP.
-        // TODO(!test): Add tests for TOTP.
+        // TODO(docs): Add guide, documentation for TOTP.
+        // TODO(test): Add tests for TOTP.
         let key = Auth::key_read_by_id(driver, service, audit, AuditType::TotpError, key_id)?;
         let totp = TOTPBuilder::new()
             .hex_key(&key.value)
@@ -920,7 +946,7 @@ impl Auth {
         audit_type: AuditType,
         user: &User,
     ) -> CoreResult<Key> {
-        match Key::read_by_user(driver, &service, audit, &user)?
+        match Key::read_by_user(driver, &service, audit, &user, true, true, false)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
@@ -947,7 +973,7 @@ impl Auth {
         audit_type: AuditType,
         user: &User,
     ) -> CoreResult<Key> {
-        match Key::read_by_user(driver, &service, audit, &user)?
+        match Key::read_by_user(driver, &service, audit, &user, true, true, false)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {

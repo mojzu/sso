@@ -1,6 +1,6 @@
 use crate::{
-    CoreUtil, ServerError, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, USER_NAME_MAX_LEN,
-    USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
+    CoreUtil, ServerError, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, USER_LOCALE_MAX_LEN,
+    USER_NAME_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN, USER_TIMEZONE_MAX_LEN,
 };
 use futures::future;
 use serde::de::DeserializeOwned;
@@ -72,6 +72,23 @@ impl ServerValidate {
     pub fn name(name: &str) -> Result<(), ValidationError> {
         if name.is_empty() || name.len() > USER_NAME_MAX_LEN {
             Err(ValidationError::new("invalid_name"))
+        } else {
+            Ok(())
+        }
+    }
+
+    // TODO(refactor): Locale and timezone validation.
+    pub fn locale(locale: &str) -> Result<(), ValidationError> {
+        if locale.is_empty() || locale.len() > USER_LOCALE_MAX_LEN {
+            Err(ValidationError::new("invalid_locale"))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn timezone(timezone: &str) -> Result<(), ValidationError> {
+        if timezone.is_empty() || timezone.len() > USER_TIMEZONE_MAX_LEN {
+            Err(ValidationError::new("invalid_timezone"))
         } else {
             Ok(())
         }

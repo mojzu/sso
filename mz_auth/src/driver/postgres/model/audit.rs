@@ -127,6 +127,7 @@ impl ModelAudit {
 
     pub fn read_metrics(
         conn: &PgConnection,
+        from: &DateTime<Utc>,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<(String, i64)>> {
         use crate::driver::postgres::schema::auth_audit::dsl::*;
@@ -134,12 +135,14 @@ impl ModelAudit {
         match service_id_mask {
             Some(service_id_mask) => auth_audit
                 .select((audit_type, sql::<BigInt>("count(*)")))
+                .filter(created_at.gt(from))
                 .group_by(audit_type)
                 .filter(service_id.eq(service_id_mask))
                 .order(audit_type.asc())
                 .load(conn),
             None => auth_audit
                 .select((audit_type, sql::<BigInt>("count(*)")))
+                .filter(created_at.gt(from))
                 .group_by(audit_type)
                 .order(audit_type.asc())
                 .load(conn),
@@ -198,13 +201,35 @@ impl ModelAudit {
         audit_created_le: &DateTime<Utc>,
         limit: i64,
         offset: i64,
-        service_id: Option<&Vec<Uuid>>,
+        audit_service_id: Option<&Vec<Uuid>>,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Audit>> {
         use crate::driver::postgres::schema::auth_audit::dsl::*;
+        use diesel::dsl::any;
 
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
+        match (audit_service_id, service_id_mask) {
+            (Some(audit_service_id), Some(service_id_mask)) => auth_audit
+                .filter(
+                    service_id
+                        .eq(any(audit_service_id))
+                        .and(service_id.eq(service_id_mask))
+                        .and(created_at.le(audit_created_le)),
+                )
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.desc())
+                .load::<ModelAudit>(conn),
+            (Some(audit_service_id), None) => auth_audit
+                .filter(
+                    service_id
+                        .eq(any(audit_service_id))
+                        .and(created_at.le(audit_created_le)),
+                )
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.desc())
+                .load::<ModelAudit>(conn),
+            (None, Some(service_id_mask)) => auth_audit
                 .filter(
                     service_id
                         .eq(service_id_mask)
@@ -214,7 +239,7 @@ impl ModelAudit {
                 .offset(offset)
                 .order(created_at.desc())
                 .load::<ModelAudit>(conn),
-            None => auth_audit
+            (None, None) => auth_audit
                 .filter(created_at.le(audit_created_le))
                 .limit(limit)
                 .offset(offset)
@@ -264,13 +289,35 @@ impl ModelAudit {
         audit_created_ge: &DateTime<Utc>,
         limit: i64,
         offset: i64,
-        service_id: Option<&Vec<Uuid>>,
+        audit_service_id: Option<&Vec<Uuid>>,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Audit>> {
         use crate::driver::postgres::schema::auth_audit::dsl::*;
+        use diesel::dsl::any;
 
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
+        match (audit_service_id, service_id_mask) {
+            (Some(audit_service_id), Some(service_id_mask)) => auth_audit
+                .filter(
+                    service_id
+                        .eq(any(audit_service_id))
+                        .and(service_id.eq(service_id_mask))
+                        .and(created_at.ge(audit_created_ge)),
+                )
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.asc())
+                .load::<ModelAudit>(conn),
+            (Some(audit_service_id), None) => auth_audit
+                .filter(
+                    service_id
+                        .eq(any(audit_service_id))
+                        .and(created_at.ge(audit_created_ge)),
+                )
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.asc())
+                .load::<ModelAudit>(conn),
+            (None, Some(service_id_mask)) => auth_audit
                 .filter(
                     service_id
                         .eq(service_id_mask)
@@ -280,7 +327,7 @@ impl ModelAudit {
                 .offset(offset)
                 .order(created_at.asc())
                 .load::<ModelAudit>(conn),
-            None => auth_audit
+            (None, None) => auth_audit
                 .filter(created_at.ge(audit_created_ge))
                 .limit(limit)
                 .offset(offset)
@@ -333,13 +380,37 @@ impl ModelAudit {
         audit_created_ge: &DateTime<Utc>,
         limit: i64,
         offset: i64,
-        service_id: Option<&Vec<Uuid>>,
+        audit_service_id: Option<&Vec<Uuid>>,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Audit>> {
         use crate::driver::postgres::schema::auth_audit::dsl::*;
+        use diesel::dsl::any;
 
-        match service_id_mask {
-            Some(service_id_mask) => auth_audit
+        match (audit_service_id, service_id_mask) {
+            (Some(audit_service_id), Some(service_id_mask)) => auth_audit
+                .filter(
+                    service_id
+                        .eq(any(audit_service_id))
+                        .and(service_id.eq(service_id_mask))
+                        .and(created_at.ge(audit_created_ge))
+                        .and(created_at.le(audit_created_le)),
+                )
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.asc())
+                .load::<ModelAudit>(conn),
+            (Some(audit_service_id), None) => auth_audit
+                .filter(
+                    service_id
+                        .eq(any(audit_service_id))
+                        .and(created_at.ge(audit_created_ge))
+                        .and(created_at.le(audit_created_le)),
+                )
+                .limit(limit)
+                .offset(offset)
+                .order(created_at.asc())
+                .load::<ModelAudit>(conn),
+            (None, Some(service_id_mask)) => auth_audit
                 .filter(
                     service_id
                         .eq(service_id_mask)
@@ -350,7 +421,7 @@ impl ModelAudit {
                 .offset(offset)
                 .order(created_at.asc())
                 .load::<ModelAudit>(conn),
-            None => auth_audit
+            (None, None) => auth_audit
                 .filter(
                     created_at
                         .ge(audit_created_ge)

@@ -31,6 +31,9 @@ table! {
         key_id -> Uuid,
         key_is_enabled -> Bool,
         key_is_revoked -> Bool,
+        key_allow_key -> Bool,
+        key_allow_token -> Bool,
+        key_allow_totp -> Bool,
         key_name -> Varchar,
         key_value -> Varchar,
         service_id -> Nullable<Uuid>,
@@ -57,7 +60,10 @@ table! {
         user_is_enabled -> Bool,
         user_name -> Varchar,
         user_email -> Varchar,
+        user_locale -> Varchar,
+        user_timezone -> Varchar,
         user_password_hash -> Nullable<Varchar>,
+        user_password_update_required -> Nullable<Bool>,
     }
 }
 

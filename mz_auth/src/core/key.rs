@@ -6,9 +6,9 @@ use libreauth::key::KeyBuilder;
 use std::fmt;
 use uuid::Uuid;
 
-// TODO(!refactor): Use service_mask in functions to limit results, etc. Add tests for this.
-// TODO(!refactor): Use _audit unused, finish audit logs for routes, add optional properties.
-// TODO(!refactor): Improve key, user, service list query options (order by name, ...).
+// TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
+// TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
+// TODO(refactor): Improve key, user, service list query options (order by name, ...).
 
 /// Key value size in bytes.
 pub const KEY_VALUE_BYTES: usize = 21;
@@ -21,6 +21,9 @@ pub struct Key {
     pub id: Uuid,
     pub is_enabled: bool,
     pub is_revoked: bool,
+    pub allow_key: bool,
+    pub allow_token: bool,
+    pub allow_totp: bool,
     pub name: String,
     pub value: String,
     pub service_id: Option<Uuid>,
@@ -34,6 +37,9 @@ impl fmt::Display for Key {
         write!(f, "\n\tupdated_at {}", self.updated_at)?;
         write!(f, "\n\tis_enabled {}", self.is_enabled)?;
         write!(f, "\n\tis_revoked {}", self.is_revoked)?;
+        write!(f, "\n\tallow_key {}", self.allow_key)?;
+        write!(f, "\n\tallow_token {}", self.allow_token)?;
+        write!(f, "\n\tallow_totp {}", self.allow_totp)?;
         write!(f, "\n\tname {}", self.name)?;
         write!(f, "\n\tvalue {}", self.value)?;
         if let Some(service_id) = &self.service_id {
@@ -54,10 +60,19 @@ pub enum KeyList {
     IdLt(Uuid, i64),
 }
 
+/// Key count.
+pub enum KeyCount {
+    AllowToken(Uuid, Uuid),
+    AllowTotp(Uuid, Uuid),
+}
+
 /// Key create data.
 pub struct KeyCreate {
     pub is_enabled: bool,
     pub is_revoked: bool,
+    pub allow_key: bool,
+    pub allow_token: bool,
+    pub allow_totp: bool,
     pub name: String,
     pub value: String,
     pub service_id: Option<Uuid>,
@@ -71,6 +86,9 @@ pub struct KeyReadUserId {
     pub user_id: Uuid,
     pub is_enabled: bool,
     pub is_revoked: bool,
+    pub allow_key: bool,
+    pub allow_token: bool,
+    pub allow_totp: bool,
 }
 
 /// Key read.
@@ -87,6 +105,9 @@ pub enum KeyRead {
 pub struct KeyUpdate {
     pub is_enabled: Option<bool>,
     pub is_revoked: Option<bool>,
+    pub allow_key: Option<bool>,
+    pub allow_token: Option<bool>,
+    pub allow_totp: Option<bool>,
     pub name: Option<String>,
 }
 
@@ -262,6 +283,9 @@ impl Key {
         let create = KeyCreate {
             is_enabled,
             is_revoked: false,
+            allow_key: true,
+            allow_token: false,
+            allow_totp: false,
             name,
             value,
             service_id: None,
@@ -282,6 +306,9 @@ impl Key {
         let create = KeyCreate {
             is_enabled,
             is_revoked: false,
+            allow_key: true,
+            allow_token: false,
+            allow_totp: false,
             name,
             value,
             service_id: Some(service_id),
@@ -295,14 +322,37 @@ impl Key {
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
         is_enabled: bool,
+        allow_key: bool,
+        allow_token: bool,
+        allow_totp: bool,
         name: String,
         service_id: Uuid,
         user_id: Uuid,
     ) -> CoreResult<Key> {
+        if is_enabled {
+            if allow_token {
+                let count = KeyCount::AllowToken(service_id, user_id);
+                let count = driver.key_count(&count)?;
+                if count != 0 {
+                    return Err(CoreError::BadRequest);
+                }
+            }
+            if allow_totp {
+                let count = KeyCount::AllowTotp(service_id, user_id);
+                let count = driver.key_count(&count)?;
+                if count != 0 {
+                    return Err(CoreError::BadRequest);
+                }
+            }
+        }
+
         let value = Key::value_generate();
         let create = KeyCreate {
             is_enabled,
             is_revoked: false,
+            allow_key,
+            allow_token,
+            allow_totp,
             name,
             value,
             service_id: Some(service_id),
@@ -328,13 +378,18 @@ impl Key {
         service: &Service,
         _audit: &mut AuditBuilder,
         user: &User,
+        allow_key: bool,
+        allow_token: bool,
+        allow_totp: bool,
     ) -> CoreResult<Option<Key>> {
-        // TODO(refactor): Key allow flags support.
         let read = KeyRead::UserId(KeyReadUserId {
             service_id: service.id,
             user_id: user.id,
             is_enabled: true,
             is_revoked: false,
+            allow_key,
+            allow_token,
+            allow_totp,
         });
         driver.key_read_opt(&read).map_err(CoreError::Driver)
     }
@@ -378,11 +433,17 @@ impl Key {
         id: Uuid,
         is_enabled: Option<bool>,
         is_revoked: Option<bool>,
+        allow_key: Option<bool>,
+        allow_token: Option<bool>,
+        allow_totp: Option<bool>,
         name: Option<String>,
     ) -> CoreResult<Key> {
         let update = KeyUpdate {
             is_enabled,
             is_revoked,
+            allow_key,
+            allow_token,
+            allow_totp,
             name,
         };
         driver.key_update(&id, &update).map_err(CoreError::Driver)
@@ -401,6 +462,9 @@ impl Key {
         let update = KeyUpdate {
             is_enabled,
             is_revoked,
+            allow_key: None,
+            allow_token: None,
+            allow_totp: None,
             name,
         };
         driver

@@ -110,7 +110,10 @@ fn create_inner(
                 body.is_enabled,
                 body.name,
                 body.email,
+                body.locale,
+                body.timezone,
                 body.password,
+                body.password_update_required,
             )
         })
         .map_err(Into::into)
@@ -185,6 +188,9 @@ fn update_inner(
                 user_id,
                 body.is_enabled,
                 body.name,
+                body.locale,
+                body.timezone,
+                body.password_update_required,
             )
         })
         .map_err(Into::into)

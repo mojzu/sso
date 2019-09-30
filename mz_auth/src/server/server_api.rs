@@ -511,6 +511,9 @@ pub struct KeyListResponse {
 #[serde(deny_unknown_fields)]
 pub struct KeyCreateBody {
     pub is_enabled: bool,
+    pub allow_key: bool,
+    pub allow_token: bool,
+    pub allow_totp: bool,
     #[validate(custom = "ServerValidate::name")]
     pub name: String,
     pub service_id: Option<Uuid>,
@@ -520,33 +523,62 @@ pub struct KeyCreateBody {
 impl ServerValidateFromValue<KeyCreateBody> for KeyCreateBody {}
 
 impl KeyCreateBody {
-    pub fn new<S1: Into<String>>(is_enabled: bool, name: S1) -> Self {
+    pub fn new<S1: Into<String>>(
+        is_enabled: bool,
+        allow_key: bool,
+        allow_token: bool,
+        allow_totp: bool,
+        name: S1,
+    ) -> Self {
         Self {
             is_enabled,
+            allow_key,
+            allow_token,
+            allow_totp,
             name: name.into(),
             service_id: None,
             user_id: None,
         }
     }
 
-    pub fn with_service_id<S1>(is_enabled: bool, name: S1, service_id: Uuid) -> Self
+    pub fn with_service_id<S1>(
+        is_enabled: bool,
+        allow_key: bool,
+        allow_token: bool,
+        allow_totp: bool,
+        name: S1,
+        service_id: Uuid,
+    ) -> Self
     where
         S1: Into<String>,
     {
         Self {
             is_enabled,
+            allow_key,
+            allow_token,
+            allow_totp,
             name: name.into(),
             service_id: Some(service_id),
             user_id: None,
         }
     }
 
-    pub fn with_user_id<S1>(is_enabled: bool, name: S1, user_id: Uuid) -> Self
+    pub fn with_user_id<S1>(
+        is_enabled: bool,
+        allow_key: bool,
+        allow_token: bool,
+        allow_totp: bool,
+        name: S1,
+        user_id: Uuid,
+    ) -> Self
     where
         S1: Into<String>,
     {
         Self {
             is_enabled,
+            allow_key,
+            allow_token,
+            allow_totp,
             name: name.into(),
             service_id: None,
             user_id: Some(user_id),
@@ -564,6 +596,9 @@ pub struct KeyReadResponse {
 #[serde(deny_unknown_fields)]
 pub struct KeyUpdateBody {
     pub is_enabled: Option<bool>,
+    pub allow_key: Option<bool>,
+    pub allow_token: Option<bool>,
+    pub allow_totp: Option<bool>,
     #[validate(custom = "ServerValidate::name")]
     pub name: Option<String>,
 }
@@ -744,37 +779,66 @@ pub struct UserCreateBody {
     pub name: String,
     #[validate(email)]
     pub email: String,
+    #[validate(custom = "ServerValidate::locale")]
+    pub locale: String,
+    #[validate(custom = "ServerValidate::timezone")]
+    pub timezone: String,
     #[validate(custom = "ServerValidate::password")]
     pub password: Option<String>,
+    pub password_update_required: Option<bool>,
 }
 
 impl ServerValidateFromValue<UserCreateBody> for UserCreateBody {}
 
 impl UserCreateBody {
-    pub fn new<S1, S2>(is_enabled: bool, name: S1, email: S2) -> Self
-    where
-        S1: Into<String>,
-        S2: Into<String>,
-    {
-        Self {
-            is_enabled,
-            name: name.into(),
-            email: email.into(),
-            password: None,
-        }
-    }
-
-    pub fn with_password<S1, S2, S3>(is_enabled: bool, name: S1, email: S2, password: S3) -> Self
+    pub fn new<S1, S2, S3, S4>(
+        is_enabled: bool,
+        name: S1,
+        email: S2,
+        locale: S3,
+        timezone: S4,
+    ) -> Self
     where
         S1: Into<String>,
         S2: Into<String>,
         S3: Into<String>,
+        S4: Into<String>,
     {
         Self {
             is_enabled,
             name: name.into(),
             email: email.into(),
+            locale: locale.into(),
+            timezone: timezone.into(),
+            password: None,
+            password_update_required: None,
+        }
+    }
+
+    pub fn with_password<S1, S2, S3, S4, S5>(
+        is_enabled: bool,
+        name: S1,
+        email: S2,
+        locale: S3,
+        timezone: S4,
+        password: S5,
+        password_update_required: bool,
+    ) -> Self
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+        S3: Into<String>,
+        S4: Into<String>,
+        S5: Into<String>,
+    {
+        Self {
+            is_enabled,
+            name: name.into(),
+            email: email.into(),
+            locale: locale.into(),
+            timezone: timezone.into(),
             password: Some(password.into()),
+            password_update_required: Some(password_update_required),
         }
     }
 }
@@ -796,6 +860,11 @@ pub struct UserUpdateBody {
     pub is_enabled: Option<bool>,
     #[validate(custom = "ServerValidate::name")]
     pub name: Option<String>,
+    #[validate(custom = "ServerValidate::locale")]
+    pub locale: Option<String>,
+    #[validate(custom = "ServerValidate::timezone")]
+    pub timezone: Option<String>,
+    pub password_update_required: Option<bool>,
 }
 
 impl ServerValidateFromValue<UserUpdateBody> for UserUpdateBody {}

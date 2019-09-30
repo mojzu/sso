@@ -26,7 +26,7 @@ macro_rules! user_integration_test {
             let user3_email = email_create();
             let user4_email = email_create();
             let user5_email = email_create();
-            let limit = "3";
+            let limit = 3;
 
             let client = client_create(Some(&service_key.value));
             user_create(&client, true, USER_NAME, &user1_email);
@@ -39,27 +39,27 @@ macro_rules! user_integration_test {
                 .user_list(UserListQuery {
                     gt: None,
                     lt: None,
-                    limit: Some(limit.to_owned()),
+                    limit: Some(limit),
                     email_eq: None,
                 })
                 .unwrap();
             assert_eq!(res1.data.len(), 3);
-            let r1_1 = &res1.data[0];
-            let r1_2 = &res1.data[1];
-            let r1_3 = &res1.data[2];
+            let r1_1 = &res1.data[0].id;
+            let r1_2 = &res1.data[1].id;
+            let r1_3 = &res1.data[2].id;
 
             let res2 = client
                 .user_list(UserListQuery {
                     gt: Some(r1_1.to_owned()),
                     lt: None,
-                    limit: Some(limit.to_owned()),
+                    limit: Some(limit),
                     email_eq: None,
                 })
                 .unwrap();
             assert_eq!(res2.data.len(), 3);
-            let r2_2 = &res2.data[0];
-            let r2_3 = &res2.data[1];
-            let r2_4 = &res2.data[2];
+            let r2_2 = &res2.data[0].id;
+            let r2_3 = &res2.data[1].id;
+            let r2_4 = &res2.data[2].id;
             assert_eq!(r2_2, r1_2);
             assert_eq!(r2_3, r1_3);
 
@@ -67,14 +67,14 @@ macro_rules! user_integration_test {
                 .user_list(UserListQuery {
                     gt: Some(r1_2.to_owned()),
                     lt: None,
-                    limit: Some(limit.to_owned()),
+                    limit: Some(limit),
                     email_eq: None,
                 })
                 .unwrap();
             assert_eq!(res3.data.len(), 3);
-            let r3_3 = &res3.data[0];
-            let r3_4 = &res3.data[1];
-            let r3_5 = &res3.data[2];
+            let r3_3 = &res3.data[0].id;
+            let r3_4 = &res3.data[1].id;
+            let r3_5 = &res3.data[2].id;
             assert_eq!(r3_3, r2_3);
             assert_eq!(r3_4, r2_4);
 
@@ -82,14 +82,14 @@ macro_rules! user_integration_test {
                 .user_list(UserListQuery {
                     gt: None,
                     lt: Some(r3_5.to_owned()),
-                    limit: Some(limit.to_owned()),
+                    limit: Some(limit),
                     email_eq: None,
                 })
                 .unwrap();
             assert_eq!(res4.data.len(), 3);
-            let r4_2 = &res4.data[0];
-            let r4_3 = &res4.data[1];
-            let r4_4 = &res4.data[2];
+            let r4_2 = &res4.data[0].id;
+            let r4_3 = &res4.data[1].id;
+            let r4_4 = &res4.data[2].id;
             assert_eq!(r4_2, r2_2);
             assert_eq!(r4_3, r3_3);
             assert_eq!(r4_4, r3_4);
@@ -98,14 +98,14 @@ macro_rules! user_integration_test {
                 .user_list(UserListQuery {
                     gt: None,
                     lt: Some(r4_4.to_owned()),
-                    limit: Some(limit.to_owned()),
+                    limit: Some(limit),
                     email_eq: None,
                 })
                 .unwrap();
             assert_eq!(res5.data.len(), 3);
-            let r5_1 = &res5.data[0];
-            let r5_2 = &res5.data[1];
-            let r5_3 = &res5.data[2];
+            let r5_1 = &res5.data[0].id;
+            let r5_2 = &res5.data[1].id;
+            let r5_3 = &res5.data[2].id;
             assert_eq!(r5_1, r1_1);
             assert_eq!(r5_2, r4_2);
             assert_eq!(r5_3, r4_3);
@@ -130,7 +130,7 @@ macro_rules! user_integration_test {
                 })
                 .unwrap();
             assert_eq!(res.data.len(), 1);
-            assert_eq!(res.data[0], user.id);
+            assert_eq!(res.data[0].id, user.id);
         }
 
         #[test]
@@ -149,7 +149,8 @@ macro_rules! user_integration_test {
         fn api_user_create_forbidden() {
             let client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
-            let body = UserCreateBody::new(true, USER_NAME, &user_email);
+            let body =
+                UserCreateBody::new(true, USER_NAME, &user_email, USER_LOCALE, USER_TIMEZONE);
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);
         }
@@ -164,7 +165,8 @@ macro_rules! user_integration_test {
             let client = client_create(Some(&service_key.value));
             user_create(&client, true, USER_NAME, &user_email);
 
-            let body = UserCreateBody::new(true, USER_NAME, &user_email);
+            let body =
+                UserCreateBody::new(true, USER_NAME, &user_email, USER_LOCALE, USER_TIMEZONE);
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }

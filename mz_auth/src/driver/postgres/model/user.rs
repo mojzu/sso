@@ -16,7 +16,10 @@ pub struct ModelUser {
     user_is_enabled: bool,
     user_name: String,
     user_email: String,
+    user_locale: String,
+    user_timezone: String,
     user_password_hash: Option<String>,
+    user_password_update_required: Option<bool>,
 }
 
 impl From<ModelUser> for User {
@@ -28,7 +31,10 @@ impl From<ModelUser> for User {
             is_enabled: user.user_is_enabled,
             name: user.user_name,
             email: user.user_email,
+            locale: user.user_locale,
+            timezone: user.user_timezone,
             password_hash: user.user_password_hash,
+            password_update_required: user.user_password_update_required,
         }
     }
 }
@@ -42,7 +48,10 @@ struct ModelUserInsert<'a> {
     user_is_enabled: bool,
     user_name: &'a str,
     user_email: &'a str,
+    user_locale: &'a str,
+    user_timezone: &'a str,
     user_password_hash: Option<&'a str>,
+    user_password_update_required: Option<bool>,
 }
 
 impl<'a> ModelUserInsert<'a> {
@@ -54,7 +63,10 @@ impl<'a> ModelUserInsert<'a> {
             user_is_enabled: create.is_enabled,
             user_name: &create.name,
             user_email: &create.email,
+            user_locale: &create.locale,
+            user_timezone: &create.timezone,
             user_password_hash: create.password_hash.as_ref().map(|x| &**x),
+            user_password_update_required: create.password_update_required,
         }
     }
 }
@@ -65,6 +77,11 @@ struct ModelUserUpdate<'a> {
     updated_at: &'a DateTime<Utc>,
     user_is_enabled: Option<bool>,
     user_name: Option<&'a str>,
+    user_email: Option<&'a str>,
+    user_locale: Option<&'a str>,
+    user_timezone: Option<&'a str>,
+    user_password_hash: Option<&'a str>,
+    user_password_update_required: Option<bool>,
 }
 
 impl<'a> ModelUserUpdate<'a> {
@@ -73,6 +90,11 @@ impl<'a> ModelUserUpdate<'a> {
             updated_at: now,
             user_is_enabled: update.is_enabled,
             user_name: update.name.as_ref().map(|x| &**x),
+            user_email: update.email.as_ref().map(|x| &**x),
+            user_locale: update.locale.as_ref().map(|x| &**x),
+            user_timezone: update.timezone.as_ref().map(|x| &**x),
+            user_password_hash: update.password_hash.as_ref().map(|x| &**x),
+            user_password_update_required: update.password_update_required,
         }
     }
 }

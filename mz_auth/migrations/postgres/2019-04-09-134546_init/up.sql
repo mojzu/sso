@@ -49,6 +49,8 @@ CREATE TABLE auth_key (
 );
 CREATE UNIQUE INDEX idx_auth_key_allow_token ON auth_key (service_id, user_id)
     WHERE key_is_enabled IS TRUE AND key_allow_token IS TRUE;
+CREATE UNIQUE INDEX idx_auth_key_allow_totp ON auth_key (service_id, user_id)
+    WHERE key_is_enabled IS TRUE AND key_allow_totp IS TRUE;
 
 CREATE TABLE auth_csrf (
     created_at TIMESTAMPTZ NOT NULL,

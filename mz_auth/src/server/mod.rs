@@ -27,7 +27,6 @@ use std::{
 use url::ParseError as UrlParseError;
 
 // TODO(feature): User sessions route for active tokens/keys.
-// TODO(!feature): Use key allow flags in migrations.
 // TODO(feature): Support more OAuth2 providers.
 // TODO(feature): Webauthn support.
 // <https://webauthn.guide/>

@@ -128,7 +128,7 @@ pub struct AuditListCreatedLe {
     pub type_: Option<Vec<String>>,
     pub service_id: Option<Vec<Uuid>>,
     pub user_id: Option<Vec<Uuid>>,
-    // TODO(!refactor): Data matches filter.
+    // TODO(refactor): Data matches filter.
 }
 
 /// Audit list where created greater than or equal.

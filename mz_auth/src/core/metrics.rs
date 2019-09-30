@@ -1,10 +1,16 @@
 use crate::{AuditBuilder, CoreError, CoreResult, Driver, Service};
+use chrono::{DateTime, Utc};
 use prometheus::{Counter, Encoder, IntCounter, IntCounterVec, Opts, Registry, TextEncoder};
 use std::{convert::TryInto, sync::Mutex};
 use sysinfo::{ProcessExt, System, SystemExt};
 
+struct Cache {
+    pub from: DateTime<Utc>,
+}
+
 lazy_static! {
     static ref SYSTEM: Mutex<System> = { Mutex::new(System::new()) };
+    static ref CACHE: Mutex<Cache> = { Mutex::new(Cache { from: Utc::now() }) };
 }
 
 /// Metrics.
@@ -19,7 +25,7 @@ impl Metrics {
     pub fn sysinfo_encoded() -> CoreResult<String> {
         let registry = Registry::new();
 
-        // TODO(!feature): Support more process/other metrics, check units.
+        // TODO(feature): Support more process/other metrics, check units.
         // <https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors>
         let mut system = SYSTEM.lock().unwrap();
         let pid = sysinfo::get_current_pid().unwrap();
@@ -52,12 +58,14 @@ impl Metrics {
         _audit: &mut AuditBuilder,
         registry: &Registry,
     ) -> CoreResult<String> {
+        let mut cache = CACHE.lock().unwrap();
         let audit_metrics = driver
-            .audit_read_metrics(service_mask.map(|s| &s.id))
+            .audit_read_metrics(&cache.from, service_mask.map(|s| &s.id))
             .map_err(CoreError::Driver)?;
+        cache.from = Utc::now();
 
-        // TODO(!refactor): More efficient way of handling audit metrics read.
-        // Keep audit registry and counter alive, only query metrics since last query.
+        // TODO(refactor): More efficient way of handling audit metrics read.
+        // Keep audit registry and counter alive.
         let audit_registry = Registry::new();
         let opts = Opts::new(Metrics::name("audit"), "Audit log counter".to_owned());
         let counter = IntCounterVec::new(opts, &["path"]).unwrap();

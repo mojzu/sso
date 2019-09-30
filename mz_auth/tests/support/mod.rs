@@ -26,6 +26,8 @@ pub const INVALID_EMAIL: &str = "invalid-email";
 pub const INVALID_PASSWORD: &str = "guests";
 pub const INVALID_KEY: &str = "af8731c10c739d8cce50ea556d0b1d77d3614fdc39";
 pub const USER_NAME: &str = "user-name";
+pub const USER_LOCALE: &str = "en_GB";
+pub const USER_TIMEZONE: &str = "Etc/UTC";
 pub const USER_PASSWORD: &str = "user-name";
 pub const KEY_NAME: &str = "key-name";
 
@@ -66,14 +68,15 @@ pub fn service_key_create(client: &ClientSync) -> (Service, Key) {
     let body = ServiceCreateBody::new(true, "test", "http://localhost");
     let create_service = client.service_create(body).unwrap();
 
-    let body = KeyCreateBody::with_service_id(true, "test", create_service.data.id);
+    let body =
+        KeyCreateBody::with_service_id(true, true, false, false, "test", create_service.data.id);
     let create_key = client.key_create(body).unwrap();
     (create_service.data, create_key.data)
 }
 
 pub fn user_create(client: &ClientSync, is_enabled: bool, name: &str, email: &str) -> User {
     let before = Utc::now();
-    let body = UserCreateBody::new(is_enabled, name, email);
+    let body = UserCreateBody::new(is_enabled, name, email, USER_LOCALE, USER_TIMEZONE);
     let create = client.user_create(body).unwrap();
     let user = create.data;
     assert!(user.created_at.gt(&before));
@@ -94,7 +97,15 @@ pub fn user_create_with_password(
     password: &str,
 ) -> User {
     let before = Utc::now();
-    let body = UserCreateBody::with_password(is_enabled, name, email, password);
+    let body = UserCreateBody::with_password(
+        is_enabled,
+        name,
+        email,
+        USER_LOCALE,
+        USER_TIMEZONE,
+        password,
+        false,
+    );
     let create = client.user_create(body).unwrap();
     let user = create.data;
     assert!(user.created_at.gt(&before));
@@ -113,7 +124,7 @@ pub fn user_key_create(
     service_id: Uuid,
     user_id: Uuid,
 ) -> UserKey {
-    let body = KeyCreateBody::with_user_id(true, name, user_id);
+    let body = KeyCreateBody::with_user_id(true, true, true, false, name, user_id);
     let create = client.key_create(body).unwrap();
     let key = create.data;
     assert_eq!(key.name, name);
