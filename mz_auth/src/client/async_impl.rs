@@ -1,14 +1,17 @@
 use crate::{
+    api_types::{
+        AuditCreateRequest, AuditDataRequest, AuditListRequest, AuditListResponse,
+        AuditReadResponse, AuthOauth2UrlResponse,
+    },
     client_msg::{Delete, Get, PatchJson, PostJson},
     server_api::{
-        route, AuditCreateBody, AuditDataRequest, AuditListQuery, AuditListResponse,
-        AuditReadResponse, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
-        AuthOauth2UrlResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
-        AuthResetPasswordConfirmBody, AuthTokenAccessResponse, AuthTokenBody, AuthTokenResponse,
-        AuthTotpBody, AuthUpdateEmailBody, AuthUpdatePasswordBody, KeyCreateBody, KeyListQuery,
-        KeyListResponse, KeyReadResponse, KeyUpdateBody, ServiceCreateBody, ServiceListQuery,
-        ServiceListResponse, ServiceReadResponse, ServiceUpdateBody, UserCreateBody,
-        UserCreateResponse, UserListQuery, UserListResponse, UserReadResponse, UserUpdateBody,
+        route, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
+        AuthPasswordMetaResponse, AuthResetPasswordBody, AuthResetPasswordConfirmBody,
+        AuthTokenAccessResponse, AuthTokenBody, AuthTokenResponse, AuthTotpBody,
+        AuthUpdateEmailBody, AuthUpdatePasswordBody, KeyCreateBody, KeyListQuery, KeyListResponse,
+        KeyReadResponse, KeyUpdateBody, ServiceCreateBody, ServiceListQuery, ServiceListResponse,
+        ServiceReadResponse, ServiceUpdateBody, UserCreateBody, UserCreateResponse, UserListQuery,
+        UserListResponse, UserReadResponse, UserUpdateBody,
     },
     Client, ClientActor, ClientActorRequest, ClientError, ClientOptions, User,
 };
@@ -323,7 +326,7 @@ impl ClientAsync {
     /// Audit list request.
     pub fn audit_list(
         &self,
-        query: AuditListQuery,
+        query: AuditListRequest,
     ) -> impl Future<Item = AuditListResponse, Error = ClientError> {
         let msg = Get::new(self.url(), route::AUDIT)
             .authorisation(self.options.authorisation())
@@ -339,7 +342,7 @@ impl ClientAsync {
     /// Audit create request.
     pub fn audit_create(
         &self,
-        body: AuditCreateBody,
+        body: AuditCreateRequest,
     ) -> impl Future<Item = AuditReadResponse, Error = ClientError> {
         self.addr
             .send(

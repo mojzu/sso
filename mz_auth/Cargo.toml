@@ -24,6 +24,7 @@ actix-service = "^0.4.2"
 actix-web = { version = "^1.0.8", features = ["rust-tls"] }
 clap = "^2.33.0"
 chrono = { version = "^0.4.9", features = ["serde"] }
+chrono-tz = "^0.5.1"
 derive_builder = "^0.7.2"
 diesel = { version = "^1.4.2", features = ["postgres", "sqlite", "r2d2", "chrono", "serde_json", "uuidv07"] }
 diesel_migrations = { version = "^1.4.0", features = ["postgres", "sqlite"] }
@@ -52,6 +53,7 @@ serde_json = "^1.0.40"
 serde_qs = "^0.5.0"
 sha-1 = "^0.8.1"
 sysinfo = "^0.9.5"
+unic-langid = "^0.5.0"
 url = "^1.7.2"
 uuid = { version = "^0.7.4", features = ["v4", "serde"] }
 time = "^0.1.42"

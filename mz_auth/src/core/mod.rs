@@ -1,3 +1,4 @@
+mod api;
 mod audit;
 mod auth;
 mod csrf;
@@ -9,7 +10,7 @@ mod user;
 mod util;
 
 pub use crate::core::{
-    audit::*, auth::*, csrf::*, jwt::*, key::*, metrics::*, service::*, user::*, util::*,
+    api::*, audit::*, auth::*, csrf::*, jwt::*, key::*, metrics::*, service::*, user::*, util::*,
 };
 
 use crate::{ClientError, DriverError};
@@ -17,17 +18,40 @@ use actix::MailboxError as ActixMailboxError;
 use libreauth::{oath::ErrorCode as LibreauthOathError, pass::ErrorCode as LibreauthPassError};
 use zxcvbn::ZxcvbnError;
 
+/// Core OAuth2 errors.
+#[derive(Debug, Fail)]
+pub enum CoreOauth2Error {
+    #[fail(display = "CoreOauth2Error:Disabled")]
+    Disabled,
+
+    #[fail(display = "CoreOauth2Error:Csrf")]
+    Csrf,
+
+    #[fail(display = "CoreOauth2Error:Oauth2Request {}", _0)]
+    Oauth2Request(failure::Error),
+}
+
 /// Core errors.
 #[derive(Debug, Fail)]
 pub enum CoreError {
+    // TODO(refactor): Replace HTTP errors with more specific codes, convert in server module.
     #[fail(display = "CoreError:BadRequest")]
     BadRequest,
 
     #[fail(display = "CoreError:Forbidden")]
     Forbidden,
 
+    #[fail(display = "CoreError:NotFound")]
+    NotFound,
+
     #[fail(display = "CoreError:PwnedPasswordsDisabled")]
     PwnedPasswordsDisabled,
+
+    #[fail(display = "CoreError:Oauth2 {}", _0)]
+    Oauth2(CoreOauth2Error),
+
+    #[fail(display = "CoreError:UrlParse {}", _0)]
+    UrlParse(#[fail(cause)] url::ParseError),
 
     #[fail(display = "CoreError:Metrics")]
     Metrics,

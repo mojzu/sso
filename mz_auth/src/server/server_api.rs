@@ -1,11 +1,9 @@
 //! # Server API Types
 use crate::{
-    Audit, AuditData, AuditList, AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe,
-    Core, Key, KeyList, ServerValidate, ServerValidateFromStr, ServerValidateFromValue, Service,
-    ServiceList, User, UserKey, UserList, UserPasswordMeta, UserToken, UserTokenAccess,
+    api_types::AuditDataRequest, Core, Key, KeyList, ServerValidate, ServerValidateFromStr,
+    ServerValidateFromValue, Service, ServiceList, User, UserKey, UserList, UserPasswordMeta,
+    UserToken, UserTokenAccess,
 };
-use chrono::{DateTime, Utc};
-use serde_json::Value;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -80,179 +78,6 @@ pub mod route {
 
     pub fn user_id<T: Display>(id: T) -> String {
         format!("{}/{}", USER, id)
-    }
-}
-
-// Audit types.
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct AuditListQuery {
-    pub ge: Option<DateTime<Utc>>,
-    pub le: Option<DateTime<Utc>>,
-    #[validate(custom = "ServerValidate::limit")]
-    pub limit: Option<i64>,
-    pub offset_id: Option<Uuid>,
-    #[serde(rename = "type")]
-    #[validate(custom = "ServerValidate::audit_type_vec")]
-    pub type_: Option<Vec<String>>,
-    pub service_id: Option<Vec<Uuid>>,
-    pub user_id: Option<Vec<Uuid>>,
-}
-
-impl ServerValidateFromStr<AuditListQuery> for AuditListQuery {}
-
-impl From<AuditListQuery> for AuditList {
-    fn from(query: AuditListQuery) -> Self {
-        let limit = query.limit.unwrap_or_else(Core::default_limit);
-
-        match (query.ge, query.le) {
-            (Some(ge), Some(le)) => Self::CreatedLeAndGe(AuditListCreatedLeAndGe {
-                ge,
-                le,
-                limit,
-                offset_id: query.offset_id,
-                type_: query.type_,
-                service_id: query.service_id,
-                user_id: query.user_id,
-            }),
-            (Some(ge), None) => Self::CreatedGe(AuditListCreatedGe {
-                ge,
-                limit,
-                offset_id: query.offset_id,
-                type_: query.type_,
-                service_id: query.service_id,
-                user_id: query.user_id,
-            }),
-            (None, Some(le)) => Self::CreatedLe(AuditListCreatedLe {
-                le,
-                limit,
-                offset_id: query.offset_id,
-                type_: query.type_,
-                service_id: query.service_id,
-                user_id: query.user_id,
-            }),
-            (None, None) => Self::CreatedLe(AuditListCreatedLe {
-                le: Utc::now(),
-                limit,
-                offset_id: query.offset_id,
-                type_: query.type_,
-                service_id: query.service_id,
-                user_id: query.user_id,
-            }),
-        }
-    }
-}
-
-impl From<AuditList> for AuditListQuery {
-    fn from(list: AuditList) -> Self {
-        match list {
-            AuditList::CreatedLe(l) => Self {
-                ge: None,
-                le: Some(l.le),
-                limit: Some(l.limit),
-                offset_id: l.offset_id,
-                type_: l.type_,
-                service_id: l.service_id,
-                user_id: l.user_id,
-            },
-            AuditList::CreatedGe(l) => Self {
-                ge: Some(l.ge),
-                le: None,
-                limit: Some(l.limit),
-                offset_id: l.offset_id,
-                type_: l.type_,
-                service_id: l.service_id,
-                user_id: l.user_id,
-            },
-            AuditList::CreatedLeAndGe(l) => Self {
-                ge: Some(l.ge),
-                le: Some(l.le),
-                limit: Some(l.limit),
-                offset_id: l.offset_id,
-                type_: l.type_,
-                service_id: l.service_id,
-                user_id: l.user_id,
-            },
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct AuditListResponse {
-    pub meta: AuditListQuery,
-    pub data: Vec<Audit>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct AuditCreateBody {
-    #[serde(alias = "type")]
-    #[validate(custom = "ServerValidate::audit_type")]
-    pub type_: String,
-    pub data: Value,
-    pub user_id: Option<Uuid>,
-    pub user_key_id: Option<Uuid>,
-}
-
-impl ServerValidateFromValue<AuditCreateBody> for AuditCreateBody {}
-
-impl AuditCreateBody {
-    pub fn new<T1>(type_: T1, data: Value, user_id: Option<Uuid>, user_key_id: Option<Uuid>) -> Self
-    where
-        T1: Into<String>,
-    {
-        Self {
-            type_: type_.into(),
-            data,
-            user_id,
-            user_key_id,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct AuditCreateResponse {
-    pub data: Audit,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct AuditReadResponse {
-    pub data: Audit,
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct AuditDataRequest {
-    #[serde(alias = "type")]
-    #[validate(custom = "ServerValidate::audit_type")]
-    pub type_: String,
-    pub data: Value,
-}
-
-impl ServerValidateFromValue<AuditDataRequest> for AuditDataRequest {}
-
-impl AuditDataRequest {
-    pub fn new<T1>(type_: T1, data: Value) -> Self
-    where
-        T1: Into<String>,
-    {
-        Self {
-            type_: type_.into(),
-            data,
-        }
-    }
-}
-
-impl From<AuditDataRequest> for AuditData {
-    fn from(data: AuditDataRequest) -> AuditData {
-        AuditData {
-            type_: data.type_,
-            data: data.data,
-        }
     }
 }
 
@@ -433,24 +258,6 @@ pub struct AuthUpdatePasswordBody {
 }
 
 impl ServerValidateFromValue<AuthUpdatePasswordBody> for AuthUpdatePasswordBody {}
-
-// Authentication OAuth2 provider types.
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct AuthOauth2UrlResponse {
-    pub url: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-pub struct AuthOauth2CallbackQuery {
-    #[validate(custom = "ServerValidate::token")]
-    pub code: String,
-    #[validate(custom = "ServerValidate::token")]
-    pub state: String,
-}
-
-impl ServerValidateFromStr<AuthOauth2CallbackQuery> for AuthOauth2CallbackQuery {}
 
 // Key types.
 

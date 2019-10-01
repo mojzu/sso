@@ -1,10 +1,13 @@
 use crate::{
-    CoreUtil, ServerError, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, USER_LOCALE_MAX_LEN,
+    CoreUtil, ServerError, ServerResult, JWT_MAX_LEN, KEY_VALUE_BYTES, USER_LOCALE_MAX_LEN,
     USER_NAME_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN, USER_TIMEZONE_MAX_LEN,
 };
+use chrono_tz::Tz;
 use futures::future;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
+use std::str::FromStr;
+use unic_langid::LanguageIdentifier;
 use validator::{Validate, ValidationError};
 
 /// Server validate JSON value trait.
@@ -53,6 +56,13 @@ pub trait ServerValidateFromStr<T: DeserializeOwned + Validate> {
 pub struct ServerValidate;
 
 impl ServerValidate {
+    pub fn qs_de<T: DeserializeOwned>(v: &str) -> ServerResult<T> {
+        CoreUtil::qs_de::<T>(v).map_err(|_e| {
+            debug!("{}", _e);
+            ServerError::BadRequest
+        })
+    }
+
     pub fn limit(limit: i64) -> Result<(), ValidationError> {
         if limit < 0 {
             Err(ValidationError::new("invalid_limit"))
@@ -77,9 +87,10 @@ impl ServerValidate {
         }
     }
 
-    // TODO(refactor): Locale and timezone validation.
     pub fn locale(locale: &str) -> Result<(), ValidationError> {
-        if locale.is_empty() || locale.len() > USER_LOCALE_MAX_LEN {
+        if let Err(_e) = locale.parse::<LanguageIdentifier>() {
+            Err(ValidationError::new("invalid_locale"))
+        } else if locale.is_empty() || locale.len() > USER_LOCALE_MAX_LEN {
             Err(ValidationError::new("invalid_locale"))
         } else {
             Ok(())
@@ -87,26 +98,13 @@ impl ServerValidate {
     }
 
     pub fn timezone(timezone: &str) -> Result<(), ValidationError> {
-        if timezone.is_empty() || timezone.len() > USER_TIMEZONE_MAX_LEN {
+        if let Err(_e) = Tz::from_str(timezone) {
+            Err(ValidationError::new("invalid_timezone"))
+        } else if timezone.is_empty() || timezone.len() > USER_TIMEZONE_MAX_LEN {
             Err(ValidationError::new("invalid_timezone"))
         } else {
             Ok(())
         }
-    }
-
-    pub fn audit_type(audit_type: &str) -> Result<(), ValidationError> {
-        if audit_type.is_empty() || audit_type.len() > AUDIT_TYPE_MAX_LEN {
-            Err(ValidationError::new("invalid_audit_type"))
-        } else {
-            Ok(())
-        }
-    }
-
-    pub fn audit_type_vec(audit_type: &[String]) -> Result<(), ValidationError> {
-        for v in audit_type {
-            Self::audit_type(v)?;
-        }
-        Ok(())
     }
 
     pub fn token(token: &str) -> Result<(), ValidationError> {

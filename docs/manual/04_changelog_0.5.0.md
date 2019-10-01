@@ -13,5 +13,6 @@
 - Renamed audit `path` to `type` string.
 - Replaced `serde_urlencoded` with `serde_qs` for more advanced query string support.
 - Improved audit metric collection efficiency.
+- Changed OAuth2 interface so callbacks go to service.
 
 **Fixed**

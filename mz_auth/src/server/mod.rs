@@ -11,7 +11,6 @@ use actix_web::{
     error::BlockingError as ActixWebBlockingError, middleware::Logger, web, App, HttpResponse,
     HttpServer, ResponseError,
 };
-use failure::Error as FailureError;
 use prometheus::{
     Error as PrometheusError, HistogramOpts, HistogramVec, IntCounterVec, Opts, Registry,
 };
@@ -24,7 +23,6 @@ use std::{
     fs::File,
     io::{BufReader, Error as StdIoError},
 };
-use url::ParseError as UrlParseError;
 
 // TODO(feature): User sessions route for active tokens/keys.
 // TODO(feature): Support more OAuth2 providers.
@@ -36,19 +34,6 @@ use url::ParseError as UrlParseError;
 // TODO(feature): Email translation/formatting using user locale and timezone.
 // TODO(feature): Handle changes to password hash version.
 // TODO(feature): Patchable audit logs, append data only for ID.
-
-/// Server OAuth2 errors.
-#[derive(Debug, Fail)]
-pub enum ServerOauth2Error {
-    #[fail(display = "ServerOauth2Error:Disabled")]
-    Disabled,
-
-    #[fail(display = "ServerOauth2Error:Csrf")]
-    Csrf,
-
-    #[fail(display = "ServerOauth2Error:Oauth2Request {}", _0)]
-    Oauth2Request(FailureError),
-}
 
 /// Server errors.
 #[derive(Debug, Fail)]
@@ -62,9 +47,6 @@ pub enum ServerError {
     #[fail(display = "ServerError:NotFound")]
     NotFound,
 
-    #[fail(display = "ServerError:Oauth2 {}", _0)]
-    Oauth2(ServerOauth2Error),
-
     #[fail(display = "ServerError:Core {}", _0)]
     Core(#[fail(cause)] CoreError),
 
@@ -73,9 +55,6 @@ pub enum ServerError {
 
     #[fail(display = "ServerError:Rustls")]
     Rustls,
-
-    #[fail(display = "ServerError:UrlParse {}", _0)]
-    UrlParse(#[fail(cause)] UrlParseError),
 
     #[fail(display = "ServerError:ActixWebBlockingCancelled")]
     ActixWebBlockingCancelled,
@@ -98,6 +77,7 @@ impl From<CoreError> for ServerError {
         match e {
             CoreError::BadRequest => Self::BadRequest,
             CoreError::Forbidden => Self::Forbidden,
+            CoreError::NotFound => Self::NotFound,
             CoreError::Jsonwebtoken(_e) => Self::BadRequest,
             _ => Self::Core(e),
         }
@@ -130,9 +110,9 @@ impl ResponseError for ServerError {
 /// Server provider OAuth2 options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerOptionsProviderOauth2 {
-    client_id: String,
-    client_secret: String,
-    redirect_url: String,
+    pub client_id: String,
+    pub client_secret: String,
+    pub redirect_url: String,
 }
 
 impl ServerOptionsProviderOauth2 {
@@ -212,6 +192,8 @@ pub struct ServerOptions {
     provider: ServerOptionsProviderGroup,
     /// Rustls options for TLS support.
     rustls: Option<ServerOptionsRustls>,
+    /// User agent for outgoing HTTP requests.
+    user_agent: String,
 }
 
 impl ServerOptions {
@@ -286,6 +268,11 @@ impl ServerOptions {
         } else {
             Ok(None)
         }
+    }
+
+    /// Returns user agent.
+    pub fn user_agent(&self) -> &str {
+        &self.user_agent
     }
 }
 

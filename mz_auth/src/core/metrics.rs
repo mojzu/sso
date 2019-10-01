@@ -6,11 +6,26 @@ use sysinfo::{ProcessExt, System, SystemExt};
 
 struct Cache {
     pub from: DateTime<Utc>,
+    pub audit_registry: Registry,
+    pub audit_counter: IntCounterVec,
 }
 
 lazy_static! {
     static ref SYSTEM: Mutex<System> = { Mutex::new(System::new()) };
-    static ref CACHE: Mutex<Cache> = { Mutex::new(Cache { from: Utc::now() }) };
+    static ref CACHE: Mutex<Cache> = {
+        let audit_registry = Registry::new();
+        let opts = Opts::new(Metrics::name("audit"), "Audit log counter".to_owned());
+        let audit_counter = IntCounterVec::new(opts, &["path"]).unwrap();
+        audit_registry
+            .register(Box::new(audit_counter.clone()))
+            .unwrap();
+
+        Mutex::new(Cache {
+            from: Utc::now(),
+            audit_registry,
+            audit_counter,
+        })
+    };
 }
 
 /// Metrics.
@@ -64,19 +79,15 @@ impl Metrics {
             .map_err(CoreError::Driver)?;
         cache.from = Utc::now();
 
-        // TODO(refactor): More efficient way of handling audit metrics read.
-        // Keep audit registry and counter alive.
-        let audit_registry = Registry::new();
-        let opts = Opts::new(Metrics::name("audit"), "Audit log counter".to_owned());
-        let counter = IntCounterVec::new(opts, &["path"]).unwrap();
-        audit_registry.register(Box::new(counter.clone())).unwrap();
+        let audit_registry = &cache.audit_registry;
+        let audit_counter = &cache.audit_counter;
         for (path, count) in audit_metrics.iter() {
-            counter.with_label_values(&[path]).inc_by(*count);
+            audit_counter.with_label_values(&[path]).inc_by(*count);
         }
 
         let sysinfo_encoded = Metrics::sysinfo_encoded()?;
         let encoded = Metrics::encode_registry(registry)?;
-        let audit_encoded = Metrics::encode_registry(&audit_registry)?;
+        let audit_encoded = Metrics::encode_registry(audit_registry)?;
         let text = format!("{}\n{}\n{}", sysinfo_encoded, encoded, audit_encoded);
         Ok(text)
     }

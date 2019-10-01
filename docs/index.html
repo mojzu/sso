@@ -587,6 +587,8 @@ mz_auth start-server</code></pre>
 <p><strong>Added</strong></p>
 <ul>
 <li>Added TOTP validation route.</li>
+<li>Added key flags: <code>allow_key</code>, <code>allow_token</code>, <code>allow_totp</code>.</li>
+<li>Added user fields: <code>locale</code>, <code>timezone</code>.</li>
 </ul>
 <p><strong>Changed</strong></p>
 <ul>
@@ -594,6 +596,7 @@ mz_auth start-server</code></pre>
 <li>Code consistency improvements.</li>
 <li>Renamed audit <code>path</code> to <code>type</code> string.</li>
 <li>Replaced <code>serde_urlencoded</code> with <code>serde_qs</code> for more advanced query string support.</li>
+<li>Improved audit metric collection efficiency.</li>
 </ul>
 <p><strong>Fixed</strong></p>
 <h1 id="developer">Developer</h1>

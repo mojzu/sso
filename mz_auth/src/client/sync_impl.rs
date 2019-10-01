@@ -1,13 +1,16 @@
 use crate::{
+    api_types::{
+        AuditCreateRequest, AuditDataRequest, AuditListRequest, AuditListResponse,
+        AuditReadResponse, AuthOauth2UrlResponse,
+    },
     server_api::{
-        route, AuditCreateBody, AuditDataRequest, AuditListQuery, AuditListResponse,
-        AuditReadResponse, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
-        AuthOauth2UrlResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
-        AuthResetPasswordConfirmBody, AuthTokenAccessResponse, AuthTokenBody, AuthTokenResponse,
-        AuthTotpBody, AuthUpdateEmailBody, AuthUpdatePasswordBody, KeyCreateBody, KeyListQuery,
-        KeyListResponse, KeyReadResponse, KeyUpdateBody, ServiceCreateBody, ServiceListQuery,
-        ServiceListResponse, ServiceReadResponse, ServiceUpdateBody, UserCreateBody,
-        UserCreateResponse, UserListQuery, UserListResponse, UserReadResponse, UserUpdateBody,
+        route, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
+        AuthPasswordMetaResponse, AuthResetPasswordBody, AuthResetPasswordConfirmBody,
+        AuthTokenAccessResponse, AuthTokenBody, AuthTokenResponse, AuthTotpBody,
+        AuthUpdateEmailBody, AuthUpdatePasswordBody, KeyCreateBody, KeyListQuery, KeyListResponse,
+        KeyReadResponse, KeyUpdateBody, ServiceCreateBody, ServiceListQuery, ServiceListResponse,
+        ServiceReadResponse, ServiceUpdateBody, UserCreateBody, UserCreateResponse, UserListQuery,
+        UserListResponse, UserReadResponse, UserUpdateBody,
     },
     Client, ClientActorOptions, ClientError, ClientOptions, ClientResult, User,
 };
@@ -66,6 +69,11 @@ impl ClientSync {
     /// Returns options reference.
     pub fn options(&self) -> &ClientOptions {
         &self.options
+    }
+
+    /// Returns client reference.
+    pub fn client(&self) -> &ReqwestClient {
+        &self.client
     }
 
     /// Clone client with options.
@@ -184,13 +192,13 @@ impl ClientSync {
     }
 
     /// Audit list request.
-    pub fn audit_list(&self, query: AuditListQuery) -> ClientResult<AuditListResponse> {
+    pub fn audit_list(&self, query: AuditListRequest) -> ClientResult<AuditListResponse> {
         self.get_query(route::AUDIT, &query)
             .and_then(Client::response_json::<AuditListResponse>)
     }
 
     /// Audit create request.
-    pub fn audit_create(&self, body: AuditCreateBody) -> ClientResult<AuditReadResponse> {
+    pub fn audit_create(&self, body: AuditCreateRequest) -> ClientResult<AuditReadResponse> {
         self.post_json(route::AUDIT, &body)
             .and_then(Client::response_json::<AuditReadResponse>)
     }

@@ -170,5 +170,31 @@ macro_rules! user_integration_test {
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
+
+        #[test]
+        #[ignore]
+        fn api_user_create_bad_request_invalid_locale() {
+            let client = client_create(None);
+            let (_service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            let body = UserCreateBody::new(true, USER_NAME, &user_email, "", USER_TIMEZONE);
+            let res = client.user_create(body).unwrap_err();
+            assert_eq!(res, ClientError::BadRequest);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_user_create_bad_request_invalid_timezone() {
+            let client = client_create(None);
+            let (_service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            let body = UserCreateBody::new(true, USER_NAME, &user_email, USER_LOCALE, "invalid");
+            let res = client.user_create(body).unwrap_err();
+            assert_eq!(res, ClientError::BadRequest);
+        }
     };
 }

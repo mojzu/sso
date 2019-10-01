@@ -11,24 +11,24 @@ macro_rules! audit_integration_test {
             let limit = 3;
 
             let a1 = client
-                .audit_create(AuditCreateBody::new(path, Value::Null, None, None))
+                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
                 .unwrap()
                 .data;
             client
-                .audit_create(AuditCreateBody::new(path, Value::Null, None, None))
+                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
                 .unwrap();
             client
-                .audit_create(AuditCreateBody::new(path, Value::Null, None, None))
+                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
                 .unwrap();
             client
-                .audit_create(AuditCreateBody::new(path, Value::Null, None, None))
+                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
                 .unwrap();
             client
-                .audit_create(AuditCreateBody::new(path, Value::Null, None, None))
+                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
                 .unwrap();
 
             let res1 = client
-                .audit_list(AuditListQuery {
+                .audit_list(AuditListRequest {
                     ge: Some(a1.created_at),
                     le: None,
                     offset_id: None,
@@ -46,7 +46,7 @@ macro_rules! audit_integration_test {
             let a1 = client.audit_read(r1_1).unwrap().data;
 
             let res2 = client
-                .audit_list(AuditListQuery {
+                .audit_list(AuditListRequest {
                     ge: Some(a1.created_at),
                     le: None,
                     offset_id: Some(a1.id),
@@ -65,7 +65,7 @@ macro_rules! audit_integration_test {
             let a2 = client.audit_read(r2_2).unwrap().data;
 
             let res3 = client
-                .audit_list(AuditListQuery {
+                .audit_list(AuditListRequest {
                     ge: Some(a2.created_at),
                     le: None,
                     offset_id: Some(a2.id),
@@ -84,7 +84,7 @@ macro_rules! audit_integration_test {
             let a5 = client.audit_read(r3_5).unwrap().data;
 
             let res4 = client
-                .audit_list(AuditListQuery {
+                .audit_list(AuditListRequest {
                     ge: None,
                     le: Some(a5.created_at),
                     offset_id: Some(a5.id),
@@ -104,7 +104,7 @@ macro_rules! audit_integration_test {
             let a4 = client.audit_read(r4_4).unwrap().data;
 
             let res5 = client
-                .audit_list(AuditListQuery {
+                .audit_list(AuditListRequest {
                     ge: None,
                     le: Some(a4.created_at),
                     offset_id: Some(a4.id),
@@ -133,18 +133,18 @@ macro_rules! audit_integration_test {
             let limit = 3;
 
             let a1 = client
-                .audit_create(AuditCreateBody::new(path, Value::Null, None, None))
+                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
                 .unwrap()
                 .data;
             client
-                .audit_create(AuditCreateBody::new(path, Value::Null, None, None))
+                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
                 .unwrap();
             client
-                .audit_create(AuditCreateBody::new(path, Value::Null, None, None))
+                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
                 .unwrap();
 
             let res1 = client
-                .audit_list(AuditListQuery {
+                .audit_list(AuditListRequest {
                     ge: Some(a1.created_at),
                     le: None,
                     offset_id: None,
@@ -163,7 +163,7 @@ macro_rules! audit_integration_test {
             let a3 = client.audit_read(r1_3).unwrap().data;
 
             let res2 = client
-                .audit_list(AuditListQuery {
+                .audit_list(AuditListRequest {
                     ge: Some(a1.created_at),
                     le: Some(a3.created_at),
                     offset_id: Some(a1.id),
@@ -200,7 +200,7 @@ macro_rules! audit_integration_test {
 
             let client = client_create(Some(&service_key1.value));
             let a1 = client
-                .audit_create(AuditCreateBody::new("test_1", Value::Null, None, None))
+                .audit_create(AuditCreateRequest::new("test_1", Value::Null, None, None))
                 .unwrap()
                 .data;
 

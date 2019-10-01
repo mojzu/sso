@@ -194,6 +194,7 @@ fn configure() -> AuthResult<(Box<dyn Driver>, CliOptions)> {
         .password_pwned_enabled(password_pwned_enabled)
         .provider(ServerOptionsProviderGroup::new(github, microsoft))
         .rustls(rustls)
+        .user_agent(Client::default_user_agent())
         .build()
         .unwrap();
     let options = CliOptions::new(client, 2, notify, 4, server);

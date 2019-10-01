@@ -9,13 +9,14 @@ mod user;
 
 use chrono::Utc;
 use mz_auth::{
-    server_api::AuthOauth2UrlResponse, Key, Service, User, UserKey, UserToken, UserTokenAccess,
+    api_types::AuthOauth2UrlResponse, Key, Service, User, UserKey, UserToken, UserTokenAccess,
 };
 pub use mz_auth::{
+    api_types::{AuditCreateRequest, AuditListRequest},
     server_api::{
-        AuditCreateBody, AuditListQuery, AuthKeyBody, AuthLoginBody, AuthResetPasswordBody,
-        AuthResetPasswordConfirmBody, AuthTokenBody, KeyCreateBody, KeyListQuery,
-        ServiceCreateBody, ServiceListQuery, UserCreateBody, UserListQuery,
+        AuthKeyBody, AuthLoginBody, AuthResetPasswordBody, AuthResetPasswordConfirmBody,
+        AuthTokenBody, KeyCreateBody, KeyListQuery, ServiceCreateBody, ServiceListQuery,
+        UserCreateBody, UserListQuery,
     },
     Client, ClientActorOptions, ClientError, ClientOptions, ClientSync,
 };
