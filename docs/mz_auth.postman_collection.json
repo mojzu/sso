@@ -28,7 +28,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"guestguest\"\n}",
+											"raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"guestguest\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -62,11 +62,17 @@
 												"name": "Content-Type",
 												"type": "text",
 												"value": "application/json"
+											},
+											{
+												"key": "Forwarded",
+												"value": "by=id;",
+												"description": "Audited header.",
+												"type": "text"
 											}
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"email\": \"user@example.com\"\n}",
+											"raw": "{\n  \"email\": \"{{user_email}}\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -104,7 +110,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"token\": \"{{reset_password_token}}\",\n  \"password\": \"guest\"\n}",
+											"raw": "{\n  \"token\": \"{{user_reset_password_token}}\",\n  \"password\": \"mynewpassword\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -143,7 +149,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"key\": \"{{user_key}}\",\n  \"token\": \"{{user_access_token}}\",\n  \"password\": \"guest\",\n  \"new_email\": \"new-email@test.com\"\n}",
+											"raw": "{\n  \"key\": \"{{user_key}}\",\n  \"token\": \"{{user_access_token}}\",\n  \"password\": \"guestguest\",\n  \"new_email\": \"{{user_email}}\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -163,7 +169,7 @@
 												"update-email"
 											]
 										},
-										"description": "Update email request for user.\n\n**400, Bad Request**\n\n- Request body is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+										"description": "Update email request for user.\n\n`key` or `token` must be provided for authentication.\n\n**400, Bad Request**\n\n- Request body is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
 									},
 									"response": []
 								},
@@ -181,7 +187,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"token\": \"{{update_email_revoke_token}}\"\n}",
+											"raw": "{\n  \"token\": \"{{user_update_email_revoke_token}}\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -220,7 +226,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"key\": \"{{user_key}}\",\n  \"token\": \"{{user_access_token}}\",\n  \"password\": \"guest\",\n  \"new_password\": \"newpassword\"\n}",
+											"raw": "{\n  \"key\": \"{{user_key}}\",\n  \"token\": \"{{user_access_token}}\",\n  \"password\": \"guestguest\",\n  \"new_password\": \"mynewpassword\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -240,7 +246,7 @@
 												"update-password"
 											]
 										},
-										"description": "Update password request for user.\n\n**400, Bad Request**\n\n- Request body is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+										"description": "Update password request for user.\n\n`key` or `token` must be provided for authentication.\n\n**400, Bad Request**\n\n- Request body is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
 									},
 									"response": []
 								},
@@ -258,7 +264,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"token\": \"{{update_password_revoke_token}}\"\n}",
+											"raw": "{\n  \"token\": \"{{user_update_password_revoke_token}}\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -293,7 +299,7 @@
 								{
 									"name": "OAuth2 Request",
 									"request": {
-										"method": "POST",
+										"method": "GET",
 										"header": [],
 										"url": {
 											"raw": "{{server_url}}/v1/auth/provider/github/oauth2",
@@ -315,13 +321,26 @@
 								{
 									"name": "OAuth2 Callback",
 									"request": {
-										"auth": {
-											"type": "noauth"
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"code\": \"{{github_oauth2_code}}\",\n    \"state\": \"{{github_oauth2_state}}\"\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
 										},
-										"method": "GET",
-										"header": [],
 										"url": {
-											"raw": "{{server_url}}/v1/auth/provider/microsoft/oauth2?code=aaa&state=bbb",
+											"raw": "{{server_url}}/v1/auth/provider/github/oauth2",
 											"host": [
 												"{{server_url}}"
 											],
@@ -329,18 +348,8 @@
 												"v1",
 												"auth",
 												"provider",
-												"microsoft",
+												"github",
 												"oauth2"
-											],
-											"query": [
-												{
-													"key": "code",
-													"value": "aaa"
-												},
-												{
-													"key": "state",
-													"value": "bbb"
-												}
 											]
 										},
 										"description": "User redirected here by GitHub OAuth2 server after successful authentication."
@@ -357,7 +366,7 @@
 								{
 									"name": "OAuth2 Request",
 									"request": {
-										"method": "POST",
+										"method": "GET",
 										"header": [],
 										"url": {
 											"raw": "{{server_url}}/v1/auth/provider/microsoft/oauth2",
@@ -379,13 +388,26 @@
 								{
 									"name": "OAuth2 Callback",
 									"request": {
-										"auth": {
-											"type": "noauth"
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"code\": \"{{microsoft_oauth2_code}}\",\n    \"state\": \"{{microsoft_oauth2_state}}\"\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
 										},
-										"method": "GET",
-										"header": [],
 										"url": {
-											"raw": "{{server_url}}/v1/auth/provider/microsoft/oauth2?code=aaa&state=bbb",
+											"raw": "{{server_url}}/v1/auth/provider/microsoft/oauth2",
 											"host": [
 												"{{server_url}}"
 											],
@@ -395,16 +417,6 @@
 												"provider",
 												"microsoft",
 												"oauth2"
-											],
-											"query": [
-												{
-													"key": "code",
-													"value": "aaa"
-												},
-												{
-													"key": "state",
-													"value": "bbb"
-												}
 											]
 										},
 										"description": "User redirected here by Microsoft OAuth2 server after successful authentication."
@@ -591,7 +603,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"token\": \"{{user_access_token}}\"\n}",
+									"raw": "{\n\t\"token\": \"{{user_refresh_token}}\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -632,7 +644,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"key_id\": \"{{user_key}}\",\n\t\"totp\": \"{{totp_code}}\"\n}",
+							"raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"totp\": \"{{totp_code}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -823,7 +835,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"Key Name\",\n\t\"service_id\": \"{{service_id}}\",\n\t\"user_id\": \"{{user_id}}\"\n}\n",
+							"raw": "{\n\t\"is_enabled\": true,\n\t\"allow_key\": true,\n\t\"allow_token\": true,\n\t\"allow_totp\": false,\n\t\"name\": \"Service Key 2\",\n\t\"service_id\": \"{{service_id}}\",\n\t\"user_id\": \"{{user_id}}\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -840,7 +852,7 @@
 								"key"
 							]
 						},
-						"description": "Service keys can only be created with root key authorisation, else user is created for service.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key name is invalid.\n- Service ID is invalid or service does not exist.\n- User ID is invalid or user does not exist.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "Service keys can only be created with root key authorisation, else user is created for service making request.\n\nUnless creating a service key, `service_id` field must be removed.\n\nService keys `allow_token` and `allow_totp` are always false.\n\nUsers may only have one enabled and not revoked key where `allow_token` is true.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key name is invalid.\n- Service ID is invalid or service does not exist.\n- User ID is invalid or user does not exist.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -878,7 +890,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"New Name\"\n}",
+							"raw": "{\n\t\"is_enabled\": true,\n\t\"allow_key\": true,\n\t\"allow_token\": true,\n\t\"allow_totp\": false,\n\t\"name\": \"Service Key 01\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -896,7 +908,7 @@
 								"{{key_id}}"
 							]
 						},
-						"description": "**400, Bad Request**\n\n- Request body is invalid.\n- Key name is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "All fields are optional.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key name is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -979,7 +991,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"Service Name\",\n\t\"url\": \"http://localhost:9001\"\n}\n",
+							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"Service 2\",\n\t\"url\": \"http://localhost:9002\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1028,13 +1040,13 @@
 							{
 								"key": "Content-Type",
 								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
+								"type": "text",
+								"value": "application/json"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"New Name\"\n}",
+							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"Service 1\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1052,7 +1064,7 @@
 								"{{service_id}}"
 							]
 						},
-						"description": "**400, Bad Request**\n\n- Request body is invalid.\n- Service name is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "All fields are optional.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Service name is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -1141,7 +1153,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"is_enabled\": true,\n  \"name\": \"User Name\",\n  \"email\": \"user@example.com\",\n  \"password\": \"guestguest\"\n}\n",
+							"raw": "{\n  \"is_enabled\": true,\n  \"name\": \"UserName\",\n  \"email\": \"{{user_email}}\",\n  \"locale\": \"en_GB\",\n  \"timezone\": \"Etc/UTC\",\n  \"password\": \"guestguest\",\n  \"password_update_required\": false\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1158,7 +1170,7 @@
 								"user"
 							]
 						},
-						"description": "Users can be created without a password.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User name is invalid.\n- User email address is invalid or not unique.\n- User password is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "Users can be created without a password by excluding `password` and `password_update_required` fields.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User name is invalid.\n- User email address is invalid or not unique.\n- User password is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -1196,7 +1208,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"New Name\"\n}",
+							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"NewName\",\n\t\"locale\": \"de_DE\",\n\t\"timezone\": \"Europe/London\",\n\t\"password_update_required\": true\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1214,7 +1226,7 @@
 								"{{user_id}}"
 							]
 						},
-						"description": "**400, Bad Request**\n\n- Request body is invalid.\n- User name is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "All fields are optional.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User name is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -1397,75 +1409,99 @@
 	],
 	"variable": [
 		{
-			"id": "4fd89ad4-89e9-48b1-9e0e-0fc95ecf6fe7",
+			"id": "0f69c658-676d-4902-877b-06712fffffc9",
 			"key": "server_url",
 			"value": "localhost:9000",
 			"type": "string"
 		},
 		{
-			"id": "ed872799-e98a-4ef4-a909-87a66b70f184",
+			"id": "ec45ad5c-42be-4659-bc1c-c4fa3b18a8ba",
 			"key": "key",
 			"value": "{{root_key}}",
 			"type": "string"
 		},
 		{
-			"id": "041c479b-e6c4-48a9-8017-216e5a81e3f6",
+			"id": "a46f70d0-9e99-45c0-8645-ffae3d691d97",
 			"key": "root_key",
-			"value": "6578ab1726ffd588c3332661a4a1978e696b4e8dc9",
+			"value": "7FYI3TH5GYLWK3RXAOGTWJ3ZH72CZNVJXY",
 			"type": "string"
 		},
 		{
-			"id": "678f8c12-ed8b-42b1-8107-5e88c95a6c9e",
+			"id": "8d67fb21-0dab-4b04-b9f0-c11d6ed43df7",
 			"key": "service_key",
-			"value": "255f70162ce8651841b72ea2113e49137a3831975b",
+			"value": "DIHLXAEMMC4IU5RZ76VQ4RGRMPLKJZNC4A",
 			"type": "string"
 		},
 		{
-			"id": "10782153-5295-4ac2-9c85-4b96882bf41a",
+			"id": "76c98894-602b-432c-82e9-318fbdaccd09",
 			"key": "service_id",
-			"value": "360914c0-2e2f-43b2-aa06-4678c9039c3d",
+			"value": "438ef04b-ec3a-4e1d-ae93-3a7965a26331",
 			"type": "string"
 		},
 		{
-			"id": "378a6014-c5e1-4e16-9c2a-91b712e6b932",
+			"id": "79d3f05b-6d8f-4b8b-94a9-ddf27e146fbb",
 			"key": "key_id",
-			"value": "f8a6be4b-1477-4620-bec2-caa5b6a4bfd6",
+			"value": "fc6e58c3-09ba-4375-ac61-58244fb7284c",
 			"type": "string"
 		},
 		{
-			"id": "98cf94d5-a945-481d-afc7-2a30242bdedd",
+			"id": "8e48f0c0-022b-46bd-82e7-4b293b4d86e8",
 			"key": "user_id",
-			"value": "d6cd0520-885a-45b9-9a77-31ee9a22cbfe",
+			"value": "8d7b3d44-94f6-4995-954b-20ce19f6923f",
 			"type": "string"
 		},
 		{
-			"id": "2659df3a-4df8-445d-8f29-a08ddd49932d",
+			"id": "3026de71-b98c-4725-a83a-d8d3783c4fce",
 			"key": "user_email",
-			"value": "e8786842e35342cb95aa76b31d952cf9@test.com",
+			"value": "user@example.com",
 			"type": "string"
 		},
 		{
-			"id": "0df584a6-1b95-4bce-b929-de1e6c2be5ae",
+			"id": "f0b3e09a-481c-4670-b161-3354e0c89dd6",
 			"key": "audit_id",
 			"value": "961359b5-4d89-49e6-a3d2-714a73857eeb",
 			"type": "string"
 		},
 		{
-			"id": "213d4cee-001f-4e41-b83d-ce9e0b11ebec",
+			"id": "4319f9e5-ca81-4023-9e07-46b8d7a3ae22",
 			"key": "user_access_token",
-			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIzNjA5MTRjMC0yZTJmLTQzYjItYWEwNi00Njc4YzkwMzljM2QiLCJzdWIiOiJkNmNkMDUyMC04ODVhLTQ1YjktOWE3Ny0zMWVlOWEyMmNiZmUiLCJleHAiOjE1Njk3MDU2NDgsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.Xp_uYl6f6yxsYgu8RwWGS6vEi9j5sX_kIsrykBmshC0",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTA5MDQsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.veHb4RzBlR4-QJKvD5RY4YdfhjMf9rdoQH0fPFxSiH4",
 			"type": "string"
 		},
 		{
-			"id": "47311def-9513-45d3-9b34-7950b9918d4b",
+			"id": "f3a96eb0-25d1-4b1a-bf4f-4ca56adcb708",
 			"key": "user_refresh_token",
-			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIzNjA5MTRjMC0yZTJmLTQzYjItYWEwNi00Njc4YzkwMzljM2QiLCJzdWIiOiJkNmNkMDUyMC04ODVhLTQ1YjktOWE3Ny0zMWVlOWEyMmNiZmUiLCJleHAiOjE1Njk3ODg0NDgsInhfdHlwZSI6MSwieF9jc3JmIjoiYzY5YzE5OGZmYTBhMGNhODg5MTM4YjBhMzNhNjQ5MDMyYzZjMjM0ZjA3In0.a0-t0KgIPnP1EkZwQb2P_LXiEKQpSE3RDIy-aax2tYI",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiIxMmYyZGRjYy1jZGEzLTQxNWEtOTJmNy00OTNjODUzMDYwOTciLCJleHAiOjE1NzAxMzI1NzksInhfdHlwZSI6MSwieF9jc3JmIjoiNzI1SzdJRFpTS0QySE1URUFQTVo2S09RVVJTQktDT0VZVSJ9.P6H3vabqLwyUDrICyOCH8cUl-vFGWKtvEmKl2M3e6EI",
 			"type": "string"
 		},
 		{
-			"id": "f0e1465d-5638-4930-b04b-e3c8c7291438",
+			"id": "206aca99-b45b-40e4-aec2-f2085c744339",
 			"key": "user_key",
-			"value": "1b4b29ab8f1fd3833583de094e104a4726e0a20f28",
+			"value": "K54F4ORUAF6VBWACBENOANDZUHHHCVWR3A",
+			"type": "string"
+		},
+		{
+			"id": "3e5296b3-6469-4202-accb-4cb61a3cd0e8",
+			"key": "totp_code",
+			"value": "123456",
+			"type": "string"
+		},
+		{
+			"id": "52e7ffa7-45c6-4e40-a07c-26bcd014925f",
+			"key": "user_reset_password_token",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTAzMzcsInhfdHlwZSI6MiwieF9jc3JmIjoiNUxBT0xHQjI0N1pGWEYzM1pVMkZOVTZMM0hZSDJSQ1JSNCJ9.0rK1R-AswHV19POJEFKlv3yai9YAR8eK5e_6CbfXEPU",
+			"type": "string"
+		},
+		{
+			"id": "7665778f-7754-4078-a705-eb62e3f5d493",
+			"key": "user_update_password_revoke_token",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIyOTQsInhfdHlwZSI6NCwieF9jc3JmIjoiRlRINERLUUU1S1M3RjVVUExYUkFCNkJPWEJDRUdIRlUyRSJ9.BG3cBT5s3GdCjJ3Wlc4F88P4oBfybzTvi6xgs0rQ_Cc",
+			"type": "string"
+		},
+		{
+			"id": "16fd98f4-b50a-49e3-bc0f-2961314d5855",
+			"key": "user_update_email_revoke_token",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIxNTUsInhfdHlwZSI6MywieF9jc3JmIjoiSEk1VEpaMzdBRUpJTU9UUUNEVlgyVUlLNVZRUTZSTUYyNCJ9.4Me_J7HUmLZQ4-OJTq5xyV5JNmaO-ZdvfD2UbiJ_kBY",
 			"type": "string"
 		}
 	],

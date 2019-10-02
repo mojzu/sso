@@ -44,20 +44,29 @@ impl Handler<EmailUpdateEmail> for NotifyActor {
     }
 }
 
+#[derive(Debug, Serialize)]
+struct EmailUpdateEmailQuery {
+    email: String,
+    old_email: String,
+    token: String,
+}
+
 impl NotifyActor {
     fn update_email_handler(
         &self,
         smtp: &NotifyActorOptionsSmtp,
         data: &EmailUpdateEmail,
     ) -> NotifyResult<()> {
-        let callback_data = &[
-            ("email", &data.user.email),
-            ("old_email", &data.old_email),
-            ("token", &data.token),
-        ];
         let url = data
             .service
-            .callback_url("update_email", callback_data)
+            .callback_url(
+                "update_email",
+                EmailUpdateEmailQuery {
+                    email: data.user.email.to_owned(),
+                    old_email: data.old_email.to_owned(),
+                    token: data.token.to_owned(),
+                },
+            )
             .map_err(NotifyError::Core)?;
 
         let parameters = json!({

@@ -30,7 +30,7 @@ use std::{
 // <https://webauthn.guide/>
 // <https://webauthn.org/>
 // TODO(feature): Configurable canary routes.
-// TODO(feature): Improved public library API interface.
+// TODO(feature): Improved public library API interface (gui service as example?).
 // TODO(feature): Email translation/formatting using user locale and timezone.
 // TODO(feature): Handle changes to password hash version.
 // TODO(feature): Patchable audit logs, append data only for ID.

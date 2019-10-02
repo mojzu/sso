@@ -69,7 +69,7 @@ macro_rules! guide_integration_test {
                 user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
             let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
 
-            auth_microsoft_oauth2_request(&client);
+            auth_microsoft_oauth2_url(&client);
         }
     };
 }

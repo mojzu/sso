@@ -211,10 +211,10 @@ fn update_inner(
                 &mut audit,
                 key_id,
                 body.is_enabled,
+                None,
                 body.allow_key,
                 body.allow_token,
                 body.allow_totp,
-                None,
                 body.name,
             )
         })

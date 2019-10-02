@@ -1,7 +1,7 @@
 use crate::{
     api_types::{
         AuditCreateRequest, AuditDataRequest, AuditListRequest, AuditListResponse,
-        AuditReadResponse, AuthOauth2UrlResponse,
+        AuditReadResponse, AuthOauth2CallbackRequest, AuthOauth2UrlResponse,
     },
     server_api::{
         route, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
@@ -143,16 +143,34 @@ impl ClientSync {
             .and_then(Client::response_empty)
     }
 
-    /// Authentication GitHub provider OAuth2 request.
-    pub fn auth_github_oauth2_request(&self) -> ClientResult<AuthOauth2UrlResponse> {
-        self.post(route::AUTH_GITHUB_OAUTH2)
+    /// Authentication GitHub provider OAuth2 url.
+    pub fn auth_github_oauth2_url(&self) -> ClientResult<AuthOauth2UrlResponse> {
+        self.get(route::AUTH_GITHUB_OAUTH2)
             .and_then(Client::response_json::<AuthOauth2UrlResponse>)
     }
 
-    /// Authentication Microsoft provider OAuth2 request.
-    pub fn auth_microsoft_oauth2_request(&self) -> ClientResult<AuthOauth2UrlResponse> {
-        self.post(route::AUTH_MICROSOFT_OAUTH2)
+    /// Authentication GitHub provider OAuth2 url.
+    pub fn auth_github_oauth2_callback(
+        &self,
+        body: AuthOauth2CallbackRequest,
+    ) -> ClientResult<AuthTokenResponse> {
+        self.post_json(route::AUTH_GITHUB_OAUTH2, &body)
+            .and_then(Client::response_json::<AuthTokenResponse>)
+    }
+
+    /// Authentication Microsoft provider OAuth2 url.
+    pub fn auth_microsoft_oauth2_url(&self) -> ClientResult<AuthOauth2UrlResponse> {
+        self.get(route::AUTH_MICROSOFT_OAUTH2)
             .and_then(Client::response_json::<AuthOauth2UrlResponse>)
+    }
+
+    /// Authentication Microsoft provider OAuth2 callback.
+    pub fn auth_microsoft_oauth2_callback(
+        &self,
+        body: AuthOauth2CallbackRequest,
+    ) -> ClientResult<AuthTokenResponse> {
+        self.post_json(route::AUTH_MICROSOFT_OAUTH2, &body)
+            .and_then(Client::response_json::<AuthTokenResponse>)
     }
 
     /// Authentication verify key.
@@ -322,14 +340,6 @@ impl ClientSync {
         let url = Client::url_query(self.url(), route, query)?;
         self.options
             .request_headers(self.client.get(url))
-            .send()
-            .map_err(Into::into)
-    }
-
-    fn post(&self, route: &str) -> ClientResult<Response> {
-        let url = Client::url(self.url(), route)?;
-        self.options
-            .request_headers(self.client.post(url))
             .send()
             .map_err(Into::into)
     }

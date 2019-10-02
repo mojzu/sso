@@ -9,6 +9,9 @@ use uuid::Uuid;
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
 // TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
 // TODO(refactor): Improve key, user, service list query options (order by name, ...).
+// TODO(refactor): Service callback URL per provider.
+// TODO(refactor): User last login, key last use information.
+// TODO(refactor): Respect allow_ key flags.
 
 /// Key value size in bytes.
 pub const KEY_VALUE_BYTES: usize = 21;
@@ -484,6 +487,9 @@ impl Key {
 
     /// Create new key value from random bytes.
     pub fn value_generate() -> String {
-        KeyBuilder::new().size(KEY_VALUE_BYTES).generate().as_hex()
+        KeyBuilder::new()
+            .size(KEY_VALUE_BYTES)
+            .generate()
+            .as_base32()
     }
 }

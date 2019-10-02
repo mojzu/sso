@@ -1,3 +1,4 @@
+//! # API Types
 use crate::{
     ApiValidate, ApiValidateRequest, ApiValidateRequestQuery, Audit, AuditData, AuditList,
     AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe, Core, UserToken,

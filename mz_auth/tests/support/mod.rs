@@ -2,6 +2,7 @@ mod audit;
 mod auth_key;
 mod auth_local;
 mod auth_token;
+mod auth_totp;
 mod guide;
 mod key;
 mod service;
@@ -15,8 +16,8 @@ pub use mz_auth::{
     api_types::{AuditCreateRequest, AuditListRequest},
     server_api::{
         AuthKeyBody, AuthLoginBody, AuthResetPasswordBody, AuthResetPasswordConfirmBody,
-        AuthTokenBody, KeyCreateBody, KeyListQuery, ServiceCreateBody, ServiceListQuery,
-        UserCreateBody, UserListQuery,
+        AuthTokenBody, AuthTotpBody, KeyCreateBody, KeyListQuery, ServiceCreateBody,
+        ServiceListQuery, UserCreateBody, UserListQuery,
     },
     Client, ClientActorOptions, ClientError, ClientOptions, ClientSync,
 };
@@ -188,8 +189,8 @@ pub fn auth_local_login(
     user_token
 }
 
-pub fn auth_microsoft_oauth2_request(client: &ClientSync) -> AuthOauth2UrlResponse {
-    let response = client.auth_microsoft_oauth2_request().unwrap();
+pub fn auth_microsoft_oauth2_url(client: &ClientSync) -> AuthOauth2UrlResponse {
+    let response = client.auth_microsoft_oauth2_url().unwrap();
     assert!(!response.url.is_empty());
     response
 }

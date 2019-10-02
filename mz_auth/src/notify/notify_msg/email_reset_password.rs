@@ -36,17 +36,27 @@ impl Handler<EmailResetPassword> for NotifyActor {
     }
 }
 
+#[derive(Debug, Serialize)]
+struct EmailResetPasswordQuery {
+    email: String,
+    token: String,
+}
+
 impl NotifyActor {
     fn reset_password_handler(
         &self,
         smtp: &NotifyActorOptionsSmtp,
         data: &EmailResetPassword,
     ) -> NotifyResult<()> {
-        // TODO(fix): This will cause serde_qs errors.
-        let callback_data = &[("email", &data.user.email), ("token", &data.token)];
         let url = data
             .service
-            .callback_url("reset_password", callback_data)
+            .callback_url(
+                "reset_password",
+                EmailResetPasswordQuery {
+                    email: data.user.email.to_owned(),
+                    token: data.token.to_owned(),
+                },
+            )
             .map_err(NotifyError::Core)?;
 
         let parameters = json!({

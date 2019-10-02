@@ -116,7 +116,7 @@ impl ServerValidate {
     }
 
     pub fn key(key: &str) -> Result<(), ValidationError> {
-        if key.len() != (KEY_VALUE_BYTES * 2) {
+        if key.is_empty() || key.len() > (KEY_VALUE_BYTES * 2) {
             Err(ValidationError::new("invalid_key"))
         } else {
             Ok(())

@@ -125,7 +125,7 @@ pub struct AuthKeyBody {
 impl ServerValidateFromValue<AuthKeyBody> for AuthKeyBody {}
 
 impl AuthKeyBody {
-    pub fn new<S1: Into<String>>(key: S1, audit: Option<AuditDataRequest>) -> Self {
+    pub fn new<S: Into<String>>(key: S, audit: Option<AuditDataRequest>) -> Self {
         Self {
             key: key.into(),
             audit,
@@ -142,12 +142,21 @@ pub struct AuthKeyResponse {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuthTotpBody {
-    pub key_id: Uuid,
+    pub user_id: Uuid,
     #[validate(custom = "ServerValidate::totp")]
     pub totp: String,
 }
 
 impl ServerValidateFromValue<AuthTotpBody> for AuthTotpBody {}
+
+impl AuthTotpBody {
+    pub fn new<S: Into<String>>(user_id: Uuid, totp: S) -> Self {
+        Self {
+            user_id,
+            totp: totp.into(),
+        }
+    }
+}
 
 // Authentication local provider types.
 

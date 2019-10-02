@@ -1,7 +1,7 @@
 use crate::{
     api_types::{
         AuditCreateRequest, AuditDataRequest, AuditListRequest, AuditListResponse,
-        AuditReadResponse, AuthOauth2UrlResponse,
+        AuditReadResponse, AuthOauth2CallbackRequest, AuthOauth2UrlResponse,
     },
     client_msg::{Delete, Get, PatchJson, PostJson},
     server_api::{
@@ -208,13 +208,13 @@ impl ClientAsync {
             .and_then(Client::result_empty)
     }
 
-    /// Authentication GitHub provider OAuth2 request.
-    pub fn auth_github_oauth2_request(
+    /// Authentication GitHub provider OAuth2 url.
+    pub fn auth_github_oauth2_url(
         &self,
     ) -> impl Future<Item = AuthOauth2UrlResponse, Error = ClientError> {
         self.addr
             .send(
-                PostJson::<Value>::new(self.url(), route::AUTH_GITHUB_OAUTH2, None)
+                Get::new(self.url(), route::AUTH_GITHUB_OAUTH2)
                     .authorisation(self.options.authorisation())
                     .forwarded(self.options.forwarded()),
             )
@@ -222,18 +222,48 @@ impl ClientAsync {
             .and_then(Client::result_json::<AuthOauth2UrlResponse>)
     }
 
-    /// Authentication Microsoft provider OAuth2 request.
-    pub fn auth_microsoft_oauth2_request(
+    /// Authentication GitHub provider OAuth2 callback.
+    pub fn auth_github_oauth2_callback(
+        &self,
+        body: AuthOauth2CallbackRequest,
+    ) -> impl Future<Item = AuthTokenResponse, Error = ClientError> {
+        self.addr
+            .send(
+                PostJson::new(self.url(), route::AUTH_GITHUB_OAUTH2, Some(body))
+                    .authorisation(self.options.authorisation())
+                    .forwarded(self.options.forwarded()),
+            )
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuthTokenResponse>)
+    }
+
+    /// Authentication Microsoft provider OAuth2 url.
+    pub fn auth_microsoft_oauth2_url(
         &self,
     ) -> impl Future<Item = AuthOauth2UrlResponse, Error = ClientError> {
         self.addr
             .send(
-                PostJson::<Value>::new(self.url(), route::AUTH_MICROSOFT_OAUTH2, None)
+                Get::new(self.url(), route::AUTH_MICROSOFT_OAUTH2)
                     .authorisation(self.options.authorisation())
                     .forwarded(self.options.forwarded()),
             )
             .map_err(Into::into)
             .and_then(Client::result_json::<AuthOauth2UrlResponse>)
+    }
+
+    /// Authentication Microsoft provider OAuth2 callback.
+    pub fn auth_microsoft_oauth2_callback(
+        &self,
+        body: AuthOauth2CallbackRequest,
+    ) -> impl Future<Item = AuthTokenResponse, Error = ClientError> {
+        self.addr
+            .send(
+                PostJson::new(self.url(), route::AUTH_MICROSOFT_OAUTH2, Some(body))
+                    .authorisation(self.options.authorisation())
+                    .forwarded(self.options.forwarded()),
+            )
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuthTokenResponse>)
     }
 
     /// Authentication verify key.

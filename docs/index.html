@@ -143,6 +143,7 @@ background-color: #f4f4f4;
 <li><a href="#update-password">Update Password</a></li>
 <li><a href="#api-key">API Key</a></li>
 <li><a href="#oauth2-login">OAuth2 Login</a></li>
+<li><a href="#totp">TOTP</a></li>
 </ul></li>
 <li><a href="#cli">CLI</a></li>
 <li><a href="#changelog">Changelog</a><ul>
@@ -501,6 +502,45 @@ mz_auth start-server</code></pre>
   --request POST \
   --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
   $server_url/v1/auth/token/revoke</code></pre>
+<h2 id="totp">TOTP</h2>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>mza create-service-with-key $service_name $service_url
+mza start-server</code></pre>
+<p>Service creates a user (password optional).</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;locale&quot;:&quot;$user_locale&quot;,&quot;timezone&quot;:&quot;$user_timezone&quot;}&#39; \
+  $server_url/v1/user</code></pre>
+<p>Service creates a TOTP key for user.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;allow_key&quot;:false,&quot;allow_token&quot;:false,&quot;allow_totp&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  $server_url/v1/key</code></pre>
+<p>Generate QR code using the tool: <a href="https://freeotp.github.io/qrcode.html" class="uri">https://freeotp.github.io/qrcode.html</a></p>
+<ul>
+<li>Issuer: mz_auth</li>
+<li>Account: $user_email</li>
+<li>Secret: $user_key_value</li>
+<li>Digits: 6</li>
+<li>SHA1</li>
+<li>Timeout</li>
+<li>30s</li>
+</ul>
+<p>Import the QR code into the application: <a href="https://freeotp.github.io/" class="uri">https://freeotp.github.io/</a></p>
+<p>User makes request to service with TOTP code, service verifies TOTP code.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;user_id&quot;:&quot;$user_id&quot;,&quot;totp&quot;:&quot;$totp_code&quot;}&#39; \
+  $server_url/v1/auth/totp</code></pre>
+<p>Key can be revoked, this will disable the key created earlier and prevent TOTP verification.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39; \
+  $server_url/v1/auth/key/revoke</code></pre>
 <h1 id="cli">CLI</h1>
 <p>TODO(docs): CLI documentation.</p>
 <h1 id="changelog">Changelog</h1>
@@ -597,6 +637,7 @@ mz_auth start-server</code></pre>
 <li>Renamed audit <code>path</code> to <code>type</code> string.</li>
 <li>Replaced <code>serde_urlencoded</code> with <code>serde_qs</code> for more advanced query string support.</li>
 <li>Improved audit metric collection efficiency.</li>
+<li>Changed OAuth2 interface so callbacks go to service.</li>
 </ul>
 <p><strong>Fixed</strong></p>
 <h1 id="developer">Developer</h1>

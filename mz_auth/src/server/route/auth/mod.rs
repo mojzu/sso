@@ -37,7 +37,7 @@ fn totp_handler(
     audit_meta
         .join(body)
         .and_then(|(audit_meta, body)| {
-            web::block(move || totp_inner(data.get_ref(), audit_meta, id, body.key_id, body.totp))
+            web::block(move || totp_inner(data.get_ref(), audit_meta, id, body.user_id, body.totp))
                 .map_err(Into::into)
         })
         .then(route_response_empty)
@@ -47,12 +47,12 @@ fn totp_inner(
     data: &Data,
     audit_meta: AuditMeta,
     id: Option<String>,
-    key_id: Uuid,
+    user_id: Uuid,
     totp: String,
 ) -> ServerResult<()> {
     Key::authenticate_service(data.driver(), audit_meta, id)
         .and_then(|(service, mut audit)| {
-            Auth::totp(data.driver(), &service, &mut audit, key_id, totp)
+            Auth::totp(data.driver(), &service, &mut audit, user_id, totp)
         })
         .map_err(Into::into)
 }

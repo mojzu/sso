@@ -748,14 +748,14 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         audit: &mut AuditBuilder,
-        key_id: Uuid,
+        user_id: Uuid,
         totp_code: String,
     ) -> CoreResult<()> {
-        // TODO(docs): Add guide, documentation for TOTP.
-        // TODO(test): Add tests for TOTP.
-        let key = Auth::key_read_by_id(driver, service, audit, AuditType::TotpError, key_id)?;
+        let user =
+            Auth::user_read_by_id(driver, Some(service), audit, AuditType::TotpError, user_id)?;
+        let key = Auth::key_read_by_user(driver, service, audit, AuditType::TotpError, &user)?;
         let totp = TOTPBuilder::new()
-            .hex_key(&key.value)
+            .base32_key(&key.value)
             .finalize()
             .map_err(CoreError::libreauth_oath)?;
 
@@ -905,33 +905,6 @@ impl Auth {
             }
             Err(err) => {
                 audit.create_internal(driver, audit_type, AuditMessage::UserNotFound);
-                Err(err)
-            }
-        }
-    }
-
-    /// Read key by ID.
-    /// Also checks key is enabled and not revoked, returns bad request if disabled.
-    fn key_read_by_id(
-        driver: &dyn Driver,
-        service: &Service,
-        audit: &mut AuditBuilder,
-        audit_type: AuditType,
-        key_id: Uuid,
-    ) -> CoreResult<Key> {
-        match Key::read_opt(driver, Some(&service), audit, key_id)?
-            .ok_or_else(|| CoreError::BadRequest)
-        {
-            Ok(key) => {
-                audit.set_user_key(Some(&key));
-                if !key.is_enabled || key.is_revoked {
-                    audit.create_internal(driver, audit_type, AuditMessage::KeyDisabledOrRevoked);
-                    return Err(CoreError::BadRequest);
-                }
-                Ok(key)
-            }
-            Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound);
                 Err(err)
             }
         }

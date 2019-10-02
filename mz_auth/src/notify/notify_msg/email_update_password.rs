@@ -36,16 +36,27 @@ impl Handler<EmailUpdatePassword> for NotifyActor {
     }
 }
 
+#[derive(Debug, Serialize)]
+struct EmailUpdatePasswordQuery {
+    email: String,
+    token: String,
+}
+
 impl NotifyActor {
     fn update_password_handler(
         &self,
         smtp: &NotifyActorOptionsSmtp,
         data: &EmailUpdatePassword,
     ) -> NotifyResult<()> {
-        let callback_data = &[("email", &data.user.email), ("token", &data.token)];
         let url = data
             .service
-            .callback_url("update_password", callback_data)
+            .callback_url(
+                "update_password",
+                EmailUpdatePasswordQuery {
+                    email: data.user.email.to_owned(),
+                    token: data.token.to_owned(),
+                },
+            )
             .map_err(NotifyError::Core)?;
 
         let parameters = json!({

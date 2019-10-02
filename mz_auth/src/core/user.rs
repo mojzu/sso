@@ -38,7 +38,6 @@ pub struct User {
     pub timezone: String,
     #[serde(skip)]
     pub password_hash: Option<String>,
-    #[serde(skip)]
     pub password_update_required: Option<bool>,
 }
 
@@ -51,7 +50,15 @@ impl fmt::Display for User {
         write!(f, "\n\tname {}", self.name)?;
         write!(f, "\n\temail {}", self.email)?;
         write!(f, "\n\tlocale {}", self.locale)?;
-        write!(f, "\n\ttimezone {}", self.timezone)
+        write!(f, "\n\ttimezone {}", self.timezone)?;
+        if let Some(password_update_required) = self.password_update_required {
+            write!(
+                f,
+                "\n\tpassword_update_required {}",
+                password_update_required
+            )?;
+        }
+        Ok(())
     }
 }
 
