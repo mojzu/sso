@@ -1,5 +1,6 @@
 use crate::{
-    api_types::{
+    api_route,
+    api_type::{
         AuditCreateRequest, AuditDataRequest, AuditListRequest, AuditListResponse,
         AuditReadResponse, AuthKeyRequest, AuthKeyResponse, AuthLoginRequest, AuthLoginResponse,
         AuthOauth2CallbackRequest, AuthOauth2UrlResponse, AuthPasswordMetaResponse,
@@ -10,7 +11,6 @@ use crate::{
         ServiceListResponse, ServiceReadResponse, ServiceUpdateRequest, UserCreateRequest,
         UserCreateResponse, UserListRequest, UserListResponse, UserReadResponse, UserUpdateRequest,
     },
-    server_api::route,
     Client, ClientActorOptions, ClientError, ClientOptions, ClientResult, User,
 };
 use reqwest::{Client as ReqwestClient, Response};
@@ -88,24 +88,24 @@ impl ClientSync {
 impl ClientSync {
     /// Ping request.
     pub fn ping(&self) -> ClientResult<Value> {
-        self.get(route::PING)
+        self.get(api_route::PING)
             .and_then(Client::response_json::<Value>)
     }
 
     /// Metrics request.
     pub fn metrics(&self) -> ClientResult<String> {
-        self.get(route::METRICS).and_then(Client::response_text)
+        self.get(api_route::METRICS).and_then(Client::response_text)
     }
 
     /// Authentication local provider login request.
     pub fn auth_local_login(&self, body: AuthLoginRequest) -> ClientResult<AuthLoginResponse> {
-        self.post_json(route::AUTH_LOCAL_LOGIN, &body)
+        self.post_json(api_route::AUTH_LOCAL_LOGIN, &body)
             .and_then(Client::response_json::<AuthLoginResponse>)
     }
 
     /// Authentication local provider reset password request.
     pub fn auth_local_reset_password(&self, body: AuthResetPasswordRequest) -> ClientResult<()> {
-        self.post_json(route::AUTH_LOCAL_RESET_PASSWORD, &body)
+        self.post_json(api_route::AUTH_LOCAL_RESET_PASSWORD, &body)
             .and_then(Client::response_empty)
     }
 
@@ -114,37 +114,37 @@ impl ClientSync {
         &self,
         body: AuthResetPasswordConfirmRequest,
     ) -> ClientResult<AuthPasswordMetaResponse> {
-        self.post_json(route::AUTH_LOCAL_RESET_PASSWORD_CONFIRM, &body)
+        self.post_json(api_route::AUTH_LOCAL_RESET_PASSWORD_CONFIRM, &body)
             .and_then(Client::response_json::<AuthPasswordMetaResponse>)
     }
 
     /// Authentication local provider update email request.
     pub fn auth_local_update_email(&self, body: AuthUpdateEmailRequest) -> ClientResult<()> {
-        self.post_json(route::AUTH_LOCAL_UPDATE_EMAIL, &body)
+        self.post_json(api_route::AUTH_LOCAL_UPDATE_EMAIL, &body)
             .and_then(Client::response_empty)
     }
 
     /// Authentication local provider update email revoke request.
     pub fn auth_local_update_email_revoke(&self, body: AuthTokenRequest) -> ClientResult<()> {
-        self.post_json(route::AUTH_LOCAL_UPDATE_EMAIL_REVOKE, &body)
+        self.post_json(api_route::AUTH_LOCAL_UPDATE_EMAIL_REVOKE, &body)
             .and_then(Client::response_empty)
     }
 
     /// Authentication local provider update password request.
     pub fn auth_local_update_password(&self, body: AuthUpdatePasswordRequest) -> ClientResult<()> {
-        self.post_json(route::AUTH_LOCAL_UPDATE_PASSWORD, &body)
+        self.post_json(api_route::AUTH_LOCAL_UPDATE_PASSWORD, &body)
             .and_then(Client::response_empty)
     }
 
     /// Authentication local provider update password revoke request.
     pub fn auth_local_update_password_revoke(&self, body: AuthTokenRequest) -> ClientResult<()> {
-        self.post_json(route::AUTH_LOCAL_UPDATE_PASSWORD_REVOKE, &body)
+        self.post_json(api_route::AUTH_LOCAL_UPDATE_PASSWORD_REVOKE, &body)
             .and_then(Client::response_empty)
     }
 
     /// Authentication GitHub provider OAuth2 url.
     pub fn auth_github_oauth2_url(&self) -> ClientResult<AuthOauth2UrlResponse> {
-        self.get(route::AUTH_GITHUB_OAUTH2)
+        self.get(api_route::AUTH_GITHUB_OAUTH2)
             .and_then(Client::response_json::<AuthOauth2UrlResponse>)
     }
 
@@ -153,13 +153,13 @@ impl ClientSync {
         &self,
         body: AuthOauth2CallbackRequest,
     ) -> ClientResult<AuthTokenResponse> {
-        self.post_json(route::AUTH_GITHUB_OAUTH2, &body)
+        self.post_json(api_route::AUTH_GITHUB_OAUTH2, &body)
             .and_then(Client::response_json::<AuthTokenResponse>)
     }
 
     /// Authentication Microsoft provider OAuth2 url.
     pub fn auth_microsoft_oauth2_url(&self) -> ClientResult<AuthOauth2UrlResponse> {
-        self.get(route::AUTH_MICROSOFT_OAUTH2)
+        self.get(api_route::AUTH_MICROSOFT_OAUTH2)
             .and_then(Client::response_json::<AuthOauth2UrlResponse>)
     }
 
@@ -168,19 +168,19 @@ impl ClientSync {
         &self,
         body: AuthOauth2CallbackRequest,
     ) -> ClientResult<AuthTokenResponse> {
-        self.post_json(route::AUTH_MICROSOFT_OAUTH2, &body)
+        self.post_json(api_route::AUTH_MICROSOFT_OAUTH2, &body)
             .and_then(Client::response_json::<AuthTokenResponse>)
     }
 
     /// Authentication verify key.
     pub fn auth_key_verify(&self, body: AuthKeyRequest) -> ClientResult<AuthKeyResponse> {
-        self.post_json(route::AUTH_KEY_VERIFY, &body)
+        self.post_json(api_route::AUTH_KEY_VERIFY, &body)
             .and_then(Client::response_json::<AuthKeyResponse>)
     }
 
     /// Authentication revoke key.
     pub fn auth_key_revoke(&self, body: AuthKeyRequest) -> ClientResult<()> {
-        self.post_json(route::AUTH_KEY_REVOKE, &body)
+        self.post_json(api_route::AUTH_KEY_REVOKE, &body)
             .and_then(Client::response_empty)
     }
 
@@ -189,94 +189,94 @@ impl ClientSync {
         &self,
         body: AuthTokenRequest,
     ) -> ClientResult<AuthTokenAccessResponse> {
-        self.post_json(route::AUTH_TOKEN_VERIFY, &body)
+        self.post_json(api_route::AUTH_TOKEN_VERIFY, &body)
             .and_then(Client::response_json::<AuthTokenAccessResponse>)
     }
 
     /// Authentication revoke token.
     pub fn auth_token_refresh(&self, body: AuthTokenRequest) -> ClientResult<AuthTokenResponse> {
-        self.post_json(route::AUTH_TOKEN_REFRESH, &body)
+        self.post_json(api_route::AUTH_TOKEN_REFRESH, &body)
             .and_then(Client::response_json::<AuthTokenResponse>)
     }
 
     /// Authentication revoke token.
     pub fn auth_token_revoke(&self, body: AuthTokenRequest) -> ClientResult<()> {
-        self.post_json(route::AUTH_TOKEN_REVOKE, &body)
+        self.post_json(api_route::AUTH_TOKEN_REVOKE, &body)
             .and_then(Client::response_empty)
     }
 
     /// Authentication TOTP.
     pub fn auth_totp(&self, body: AuthTotpRequest) -> ClientResult<()> {
-        self.post_json(route::AUTH_TOTP, &body)
+        self.post_json(api_route::AUTH_TOTP, &body)
             .and_then(Client::response_empty)
     }
 
     /// Audit list request.
     pub fn audit_list(&self, query: AuditListRequest) -> ClientResult<AuditListResponse> {
-        self.get_query(route::AUDIT, &query)
+        self.get_query(api_route::AUDIT, &query)
             .and_then(Client::response_json::<AuditListResponse>)
     }
 
     /// Audit create request.
     pub fn audit_create(&self, body: AuditCreateRequest) -> ClientResult<AuditReadResponse> {
-        self.post_json(route::AUDIT, &body)
+        self.post_json(api_route::AUDIT, &body)
             .and_then(Client::response_json::<AuditReadResponse>)
     }
 
     /// Audit read by ID request.
     pub fn audit_read(&self, id: Uuid) -> ClientResult<AuditReadResponse> {
-        let route = route::audit_id(id);
+        let route = api_route::audit_id(id);
         self.get(&route)
             .and_then(Client::response_json::<AuditReadResponse>)
     }
 
     /// Key list request.
     pub fn key_list(&self, query: KeyListRequest) -> ClientResult<KeyListResponse> {
-        self.get_query(route::KEY, &query)
+        self.get_query(api_route::KEY, &query)
             .and_then(Client::response_json::<KeyListResponse>)
     }
 
     /// Key create request.
     pub fn key_create(&self, body: KeyCreateRequest) -> ClientResult<KeyReadResponse> {
-        self.post_json(route::KEY, &body)
+        self.post_json(api_route::KEY, &body)
             .and_then(Client::response_json::<KeyReadResponse>)
     }
 
     /// Key read request.
     pub fn key_read(&self, id: Uuid) -> ClientResult<KeyReadResponse> {
-        let route = route::key_id(id);
+        let route = api_route::key_id(id);
         self.get(&route)
             .and_then(Client::response_json::<KeyReadResponse>)
     }
 
     /// Key update request.
     pub fn key_update(&self, id: Uuid, body: KeyUpdateRequest) -> ClientResult<KeyReadResponse> {
-        let route = route::key_id(id);
+        let route = api_route::key_id(id);
         self.patch(&route, &body)
             .and_then(Client::response_json::<KeyReadResponse>)
     }
 
     /// Key delete request.
     pub fn key_delete(&self, id: Uuid) -> ClientResult<()> {
-        let route = route::key_id(id);
+        let route = api_route::key_id(id);
         self.delete(&route).and_then(Client::response_empty)
     }
 
     /// Service list request.
     pub fn service_list(&self, query: ServiceListRequest) -> ClientResult<ServiceListResponse> {
-        self.get_query(route::SERVICE, &query)
+        self.get_query(api_route::SERVICE, &query)
             .and_then(Client::response_json::<ServiceListResponse>)
     }
 
     /// Service create request.
     pub fn service_create(&self, body: ServiceCreateRequest) -> ClientResult<ServiceReadResponse> {
-        self.post_json(route::SERVICE, &body)
+        self.post_json(api_route::SERVICE, &body)
             .and_then(Client::response_json::<ServiceReadResponse>)
     }
 
     /// Service read request.
     pub fn service_read(&self, id: Uuid) -> ClientResult<ServiceReadResponse> {
-        let route = route::service_id(id);
+        let route = api_route::service_id(id);
         self.get(&route)
             .and_then(Client::response_json::<ServiceReadResponse>)
     }
@@ -287,46 +287,46 @@ impl ClientSync {
         id: Uuid,
         body: ServiceUpdateRequest,
     ) -> ClientResult<ServiceReadResponse> {
-        let route = route::service_id(id);
+        let route = api_route::service_id(id);
         self.patch(&route, &body)
             .and_then(Client::response_json::<ServiceReadResponse>)
     }
 
     /// Service delete request.
     pub fn service_delete(&self, id: Uuid) -> ClientResult<()> {
-        let route = route::service_id(id);
+        let route = api_route::service_id(id);
         self.delete(&route).and_then(Client::response_empty)
     }
 
     /// User list request.
     pub fn user_list(&self, query: UserListRequest) -> ClientResult<UserListResponse> {
-        self.get_query(route::USER, &query)
+        self.get_query(api_route::USER, &query)
             .and_then(Client::response_json::<UserListResponse>)
     }
 
     /// User create request.
     pub fn user_create(&self, body: UserCreateRequest) -> ClientResult<UserCreateResponse> {
-        self.post_json(route::USER, &body)
+        self.post_json(api_route::USER, &body)
             .and_then(Client::response_json::<UserCreateResponse>)
     }
 
     /// User read request.
     pub fn user_read(&self, id: Uuid) -> ClientResult<UserReadResponse> {
-        let route = route::user_id(id);
+        let route = api_route::user_id(id);
         self.get(&route)
             .and_then(Client::response_json::<UserReadResponse>)
     }
 
     /// User update request.
     pub fn user_update(&self, id: Uuid, body: UserUpdateRequest) -> ClientResult<UserReadResponse> {
-        let route = route::user_id(id);
+        let route = api_route::user_id(id);
         self.patch(&route, &body)
             .and_then(Client::response_json::<UserReadResponse>)
     }
 
     /// User delete request.
     pub fn user_delete(&self, id: Uuid) -> ClientResult<()> {
-        let route = route::user_id(id);
+        let route = api_route::user_id(id);
         self.delete(&route).and_then(Client::response_empty)
     }
 

@@ -1,5 +1,5 @@
 use crate::{
-    api_types::AuthOauth2CallbackRequest, ApiProviderOauth2, AuditBuilder, Client, CoreError,
+    api_type::AuthOauth2CallbackRequest, ApiProviderOauth2, AuditBuilder, Client, CoreError,
     CoreOauth2Error, CoreResult, Csrf, Driver, Service,
 };
 use http::header;

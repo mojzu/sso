@@ -1,10 +1,10 @@
 use crate::{
-    api_types::{AuditCreateRequest, AuditListRequest},
+    api_path,
+    api_type::{AuditCreateRequest, AuditListRequest},
     server::{
         route::{request_audit_meta, route_response_json},
         Data,
     },
-    server_api::path,
     Api, ApiValidateRequestQuery, ServerError,
 };
 use actix_identity::Identity;
@@ -13,13 +13,13 @@ use futures::Future;
 use uuid::Uuid;
 
 pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope(path::AUDIT)
+    web::scope(api_path::AUDIT)
         .service(
-            web::resource(path::NONE)
+            web::resource(api_path::NONE)
                 .route(web::get().to_async(list_handler))
                 .route(web::post().to_async(create_handler)),
         )
-        .service(web::resource(path::ID).route(web::get().to_async(read_handler)))
+        .service(web::resource(api_path::ID).route(web::get().to_async(read_handler)))
 }
 
 fn list_handler(

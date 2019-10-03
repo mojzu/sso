@@ -1,10 +1,10 @@
 use crate::{
-    api_types::AuthKeyRequest,
+    api_path,
+    api_type::AuthKeyRequest,
     server::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
     },
-    server_api::path,
     Api,
 };
 use actix_identity::Identity;
@@ -12,9 +12,9 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use futures::Future;
 
 pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope(path::KEY)
-        .service(web::resource(path::VERIFY).route(web::post().to_async(verify_handler)))
-        .service(web::resource(path::REVOKE).route(web::post().to_async(revoke_handler)))
+    web::scope(api_path::KEY)
+        .service(web::resource(api_path::VERIFY).route(web::post().to_async(verify_handler)))
+        .service(web::resource(api_path::REVOKE).route(web::post().to_async(revoke_handler)))
 }
 
 fn verify_handler(

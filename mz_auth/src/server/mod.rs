@@ -1,6 +1,5 @@
+pub mod actix_web_middleware;
 mod route;
-pub mod server_api;
-pub mod server_middleware;
 
 use crate::{ApiProviderOauth2, ClientActor, ClientError, CoreError, Driver, Metrics, NotifyActor};
 use actix::{Addr, MailboxError as ActixMailboxError};
@@ -338,9 +337,9 @@ impl Server {
                 // Global JSON configuration.
                 .data(web::JsonConfig::default().limit(default_json_limit))
                 // Authorisation header identity middleware.
-                .wrap(server_middleware::AuthorisationIdentityPolicy::identity_service())
+                .wrap(actix_web_middleware::AuthorisationIdentityPolicy::identity_service())
                 // Metrics middleware.
-                .wrap(server_middleware::Metrics::new(
+                .wrap(actix_web_middleware::Metrics::new(
                     counter.clone(),
                     histogram.clone(),
                 ))

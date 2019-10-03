@@ -10,10 +10,10 @@ mod user;
 
 use chrono::Utc;
 use mz_auth::{
-    api_types::AuthOauth2UrlResponse, Key, Service, User, UserKey, UserToken, UserTokenAccess,
+    api_type::AuthOauth2UrlResponse, Key, Service, User, UserKey, UserToken, UserTokenAccess,
 };
 pub use mz_auth::{
-    api_types::{
+    api_type::{
         AuditCreateRequest, AuditListRequest, AuthKeyRequest, AuthLoginRequest,
         AuthResetPasswordConfirmRequest, AuthResetPasswordRequest, AuthTokenRequest,
         AuthTotpRequest, KeyCreateRequest, KeyListRequest, ServiceCreateRequest,

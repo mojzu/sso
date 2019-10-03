@@ -1,4 +1,4 @@
-//! # Server Actix Web Middleware
+//! # Actix Web Middleware
 use crate::ServerError;
 use actix_identity::{IdentityPolicy, IdentityService};
 use actix_service::{Service, Transform};

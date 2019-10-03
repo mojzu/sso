@@ -3,12 +3,12 @@ mod provider;
 mod token;
 
 use crate::{
-    api_types::AuthTotpRequest,
+    api_path,
+    api_type::AuthTotpRequest,
     server::{
         route::{request_audit_meta, route_response_empty},
         Data,
     },
-    server_api::path,
     Api,
 };
 use actix_identity::Identity;
@@ -16,11 +16,11 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use futures::Future;
 
 pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope(path::AUTH)
+    web::scope(api_path::AUTH)
         .service(provider::route_v1_scope())
         .service(key::route_v1_scope())
         .service(token::route_v1_scope())
-        .service(web::resource(path::TOTP).route(web::post().to_async(totp_handler)))
+        .service(web::resource(api_path::TOTP).route(web::post().to_async(totp_handler)))
 }
 
 fn totp_handler(

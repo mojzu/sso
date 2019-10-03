@@ -1,12 +1,12 @@
 mod local;
 
 use crate::{
-    api_types::AuthOauth2CallbackRequest,
+    api_path,
+    api_type::AuthOauth2CallbackRequest,
     server::{
         route::{request_audit_meta, route_response_json},
         Data,
     },
-    server_api::path,
     Api,
 };
 use actix_identity::Identity;
@@ -14,18 +14,18 @@ use actix_web::{web, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 
 pub fn route_v1_scope() -> Scope {
-    web::scope(path::PROVIDER)
+    web::scope(api_path::PROVIDER)
         .service(local::route_v1_scope())
         .service(
-            web::scope(path::GITHUB).service(
-                web::resource(path::OAUTH2)
+            web::scope(api_path::GITHUB).service(
+                web::resource(api_path::OAUTH2)
                     .route(web::get().to_async(github_oauth2_url_handler))
                     .route(web::post().to_async(github_oauth2_callback_handler)),
             ),
         )
         .service(
-            web::scope(path::MICROSOFT).service(
-                web::resource(path::OAUTH2)
+            web::scope(api_path::MICROSOFT).service(
+                web::resource(api_path::OAUTH2)
                     .route(web::get().to_async(microsoft_oauth2_url_handler))
                     .route(web::post().to_async(microsoft_oauth2_callback_handler)),
             ),

@@ -1,10 +1,10 @@
 use crate::{
-    api_types::{UserCreateRequest, UserListRequest, UserUpdateRequest},
+    api_path,
+    api_type::{UserCreateRequest, UserListRequest, UserUpdateRequest},
     server::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
     },
-    server_api::path,
     Api, ApiValidateRequestQuery, ServerError, User,
 };
 use actix_identity::Identity;
@@ -13,14 +13,14 @@ use futures::Future;
 use uuid::Uuid;
 
 pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope(path::USER)
+    web::scope(api_path::USER)
         .service(
-            web::resource(path::NONE)
+            web::resource(api_path::NONE)
                 .route(web::get().to_async(list_handler))
                 .route(web::post().to_async(create_handler)),
         )
         .service(
-            web::resource(path::ID)
+            web::resource(api_path::ID)
                 .route(web::get().to_async(read_handler))
                 .route(web::patch().to_async(update_handler))
                 .route(web::delete().to_async(delete_handler)),

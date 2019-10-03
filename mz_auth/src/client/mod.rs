@@ -224,7 +224,7 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::api_types::ServiceListRequest;
+    use crate::api_type::ServiceListRequest;
     use uuid::Uuid;
 
     #[test]

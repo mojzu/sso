@@ -1,5 +1,6 @@
 use crate::{
-    api_types::{
+    api_path,
+    api_type::{
         AuthLoginRequest, AuthResetPasswordConfirmRequest, AuthResetPasswordRequest,
         AuthTokenRequest, AuthUpdateEmailRequest, AuthUpdatePasswordRequest,
     },
@@ -7,7 +8,6 @@ use crate::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
     },
-    server_api::path,
     Api, User,
 };
 use actix_identity::Identity;
@@ -15,35 +15,37 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use futures::Future;
 
 pub fn route_v1_scope() -> actix_web::Scope {
-    web::scope(path::LOCAL)
-        .service(web::resource(path::LOGIN).route(web::post().to_async(login_handler)))
+    web::scope(api_path::LOCAL)
+        .service(web::resource(api_path::LOGIN).route(web::post().to_async(login_handler)))
         .service(
-            web::scope(path::RESET_PASSWORD)
+            web::scope(api_path::RESET_PASSWORD)
                 .service(
-                    web::resource(path::NONE).route(web::post().to_async(reset_password_handler)),
+                    web::resource(api_path::NONE)
+                        .route(web::post().to_async(reset_password_handler)),
                 )
                 .service(
-                    web::resource(path::CONFIRM)
+                    web::resource(api_path::CONFIRM)
                         .route(web::post().to_async(reset_password_confirm_handler)),
                 ),
         )
         .service(
-            web::scope(path::UPDATE_EMAIL)
+            web::scope(api_path::UPDATE_EMAIL)
                 .service(
-                    web::resource(path::NONE).route(web::post().to_async(update_email_handler)),
+                    web::resource(api_path::NONE).route(web::post().to_async(update_email_handler)),
                 )
                 .service(
-                    web::resource(path::REVOKE)
+                    web::resource(api_path::REVOKE)
                         .route(web::post().to_async(update_email_revoke_handler)),
                 ),
         )
         .service(
-            web::scope(path::UPDATE_PASSWORD)
+            web::scope(api_path::UPDATE_PASSWORD)
                 .service(
-                    web::resource(path::NONE).route(web::post().to_async(update_password_handler)),
+                    web::resource(api_path::NONE)
+                        .route(web::post().to_async(update_password_handler)),
                 )
                 .service(
-                    web::resource(path::REVOKE)
+                    web::resource(api_path::REVOKE)
                         .route(web::post().to_async(update_password_revoke_handler)),
                 ),
         )

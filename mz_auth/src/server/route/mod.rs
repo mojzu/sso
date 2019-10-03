@@ -4,7 +4,7 @@ mod key;
 mod service;
 mod user;
 
-use crate::{server::Data, server_api::path, Api, AuditMeta, ServerError, ServerResult};
+use crate::{api_path, server::Data, Api, AuditMeta, ServerError, ServerResult};
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, ResponseError, Result, Scope};
 use futures::{future, Future};
@@ -15,9 +15,9 @@ pub fn route_service(config: &mut web::ServiceConfig) {
 }
 
 fn route_v1_scope() -> Scope {
-    web::scope(path::V1)
-        .service(web::resource(path::PING).route(web::get().to(ping_handler)))
-        .service(web::resource(path::METRICS).route(web::get().to_async(metrics_handler)))
+    web::scope(api_path::V1)
+        .service(web::resource(api_path::PING).route(web::get().to(ping_handler)))
+        .service(web::resource(api_path::METRICS).route(web::get().to_async(metrics_handler)))
         .service(audit::route_v1_scope())
         .service(auth::route_v1_scope())
         .service(key::route_v1_scope())
