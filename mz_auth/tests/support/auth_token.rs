@@ -5,7 +5,7 @@ macro_rules! auth_token_integration_test {
         #[ignore]
         fn api_auth_token_verify_forbidden() {
             let client = client_create(Some(INVALID_KEY));
-            let body = AuthTokenBody::new(INVALID_KEY, None);
+            let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_verify(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);
         }
@@ -17,7 +17,7 @@ macro_rules! auth_token_integration_test {
             let (_service, service_key) = service_key_create(&client);
 
             let client = client_create(Some(&service_key.value));
-            let body = AuthTokenBody::new(INVALID_KEY, None);
+            let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_verify(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -37,7 +37,7 @@ macro_rules! auth_token_integration_test {
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
             let client = client_create(Some(&service2_key.value));
-            let body = AuthTokenBody::new(&user_token.access_token, None);
+            let body = AuthTokenRequest::new(&user_token.access_token, None);
             let res = client.auth_token_verify(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -55,7 +55,7 @@ macro_rules! auth_token_integration_test {
             let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
-            let body = AuthTokenBody::new(&user_token.access_token, None);
+            let body = AuthTokenRequest::new(&user_token.access_token, None);
             client.auth_token_verify(body).unwrap();
         }
 
@@ -63,7 +63,7 @@ macro_rules! auth_token_integration_test {
         #[ignore]
         fn api_auth_token_refresh_forbidden() {
             let client = client_create(Some(INVALID_KEY));
-            let body = AuthTokenBody::new(INVALID_KEY, None);
+            let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_refresh(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);
         }
@@ -75,7 +75,7 @@ macro_rules! auth_token_integration_test {
             let (_service, service_key) = service_key_create(&client);
 
             let client = client_create(Some(&service_key.value));
-            let body = AuthTokenBody::new(INVALID_KEY, None);
+            let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_refresh(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -95,7 +95,7 @@ macro_rules! auth_token_integration_test {
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
             let client = client_create(Some(&service2_key.value));
-            let body = AuthTokenBody::new(&user_token.refresh_token, None);
+            let body = AuthTokenRequest::new(&user_token.refresh_token, None);
             let res = client.auth_token_refresh(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -115,10 +115,10 @@ macro_rules! auth_token_integration_test {
 
             user_token_verify(&client, &user_token);
             let user_token2 = user_token_refresh(&client, &user_token);
-            let body = AuthTokenBody::new(&user_token2.access_token, None);
+            let body = AuthTokenRequest::new(&user_token2.access_token, None);
             client.auth_token_verify(body).unwrap();
 
-            let body = AuthTokenBody::new(&user_token.refresh_token, None);
+            let body = AuthTokenRequest::new(&user_token.refresh_token, None);
             let res = client.auth_token_refresh(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -138,7 +138,7 @@ macro_rules! auth_token_integration_test {
 
             user_token_verify(&client, &user_token);
             let user_token = user_token_refresh(&client, &user_token);
-            let body = AuthTokenBody::new(&user_token.access_token, None);
+            let body = AuthTokenRequest::new(&user_token.access_token, None);
             client.auth_token_verify(body).unwrap();
         }
 
@@ -146,7 +146,7 @@ macro_rules! auth_token_integration_test {
         #[ignore]
         fn api_auth_token_revoke_forbidden() {
             let client = client_create(Some(INVALID_KEY));
-            let body = AuthTokenBody::new(INVALID_KEY, None);
+            let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_revoke(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);
         }
@@ -158,7 +158,7 @@ macro_rules! auth_token_integration_test {
             let (_service, service_key) = service_key_create(&client);
 
             let client = client_create(Some(&service_key.value));
-            let body = AuthTokenBody::new(INVALID_KEY, None);
+            let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_revoke(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -178,7 +178,7 @@ macro_rules! auth_token_integration_test {
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
             let client = client_create(Some(&service2_key.value));
-            let body = AuthTokenBody::new(&user_token.refresh_token, None);
+            let body = AuthTokenRequest::new(&user_token.refresh_token, None);
             let res = client.auth_token_revoke(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -198,9 +198,9 @@ macro_rules! auth_token_integration_test {
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
             user_token_verify(&client, &user_token);
-            let body = AuthTokenBody::new(&user_token.access_token, None);
+            let body = AuthTokenRequest::new(&user_token.access_token, None);
             client.auth_token_revoke(body).unwrap();
-            let body = AuthTokenBody::new(&user_token.access_token, None);
+            let body = AuthTokenRequest::new(&user_token.access_token, None);
             let res = client.auth_token_verify(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }

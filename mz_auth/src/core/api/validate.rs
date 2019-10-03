@@ -1,6 +1,13 @@
-use crate::{CoreError, CoreResult, CoreUtil, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN};
+use crate::{
+    CoreError, CoreResult, CoreUtil, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES,
+    USER_LOCALE_MAX_LEN, USER_NAME_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
+    USER_TIMEZONE_MAX_LEN,
+};
+use chrono_tz::Tz;
 use futures::future;
 use serde::de::DeserializeOwned;
+use std::str::FromStr;
+use unic_langid::LanguageIdentifier;
 use validator::{Validate, ValidationError};
 
 /// API validate request trait.
@@ -44,6 +51,42 @@ impl ApiValidate {
         }
     }
 
+    pub fn name(name: &str) -> Result<(), ValidationError> {
+        if name.is_empty() || name.len() > USER_NAME_MAX_LEN {
+            Err(ValidationError::new("invalid_name"))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn locale(locale: &str) -> Result<(), ValidationError> {
+        if let Err(_e) = locale.parse::<LanguageIdentifier>() {
+            Err(ValidationError::new("invalid_locale"))
+        } else if locale.is_empty() || locale.len() > USER_LOCALE_MAX_LEN {
+            Err(ValidationError::new("invalid_locale"))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn timezone(timezone: &str) -> Result<(), ValidationError> {
+        if let Err(_e) = Tz::from_str(timezone) {
+            Err(ValidationError::new("invalid_timezone"))
+        } else if timezone.is_empty() || timezone.len() > USER_TIMEZONE_MAX_LEN {
+            Err(ValidationError::new("invalid_timezone"))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn password(password: &str) -> Result<(), ValidationError> {
+        if password.len() < USER_PASSWORD_MIN_LEN || password.len() > USER_PASSWORD_MAX_LEN {
+            Err(ValidationError::new("invalid_password"))
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn audit_type(audit_type: &str) -> Result<(), ValidationError> {
         if audit_type.is_empty() || audit_type.len() > AUDIT_TYPE_MAX_LEN {
             Err(ValidationError::new("invalid_audit_type"))
@@ -62,6 +105,22 @@ impl ApiValidate {
     pub fn token(token: &str) -> Result<(), ValidationError> {
         if token.is_empty() || token.len() > JWT_MAX_LEN {
             Err(ValidationError::new("invalid_token"))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn totp(totp: &str) -> Result<(), ValidationError> {
+        if totp.is_empty() || totp.len() > 10 {
+            Err(ValidationError::new("invalid_totp"))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn key(key: &str) -> Result<(), ValidationError> {
+        if key.is_empty() || key.len() > (KEY_VALUE_BYTES * 2) {
+            Err(ValidationError::new("invalid_key"))
         } else {
             Ok(())
         }

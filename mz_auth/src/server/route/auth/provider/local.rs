@@ -1,18 +1,18 @@
 use crate::{
+    api_types::{
+        AuthLoginRequest, AuthResetPasswordConfirmRequest, AuthResetPasswordRequest,
+        AuthTokenRequest, AuthUpdateEmailRequest, AuthUpdatePasswordRequest,
+    },
     server::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
     },
-    server_api::{
-        path, AuthLoginBody, AuthLoginResponse, AuthPasswordMetaResponse, AuthResetPasswordBody,
-        AuthResetPasswordConfirmBody, AuthTokenBody, AuthUpdateEmailBody, AuthUpdatePasswordBody,
-    },
-    AuditData, AuditMeta, Auth, Key, ServerResult, ServerValidateFromValue, User, UserToken,
+    server_api::path,
+    Api, User,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
 use futures::Future;
-use serde_json::Value;
 
 pub fn route_v1_scope() -> actix_web::Scope {
     web::scope(path::LOCAL)
@@ -53,323 +53,207 @@ fn login_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<Value>,
+    body: web::Json<AuthLoginRequest>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = AuthLoginBody::from_value(body.into_inner());
+    let request = body.into_inner();
+    let password_meta = User::password_meta(
+        data.options().password_pwned_enabled(),
+        data.client(),
+        Some(&request.password),
+    )
+    .map_err(Into::into);
 
     audit_meta
-        .join(body)
-        .and_then(|(audit_meta, body)| {
-            let password_meta = User::password_meta(
-                data.options().password_pwned_enabled(),
-                data.client(),
-                Some(&body.password),
-            )
-            .map_err(Into::into);
-            let user_token = web::block(move || login_inner(data.get_ref(), audit_meta, id, body))
-                .map_err(Into::into);
-            password_meta.join(user_token)
-        })
-        .map(|(meta, user_token)| AuthLoginResponse {
-            meta,
-            data: user_token,
+        .join(password_meta)
+        .and_then(move |(audit_meta, password_meta)| {
+            web::block(move || {
+                Api::auth_provider_local_login(
+                    data.driver(),
+                    id,
+                    audit_meta,
+                    password_meta,
+                    request,
+                    data.options().access_token_expires(),
+                    data.options().refresh_token_expires(),
+                )
+                .map_err(Into::into)
+            })
+            .map_err(Into::into)
         })
         .then(route_response_json)
-}
-
-fn login_inner(
-    data: &Data,
-    audit_meta: AuditMeta,
-    id: Option<String>,
-    body: AuthLoginBody,
-) -> ServerResult<UserToken> {
-    Key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, mut audit)| {
-            Auth::login(
-                data.driver(),
-                &service,
-                &mut audit,
-                body.email,
-                body.password,
-                data.options().access_token_expires(),
-                data.options().refresh_token_expires(),
-            )
-        })
-        .map_err(Into::into)
 }
 
 fn reset_password_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<Value>,
+    body: web::Json<AuthResetPasswordRequest>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = AuthResetPasswordBody::from_value(body.into_inner());
+    let request = body.into_inner();
 
     audit_meta
-        .join(body)
-        .and_then(|(audit_meta, body)| {
-            web::block(move || reset_password_inner(data.get_ref(), audit_meta, id, body))
+        .and_then(move |audit_meta| {
+            web::block(move || {
+                Api::auth_provider_local_reset_password(
+                    data.driver(),
+                    id,
+                    audit_meta,
+                    request,
+                    data.notify(),
+                    data.options().refresh_token_expires(),
+                )
                 .map_err(Into::into)
+            })
+            .map_err(Into::into)
         })
         .then(route_response_empty)
-}
-
-fn reset_password_inner(
-    data: &Data,
-    audit_meta: AuditMeta,
-    id: Option<String>,
-    body: AuthResetPasswordBody,
-) -> ServerResult<()> {
-    Key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, mut audit)| {
-            Auth::reset_password(
-                data.driver(),
-                data.notify(),
-                &service,
-                &mut audit,
-                body.email,
-                data.options().access_token_expires(),
-            )
-        })
-        .map_err(Into::into)
 }
 
 fn reset_password_confirm_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<Value>,
+    body: web::Json<AuthResetPasswordConfirmRequest>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = AuthResetPasswordConfirmBody::from_value(body.into_inner());
+    let request = body.into_inner();
+    let password_meta = User::password_meta(
+        data.options().password_pwned_enabled(),
+        data.client(),
+        Some(&request.password),
+    )
+    .map_err(Into::into);
 
     audit_meta
-        .join(body)
-        .and_then(|(audit_meta, body)| {
-            let password_meta = User::password_meta(
-                data.options().password_pwned_enabled(),
-                data.client(),
-                Some(&body.password),
-            )
-            .map_err(Into::into);
-            let password_confirm = web::block(move || {
-                reset_password_confirm_inner(data.get_ref(), audit_meta, id, body)
+        .join(password_meta)
+        .and_then(move |(audit_meta, password_meta)| {
+            web::block(move || {
+                Api::auth_provider_local_reset_password_confirm(
+                    data.driver(),
+                    id,
+                    audit_meta,
+                    password_meta,
+                    request,
+                )
+                .map_err(Into::into)
             })
-            .map_err(Into::into);
-            password_meta.join(password_confirm)
+            .map_err(Into::into)
         })
-        .map(|(meta, _)| AuthPasswordMetaResponse { meta })
         .then(route_response_json)
-}
-
-fn reset_password_confirm_inner(
-    data: &Data,
-    audit_meta: AuditMeta,
-    id: Option<String>,
-    body: AuthResetPasswordConfirmBody,
-) -> ServerResult<()> {
-    Key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, mut audit)| {
-            Auth::reset_password_confirm(
-                data.driver(),
-                &service,
-                &mut audit,
-                body.token,
-                body.password,
-            )
-        })
-        .map_err(Into::into)
 }
 
 fn update_email_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<Value>,
+    body: web::Json<AuthUpdateEmailRequest>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = AuthUpdateEmailBody::from_value(body.into_inner());
+    let request = body.into_inner();
 
     audit_meta
-        .join(body)
-        .and_then(|(audit_meta, body)| {
-            web::block(move || update_email_inner(data.get_ref(), audit_meta, id, body))
+        .and_then(move |audit_meta| {
+            web::block(move || {
+                Api::auth_provider_local_update_email(
+                    data.driver(),
+                    id,
+                    audit_meta,
+                    request,
+                    data.notify(),
+                    data.options().revoke_token_expires(),
+                )
                 .map_err(Into::into)
+            })
+            .map_err(Into::into)
         })
         .then(route_response_empty)
-}
-
-fn update_email_inner(
-    data: &Data,
-    audit_meta: AuditMeta,
-    id: Option<String>,
-    body: AuthUpdateEmailBody,
-) -> ServerResult<()> {
-    Key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, mut audit)| {
-            Auth::update_email(
-                data.driver(),
-                data.notify(),
-                &service,
-                &mut audit,
-                body.key,
-                body.token,
-                body.password,
-                body.new_email,
-                data.options().revoke_token_expires(),
-            )
-        })
-        .map_err(Into::into)
 }
 
 fn update_email_revoke_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<Value>,
+    body: web::Json<AuthTokenRequest>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = AuthTokenBody::from_value(body.into_inner());
+    let request = body.into_inner();
 
     audit_meta
-        .join(body)
-        .and_then(|(audit_meta, body)| {
+        .and_then(move |audit_meta| {
             web::block(move || {
-                update_email_revoke_inner(
-                    data.get_ref(),
-                    audit_meta,
-                    id,
-                    body.token,
-                    body.audit.map(Into::into),
-                )
+                Api::auth_provider_local_update_email_revoke(data.driver(), id, audit_meta, request)
+                    .map_err(Into::into)
             })
             .map_err(Into::into)
         })
         .then(route_response_empty)
-}
-
-fn update_email_revoke_inner(
-    data: &Data,
-    audit_meta: AuditMeta,
-    id: Option<String>,
-    token: String,
-    audit_data: Option<AuditData>,
-) -> ServerResult<usize> {
-    Key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, mut audit)| {
-            Auth::update_email_revoke(
-                data.driver(),
-                &service,
-                &mut audit,
-                token,
-                audit_data.as_ref(),
-            )
-        })
-        .map_err(Into::into)
 }
 
 fn update_password_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<Value>,
+    body: web::Json<AuthUpdatePasswordRequest>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = AuthUpdatePasswordBody::from_value(body.into_inner());
+    let request = body.into_inner();
+    let password_meta = User::password_meta(
+        data.options().password_pwned_enabled(),
+        data.client(),
+        Some(&request.password),
+    )
+    .map_err(Into::into);
 
     audit_meta
-        .join(body)
-        .and_then(|(audit_meta, body)| {
-            let password_meta = User::password_meta(
-                data.options().password_pwned_enabled(),
-                data.client(),
-                Some(&body.password),
-            )
-            .map_err(Into::into);
-            let update_password =
-                web::block(move || update_password_inner(data.get_ref(), audit_meta, id, body))
-                    .map_err(Into::into);
-            password_meta.join(update_password)
+        .join(password_meta)
+        .and_then(move |(audit_meta, password_meta)| {
+            web::block(move || {
+                Api::auth_provider_local_update_password(
+                    data.driver(),
+                    id,
+                    audit_meta,
+                    password_meta,
+                    request,
+                    data.notify(),
+                    data.options().revoke_token_expires(),
+                )
+                .map_err(Into::into)
+            })
+            .map_err(Into::into)
         })
-        .map(|(meta, _update_password)| AuthPasswordMetaResponse { meta })
         .then(route_response_json)
-}
-
-fn update_password_inner(
-    data: &Data,
-    audit_meta: AuditMeta,
-    id: Option<String>,
-    body: AuthUpdatePasswordBody,
-) -> ServerResult<()> {
-    Key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, mut audit)| {
-            Auth::update_password(
-                data.driver(),
-                data.notify(),
-                &service,
-                &mut audit,
-                body.key,
-                body.token,
-                body.password,
-                body.new_password,
-                data.options().revoke_token_expires(),
-            )
-        })
-        .map_err(Into::into)
 }
 
 fn update_password_revoke_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<Value>,
+    body: web::Json<AuthTokenRequest>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = AuthTokenBody::from_value(body.into_inner());
+    let request = body.into_inner();
 
     audit_meta
-        .join(body)
-        .and_then(|(audit_meta, body)| {
+        .and_then(move |audit_meta| {
             web::block(move || {
-                update_password_revoke_inner(
-                    data.get_ref(),
-                    audit_meta,
+                Api::auth_provider_local_update_password_revoke(
+                    data.driver(),
                     id,
-                    body.token,
-                    body.audit.map(Into::into),
+                    audit_meta,
+                    request,
                 )
+                .map_err(Into::into)
             })
             .map_err(Into::into)
         })
         .then(route_response_empty)
-}
-
-fn update_password_revoke_inner(
-    data: &Data,
-    audit_meta: AuditMeta,
-    id: Option<String>,
-    token: String,
-    audit_data: Option<AuditData>,
-) -> ServerResult<usize> {
-    Key::authenticate_service(data.driver(), audit_meta, id)
-        .and_then(|(service, mut audit)| {
-            Auth::update_password_revoke(
-                data.driver(),
-                &service,
-                &mut audit,
-                token,
-                audit_data.as_ref(),
-            )
-        })
-        .map_err(Into::into)
 }

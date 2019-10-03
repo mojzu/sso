@@ -1,17 +1,16 @@
 use crate::{
     api_types::{
         AuditCreateRequest, AuditDataRequest, AuditListRequest, AuditListResponse,
-        AuditReadResponse, AuthOauth2CallbackRequest, AuthOauth2UrlResponse,
+        AuditReadResponse, AuthKeyRequest, AuthKeyResponse, AuthLoginRequest, AuthLoginResponse,
+        AuthOauth2CallbackRequest, AuthOauth2UrlResponse, AuthPasswordMetaResponse,
+        AuthResetPasswordConfirmRequest, AuthResetPasswordRequest, AuthTokenAccessResponse,
+        AuthTokenRequest, AuthTokenResponse, AuthTotpRequest, AuthUpdateEmailRequest,
+        AuthUpdatePasswordRequest, KeyCreateRequest, KeyListRequest, KeyListResponse,
+        KeyReadResponse, KeyUpdateRequest, ServiceCreateRequest, ServiceListRequest,
+        ServiceListResponse, ServiceReadResponse, ServiceUpdateRequest, UserCreateRequest,
+        UserCreateResponse, UserListRequest, UserListResponse, UserReadResponse, UserUpdateRequest,
     },
-    server_api::{
-        route, AuthKeyBody, AuthKeyResponse, AuthLoginBody, AuthLoginResponse,
-        AuthPasswordMetaResponse, AuthResetPasswordBody, AuthResetPasswordConfirmBody,
-        AuthTokenAccessResponse, AuthTokenBody, AuthTokenResponse, AuthTotpBody,
-        AuthUpdateEmailBody, AuthUpdatePasswordBody, KeyCreateBody, KeyListQuery, KeyListResponse,
-        KeyReadResponse, KeyUpdateBody, ServiceCreateBody, ServiceListQuery, ServiceListResponse,
-        ServiceReadResponse, ServiceUpdateBody, UserCreateBody, UserCreateResponse, UserListQuery,
-        UserListResponse, UserReadResponse, UserUpdateBody,
-    },
+    server_api::route,
     Client, ClientActorOptions, ClientError, ClientOptions, ClientResult, User,
 };
 use reqwest::{Client as ReqwestClient, Response};
@@ -99,13 +98,13 @@ impl ClientSync {
     }
 
     /// Authentication local provider login request.
-    pub fn auth_local_login(&self, body: AuthLoginBody) -> ClientResult<AuthLoginResponse> {
+    pub fn auth_local_login(&self, body: AuthLoginRequest) -> ClientResult<AuthLoginResponse> {
         self.post_json(route::AUTH_LOCAL_LOGIN, &body)
             .and_then(Client::response_json::<AuthLoginResponse>)
     }
 
     /// Authentication local provider reset password request.
-    pub fn auth_local_reset_password(&self, body: AuthResetPasswordBody) -> ClientResult<()> {
+    pub fn auth_local_reset_password(&self, body: AuthResetPasswordRequest) -> ClientResult<()> {
         self.post_json(route::AUTH_LOCAL_RESET_PASSWORD, &body)
             .and_then(Client::response_empty)
     }
@@ -113,32 +112,32 @@ impl ClientSync {
     /// Authentication local provider reset password confirm request.
     pub fn auth_local_reset_password_confirm(
         &self,
-        body: AuthResetPasswordConfirmBody,
+        body: AuthResetPasswordConfirmRequest,
     ) -> ClientResult<AuthPasswordMetaResponse> {
         self.post_json(route::AUTH_LOCAL_RESET_PASSWORD_CONFIRM, &body)
             .and_then(Client::response_json::<AuthPasswordMetaResponse>)
     }
 
     /// Authentication local provider update email request.
-    pub fn auth_local_update_email(&self, body: AuthUpdateEmailBody) -> ClientResult<()> {
+    pub fn auth_local_update_email(&self, body: AuthUpdateEmailRequest) -> ClientResult<()> {
         self.post_json(route::AUTH_LOCAL_UPDATE_EMAIL, &body)
             .and_then(Client::response_empty)
     }
 
     /// Authentication local provider update email revoke request.
-    pub fn auth_local_update_email_revoke(&self, body: AuthTokenBody) -> ClientResult<()> {
+    pub fn auth_local_update_email_revoke(&self, body: AuthTokenRequest) -> ClientResult<()> {
         self.post_json(route::AUTH_LOCAL_UPDATE_EMAIL_REVOKE, &body)
             .and_then(Client::response_empty)
     }
 
     /// Authentication local provider update password request.
-    pub fn auth_local_update_password(&self, body: AuthUpdatePasswordBody) -> ClientResult<()> {
+    pub fn auth_local_update_password(&self, body: AuthUpdatePasswordRequest) -> ClientResult<()> {
         self.post_json(route::AUTH_LOCAL_UPDATE_PASSWORD, &body)
             .and_then(Client::response_empty)
     }
 
     /// Authentication local provider update password revoke request.
-    pub fn auth_local_update_password_revoke(&self, body: AuthTokenBody) -> ClientResult<()> {
+    pub fn auth_local_update_password_revoke(&self, body: AuthTokenRequest) -> ClientResult<()> {
         self.post_json(route::AUTH_LOCAL_UPDATE_PASSWORD_REVOKE, &body)
             .and_then(Client::response_empty)
     }
@@ -174,37 +173,40 @@ impl ClientSync {
     }
 
     /// Authentication verify key.
-    pub fn auth_key_verify(&self, body: AuthKeyBody) -> ClientResult<AuthKeyResponse> {
+    pub fn auth_key_verify(&self, body: AuthKeyRequest) -> ClientResult<AuthKeyResponse> {
         self.post_json(route::AUTH_KEY_VERIFY, &body)
             .and_then(Client::response_json::<AuthKeyResponse>)
     }
 
     /// Authentication revoke key.
-    pub fn auth_key_revoke(&self, body: AuthKeyBody) -> ClientResult<()> {
+    pub fn auth_key_revoke(&self, body: AuthKeyRequest) -> ClientResult<()> {
         self.post_json(route::AUTH_KEY_REVOKE, &body)
             .and_then(Client::response_empty)
     }
 
     /// Authentication revoke token.
-    pub fn auth_token_verify(&self, body: AuthTokenBody) -> ClientResult<AuthTokenAccessResponse> {
+    pub fn auth_token_verify(
+        &self,
+        body: AuthTokenRequest,
+    ) -> ClientResult<AuthTokenAccessResponse> {
         self.post_json(route::AUTH_TOKEN_VERIFY, &body)
             .and_then(Client::response_json::<AuthTokenAccessResponse>)
     }
 
     /// Authentication revoke token.
-    pub fn auth_token_refresh(&self, body: AuthTokenBody) -> ClientResult<AuthTokenResponse> {
+    pub fn auth_token_refresh(&self, body: AuthTokenRequest) -> ClientResult<AuthTokenResponse> {
         self.post_json(route::AUTH_TOKEN_REFRESH, &body)
             .and_then(Client::response_json::<AuthTokenResponse>)
     }
 
     /// Authentication revoke token.
-    pub fn auth_token_revoke(&self, body: AuthTokenBody) -> ClientResult<()> {
+    pub fn auth_token_revoke(&self, body: AuthTokenRequest) -> ClientResult<()> {
         self.post_json(route::AUTH_TOKEN_REVOKE, &body)
             .and_then(Client::response_empty)
     }
 
     /// Authentication TOTP.
-    pub fn auth_totp(&self, body: AuthTotpBody) -> ClientResult<()> {
+    pub fn auth_totp(&self, body: AuthTotpRequest) -> ClientResult<()> {
         self.post_json(route::AUTH_TOTP, &body)
             .and_then(Client::response_empty)
     }
@@ -229,13 +231,13 @@ impl ClientSync {
     }
 
     /// Key list request.
-    pub fn key_list(&self, query: KeyListQuery) -> ClientResult<KeyListResponse> {
+    pub fn key_list(&self, query: KeyListRequest) -> ClientResult<KeyListResponse> {
         self.get_query(route::KEY, &query)
             .and_then(Client::response_json::<KeyListResponse>)
     }
 
     /// Key create request.
-    pub fn key_create(&self, body: KeyCreateBody) -> ClientResult<KeyReadResponse> {
+    pub fn key_create(&self, body: KeyCreateRequest) -> ClientResult<KeyReadResponse> {
         self.post_json(route::KEY, &body)
             .and_then(Client::response_json::<KeyReadResponse>)
     }
@@ -248,7 +250,7 @@ impl ClientSync {
     }
 
     /// Key update request.
-    pub fn key_update(&self, id: Uuid, body: KeyUpdateBody) -> ClientResult<KeyReadResponse> {
+    pub fn key_update(&self, id: Uuid, body: KeyUpdateRequest) -> ClientResult<KeyReadResponse> {
         let route = route::key_id(id);
         self.patch(&route, &body)
             .and_then(Client::response_json::<KeyReadResponse>)
@@ -261,13 +263,13 @@ impl ClientSync {
     }
 
     /// Service list request.
-    pub fn service_list(&self, query: ServiceListQuery) -> ClientResult<ServiceListResponse> {
+    pub fn service_list(&self, query: ServiceListRequest) -> ClientResult<ServiceListResponse> {
         self.get_query(route::SERVICE, &query)
             .and_then(Client::response_json::<ServiceListResponse>)
     }
 
     /// Service create request.
-    pub fn service_create(&self, body: ServiceCreateBody) -> ClientResult<ServiceReadResponse> {
+    pub fn service_create(&self, body: ServiceCreateRequest) -> ClientResult<ServiceReadResponse> {
         self.post_json(route::SERVICE, &body)
             .and_then(Client::response_json::<ServiceReadResponse>)
     }
@@ -283,7 +285,7 @@ impl ClientSync {
     pub fn service_update(
         &self,
         id: Uuid,
-        body: ServiceUpdateBody,
+        body: ServiceUpdateRequest,
     ) -> ClientResult<ServiceReadResponse> {
         let route = route::service_id(id);
         self.patch(&route, &body)
@@ -297,13 +299,13 @@ impl ClientSync {
     }
 
     /// User list request.
-    pub fn user_list(&self, query: UserListQuery) -> ClientResult<UserListResponse> {
+    pub fn user_list(&self, query: UserListRequest) -> ClientResult<UserListResponse> {
         self.get_query(route::USER, &query)
             .and_then(Client::response_json::<UserListResponse>)
     }
 
     /// User create request.
-    pub fn user_create(&self, body: UserCreateBody) -> ClientResult<UserCreateResponse> {
+    pub fn user_create(&self, body: UserCreateRequest) -> ClientResult<UserCreateResponse> {
         self.post_json(route::USER, &body)
             .and_then(Client::response_json::<UserCreateResponse>)
     }
@@ -316,7 +318,7 @@ impl ClientSync {
     }
 
     /// User update request.
-    pub fn user_update(&self, id: Uuid, body: UserUpdateBody) -> ClientResult<UserReadResponse> {
+    pub fn user_update(&self, id: Uuid, body: UserUpdateRequest) -> ClientResult<UserReadResponse> {
         let route = route::user_id(id);
         self.patch(&route, &body)
             .and_then(Client::response_json::<UserReadResponse>)
@@ -383,11 +385,11 @@ impl ClientSync {
                 let (type_, value) = Client::authorisation_type(key_or_token)?;
                 match type_.as_ref() {
                     "key" => {
-                        let body = AuthKeyBody::new(value, audit);
+                        let body = AuthKeyRequest::new(value, audit);
                         self.auth_key_verify(body).map(|res| res.data.user_id)
                     }
                     "token" => {
-                        let body = AuthTokenBody::new(value, audit);
+                        let body = AuthTokenRequest::new(value, audit);
                         self.auth_token_verify(body).map(|res| res.data.user_id)
                     }
                     _ => Err(ClientError::Forbidden),

@@ -16,6 +16,9 @@ pub struct ModelService {
     service_is_enabled: bool,
     service_name: String,
     service_url: String,
+    service_provider_local_url: Option<String>,
+    service_provider_github_oauth2_url: Option<String>,
+    service_provider_microsoft_oauth2_url: Option<String>,
 }
 
 impl From<ModelService> for Service {
@@ -27,6 +30,9 @@ impl From<ModelService> for Service {
             is_enabled: service.service_is_enabled,
             name: service.service_name,
             url: service.service_url,
+            provider_local_url: service.service_provider_local_url,
+            provider_github_oauth2_url: service.service_provider_github_oauth2_url,
+            provider_microsoft_oauth2_url: service.service_provider_microsoft_oauth2_url,
         }
     }
 }
@@ -40,6 +46,9 @@ struct ModelServiceInsert<'a> {
     service_is_enabled: bool,
     service_name: &'a str,
     service_url: &'a str,
+    service_provider_local_url: Option<&'a str>,
+    service_provider_github_oauth2_url: Option<&'a str>,
+    service_provider_microsoft_oauth2_url: Option<&'a str>,
 }
 
 impl<'a> ModelServiceInsert<'a> {
@@ -51,6 +60,15 @@ impl<'a> ModelServiceInsert<'a> {
             service_is_enabled: create.is_enabled,
             service_name: &create.name,
             service_url: &create.url,
+            service_provider_local_url: create.provider_local_url.as_ref().map(|x| &**x),
+            service_provider_github_oauth2_url: create
+                .provider_github_oauth2_url
+                .as_ref()
+                .map(|x| &**x),
+            service_provider_microsoft_oauth2_url: create
+                .provider_microsoft_oauth2_url
+                .as_ref()
+                .map(|x| &**x),
         }
     }
 }
@@ -61,6 +79,10 @@ struct ModelServiceUpdate<'a> {
     updated_at: &'a DateTime<Utc>,
     service_is_enabled: Option<bool>,
     service_name: Option<&'a str>,
+    service_url: Option<&'a str>,
+    service_provider_local_url: Option<&'a str>,
+    service_provider_github_oauth2_url: Option<&'a str>,
+    service_provider_microsoft_oauth2_url: Option<&'a str>,
 }
 
 impl<'a> ModelServiceUpdate<'a> {
@@ -69,6 +91,16 @@ impl<'a> ModelServiceUpdate<'a> {
             updated_at: now,
             service_is_enabled: update.is_enabled,
             service_name: update.name.as_ref().map(|x| &**x),
+            service_url: update.url.as_ref().map(|x| &**x),
+            service_provider_local_url: update.provider_local_url.as_ref().map(|x| &**x),
+            service_provider_github_oauth2_url: update
+                .provider_github_oauth2_url
+                .as_ref()
+                .map(|x| &**x),
+            service_provider_microsoft_oauth2_url: update
+                .provider_microsoft_oauth2_url
+                .as_ref()
+                .map(|x| &**x),
         }
     }
 }

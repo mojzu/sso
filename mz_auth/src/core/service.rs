@@ -14,6 +14,9 @@ pub struct Service {
     pub is_enabled: bool,
     pub name: String,
     pub url: String,
+    pub provider_local_url: Option<String>,
+    pub provider_github_oauth2_url: Option<String>,
+    pub provider_microsoft_oauth2_url: Option<String>,
 }
 
 impl fmt::Display for Service {
@@ -23,7 +26,25 @@ impl fmt::Display for Service {
         write!(f, "\n\tupdated_at {}", self.updated_at)?;
         write!(f, "\n\tis_enabled {}", self.is_enabled)?;
         write!(f, "\n\tname {}", self.name)?;
-        write!(f, "\n\turl {}", self.url)
+        write!(f, "\n\turl {}", self.url)?;
+        if let Some(provider_local_url) = &self.provider_local_url {
+            write!(f, "\n\tprovider_local_url {}", provider_local_url)?;
+        }
+        if let Some(provider_github_oauth2_url) = &self.provider_github_oauth2_url {
+            write!(
+                f,
+                "\n\tprovider_github_oauth2_url {}",
+                provider_github_oauth2_url
+            )?;
+        }
+        if let Some(provider_microsoft_oauth2_url) = &self.provider_microsoft_oauth2_url {
+            write!(
+                f,
+                "\n\tprovider_microsoft_oauth2_url {}",
+                provider_microsoft_oauth2_url
+            )?;
+        }
+        Ok(())
     }
 }
 
@@ -40,12 +61,19 @@ pub struct ServiceCreate {
     pub is_enabled: bool,
     pub name: String,
     pub url: String,
+    pub provider_local_url: Option<String>,
+    pub provider_github_oauth2_url: Option<String>,
+    pub provider_microsoft_oauth2_url: Option<String>,
 }
 
 /// Service update data.
 pub struct ServiceUpdate {
     pub is_enabled: Option<bool>,
     pub name: Option<String>,
+    pub url: Option<String>,
+    pub provider_local_url: Option<String>,
+    pub provider_github_oauth2_url: Option<String>,
+    pub provider_microsoft_oauth2_url: Option<String>,
 }
 
 /// Service callback URL query.
@@ -68,7 +96,11 @@ impl<S: Serialize> ServiceCallbackQuery<S> {
 
 impl Service {
     pub fn callback_url<S: Serialize>(&self, type_: &str, data: S) -> CoreResult<Url> {
-        let mut url = Url::parse(&self.url).unwrap();
+        let provider_local_url = self
+            .provider_local_url
+            .as_ref()
+            .ok_or_else(|| CoreError::BadRequest)?;
+        let mut url = Url::parse(provider_local_url).unwrap();
         let query = ServiceCallbackQuery::new(type_, data);
         let query = CoreUtil::qs_ser(&query)?;
         url.set_query(Some(&query));
@@ -88,17 +120,11 @@ impl Service {
     pub fn create(
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
-        is_enabled: bool,
-        name: String,
-        url: String,
+        create: &ServiceCreate,
     ) -> CoreResult<Service> {
-        Url::parse(&url).map_err(|_err| CoreError::BadRequest)?;
-        let create = ServiceCreate {
-            is_enabled,
-            name,
-            url,
-        };
-        driver.service_create(&create).map_err(CoreError::Driver)
+        // TODO(refactor): Improve URL validation, validate provider URLs (option to enforce HTTPS).
+        Url::parse(&create.url).map_err(|_err| CoreError::BadRequest)?;
+        driver.service_create(create).map_err(CoreError::Driver)
     }
 
     /// Read service (optional).
@@ -117,12 +143,10 @@ impl Service {
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
-        is_enabled: Option<bool>,
-        name: Option<String>,
+        update: &ServiceUpdate,
     ) -> CoreResult<Service> {
-        let update = ServiceUpdate { is_enabled, name };
         driver
-            .service_update(&id, &update)
+            .service_update(&id, update)
             .map_err(CoreError::Driver)
     }
 
@@ -159,6 +183,9 @@ mod tests {
             is_enabled: true,
             name: "Service Name".to_owned(),
             url: "http://localhost:9000".to_owned(),
+            provider_local_url: Some("http://localhost:9000".to_owned()),
+            provider_github_oauth2_url: None,
+            provider_microsoft_oauth2_url: None,
         };
         let callback_data = CallbackData {
             email: "user@test.com".to_owned(),

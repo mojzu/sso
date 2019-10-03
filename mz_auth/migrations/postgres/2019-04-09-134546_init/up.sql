@@ -5,6 +5,9 @@ CREATE TABLE auth_service (
     service_is_enabled BOOLEAN NOT NULL,
     service_name VARCHAR NOT NULL,
     service_url VARCHAR NOT NULL,
+    service_provider_local_url VARCHAR,
+    service_provider_github_oauth2_url VARCHAR,
+    service_provider_microsoft_oauth2_url VARCHAR,
     PRIMARY KEY (service_id)
 );
 

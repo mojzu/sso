@@ -1,5 +1,5 @@
 use crate::{
-    AuthError, AuthResult, NotifyActorOptionsSmtp, ServerOptionsProviderOauth2, ServerOptionsRustls,
+    ApiProviderOauth2, AuthError, AuthResult, NotifyActorOptionsSmtp, ServerOptionsRustls,
 };
 use std::str::FromStr;
 
@@ -108,18 +108,12 @@ impl Env {
     pub fn oauth2(
         client_id_name: &str,
         client_secret_name: &str,
-        redirect_url_name: &str,
-    ) -> AuthResult<Option<ServerOptionsProviderOauth2>> {
-        if Env::has_any_name(&[client_id_name, client_secret_name, redirect_url_name]) {
+    ) -> AuthResult<Option<ApiProviderOauth2>> {
+        if Env::has_any_name(&[client_id_name, client_secret_name]) {
             let client_id = Env::string(client_id_name)?;
             let client_secret = Env::string(client_secret_name)?;
-            let redirect_url = Env::string(redirect_url_name)?;
 
-            Ok(Some(ServerOptionsProviderOauth2::new(
-                client_id,
-                client_secret,
-                redirect_url,
-            )))
+            Ok(Some(ApiProviderOauth2::new(client_id, client_secret)))
         } else {
             Ok(None)
         }

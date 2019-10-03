@@ -224,12 +224,12 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::server_api::ServiceListQuery;
+    use crate::api_types::ServiceListRequest;
     use uuid::Uuid;
 
     #[test]
-    fn builds_url_from_route_and_query() {
-        let query = ServiceListQuery {
+    fn builds_url_from_route_and_request() {
+        let query = ServiceListRequest {
             gt: Some(Uuid::nil()),
             lt: None,
             limit: Some(10),

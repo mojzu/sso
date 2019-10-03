@@ -1,11 +1,8 @@
 mod route;
 pub mod server_api;
 pub mod server_middleware;
-mod validate;
 
-pub use crate::server::validate::*;
-
-use crate::{ClientActor, ClientError, CoreError, Driver, Metrics, NotifyActor};
+use crate::{ApiProviderOauth2, ClientActor, ClientError, CoreError, Driver, Metrics, NotifyActor};
 use actix::{Addr, MailboxError as ActixMailboxError};
 use actix_web::{
     error::BlockingError as ActixWebBlockingError, middleware::Logger, web, App, HttpResponse,
@@ -107,32 +104,14 @@ impl ResponseError for ServerError {
     }
 }
 
-/// Server provider OAuth2 options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServerOptionsProviderOauth2 {
-    pub client_id: String,
-    pub client_secret: String,
-    pub redirect_url: String,
-}
-
-impl ServerOptionsProviderOauth2 {
-    pub fn new(client_id: String, client_secret: String, redirect_url: String) -> Self {
-        Self {
-            client_id,
-            client_secret,
-            redirect_url,
-        }
-    }
-}
-
 /// Server provider options.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ServerOptionsProvider {
-    oauth2: Option<ServerOptionsProviderOauth2>,
+    oauth2: Option<ApiProviderOauth2>,
 }
 
 impl ServerOptionsProvider {
-    pub fn new(oauth2: Option<ServerOptionsProviderOauth2>) -> Self {
+    pub fn new(oauth2: Option<ApiProviderOauth2>) -> Self {
         Self { oauth2 }
     }
 }
@@ -228,12 +207,12 @@ impl ServerOptions {
     }
 
     /// Returns provider GitHub OAuth2 reference.
-    pub fn provider_github_oauth2(&self) -> Option<&ServerOptionsProviderOauth2> {
+    pub fn provider_github_oauth2(&self) -> Option<&ApiProviderOauth2> {
         self.provider.github.oauth2.as_ref()
     }
 
     /// Returns provider Microsoft OAuth2 reference.
-    pub fn provider_microsoft_oauth2(&self) -> Option<&ServerOptionsProviderOauth2> {
+    pub fn provider_microsoft_oauth2(&self) -> Option<&ApiProviderOauth2> {
         self.provider.microsoft.oauth2.as_ref()
     }
 

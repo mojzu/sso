@@ -32,10 +32,8 @@ const ENV_SMTP_PASSWORD: &str = "SMTP_PASSWORD";
 const ENV_PASSWORD_PWNED_ENABLED: &str = "PASSWORD_PWNED_ENABLED";
 const ENV_GITHUB_CLIENT_ID: &str = "GITHUB_CLIENT_ID";
 const ENV_GITHUB_CLIENT_SECRET: &str = "GITHUB_CLIENT_SECRET";
-const ENV_GITHUB_REDIRECT_URL: &str = "GITHUB_REDIRECT_URL";
 const ENV_MICROSOFT_CLIENT_ID: &str = "MICROSOFT_CLIENT_ID";
 const ENV_MICROSOFT_CLIENT_SECRET: &str = "MICROSOFT_CLIENT_SECRET";
-const ENV_MICROSOFT_REDIRECT_URL: &str = "MICROSOFT_REDIRECT_URL";
 
 const CMD_CREATE_ROOT_KEY: &str = "create-root-key";
 const CMD_CREATE_SERVICE_WITH_KEY: &str = "create-service-with-key";
@@ -43,6 +41,9 @@ const CMD_START_SERVER: &str = "start-server";
 
 const ARG_NAME: &str = "NAME";
 const ARG_URL: &str = "URL";
+const ARG_LOCAL_URL: &str = "LOCAL_URL";
+const ARG_GITHUB_OAUTH2_URL: &str = "GITHUB_OAUTH2_URL";
+const ARG_MICROSOFT_OAUTH2_URL: &str = "MICROSOFT_OAUTH2_URL";
 
 fn main() {
     // Configure logging environment variables.
@@ -96,6 +97,21 @@ fn main() {
                         .help("Service URL")
                         .required(true)
                         .index(2),
+                    Arg::with_name(ARG_LOCAL_URL)
+                        .long("local-url")
+                        .help("Local provider callback URL")
+                        .takes_value(true)
+                        .required(false),
+                    Arg::with_name(ARG_GITHUB_OAUTH2_URL)
+                        .long("github-oauth2-url")
+                        .help("GitHub OAuth2 provider callback URL")
+                        .takes_value(true)
+                        .required(false),
+                    Arg::with_name(ARG_MICROSOFT_OAUTH2_URL)
+                        .long("microsoft-oauth2-url")
+                        .help("Microsoft OAuth2 provider callback URL")
+                        .takes_value(true)
+                        .required(false),
                 ]),
             SubCommand::with_name(CMD_START_SERVER)
                 .version(CRATE_VERSION)
@@ -118,7 +134,18 @@ fn main() {
             (CMD_CREATE_SERVICE_WITH_KEY, Some(submatches)) => {
                 let name = submatches.value_of(ARG_NAME).unwrap();
                 let url = submatches.value_of(ARG_URL).unwrap();
-                Cli::create_service_with_key(driver, name, url).map(|(service, key)| {
+                let provider_local_url = submatches.value_of(ARG_LOCAL_URL);
+                let provider_github_oauth2_url = submatches.value_of(ARG_GITHUB_OAUTH2_URL);
+                let provider_microsoft_oauth2_url = submatches.value_of(ARG_MICROSOFT_OAUTH2_URL);
+                Cli::create_service_with_key(
+                    driver,
+                    name,
+                    url,
+                    provider_local_url,
+                    provider_github_oauth2_url,
+                    provider_microsoft_oauth2_url,
+                )
+                .map(|(service, key)| {
                     println!("{}", service);
                     println!("{}", key);
                     0
@@ -156,15 +183,11 @@ fn configure() -> AuthResult<(Box<dyn Driver>, CliOptions)> {
     )?;
     let password_pwned_enabled =
         Env::value_opt::<bool>(ENV_PASSWORD_PWNED_ENABLED)?.unwrap_or(false);
-    let github = ServerOptionsProvider::new(Env::oauth2(
-        ENV_GITHUB_CLIENT_ID,
-        ENV_GITHUB_CLIENT_SECRET,
-        ENV_GITHUB_REDIRECT_URL,
-    )?);
+    let github =
+        ServerOptionsProvider::new(Env::oauth2(ENV_GITHUB_CLIENT_ID, ENV_GITHUB_CLIENT_SECRET)?);
     let microsoft = ServerOptionsProvider::new(Env::oauth2(
         ENV_MICROSOFT_CLIENT_ID,
         ENV_MICROSOFT_CLIENT_SECRET,
-        ENV_MICROSOFT_REDIRECT_URL,
     )?);
     let rustls = Env::rustls(
         ENV_SERVER_TLS_CRT_PEM,

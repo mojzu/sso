@@ -20,7 +20,7 @@ Authentication methods are organised into provider groups. The following provide
   - Notification emails contain revokation links in case a login is compromised.
   - Passwords are stored as [argon2](https://en.wikipedia.org/wiki/Argon2) hashes.
   - Password strength is checked by [zxcvbn](https://github.com/shssoichiro/zxcvbn-rs).
-  - Password leaks are checked by [Pwned Passwords](https://haveibeenpwned.com/Passwords).
+  - Password leaks are checked by [Pwned Passwords](pwned-passwords).
   - Users can be created without passwords to disable password login.
 - **API Key (Local)**
   - Users can authenticate requests to a service using a unique, random key.

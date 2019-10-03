@@ -147,19 +147,19 @@ background-color: #f4f4f4;
 </ul></li>
 <li><a href="#cli">CLI</a></li>
 <li><a href="#changelog">Changelog</a><ul>
-<li><a href="#section">0.1.0 (2019-05-16)</a></li>
-<li><a href="#section-1">0.2.0 (2019-07-07)</a></li>
+<li><a href="#section">0.5.0 (?)</a></li>
+<li><a href="#section-1">0.4.0 (2019-09-09)</a></li>
 <li><a href="#section-2">0.3.0 (2019-08-03)</a></li>
-<li><a href="#section-3">0.4.0 (2019-09-09)</a></li>
-<li><a href="#section-4">0.5.0 (?)</a></li>
+<li><a href="#section-3">0.2.0 (2019-07-07)</a></li>
+<li><a href="#section-4">0.1.0 (2019-05-16)</a></li>
 </ul></li>
 <li><a href="#developer">Developer</a><ul>
 <li><a href="#tools">Tools</a></li>
 <li><a href="#manual">Manual</a></li>
 <li><a href="#environment">Environment</a></li>
 <li><a href="#database">Database</a></li>
-<li><a href="#test">Test</a></li>
 <li><a href="#build">Build</a></li>
+<li><a href="#test">Test</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -179,7 +179,7 @@ background-color: #f4f4f4;
 <li>Notification emails contain revokation links in case a login is compromised.</li>
 <li>Passwords are stored as <a href="https://en.wikipedia.org/wiki/Argon2">argon2</a> hashes.</li>
 <li>Password strength is checked by <a href="https://github.com/shssoichiro/zxcvbn-rs">zxcvbn</a>.</li>
-<li>Password leaks are checked by <a href="https://haveibeenpwned.com/Passwords">Pwned Passwords</a>.</li>
+<li>Password leaks are checked by <a href="pwned-passwords">Pwned Passwords</a>.</li>
 <li>Users can be created without passwords to disable password login.</li>
 </ul></li>
 <li><strong>API Key (Local)</strong>
@@ -433,7 +433,8 @@ mz_auth start-server</code></pre>
   $server_url/v1/auth/provider/local/update-password/revoke</code></pre>
 <h2 id="api-key">API Key</h2>
 <p>Create service with key and start server.</p>
-<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url
+<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url \
+    [--local-url $service_local_url]
 mz_auth start-server</code></pre>
 <p>Service creates a user without password.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
@@ -460,8 +461,11 @@ mz_auth start-server</code></pre>
   --data &#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39; \
   $server_url/v1/auth/key/revoke</code></pre>
 <h2 id="oauth2-login">OAuth2 Login</h2>
-<p>Create service with key and start server.</p>
-<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url
+<p><code>$server_url/v1/auth/provider/github/oauth2</code></p>
+<p>Create service with OAuth2 provider URL and key, and start server.</p>
+<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url \
+    [--github-oauth2-url $service_github_oauth2_url] \
+    [--microsoft-oauth2-url $service_microsoft_oauth2_url]
 mz_auth start-server</code></pre>
 <p>Service creates a user with email address matching OAuth2 provider.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
@@ -544,38 +548,40 @@ mza start-server</code></pre>
 <h1 id="cli">CLI</h1>
 <p>TODO(docs): CLI documentation.</p>
 <h1 id="changelog">Changelog</h1>
-<h2 id="section">0.1.0 (2019-05-16)</h2>
-<ul>
-<li>First version.</li>
-</ul>
-<h2 id="section-1">0.2.0 (2019-07-07)</h2>
+<h2 id="section">0.5.0 (?)</h2>
 <p><strong>Added</strong></p>
 <ul>
-<li>Added audit logging to authentication routes.</li>
-<li>Added is enabled flag to services, users and keys, added is revoked flag to keys.</li>
-<li>Added synchronous and asynchronous clients to library.</li>
-<li>Added <code>email_eq</code> query option to user list route.</li>
-<li>Added local provider update user email, password routes.</li>
-<li>Added type parameter to service URL callback queries.</li>
+<li>Added TOTP validation route.</li>
+<li>Added key flags: <code>allow_key</code>, <code>allow_token</code>, <code>allow_totp</code>.</li>
+<li>Added user fields: <code>locale</code>, <code>timezone</code>.</li>
 </ul>
 <p><strong>Changed</strong></p>
 <ul>
-<li>Changed database schema to use strings as IDs.</li>
-<li>Changed list route endpoints to return data ID arrays.</li>
-<li>Changed CSRF key, value pairs to use TTL in seconds.</li>
-<li>Changed token type handling, user token split into access and refresh tokens.</li>
-<li>Moved OAuth2 routes into provider groups.</li>
-<li>Moved login, reset routes into local provider group.</li>
-<li>Upgraded to version 3 of <code>oauth2</code> library.</li>
-<li>Removed <code>skeptic</code> from tests, use Cargo test runner.</li>
-<li>Moved route types to public api module.</li>
+<li>Renamed project <code>mz_auth</code>, ark was taken by various products and crates.</li>
+<li>Code consistency improvements.</li>
+<li>Renamed audit <code>path</code> to <code>type</code> string.</li>
+<li>Replaced <code>serde_urlencoded</code> with <code>serde_qs</code> for more advanced query string support.</li>
+<li>Improved audit metric collection efficiency.</li>
+<li>Changed authentication provider interface so callbacks always go to service.</li>
+</ul>
+<h2 id="section-1">0.4.0 (2019-09-09)</h2>
+<p><strong>Added</strong></p>
+<ul>
+<li>Added some process metrics to Prometheus integration.</li>
+<li>Created asynchronous client actor to handle outgoing HTTP requests.</li>
+<li>Added environment variable <code>PASSWORD_PWNED_ENABLED</code> to enable pwned passwords integration.</li>
+</ul>
+<p><strong>Changed</strong></p>
+<ul>
+<li>Replaced <code>bcrypt</code> with <code>libreauth</code> crate for password hashing.</li>
+<li>Use <code>libreauth</code> key generation for CSRF keys and <code>Key</code> values.</li>
+<li>Improved modules public interfaces.</li>
+<li>Changed driver interface to use <code>Uuid</code> types instead of strings.</li>
+<li>Renamed configuration structures to options to improve consistency.</li>
 </ul>
 <p><strong>Fixed</strong></p>
 <ul>
-<li>Fixed not validating service URLs before save using URL parse, improved URL error handling.</li>
-<li>Fixed inconsistent core error display strings.</li>
-<li>Fixed duplicate user email address returned internal server error code.</li>
-<li>Fixed Lettre email error type handling.</li>
+<li>Fixed missing <code>dyn</code> keyword warnings.</li>
 </ul>
 <h2 id="section-2">0.3.0 (2019-08-03)</h2>
 <p><strong>Added</strong></p>
@@ -604,63 +610,63 @@ mza start-server</code></pre>
 <li>Fixed audit log errors were created for root key authentication when authenticating a service key.</li>
 <li>Fixed internal server errors returned to client when OAuth2 provider is disabled.</li>
 </ul>
-<h2 id="section-3">0.4.0 (2019-09-09)</h2>
+<h2 id="section-3">0.2.0 (2019-07-07)</h2>
 <p><strong>Added</strong></p>
 <ul>
-<li>Added some process metrics to Prometheus integration.</li>
-<li>Created asynchronous client actor to handle outgoing HTTP requests.</li>
-<li>Added environment variable <code>PASSWORD_PWNED_ENABLED</code> to enable pwned passwords integration.</li>
+<li>Added audit logging to authentication routes.</li>
+<li>Added is enabled flag to services, users and keys, added is revoked flag to keys.</li>
+<li>Added synchronous and asynchronous clients to library.</li>
+<li>Added <code>email_eq</code> query option to user list route.</li>
+<li>Added local provider update user email, password routes.</li>
+<li>Added type parameter to service URL callback queries.</li>
 </ul>
 <p><strong>Changed</strong></p>
 <ul>
-<li>Replaced <code>bcrypt</code> with <code>libreauth</code> crate for password hashing.</li>
-<li>Use <code>libreauth</code> key generation for CSRF keys and <code>Key</code> values.</li>
-<li>Improved modules public interfaces.</li>
-<li>Changed driver interface to use <code>Uuid</code> types instead of strings.</li>
-<li>Renamed configuration structures to options to improve consistency.</li>
+<li>Changed database schema to use strings as IDs.</li>
+<li>Changed list route endpoints to return data ID arrays.</li>
+<li>Changed CSRF key, value pairs to use TTL in seconds.</li>
+<li>Changed token type handling, user token split into access and refresh tokens.</li>
+<li>Moved OAuth2 routes into provider groups.</li>
+<li>Moved login, reset routes into local provider group.</li>
+<li>Upgraded to version 3 of <code>oauth2</code> library.</li>
+<li>Removed <code>skeptic</code> from tests, use Cargo test runner.</li>
+<li>Moved route types to public api module.</li>
 </ul>
 <p><strong>Fixed</strong></p>
 <ul>
-<li>Fixed missing <code>dyn</code> keyword warnings.</li>
+<li>Fixed not validating service URLs before save using URL parse, improved URL error handling.</li>
+<li>Fixed inconsistent core error display strings.</li>
+<li>Fixed duplicate user email address returned internal server error code.</li>
+<li>Fixed Lettre email error type handling.</li>
 </ul>
-<h2 id="section-4">0.5.0 (?)</h2>
+<h2 id="section-4">0.1.0 (2019-05-16)</h2>
 <p><strong>Added</strong></p>
 <ul>
-<li>Added TOTP validation route.</li>
-<li>Added key flags: <code>allow_key</code>, <code>allow_token</code>, <code>allow_totp</code>.</li>
-<li>Added user fields: <code>locale</code>, <code>timezone</code>.</li>
+<li>First version.</li>
 </ul>
-<p><strong>Changed</strong></p>
-<ul>
-<li>Renamed project <code>mz_auth</code>, ark was taken by various products and crates.</li>
-<li>Code consistency improvements.</li>
-<li>Renamed audit <code>path</code> to <code>type</code> string.</li>
-<li>Replaced <code>serde_urlencoded</code> with <code>serde_qs</code> for more advanced query string support.</li>
-<li>Improved audit metric collection efficiency.</li>
-<li>Changed OAuth2 interface so callbacks go to service.</li>
-</ul>
-<p><strong>Fixed</strong></p>
 <h1 id="developer">Developer</h1>
 <h2 id="tools">Tools</h2>
-<p>The mz_auth crate depends on <a href="https://www.postgresql.org/">PostgreSQL</a> and <a href="https://www.sqlite.org/index.html">SQLite</a> libraries.</p>
+<p>The <code>mz_auth</code> crate depends on <a href="postgresql">PostgreSQL</a> and <a href="sqlite">SQLite</a> libraries.</p>
 <pre class="shell"><code># Install on Ubuntu.
 sudo apt install libpq-dev libsqlite3-dev libssl-dev libfuse-dev pkg-config</code></pre>
-<p>Install <a href="https://www.rust-lang.org/">Rust</a> using <a href="https://rustup.rs/">rustup</a>.</p>
+<p>Install <a href="rust">Rust</a> using <a href="rustup">rustup</a>.</p>
 <p>To update the toolchain.</p>
 <pre class="shell"><code>rustup self update
 rustup update</code></pre>
-<p>The mz_auth crate depends on <a href="https://github.com/sagiegurari/cargo-make">Cargo Make</a> and <a href="http://diesel.rs/">Diesel</a>, install them with Cargo.</p>
+<p>The <code>mz_auth</code> crate depends on <a href="cargo-make">cargo make</a>, <a href="diesel">Diesel</a> and <a href="cargo-audit">cargo audit</a>, install them with Cargo.</p>
 <pre class="shell"><code>cargo install --force cargo-make
-cargo install --force diesel_cli --no-default-features --features &quot;postgres sqlite&quot;</code></pre>
+cargo install --force diesel_cli --no-default-features --features &quot;postgres sqlite&quot;
+cargo install --force cargo-audit</code></pre>
 <p>To update crate dependencies.</p>
 <pre class="shell"><code>cargo update</code></pre>
-<p><a href="https://docs.docker.com/install/">Docker</a> and <a href="https://docs.docker.com/compose/">Docker Compose</a> are used for development, install them using the linked documentation.</p>
-<p>To start containers defined in <code>docker-compose.yml</code>.</p>
-<pre class="shell"><code>docker-compose up</code></pre>
-<p>To stop containers.</p>
-<pre class="shell"><code>docker-compose down</code></pre>
+<p><a href="docker">Docker</a> and <a href="docker-compose">Docker Compose</a> are used for development, install them using the linked documentation.</p>
+<p>To start containers defined in <code>docker/docker-compose.yml</code>.</p>
+<pre class="shell"><code>cargo make docker-up</code></pre>
+<p>To stop and destroy containers.</p>
+<pre class="shell"><code>cargo make docker-stop
+cargo make docker-down</code></pre>
 <h2 id="manual">Manual</h2>
-<p>This manual is written in <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Markdown</a> and converted into other formats using <a href="https://pandoc.org/">Pandoc</a>.</p>
+<p>This manual is written in <a href="pandoc-markdown">Markdown</a> and converted into other formats using <a href="pandoc">Pandoc</a>.</p>
 <p>To build the HTML manual.</p>
 <pre class="shell"><code>cargo make manual</code></pre>
 <h2 id="environment">Environment</h2>
@@ -721,16 +727,16 @@ cargo install --force diesel_cli --no-default-features --features &quot;postgres
 <td>…</td>
 </tr>
 <tr class="odd">
+<td>PASSWORD_PWNED_ENABLED</td>
+<td>Enable <a href="pwned-passwords">Pwned Passwords</a> integration.</td>
+</tr>
+<tr class="even">
 <td>GITHUB_CLIENT_ID</td>
 <td>GitHub OAuth2 provider, optional.</td>
 </tr>
-<tr class="even">
-<td>GITHUB_CLIENT_SECRET</td>
-<td></td>
-</tr>
 <tr class="odd">
-<td>GITHUB_REDIRECT_URL</td>
-<td><code>$server_url/v1/auth/provider/github/oauth2</code></td>
+<td>GITHUB_CLIENT_SECRET</td>
+<td>…</td>
 </tr>
 <tr class="even">
 <td>MICROSOFT_CLIENT_ID</td>
@@ -738,25 +744,36 @@ cargo install --force diesel_cli --no-default-features --features &quot;postgres
 </tr>
 <tr class="odd">
 <td>MICROSOFT_CLIENT_SECRET</td>
-<td></td>
-</tr>
-<tr class="even">
-<td>MICROSOFT_REDIRECT_URL</td>
-<td><code>$server_url/v1/auth/provider/microsoft/oauth2</code></td>
+<td>…</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Linux</strong></p>
+<p><strong>Ubuntu</strong></p>
 <p>Write <code>export $NAME=&quot;$VALUE&quot;</code> statements to file <code>.env</code> and run <code>source .env</code> to export variables in open terminal. See <code>mz_auth/.env</code> for example.</p>
 <h2 id="database">Database</h2>
-<p>To create <a href="https://www.postgresql.org/">PostgreSQL</a> database migrations.</p>
-<pre class="shell"><code>cargo make postgres-migrations</code></pre>
-<p>To create <a href="https://www.sqlite.org/index.html">SQLite</a> database migrations.</p>
-<pre class="shell"><code>cargo make sqlite-migrations</code></pre>
+<p>To reset and create new <a href="postgresql">PostgreSQL</a> database migrations for <a href="diesel">Diesel</a>. These commands assume docker container is running.</p>
+<pre class="shell"><code>cargo make postgres-reset
+cargo make postgres-migration $migration_name</code></pre>
+<p>To reset and create new <a href="sqlite">SQLite</a> database migrations for <a href="diesel">Diesel</a>.</p>
+<pre class="shell"><code>cargo make sqlite-reset
+cargo make sqlite-migration $migration_name</code></pre>
+<h2 id="build">Build</h2>
+<p>To build libraries and binaries.</p>
+<pre class="shell"><code>cargo make build
+cargo make release
+cargo make release-flow</code></pre>
+<p>To lint source code using <a href="clippy">clippy</a>.</p>
+<pre class="shell"><code>cargo make clippy</code></pre>
+<p>To build and open documentation.</p>
+<pre class="shell"><code>cargo make doc</code></pre>
+<p>To build docker image.</p>
+<pre class="shell"><code>cargo make docker-build</code></pre>
+<p>To audit crate dependencies.</p>
+<pre class="shell"><code>cargo make audit</code></pre>
 <h2 id="test">Test</h2>
 <p>To run unit tests.</p>
 <pre class="shell"><code>cargo make test</code></pre>
-<p>For integration tests, the following environment variables are required.</p>
+<p>For integration tests, the following environment variables are required. A server hosting the API to be tested must be available at <code>SERVER_URL</code> address.</p>
 <table>
 <thead>
 <tr class="header">
@@ -777,15 +794,5 @@ cargo install --force diesel_cli --no-default-features --features &quot;postgres
 </table>
 <p>To run integration tests.</p>
 <pre class="shell"><code>cargo make test-integration</code></pre>
-<h2 id="build">Build</h2>
-<p>To build libraries and binaries.</p>
-<pre class="shell"><code>cargo make build
-cargo make release</code></pre>
-<p>To lint source code using <a href="https://github.com/rust-lang/rust-clippy">clippy</a>.</p>
-<pre class="shell"><code>cargo make lint</code></pre>
-<p>To build documentation.</p>
-<pre class="shell"><code>cargo doc --no-deps --open</code></pre>
-<p>To build docker image.</p>
-<pre class="shell"><code>docker-compose build</code></pre>
 </body>
 </html>

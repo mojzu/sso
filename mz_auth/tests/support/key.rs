@@ -6,7 +6,7 @@ macro_rules! key_integration_test {
         fn api_key_list_forbidden() {
             let client = client_create(Some(INVALID_KEY));
             let res = client
-                .key_list(KeyListQuery {
+                .key_list(KeyListRequest {
                     gt: None,
                     lt: None,
                     limit: None,
@@ -23,7 +23,7 @@ macro_rules! key_integration_test {
 
             let client = client_create(Some(&service_key.value));
             let res = client
-                .key_list(KeyListQuery {
+                .key_list(KeyListRequest {
                     gt: None,
                     lt: None,
                     limit: Some(-1),
@@ -43,7 +43,7 @@ macro_rules! key_integration_test {
             let user = user_create(&client, true, USER_NAME, &user_email);
             let limit = 3;
 
-            let body = KeyCreateBody::with_user_id(true, true, false, false, KEY_NAME, user.id);
+            let body = KeyCreateRequest::with_user_id(true, true, false, false, KEY_NAME, user.id);
             client.key_create(body.clone()).unwrap();
             client.key_create(body.clone()).unwrap();
             client.key_create(body.clone()).unwrap();
@@ -51,7 +51,7 @@ macro_rules! key_integration_test {
             client.key_create(body.clone()).unwrap();
 
             let res1 = client
-                .key_list(KeyListQuery {
+                .key_list(KeyListRequest {
                     gt: None,
                     lt: None,
                     limit: Some(limit),
@@ -63,7 +63,7 @@ macro_rules! key_integration_test {
             let r1_3 = &res1.data[2].id;
 
             let res2 = client
-                .key_list(KeyListQuery {
+                .key_list(KeyListRequest {
                     gt: Some(r1_1.to_owned()),
                     lt: None,
                     limit: Some(limit),
@@ -77,7 +77,7 @@ macro_rules! key_integration_test {
             assert_eq!(r2_3, r1_3);
 
             let res3 = client
-                .key_list(KeyListQuery {
+                .key_list(KeyListRequest {
                     gt: Some(r1_2.to_owned()),
                     lt: None,
                     limit: Some(limit),
@@ -91,7 +91,7 @@ macro_rules! key_integration_test {
             assert_eq!(r3_4, r2_4);
 
             let res4 = client
-                .key_list(KeyListQuery {
+                .key_list(KeyListRequest {
                     gt: None,
                     lt: Some(r3_5.to_owned()),
                     limit: Some(limit),
@@ -106,7 +106,7 @@ macro_rules! key_integration_test {
             assert_eq!(r4_4, r3_4);
 
             let res5 = client
-                .key_list(KeyListQuery {
+                .key_list(KeyListRequest {
                     gt: None,
                     lt: Some(r4_4.to_owned()),
                     limit: Some(limit),
@@ -125,7 +125,7 @@ macro_rules! key_integration_test {
         #[ignore]
         fn api_key_create_forbidden() {
             let client = client_create(Some(INVALID_KEY));
-            let body = KeyCreateBody::new(true, true, true, false, KEY_NAME);
+            let body = KeyCreateRequest::new(true, true, true, false, KEY_NAME);
             let res = client.key_create(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);
         }
@@ -140,7 +140,7 @@ macro_rules! key_integration_test {
             let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email);
 
-            let body = KeyCreateBody::with_user_id(true, true, true, false, KEY_NAME, user.id);
+            let body = KeyCreateRequest::with_user_id(true, true, true, false, KEY_NAME, user.id);
             client.key_create(body.clone()).unwrap();
             let res = client.key_create(body.clone()).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
@@ -156,7 +156,7 @@ macro_rules! key_integration_test {
             let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email);
 
-            let body = KeyCreateBody::with_user_id(true, true, false, true, KEY_NAME, user.id);
+            let body = KeyCreateRequest::with_user_id(true, true, false, true, KEY_NAME, user.id);
             client.key_create(body.clone()).unwrap();
             let res = client.key_create(body.clone()).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);

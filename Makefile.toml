@@ -30,6 +30,12 @@ script = [
     "(cd mz_data && DATABASE_URL=\"db.sqlite3\" diesel migration generate ${@} --migration-dir migrations/sqlite)",
 ]
 
+[tasks.docker-build]
+workspace = false
+script = [
+    "(cd docker && docker-compose build",
+]
+
 [tasks.docker-up]
 workspace = false
 script = [
@@ -53,6 +59,11 @@ workspace = false
 script = [
     "pandoc docs/manual/*.md -f markdown --to=html5 --self-contained --toc --toc-depth=6 --css=docs/pandoc.css --output=docs/index.html",
 ]
+
+[tasks.audit]
+workspace = false
+command = "cargo"
+args = ["audit"]
 
 [tasks.build]
 workspace = false

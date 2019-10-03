@@ -1,6 +1,6 @@
 use crate::{
     AuditBuilder, AuditMeta, AuthError, AuthResult, ClientActor, ClientActorOptions, Driver, Key,
-    NotifyActor, NotifyActorOptions, Server, ServerError, ServerOptions, Service,
+    NotifyActor, NotifyActorOptions, Server, ServerError, ServerOptions, Service, ServiceCreate,
 };
 use actix_rt::System;
 
@@ -78,21 +78,26 @@ impl Cli {
         driver: Box<dyn Driver>,
         name: &str,
         url: &str,
+        provider_local_url: Option<&str>,
+        provider_github_oauth2_url: Option<&str>,
+        provider_microsoft_oauth2_url: Option<&str>,
     ) -> AuthResult<(Service, Key)> {
         let mut audit = Cli::audit_builder();
-        let service = Service::create(
-            driver.as_ref(),
-            &mut audit,
-            true,
-            String::from(name),
-            String::from(url),
-        )
-        .map_err(AuthError::Core)?;
+        let service_create = ServiceCreate {
+            is_enabled: true,
+            name: name.to_owned(),
+            url: url.to_owned(),
+            provider_local_url: provider_local_url.map(|x| x.to_owned()),
+            provider_github_oauth2_url: provider_github_oauth2_url.map(|x| x.to_owned()),
+            provider_microsoft_oauth2_url: provider_microsoft_oauth2_url.map(|x| x.to_owned()),
+        };
+        let service = Service::create(driver.as_ref(), &mut audit, &service_create)
+            .map_err(AuthError::Core)?;
         let key = Key::create_service(
             driver.as_ref(),
             &mut audit,
             true,
-            String::from(name),
+            name.to_owned(),
             service.id,
         )
         .map_err(AuthError::Core)?;

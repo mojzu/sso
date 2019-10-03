@@ -5,7 +5,7 @@ macro_rules! auth_totp_integration_test {
         #[ignore]
         fn api_auth_totp_forbidden() {
             let client = client_create(Some(INVALID_KEY));
-            let body = AuthTotpBody::new(Uuid::nil(), "123456");
+            let body = AuthTotpRequest::new(Uuid::nil(), "123456");
             let res = client.auth_totp(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);
         }
@@ -17,7 +17,7 @@ macro_rules! auth_totp_integration_test {
             let (_service, service_key) = service_key_create(&client);
 
             let client = client_create(Some(&service_key.value));
-            let body = AuthTotpBody::new(Uuid::nil(), "");
+            let body = AuthTotpRequest::new(Uuid::nil(), "");
             let res = client.auth_totp(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -38,7 +38,7 @@ macro_rules! auth_totp_integration_test {
                 .base32_key(&user_key.key)
                 .finalize()
                 .unwrap();
-            let body = AuthTotpBody::new(user.id, totp.generate());
+            let body = AuthTotpRequest::new(user.id, totp.generate());
             client.auth_totp(body).unwrap();
         }
     };

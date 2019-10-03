@@ -6,7 +6,7 @@ macro_rules! user_integration_test {
         fn api_user_list_forbidden() {
             let client = client_create(Some(INVALID_KEY));
             let res = client
-                .user_list(UserListQuery {
+                .user_list(UserListRequest {
                     gt: None,
                     lt: None,
                     limit: None,
@@ -36,7 +36,7 @@ macro_rules! user_integration_test {
             user_create(&client, true, USER_NAME, &user5_email);
 
             let res1 = client
-                .user_list(UserListQuery {
+                .user_list(UserListRequest {
                     gt: None,
                     lt: None,
                     limit: Some(limit),
@@ -49,7 +49,7 @@ macro_rules! user_integration_test {
             let r1_3 = &res1.data[2].id;
 
             let res2 = client
-                .user_list(UserListQuery {
+                .user_list(UserListRequest {
                     gt: Some(r1_1.to_owned()),
                     lt: None,
                     limit: Some(limit),
@@ -64,7 +64,7 @@ macro_rules! user_integration_test {
             assert_eq!(r2_3, r1_3);
 
             let res3 = client
-                .user_list(UserListQuery {
+                .user_list(UserListRequest {
                     gt: Some(r1_2.to_owned()),
                     lt: None,
                     limit: Some(limit),
@@ -79,7 +79,7 @@ macro_rules! user_integration_test {
             assert_eq!(r3_4, r2_4);
 
             let res4 = client
-                .user_list(UserListQuery {
+                .user_list(UserListRequest {
                     gt: None,
                     lt: Some(r3_5.to_owned()),
                     limit: Some(limit),
@@ -95,7 +95,7 @@ macro_rules! user_integration_test {
             assert_eq!(r4_4, r3_4);
 
             let res5 = client
-                .user_list(UserListQuery {
+                .user_list(UserListRequest {
                     gt: None,
                     lt: Some(r4_4.to_owned()),
                     limit: Some(limit),
@@ -122,7 +122,7 @@ macro_rules! user_integration_test {
             let user = user_create(&client, true, USER_NAME, &user_email);
 
             let res = client
-                .user_list(UserListQuery {
+                .user_list(UserListRequest {
                     gt: None,
                     lt: None,
                     limit: None,
@@ -150,7 +150,7 @@ macro_rules! user_integration_test {
             let client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
             let body =
-                UserCreateBody::new(true, USER_NAME, &user_email, USER_LOCALE, USER_TIMEZONE);
+                UserCreateRequest::new(true, USER_NAME, &user_email, USER_LOCALE, USER_TIMEZONE);
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);
         }
@@ -166,7 +166,7 @@ macro_rules! user_integration_test {
             user_create(&client, true, USER_NAME, &user_email);
 
             let body =
-                UserCreateBody::new(true, USER_NAME, &user_email, USER_LOCALE, USER_TIMEZONE);
+                UserCreateRequest::new(true, USER_NAME, &user_email, USER_LOCALE, USER_TIMEZONE);
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -179,7 +179,7 @@ macro_rules! user_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let body = UserCreateBody::new(true, USER_NAME, &user_email, "", USER_TIMEZONE);
+            let body = UserCreateRequest::new(true, USER_NAME, &user_email, "", USER_TIMEZONE);
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -192,7 +192,7 @@ macro_rules! user_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let body = UserCreateBody::new(true, USER_NAME, &user_email, USER_LOCALE, "invalid");
+            let body = UserCreateRequest::new(true, USER_NAME, &user_email, USER_LOCALE, "invalid");
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }

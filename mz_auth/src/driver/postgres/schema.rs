@@ -49,6 +49,9 @@ table! {
         service_is_enabled -> Bool,
         service_name -> Varchar,
         service_url -> Varchar,
+        service_provider_local_url -> Nullable<Varchar>,
+        service_provider_github_oauth2_url -> Nullable<Varchar>,
+        service_provider_microsoft_oauth2_url -> Nullable<Varchar>,
     }
 }
 

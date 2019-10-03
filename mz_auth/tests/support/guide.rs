@@ -13,7 +13,7 @@ macro_rules! guide_integration_test {
             let user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
 
             user_key_verify(&client, &user_key);
-            let body = AuthKeyBody::new(&user_key.key, None);
+            let body = AuthKeyRequest::new(&user_key.key, None);
             client.auth_key_revoke(body).unwrap();
             user_key_verify_bad_request(&client, &user_key.key);
         }
@@ -33,10 +33,10 @@ macro_rules! guide_integration_test {
 
             user_token_verify(&client, &user_token);
             let user_token = user_token_refresh(&client, &user_token);
-            let body = AuthTokenBody::new(&user_token.access_token, None);
+            let body = AuthTokenRequest::new(&user_token.access_token, None);
             client.auth_token_revoke(body).unwrap();
 
-            let body = AuthTokenBody::new(&user_token.refresh_token, None);
+            let body = AuthTokenRequest::new(&user_token.refresh_token, None);
             let res = client.auth_token_verify(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -53,7 +53,7 @@ macro_rules! guide_integration_test {
                 user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
             let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
 
-            let body = AuthResetPasswordBody::new(&user_email);
+            let body = AuthResetPasswordRequest::new(&user_email);
             client.auth_local_reset_password(body).unwrap();
         }
 

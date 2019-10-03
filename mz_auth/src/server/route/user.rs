@@ -1,19 +1,15 @@
 use crate::{
+    api_types::{UserCreateRequest, UserListRequest, UserUpdateRequest},
     server::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
     },
-    server_api::{
-        path, UserCreateBody, UserCreateResponse, UserListQuery, UserListResponse,
-        UserReadResponse, UserUpdateBody,
-    },
-    AuditMeta, Key, ServerError, ServerResult, ServerValidateFromStr, ServerValidateFromValue,
-    User, UserList, UserRead,
+    server_api::path,
+    Api, ApiValidateRequestQuery, ServerError, User,
 };
 use actix_identity::Identity;
 use actix_web::{web, HttpRequest, HttpResponse};
 use futures::Future;
-use serde_json::Value;
 use uuid::Uuid;
 
 pub fn route_v1_scope() -> actix_web::Scope {
@@ -38,85 +34,45 @@ fn list_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let query = UserListQuery::from_str(req.query_string());
+    let request = UserListRequest::from_str_fut(req.query_string()).map_err(ServerError::Core);
 
     audit_meta
-        .join(query)
-        .and_then(|(audit_meta, query)| {
-            web::block(move || list_inner(data.get_ref(), audit_meta, id, query))
-                .map_err(Into::into)
+        .join(request)
+        .and_then(move |(audit_meta, request)| {
+            web::block(move || {
+                Api::user_list(data.driver(), id, audit_meta, request).map_err(Into::into)
+            })
+            .map_err(Into::into)
         })
         .then(route_response_json)
-}
-
-fn list_inner(
-    data: &Data,
-    audit_meta: AuditMeta,
-    id: Option<String>,
-    query: UserListQuery,
-) -> ServerResult<UserListResponse> {
-    Key::authenticate(data.driver(), audit_meta, id)
-        .and_then(|(service, mut audit)| {
-            let list: UserList = query.into();
-            let data = User::list(data.driver(), service.as_ref(), &mut audit, &list)?;
-            Ok(UserListResponse {
-                meta: list.into(),
-                data,
-            })
-        })
-        .map_err(Into::into)
 }
 
 fn create_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<Value>,
+    body: web::Json<UserCreateRequest>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = UserCreateBody::from_value(body.into_inner());
+    let request = body.into_inner();
+    let password_meta = User::password_meta(
+        data.options().password_pwned_enabled(),
+        data.client(),
+        request.password.as_ref().map(|x| &**x),
+    )
+    .map_err(Into::into);
 
     audit_meta
-        .join(body)
-        .and_then(|(audit_meta, body)| {
-            let password_meta = User::password_meta(
-                data.options().password_pwned_enabled(),
-                data.client(),
-                body.password.as_ref().map(|x| &**x),
-            )
-            .map_err(Into::into);
-            let create_user =
-                web::block(move || create_inner(data.get_ref(), audit_meta, id, body))
-                    .map_err(Into::into);
-            password_meta.join(create_user)
+        .join(password_meta)
+        .and_then(move |(audit_meta, password_meta)| {
+            web::block(move || {
+                Api::user_create(data.driver(), id, audit_meta, password_meta, request)
+                    .map_err(Into::into)
+            })
+            .map_err(Into::into)
         })
-        .map(|(meta, user)| UserCreateResponse { meta, data: user })
         .then(route_response_json)
-}
-
-fn create_inner(
-    data: &Data,
-    audit_meta: AuditMeta,
-    id: Option<String>,
-    body: UserCreateBody,
-) -> ServerResult<User> {
-    Key::authenticate(data.driver(), audit_meta, id)
-        .and_then(|(service, mut audit)| {
-            User::create(
-                data.driver(),
-                service.as_ref(),
-                &mut audit,
-                body.is_enabled,
-                body.name,
-                body.email,
-                body.locale,
-                body.timezone,
-                body.password,
-                body.password_update_required,
-            )
-        })
-        .map_err(Into::into)
 }
 
 fn read_handler(
@@ -127,29 +83,16 @@ fn read_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
+    let user_id = path.0;
 
     audit_meta
-        .and_then(|audit_meta| {
-            web::block(move || read_inner(data.get_ref(), audit_meta, id, path.0))
-                .map_err(Into::into)
+        .and_then(move |audit_meta| {
+            web::block(move || {
+                Api::key_read(data.driver(), id, audit_meta, user_id).map_err(Into::into)
+            })
+            .map_err(Into::into)
         })
         .then(route_response_json)
-}
-
-fn read_inner(
-    data: &Data,
-    audit_meta: AuditMeta,
-    id: Option<String>,
-    user_id: Uuid,
-) -> ServerResult<UserReadResponse> {
-    Key::authenticate(data.driver(), audit_meta, id)
-        .and_then(|(service, mut audit)| {
-            let read = UserRead::Id(user_id);
-            User::read_opt(data.driver(), service.as_ref(), &mut audit, &read)
-        })
-        .map_err(Into::into)
-        .and_then(|user| user.ok_or_else(|| ServerError::NotFound))
-        .map(|user| UserReadResponse { data: user })
 }
 
 fn update_handler(
@@ -157,44 +100,22 @@ fn update_handler(
     req: HttpRequest,
     id: Identity,
     path: web::Path<(Uuid,)>,
-    body: web::Json<Value>,
+    body: web::Json<UserUpdateRequest>,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let body = UserUpdateBody::from_value(body.into_inner());
+    let user_id = path.0;
+    let request = body.into_inner();
 
     audit_meta
-        .join(body)
-        .and_then(|(audit_meta, body)| {
-            web::block(move || update_inner(data.get_ref(), audit_meta, id, path.0, body))
-                .map_err(Into::into)
+        .and_then(move |audit_meta| {
+            web::block(move || {
+                Api::user_update(data.driver(), id, audit_meta, user_id, request)
+                    .map_err(Into::into)
+            })
+            .map_err(Into::into)
         })
         .then(route_response_json)
-}
-
-fn update_inner(
-    data: &Data,
-    audit_meta: AuditMeta,
-    id: Option<String>,
-    user_id: Uuid,
-    body: UserUpdateBody,
-) -> ServerResult<UserReadResponse> {
-    Key::authenticate(data.driver(), audit_meta, id)
-        .and_then(|(service, mut audit)| {
-            User::update(
-                data.driver(),
-                service.as_ref(),
-                &mut audit,
-                user_id,
-                body.is_enabled,
-                body.name,
-                body.locale,
-                body.timezone,
-                body.password_update_required,
-            )
-        })
-        .map_err(Into::into)
-        .map(|user| UserReadResponse { data: user })
 }
 
 fn delete_handler(
@@ -205,24 +126,14 @@ fn delete_handler(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
+    let user_id = path.0;
 
     audit_meta
-        .and_then(|audit_meta| {
-            web::block(move || delete_inner(data.get_ref(), audit_meta, id, path.0))
-                .map_err(Into::into)
+        .and_then(move |audit_meta| {
+            web::block(move || {
+                Api::user_delete(data.driver(), id, audit_meta, user_id).map_err(Into::into)
+            })
+            .map_err(Into::into)
         })
         .then(route_response_empty)
-}
-
-fn delete_inner(
-    data: &Data,
-    audit_meta: AuditMeta,
-    id: Option<String>,
-    user_id: Uuid,
-) -> ServerResult<usize> {
-    Key::authenticate(data.driver(), audit_meta, id)
-        .and_then(|(service, mut audit)| {
-            User::delete(data.driver(), service.as_ref(), &mut audit, user_id)
-        })
-        .map_err(Into::into)
 }

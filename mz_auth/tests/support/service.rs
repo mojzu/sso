@@ -13,7 +13,7 @@ macro_rules! service_integration_test {
             let limit = 3;
 
             let res1 = client
-                .service_list(ServiceListQuery {
+                .service_list(ServiceListRequest {
                     gt: None,
                     lt: None,
                     limit: Some(limit),
@@ -25,7 +25,7 @@ macro_rules! service_integration_test {
             let r1_3 = &res1.data[2].id;
 
             let res2 = client
-                .service_list(ServiceListQuery {
+                .service_list(ServiceListRequest {
                     gt: Some(r1_1.to_owned()),
                     lt: None,
                     limit: Some(limit),
@@ -39,7 +39,7 @@ macro_rules! service_integration_test {
             assert_eq!(r2_3, r1_3);
 
             let res3 = client
-                .service_list(ServiceListQuery {
+                .service_list(ServiceListRequest {
                     gt: Some(r1_2.to_owned()),
                     lt: None,
                     limit: Some(limit),
@@ -53,7 +53,7 @@ macro_rules! service_integration_test {
             assert_eq!(r3_4, r2_4);
 
             let res4 = client
-                .service_list(ServiceListQuery {
+                .service_list(ServiceListRequest {
                     gt: None,
                     lt: Some(r3_5.to_owned()),
                     limit: Some(limit),
@@ -68,7 +68,7 @@ macro_rules! service_integration_test {
             assert_eq!(r4_4, r3_4);
 
             let res5 = client
-                .service_list(ServiceListQuery {
+                .service_list(ServiceListRequest {
                     gt: None,
                     lt: Some(r4_4.to_owned()),
                     limit: Some(limit),

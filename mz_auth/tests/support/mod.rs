@@ -13,11 +13,11 @@ use mz_auth::{
     api_types::AuthOauth2UrlResponse, Key, Service, User, UserKey, UserToken, UserTokenAccess,
 };
 pub use mz_auth::{
-    api_types::{AuditCreateRequest, AuditListRequest},
-    server_api::{
-        AuthKeyBody, AuthLoginBody, AuthResetPasswordBody, AuthResetPasswordConfirmBody,
-        AuthTokenBody, AuthTotpBody, KeyCreateBody, KeyListQuery, ServiceCreateBody,
-        ServiceListQuery, UserCreateBody, UserListQuery,
+    api_types::{
+        AuditCreateRequest, AuditListRequest, AuthKeyRequest, AuthLoginRequest,
+        AuthResetPasswordConfirmRequest, AuthResetPasswordRequest, AuthTokenRequest,
+        AuthTotpRequest, KeyCreateRequest, KeyListRequest, ServiceCreateRequest,
+        ServiceListRequest, UserCreateRequest, UserListRequest,
     },
     Client, ClientActorOptions, ClientError, ClientOptions, ClientSync,
 };
@@ -67,18 +67,18 @@ pub fn email_create() -> String {
 }
 
 pub fn service_key_create(client: &ClientSync) -> (Service, Key) {
-    let body = ServiceCreateBody::new(true, "test", "http://localhost");
+    let body = ServiceCreateRequest::new(true, "test", "http://localhost");
     let create_service = client.service_create(body).unwrap();
 
     let body =
-        KeyCreateBody::with_service_id(true, true, false, false, "test", create_service.data.id);
+        KeyCreateRequest::with_service_id(true, true, false, false, "test", create_service.data.id);
     let create_key = client.key_create(body).unwrap();
     (create_service.data, create_key.data)
 }
 
 pub fn user_create(client: &ClientSync, is_enabled: bool, name: &str, email: &str) -> User {
     let before = Utc::now();
-    let body = UserCreateBody::new(is_enabled, name, email, USER_LOCALE, USER_TIMEZONE);
+    let body = UserCreateRequest::new(is_enabled, name, email, USER_LOCALE, USER_TIMEZONE);
     let create = client.user_create(body).unwrap();
     let user = create.data;
     assert!(user.created_at.gt(&before));
@@ -99,7 +99,7 @@ pub fn user_create_with_password(
     password: &str,
 ) -> User {
     let before = Utc::now();
-    let body = UserCreateBody::with_password(
+    let body = UserCreateRequest::with_password(
         is_enabled,
         name,
         email,
@@ -126,7 +126,7 @@ pub fn user_key_create(
     service_id: Uuid,
     user_id: Uuid,
 ) -> UserKey {
-    let body = KeyCreateBody::with_user_id(true, true, true, false, name, user_id);
+    let body = KeyCreateRequest::with_user_id(true, true, true, false, name, user_id);
     let create = client.key_create(body).unwrap();
     let key = create.data;
     assert_eq!(key.name, name);
@@ -139,7 +139,7 @@ pub fn user_key_create(
 }
 
 pub fn user_key_verify(client: &ClientSync, key: &UserKey) -> UserKey {
-    let body = AuthKeyBody::new(&key.key, None);
+    let body = AuthKeyRequest::new(&key.key, None);
     let verify = client.auth_key_verify(body).unwrap();
     let user_key = verify.data;
     assert_eq!(user_key.user_id, key.user_id);
@@ -148,13 +148,13 @@ pub fn user_key_verify(client: &ClientSync, key: &UserKey) -> UserKey {
 }
 
 pub fn user_key_verify_bad_request(client: &ClientSync, key: &str) {
-    let body = AuthKeyBody::new(key, None);
+    let body = AuthKeyRequest::new(key, None);
     let err = client.auth_key_verify(body).unwrap_err();
     assert_eq!(err, ClientError::BadRequest);
 }
 
 pub fn user_token_verify(client: &ClientSync, token: &UserToken) -> UserTokenAccess {
-    let body = AuthTokenBody::new(&token.access_token, None);
+    let body = AuthTokenRequest::new(&token.access_token, None);
     let verify = client.auth_token_verify(body).unwrap();
     let user_token = verify.data;
     assert_eq!(user_token.user_id, token.user_id);
@@ -165,7 +165,7 @@ pub fn user_token_verify(client: &ClientSync, token: &UserToken) -> UserTokenAcc
 
 pub fn user_token_refresh(client: &ClientSync, token: &UserToken) -> UserToken {
     std::thread::sleep(std::time::Duration::from_secs(1));
-    let body = AuthTokenBody::new(&token.refresh_token, None);
+    let body = AuthTokenRequest::new(&token.refresh_token, None);
     let refresh = client.auth_token_refresh(body).unwrap();
     let user_token = refresh.data;
     assert_eq!(user_token.user_id, token.user_id);
@@ -182,7 +182,7 @@ pub fn auth_local_login(
     email: &str,
     password: &str,
 ) -> UserToken {
-    let body = AuthLoginBody::new(email, password);
+    let body = AuthLoginRequest::new(email, password);
     let login = client.auth_local_login(body).unwrap();
     let user_token = login.data;
     assert_eq!(user_token.user_id, user_id);

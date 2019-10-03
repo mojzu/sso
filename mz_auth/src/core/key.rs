@@ -9,9 +9,9 @@ use uuid::Uuid;
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
 // TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
 // TODO(refactor): Improve key, user, service list query options (order by name, ...).
-// TODO(refactor): Service callback URL per provider.
 // TODO(refactor): User last login, key last use information.
-// TODO(refactor): Respect allow_ key flags.
+// TODO(refactor): Respect allow_ key, user password update required flags.
+// TODO(refactor): User name field, defaults to email, can be updated.
 
 /// Key value size in bytes.
 pub const KEY_VALUE_BYTES: usize = 21;

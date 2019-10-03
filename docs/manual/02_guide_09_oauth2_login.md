@@ -1,9 +1,13 @@
 ## OAuth2 Login
 
-Create service with key and start server.
+`$server_url/v1/auth/provider/github/oauth2`
+
+Create service with OAuth2 provider URL and key, and start server.
 
 ```shell
-mz_auth create-service-with-key $service_name $service_url
+mz_auth create-service-with-key $service_name $service_url \
+    [--github-oauth2-url $service_github_oauth2_url] \
+    [--microsoft-oauth2-url $service_microsoft_oauth2_url]
 mz_auth start-server
 ```
 
