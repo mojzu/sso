@@ -398,11 +398,31 @@ impl ServiceCreateRequest {
             is_enabled,
             name: name.into(),
             url: url.into(),
-            // TODO(test): This will cause OAuth2 test error.
             provider_local_url: None,
             provider_github_oauth2_url: None,
             provider_microsoft_oauth2_url: None,
         }
+    }
+
+    pub fn provider_local_url<S: Into<String>>(mut self, provider_local_url: S) -> Self {
+        self.provider_local_url = Some(provider_local_url.into());
+        self
+    }
+
+    pub fn provider_github_oauth2_url<S: Into<String>>(
+        mut self,
+        provider_github_oauth2_url: S,
+    ) -> Self {
+        self.provider_github_oauth2_url = Some(provider_github_oauth2_url.into());
+        self
+    }
+
+    pub fn provider_microsoft_oauth2_url<S: Into<String>>(
+        mut self,
+        provider_microsoft_oauth2_url: S,
+    ) -> Self {
+        self.provider_microsoft_oauth2_url = Some(provider_microsoft_oauth2_url.into());
+        self
     }
 }
 

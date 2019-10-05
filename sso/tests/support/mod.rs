@@ -65,7 +65,10 @@ pub fn email_create() -> String {
 }
 
 pub fn service_key_create(client: &ClientSync) -> (Service, Key) {
-    let body = ServiceCreateRequest::new(true, "test", "http://localhost");
+    let body = ServiceCreateRequest::new(true, "test", "http://localhost")
+        .provider_local_url("http://localhost")
+        .provider_github_oauth2_url("http://localhost")
+        .provider_microsoft_oauth2_url("http://localhost");
     let create_service = client.service_create(body).unwrap();
 
     let body =

@@ -147,11 +147,12 @@ background-color: #f4f4f4;
 </ul></li>
 <li><a href="#cli">CLI</a></li>
 <li><a href="#changelog">Changelog</a><ul>
-<li><a href="#section">0.5.0 (2019-10-05)</a></li>
-<li><a href="#section-1">0.4.0 (2019-09-09)</a></li>
-<li><a href="#section-2">0.3.0 (2019-08-03)</a></li>
-<li><a href="#section-3">0.2.0 (2019-07-07)</a></li>
-<li><a href="#section-4">0.1.0 (2019-05-16)</a></li>
+<li><a href="#section">0.6.0 (?)</a></li>
+<li><a href="#section-1">0.5.0 (2019-10-05)</a></li>
+<li><a href="#section-2">0.4.0 (2019-09-09)</a></li>
+<li><a href="#section-3">0.3.0 (2019-08-03)</a></li>
+<li><a href="#section-4">0.2.0 (2019-07-07)</a></li>
+<li><a href="#section-5">0.1.0 (2019-05-16)</a></li>
 </ul></li>
 <li><a href="#developer">Developer</a><ul>
 <li><a href="#tools">Tools</a></li>
@@ -548,7 +549,13 @@ sso start-server</code></pre>
 <h1 id="cli">CLI</h1>
 <p>TODO(docs): CLI documentation.</p>
 <h1 id="changelog">Changelog</h1>
-<h2 id="section">0.5.0 (2019-10-05)</h2>
+<h2 id="section">0.6.0 (?)</h2>
+<p><strong>Changed</strong></p>
+<ul>
+<li>Replaced key flags with type: <code>Key</code>, <code>Token</code> or <code>Totp</code>.</li>
+<li>Added user flags: <code>password_allow_reset</code> and <code>password_require_update</code>.</li>
+</ul>
+<h2 id="section-1">0.5.0 (2019-10-05)</h2>
 <p><strong>Added</strong></p>
 <ul>
 <li>Added TOTP validation route.</li>
@@ -564,7 +571,7 @@ sso start-server</code></pre>
 <li>Improved audit metric collection efficiency.</li>
 <li>Changed authentication provider interface so callbacks always go to service.</li>
 </ul>
-<h2 id="section-1">0.4.0 (2019-09-09)</h2>
+<h2 id="section-2">0.4.0 (2019-09-09)</h2>
 <p><strong>Added</strong></p>
 <ul>
 <li>Added some process metrics to Prometheus integration.</li>
@@ -583,7 +590,7 @@ sso start-server</code></pre>
 <ul>
 <li>Fixed missing <code>dyn</code> keyword warnings.</li>
 </ul>
-<h2 id="section-2">0.3.0 (2019-08-03)</h2>
+<h2 id="section-3">0.3.0 (2019-08-03)</h2>
 <p><strong>Added</strong></p>
 <ul>
 <li>Improved email templates, removed template parameters from routes.</li>
@@ -610,7 +617,7 @@ sso start-server</code></pre>
 <li>Fixed audit log errors were created for root key authentication when authenticating a service key.</li>
 <li>Fixed internal server errors returned to client when OAuth2 provider is disabled.</li>
 </ul>
-<h2 id="section-3">0.2.0 (2019-07-07)</h2>
+<h2 id="section-4">0.2.0 (2019-07-07)</h2>
 <p><strong>Added</strong></p>
 <ul>
 <li>Added audit logging to authentication routes.</li>
@@ -639,7 +646,7 @@ sso start-server</code></pre>
 <li>Fixed duplicate user email address returned internal server error code.</li>
 <li>Fixed Lettre email error type handling.</li>
 </ul>
-<h2 id="section-4">0.1.0 (2019-05-16)</h2>
+<h2 id="section-5">0.1.0 (2019-05-16)</h2>
 <p><strong>Added</strong></p>
 <ul>
 <li>First version.</li>

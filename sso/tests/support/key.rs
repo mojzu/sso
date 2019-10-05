@@ -137,11 +137,10 @@ macro_rules! key_integration_test {
             let (_service, service_key) = service_key_create(&client);
             let user_email = email_create();
 
-            // TODO(test): Fix this.
             let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email);
 
-            let body = KeyCreateRequest::with_user_id(true, KeyType::Key, KEY_NAME, user.id);
+            let body = KeyCreateRequest::with_user_id(true, KeyType::Token, KEY_NAME, user.id);
             client.key_create(body.clone()).unwrap();
             let res = client.key_create(body.clone()).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
