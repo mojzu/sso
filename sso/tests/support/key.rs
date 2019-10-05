@@ -43,7 +43,7 @@ macro_rules! key_integration_test {
             let user = user_create(&client, true, USER_NAME, &user_email);
             let limit = 3;
 
-            let body = KeyCreateRequest::with_user_id(true, true, false, false, KEY_NAME, user.id);
+            let body = KeyCreateRequest::with_user_id(true, KeyType::Key, KEY_NAME, user.id);
             client.key_create(body.clone()).unwrap();
             client.key_create(body.clone()).unwrap();
             client.key_create(body.clone()).unwrap();
@@ -125,7 +125,7 @@ macro_rules! key_integration_test {
         #[ignore]
         fn api_key_create_forbidden() {
             let client = client_create(Some(INVALID_KEY));
-            let body = KeyCreateRequest::new(true, true, true, false, KEY_NAME);
+            let body = KeyCreateRequest::new(true, KeyType::Key, KEY_NAME);
             let res = client.key_create(body).unwrap_err();
             assert_eq!(res, ClientError::Forbidden);
         }
@@ -137,10 +137,11 @@ macro_rules! key_integration_test {
             let (_service, service_key) = service_key_create(&client);
             let user_email = email_create();
 
+            // TODO(test): Fix this.
             let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email);
 
-            let body = KeyCreateRequest::with_user_id(true, true, true, false, KEY_NAME, user.id);
+            let body = KeyCreateRequest::with_user_id(true, KeyType::Key, KEY_NAME, user.id);
             client.key_create(body.clone()).unwrap();
             let res = client.key_create(body.clone()).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
@@ -156,7 +157,7 @@ macro_rules! key_integration_test {
             let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email);
 
-            let body = KeyCreateRequest::with_user_id(true, true, false, true, KEY_NAME, user.id);
+            let body = KeyCreateRequest::with_user_id(true, KeyType::Totp, KEY_NAME, user.id);
             client.key_create(body.clone()).unwrap();
             let res = client.key_create(body.clone()).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);

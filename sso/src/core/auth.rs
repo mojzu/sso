@@ -1,7 +1,8 @@
 use crate::{
     notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
     AuditBuilder, AuditData, AuditMessage, AuditType, CoreError, CoreResult, Csrf, Driver, Jwt,
-    JwtClaimsType, Key, NotifyActor, Service, User, UserKey, UserRead, UserToken, UserTokenAccess,
+    JwtClaimsType, Key, KeyType, NotifyActor, Service, User, UserKey, UserRead, UserToken,
+    UserTokenAccess,
 };
 use actix::Addr;
 use libreauth::oath::TOTPBuilder;
@@ -304,6 +305,7 @@ impl Auth {
             None,
             None,
             None,
+            None,
         )?;
         let count = Key::update_many(
             driver,
@@ -472,6 +474,7 @@ impl Auth {
             None,
             None,
             None,
+            None,
         )?;
         let count = Key::update_many(
             driver,
@@ -549,9 +552,6 @@ impl Auth {
             key.id,
             Some(false),
             Some(true),
-            None,
-            None,
-            None,
             None,
         )?;
 
@@ -730,9 +730,6 @@ impl Auth {
             key.id,
             Some(false),
             Some(true),
-            None,
-            None,
-            None,
             None,
         )?;
 
@@ -919,7 +916,7 @@ impl Auth {
         audit_type: AuditType,
         user: &User,
     ) -> CoreResult<Key> {
-        match Key::read_by_user(driver, &service, audit, &user, true, true, false)?
+        match Key::read_by_user(driver, &service, audit, &user, KeyType::Key)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
@@ -946,7 +943,7 @@ impl Auth {
         audit_type: AuditType,
         user: &User,
     ) -> CoreResult<Key> {
-        match Key::read_by_user(driver, &service, audit, &user, true, true, false)?
+        match Key::read_by_user(driver, &service, audit, &user, KeyType::Key)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {

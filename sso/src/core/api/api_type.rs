@@ -1,9 +1,9 @@
 //! # API Types
 use crate::{
     ApiValidate, ApiValidateRequest, ApiValidateRequestQuery, Audit, AuditData, AuditList,
-    AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe, Core, Key, KeyList, Service,
-    ServiceCreate, ServiceList, ServiceUpdate, User, UserKey, UserList, UserPasswordMeta,
-    UserToken, UserTokenAccess,
+    AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe, Core, Key, KeyList, KeyType,
+    Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserKey, UserList,
+    UserPasswordMeta, UserToken, UserTokenAccess,
 };
 use chrono::{DateTime, Utc};
 use serde_json::Value;
@@ -248,9 +248,8 @@ pub struct KeyListResponse {
 #[serde(deny_unknown_fields)]
 pub struct KeyCreateRequest {
     pub is_enabled: bool,
-    pub allow_key: bool,
-    pub allow_token: bool,
-    pub allow_totp: bool,
+    #[serde(rename = "type")]
+    pub type_: KeyType,
     #[validate(custom = "ApiValidate::name")]
     pub name: String,
     pub service_id: Option<Uuid>,
@@ -260,62 +259,36 @@ pub struct KeyCreateRequest {
 impl ApiValidateRequest<KeyCreateRequest> for KeyCreateRequest {}
 
 impl KeyCreateRequest {
-    pub fn new<S1: Into<String>>(
-        is_enabled: bool,
-        allow_key: bool,
-        allow_token: bool,
-        allow_totp: bool,
-        name: S1,
-    ) -> Self {
+    pub fn new<S1: Into<String>>(is_enabled: bool, type_: KeyType, name: S1) -> Self {
         Self {
             is_enabled,
-            allow_key,
-            allow_token,
-            allow_totp,
+            type_,
             name: name.into(),
             service_id: None,
             user_id: None,
         }
     }
 
-    pub fn with_service_id<S1>(
-        is_enabled: bool,
-        allow_key: bool,
-        allow_token: bool,
-        allow_totp: bool,
-        name: S1,
-        service_id: Uuid,
-    ) -> Self
+    pub fn with_service_id<S1>(is_enabled: bool, type_: KeyType, name: S1, service_id: Uuid) -> Self
     where
         S1: Into<String>,
     {
         Self {
             is_enabled,
-            allow_key,
-            allow_token,
-            allow_totp,
+            type_,
             name: name.into(),
             service_id: Some(service_id),
             user_id: None,
         }
     }
 
-    pub fn with_user_id<S1>(
-        is_enabled: bool,
-        allow_key: bool,
-        allow_token: bool,
-        allow_totp: bool,
-        name: S1,
-        user_id: Uuid,
-    ) -> Self
+    pub fn with_user_id<S1>(is_enabled: bool, type_: KeyType, name: S1, user_id: Uuid) -> Self
     where
         S1: Into<String>,
     {
         Self {
             is_enabled,
-            allow_key,
-            allow_token,
-            allow_totp,
+            type_,
             name: name.into(),
             service_id: None,
             user_id: Some(user_id),
@@ -333,9 +306,6 @@ pub struct KeyReadResponse {
 #[serde(deny_unknown_fields)]
 pub struct KeyUpdateRequest {
     pub is_enabled: Option<bool>,
-    pub allow_key: Option<bool>,
-    pub allow_token: Option<bool>,
-    pub allow_totp: Option<bool>,
     #[validate(custom = "ApiValidate::name")]
     pub name: Option<String>,
 }
@@ -570,9 +540,10 @@ pub struct UserCreateRequest {
     pub locale: String,
     #[validate(custom = "ApiValidate::timezone")]
     pub timezone: String,
+    pub password_allow_reset: Option<bool>,
+    pub password_require_update: Option<bool>,
     #[validate(custom = "ApiValidate::password")]
     pub password: Option<String>,
-    pub password_update_required: Option<bool>,
 }
 
 impl ApiValidateRequest<UserCreateRequest> for UserCreateRequest {}
@@ -597,8 +568,9 @@ impl UserCreateRequest {
             email: email.into(),
             locale: locale.into(),
             timezone: timezone.into(),
+            password_allow_reset: None,
+            password_require_update: None,
             password: None,
-            password_update_required: None,
         }
     }
 
@@ -608,8 +580,9 @@ impl UserCreateRequest {
         email: S2,
         locale: S3,
         timezone: S4,
+        password_allow_reset: bool,
+        password_require_update: bool,
         password: S5,
-        password_update_required: bool,
     ) -> Self
     where
         S1: Into<String>,
@@ -624,8 +597,24 @@ impl UserCreateRequest {
             email: email.into(),
             locale: locale.into(),
             timezone: timezone.into(),
+            password_allow_reset: Some(password_allow_reset),
+            password_require_update: Some(password_require_update),
             password: Some(password.into()),
-            password_update_required: Some(password_update_required),
+        }
+    }
+}
+
+impl From<UserCreateRequest> for UserCreate {
+    fn from(request: UserCreateRequest) -> Self {
+        Self {
+            is_enabled: request.is_enabled,
+            name: request.name,
+            email: request.email,
+            locale: request.locale,
+            timezone: request.timezone,
+            password_allow_reset: request.password_allow_reset.unwrap_or(false),
+            password_require_update: request.password_require_update.unwrap_or(false),
+            password_hash: request.password,
         }
     }
 }
@@ -651,7 +640,8 @@ pub struct UserUpdateRequest {
     pub locale: Option<String>,
     #[validate(custom = "ApiValidate::timezone")]
     pub timezone: Option<String>,
-    pub password_update_required: Option<bool>,
+    pub password_allow_reset: Option<bool>,
+    pub password_require_update: Option<bool>,
 }
 
 impl ApiValidateRequest<UserUpdateRequest> for UserUpdateRequest {}

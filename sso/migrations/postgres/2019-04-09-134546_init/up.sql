@@ -20,8 +20,9 @@ CREATE TABLE sso_user (
     user_email VARCHAR NOT NULL,
     user_locale VARCHAR NOT NULL,
     user_timezone VARCHAR NOT NULL,
+    user_password_allow_reset BOOLEAN NOT NULL,
+    user_password_require_update BOOLEAN NOT NULL,
     user_password_hash VARCHAR,
-    user_password_update_required BOOLEAN,
     PRIMARY KEY (user_id),
     CONSTRAINT uq_sso_user_email UNIQUE(user_email)
 );
@@ -32,9 +33,7 @@ CREATE TABLE sso_key (
     key_id UUID NOT NULL,
     key_is_enabled BOOLEAN NOT NULL,
     key_is_revoked BOOLEAN NOT NULL,
-    key_allow_key BOOLEAN NOT NULL,
-    key_allow_token BOOLEAN NOT NULL,
-    key_allow_totp BOOLEAN NOT NULL,
+    key_type VARCHAR NOT NULL,
     key_name VARCHAR NOT NULL,
     key_value VARCHAR NOT NULL,
     service_id UUID,
@@ -50,10 +49,10 @@ CREATE TABLE sso_key (
         REFERENCES sso_user(user_id)
         ON DELETE RESTRICT
 );
-CREATE UNIQUE INDEX idx_sso_key_allow_token ON sso_key (service_id, user_id)
-    WHERE key_is_enabled IS TRUE AND key_allow_token IS TRUE;
-CREATE UNIQUE INDEX idx_sso_key_allow_totp ON sso_key (service_id, user_id)
-    WHERE key_is_enabled IS TRUE AND key_allow_totp IS TRUE;
+CREATE UNIQUE INDEX idx_sso_key_type_token ON sso_key (service_id, user_id)
+    WHERE key_is_enabled IS TRUE AND key_type = 'Token';
+CREATE UNIQUE INDEX idx_sso_key_type_totp ON sso_key (service_id, user_id)
+    WHERE key_is_enabled IS TRUE AND key_type = 'Totp';
 
 CREATE TABLE sso_csrf (
     created_at TIMESTAMPTZ NOT NULL,

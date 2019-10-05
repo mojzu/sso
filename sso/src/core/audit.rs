@@ -10,7 +10,7 @@ use uuid::Uuid;
 pub const AUDIT_TYPE_MAX_LEN: usize = 200;
 
 /// Audit types.
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, PartialEq, Clone, Serialize, Deserialize)]
 pub enum AuditType {
     AuthenticateError,
     Login,

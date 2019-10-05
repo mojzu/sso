@@ -36,9 +36,10 @@ pub struct User {
     pub email: String,
     pub locale: String,
     pub timezone: String,
+    pub password_allow_reset: bool,
+    pub password_require_update: bool,
     #[serde(skip)]
     pub password_hash: Option<String>,
-    pub password_update_required: Option<bool>,
 }
 
 impl fmt::Display for User {
@@ -51,14 +52,12 @@ impl fmt::Display for User {
         write!(f, "\n\temail {}", self.email)?;
         write!(f, "\n\tlocale {}", self.locale)?;
         write!(f, "\n\ttimezone {}", self.timezone)?;
-        if let Some(password_update_required) = self.password_update_required {
-            write!(
-                f,
-                "\n\tpassword_update_required {}",
-                password_update_required
-            )?;
-        }
-        Ok(())
+        write!(f, "\n\tpassword_allow_reset {}", self.password_allow_reset)?;
+        write!(
+            f,
+            "\n\tpassword_require_update {}",
+            self.password_require_update
+        )
     }
 }
 
@@ -94,8 +93,9 @@ pub struct UserCreate {
     pub email: String,
     pub locale: String,
     pub timezone: String,
+    pub password_allow_reset: bool,
+    pub password_require_update: bool,
     pub password_hash: Option<String>,
-    pub password_update_required: Option<bool>,
 }
 
 /// User read.
@@ -112,8 +112,9 @@ pub struct UserUpdate {
     pub email: Option<String>,
     pub locale: Option<String>,
     pub timezone: Option<String>,
+    pub password_allow_reset: Option<bool>,
+    pub password_require_update: Option<bool>,
     pub password_hash: Option<String>,
-    pub password_update_required: Option<bool>,
 }
 
 /// User token.
@@ -153,36 +154,21 @@ impl User {
     }
 
     /// Create user.
-    /// Returns bad request if email address is not unique.
+    /// Returns error if email address is not unique.
     pub fn create(
         driver: &dyn Driver,
         service_mask: Option<&Service>,
         audit: &mut AuditBuilder,
-        is_enabled: bool,
-        name: String,
-        email: String,
-        locale: String,
-        timezone: String,
-        password: Option<String>,
-        password_update_required: Option<bool>,
+        create: &mut UserCreate,
     ) -> CoreResult<User> {
-        let read = UserRead::Email(email.clone());
+        let read = UserRead::Email(create.email.clone());
         let user = User::read_opt(driver, service_mask, audit, &read)?;
         if user.is_some() {
             return Err(CoreError::BadRequest);
         }
 
-        let password_hash = User::password_hash(password.as_ref().map(|x| &**x))?;
-        let create = UserCreate {
-            is_enabled,
-            name,
-            email,
-            locale,
-            timezone,
-            password_hash,
-            password_update_required,
-        };
-        driver.user_create(&create).map_err(CoreError::Driver)
+        create.password_hash = User::password_hash(create.password_hash.as_ref().map(|x| &**x))?;
+        driver.user_create(create).map_err(CoreError::Driver)
     }
 
     /// Read user (optional).
@@ -205,7 +191,8 @@ impl User {
         name: Option<String>,
         locale: Option<String>,
         timezone: Option<String>,
-        password_update_required: Option<bool>,
+        password_allow_reset: Option<bool>,
+        password_require_update: Option<bool>,
     ) -> CoreResult<User> {
         let update = UserUpdate {
             is_enabled,
@@ -213,8 +200,9 @@ impl User {
             email: None,
             locale,
             timezone,
+            password_allow_reset,
+            password_require_update,
             password_hash: None,
-            password_update_required,
         };
         driver.user_update(&id, &update).map_err(CoreError::Driver)
     }
@@ -233,8 +221,9 @@ impl User {
             email: Some(email),
             locale: None,
             timezone: None,
+            password_allow_reset: None,
+            password_require_update: None,
             password_hash: None,
-            password_update_required: None,
         };
         driver.user_update(&id, &update).map_err(CoreError::Driver)
     }
@@ -255,8 +244,9 @@ impl User {
             email: None,
             locale: None,
             timezone: None,
+            password_allow_reset: None,
+            password_require_update: None,
             password_hash: Some(password_hash),
-            password_update_required: None,
         };
         driver.user_update(&id, &update).map_err(CoreError::Driver)
     }

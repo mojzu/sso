@@ -1,6 +1,7 @@
 use crate::{
-    AuditBuilder, AuditMeta, AuthError, AuthResult, ClientActor, ClientActorOptions, Driver, Key,
-    NotifyActor, NotifyActorOptions, Server, ServerError, ServerOptions, Service, ServiceCreate,
+    AuditBuilder, AuditMeta, ClientActor, ClientActorOptions, Driver, Key, NotifyActor,
+    NotifyActorOptions, Server, ServerError, ServerOptions, Service, ServiceCreate, SsoError,
+    SsoResult,
 };
 use actix_rt::System;
 
@@ -68,7 +69,7 @@ impl Cli {
     }
 
     /// Create a root key.
-    pub fn create_root_key(driver: Box<dyn Driver>, name: &str) -> AuthResult<Key> {
+    pub fn create_root_key(driver: Box<dyn Driver>, name: &str) -> SsoResult<Key> {
         let mut audit = Cli::audit_builder();
         Key::create_root(driver.as_ref(), &mut audit, true, String::from(name)).map_err(Into::into)
     }
@@ -81,7 +82,7 @@ impl Cli {
         provider_local_url: Option<&str>,
         provider_github_oauth2_url: Option<&str>,
         provider_microsoft_oauth2_url: Option<&str>,
-    ) -> AuthResult<(Service, Key)> {
+    ) -> SsoResult<(Service, Key)> {
         let mut audit = Cli::audit_builder();
         let service_create = ServiceCreate {
             is_enabled: true,
@@ -92,7 +93,7 @@ impl Cli {
             provider_microsoft_oauth2_url: provider_microsoft_oauth2_url.map(|x| x.to_owned()),
         };
         let service = Service::create(driver.as_ref(), &mut audit, &service_create)
-            .map_err(AuthError::Core)?;
+            .map_err(SsoError::Core)?;
         let key = Key::create_service(
             driver.as_ref(),
             &mut audit,
@@ -100,13 +101,13 @@ impl Cli {
             name.to_owned(),
             service.id,
         )
-        .map_err(AuthError::Core)?;
+        .map_err(SsoError::Core)?;
         Ok((service, key))
     }
 
     /// Start server.
     /// Starts notify and client actors, and HTTP server.
-    pub fn start_server(driver: Box<dyn Driver>, options: CliOptions) -> AuthResult<()> {
+    pub fn start_server(driver: Box<dyn Driver>, options: CliOptions) -> SsoResult<()> {
         let system = System::new(crate_name!());
 
         let client_options = options.client().clone();
@@ -125,7 +126,7 @@ impl Cli {
             server_notify_addr,
             server_client_addr,
         )
-        .map_err(AuthError::Server)?;
+        .map_err(SsoError::Server)?;
 
         system.run().map_err(ServerError::StdIo).map_err(Into::into)
     }

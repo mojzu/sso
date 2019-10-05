@@ -2,100 +2,21 @@ mod actor;
 #[cfg(feature = "async_client")]
 mod async_impl;
 pub mod client_msg;
+mod error;
 #[cfg(feature = "sync_client")]
 mod sync_impl;
 
-pub use crate::client::actor::*;
 #[cfg(feature = "async_client")]
 pub use crate::client::async_impl::*;
 #[cfg(feature = "sync_client")]
 pub use crate::client::sync_impl::*;
+pub use crate::client::{actor::*, error::*};
 
-use crate::{CoreError, CoreUtil};
-use actix::MailboxError as ActixMailboxError;
-use http::{header, StatusCode};
-use reqwest::{
-    r#async::RequestBuilder as AsyncRequestBuilder, Error as ReqwestError, RequestBuilder, Response,
-};
+use crate::CoreUtil;
+use http::header;
+use reqwest::{r#async::RequestBuilder as AsyncRequestBuilder, RequestBuilder, Response};
 use serde::{de::DeserializeOwned, ser::Serialize};
-use serde_json::Error as SerdeJsonError;
-use std::{error::Error as StdError, io::Error as StdIoError};
 use url::Url;
-
-/// Client errors.
-#[derive(Debug, Fail, PartialEq)]
-pub enum ClientError {
-    #[fail(display = "ClientError:BadRequest")]
-    BadRequest,
-
-    #[fail(display = "ClientError:Forbidden")]
-    Forbidden,
-
-    #[fail(display = "ClientError:NotFound")]
-    NotFound,
-
-    #[fail(display = "ClientError:Client {}", _0)]
-    Client(String),
-
-    #[fail(display = "ClientError:Core {}", _0)]
-    Core(String),
-
-    #[fail(display = "ClientError:SerdeJson {}", _0)]
-    SerdeJson(String),
-
-    #[fail(display = "ClientError:Url {}", _0)]
-    Url(String),
-
-    #[fail(display = "ClientError:ActixMailbox {}", _0)]
-    ActixMailbox(String),
-
-    #[fail(display = "ClientError:StdIo {}", _0)]
-    StdIo(String),
-}
-
-/// Client result wrapper type.
-pub type ClientResult<T> = Result<T, ClientError>;
-
-impl ClientError {
-    pub fn core(e: CoreError) -> Self {
-        Self::Core(format!("{}", e))
-    }
-
-    pub fn url(e: &dyn StdError) -> Self {
-        Self::Url(e.description().into())
-    }
-
-    pub fn stdio(e: &StdIoError) -> Self {
-        Self::StdIo(e.description().into())
-    }
-}
-
-impl From<ReqwestError> for ClientError {
-    fn from(e: ReqwestError) -> Self {
-        if let Some(status) = e.status() {
-            match status {
-                StatusCode::BAD_REQUEST => Self::BadRequest,
-                StatusCode::FORBIDDEN => Self::Forbidden,
-                StatusCode::NOT_FOUND => Self::NotFound,
-                _ => Self::Client(e.description().to_owned()),
-            }
-        } else {
-            Self::Client(e.description().to_owned())
-        }
-    }
-}
-
-impl From<SerdeJsonError> for ClientError {
-    fn from(e: SerdeJsonError) -> Self {
-        Self::SerdeJson(e.description().to_owned())
-    }
-}
-
-impl From<ActixMailboxError> for ClientError {
-    fn from(e: ActixMailboxError) -> Self {
-        Self::ActixMailbox(e.description().to_owned())
-    }
-}
 
 /// Client options.
 #[derive(Debug, Clone)]

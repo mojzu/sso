@@ -3,30 +3,30 @@ use std::env::VarError;
 
 /// Library errors.
 #[derive(Debug, Fail)]
-pub enum AuthError {
-    #[fail(display = "AuthError:Core {}", _0)]
+pub enum SsoError {
+    #[fail(display = "SsoError:Core {}", _0)]
     Core(#[fail(cause)] CoreError),
 
-    #[fail(display = "AuthError:Server {}", _0)]
+    #[fail(display = "SsoError:Server {}", _0)]
     Server(#[fail(cause)] ServerError),
 
-    #[fail(display = "AuthError:EnvParse {}", _0)]
+    #[fail(display = "SsoError:EnvParse {}", _0)]
     EnvParse(String),
 
-    #[fail(display = "AuthError:StdEnvVar {}", _0)]
+    #[fail(display = "SsoError:StdEnvVar {}", _0)]
     StdEnvVar(#[fail(cause)] VarError),
 }
 
 /// Library result wrapper type.
-pub type AuthResult<T> = Result<T, AuthError>;
+pub type SsoResult<T> = Result<T, SsoError>;
 
-impl From<CoreError> for AuthError {
+impl From<CoreError> for SsoError {
     fn from(e: CoreError) -> Self {
         Self::Core(e)
     }
 }
 
-impl From<ServerError> for AuthError {
+impl From<ServerError> for SsoError {
     fn from(e: ServerError) -> Self {
         Self::Server(e)
     }

@@ -20,7 +20,7 @@ pub use sso::{
         AuthTotpRequest, KeyCreateRequest, KeyListRequest, ServiceCreateRequest,
         ServiceListRequest, UserCreateRequest, UserListRequest,
     },
-    Client, ClientActorOptions, ClientError, ClientOptions, ClientSync,
+    Client, ClientActorOptions, ClientError, ClientOptions, ClientSync, KeyType,
 };
 pub use uuid::Uuid;
 
@@ -69,7 +69,7 @@ pub fn service_key_create(client: &ClientSync) -> (Service, Key) {
     let create_service = client.service_create(body).unwrap();
 
     let body =
-        KeyCreateRequest::with_service_id(true, true, false, false, "test", create_service.data.id);
+        KeyCreateRequest::with_service_id(true, KeyType::Key, "test", create_service.data.id);
     let create_key = client.key_create(body).unwrap();
     (create_service.data, create_key.data)
 }
@@ -103,8 +103,9 @@ pub fn user_create_with_password(
         email,
         USER_LOCALE,
         USER_TIMEZONE,
-        password,
         false,
+        false,
+        password,
     );
     let create = client.user_create(body).unwrap();
     let user = create.data;
@@ -124,7 +125,7 @@ pub fn user_key_create(
     service_id: Uuid,
     user_id: Uuid,
 ) -> UserKey {
-    let body = KeyCreateRequest::with_user_id(true, true, true, false, name, user_id);
+    let body = KeyCreateRequest::with_user_id(true, KeyType::Key, name, user_id);
     let create = client.key_create(body).unwrap();
     let key = create.data;
     assert_eq!(key.name, name);

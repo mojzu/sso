@@ -1,6 +1,4 @@
-use crate::{
-    ApiProviderOauth2, AuthError, AuthResult, NotifyActorOptionsSmtp, ServerOptionsRustls,
-};
+use crate::{ApiProviderOauth2, NotifyActorOptionsSmtp, ServerOptionsRustls, SsoError, SsoResult};
 use std::str::FromStr;
 
 /// Environment helper functions.
@@ -9,10 +7,10 @@ pub struct Env;
 impl Env {
     /// Read required environment variable string value.
     /// Logs an error message in case of error.
-    pub fn string(name: &str) -> AuthResult<String> {
+    pub fn string(name: &str) -> SsoResult<String> {
         std::env::var(name).map_err(|err| {
             error!("{} is undefined, required ({})", name, err);
-            AuthError::StdEnvVar(err)
+            SsoError::StdEnvVar(err)
         })
     }
 
@@ -23,27 +21,27 @@ impl Env {
 
     /// Read environment variable value parsed from string.
     /// Logs an error message in case of error.
-    pub fn value<T: FromStr>(name: &str) -> AuthResult<T>
+    pub fn value<T: FromStr>(name: &str) -> SsoResult<T>
     where
         <T as std::str::FromStr>::Err: std::fmt::Display,
     {
         let value = std::env::var(name).map_err(|err| {
             error!("{} is undefined, required ({})", name, err);
-            AuthError::StdEnvVar(err)
+            SsoError::StdEnvVar(err)
         })?;
 
         match value.parse::<T>() {
             Ok(x) => Ok(x),
             Err(err) => {
                 error!("{} is invalid ({})", name, err);
-                Err(AuthError::EnvParse(err.to_string()))
+                Err(SsoError::EnvParse(err.to_string()))
             }
         }
     }
 
     /// Read optional environment variable value parsed from string.
     /// Logs an error message in case value is not parsed successfully.
-    pub fn value_opt<T: FromStr>(name: &str) -> AuthResult<Option<T>>
+    pub fn value_opt<T: FromStr>(name: &str) -> SsoResult<Option<T>>
     where
         <T as std::str::FromStr>::Err: std::fmt::Display,
     {
@@ -53,7 +51,7 @@ impl Env {
                 Ok(x) => Ok(Some(x)),
                 Err(err) => {
                     error!("{} is invalid ({})", name, err);
-                    Err(AuthError::EnvParse(err.to_string()))
+                    Err(SsoError::EnvParse(err.to_string()))
                 }
             }
         } else {
@@ -79,7 +77,7 @@ impl Env {
         smtp_port_name: &str,
         smtp_user_name: &str,
         smtp_password_name: &str,
-    ) -> AuthResult<Option<NotifyActorOptionsSmtp>> {
+    ) -> SsoResult<Option<NotifyActorOptionsSmtp>> {
         if Env::has_any_name(&[
             smtp_host_name,
             smtp_port_name,
@@ -108,7 +106,7 @@ impl Env {
     pub fn oauth2(
         client_id_name: &str,
         client_secret_name: &str,
-    ) -> AuthResult<Option<ApiProviderOauth2>> {
+    ) -> SsoResult<Option<ApiProviderOauth2>> {
         if Env::has_any_name(&[client_id_name, client_secret_name]) {
             let client_id = Env::string(client_id_name)?;
             let client_secret = Env::string(client_secret_name)?;
@@ -126,7 +124,7 @@ impl Env {
         crt_pem_name: &str,
         key_pem_name: &str,
         client_pem_name: &str,
-    ) -> AuthResult<Option<ServerOptionsRustls>> {
+    ) -> SsoResult<Option<ServerOptionsRustls>> {
         if Env::has_any_name(&[crt_pem_name, key_pem_name, client_pem_name]) {
             let crt_pem = Env::string(crt_pem_name)?;
             let key_pem = Env::string(key_pem_name)?;

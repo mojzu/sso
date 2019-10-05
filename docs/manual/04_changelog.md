@@ -2,6 +2,11 @@
 
 ## 0.6.0 (?)
 
+**Changed**
+
+- Replaced key flags with type: `Key`, `Token` or `Totp`.
+- Added user flags: `password_allow_reset` and `password_require_update`.
+
 ## 0.5.0 (2019-10-05)
 
 **Added**

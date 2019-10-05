@@ -7,8 +7,8 @@ pub use crate::core::api::validate::*;
 use crate::{
     core::api::{api_type::*, oauth2::*},
     Audit, AuditData, AuditList, AuditMeta, Auth, CoreError, CoreResult, Driver, Key, KeyList,
-    Metrics, NotifyActor, Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserList,
-    UserPasswordMeta, UserRead,
+    Metrics, NotifyActor, Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate,
+    UserList, UserPasswordMeta, UserRead,
 };
 use actix::Addr;
 use prometheus::Registry;
@@ -105,7 +105,7 @@ impl ApiProviderOauth2 {
     }
 }
 
-/// API.
+/// API functions.
 pub struct Api;
 
 impl Api {
@@ -213,9 +213,7 @@ impl Api {
                             driver,
                             &mut audit,
                             request.is_enabled,
-                            request.allow_key,
-                            request.allow_token,
-                            request.allow_totp,
+                            request.type_,
                             request.name,
                             service_id,
                             user_id,
@@ -239,9 +237,7 @@ impl Api {
                             driver,
                             &mut audit,
                             request.is_enabled,
-                            request.allow_key,
-                            request.allow_token,
-                            request.allow_totp,
+                            request.type_,
                             request.name,
                             service.id,
                             user_id,
@@ -289,9 +285,6 @@ impl Api {
                     key_id,
                     request.is_enabled,
                     None,
-                    request.allow_key,
-                    request.allow_token,
-                    request.allow_totp,
                     request.name,
                 )
             })
@@ -426,18 +419,8 @@ impl Api {
 
         Key::authenticate(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
-                User::create(
-                    driver,
-                    service.as_ref(),
-                    &mut audit,
-                    request.is_enabled,
-                    request.name,
-                    request.email,
-                    request.locale,
-                    request.timezone,
-                    request.password,
-                    request.password_update_required,
-                )
+                let mut create: UserCreate = request.into();
+                User::create(driver, service.as_ref(), &mut audit, &mut create)
             })
             .map_err(Into::into)
             .map(|data| UserCreateResponse {
@@ -482,7 +465,8 @@ impl Api {
                     request.name,
                     request.locale,
                     request.timezone,
-                    request.password_update_required,
+                    request.password_allow_reset,
+                    request.password_require_update,
                 )
             })
             .map_err(Into::into)
