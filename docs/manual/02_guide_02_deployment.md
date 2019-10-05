@@ -1,6 +1,6 @@
 ## Deployment
 
-TODO(docs): How to deploy mz_auth server.
+TODO(docs): How to deploy sso server.
 
 **Nginx**
 
@@ -36,7 +36,7 @@ Example [Prometheus](https://prometheus.io/) configuration.
 scrape_configs:
     # ...
 
-    - job_name: "mz_auth"
+    - job_name: "sso"
       metrics_path: "/v1/metrics"
       bearer_token: "$root_or_service_key"
       static_configs:

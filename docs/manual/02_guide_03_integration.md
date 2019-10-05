@@ -1,18 +1,18 @@
 ## Integration
 
-The following diagram illustrates how services and mz_auth integrate to authenticate user requests.
+The following diagram illustrates how services and sso integrate to authenticate user requests.
 
 ![User request verification](docs/asset/integration.svg)
 
 1. User with token or key acquired by authentication method sends HTTP request to service.
-2. Service sends HTTP request to mz_auth with its own service key, and the users token or key.
-3. mz_auth authenticates service using the service key, and verifies user token or key.
+2. Service sends HTTP request to sso with its own service key, and the users token or key.
+3. sso authenticates service using the service key, and verifies user token or key.
 4. If authenticated/verified, service handles request and sends HTTP response to user.
 5. User handles HTTP response.
 
 **Callbacks**
 
-A service integrating with mz_auth can provide the following HTTPS endpoints as callbacks.
+A service integrating with sso can provide the following HTTPS endpoints as callbacks.
 
 ```shell
 GET $service_url?type=oauth2&user_id=$id&access_token=$token&access_token_expires=$token_expires&refresh_token=$token&refresh_token_expires=$token_expires

@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="Sam Ward" />
-  <title>Manual (mz_auth)</title>
+  <title>Manual (sso)</title>
   <style>
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
@@ -125,7 +125,7 @@ background-color: #f4f4f4;
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">Manual (mz_auth)</h1>
+<h1 class="title">Manual (sso)</h1>
 <p class="author">Sam Ward</p>
 </header>
 <nav id="TOC" role="doc-toc">
@@ -147,7 +147,7 @@ background-color: #f4f4f4;
 </ul></li>
 <li><a href="#cli">CLI</a></li>
 <li><a href="#changelog">Changelog</a><ul>
-<li><a href="#section">0.5.0 (?)</a></li>
+<li><a href="#section">0.5.0 (2019-10-05)</a></li>
 <li><a href="#section-1">0.4.0 (2019-09-09)</a></li>
 <li><a href="#section-2">0.3.0 (2019-08-03)</a></li>
 <li><a href="#section-3">0.2.0 (2019-07-07)</a></li>
@@ -165,7 +165,7 @@ background-color: #f4f4f4;
 </nav>
 <h1 id="introduction">Introduction</h1>
 <p><strong>Warning: The author of this application is not a security expert, and the code has not undergone any kind of review or verification. Use it at your own risk!</strong></p>
-<p>The crate <code>mz_auth</code> is an authentication server binary. It is intended to be used as a backend for other services, such as API servers, which must authenticate user requests.</p>
+<p>The crate <code>sso</code> is an authentication server binary. It is intended to be used as a backend for other services, such as API servers, which must authenticate user requests.</p>
 <p>Authentication methods are organised into provider groups. The following provider groups are currently supported: <code>local</code>, <code>github</code>, <code>microsoft</code>. Depending on the provider, the following user authentication methods are supported.</p>
 <ul>
 <li><strong>Password Login (Local)</strong>
@@ -200,23 +200,23 @@ background-color: #f4f4f4;
 <ul>
 <li><strong>User</strong>
 <ul>
-<li>A person or other external API consumer identified by a unique email address who wants to interact with one or more services registered with <code>mz_auth</code>.</li>
+<li>A person or other external API consumer identified by a unique email address who wants to interact with one or more services registered with <code>sso</code>.</li>
 </ul></li>
 <li><strong>Service</strong>
 <ul>
-<li>An application that must authenticate user requests, registered as a service with <code>mz_auth</code> using a name and callback URL.</li>
+<li>An application that must authenticate user requests, registered as a service with <code>sso</code> using a name and callback URL.</li>
 </ul></li>
 <li><strong>Key</strong>
 <ul>
-<li>Random, unique keys produced by <code>mz_auth</code>. Keys may be revoked to prevent use.</li>
+<li>Random, unique keys produced by <code>sso</code>. Keys may be revoked to prevent use.</li>
 </ul></li>
 <li><strong>Root Key</strong>
 <ul>
-<li>Keys linked to no services or users, produced by command line and can be used to manage <code>mz_auth</code> via HTTP requests.</li>
+<li>Keys linked to no services or users, produced by command line and can be used to manage <code>sso</code> via HTTP requests.</li>
 </ul></li>
 <li><strong>Service Key</strong>
 <ul>
-<li>Keys linked to one service, used by <code>mz_auth</code> to authenticate HTTP requests from services.</li>
+<li>Keys linked to one service, used by <code>sso</code> to authenticate HTTP requests from services.</li>
 </ul></li>
 <li><strong>User Key</strong>
 <ul>
@@ -231,7 +231,7 @@ background-color: #f4f4f4;
 <h2 id="quickstart">Quickstart</h2>
 <p>TODO(docs): Write quickstart guide.</p>
 <h2 id="deployment">Deployment</h2>
-<p>TODO(docs): How to deploy mz_auth server.</p>
+<p>TODO(docs): How to deploy sso server.</p>
 <p><strong>Nginx</strong></p>
 <p>Example <a href="https://www.nginx.com/">nginx</a> configuration.</p>
 <pre class="nginx"><code>http {
@@ -258,26 +258,26 @@ background-color: #f4f4f4;
 <div class="sourceCode" id="cb2"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1"></a><span class="fu">scrape_configs</span><span class="kw">:</span></span>
 <span id="cb2-2"><a href="#cb2-2"></a><span class="co">    # ...</span></span>
 <span id="cb2-3"><a href="#cb2-3"></a></span>
-<span id="cb2-4"><a href="#cb2-4"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">job_name</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;mz_auth&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">job_name</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;sso&quot;</span></span>
 <span id="cb2-5"><a href="#cb2-5"></a><span class="at">      </span><span class="fu">metrics_path</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;/v1/metrics&quot;</span></span>
 <span id="cb2-6"><a href="#cb2-6"></a><span class="at">      </span><span class="fu">bearer_token</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;$root_or_service_key&quot;</span></span>
 <span id="cb2-7"><a href="#cb2-7"></a><span class="at">      </span><span class="fu">static_configs</span><span class="kw">:</span></span>
 <span id="cb2-8"><a href="#cb2-8"></a><span class="at">          </span><span class="kw">-</span><span class="at"> </span><span class="fu">targets</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="st">&quot;$server_url&quot;</span><span class="kw">]</span></span></code></pre></div>
 <pre class="shell"><code>curl --header &quot;Authorization: $root_or_service_key&quot; $server_url/v1/metrics</code></pre>
 <h2 id="integration">Integration</h2>
-<p>The following diagram illustrates how services and mz_auth integrate to authenticate user requests.</p>
+<p>The following diagram illustrates how services and sso integrate to authenticate user requests.</p>
 <figure>
-<img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiIHN0YW5kYWxvbmU9Im5vIj8+PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAyMDAxMDkwNC8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MzIiIGhlaWdodD0iNTMzIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PHNvdXJjZT48IVtDREFUQVtOb3RlIG92ZXIgVXNlcjogMS4gVXNlciBUb2tlbiBvciBLZXkKVXNlci0+PlNlcnZpY2U6IEhUVFAgUmVxdWVzdApOb3RlIG92ZXIgU2VydmljZTogMi4gU2VydmljZSBLZXkKU2VydmljZS0+Pm16X2F1dGg6IEhUVFAgUmVxdWVzdApOb3RlIG92ZXIgbXpfYXV0aDogMy4gVmVyaWZ5Cm16X2F1dGgtPj5TZXJ2aWNlOiBIVFRQIFJlc3BvbnNlCk5vdGUgb3ZlciBTZXJ2aWNlOiA0LiBSZXF1ZXN0IEhhbmRsZXIKU2VydmljZS0+PlVzZXI6IEhUVFAgUmVzcG9uc2UKTm90ZSBvdmVyIFVzZXI6IDUuIFJlc3BvbnNlIEhhbmRsZXJdXT48L3NvdXJjZT48ZGVzYz48L2Rlc2M+PGRlZnM+PG1hcmtlciB2aWV3Qm94PSIwIDAgNSA1IiBtYXJrZXJXaWR0aD0iNSIgbWFya2VySGVpZ2h0PSI1IiBvcmllbnQ9ImF1dG8iIHJlZlg9IjUiIHJlZlk9IjIuNSIgaWQ9Im1hcmtlckFycm93QmxvY2siPjxwYXRoIGQ9Ik0gMCAwIEwgNSAyLjUgTCAwIDUgeiI+PC9wYXRoPjwvbWFya2VyPjxtYXJrZXIgdmlld0JveD0iMCAwIDkuNiAxNiIgbWFya2VyV2lkdGg9IjQiIG1hcmtlckhlaWdodD0iMTYiIG9yaWVudD0iYXV0byIgcmVmWD0iOS42IiByZWZZPSI4IiBpZD0ibWFya2VyQXJyb3dPcGVuIj48cGF0aCBkPSJNIDkuNiw4IDEuOTIsMTYgMCwxMy43IDUuNzYsOCAwLDIuMjg2IDEuOTIsMCA5LjYsOCB6Ij48L3BhdGg+PC9tYXJrZXI+PC9kZWZzPjxnIGNsYXNzPSJ0aXRsZSI+PC9nPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iODEiIHk9IjIwIiB3aWR0aD0iNTgiIGhlaWdodD0iMzguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjkxIiB5PSI0NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iOTEiPlVzZXI8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9ImFjdG9yIj48cmVjdCB4PSI4MSIgeT0iNDc1IiB3aWR0aD0iNTgiIGhlaWdodD0iMzguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjkxIiB5PSI1MDAiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjkxIj5Vc2VyPC90c3Bhbj48L3RleHQ+PC9nPjxsaW5lIHgxPSIxMTAiIHgyPSIxMTAiIHkxPSI1OC41IiB5Mj0iNDc1IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIj48L2xpbmU+PGcgY2xhc3M9ImFjdG9yIj48cmVjdCB4PSIyMTAuMjUiIHk9IjIwIiB3aWR0aD0iODYuNSIgaGVpZ2h0PSIzOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMjIwLjI1IiB5PSI0NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjIwLjI1Ij5TZXJ2aWNlPC90c3Bhbj48L3RleHQ+PC9nPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iMjEwLjI1IiB5PSI0NzUiIHdpZHRoPSI4Ni41IiBoZWlnaHQ9IjM4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIyMjAuMjUiIHk9IjUwMCIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjIwLjI1Ij5TZXJ2aWNlPC90c3Bhbj48L3RleHQ+PC9nPjxsaW5lIHgxPSIyNTMuNSIgeDI9IjI1My41IiB5MT0iNTguNSIgeTI9IjQ3NSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iMzQ5IiB5PSIyMCIgd2lkdGg9Ijk2IiBoZWlnaHQ9IjM4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIzNTkiIHk9IjQ1IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIzNTkiPm16X2F1dGg8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9ImFjdG9yIj48cmVjdCB4PSIzNDkiIHk9IjQ3NSIgd2lkdGg9Ijk2IiBoZWlnaHQ9IjM4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIzNTkiIHk9IjUwMCIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMzU5Ij5tel9hdXRoPC90c3Bhbj48L3RleHQ+PC9nPjxsaW5lIHgxPSIzOTciIHgyPSIzOTciIHkxPSI1OC41IiB5Mj0iNDc1IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIj48L2xpbmU+PGcgY2xhc3M9Im5vdGUiPjxyZWN0IHg9IjEwIiB5PSI3OC41IiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjI4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIxNSIgeT0iOTguNSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMTUiPjEuIFVzZXIgVG9rZW4gb3IgS2V5PC90c3Bhbj48L3RleHQ+PC9nPjxnIGNsYXNzPSJzaWduYWwiPjx0ZXh0IHg9IjEyNC43NSIgeT0iMTM3Ljc1IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIxMjQuNzUiPkhUVFAgUmVxdWVzdDwvdHNwYW4+PC90ZXh0PjxsaW5lIHgxPSIxMTAiIHgyPSIyNTMuNSIgeTE9IjE0NS41IiB5Mj0iMTQ1LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IG1hcmtlci1lbmQ6IHVybCgmcXVvdDsjbWFya2VyQXJyb3dPcGVuJnF1b3Q7KTsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjwvZz48ZyBjbGFzcz0ibm90ZSI+PHJlY3QgeD0iMTgyIiB5PSIxNjUuNSIgd2lkdGg9IjE0MyIgaGVpZ2h0PSIyOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMTg3IiB5PSIxODUuNSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMTg3Ij4yLiBTZXJ2aWNlIEtleTwvdHNwYW4+PC90ZXh0PjwvZz48ZyBjbGFzcz0ic2lnbmFsIj48dGV4dCB4PSIyNjguMjUiIHk9IjIyNC43NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjY4LjI1Ij5IVFRQIFJlcXVlc3Q8L3RzcGFuPjwvdGV4dD48bGluZSB4MT0iMjUzLjUiIHgyPSIzOTciIHkxPSIyMzIuNSIgeTI9IjIzMi41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBtYXJrZXItZW5kOiB1cmwoJnF1b3Q7I21hcmtlckFycm93T3BlbiZxdW90Oyk7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9Im5vbmUiPjwvbGluZT48L2c+PGcgY2xhc3M9Im5vdGUiPjxyZWN0IHg9IjM0OS4yNSIgeT0iMjUyLjUiIHdpZHRoPSI5NS41IiBoZWlnaHQ9IjI4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIzNTQuMjUiIHk9IjI3Mi41IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIzNTQuMjUiPjMuIFZlcmlmeTwvdHNwYW4+PC90ZXh0PjwvZz48ZyBjbGFzcz0ic2lnbmFsIj48dGV4dCB4PSIyNjMuNSIgeT0iMzExLjc1IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIyNjMuNSI+SFRUUCBSZXNwb25zZTwvdHNwYW4+PC90ZXh0PjxsaW5lIHgxPSIzOTciIHgyPSIyNTMuNSIgeTE9IjMxOS41IiB5Mj0iMzE5LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IG1hcmtlci1lbmQ6IHVybCgmcXVvdDsjbWFya2VyQXJyb3dPcGVuJnF1b3Q7KTsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjwvZz48ZyBjbGFzcz0ibm90ZSI+PHJlY3QgeD0iMTYzIiB5PSIzMzkuNSIgd2lkdGg9IjE4MSIgaGVpZ2h0PSIyOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMTY4IiB5PSIzNTkuNSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMTY4Ij40LiBSZXF1ZXN0IEhhbmRsZXI8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9InNpZ25hbCI+PHRleHQgeD0iMTIwIiB5PSIzOTguNzUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjEyMCI+SFRUUCBSZXNwb25zZTwvdHNwYW4+PC90ZXh0PjxsaW5lIHgxPSIyNTMuNSIgeDI9IjExMCIgeTE9IjQwNi41IiB5Mj0iNDA2LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IG1hcmtlci1lbmQ6IHVybCgmcXVvdDsjbWFya2VyQXJyb3dPcGVuJnF1b3Q7KTsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjwvZz48ZyBjbGFzcz0ibm90ZSI+PHJlY3QgeD0iMTQuNzUiIHk9IjQyNi41IiB3aWR0aD0iMTkwLjUiIGhlaWdodD0iMjguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjE5Ljc1IiB5PSI0NDYuNSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMTkuNzUiPjUuIFJlc3BvbnNlIEhhbmRsZXI8L3RzcGFuPjwvdGV4dD48L2c+PC9zdmc+Cg==" alt /><figcaption>User request verification</figcaption>
+<img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiIHN0YW5kYWxvbmU9Im5vIj8+PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAyMDAxMDkwNC8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MzIiIGhlaWdodD0iNTMzIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PHNvdXJjZT48IVtDREFUQVtOb3RlIG92ZXIgVXNlcjogMS4gVXNlciBUb2tlbiBvciBLZXkKVXNlci0+PlNlcnZpY2U6IEhUVFAgUmVxdWVzdApOb3RlIG92ZXIgU2VydmljZTogMi4gU2VydmljZSBLZXkKU2VydmljZS0+PnNzbzogSFRUUCBSZXF1ZXN0Ck5vdGUgb3ZlciBzc286IDMuIFZlcmlmeQpzc28tPj5TZXJ2aWNlOiBIVFRQIFJlc3BvbnNlCk5vdGUgb3ZlciBTZXJ2aWNlOiA0LiBSZXF1ZXN0IEhhbmRsZXIKU2VydmljZS0+PlVzZXI6IEhUVFAgUmVzcG9uc2UKTm90ZSBvdmVyIFVzZXI6IDUuIFJlc3BvbnNlIEhhbmRsZXJdXT48L3NvdXJjZT48ZGVzYz48L2Rlc2M+PGRlZnM+PG1hcmtlciB2aWV3Qm94PSIwIDAgNSA1IiBtYXJrZXJXaWR0aD0iNSIgbWFya2VySGVpZ2h0PSI1IiBvcmllbnQ9ImF1dG8iIHJlZlg9IjUiIHJlZlk9IjIuNSIgaWQ9Im1hcmtlckFycm93QmxvY2siPjxwYXRoIGQ9Ik0gMCAwIEwgNSAyLjUgTCAwIDUgeiI+PC9wYXRoPjwvbWFya2VyPjxtYXJrZXIgdmlld0JveD0iMCAwIDkuNiAxNiIgbWFya2VyV2lkdGg9IjQiIG1hcmtlckhlaWdodD0iMTYiIG9yaWVudD0iYXV0byIgcmVmWD0iOS42IiByZWZZPSI4IiBpZD0ibWFya2VyQXJyb3dPcGVuIj48cGF0aCBkPSJNIDkuNiw4IDEuOTIsMTYgMCwxMy43IDUuNzYsOCAwLDIuMjg2IDEuOTIsMCA5LjYsOCB6Ij48L3BhdGg+PC9tYXJrZXI+PC9kZWZzPjxnIGNsYXNzPSJ0aXRsZSI+PC9nPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iODEiIHk9IjIwIiB3aWR0aD0iNTgiIGhlaWdodD0iMzguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjkxIiB5PSI0NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iOTEiPlVzZXI8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9ImFjdG9yIj48cmVjdCB4PSI4MSIgeT0iNDc1IiB3aWR0aD0iNTgiIGhlaWdodD0iMzguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjkxIiB5PSI1MDAiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjkxIj5Vc2VyPC90c3Bhbj48L3RleHQ+PC9nPjxsaW5lIHgxPSIxMTAiIHgyPSIxMTAiIHkxPSI1OC41IiB5Mj0iNDc1IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIj48L2xpbmU+PGcgY2xhc3M9ImFjdG9yIj48cmVjdCB4PSIyMTAuMjUiIHk9IjIwIiB3aWR0aD0iODYuNSIgaGVpZ2h0PSIzOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMjIwLjI1IiB5PSI0NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjIwLjI1Ij5TZXJ2aWNlPC90c3Bhbj48L3RleHQ+PC9nPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iMjEwLjI1IiB5PSI0NzUiIHdpZHRoPSI4Ni41IiBoZWlnaHQ9IjM4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIyMjAuMjUiIHk9IjUwMCIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjIwLjI1Ij5TZXJ2aWNlPC90c3Bhbj48L3RleHQ+PC9nPjxsaW5lIHgxPSIyNTMuNSIgeDI9IjI1My41IiB5MT0iNTguNSIgeTI9IjQ3NSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iMzQ5IiB5PSIyMCIgd2lkdGg9Ijk2IiBoZWlnaHQ9IjM4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIzNTkiIHk9IjQ1IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIzNTkiPnNzbzwvdHNwYW4+PC90ZXh0PjwvZz48ZyBjbGFzcz0iYWN0b3IiPjxyZWN0IHg9IjM0OSIgeT0iNDc1IiB3aWR0aD0iOTYiIGhlaWdodD0iMzguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjM1OSIgeT0iNTAwIiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIzNTkiPnNzbzwvdHNwYW4+PC90ZXh0PjwvZz48bGluZSB4MT0iMzk3IiB4Mj0iMzk3IiB5MT0iNTguNSIgeTI9IjQ3NSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjxnIGNsYXNzPSJub3RlIj48cmVjdCB4PSIxMCIgeT0iNzguNSIgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMTUiIHk9Ijk4LjUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjE1Ij4xLiBVc2VyIFRva2VuIG9yIEtleTwvdHNwYW4+PC90ZXh0PjwvZz48ZyBjbGFzcz0ic2lnbmFsIj48dGV4dCB4PSIxMjQuNzUiIHk9IjEzNy43NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMTI0Ljc1Ij5IVFRQIFJlcXVlc3Q8L3RzcGFuPjwvdGV4dD48bGluZSB4MT0iMTEwIiB4Mj0iMjUzLjUiIHkxPSIxNDUuNSIgeTI9IjE0NS41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBtYXJrZXItZW5kOiB1cmwoJnF1b3Q7I21hcmtlckFycm93T3BlbiZxdW90Oyk7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9Im5vbmUiPjwvbGluZT48L2c+PGcgY2xhc3M9Im5vdGUiPjxyZWN0IHg9IjE4MiIgeT0iMTY1LjUiIHdpZHRoPSIxNDMiIGhlaWdodD0iMjguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjE4NyIgeT0iMTg1LjUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjE4NyI+Mi4gU2VydmljZSBLZXk8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9InNpZ25hbCI+PHRleHQgeD0iMjY4LjI1IiB5PSIyMjQuNzUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjI2OC4yNSI+SFRUUCBSZXF1ZXN0PC90c3Bhbj48L3RleHQ+PGxpbmUgeDE9IjI1My41IiB4Mj0iMzk3IiB5MT0iMjMyLjUiIHkyPSIyMzIuNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsgbWFya2VyLWVuZDogdXJsKCZxdW90OyNtYXJrZXJBcnJvd09wZW4mcXVvdDspOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIj48L2xpbmU+PC9nPjxnIGNsYXNzPSJub3RlIj48cmVjdCB4PSIzNDkuMjUiIHk9IjI1Mi41IiB3aWR0aD0iOTUuNSIgaGVpZ2h0PSIyOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMzU0LjI1IiB5PSIyNzIuNSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMzU0LjI1Ij4zLiBWZXJpZnk8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9InNpZ25hbCI+PHRleHQgeD0iMjYzLjUiIHk9IjMxMS43NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjYzLjUiPkhUVFAgUmVzcG9uc2U8L3RzcGFuPjwvdGV4dD48bGluZSB4MT0iMzk3IiB4Mj0iMjUzLjUiIHkxPSIzMTkuNSIgeTI9IjMxOS41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBtYXJrZXItZW5kOiB1cmwoJnF1b3Q7I21hcmtlckFycm93T3BlbiZxdW90Oyk7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9Im5vbmUiPjwvbGluZT48L2c+PGcgY2xhc3M9Im5vdGUiPjxyZWN0IHg9IjE2MyIgeT0iMzM5LjUiIHdpZHRoPSIxODEiIGhlaWdodD0iMjguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjE2OCIgeT0iMzU5LjUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjE2OCI+NC4gUmVxdWVzdCBIYW5kbGVyPC90c3Bhbj48L3RleHQ+PC9nPjxnIGNsYXNzPSJzaWduYWwiPjx0ZXh0IHg9IjEyMCIgeT0iMzk4Ljc1IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIxMjAiPkhUVFAgUmVzcG9uc2U8L3RzcGFuPjwvdGV4dD48bGluZSB4MT0iMjUzLjUiIHgyPSIxMTAiIHkxPSI0MDYuNSIgeTI9IjQwNi41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBtYXJrZXItZW5kOiB1cmwoJnF1b3Q7I21hcmtlckFycm93T3BlbiZxdW90Oyk7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9Im5vbmUiPjwvbGluZT48L2c+PGcgY2xhc3M9Im5vdGUiPjxyZWN0IHg9IjE0Ljc1IiB5PSI0MjYuNSIgd2lkdGg9IjE5MC41IiBoZWlnaHQ9IjI4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIxOS43NSIgeT0iNDQ2LjUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjE5Ljc1Ij41LiBSZXNwb25zZSBIYW5kbGVyPC90c3Bhbj48L3RleHQ+PC9nPjwvc3ZnPgo=" alt /><figcaption>User request verification</figcaption>
 </figure>
 <ol type="1">
 <li>User with token or key acquired by authentication method sends HTTP request to service.</li>
-<li>Service sends HTTP request to mz_auth with its own service key, and the users token or key.</li>
-<li>mz_auth authenticates service using the service key, and verifies user token or key.</li>
+<li>Service sends HTTP request to sso with its own service key, and the users token or key.</li>
+<li>sso authenticates service using the service key, and verifies user token or key.</li>
 <li>If authenticated/verified, service handles request and sends HTTP response to user.</li>
 <li>User handles HTTP response.</li>
 </ol>
 <p><strong>Callbacks</strong></p>
-<p>A service integrating with mz_auth can provide the following HTTPS endpoints as callbacks.</p>
+<p>A service integrating with sso can provide the following HTTPS endpoints as callbacks.</p>
 <pre class="shell"><code>GET $service_url?type=oauth2&amp;user_id=$id&amp;access_token=$token&amp;access_token_expires=$token_expires&amp;refresh_token=$token&amp;refresh_token_expires=$token_expires</code></pre>
 <p>User is redirected to this URL after successful authentication by an OAuth2 provider. The service can verify the <code>access_token</code> query parameter to authenticate the user and their requests.</p>
 <pre class="shell"><code>GET $service_url?type=reset_password&amp;email=$email&amp;token=$token</code></pre>
@@ -288,8 +288,8 @@ background-color: #f4f4f4;
 <p>User requests this URL by clicking update password revoke link. The service can present the user information on securing their account, and then make an update password revoke request with the <code>token</code> query parameter. This will disable the user and all user keys.</p>
 <h2 id="login">Login</h2>
 <p>Create service with key and start server.</p>
-<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url
-mz_auth start-server</code></pre>
+<pre class="shell"><code>sso create-service-with-key $service_name $service_url
+sso start-server</code></pre>
 <p>Service creates a user with password.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -328,8 +328,8 @@ mz_auth start-server</code></pre>
   $server_url/v1/auth/token/revoke</code></pre>
 <h2 id="reset-password">Reset Password</h2>
 <p>Create service with key and start server.</p>
-<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url
-mz_auth start-server</code></pre>
+<pre class="shell"><code>sso create-service-with-key $service_name $service_url
+sso start-server</code></pre>
 <p>Service creates a user with password.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -363,8 +363,8 @@ mz_auth start-server</code></pre>
   $server_url/v1/auth/provider/local/login</code></pre>
 <h2 id="update-email">Update Email</h2>
 <p>Create service with key and start server.</p>
-<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url
-mz_auth start-server</code></pre>
+<pre class="shell"><code>sso create-service-with-key $service_name $service_url
+sso start-server</code></pre>
 <p>Service creates a user with password.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -398,8 +398,8 @@ mz_auth start-server</code></pre>
   $server_url/v1/auth/provider/local/update-email/revoke</code></pre>
 <h2 id="update-password">Update Password</h2>
 <p>Create service with key and start server.</p>
-<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url
-mz_auth start-server</code></pre>
+<pre class="shell"><code>sso create-service-with-key $service_name $service_url
+sso start-server</code></pre>
 <p>Service creates a user with password.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -433,9 +433,9 @@ mz_auth start-server</code></pre>
   $server_url/v1/auth/provider/local/update-password/revoke</code></pre>
 <h2 id="api-key">API Key</h2>
 <p>Create service with key and start server.</p>
-<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url \
+<pre class="shell"><code>sso create-service-with-key $service_name $service_url \
     [--local-url $service_local_url]
-mz_auth start-server</code></pre>
+sso start-server</code></pre>
 <p>Service creates a user without password.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -463,10 +463,10 @@ mz_auth start-server</code></pre>
 <h2 id="oauth2-login">OAuth2 Login</h2>
 <p><code>$server_url/v1/auth/provider/github/oauth2</code></p>
 <p>Create service with OAuth2 provider URL and key, and start server.</p>
-<pre class="shell"><code>mz_auth create-service-with-key $service_name $service_url \
+<pre class="shell"><code>sso create-service-with-key $service_name $service_url \
     [--github-oauth2-url $service_github_oauth2_url] \
     [--microsoft-oauth2-url $service_microsoft_oauth2_url]
-mz_auth start-server</code></pre>
+sso start-server</code></pre>
 <p>Service creates a user with email address matching OAuth2 provider.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -508,8 +508,8 @@ mz_auth start-server</code></pre>
   $server_url/v1/auth/token/revoke</code></pre>
 <h2 id="totp">TOTP</h2>
 <p>Create service with key and start server.</p>
-<pre class="shell"><code>mza create-service-with-key $service_name $service_url
-mza start-server</code></pre>
+<pre class="shell"><code>sso create-service-with-key $service_name $service_url
+sso start-server</code></pre>
 <p>Service creates a user (password optional).</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -524,7 +524,7 @@ mza start-server</code></pre>
   $server_url/v1/key</code></pre>
 <p>Generate QR code using the tool: <a href="https://freeotp.github.io/qrcode.html" class="uri">https://freeotp.github.io/qrcode.html</a></p>
 <ul>
-<li>Issuer: mz_auth</li>
+<li>Issuer: sso</li>
 <li>Account: $user_email</li>
 <li>Secret: $user_key_value</li>
 <li>Digits: 6</li>
@@ -548,7 +548,7 @@ mza start-server</code></pre>
 <h1 id="cli">CLI</h1>
 <p>TODO(docs): CLI documentation.</p>
 <h1 id="changelog">Changelog</h1>
-<h2 id="section">0.5.0 (?)</h2>
+<h2 id="section">0.5.0 (2019-10-05)</h2>
 <p><strong>Added</strong></p>
 <ul>
 <li>Added TOTP validation route.</li>
@@ -557,7 +557,7 @@ mza start-server</code></pre>
 </ul>
 <p><strong>Changed</strong></p>
 <ul>
-<li>Renamed project <code>mz_auth</code>, ark was taken by various products and crates.</li>
+<li>Renamed project <code>sso</code>, ark was taken by various products and crates.</li>
 <li>Code consistency improvements.</li>
 <li>Renamed audit <code>path</code> to <code>type</code> string.</li>
 <li>Replaced <code>serde_urlencoded</code> with <code>serde_qs</code> for more advanced query string support.</li>
@@ -646,14 +646,14 @@ mza start-server</code></pre>
 </ul>
 <h1 id="developer">Developer</h1>
 <h2 id="tools">Tools</h2>
-<p>The <code>mz_auth</code> crate depends on <a href="postgresql">PostgreSQL</a> and <a href="sqlite">SQLite</a> libraries.</p>
+<p>The <code>sso</code> crate depends on <a href="postgresql">PostgreSQL</a> and <a href="sqlite">SQLite</a> libraries.</p>
 <pre class="shell"><code># Install on Ubuntu.
 sudo apt install libpq-dev libsqlite3-dev libssl-dev libfuse-dev pkg-config</code></pre>
 <p>Install <a href="rust">Rust</a> using <a href="rustup">rustup</a>.</p>
 <p>To update the toolchain.</p>
 <pre class="shell"><code>rustup self update
 rustup update</code></pre>
-<p>The <code>mz_auth</code> crate depends on <a href="cargo-make">cargo make</a>, <a href="diesel">Diesel</a> and <a href="cargo-audit">cargo audit</a>, install them with Cargo.</p>
+<p>The <code>sso</code> crate depends on <a href="cargo-make">cargo make</a>, <a href="diesel">Diesel</a> and <a href="cargo-audit">cargo audit</a>, install them with Cargo.</p>
 <pre class="shell"><code>cargo install --force cargo-make
 cargo install --force diesel_cli --no-default-features --features &quot;postgres sqlite&quot;
 cargo install --force cargo-audit</code></pre>
@@ -749,7 +749,7 @@ cargo make docker-down</code></pre>
 </tbody>
 </table>
 <p><strong>Ubuntu</strong></p>
-<p>Write <code>export $NAME=&quot;$VALUE&quot;</code> statements to file <code>.env</code> and run <code>source .env</code> to export variables in open terminal. See <code>mz_auth/.env</code> for example.</p>
+<p>Write <code>export $NAME=&quot;$VALUE&quot;</code> statements to file <code>.env</code> and run <code>source .env</code> to export variables in open terminal. See <code>sso/.env</code> for example.</p>
 <h2 id="database">Database</h2>
 <p>To reset and create new <a href="postgresql">PostgreSQL</a> database migrations for <a href="diesel">Diesel</a>. These commands assume docker container is running.</p>
 <pre class="shell"><code>cargo make postgres-reset
@@ -761,7 +761,8 @@ cargo make sqlite-migration $migration_name</code></pre>
 <p>To build libraries and binaries.</p>
 <pre class="shell"><code>cargo make build
 cargo make release
-cargo make release-flow</code></pre>
+cargo make release-flow
+cargo install --path sso</code></pre>
 <p>To lint source code using <a href="clippy">clippy</a>.</p>
 <pre class="shell"><code>cargo make clippy</code></pre>
 <p>To build and open documentation.</p>
@@ -783,11 +784,11 @@ cargo make release-flow</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td>TEST_MZ_AUTH_URL</td>
+<td>TEST_SSO_URL</td>
 <td>Server URL.</td>
 </tr>
 <tr class="even">
-<td>TEST_MZ_AUTH_KEY</td>
+<td>TEST_SSO_KEY</td>
 <td>Root key value.</td>
 </tr>
 </tbody>

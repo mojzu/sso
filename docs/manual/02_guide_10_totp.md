@@ -3,8 +3,8 @@
 Create service with key and start server.
 
 ```shell
-mza create-service-with-key $service_name $service_url
-mza start-server
+sso create-service-with-key $service_name $service_url
+sso start-server
 ```
 
 Service creates a user (password optional).
@@ -29,7 +29,7 @@ curl --header "Content-Type: application/json" \
 
 Generate QR code using the tool: <https://freeotp.github.io/qrcode.html>
 
-- Issuer: mz_auth
+- Issuer: sso
 - Account: $user_email
 - Secret: $user_key_value
 - Digits: 6

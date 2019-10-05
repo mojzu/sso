@@ -7,27 +7,25 @@
 [tasks.postgres-reset]
 workspace = false
 script = [
-    "(cd mz_auth && DATABASE_URL=\"postgres://mz_auth:guest@localhost:5432/mz_auth\" diesel database reset --migration-dir migrations/postgres)",
+    "(cd sso && DATABASE_URL=\"postgres://sso:guest@localhost:5432/sso\" diesel database reset --migration-dir migrations/postgres)",
 ]
 
 [tasks.postgres-migration]
 workspace = false
 script = [
-    "(cd mz_auth && DATABASE_URL=\"postgres://mz_auth:guest@localhost:5432/mz_auth\" diesel migration generate ${@} --migration-dir migrations/postgres)",
+    "(cd sso && DATABASE_URL=\"postgres://sso:guest@localhost:5432/sso\" diesel migration generate ${@} --migration-dir migrations/postgres)",
 ]
 
 [tasks.sqlite-reset]
 workspace = false
 script = [
-    "(cd mz_auth && DATABASE_URL=\"db.sqlite3\" diesel database reset --migration-dir migrations/sqlite)",
-    "(cd mz_data && DATABASE_URL=\"db.sqlite3\" diesel database reset --migration-dir migrations/sqlite)",
+    "(cd sso && DATABASE_URL=\"db.sqlite3\" diesel database reset --migration-dir migrations/sqlite)",
 ]
 
 [tasks.sqlite-migration]
 workspace = false
 script = [
-    "(cd mz_auth && DATABASE_URL=\"db.sqlite3\" diesel migration generate ${@} --migration-dir migrations/sqlite)",
-    "(cd mz_data && DATABASE_URL=\"db.sqlite3\" diesel migration generate ${@} --migration-dir migrations/sqlite)",
+    "(cd sso && DATABASE_URL=\"db.sqlite3\" diesel migration generate ${@} --migration-dir migrations/sqlite)",
 ]
 
 [tasks.docker-build]

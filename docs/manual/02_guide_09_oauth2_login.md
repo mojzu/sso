@@ -5,10 +5,10 @@
 Create service with OAuth2 provider URL and key, and start server.
 
 ```shell
-mz_auth create-service-with-key $service_name $service_url \
+sso create-service-with-key $service_name $service_url \
     [--github-oauth2-url $service_github_oauth2_url] \
     [--microsoft-oauth2-url $service_microsoft_oauth2_url]
-mz_auth start-server
+sso start-server
 ```
 
 Service creates a user with email address matching OAuth2 provider.

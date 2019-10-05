@@ -3,8 +3,8 @@
 Create service with key and start server.
 
 ```shell
-mz_auth create-service-with-key $service_name $service_url
-mz_auth start-server
+sso create-service-with-key $service_name $service_url
+sso start-server
 ```
 
 Service creates a user with password.

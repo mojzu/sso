@@ -1,4 +1,4 @@
-% Manual (mz_auth)
+% Manual (sso)
 % Sam Ward
 %
 
@@ -6,7 +6,7 @@
 
 **Warning: The author of this application is not a security expert, and the code has not undergone any kind of review or verification. Use it at your own risk!**
 
-The crate `mz_auth` is an authentication server binary. It is intended to be used as a backend for other services, such as API servers, which must authenticate user requests.
+The crate `sso` is an authentication server binary. It is intended to be used as a backend for other services, such as API servers, which must authenticate user requests.
 
 Authentication methods are organised into provider groups. The following provider groups are currently supported: `local`, `github`, `microsoft`. Depending on the provider, the following user authentication methods are supported.
 
@@ -36,15 +36,15 @@ Authentication methods are organised into provider groups. The following provide
 The following terms are used throughout this manual.
 
 - **User**
-  - A person or other external API consumer identified by a unique email address who wants to interact with one or more services registered with `mz_auth`.
+  - A person or other external API consumer identified by a unique email address who wants to interact with one or more services registered with `sso`.
 - **Service**
-  - An application that must authenticate user requests, registered as a service with `mz_auth` using a name and callback URL.
+  - An application that must authenticate user requests, registered as a service with `sso` using a name and callback URL.
 - **Key**
-  - Random, unique keys produced by `mz_auth`. Keys may be revoked to prevent use.
+  - Random, unique keys produced by `sso`. Keys may be revoked to prevent use.
 - **Root Key**
-  - Keys linked to no services or users, produced by command line and can be used to manage `mz_auth` via HTTP requests.
+  - Keys linked to no services or users, produced by command line and can be used to manage `sso` via HTTP requests.
 - **Service Key**
-  - Keys linked to one service, used by `mz_auth` to authenticate HTTP requests from services.
+  - Keys linked to one service, used by `sso` to authenticate HTTP requests from services.
 - **User Key**
   - Keys linked to one user and one service, allows user to authenticate with the linked service.
 - **Token**

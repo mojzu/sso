@@ -1,0 +1,64 @@
+[package]
+name = "sso"
+version = "0.5.0"
+description = "Single sign-on authentication server."
+authors = ["Sam Ward <git@mojzu.net>"]
+license-file = "LICENCE"
+readme = "README.md"
+homepage = "https://mojzu.net/sso/"
+documentation = "https://mojzu.net/sso/"
+repository = "https://github.com/mojzu/sso"
+categories = ["authentication", "web-programming::http-server", "command-line-utilities"]
+edition = "2018"
+
+[features]
+default = ["postgres", "async_client", "sync_client"]
+postgres = []
+sqlite = []
+async_client = []
+sync_client = []
+
+[dependencies]
+actix = "^0.8.3"
+actix-identity = "^0.1.0"
+actix-rt = "^0.2.5"
+actix-service = "^0.4.2"
+actix-web = { version = "^1.0.8", features = ["rust-tls"] }
+clap = "^2.33.0"
+chrono = { version = "^0.4.9", features = ["serde"] }
+chrono-tz = "^0.5.1"
+derive_builder = "^0.7.2"
+diesel = { version = "^1.4.2", features = ["postgres", "sqlite", "r2d2", "chrono", "serde_json", "uuidv07"] }
+diesel_migrations = { version = "^1.4.0", features = ["postgres", "sqlite"] }
+env_logger = "^0.6.2"
+failure = "^0.1.5"
+futures = "^0.1.29"
+handlebars = "^2.0.2"
+http = "^0.1.18"
+jsonwebtoken = "^6.0.1"
+lazy_static = "^1.4.0"
+lettre = "^0.9.2"
+lettre_email = "^0.9.2"
+libreauth = "^0.12.0"
+log = { version = "^0.4.8", features = ["max_level_trace", "release_max_level_info"] }
+native-tls = "^0.2.3"
+prometheus = "^0.7.0"
+r2d2 = "^0.8.5"
+reqwest = { version = "^0.9.19", features = ["rustls-tls"] }
+rustls = "^0.15.2"
+oauth2 = "^3.0.0-alpha.3"
+sentry = "^0.17.0"
+sentry-actix = "^0.17.0"
+serde = "^1.0.101"
+serde_derive = "^1.0.101"
+serde_json = "^1.0.40"
+serde_qs = "^0.5.0"
+sha-1 = "^0.8.1"
+sysinfo = "^0.9.5"
+unic-langid = "^0.5.0"
+url = "^1.7.2"
+uuid = { version = "^0.7.4", features = ["v4", "serde"] }
+time = "^0.1.42"
+validator = "^0.9.0"
+validator_derive = "^0.9.0"
+zxcvbn = "^1.0.2"

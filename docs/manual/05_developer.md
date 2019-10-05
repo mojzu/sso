@@ -2,7 +2,7 @@
 
 ## Tools
 
-The `mz_auth` crate depends on [PostgreSQL](postgresql) and [SQLite](sqlite) libraries.
+The `sso` crate depends on [PostgreSQL](postgresql) and [SQLite](sqlite) libraries.
 
 ```shell
 # Install on Ubuntu.
@@ -18,7 +18,7 @@ rustup self update
 rustup update
 ```
 
-The `mz_auth` crate depends on [cargo make](cargo-make), [Diesel](diesel) and [cargo audit](cargo-audit), install them with Cargo.
+The `sso` crate depends on [cargo make](cargo-make), [Diesel](diesel) and [cargo audit](cargo-audit), install them with Cargo.
 
 ```shell
 cargo install --force cargo-make
@@ -81,7 +81,7 @@ cargo make manual
 
 **Ubuntu**
 
-Write `export $NAME="$VALUE"` statements to file `.env` and run `source .env` to export variables in open terminal. See `mz_auth/.env` for example.
+Write `export $NAME="$VALUE"` statements to file `.env` and run `source .env` to export variables in open terminal. See `sso/.env` for example.
 
 ## Database
 
@@ -107,6 +107,7 @@ To build libraries and binaries.
 cargo make build
 cargo make release
 cargo make release-flow
+cargo install --path sso
 ```
 
 To lint source code using [clippy](clippy).
@@ -133,6 +134,8 @@ To audit crate dependencies.
 cargo make audit
 ```
 
+[To publish crate(s)](cargo-publishing).
+
 ## Test
 
 To run unit tests.
@@ -145,8 +148,8 @@ For integration tests, the following environment variables are required. A serve
 
 | Variable         | Description     |
 | ---------------- | --------------- |
-| TEST_MZ_AUTH_URL | Server URL.     |
-| TEST_MZ_AUTH_KEY | Root key value. |
+| TEST_SSO_URL | Server URL.     |
+| TEST_SSO_KEY | Root key value. |
 
 To run integration tests.
 

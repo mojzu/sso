@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0 (?)
+## 0.5.0 (2019-10-05)
 
 **Added**
 
@@ -10,7 +10,7 @@
 
 **Changed**
 
-- Renamed project `mz_auth`, ark was taken by various products and crates.
+- Renamed project `sso`, ark was taken by various products and crates.
 - Code consistency improvements.
 - Renamed audit `path` to `type` string.
 - Replaced `serde_urlencoded` with `serde_qs` for more advanced query string support.

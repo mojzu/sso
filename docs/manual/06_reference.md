@@ -5,6 +5,7 @@
 [cargo-make]: https://github.com/sagiegurari/cargo-make
 [diesel]: http://diesel.rs/
 [cargo-audit]: https://github.com/RustSec/cargo-audit
+[cargo-publishing]: https://doc.rust-lang.org/cargo/reference/publishing.html
 [postgresql]: https://www.postgresql.org/
 [sqlite]: https://www.sqlite.org/index.html
 [docker]: https://docs.docker.com/install/
