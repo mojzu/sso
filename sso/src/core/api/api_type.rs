@@ -830,10 +830,7 @@ pub struct AuthPasswordMetaResponse {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuthUpdateEmailRequest {
-    #[validate(custom = "ApiValidate::key")]
-    pub key: Option<String>,
-    #[validate(custom = "ApiValidate::token")]
-    pub token: Option<String>,
+    pub user_id: Uuid,
     #[validate(custom = "ApiValidate::password")]
     pub password: String,
     #[validate(email)]
@@ -845,10 +842,7 @@ impl ApiValidateRequest<AuthUpdateEmailRequest> for AuthUpdateEmailRequest {}
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuthUpdatePasswordRequest {
-    #[validate(custom = "ApiValidate::key")]
-    pub key: Option<String>,
-    #[validate(custom = "ApiValidate::token")]
-    pub token: Option<String>,
+    pub user_id: Uuid,
     #[validate(custom = "ApiValidate::password")]
     pub password: String,
     #[validate(custom = "ApiValidate::password")]

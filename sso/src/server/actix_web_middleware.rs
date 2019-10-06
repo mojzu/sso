@@ -55,7 +55,7 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
     fn from_request(&self, request: &mut ServiceRequest) -> Self::Future {
         let key = match request.headers().get(&self.header) {
             Some(value) => {
-                let value = value.to_str().map_err(|_err| ServerError::Forbidden)?;
+                let value = value.to_str().map_err(|_err| ServerError::Unauthorised)?;
                 AuthorisationIdentityPolicy::trim_authorisation(value)
             }
             None => None,

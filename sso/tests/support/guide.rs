@@ -10,7 +10,7 @@ macro_rules! guide_integration_test {
 
             let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email);
-            let user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user.id);
 
             user_key_verify(&client, &user_key);
             let body = AuthKeyRequest::new(&user_key.key, None);
@@ -26,9 +26,16 @@ macro_rules! guide_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
             user_token_verify(&client, &user_token);
@@ -49,9 +56,16 @@ macro_rules! guide_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                true,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
 
             let body = AuthResetPasswordRequest::new(&user_email);
             client.auth_local_reset_password(body).unwrap();
@@ -65,9 +79,16 @@ macro_rules! guide_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
 
             auth_microsoft_oauth2_url(&client);
         }

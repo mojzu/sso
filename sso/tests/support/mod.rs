@@ -97,6 +97,8 @@ pub fn user_create_with_password(
     is_enabled: bool,
     name: &str,
     email: &str,
+    password_allow_reset: bool,
+    password_require_update: bool,
     password: &str,
 ) -> User {
     let before = Utc::now();
@@ -106,8 +108,8 @@ pub fn user_create_with_password(
         email,
         USER_LOCALE,
         USER_TIMEZONE,
-        false,
-        false,
+        password_allow_reset,
+        password_require_update,
         password,
     );
     let create = client.user_create(body).unwrap();
@@ -125,10 +127,11 @@ pub fn user_create_with_password(
 pub fn user_key_create(
     client: &ClientSync,
     name: &str,
+    type_: KeyType,
     service_id: Uuid,
     user_id: Uuid,
 ) -> UserKey {
-    let body = KeyCreateRequest::with_user_id(true, KeyType::Key, name, user_id);
+    let body = KeyCreateRequest::with_user_id(true, type_, name, user_id);
     let create = client.key_create(body).unwrap();
     let key = create.data;
     assert_eq!(key.name, name);

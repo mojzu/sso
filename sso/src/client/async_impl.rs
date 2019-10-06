@@ -638,7 +638,7 @@ impl ClientAsync {
                 }
                 Err(e) => Either::A(Either::B(future::err(e))),
             },
-            None => Either::B(future::err(ClientError::Forbidden)),
+            None => Either::B(future::err(ClientError::Unauthorised)),
         }
     }
 
@@ -661,7 +661,7 @@ impl ClientAsync {
                     self.auth_token_verify(body).map(|res| res.data.user_id),
                 ))
             }
-            _ => Either::B(future::err(ClientError::Forbidden)),
+            _ => Either::B(future::err(ClientError::Unauthorised)),
         }
     }
 }

@@ -8,6 +8,9 @@ pub enum ClientError {
     #[fail(display = "ClientError:BadRequest")]
     BadRequest,
 
+    #[fail(display = "ClientError:Unauthorised")]
+    Unauthorised,
+
     #[fail(display = "ClientError:Forbidden")]
     Forbidden,
 
@@ -55,6 +58,7 @@ impl From<reqwest::Error> for ClientError {
         if let Some(status) = e.status() {
             match status {
                 StatusCode::BAD_REQUEST => Self::BadRequest,
+                StatusCode::UNAUTHORIZED => Self::Unauthorised,
                 StatusCode::FORBIDDEN => Self::Forbidden,
                 StatusCode::NOT_FOUND => Self::NotFound,
                 _ => Self::Client(e.description().to_owned()),

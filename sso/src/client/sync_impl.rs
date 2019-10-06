@@ -392,12 +392,12 @@ impl ClientSync {
                         let body = AuthTokenRequest::new(value, audit);
                         self.auth_token_verify(body).map(|res| res.data.user_id)
                     }
-                    _ => Err(ClientError::Forbidden),
+                    _ => Err(ClientError::Unauthorised),
                 }
                 .and_then(|user_id| self.user_read(user_id))
                 .map(|res| res.data)
             }
-            None => Err(ClientError::Forbidden),
+            None => Err(ClientError::Unauthorised),
         }
     }
 }

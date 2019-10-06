@@ -21,9 +21,27 @@ impl Auth {
         access_token_expires: i64,
         refresh_token_expires: i64,
     ) -> CoreResult<UserToken> {
+        // Login requires token key type.
         let user =
             Auth::user_read_by_email(driver, Some(service), audit, AuditType::LoginError, email)?;
-        let key = Auth::key_read_by_user(driver, service, audit, AuditType::LoginError, &user)?;
+        let key = Auth::key_read_by_user(
+            driver,
+            service,
+            audit,
+            AuditType::LoginError,
+            &user,
+            KeyType::Token,
+        )?;
+
+        // If user password update required, return forbidden.
+        if user.password_require_update {
+            audit.create_internal(
+                driver,
+                AuditType::LoginError,
+                AuditMessage::PasswordUpdateRequired,
+            );
+            return Err(CoreError::Forbidden);
+        }
 
         // Check user password matches password hash.
         if let Err(err) = User::password_check(user.password_hash.as_ref().map(|x| &**x), &password)
@@ -72,6 +90,7 @@ impl Auth {
         email: String,
         token_expires: i64,
     ) -> CoreResult<()> {
+        // Reset password requires token key type.
         let user = Auth::user_read_by_email(
             driver,
             Some(service),
@@ -79,8 +98,24 @@ impl Auth {
             AuditType::ResetPasswordError,
             email,
         )?;
-        let key =
-            Auth::key_read_by_user(driver, service, audit, AuditType::ResetPasswordError, &user)?;
+        let key = Auth::key_read_by_user(
+            driver,
+            service,
+            audit,
+            AuditType::ResetPasswordError,
+            &user,
+            KeyType::Token,
+        )?;
+
+        // Check user password reset is allowed.
+        if !user.password_allow_reset {
+            audit.create_internal(
+                driver,
+                AuditType::ResetPasswordError,
+                AuditMessage::ResetPasswordDisabled,
+            );
+            return Err(CoreError::BadRequest);
+        }
 
         // Successful reset password, encode reset token.
         let csrf = Auth::csrf_create(driver, service, token_expires)?;
@@ -117,6 +152,7 @@ impl Auth {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) = Jwt::decode_unsafe(&token, service.id)?;
 
+        // Reset password confirm requires token key type.
         let user = Auth::user_read_by_id(
             driver,
             Some(service),
@@ -130,7 +166,18 @@ impl Auth {
             audit,
             AuditType::ResetPasswordConfirmError,
             &user,
+            KeyType::Token,
         )?;
+
+        // Check user password reset is allowed.
+        if !user.password_allow_reset {
+            audit.create_internal(
+                driver,
+                AuditType::ResetPasswordConfirmError,
+                AuditMessage::ResetPasswordDisabled,
+            );
+            return Err(CoreError::BadRequest);
+        }
 
         // Safely decode token with user key, this checks the type.
         let decoded = Jwt::decode_token(
@@ -176,15 +223,12 @@ impl Auth {
         notify: &Addr<NotifyActor>,
         service: &Service,
         audit: &mut AuditBuilder,
-        key: Option<String>,
-        token: Option<String>,
+        user_id: Uuid,
         password: String,
         new_email: String,
         revoke_token_expires: i64,
     ) -> CoreResult<()> {
-        // Verify key or token argument to get user ID.
-        let user_id = Auth::key_or_token_verify(driver, service, audit, key, token)?;
-
+        // Update email requires token key type.
         let user = Auth::user_read_by_id(
             driver,
             Some(service),
@@ -192,9 +236,25 @@ impl Auth {
             AuditType::UpdateEmailError,
             user_id,
         )?;
-        let key =
-            Auth::key_read_by_user(driver, service, audit, AuditType::UpdateEmailError, &user)?;
+        let key = Auth::key_read_by_user(
+            driver,
+            service,
+            audit,
+            AuditType::UpdateEmailError,
+            &user,
+            KeyType::Token,
+        )?;
         let old_email = user.email.to_owned();
+
+        // If user password update required, return forbidden.
+        if user.password_require_update {
+            audit.create_internal(
+                driver,
+                AuditType::UpdateEmailError,
+                AuditMessage::PasswordUpdateRequired,
+            );
+            return Err(CoreError::Forbidden);
+        }
 
         // Check user password matches password hash.
         if let Err(err) = User::password_check(user.password_hash.as_ref().map(|x| &**x), &password)
@@ -255,6 +315,7 @@ impl Auth {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) = Jwt::decode_unsafe(&token, service.id)?;
 
+        // Update email revoke requires token key type.
         // Do not check user, key is enabled or not revoked.
         let user = Auth::user_read_by_id_unchecked(
             driver,
@@ -269,6 +330,7 @@ impl Auth {
             audit,
             AuditType::UpdateEmailRevokeError,
             &user,
+            KeyType::Token,
         )?;
 
         // Safely decode token with user key, this checks the type.
@@ -334,15 +396,12 @@ impl Auth {
         notify: &Addr<NotifyActor>,
         service: &Service,
         audit: &mut AuditBuilder,
-        key: Option<String>,
-        token: Option<String>,
+        user_id: Uuid,
         password: String,
         new_password: String,
         revoke_token_expires: i64,
     ) -> CoreResult<()> {
-        // Verify key or token argument to get user ID.
-        let user_id = Auth::key_or_token_verify(driver, service, audit, key, token)?;
-
+        // Update password requires token key type.
         let user = Auth::user_read_by_id(
             driver,
             Some(service),
@@ -356,7 +415,10 @@ impl Auth {
             audit,
             AuditType::UpdatePasswordError,
             &user,
+            KeyType::Token,
         )?;
+
+        // User is allowed to update password in case `password_require_update` is true.
 
         // Check user password matches password hash.
         if let Err(err) = User::password_check(user.password_hash.as_ref().map(|x| &**x), &password)
@@ -419,6 +481,7 @@ impl Auth {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) = Jwt::decode_unsafe(&token, service.id)?;
 
+        // Update password revoke requires token key type.
         // Do not check user, key is enabled or not revoked.
         let user = Auth::user_read_by_id_unchecked(
             driver,
@@ -433,6 +496,7 @@ impl Auth {
             audit,
             AuditType::UpdatePasswordRevokeError,
             &user,
+            KeyType::Token,
         )?;
 
         // Safely decode token with user key, this checks the type.
@@ -504,8 +568,15 @@ impl Auth {
         key: String,
         audit_data: Option<&AuditData>,
     ) -> CoreResult<UserKey> {
-        let key =
-            Auth::key_read_by_user_value(driver, service, audit, AuditType::KeyVerifyError, key)?;
+        // Key verify requires key key type.
+        let key = Auth::key_read_by_user_value(
+            driver,
+            service,
+            audit,
+            AuditType::KeyVerifyError,
+            key,
+            KeyType::Key,
+        )?;
 
         // Check key is associated with user.
         let user_id = match key.user_id.ok_or_else(|| CoreError::BadRequest) {
@@ -535,6 +606,7 @@ impl Auth {
         key: String,
         audit_data: Option<&AuditData>,
     ) -> CoreResult<usize> {
+        // Key revoke requires key key type.
         // Do not check key is enabled or not revoked.
         let key = Auth::key_read_by_user_value_unchecked(
             driver,
@@ -542,6 +614,7 @@ impl Auth {
             audit,
             AuditType::KeyRevokeError,
             key,
+            KeyType::Key,
         )?;
 
         // Successful key revoke, disable and revoke key.
@@ -572,6 +645,7 @@ impl Auth {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) = Jwt::decode_unsafe(&token, service.id)?;
 
+        // Token verify requires token key type.
         let user = Auth::user_read_by_id(
             driver,
             Some(service),
@@ -579,8 +653,14 @@ impl Auth {
             AuditType::TokenVerifyError,
             user_id,
         )?;
-        let key =
-            Auth::key_read_by_user(driver, service, audit, AuditType::TokenVerifyError, &user)?;
+        let key = Auth::key_read_by_user(
+            driver,
+            service,
+            audit,
+            AuditType::TokenVerifyError,
+            &user,
+            KeyType::Token,
+        )?;
 
         // Safely decode token with user key, this checks the type.
         let decoded = Jwt::decode_token(
@@ -627,6 +707,7 @@ impl Auth {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) = Jwt::decode_unsafe(&token, service.id)?;
 
+        // Token refresh requires token key type.
         let user = Auth::user_read_by_id(
             driver,
             Some(service),
@@ -634,8 +715,14 @@ impl Auth {
             AuditType::TokenRefreshError,
             user_id,
         )?;
-        let key =
-            Auth::key_read_by_user(driver, service, audit, AuditType::TokenRefreshError, &user)?;
+        let key = Auth::key_read_by_user(
+            driver,
+            service,
+            audit,
+            AuditType::TokenRefreshError,
+            &user,
+            KeyType::Token,
+        )?;
 
         // Safely decode token with user key, this checks the type.
         let decoded = Jwt::decode_token(
@@ -687,6 +774,7 @@ impl Auth {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, token_type) = Jwt::decode_unsafe(&token, service.id)?;
 
+        // Token revoke requires token key type.
         // Do not check user, key is enabled or not revoked.
         let user = Auth::user_read_by_id_unchecked(
             driver,
@@ -701,6 +789,7 @@ impl Auth {
             audit,
             AuditType::TokenRevokeError,
             &user,
+            KeyType::Token,
         )?;
 
         // Safely decode token with user key.
@@ -748,9 +837,17 @@ impl Auth {
         user_id: Uuid,
         totp_code: String,
     ) -> CoreResult<()> {
+        // TOTP requires token key type.
         let user =
             Auth::user_read_by_id(driver, Some(service), audit, AuditType::TotpError, user_id)?;
-        let key = Auth::key_read_by_user(driver, service, audit, AuditType::TotpError, &user)?;
+        let key = Auth::key_read_by_user(
+            driver,
+            service,
+            audit,
+            AuditType::TotpError,
+            &user,
+            KeyType::Totp,
+        )?;
         let totp = TOTPBuilder::new()
             .base32_key(&key.value)
             .finalize()
@@ -773,6 +870,7 @@ impl Auth {
         access_token_expires: i64,
         refresh_token_expires: i64,
     ) -> CoreResult<(Service, UserToken)> {
+        // OAuth2 login requires token key type.
         let service =
             Auth::service_read_by_id(driver, service_id, audit, AuditType::Oauth2LoginError)?;
         let user = Auth::user_read_by_email(
@@ -782,8 +880,14 @@ impl Auth {
             AuditType::Oauth2LoginError,
             email,
         )?;
-        let key =
-            Auth::key_read_by_user(driver, &service, audit, AuditType::Oauth2LoginError, &user)?;
+        let key = Auth::key_read_by_user(
+            driver,
+            &service,
+            audit,
+            AuditType::Oauth2LoginError,
+            &user,
+            KeyType::Token,
+        )?;
 
         // Successful OAuth2 login, return service for redirect callback integration.
         let user_token = Auth::encode_user_token(
@@ -907,7 +1011,7 @@ impl Auth {
         }
     }
 
-    /// Read key by user reference.
+    /// Read key by user reference and key type.
     /// Also checks key is enabled and not revoked, returns bad request if disabled.
     fn key_read_by_user(
         driver: &dyn Driver,
@@ -915,8 +1019,9 @@ impl Auth {
         audit: &mut AuditBuilder,
         audit_type: AuditType,
         user: &User,
+        key_type: KeyType,
     ) -> CoreResult<Key> {
-        match Key::read_by_user(driver, &service, audit, &user, KeyType::Key)?
+        match Key::read_by_user(driver, &service, audit, &user, key_type)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
@@ -942,8 +1047,9 @@ impl Auth {
         audit: &mut AuditBuilder,
         audit_type: AuditType,
         user: &User,
+        key_type: KeyType,
     ) -> CoreResult<Key> {
-        match Key::read_by_user(driver, &service, audit, &user, KeyType::Key)?
+        match Key::read_by_user(driver, &service, audit, &user, key_type)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
@@ -965,8 +1071,9 @@ impl Auth {
         audit: &mut AuditBuilder,
         audit_type: AuditType,
         key: String,
+        key_type: KeyType,
     ) -> CoreResult<Key> {
-        match Key::read_by_user_value(driver, service, audit, key)?
+        match Key::read_by_user_value(driver, service, audit, key, key_type)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
@@ -992,8 +1099,9 @@ impl Auth {
         audit: &mut AuditBuilder,
         audit_type: AuditType,
         key: String,
+        key_type: KeyType,
     ) -> CoreResult<Key> {
-        match Key::read_by_user_value(driver, service, audit, key)?
+        match Key::read_by_user_value(driver, service, audit, key, key_type)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
@@ -1004,29 +1112,6 @@ impl Auth {
                 audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound);
                 Err(err)
             }
-        }
-    }
-
-    /// Get user ID from valid key or token.
-    fn key_or_token_verify(
-        driver: &dyn Driver,
-        service: &Service,
-        audit: &mut AuditBuilder,
-        key: Option<String>,
-        token: Option<String>,
-    ) -> CoreResult<Uuid> {
-        match key {
-            Some(key) => {
-                let user_key = Auth::key_verify(driver, service, audit, key, None)?;
-                Ok(user_key.user_id)
-            }
-            None => match token {
-                Some(token) => {
-                    let user_token = Auth::token_verify(driver, service, audit, token, None)?;
-                    Ok(user_token.user_id)
-                }
-                None => Err(CoreError::Forbidden),
-            },
         }
     }
 

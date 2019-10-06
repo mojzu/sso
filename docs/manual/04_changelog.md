@@ -6,6 +6,8 @@
 
 - Replaced key flags with type: `Key`, `Token` or `Totp`.
 - Added user flags: `password_allow_reset` and `password_require_update`.
+- Return `Unauthorised` instead of `Forbidden` for missing authentication.
+- User update email and password endpoints accept `user_id` instead of `key` or `token`.
 
 ## 0.5.0 (2019-10-05)
 

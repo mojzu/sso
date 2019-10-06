@@ -80,7 +80,7 @@ impl Client {
     pub fn authorisation_type(type_value: String) -> ClientResult<(String, String)> {
         let mut type_value = type_value.split_whitespace();
         let type_ = type_value.next();
-        let type_: String = type_.ok_or_else(|| ClientError::Forbidden)?.into();
+        let type_: String = type_.ok_or_else(|| ClientError::Unauthorised)?.into();
 
         let value = type_value.next();
         if let Some(value) = value {

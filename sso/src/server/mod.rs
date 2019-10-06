@@ -37,6 +37,9 @@ pub enum ServerError {
     #[fail(display = "ServerError:BadRequest")]
     BadRequest,
 
+    #[fail(display = "ServerError:Unauthorised")]
+    Unauthorised,
+
     #[fail(display = "ServerError:Forbidden")]
     Forbidden,
 
@@ -72,6 +75,7 @@ impl From<CoreError> for ServerError {
     fn from(e: CoreError) -> Self {
         match e {
             CoreError::BadRequest => Self::BadRequest,
+            CoreError::Unauthorised => Self::Unauthorised,
             CoreError::Forbidden => Self::Forbidden,
             CoreError::NotFound => Self::NotFound,
             CoreError::Jsonwebtoken(_e) => Self::BadRequest,
@@ -93,6 +97,7 @@ impl ResponseError for ServerError {
     fn error_response(&self) -> HttpResponse {
         match self {
             Self::BadRequest => HttpResponse::BadRequest().finish(),
+            Self::Unauthorised => HttpResponse::Unauthorized().finish(),
             Self::Forbidden => HttpResponse::Forbidden().finish(),
             Self::NotFound => HttpResponse::NotFound().finish(),
             _ => {

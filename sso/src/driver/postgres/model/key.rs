@@ -1,6 +1,6 @@
 use crate::{
     driver::postgres::schema::sso_key, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead,
-    KeyReadUserId, KeyType, KeyUpdate,
+    KeyReadUserId, KeyReadUserValue, KeyType, KeyUpdate,
 };
 use chrono::{DateTime, Utc};
 use diesel::{dsl::sql, prelude::*, sql_types::BigInt, PgConnection};
@@ -203,12 +203,10 @@ impl ModelKey {
     pub fn read_opt(conn: &PgConnection, read: &KeyRead) -> DriverResult<Option<Key>> {
         match read {
             KeyRead::Id(id) => Self::read_by_id(conn, id),
-            KeyRead::UserId(r) => Self::read_by_user_id(conn, r),
             KeyRead::RootValue(value) => Self::read_by_root_value(conn, value),
             KeyRead::ServiceValue(value) => Self::read_by_service_value(conn, value),
-            KeyRead::UserValue(service_id, value) => {
-                Self::read_by_user_value(conn, service_id, value)
-            }
+            KeyRead::UserId(r) => Self::read_by_user_id(conn, r),
+            KeyRead::UserValue(r) => Self::read_by_user_value(conn, r),
         }
     }
 
@@ -217,24 +215,6 @@ impl ModelKey {
 
         sso_key
             .filter(key_id.eq(id))
-            .get_result::<ModelKey>(conn)
-            .optional()
-            .map_err(Into::into)
-            .map(|x| x.map(Into::into))
-    }
-
-    fn read_by_user_id(conn: &PgConnection, read: &KeyReadUserId) -> DriverResult<Option<Key>> {
-        use crate::driver::postgres::schema::sso_key::dsl::*;
-
-        sso_key
-            .filter(
-                user_id
-                    .eq(read.user_id)
-                    .and(service_id.eq(read.service_id))
-                    .and(key_is_enabled.eq(read.is_enabled))
-                    .and(key_is_revoked.eq(read.is_revoked)),
-            )
-            .order(created_at.asc())
             .get_result::<ModelKey>(conn)
             .optional()
             .map_err(Into::into)
@@ -273,18 +253,42 @@ impl ModelKey {
             .map(|x| x.map(Into::into))
     }
 
+    fn read_by_user_id(conn: &PgConnection, read: &KeyReadUserId) -> DriverResult<Option<Key>> {
+        use crate::driver::postgres::schema::sso_key::dsl::*;
+
+        let type_ = read.type_.to_string().unwrap();
+        sso_key
+            .filter(
+                user_id
+                    .eq(read.user_id)
+                    .and(service_id.eq(read.service_id))
+                    .and(key_is_enabled.eq(read.is_enabled))
+                    .and(key_is_revoked.eq(read.is_revoked))
+                    .and(key_type.eq(type_)),
+            )
+            .order(created_at.asc())
+            .get_result::<ModelKey>(conn)
+            .optional()
+            .map_err(Into::into)
+            .map(|x| x.map(Into::into))
+    }
+
     fn read_by_user_value(
         conn: &PgConnection,
-        key_service_id: &Uuid,
-        value: &str,
+        read: &KeyReadUserValue,
     ) -> DriverResult<Option<Key>> {
         use crate::driver::postgres::schema::sso_key::dsl::*;
 
+        let type_ = read.type_.to_string().unwrap();
         sso_key
             .filter(
                 key_value
-                    .eq(value)
-                    .and(service_id.eq(key_service_id).and(user_id.is_not_null())),
+                    .eq(&read.value)
+                    .and(service_id.eq(read.service_id))
+                    .and(user_id.is_not_null())
+                    .and(key_is_enabled.eq(read.is_enabled))
+                    .and(key_is_revoked.eq(read.is_revoked))
+                    .and(key_type.eq(type_)),
             )
             .get_result::<ModelKey>(conn)
             .optional()

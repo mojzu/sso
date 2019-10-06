@@ -11,7 +11,7 @@ use uuid::Uuid;
 // TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
 // TODO(refactor): Improve key, user, service list query options (order by name, ...).
 // TODO(refactor): User last login, key last use information (calculate in SQL).
-// TODO(refactor): Respect key types, user password reset allow, password update required flags.
+// TODO(refactor): Respect password update required flag.
 
 /// Key value size in bytes.
 pub const KEY_VALUE_BYTES: usize = 21;
@@ -96,14 +96,24 @@ pub struct KeyReadUserId {
     pub type_: KeyType,
 }
 
+/// Key read by service ID and user value.
+#[derive(Debug)]
+pub struct KeyReadUserValue {
+    pub service_id: Uuid,
+    pub value: String,
+    pub is_enabled: bool,
+    pub is_revoked: bool,
+    pub type_: KeyType,
+}
+
 /// Key read.
 #[derive(Debug)]
 pub enum KeyRead {
     Id(Uuid),
-    UserId(KeyReadUserId),
     RootValue(String),
     ServiceValue(String),
-    UserValue(Uuid, String),
+    UserId(KeyReadUserId),
+    UserValue(KeyReadUserValue),
 }
 
 /// Key update data.
@@ -124,7 +134,7 @@ impl Key {
 
         match key_value {
             Some(key_value) => Key::read_by_root_value(driver, &mut audit, key_value)
-                .and_then(|key| match key.ok_or_else(|| CoreError::Forbidden) {
+                .and_then(|key| match key.ok_or_else(|| CoreError::Unauthorised) {
                     Ok(key) => {
                         audit.set_key(Some(&key));
                         Ok(key)
@@ -145,7 +155,7 @@ impl Key {
                     AuditType::AuthenticateError,
                     AuditMessage::KeyUndefined,
                 );
-                Err(CoreError::Forbidden)
+                Err(CoreError::Unauthorised)
             }
         }
     }
@@ -160,7 +170,7 @@ impl Key {
 
         match key_value {
             Some(key_value) => Key::read_by_service_value(driver, &mut audit, key_value)
-                .and_then(|key| match key.ok_or_else(|| CoreError::Forbidden) {
+                .and_then(|key| match key.ok_or_else(|| CoreError::Unauthorised) {
                     Ok(key) => {
                         audit.set_key(Some(&key));
                         Ok(key)
@@ -175,7 +185,7 @@ impl Key {
                     }
                 })
                 .and_then(
-                    |key| match key.service_id.ok_or_else(|| CoreError::Forbidden) {
+                    |key| match key.service_id.ok_or_else(|| CoreError::Unauthorised) {
                         Ok(service_id) => Ok(service_id),
                         Err(err) => {
                             audit.create_internal(
@@ -194,7 +204,7 @@ impl Key {
                     AuditType::AuthenticateError,
                     AuditMessage::KeyUndefined,
                 );
-                Err(CoreError::Forbidden)
+                Err(CoreError::Unauthorised)
             }
         }
     }
@@ -211,7 +221,7 @@ impl Key {
         Key::try_authenticate_service(driver, audit_meta, key_value)
             .map(|(service, audit)| (Some(service), audit))
             .or_else(move |err| match err {
-                CoreError::Forbidden => {
+                CoreError::Unauthorised => {
                     Key::authenticate_root(driver, audit_meta_copy, key_value_1)
                         .map(|audit| (None, audit))
                 }
@@ -231,10 +241,10 @@ impl Key {
 
         match key_value {
             Some(key_value) => Key::read_by_service_value(driver, &mut audit, key_value)
-                .and_then(|key| key.ok_or_else(|| CoreError::Forbidden))
-                .and_then(|key| key.service_id.ok_or_else(|| CoreError::Forbidden))
+                .and_then(|key| key.ok_or_else(|| CoreError::Unauthorised))
+                .and_then(|key| key.service_id.ok_or_else(|| CoreError::Unauthorised))
                 .and_then(|service_id| Key::authenticate_service_inner(driver, audit, service_id)),
-            None => Err(CoreError::Forbidden),
+            None => Err(CoreError::Unauthorised),
         }
     }
 
@@ -244,7 +254,7 @@ impl Key {
         service_id: Uuid,
     ) -> CoreResult<(Service, AuditBuilder)> {
         Service::read_opt(driver, None, &mut audit, service_id).and_then(|service| {
-            match service.ok_or_else(|| CoreError::Forbidden) {
+            match service.ok_or_else(|| CoreError::Unauthorised) {
                 Ok(service) => {
                     audit.set_service(Some(&service));
                     Ok((service, audit))
@@ -366,24 +376,6 @@ impl Key {
         driver.key_read_opt(&read).map_err(CoreError::Driver)
     }
 
-    /// Read key by user where key is enabled and not revoked.
-    pub fn read_by_user(
-        driver: &dyn Driver,
-        service: &Service,
-        _audit: &mut AuditBuilder,
-        user: &User,
-        type_: KeyType,
-    ) -> CoreResult<Option<Key>> {
-        let read = KeyRead::UserId(KeyReadUserId {
-            service_id: service.id,
-            user_id: user.id,
-            is_enabled: true,
-            is_revoked: false,
-            type_,
-        });
-        driver.key_read_opt(&read).map_err(CoreError::Driver)
-    }
-
     /// Read key by value (root only).
     pub fn read_by_root_value(
         driver: &dyn Driver,
@@ -404,14 +396,39 @@ impl Key {
         driver.key_read_opt(&read).map_err(CoreError::Driver)
     }
 
-    /// Read key by value (users only).
+    /// Read key by user where key is enabled and not revoked.
+    pub fn read_by_user(
+        driver: &dyn Driver,
+        service: &Service,
+        _audit: &mut AuditBuilder,
+        user: &User,
+        type_: KeyType,
+    ) -> CoreResult<Option<Key>> {
+        let read = KeyRead::UserId(KeyReadUserId {
+            service_id: service.id,
+            user_id: user.id,
+            is_enabled: true,
+            is_revoked: false,
+            type_,
+        });
+        driver.key_read_opt(&read).map_err(CoreError::Driver)
+    }
+
+    /// Read key by value and type where key is enabled and not revoked.
     pub fn read_by_user_value(
         driver: &dyn Driver,
         service: &Service,
         _audit: &mut AuditBuilder,
         value: String,
+        type_: KeyType,
     ) -> CoreResult<Option<Key>> {
-        let read = KeyRead::UserValue(service.id, value);
+        let read = KeyRead::UserValue(KeyReadUserValue {
+            service_id: service.id,
+            value,
+            is_enabled: true,
+            is_revoked: false,
+            type_,
+        });
         driver.key_read_opt(&read).map_err(CoreError::Driver)
     }
 

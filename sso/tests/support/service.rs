@@ -85,10 +85,10 @@ macro_rules! service_integration_test {
 
         #[test]
         #[ignore]
-        fn api_service_read_forbidden() {
+        fn api_service_read_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let res = client.service_read(Uuid::nil()).unwrap_err();
-            assert_eq!(res, ClientError::Forbidden);
+            assert_eq!(res, ClientError::Unauthorised);
         }
     };
 }

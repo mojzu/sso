@@ -3,13 +3,13 @@ macro_rules! auth_local_integration_test {
     () => {
         #[test]
         #[ignore]
-        fn api_auth_local_login_forbidden() {
+        fn api_auth_local_login_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::Forbidden);
+            assert_eq!(res, ClientError::Unauthorised);
         }
 
         #[test]
@@ -54,8 +54,15 @@ macro_rules! auth_local_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let _user =
-                user_create_with_password(&client, false, USER_NAME, &user_email, USER_PASSWORD);
+            let _user = user_create_with_password(
+                &client,
+                false,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
@@ -70,8 +77,15 @@ macro_rules! auth_local_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let _user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
+            let _user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
@@ -86,9 +100,16 @@ macro_rules! auth_local_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
 
             let body = AuthLoginRequest::new(&user_email, INVALID_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
@@ -104,14 +125,70 @@ macro_rules! auth_local_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service1_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service1.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key =
+                user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user.id);
 
             let client = client_create(Some(&service2_key.value));
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_auth_local_login_bad_request_unknown_user_token_key() {
+            let client = client_create(None);
+            let (service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user.id);
+
+            let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
+            let res = client.auth_local_login(body).unwrap_err();
+            assert_eq!(res, ClientError::BadRequest);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_auth_local_login_forbidden_user_password_require_update() {
+            let client = client_create(None);
+            let (service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                true,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
+
+            let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
+            let res = client.auth_local_login(body).unwrap_err();
+            assert_eq!(res, ClientError::Forbidden);
         }
 
         #[test]
@@ -122,9 +199,16 @@ macro_rules! auth_local_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap();
@@ -133,13 +217,13 @@ macro_rules! auth_local_integration_test {
 
         #[test]
         #[ignore]
-        fn api_auth_local_reset_password_forbidden() {
+        fn api_auth_local_reset_password_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
 
             let body = AuthResetPasswordRequest::new(&user_email);
             let res = client.auth_local_reset_password(body).unwrap_err();
-            assert_eq!(res, ClientError::Forbidden);
+            assert_eq!(res, ClientError::Unauthorised);
         }
 
         #[test]
@@ -176,12 +260,68 @@ macro_rules! auth_local_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service1_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service1.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                true,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key =
+                user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user.id);
 
             // Endpoint should not infer users existence.
             let client = client_create(Some(&service2_key.value));
+            let body = AuthResetPasswordRequest::new(&user_email);
+            client.auth_local_reset_password(body).unwrap();
+        }
+
+        #[test]
+        #[ignore]
+        fn api_auth_local_reset_password_ok_unknown_user_token_key() {
+            let client = client_create(None);
+            let (service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                true,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user.id);
+
+            // Endpoint should not infer users existence.
+            let body = AuthResetPasswordRequest::new(&user_email);
+            client.auth_local_reset_password(body).unwrap();
+        }
+
+        #[test]
+        #[ignore]
+        fn api_auth_local_reset_password_ok_reset_not_allowed() {
+            let client = client_create(None);
+            let (service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
+
+            // Endpoint should not infer users existence.
             let body = AuthResetPasswordRequest::new(&user_email);
             client.auth_local_reset_password(body).unwrap();
         }
@@ -194,9 +334,16 @@ macro_rules! auth_local_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                true,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
 
             let body = AuthResetPasswordRequest::new(&user_email);
             client.auth_local_reset_password(body).unwrap();
@@ -204,11 +351,11 @@ macro_rules! auth_local_integration_test {
 
         #[test]
         #[ignore]
-        fn api_auth_local_reset_password_confirm_forbidden() {
+        fn api_auth_local_reset_password_confirm_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let body = AuthResetPasswordConfirmRequest::new(INVALID_KEY, USER_PASSWORD);
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
-            assert_eq!(res, ClientError::Forbidden);
+            assert_eq!(res, ClientError::Unauthorised);
         }
 
         #[test]

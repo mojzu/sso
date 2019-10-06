@@ -237,7 +237,7 @@ impl User {
         password: String,
     ) -> CoreResult<User> {
         let password_hash =
-            User::password_hash(Some(&password))?.ok_or_else(|| CoreError::Forbidden)?;
+            User::password_hash(Some(&password))?.ok_or_else(|| CoreError::BadRequest)?;
         let update = UserUpdate {
             is_enabled: None,
             name: None,

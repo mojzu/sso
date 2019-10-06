@@ -3,7 +3,7 @@ macro_rules! key_integration_test {
     () => {
         #[test]
         #[ignore]
-        fn api_key_list_forbidden() {
+        fn api_key_list_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let res = client
                 .key_list(KeyListRequest {
@@ -12,7 +12,7 @@ macro_rules! key_integration_test {
                     limit: None,
                 })
                 .unwrap_err();
-            assert_eq!(res, ClientError::Forbidden);
+            assert_eq!(res, ClientError::Unauthorised);
         }
 
         #[test]
@@ -123,11 +123,11 @@ macro_rules! key_integration_test {
 
         #[test]
         #[ignore]
-        fn api_key_create_forbidden() {
+        fn api_key_create_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let body = KeyCreateRequest::new(true, KeyType::Key, KEY_NAME);
             let res = client.key_create(body).unwrap_err();
-            assert_eq!(res, ClientError::Forbidden);
+            assert_eq!(res, ClientError::Unauthorised);
         }
 
         #[test]
@@ -164,10 +164,10 @@ macro_rules! key_integration_test {
 
         #[test]
         #[ignore]
-        fn api_key_read_forbidden() {
+        fn api_key_read_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let res = client.key_read(Uuid::nil()).unwrap_err();
-            assert_eq!(res, ClientError::Forbidden);
+            assert_eq!(res, ClientError::Unauthorised);
         }
     };
 }

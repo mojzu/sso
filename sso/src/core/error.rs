@@ -22,6 +22,9 @@ pub enum CoreError {
     #[fail(display = "CoreError:Forbidden")]
     Forbidden,
 
+    #[fail(display = "CoreError:Unauthorised")]
+    Unauthorised,
+
     #[fail(display = "CoreError:NotFound")]
     NotFound,
 

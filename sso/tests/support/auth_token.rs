@@ -3,11 +3,11 @@ macro_rules! auth_token_integration_test {
     () => {
         #[test]
         #[ignore]
-        fn api_auth_token_verify_forbidden() {
+        fn api_auth_token_verify_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::Forbidden);
+            assert_eq!(res, ClientError::Unauthorised);
         }
 
         #[test]
@@ -31,9 +31,17 @@ macro_rules! auth_token_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service1_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service1.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key =
+                user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user.id);
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
             let client = client_create(Some(&service2_key.value));
@@ -50,9 +58,16 @@ macro_rules! auth_token_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
             let body = AuthTokenRequest::new(&user_token.access_token, None);
@@ -61,11 +76,11 @@ macro_rules! auth_token_integration_test {
 
         #[test]
         #[ignore]
-        fn api_auth_token_refresh_forbidden() {
+        fn api_auth_token_refresh_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_refresh(body).unwrap_err();
-            assert_eq!(res, ClientError::Forbidden);
+            assert_eq!(res, ClientError::Unauthorised);
         }
 
         #[test]
@@ -89,9 +104,17 @@ macro_rules! auth_token_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service1_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service1.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key =
+                user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user.id);
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
             let client = client_create(Some(&service2_key.value));
@@ -108,9 +131,16 @@ macro_rules! auth_token_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
             user_token_verify(&client, &user_token);
@@ -131,9 +161,16 @@ macro_rules! auth_token_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
             user_token_verify(&client, &user_token);
@@ -144,11 +181,11 @@ macro_rules! auth_token_integration_test {
 
         #[test]
         #[ignore]
-        fn api_auth_token_revoke_forbidden() {
+        fn api_auth_token_revoke_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::Forbidden);
+            assert_eq!(res, ClientError::Unauthorised);
         }
 
         #[test]
@@ -172,9 +209,17 @@ macro_rules! auth_token_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service1_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service1.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key =
+                user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user.id);
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
             let client = client_create(Some(&service2_key.value));
@@ -191,9 +236,16 @@ macro_rules! auth_token_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let user =
-                user_create_with_password(&client, true, USER_NAME, &user_email, USER_PASSWORD);
-            let _user_key = user_key_create(&client, KEY_NAME, service.id, user.id);
+            let user = user_create_with_password(
+                &client,
+                true,
+                USER_NAME,
+                &user_email,
+                false,
+                false,
+                USER_PASSWORD,
+            );
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
 
             let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
 
