@@ -13,3 +13,7 @@
 [pwned-passwords]: https://haveibeenpwned.com/Passwords
 [pandoc-markdown]: https://pandoc.org/MANUAL.html#pandocs-markdown
 [pandoc]: https://pandoc.org/
+[jwt]: https://jwt.io/
+[totp]: https://en.wikipedia.org/wiki/Time-based_One-time_Password_algorithm
+[argon2]: https://en.wikipedia.org/wiki/Argon2
+[zxcvbn]: https://github.com/shssoichiro/zxcvbn-rs

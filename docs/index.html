@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="Sam Ward" />
-  <title>Manual (sso)</title>
+  <title>sso</title>
   <style>
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
@@ -125,12 +125,13 @@ background-color: #f4f4f4;
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">Manual (sso)</h1>
+<h1 class="title">sso</h1>
 <p class="author">Sam Ward</p>
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
-<li><a href="#introduction">Introduction</a><ul>
+<li><a href="#manual">Manual</a><ul>
+<li><a href="#introduction">Introduction</a></li>
 <li><a href="#definitions">Definitions</a></li>
 </ul></li>
 <li><a href="#guides">Guides</a><ul>
@@ -156,7 +157,7 @@ background-color: #f4f4f4;
 </ul></li>
 <li><a href="#developer">Developer</a><ul>
 <li><a href="#tools">Tools</a></li>
-<li><a href="#manual">Manual</a></li>
+<li><a href="#manual-1">Manual</a></li>
 <li><a href="#environment">Environment</a></li>
 <li><a href="#database">Database</a></li>
 <li><a href="#build">Build</a></li>
@@ -164,70 +165,58 @@ background-color: #f4f4f4;
 </ul></li>
 </ul>
 </nav>
-<h1 id="introduction">Introduction</h1>
+<h1 id="manual">Manual</h1>
+<h2 id="introduction">Introduction</h2>
 <p><strong>Warning: The author of this application is not a security expert, and the code has not undergone any kind of review or verification. Use it at your own risk!</strong></p>
 <p>The crate <code>sso</code> is an authentication server binary. It is intended to be used as a backend for other services, such as API servers, which must authenticate user requests.</p>
-<p>Authentication methods are organised into provider groups. The following provider groups are currently supported: <code>local</code>, <code>github</code>, <code>microsoft</code>. Depending on the provider, the following user authentication methods are supported.</p>
-<ul>
-<li><strong>Password Login (Local)</strong>
+<p>Authentication methods are organised into provider groups, The following provider groups are currently supported: <code>local</code>, <code>github</code>, <code>microsoft</code>. Depending on the provider, the following user authentication methods are supported.</p>
+<h3 id="password-login-local">Password Login (local)</h3>
 <ul>
 <li>Users can authenticate to a service using a unique email address and password.</li>
-<li>Successful login returns time-limited, revokable access and refresh <a href="https://jwt.io/">JSON web tokens</a>.</li>
+<li>Successful login returns time-limited, revokable access and refresh <a href="jwt">JSON web tokens</a>.</li>
 <li>Access tokens are used to authenticate user requests.</li>
 <li>Refresh tokens are used to produce new access and refresh tokens.</li>
-<li>User passwords can be reset via email.</li>
+<li>User passwords can be reset via email, this feature can also be disabled for a user.</li>
+<li>Users can be required to update their passwords.</li>
 <li>User email address and password updates cause notification emails to be sent to the user.</li>
 <li>Notification emails contain revokation links in case a login is compromised.</li>
 <li>Passwords are stored as <a href="https://en.wikipedia.org/wiki/Argon2">argon2</a> hashes.</li>
 <li>Password strength is checked by <a href="https://github.com/shssoichiro/zxcvbn-rs">zxcvbn</a>.</li>
 <li>Password leaks are checked by <a href="pwned-passwords">Pwned Passwords</a>.</li>
 <li>Users can be created without passwords to disable password login.</li>
-</ul></li>
-<li><strong>API Key (Local)</strong>
+</ul>
+<h3 id="api-key-local">API Key (local)</h3>
 <ul>
 <li>Users can authenticate requests to a service using a unique, random key.</li>
 <li>Keys are not time-limited, but are revokable.</li>
-</ul></li>
-<li><strong>OAuth2 (GitHub, Microsoft)</strong>
+</ul>
+<h3 id="totp-local">TOTP (local)</h3>
+<ul>
+<li>Services can authenticate user requests that contain a <a href="totp">TOTP</a> code.</li>
+</ul>
+<h3 id="oauth2-github-microsoft">OAuth2 (github, microsoft)</h3>
 <ul>
 <li>Users can authenticate to a service via supported OAuth2 providers.</li>
-<li>Successful login returns time-limited, revokable access and refresh <a href="https://jwt.io/">JSON web tokens</a>.</li>
+<li>Successful login returns time-limited, revokable access and refresh <a href="jwt">JSON web tokens</a>.</li>
 <li>Access tokens are used to authenticate user requests.</li>
 <li>Refresh tokens are used to produce new access and refresh tokens.</li>
-</ul></li>
 </ul>
 <h2 id="definitions">Definitions</h2>
 <p>The following terms are used throughout this manual.</p>
-<ul>
-<li><strong>User</strong>
-<ul>
-<li>A person or other external API consumer identified by a unique email address who wants to interact with one or more services registered with <code>sso</code>.</li>
-</ul></li>
-<li><strong>Service</strong>
-<ul>
-<li>An application that must authenticate user requests, registered as a service with <code>sso</code> using a name and callback URL.</li>
-</ul></li>
-<li><strong>Key</strong>
-<ul>
-<li>Random, unique keys produced by <code>sso</code>. Keys may be revoked to prevent use.</li>
-</ul></li>
-<li><strong>Root Key</strong>
-<ul>
-<li>Keys linked to no services or users, produced by command line and can be used to manage <code>sso</code> via HTTP requests.</li>
-</ul></li>
-<li><strong>Service Key</strong>
-<ul>
-<li>Keys linked to one service, used by <code>sso</code> to authenticate HTTP requests from services.</li>
-</ul></li>
-<li><strong>User Key</strong>
-<ul>
-<li>Keys linked to one user and one service, allows user to authenticate with the linked service.</li>
-</ul></li>
-<li><strong>Token</strong>
-<ul>
-<li><a href="https://jwt.io/">JSON web tokens</a> used for time-limited authentication, produced for users from a user key. Revoking the key used to produce a token also revokes the token.</li>
-</ul></li>
-</ul>
+<h3 id="service">Service</h3>
+<p>An application that must authenticate user requests, registered as a service with <code>sso</code> using a name and callback URLs for supported authentication providers.</p>
+<h3 id="user">User</h3>
+<p>A person or other external API consumer identified by a unique email address who wants to interact with one or more services registered with <code>sso</code>.</p>
+<h3 id="key">Key</h3>
+<p>Random, unique keys produced by <code>sso</code> with a specified type (<code>Key</code>, <code>Token</code> or <code>Totp</code>). Keys may be revoked to prevent use.</p>
+<h3 id="root-key">Root Key</h3>
+<p>Keys linked to no services or users, produced by command line and can be used to manage <code>sso</code> via HTTP requests. <code>Key</code> type.</p>
+<h3 id="service-key">Service Key</h3>
+<p>Keys linked to one service, used by <code>sso</code> to authenticate HTTP requests from services. <code>Key</code> type.</p>
+<h3 id="user-key">User Key</h3>
+<p>Keys linked to one user and one service, allows user to authenticate with the linked service. Any type, type determines what the key may be used for (e.g. <code>Token</code> keys are used for email and password login).</p>
+<h3 id="token">Token</h3>
+<p><a href="jwt">JSON web tokens</a> used for time-limited authentication, produced for users from a user key. Revoking the key used to produce a token also revokes the token. Tokens have a type which determines what the token may be used for (e.g. single use reset password token).</p>
 <h1 id="guides">Guides</h1>
 <h2 id="quickstart">Quickstart</h2>
 <p>TODO(docs): Write quickstart guide.</p>
@@ -554,6 +543,8 @@ sso start-server</code></pre>
 <ul>
 <li>Replaced key flags with type: <code>Key</code>, <code>Token</code> or <code>Totp</code>.</li>
 <li>Added user flags: <code>password_allow_reset</code> and <code>password_require_update</code>.</li>
+<li>Return <code>Unauthorised</code> instead of <code>Forbidden</code> for missing authentication.</li>
+<li>User update email and password endpoints accept <code>user_id</code> instead of <code>key</code> or <code>token</code>.</li>
 </ul>
 <h2 id="section-1">0.5.0 (2019-10-05)</h2>
 <p><strong>Added</strong></p>
@@ -672,7 +663,7 @@ cargo install --force cargo-audit</code></pre>
 <p>To stop and destroy containers.</p>
 <pre class="shell"><code>cargo make docker-stop
 cargo make docker-down</code></pre>
-<h2 id="manual">Manual</h2>
+<h2 id="manual-1">Manual</h2>
 <p>This manual is written in <a href="pandoc-markdown">Markdown</a> and converted into other formats using <a href="pandoc">Pandoc</a>.</p>
 <p>To build the HTML manual.</p>
 <pre class="shell"><code>cargo make manual</code></pre>

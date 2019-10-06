@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "8adebe21-5051-406a-8ce6-4d88ed05e85b",
+		"_postman_id": "b4119fa3-b2ba-47dc-932d-d5d584411506",
 		"name": "sso",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -48,7 +48,7 @@
 												"login"
 											]
 										},
-										"description": "Login with email address and password.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User email address is invalid or unknown.\n- User password is invalid or incorrect or null.\n- User is not assigned key for service.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+										"description": "Login with email address and password.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User email address is invalid or unknown.\n- User password is invalid or incorrect or null.\n- User is not assigned key for service.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 									},
 									"response": []
 								},
@@ -92,7 +92,7 @@
 												"reset-password"
 											]
 										},
-										"description": "Reset password request for email address.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User email address is invalid or unknown.\n- User is not assigned key for service.\n- User password is null.\n- Unable to send password reset email.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+										"description": "Reset password request for email address.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User email address is invalid or unknown.\n- User is not assigned key for service.\n- User password is null.\n- Unable to send password reset email.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 									},
 									"response": []
 								},
@@ -131,7 +131,7 @@
 												"confirm"
 											]
 										},
-										"description": "Confirm reset password request.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Token is invalid or has been used.\n- User password is invalid.\n- User is not assigned key for service.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+										"description": "Confirm reset password request.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Token is invalid or has been used.\n- User password is invalid.\n- User is not assigned key for service.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 									},
 									"response": []
 								},
@@ -169,7 +169,7 @@
 												"update-email"
 											]
 										},
-										"description": "Update email request for user.\n\n`key` or `token` must be provided for authentication.\n\n**400, Bad Request**\n\n- Request body is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+										"description": "Update email request for user.\n\n`key` or `token` must be provided for authentication.\n\n**400, Bad Request**\n\n- Request body is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 									},
 									"response": []
 								},
@@ -208,7 +208,7 @@
 												"revoke"
 											]
 										},
-										"description": "Revoke update email request for user.\n\n**400, Bad Request**\n\n- Request body is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+										"description": "Revoke update email request for user.\n\n**400, Bad Request**\n\n- Request body is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 									},
 									"response": []
 								},
@@ -246,7 +246,7 @@
 												"update-password"
 											]
 										},
-										"description": "Update password request for user.\n\n`key` or `token` must be provided for authentication.\n\n**400, Bad Request**\n\n- Request body is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+										"description": "Update password request for user.\n\n`key` or `token` must be provided for authentication.\n\n**400, Bad Request**\n\n- Request body is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 									},
 									"response": []
 								},
@@ -285,7 +285,7 @@
 												"revoke"
 											]
 										},
-										"description": "Revoke update password request for user.\n\n**400, Bad Request**\n\n- Request body is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+										"description": "Revoke update password request for user.\n\n**400, Bad Request**\n\n- Request body is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 									},
 									"response": []
 								}
@@ -314,7 +314,7 @@
 												"oauth2"
 											]
 										},
-										"description": "Request an OAuth2 authentication redirect URL.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+										"description": "Request an OAuth2 authentication redirect URL.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 									},
 									"response": []
 								},
@@ -381,7 +381,7 @@
 												"oauth2"
 											]
 										},
-										"description": "Request an OAuth2 authentication redirect URL.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+										"description": "Request an OAuth2 authentication redirect URL.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 									},
 									"response": []
 								},
@@ -467,7 +467,7 @@
 										"verify"
 									]
 								},
-								"description": "Verify user key.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key is invalid.\n- Key is for a service.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+								"description": "Verify user key.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key is invalid.\n- Key is for a service.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 							},
 							"response": []
 						},
@@ -504,7 +504,7 @@
 										"revoke"
 									]
 								},
-								"description": "Revoke a user key, any associated tokens will become invalid.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key is invalid.\n- Key is for a service.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+								"description": "Revoke a user key, any associated tokens will become invalid.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key is invalid.\n- Key is for a service.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 							},
 							"response": []
 						}
@@ -548,7 +548,7 @@
 										"verify"
 									]
 								},
-								"description": "Verify user token.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Token is invalid.\n- Token is not for authorised service.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+								"description": "Verify user token.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Token is invalid.\n- Token is not for authorised service.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 							},
 							"response": []
 						},
@@ -585,7 +585,7 @@
 										"refresh"
 									]
 								},
-								"description": "Refresh user token, creates new token with updated expiry time.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Token is invalid.\n- Token is not for authorised service.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+								"description": "Refresh user token, creates new token with updated expiry time.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Token is invalid.\n- Token is not for authorised service.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 							},
 							"response": []
 						},
@@ -622,7 +622,7 @@
 										"revoke"
 									]
 								},
-								"description": "Revoke user token, revokes associated key to prevent reuse.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Token is invalid.\n- Token is not for authorised service.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+								"description": "Revoke user token, revokes associated key to prevent reuse.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Token is invalid.\n- Token is not for authorised service.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 							},
 							"response": []
 						}
@@ -677,7 +677,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{server_url}}/v1/audit",
+							"raw": "{{server_url}}/v1/audit?",
 							"host": [
 								"{{server_url}}"
 							],
@@ -752,7 +752,7 @@
 								"audit"
 							]
 						},
-						"description": "**400, Bad Request**\n\n- Request body is invalid.\n- Audit log type is invalid.\n- Audit log data is invalid.\n- User ID is invalid or user does not exist.\n- User key ID is invalid or user key does not exist.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "**400, Bad Request**\n\n- Request body is invalid.\n- Audit log type is invalid.\n- Audit log data is invalid.\n- User ID is invalid or user does not exist.\n- User key ID is invalid or user key does not exist.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -772,7 +772,7 @@
 								"{{audit_id}}"
 							]
 						},
-						"description": "**403, Forbidden**\n\n- Authorisation header is invalid.\n\n**404, Not Found**\n\n- Audit log ID not found."
+						"description": "**401, Unauthorised**\n\n- Authorisation header is invalid.\n\n**404, Not Found**\n\n- Audit log ID not found."
 					},
 					"response": []
 				}
@@ -817,7 +817,7 @@
 								}
 							]
 						},
-						"description": "**400, Bad Request**\n\n- Request query is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "**400, Bad Request**\n\n- Request query is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -852,7 +852,7 @@
 								"key"
 							]
 						},
-						"description": "Service keys can only be created with root key authorisation, else user is created for service making request.\n\nUnless creating a service key, `service_id` field must be removed.\n\nService keys `allow_token` and `allow_totp` are always false.\n\nUsers may only have one enabled and not revoked key where `allow_token` is true.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key name is invalid.\n- Service ID is invalid or service does not exist.\n- User ID is invalid or user does not exist.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "Service keys can only be created with root key authorisation, else user is created for service making request.\n\nUnless creating a service key, `service_id` field must be removed.\n\nService keys `allow_token` and `allow_totp` are always false.\n\nUsers may only have one enabled and not revoked key where `allow_token` is true.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key name is invalid.\n- Service ID is invalid or service does not exist.\n- User ID is invalid or user does not exist.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -872,7 +872,7 @@
 								"{{key_id}}"
 							]
 						},
-						"description": "**403, Forbidden**\n\n- Authorisation header is invalid.\n\n**404, Not Found**\n\n- Key ID not found."
+						"description": "**401, Unauthorised**\n\n- Authorisation header is invalid.\n\n**404, Not Found**\n\n- Key ID not found."
 					},
 					"response": []
 				},
@@ -908,7 +908,7 @@
 								"{{key_id}}"
 							]
 						},
-						"description": "All fields are optional.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key name is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "All fields are optional.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key name is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -928,7 +928,7 @@
 								"{{key_id}}"
 							]
 						},
-						"description": "**400, Bad Request**\n\n- Key ID is invalid or key does not exist.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "**400, Bad Request**\n\n- Key ID is invalid or key does not exist.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				}
@@ -973,7 +973,7 @@
 								}
 							]
 						},
-						"description": "**400, Bad Request**\n\n- Request query is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "**400, Bad Request**\n\n- Request query is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -1008,7 +1008,7 @@
 								"service"
 							]
 						},
-						"description": "**400, Bad Request**\n\n- Request body is invalid.\n- Service name is invalid.\n- Service URL is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "**400, Bad Request**\n\n- Request body is invalid.\n- Service name is invalid.\n- Service URL is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -1028,7 +1028,7 @@
 								"{{service_id}}"
 							]
 						},
-						"description": "**403, Forbidden**\n\n- Authorisation header is invalid.\n\n**404, Not Found**\n\n- Service ID not found."
+						"description": "**401, Unauthorised**\n\n- Authorisation header is invalid.\n\n**404, Not Found**\n\n- Service ID not found."
 					},
 					"response": []
 				},
@@ -1064,7 +1064,7 @@
 								"{{service_id}}"
 							]
 						},
-						"description": "All fields are optional.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Service name is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "All fields are optional.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Service name is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -1084,7 +1084,7 @@
 								"{{service_id}}"
 							]
 						},
-						"description": "**400, Bad Request**\n\n- Service ID is invalid or service does not exist.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "**400, Bad Request**\n\n- Service ID is invalid or service does not exist.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				}
@@ -1135,7 +1135,7 @@
 								}
 							]
 						},
-						"description": "**400, Bad Request**\n\n- Request query is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "**400, Bad Request**\n\n- Request query is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -1170,7 +1170,7 @@
 								"user"
 							]
 						},
-						"description": "Users can be created without a password by excluding `password` and `password_update_required` fields.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User name is invalid.\n- User email address is invalid or not unique.\n- User password is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "Users can be created without a password by excluding `password` and `password_update_required` fields.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User name is invalid.\n- User email address is invalid or not unique.\n- User password is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -1190,7 +1190,7 @@
 								"{{user_id}}"
 							]
 						},
-						"description": "**403, Forbidden**\n\n- Authorisation header is invalid.\n\n**404, Not Found**\n\n- User ID not found."
+						"description": "**401, Unauthorised**\n\n- Authorisation header is invalid.\n\n**404, Not Found**\n\n- User ID not found."
 					},
 					"response": []
 				},
@@ -1226,7 +1226,7 @@
 								"{{user_id}}"
 							]
 						},
-						"description": "All fields are optional.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User name is invalid.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "All fields are optional.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User name is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -1246,7 +1246,7 @@
 								"{{user_id}}"
 							]
 						},
-						"description": "**400, Bad Request**\n\n- User ID is invalid or user does not exist.\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+						"description": "**400, Bad Request**\n\n- User ID is invalid or user does not exist.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				}
@@ -1327,7 +1327,7 @@
 						"metrics"
 					]
 				},
-				"description": "Server metrics in [Prometheus exposition format]((https://prometheus.io/docs/instrumenting/exposition_formats/)).\n\n**403, Forbidden**\n\n- Authorisation header is invalid."
+				"description": "Server metrics in [Prometheus exposition format]((https://prometheus.io/docs/instrumenting/exposition_formats/)).\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 			},
 			"response": [
 				{
@@ -1409,97 +1409,97 @@
 	],
 	"variable": [
 		{
-			"id": "0f69c658-676d-4902-877b-06712fffffc9",
+			"id": "b298ba29-38e8-48a3-a648-e86891d52d26",
 			"key": "server_url",
 			"value": "localhost:9000",
 			"type": "string"
 		},
 		{
-			"id": "ec45ad5c-42be-4659-bc1c-c4fa3b18a8ba",
+			"id": "dfb6d865-df3a-4099-8e5e-ef9a4a8e38ec",
 			"key": "key",
 			"value": "{{root_key}}",
 			"type": "string"
 		},
 		{
-			"id": "a46f70d0-9e99-45c0-8645-ffae3d691d97",
+			"id": "92c40562-8052-417e-b9a6-619b0afba2c3",
 			"key": "root_key",
-			"value": "7FYI3TH5GYLWK3RXAOGTWJ3ZH72CZNVJXY",
+			"value": "FFXDPFWCRRKDHDXHGPOTZAOPHJHIKXQ3II",
 			"type": "string"
 		},
 		{
-			"id": "8d67fb21-0dab-4b04-b9f0-c11d6ed43df7",
+			"id": "3b15b571-7078-45d4-985d-38cd6a481041",
 			"key": "service_key",
 			"value": "DIHLXAEMMC4IU5RZ76VQ4RGRMPLKJZNC4A",
 			"type": "string"
 		},
 		{
-			"id": "76c98894-602b-432c-82e9-318fbdaccd09",
+			"id": "4ff5a99c-91bd-4a48-add8-e3ce1ff6fba3",
 			"key": "service_id",
 			"value": "438ef04b-ec3a-4e1d-ae93-3a7965a26331",
 			"type": "string"
 		},
 		{
-			"id": "79d3f05b-6d8f-4b8b-94a9-ddf27e146fbb",
+			"id": "66564cb8-f481-43ed-a8ee-8930668d1173",
 			"key": "key_id",
 			"value": "fc6e58c3-09ba-4375-ac61-58244fb7284c",
 			"type": "string"
 		},
 		{
-			"id": "8e48f0c0-022b-46bd-82e7-4b293b4d86e8",
+			"id": "d9664f33-20c7-46c3-8843-12bd09dc4e23",
 			"key": "user_id",
 			"value": "8d7b3d44-94f6-4995-954b-20ce19f6923f",
 			"type": "string"
 		},
 		{
-			"id": "3026de71-b98c-4725-a83a-d8d3783c4fce",
+			"id": "bc33095c-08cb-4c58-a47a-e9e7253d48b6",
 			"key": "user_email",
 			"value": "user@example.com",
 			"type": "string"
 		},
 		{
-			"id": "f0b3e09a-481c-4670-b161-3354e0c89dd6",
+			"id": "9b515848-9125-4a14-9052-d1ce87ad772c",
 			"key": "audit_id",
 			"value": "961359b5-4d89-49e6-a3d2-714a73857eeb",
 			"type": "string"
 		},
 		{
-			"id": "4319f9e5-ca81-4023-9e07-46b8d7a3ae22",
+			"id": "5bff995c-edd1-43ba-90f3-2b5c2331a00b",
 			"key": "user_access_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTA5MDQsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.veHb4RzBlR4-QJKvD5RY4YdfhjMf9rdoQH0fPFxSiH4",
 			"type": "string"
 		},
 		{
-			"id": "f3a96eb0-25d1-4b1a-bf4f-4ca56adcb708",
+			"id": "45a65906-1b88-4eed-ac74-453410cde0ed",
 			"key": "user_refresh_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiIxMmYyZGRjYy1jZGEzLTQxNWEtOTJmNy00OTNjODUzMDYwOTciLCJleHAiOjE1NzAxMzI1NzksInhfdHlwZSI6MSwieF9jc3JmIjoiNzI1SzdJRFpTS0QySE1URUFQTVo2S09RVVJTQktDT0VZVSJ9.P6H3vabqLwyUDrICyOCH8cUl-vFGWKtvEmKl2M3e6EI",
 			"type": "string"
 		},
 		{
-			"id": "206aca99-b45b-40e4-aec2-f2085c744339",
+			"id": "9a416546-c6f2-4e2c-8d64-5ac8fd1209c7",
 			"key": "user_key",
 			"value": "K54F4ORUAF6VBWACBENOANDZUHHHCVWR3A",
 			"type": "string"
 		},
 		{
-			"id": "3e5296b3-6469-4202-accb-4cb61a3cd0e8",
+			"id": "18f435e2-b815-42e3-a635-91f82c0c57e4",
 			"key": "totp_code",
 			"value": "123456",
 			"type": "string"
 		},
 		{
-			"id": "52e7ffa7-45c6-4e40-a07c-26bcd014925f",
+			"id": "c0cd9977-3dba-48dc-989e-c4113ce0c4b5",
 			"key": "user_reset_password_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTAzMzcsInhfdHlwZSI6MiwieF9jc3JmIjoiNUxBT0xHQjI0N1pGWEYzM1pVMkZOVTZMM0hZSDJSQ1JSNCJ9.0rK1R-AswHV19POJEFKlv3yai9YAR8eK5e_6CbfXEPU",
 			"type": "string"
 		},
 		{
-			"id": "7665778f-7754-4078-a705-eb62e3f5d493",
+			"id": "7741dcb7-ed1b-410f-b1d4-47a7bd1daec2",
 			"key": "user_update_password_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIyOTQsInhfdHlwZSI6NCwieF9jc3JmIjoiRlRINERLUUU1S1M3RjVVUExYUkFCNkJPWEJDRUdIRlUyRSJ9.BG3cBT5s3GdCjJ3Wlc4F88P4oBfybzTvi6xgs0rQ_Cc",
 			"type": "string"
 		},
 		{
-			"id": "16fd98f4-b50a-49e3-bc0f-2961314d5855",
+			"id": "79ca1472-3a68-4837-9219-e4b954849d79",
 			"key": "user_update_email_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIxNTUsInhfdHlwZSI6MywieF9jc3JmIjoiSEk1VEpaMzdBRUpJTU9UUUNEVlgyVUlLNVZRUTZSTUYyNCJ9.4Me_J7HUmLZQ4-OJTq5xyV5JNmaO-ZdvfD2UbiJ_kBY",
 			"type": "string"

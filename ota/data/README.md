@@ -12,8 +12,6 @@ Encrypted key, value storage library and binary crate.
 
 ### create secret-key
 
-TODO(refactor): Binary `data`.
-
 ```shell
 data create secret-key <SECRET_KEY>
 ```

@@ -11,7 +11,6 @@ use uuid::Uuid;
 // TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
 // TODO(refactor): Improve key, user, service list query options (order by name, ...).
 // TODO(refactor): User last login, key last use information (calculate in SQL).
-// TODO(refactor): Respect password update required flag.
 
 /// Key value size in bytes.
 pub const KEY_VALUE_BYTES: usize = 21;
