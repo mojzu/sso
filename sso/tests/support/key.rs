@@ -169,5 +169,14 @@ macro_rules! key_integration_test {
             let res = client.key_read(Uuid::nil()).unwrap_err();
             assert_eq!(res, ClientError::Unauthorised);
         }
+
+        #[test]
+        #[ignore]
+        fn api_key_read_ok() {
+            let client = client_create(None);
+            let (_service, service_key) = service_key_create(&client);
+            let res = client.key_read(service_key.id).unwrap();
+            assert_eq!(res.data.id, service_key.id);
+        }
     };
 }

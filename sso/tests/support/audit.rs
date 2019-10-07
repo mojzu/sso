@@ -208,5 +208,29 @@ macro_rules! audit_integration_test {
             let res = client.audit_read(a1.id).unwrap_err();
             assert_eq!(res, ClientError::NotFound);
         }
+
+        #[test]
+        #[ignore]
+        fn api_audit_read_unauthorised() {
+            let client = client_create(Some(INVALID_KEY));
+            let res = client.audit_read(Uuid::nil()).unwrap_err();
+            assert_eq!(res, ClientError::Unauthorised);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_audit_read_ok() {
+            let client = client_create(None);
+            let audit = client
+                .audit_create(AuditCreateRequest::new(
+                    "read_test",
+                    Value::Null,
+                    None,
+                    None,
+                ))
+                .unwrap().data;
+            let res = client.audit_read(audit.id).unwrap();
+            assert_eq!(res.data.id, audit.id);
+        }
     };
 }
