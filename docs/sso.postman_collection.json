@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "b4119fa3-b2ba-47dc-932d-d5d584411506",
+		"_postman_id": "49659a43-10ae-47e4-b6cc-fafd07ca563c",
 		"name": "sso",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1409,97 +1409,97 @@
 	],
 	"variable": [
 		{
-			"id": "b298ba29-38e8-48a3-a648-e86891d52d26",
+			"id": "2ebcef35-1443-4a56-8958-3f4be5f40fc4",
 			"key": "server_url",
 			"value": "localhost:9000",
 			"type": "string"
 		},
 		{
-			"id": "dfb6d865-df3a-4099-8e5e-ef9a4a8e38ec",
+			"id": "f08cdab5-bfd0-4448-a759-541c83b2098a",
 			"key": "key",
 			"value": "{{root_key}}",
 			"type": "string"
 		},
 		{
-			"id": "92c40562-8052-417e-b9a6-619b0afba2c3",
+			"id": "a2b5edde-31c5-4823-8e87-ce179009bfb3",
 			"key": "root_key",
-			"value": "FFXDPFWCRRKDHDXHGPOTZAOPHJHIKXQ3II",
+			"value": "4JAREC6IPGMFZOPP6SPKI2FEXK42KMAIMU",
 			"type": "string"
 		},
 		{
-			"id": "3b15b571-7078-45d4-985d-38cd6a481041",
+			"id": "2b61cc5a-db03-4f78-acaf-49ae23e16485",
 			"key": "service_key",
 			"value": "DIHLXAEMMC4IU5RZ76VQ4RGRMPLKJZNC4A",
 			"type": "string"
 		},
 		{
-			"id": "4ff5a99c-91bd-4a48-add8-e3ce1ff6fba3",
+			"id": "1858dbad-9140-4a60-a522-8bc707609f18",
 			"key": "service_id",
 			"value": "438ef04b-ec3a-4e1d-ae93-3a7965a26331",
 			"type": "string"
 		},
 		{
-			"id": "66564cb8-f481-43ed-a8ee-8930668d1173",
+			"id": "7c32109b-df44-4f0c-be26-c3bdb67a5428",
 			"key": "key_id",
 			"value": "fc6e58c3-09ba-4375-ac61-58244fb7284c",
 			"type": "string"
 		},
 		{
-			"id": "d9664f33-20c7-46c3-8843-12bd09dc4e23",
+			"id": "1fed0f47-ccef-402e-a2ca-d2f78397448d",
 			"key": "user_id",
 			"value": "8d7b3d44-94f6-4995-954b-20ce19f6923f",
 			"type": "string"
 		},
 		{
-			"id": "bc33095c-08cb-4c58-a47a-e9e7253d48b6",
+			"id": "b0eb5b1a-7377-45db-80d6-72b04c8099b3",
 			"key": "user_email",
 			"value": "user@example.com",
 			"type": "string"
 		},
 		{
-			"id": "9b515848-9125-4a14-9052-d1ce87ad772c",
+			"id": "212818f6-715f-41e9-9336-c7b222031a4e",
 			"key": "audit_id",
 			"value": "961359b5-4d89-49e6-a3d2-714a73857eeb",
 			"type": "string"
 		},
 		{
-			"id": "5bff995c-edd1-43ba-90f3-2b5c2331a00b",
+			"id": "15402692-18c4-48f5-9458-23a7fa8a894a",
 			"key": "user_access_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTA5MDQsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.veHb4RzBlR4-QJKvD5RY4YdfhjMf9rdoQH0fPFxSiH4",
 			"type": "string"
 		},
 		{
-			"id": "45a65906-1b88-4eed-ac74-453410cde0ed",
+			"id": "75f23369-a59f-4bad-8ca8-b7c475763091",
 			"key": "user_refresh_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiIxMmYyZGRjYy1jZGEzLTQxNWEtOTJmNy00OTNjODUzMDYwOTciLCJleHAiOjE1NzAxMzI1NzksInhfdHlwZSI6MSwieF9jc3JmIjoiNzI1SzdJRFpTS0QySE1URUFQTVo2S09RVVJTQktDT0VZVSJ9.P6H3vabqLwyUDrICyOCH8cUl-vFGWKtvEmKl2M3e6EI",
 			"type": "string"
 		},
 		{
-			"id": "9a416546-c6f2-4e2c-8d64-5ac8fd1209c7",
+			"id": "782eac32-874b-41ea-8987-2c2839279218",
 			"key": "user_key",
 			"value": "K54F4ORUAF6VBWACBENOANDZUHHHCVWR3A",
 			"type": "string"
 		},
 		{
-			"id": "18f435e2-b815-42e3-a635-91f82c0c57e4",
+			"id": "217e687a-a4e3-4c3d-bf78-d5cd1f18b0f3",
 			"key": "totp_code",
 			"value": "123456",
 			"type": "string"
 		},
 		{
-			"id": "c0cd9977-3dba-48dc-989e-c4113ce0c4b5",
+			"id": "e31c4170-7db2-4794-8ce4-741dcfbc17d0",
 			"key": "user_reset_password_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTAzMzcsInhfdHlwZSI6MiwieF9jc3JmIjoiNUxBT0xHQjI0N1pGWEYzM1pVMkZOVTZMM0hZSDJSQ1JSNCJ9.0rK1R-AswHV19POJEFKlv3yai9YAR8eK5e_6CbfXEPU",
 			"type": "string"
 		},
 		{
-			"id": "7741dcb7-ed1b-410f-b1d4-47a7bd1daec2",
+			"id": "6163eedc-a8fa-468f-b4e9-188e46b6a2e5",
 			"key": "user_update_password_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIyOTQsInhfdHlwZSI6NCwieF9jc3JmIjoiRlRINERLUUU1S1M3RjVVUExYUkFCNkJPWEJDRUdIRlUyRSJ9.BG3cBT5s3GdCjJ3Wlc4F88P4oBfybzTvi6xgs0rQ_Cc",
 			"type": "string"
 		},
 		{
-			"id": "79ca1472-3a68-4837-9219-e4b954849d79",
+			"id": "3495eb8e-b3de-44ec-9d2b-76223dc1d3ac",
 			"key": "user_update_email_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIxNTUsInhfdHlwZSI6MywieF9jc3JmIjoiSEk1VEpaMzdBRUpJTU9UUUNEVlgyVUlLNVZRUTZSTUYyNCJ9.4Me_J7HUmLZQ4-OJTq5xyV5JNmaO-ZdvfD2UbiJ_kBY",
 			"type": "string"

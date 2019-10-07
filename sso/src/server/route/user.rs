@@ -88,7 +88,7 @@ fn read_handler(
     audit_meta
         .and_then(move |audit_meta| {
             web::block(move || {
-                Api::key_read(data.driver(), id, audit_meta, user_id).map_err(Into::into)
+                Api::user_read(data.driver(), id, audit_meta, user_id).map_err(Into::into)
             })
             .map_err(Into::into)
         })

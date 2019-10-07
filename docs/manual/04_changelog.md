@@ -9,6 +9,10 @@
 - Return `Unauthorised` instead of `Forbidden` for missing authentication.
 - User update email and password endpoints accept `user_id` instead of `key` or `token`.
 
+**Fixed**
+
+- Fixed read user by ID route `/v1/user/{id}` attempts to read key by ID.
+
 ## 0.5.0 (2019-10-05)
 
 **Added**
