@@ -148,7 +148,7 @@ impl Api {
         key_value: Option<String>,
         audit_meta: AuditMeta,
         request: AuditCreateRequest,
-    ) -> CoreResult<AuditCreateResponse> {
+    ) -> CoreResult<AuditReadResponse> {
         AuditCreateRequest::api_validate(&request)?;
 
         Key::authenticate(driver, audit_meta, key_value)
@@ -158,7 +158,7 @@ impl Api {
                     .set_user_key_id(request.user_key_id)
                     .create(driver, &request.type_, &request.data)
             })
-            .map(|data| AuditCreateResponse { data })
+            .map(|data| AuditReadResponse { data })
     }
 
     pub fn audit_read(

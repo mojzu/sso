@@ -144,12 +144,6 @@ impl AuditCreateRequest {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct AuditCreateResponse {
-    pub data: Audit,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct AuditReadResponse {
     pub data: Audit,
 }
