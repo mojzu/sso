@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.6.0 (?)
+## 0.7.0 (?)
+
+## 0.6.0 (2019-10-07)
 
 **Changed**
 
@@ -11,7 +13,7 @@
 
 **Fixed**
 
-- Fixed read user by ID route `/v1/user/{id}` attempts to read key by ID.
+- Fixed read user by ID route `/v1/user/{id}` attempts to read key.
 
 ## 0.5.0 (2019-10-05)
 
