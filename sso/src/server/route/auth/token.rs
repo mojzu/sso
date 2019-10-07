@@ -8,10 +8,10 @@ use crate::{
     Api,
 };
 use actix_identity::Identity;
-use actix_web::{web, HttpRequest, HttpResponse};
+use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 
-pub fn route_v1_scope() -> actix_web::Scope {
+pub fn route_v1_scope() -> Scope {
     web::scope(api_path::TOKEN)
         .service(web::resource(api_path::VERIFY).route(web::post().to_async(verify_handler)))
         .service(web::resource(api_path::REFRESH).route(web::post().to_async(refresh_handler)))
@@ -23,7 +23,7 @@ fn verify_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthTokenRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();
@@ -43,7 +43,7 @@ fn refresh_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthTokenRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();
@@ -71,7 +71,7 @@ fn revoke_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthTokenRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();

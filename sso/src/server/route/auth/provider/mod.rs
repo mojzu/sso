@@ -10,7 +10,7 @@ use crate::{
     Api,
 };
 use actix_identity::Identity;
-use actix_web::{web, HttpRequest, HttpResponse, Scope};
+use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 
 pub fn route_v1_scope() -> Scope {
@@ -36,7 +36,7 @@ fn github_oauth2_url_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
 
     request_audit_meta(&req)
@@ -61,7 +61,7 @@ fn github_oauth2_callback_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthOauth2CallbackRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let request = body.into_inner();
 
@@ -89,7 +89,7 @@ fn microsoft_oauth2_url_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
 
     request_audit_meta(&req)
@@ -114,7 +114,7 @@ fn microsoft_oauth2_callback_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthOauth2CallbackRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let request = body.into_inner();
 

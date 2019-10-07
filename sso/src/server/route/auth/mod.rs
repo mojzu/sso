@@ -12,10 +12,10 @@ use crate::{
     Api,
 };
 use actix_identity::Identity;
-use actix_web::{web, HttpRequest, HttpResponse};
+use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 
-pub fn route_v1_scope() -> actix_web::Scope {
+pub fn route_v1_scope() -> Scope {
     web::scope(api_path::AUTH)
         .service(provider::route_v1_scope())
         .service(key::route_v1_scope())
@@ -28,7 +28,7 @@ fn totp_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthTotpRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();

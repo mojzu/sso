@@ -8,11 +8,11 @@ use crate::{
     Api, ApiValidateRequestQuery, ServerError,
 };
 use actix_identity::Identity;
-use actix_web::{web, HttpRequest, HttpResponse};
+use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 use uuid::Uuid;
 
-pub fn route_v1_scope() -> actix_web::Scope {
+pub fn route_v1_scope() -> Scope {
     web::scope(api_path::AUDIT)
         .service(
             web::resource(api_path::NONE)
@@ -26,7 +26,7 @@ fn list_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = AuditListRequest::from_str_fut(req.query_string()).map_err(ServerError::Core);
@@ -47,7 +47,7 @@ fn create_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuditCreateRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();
@@ -67,7 +67,7 @@ fn read_handler(
     req: HttpRequest,
     id: Identity,
     path: web::Path<(Uuid,)>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let audit_id = path.0;

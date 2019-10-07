@@ -11,10 +11,10 @@ use crate::{
     Api, User,
 };
 use actix_identity::Identity;
-use actix_web::{web, HttpRequest, HttpResponse};
+use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 
-pub fn route_v1_scope() -> actix_web::Scope {
+pub fn route_v1_scope() -> Scope {
     web::scope(api_path::LOCAL)
         .service(web::resource(api_path::LOGIN).route(web::post().to_async(login_handler)))
         .service(
@@ -56,7 +56,7 @@ fn login_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthLoginRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();
@@ -92,7 +92,7 @@ fn reset_password_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthResetPasswordRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();
@@ -120,7 +120,7 @@ fn reset_password_confirm_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthResetPasswordConfirmRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();
@@ -154,7 +154,7 @@ fn update_email_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthUpdateEmailRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();
@@ -182,7 +182,7 @@ fn update_email_revoke_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthTokenRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();
@@ -203,7 +203,7 @@ fn update_password_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthUpdatePasswordRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();
@@ -239,7 +239,7 @@ fn update_password_revoke_handler(
     req: HttpRequest,
     id: Identity,
     body: web::Json<AuthTokenRequest>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();
