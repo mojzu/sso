@@ -228,7 +228,8 @@ macro_rules! audit_integration_test {
                     None,
                     None,
                 ))
-                .unwrap().data;
+                .unwrap()
+                .data;
             let res = client.audit_read(audit.id).unwrap();
             assert_eq!(res.data.id, audit.id);
         }

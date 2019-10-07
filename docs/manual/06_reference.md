@@ -1,4 +1,3 @@
-
 [rust]: https://www.rust-lang.org/
 [rustup]: https://rustup.rs/
 [clippy]: https://github.com/rust-lang/rust-clippy

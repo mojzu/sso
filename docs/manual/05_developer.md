@@ -107,7 +107,7 @@ To build libraries and binaries.
 cargo make build
 cargo make release
 cargo make release-flow
-cargo install --path sso
+cargo install --force --path sso
 ```
 
 To lint source code using [clippy](clippy).
@@ -146,8 +146,8 @@ cargo make test
 
 For integration tests, the following environment variables are required. A server hosting the API to be tested must be available at `SERVER_URL` address.
 
-| Variable         | Description     |
-| ---------------- | --------------- |
+| Variable     | Description     |
+| ------------ | --------------- |
 | TEST_SSO_URL | Server URL.     |
 | TEST_SSO_KEY | Root key value. |
 
