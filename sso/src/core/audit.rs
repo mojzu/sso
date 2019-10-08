@@ -232,6 +232,7 @@ pub enum AuditMessage {
     UpdatePassword,
     UpdatePasswordRevoke,
     Oauth2Login,
+    ServiceMismatch,
     KeyRevoke,
     TokenRefresh,
     TokenRevoke,

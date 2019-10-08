@@ -102,16 +102,8 @@ pub fn user_create_with_password(
     password: &str,
 ) -> User {
     let before = Utc::now();
-    let body = UserCreateRequest::with_password(
-        is_enabled,
-        name,
-        email,
-        USER_LOCALE,
-        USER_TIMEZONE,
-        password_allow_reset,
-        password_require_update,
-        password,
-    );
+    let body = UserCreateRequest::new(is_enabled, name, email, USER_LOCALE, USER_TIMEZONE)
+        .with_password(password_allow_reset, password_require_update, password);
     let create = client.user_create(body).unwrap();
     let user = create.data;
     assert!(user.created_at.gt(&before));

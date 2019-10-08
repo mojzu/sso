@@ -588,33 +588,16 @@ impl UserCreateRequest {
         }
     }
 
-    pub fn with_password<S1, S2, S3, S4, S5>(
-        is_enabled: bool,
-        name: S1,
-        email: S2,
-        locale: S3,
-        timezone: S4,
+    pub fn with_password<S1: Into<String>>(
+        mut self,
         password_allow_reset: bool,
         password_require_update: bool,
-        password: S5,
-    ) -> Self
-    where
-        S1: Into<String>,
-        S2: Into<String>,
-        S3: Into<String>,
-        S4: Into<String>,
-        S5: Into<String>,
-    {
-        Self {
-            is_enabled,
-            name: name.into(),
-            email: email.into(),
-            locale: locale.into(),
-            timezone: timezone.into(),
-            password_allow_reset: Some(password_allow_reset),
-            password_require_update: Some(password_require_update),
-            password: Some(password.into()),
-        }
+        password: S1,
+    ) -> Self {
+        self.password_allow_reset = Some(password_allow_reset);
+        self.password_require_update = Some(password_require_update);
+        self.password = Some(password.into());
+        self
     }
 }
 

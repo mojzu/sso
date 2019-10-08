@@ -2,6 +2,14 @@
 
 ## 0.7.0 (?)
 
+**Added**
+
+- Added `Debug` trait implementations for public types.
+
+**Fixed**
+
+- Fixed `clippy` too many arguments warnings.
+
 ## 0.6.0 (2019-10-07)
 
 **Changed**

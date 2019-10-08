@@ -6,9 +6,9 @@ pub use crate::core::api::validate::*;
 
 use crate::{
     core::api::{api_type::*, oauth2::*},
-    Audit, AuditData, AuditList, AuditMeta, Auth, CoreError, CoreResult, Driver, Key, KeyList,
-    Metrics, NotifyActor, Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate,
-    UserList, UserPasswordMeta, UserRead,
+    Audit, AuditData, AuditList, AuditMeta, Auth, AuthArgs, CoreError, CoreResult, Driver, Key,
+    KeyList, Metrics, NotifyActor, Service, ServiceCreate, ServiceList, ServiceUpdate, User,
+    UserCreate, UserList, UserPasswordMeta, UserRead, UserUpdate,
 };
 use actix::Addr;
 use prometheus::Registry;
@@ -101,6 +101,31 @@ impl ApiProviderOauth2 {
         Self {
             client_id,
             client_secret,
+        }
+    }
+}
+
+/// API provider OAuth2 common arguments.
+#[derive(Debug)]
+pub struct ApiProviderOauth2Args<'a> {
+    provider: Option<&'a ApiProviderOauth2>,
+    user_agent: String,
+    access_token_expires: i64,
+    refresh_token_expires: i64,
+}
+
+impl<'a> ApiProviderOauth2Args<'a> {
+    pub fn new<S1: Into<String>>(
+        provider: Option<&'a ApiProviderOauth2>,
+        user_agent: S1,
+        access_token_expires: i64,
+        refresh_token_expires: i64,
+    ) -> Self {
+        Self {
+            provider,
+            user_agent: user_agent.into(),
+            access_token_expires,
+            refresh_token_expires,
         }
     }
 }
@@ -457,18 +482,15 @@ impl Api {
 
         Key::authenticate(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
-                User::update(
-                    driver,
-                    service.as_ref(),
-                    &mut audit,
-                    user_id,
-                    request.is_enabled,
-                    request.name,
-                    request.locale,
-                    request.timezone,
-                    request.password_allow_reset,
-                    request.password_require_update,
-                )
+                let update = UserUpdate {
+                    is_enabled: request.is_enabled,
+                    name: request.name,
+                    locale: request.locale,
+                    timezone: request.timezone,
+                    password_allow_reset: request.password_allow_reset,
+                    password_require_update: request.password_require_update,
+                };
+                User::update(driver, service.as_ref(), &mut audit, user_id, &update)
             })
             .map_err(Into::into)
             .map(|user| UserReadResponse { data: user })
@@ -501,9 +523,7 @@ impl Api {
         Key::authenticate_service(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
                 Auth::login(
-                    driver,
-                    &service,
-                    &mut audit,
+                    AuthArgs::new(driver, &service, &mut audit),
                     request.email,
                     request.password,
                     access_token_expires,
@@ -530,10 +550,8 @@ impl Api {
         Key::authenticate_service(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
                 Auth::reset_password(
-                    driver,
+                    AuthArgs::new(driver, &service, &mut audit),
                     notify,
-                    &service,
-                    &mut audit,
                     request.email,
                     access_token_expires,
                 )
@@ -553,9 +571,7 @@ impl Api {
         Key::authenticate_service(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
                 Auth::reset_password_confirm(
-                    driver,
-                    &service,
-                    &mut audit,
+                    AuthArgs::new(driver, &service, &mut audit),
                     request.token,
                     request.password,
                 )
@@ -579,10 +595,8 @@ impl Api {
         Key::authenticate_service(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
                 Auth::update_email(
-                    driver,
+                    AuthArgs::new(driver, &service, &mut audit),
                     notify,
-                    &service,
-                    &mut audit,
                     request.user_id,
                     request.password,
                     request.new_email,
@@ -604,9 +618,7 @@ impl Api {
             .and_then(|(service, mut audit)| {
                 let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
                 Auth::update_email_revoke(
-                    driver,
-                    &service,
-                    &mut audit,
+                    AuthArgs::new(driver, &service, &mut audit),
                     request.token,
                     audit_data.as_ref(),
                 )
@@ -628,10 +640,8 @@ impl Api {
         Key::authenticate_service(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
                 Auth::update_password(
-                    driver,
+                    AuthArgs::new(driver, &service, &mut audit),
                     notify,
-                    &service,
-                    &mut audit,
                     request.user_id,
                     request.password,
                     request.new_password,
@@ -656,9 +666,7 @@ impl Api {
             .and_then(|(service, mut audit)| {
                 let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
                 Auth::update_password_revoke(
-                    driver,
-                    &service,
-                    &mut audit,
+                    AuthArgs::new(driver, &service, &mut audit),
                     request.token,
                     audit_data.as_ref(),
                 )
@@ -670,12 +678,17 @@ impl Api {
         driver: &dyn Driver,
         key_value: Option<String>,
         audit_meta: AuditMeta,
-        provider: Option<&ApiProviderOauth2>,
-        access_token_expires: i64,
+        args: ApiProviderOauth2Args,
     ) -> CoreResult<AuthOauth2UrlResponse> {
         Key::authenticate_service(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
-                github_oauth2_url(driver, &service, &mut audit, provider, access_token_expires)
+                github_oauth2_url(
+                    driver,
+                    &service,
+                    &mut audit,
+                    args.provider,
+                    args.access_token_expires,
+                )
             })
             .map(|url| AuthOauth2UrlResponse { url })
     }
@@ -684,25 +697,21 @@ impl Api {
         driver: &dyn Driver,
         key_value: Option<String>,
         audit_meta: AuditMeta,
-        provider: Option<&ApiProviderOauth2>,
-        user_agent: String,
-        access_token_expires: i64,
-        refresh_token_expires: i64,
+        args: ApiProviderOauth2Args,
         request: AuthOauth2CallbackRequest,
     ) -> CoreResult<AuthTokenResponse> {
         AuthOauth2CallbackRequest::api_validate(&request)?;
 
         let (service, mut audit) = Key::authenticate_service(driver, audit_meta, key_value)?;
         let (service_id, access_token) =
-            github_oauth2_callback(driver, &service, &mut audit, provider, request)?;
-        let user_email = github_api_user_email(user_agent, access_token)?;
+            github_oauth2_callback(driver, &service, &mut audit, args.provider, request)?;
+        let user_email = github_api_user_email(args.user_agent, access_token)?;
         Auth::oauth2_login(
-            driver,
+            AuthArgs::new(driver, &service, &mut audit),
             service_id,
-            &mut audit,
             user_email,
-            access_token_expires,
-            refresh_token_expires,
+            args.access_token_expires,
+            args.refresh_token_expires,
         )
         .map(|(_service, data)| AuthTokenResponse { data })
     }
@@ -711,12 +720,17 @@ impl Api {
         driver: &dyn Driver,
         key_value: Option<String>,
         audit_meta: AuditMeta,
-        provider: Option<&ApiProviderOauth2>,
-        access_token_expires: i64,
+        args: ApiProviderOauth2Args,
     ) -> CoreResult<AuthOauth2UrlResponse> {
         Key::authenticate_service(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
-                microsoft_oauth2_url(driver, &service, &mut audit, provider, access_token_expires)
+                microsoft_oauth2_url(
+                    driver,
+                    &service,
+                    &mut audit,
+                    args.provider,
+                    args.access_token_expires,
+                )
             })
             .map(|url| AuthOauth2UrlResponse { url })
     }
@@ -725,25 +739,21 @@ impl Api {
         driver: &dyn Driver,
         key_value: Option<String>,
         audit_meta: AuditMeta,
-        provider: Option<&ApiProviderOauth2>,
-        user_agent: String,
-        access_token_expires: i64,
-        refresh_token_expires: i64,
+        args: ApiProviderOauth2Args,
         request: AuthOauth2CallbackRequest,
     ) -> CoreResult<AuthTokenResponse> {
         AuthOauth2CallbackRequest::api_validate(&request)?;
 
         let (service, mut audit) = Key::authenticate_service(driver, audit_meta, key_value)?;
         let (service_id, access_token) =
-            microsoft_oauth2_callback(driver, &service, &mut audit, provider, request)?;
-        let user_email = microsoft_api_user_email(user_agent, access_token)?;
+            microsoft_oauth2_callback(driver, &service, &mut audit, args.provider, request)?;
+        let user_email = microsoft_api_user_email(args.user_agent, access_token)?;
         Auth::oauth2_login(
-            driver,
+            AuthArgs::new(driver, &service, &mut audit),
             service_id,
-            &mut audit,
             user_email,
-            access_token_expires,
-            refresh_token_expires,
+            args.access_token_expires,
+            args.refresh_token_expires,
         )
         .map(|(_service, data)| AuthTokenResponse { data })
     }
@@ -760,9 +770,7 @@ impl Api {
             .and_then(|(service, mut audit)| {
                 let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
                 Auth::key_verify(
-                    driver,
-                    &service,
-                    &mut audit,
+                    AuthArgs::new(driver, &service, &mut audit),
                     request.key,
                     audit_data.as_ref(),
                 )
@@ -783,9 +791,7 @@ impl Api {
             .and_then(|(service, mut audit)| {
                 let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
                 Auth::key_revoke(
-                    driver,
-                    &service,
-                    &mut audit,
+                    AuthArgs::new(driver, &service, &mut audit),
                     request.key,
                     audit_data.as_ref(),
                 )
@@ -805,9 +811,7 @@ impl Api {
             .and_then(|(service, mut audit)| {
                 let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
                 Auth::token_verify(
-                    driver,
-                    &service,
-                    &mut audit,
+                    AuthArgs::new(driver, &service, &mut audit),
                     request.token,
                     audit_data.as_ref(),
                 )
@@ -830,9 +834,7 @@ impl Api {
             .and_then(|(service, mut audit)| {
                 let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
                 Auth::token_refresh(
-                    driver,
-                    &service,
-                    &mut audit,
+                    AuthArgs::new(driver, &service, &mut audit),
                     request.token,
                     audit_data.as_ref(),
                     access_token_expires,
@@ -855,9 +857,7 @@ impl Api {
             .and_then(|(service, mut audit)| {
                 let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
                 Auth::token_revoke(
-                    driver,
-                    &service,
-                    &mut audit,
+                    AuthArgs::new(driver, &service, &mut audit),
                     request.token,
                     audit_data.as_ref(),
                 )
@@ -875,7 +875,11 @@ impl Api {
 
         Key::authenticate_service(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
-                Auth::totp(driver, &service, &mut audit, request.user_id, request.totp)
+                Auth::totp(
+                    AuthArgs::new(driver, &service, &mut audit),
+                    request.user_id,
+                    request.totp,
+                )
             })
             .map_err(Into::into)
     }

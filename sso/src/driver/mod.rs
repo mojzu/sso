@@ -11,7 +11,7 @@ pub use crate::driver::sqlite::DriverSqlite;
 use crate::core::{
     Audit, AuditCreate, AuditList, CoreError, Csrf, CsrfCreate, CsrfDelete, Key, KeyCount,
     KeyCreate, KeyList, KeyRead, KeyUpdate, Service, ServiceCreate, ServiceList, ServiceUpdate,
-    User, UserCreate, UserList, UserRead, UserUpdate,
+    User, UserCreate, UserList, UserRead, UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -182,6 +182,9 @@ pub trait DriverIf {
 
     /// Update user.
     fn user_update(&self, id: &Uuid, update: &UserUpdate) -> DriverResult<User>;
+
+    /// Update user.
+    fn user_update2(&self, id: &Uuid, update: &UserUpdate2) -> DriverResult<User>;
 
     /// Delete user.
     fn user_delete(&self, id: &Uuid) -> DriverResult<usize>;

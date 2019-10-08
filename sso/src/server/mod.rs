@@ -1,7 +1,10 @@
 pub mod actix_web_middleware;
 mod route;
 
-use crate::{ApiProviderOauth2, ClientActor, ClientError, CoreError, Driver, Metrics, NotifyActor};
+use crate::{
+    ApiProviderOauth2, ApiProviderOauth2Args, ClientActor, ClientError, CoreError, Driver, Metrics,
+    NotifyActor,
+};
 use actix::{Addr, MailboxError as ActixMailboxError};
 use actix_web::{
     error::BlockingError as ActixWebBlockingError, middleware::Logger, web, App, HttpResponse,
@@ -215,9 +218,29 @@ impl ServerOptions {
         self.provider.github.oauth2.as_ref()
     }
 
+    /// Returns provider GitHub OAuth2 common arguments.
+    pub fn provider_github_oauth2_args(&self) -> ApiProviderOauth2Args {
+        ApiProviderOauth2Args::new(
+            self.provider_github_oauth2(),
+            self.user_agent(),
+            self.access_token_expires(),
+            self.refresh_token_expires(),
+        )
+    }
+
     /// Returns provider Microsoft OAuth2 reference.
     pub fn provider_microsoft_oauth2(&self) -> Option<&ApiProviderOauth2> {
         self.provider.microsoft.oauth2.as_ref()
+    }
+
+    /// Returns provider Microsoft OAuth2 common arguments.
+    pub fn provider_microsoft_oauth2_args(&self) -> ApiProviderOauth2Args {
+        ApiProviderOauth2Args::new(
+            self.provider_microsoft_oauth2(),
+            self.user_agent(),
+            self.access_token_expires(),
+            self.refresh_token_expires(),
+        )
     }
 
     /// Returns rustls server configuration built from options.

@@ -7,7 +7,7 @@ use crate::{
     Audit, AuditCreate, AuditList, Csrf, CsrfCreate, CsrfDelete, Driver, DriverError, DriverIf,
     DriverLock, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate,
     Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserList, UserRead,
-    UserUpdate,
+    UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
@@ -217,6 +217,11 @@ impl DriverIf for DriverPostgres {
         ModelUser::update(&conn, id, update)
     }
 
+    fn user_update2(&self, id: &Uuid, update: &UserUpdate2) -> DriverResult<User> {
+        let conn = self.conn()?;
+        ModelUser::update2(&conn, id, update)
+    }
+
     fn user_delete(&self, id: &Uuid) -> DriverResult<usize> {
         let conn = self.conn()?;
         ModelUser::delete(&conn, id)
@@ -385,6 +390,10 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
 
     fn user_update(&self, id: &Uuid, update: &UserUpdate) -> DriverResult<User> {
         ModelUser::update(self.conn(), id, update)
+    }
+
+    fn user_update2(&self, id: &Uuid, update: &UserUpdate2) -> DriverResult<User> {
+        ModelUser::update2(self.conn(), id, update)
     }
 
     fn user_delete(&self, id: &Uuid) -> DriverResult<usize> {

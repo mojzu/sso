@@ -1,6 +1,6 @@
 use crate::{
     driver::postgres::schema::sso_user, DriverResult, User, UserCreate, UserList, UserRead,
-    UserUpdate,
+    UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
@@ -95,11 +95,25 @@ impl<'a> ModelUserUpdate<'a> {
             updated_at: now,
             user_is_enabled: update.is_enabled,
             user_name: update.name.as_ref().map(|x| &**x),
-            user_email: update.email.as_ref().map(|x| &**x),
+            user_email: None,
             user_locale: update.locale.as_ref().map(|x| &**x),
             user_timezone: update.timezone.as_ref().map(|x| &**x),
             user_password_allow_reset: update.password_allow_reset,
             user_password_require_update: update.password_require_update,
+            user_password_hash: None,
+        }
+    }
+
+    fn from_update2(now: &'a DateTime<Utc>, update: &'a UserUpdate2) -> Self {
+        Self {
+            updated_at: now,
+            user_is_enabled: None,
+            user_name: None,
+            user_email: update.email.as_ref().map(|x| &**x),
+            user_locale: None,
+            user_timezone: None,
+            user_password_allow_reset: None,
+            user_password_require_update: None,
             user_password_hash: update.password_hash.as_ref().map(|x| &**x),
         }
     }
@@ -176,12 +190,12 @@ impl ModelUser {
 
     pub fn read_opt(conn: &PgConnection, read: &UserRead) -> DriverResult<Option<User>> {
         match read {
-            UserRead::Id(id) => Self::read_by_id(conn, id),
-            UserRead::Email(email) => Self::read_by_email(conn, email),
+            UserRead::Id(id) => Self::read_id(conn, id),
+            UserRead::Email(email) => Self::read_email(conn, email),
         }
     }
 
-    fn read_by_id(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<User>> {
+    fn read_id(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<User>> {
         use crate::driver::postgres::schema::sso_user::dsl::*;
 
         sso_user
@@ -192,7 +206,7 @@ impl ModelUser {
             .map(|x| x.map(Into::into))
     }
 
-    fn read_by_email(conn: &PgConnection, email: &str) -> DriverResult<Option<User>> {
+    fn read_email(conn: &PgConnection, email: &str) -> DriverResult<Option<User>> {
         use crate::driver::postgres::schema::sso_user::dsl::*;
 
         sso_user
@@ -204,12 +218,22 @@ impl ModelUser {
     }
 
     pub fn update(conn: &PgConnection, id: &Uuid, update: &UserUpdate) -> DriverResult<User> {
-        use crate::driver::postgres::schema::sso_user::dsl::*;
-
         let now = Utc::now();
         let value = ModelUserUpdate::from_update(&now, update);
+        Self::update_inner(conn, id, &value)
+    }
+
+    pub fn update2(conn: &PgConnection, id: &Uuid, update: &UserUpdate2) -> DriverResult<User> {
+        let now = Utc::now();
+        let value = ModelUserUpdate::from_update2(&now, update);
+        Self::update_inner(conn, id, &value)
+    }
+
+    fn update_inner(conn: &PgConnection, id: &Uuid, value: &ModelUserUpdate) -> DriverResult<User> {
+        use crate::driver::postgres::schema::sso_user::dsl::*;
+
         diesel::update(sso_user.filter(user_id.eq(id)))
-            .set(&value)
+            .set(value)
             .get_result::<ModelUser>(conn)
             .map_err(Into::into)
             .map(Into::into)

@@ -111,11 +111,19 @@ pub enum UserRead {
 pub struct UserUpdate {
     pub is_enabled: Option<bool>,
     pub name: Option<String>,
-    pub email: Option<String>,
     pub locale: Option<String>,
     pub timezone: Option<String>,
     pub password_allow_reset: Option<bool>,
     pub password_require_update: Option<bool>,
+}
+
+/// User update.
+/// This is split from `UserUpdate` to prevent `User::update_email` or
+/// `User::update_password` functions being bypassed which could
+/// allow an unhashed password to be saved to the database.
+#[derive(Debug)]
+pub struct UserUpdate2 {
+    pub email: Option<String>,
     pub password_hash: Option<String>,
 }
 
@@ -189,24 +197,9 @@ impl User {
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
-        is_enabled: Option<bool>,
-        name: Option<String>,
-        locale: Option<String>,
-        timezone: Option<String>,
-        password_allow_reset: Option<bool>,
-        password_require_update: Option<bool>,
+        update: &UserUpdate,
     ) -> CoreResult<User> {
-        let update = UserUpdate {
-            is_enabled,
-            name,
-            email: None,
-            locale,
-            timezone,
-            password_allow_reset,
-            password_require_update,
-            password_hash: None,
-        };
-        driver.user_update(&id, &update).map_err(CoreError::Driver)
+        driver.user_update(&id, update).map_err(CoreError::Driver)
     }
 
     /// Update user email by ID.
@@ -217,17 +210,11 @@ impl User {
         id: Uuid,
         email: String,
     ) -> CoreResult<User> {
-        let update = UserUpdate {
-            is_enabled: None,
-            name: None,
+        let update = UserUpdate2 {
             email: Some(email),
-            locale: None,
-            timezone: None,
-            password_allow_reset: None,
-            password_require_update: None,
             password_hash: None,
         };
-        driver.user_update(&id, &update).map_err(CoreError::Driver)
+        driver.user_update2(&id, &update).map_err(CoreError::Driver)
     }
 
     /// Update user password by ID.
@@ -240,17 +227,11 @@ impl User {
     ) -> CoreResult<User> {
         let password_hash =
             User::password_hash(Some(&password))?.ok_or_else(|| CoreError::BadRequest)?;
-        let update = UserUpdate {
-            is_enabled: None,
-            name: None,
+        let update = UserUpdate2 {
             email: None,
-            locale: None,
-            timezone: None,
-            password_allow_reset: None,
-            password_require_update: None,
             password_hash: Some(password_hash),
         };
-        driver.user_update(&id, &update).map_err(CoreError::Driver)
+        driver.user_update2(&id, &update).map_err(CoreError::Driver)
     }
 
     /// Delete user.

@@ -46,8 +46,7 @@ fn github_oauth2_url_handler(
                     data.driver(),
                     id,
                     audit_meta,
-                    data.options().provider_github_oauth2(),
-                    data.options().access_token_expires(),
+                    data.options().provider_github_oauth2_args(),
                 )
                 .map_err(Into::into)
             })
@@ -72,10 +71,7 @@ fn github_oauth2_callback_handler(
                     data.driver(),
                     id,
                     audit_meta,
-                    data.options().provider_github_oauth2(),
-                    data.options().user_agent().to_owned(),
-                    data.options().access_token_expires(),
-                    data.options().refresh_token_expires(),
+                    data.options().provider_github_oauth2_args(),
                     request,
                 )
                 .map_err(Into::into)
@@ -99,8 +95,7 @@ fn microsoft_oauth2_url_handler(
                     data.driver(),
                     id,
                     audit_meta,
-                    data.options().provider_microsoft_oauth2(),
-                    data.options().access_token_expires(),
+                    data.options().provider_microsoft_oauth2_args(),
                 )
                 .map_err(Into::into)
             })
@@ -125,10 +120,7 @@ fn microsoft_oauth2_callback_handler(
                     data.driver(),
                     id,
                     audit_meta,
-                    data.options().provider_microsoft_oauth2(),
-                    data.options().user_agent().to_owned(),
-                    data.options().access_token_expires(),
-                    data.options().refresh_token_expires(),
+                    data.options().provider_microsoft_oauth2_args(),
                     request,
                 )
                 .map_err(Into::into)
