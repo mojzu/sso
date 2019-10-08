@@ -40,6 +40,7 @@ pub trait ApiValidateRequestQuery<T: DeserializeOwned> {
 }
 
 /// API validation functions.
+#[derive(Debug)]
 pub struct ApiValidate;
 
 impl ApiValidate {

@@ -2,6 +2,7 @@ use crate::{ApiProviderOauth2, NotifyActorOptionsSmtp, ServerOptionsRustls, SsoE
 use std::str::FromStr;
 
 /// Environment helper functions.
+#[derive(Debug)]
 pub struct Env;
 
 impl Env {

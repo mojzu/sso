@@ -16,6 +16,7 @@ pub use crate::core::{
 };
 
 /// Core functions.
+#[derive(Debug)]
 pub struct Core;
 
 impl Core {

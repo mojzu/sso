@@ -16,6 +16,7 @@ use crate::{
 use reqwest::{Client as ReqwestClient, Response};
 use serde::ser::Serialize;
 use serde_json::Value;
+use std::fmt;
 use uuid::Uuid;
 
 /// Client (Synchronous).
@@ -24,6 +25,16 @@ pub struct ClientSync {
     url: String,
     options: ClientOptions,
     client: ReqwestClient,
+}
+
+impl fmt::Debug for ClientSync {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "ClientSync {{ url: {}, options: {:?}, client }}",
+            self.url, self.options
+        )
+    }
 }
 
 impl ClientSync {

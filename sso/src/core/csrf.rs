@@ -25,6 +25,7 @@ impl fmt::Display for Csrf {
 }
 
 /// CSRF create.
+#[derive(Debug)]
 pub struct CsrfCreate {
     pub key: String,
     pub value: String,

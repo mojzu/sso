@@ -86,6 +86,7 @@ impl fmt::Display for Audit {
 }
 
 /// Audit create data.
+#[derive(Debug)]
 pub struct AuditCreate<'a> {
     pub meta: &'a AuditMeta,
     pub type_: &'a str,
@@ -250,6 +251,7 @@ impl From<AuditMessage> for AuditMessageObject<AuditMessage> {
 }
 
 /// Audit log builder pattern.
+#[derive(Debug)]
 pub struct AuditBuilder {
     meta: AuditMeta,
     key: Option<Uuid>,

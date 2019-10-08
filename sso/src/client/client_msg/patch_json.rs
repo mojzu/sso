@@ -3,6 +3,7 @@ use actix::prelude::*;
 use serde::ser::Serialize;
 
 /// PATCH JSON request message.
+#[derive(Debug)]
 pub struct PatchJson<S: Serialize> {
     url: String,
     route: String,

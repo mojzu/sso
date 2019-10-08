@@ -8,7 +8,8 @@ use actix::Addr;
 use libreauth::oath::TOTPBuilder;
 use uuid::Uuid;
 
-/// Authentication.
+/// Authentication functions.
+#[derive(Debug)]
 pub struct Auth;
 
 impl Auth {

@@ -2,6 +2,7 @@ use crate::{CoreError, CoreResult};
 use serde::{de::DeserializeOwned, ser::Serialize};
 
 /// Core utility functions.
+#[derive(Debug)]
 pub struct CoreUtil;
 
 impl CoreUtil {

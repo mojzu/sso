@@ -69,12 +69,14 @@ pub enum KeyList {
 }
 
 /// Key count.
+#[derive(Debug)]
 pub enum KeyCount {
     Token(Uuid, Uuid),
     Totp(Uuid, Uuid),
 }
 
 /// Key create data.
+#[derive(Debug)]
 pub struct KeyCreate {
     pub is_enabled: bool,
     pub is_revoked: bool,
@@ -116,6 +118,7 @@ pub enum KeyRead {
 }
 
 /// Key update data.
+#[derive(Debug)]
 pub struct KeyUpdate {
     pub is_enabled: Option<bool>,
     pub is_revoked: Option<bool>,

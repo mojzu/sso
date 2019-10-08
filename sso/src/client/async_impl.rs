@@ -21,7 +21,7 @@ use serde_json::Value;
 use uuid::Uuid;
 
 /// Client (Asynchronous).
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ClientAsync {
     url: String,
     options: ClientOptions,

@@ -60,6 +60,7 @@ impl CliOptions {
 }
 
 /// CLI functions.
+#[derive(Debug)]
 pub struct Cli;
 
 impl Cli {

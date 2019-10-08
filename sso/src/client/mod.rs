@@ -51,7 +51,8 @@ impl ClientOptions {
     }
 }
 
-/// Client utility functions.
+/// Client functions.
+#[derive(Debug)]
 pub struct Client;
 
 impl Client {

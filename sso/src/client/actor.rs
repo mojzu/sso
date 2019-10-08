@@ -2,7 +2,7 @@ use crate::{Client, ClientError, ClientResult};
 use actix::prelude::*;
 use http::{header, HeaderMap};
 use reqwest::r#async::{Client as ReqwestClient, ClientBuilder};
-use std::{fs::File, io::Read};
+use std::{fmt, fs::File, io::Read};
 
 /// Client actor options.
 #[derive(Debug, Clone)]
@@ -79,6 +79,12 @@ impl Default for ClientActorOptions {
 /// Client Actor.
 pub struct ClientActor {
     client: ReqwestClient,
+}
+
+impl fmt::Debug for ClientActor {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "ClientActor {{ client }}")
+    }
 }
 
 impl ClientActor {

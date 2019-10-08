@@ -1,5 +1,6 @@
 //! Library for binary application.
 #![recursion_limit = "1024"]
+#![deny(missing_debug_implementations)]
 // TODO(docs): Require documentation.
 // #![deny(missing_docs)]
 

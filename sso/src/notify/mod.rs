@@ -5,6 +5,7 @@ use crate::{Audit, CoreError};
 use actix::{Actor, Addr, SyncArbiter, SyncContext};
 use handlebars::Handlebars;
 use serde_json::Value;
+use std::fmt;
 
 const EMAIL_RESET_PASSWORD: &str = "email_reset_password";
 const EMAIL_UPDATE_EMAIL: &str = "email_update_email";
@@ -77,6 +78,12 @@ pub struct NotifyActorOptions {
 pub struct NotifyActor {
     options: NotifyActorOptions,
     registry: Handlebars,
+}
+
+impl fmt::Debug for NotifyActor {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "NotifyActor {{ options: {:?}, registry }}", self.options)
+    }
 }
 
 impl NotifyActor {

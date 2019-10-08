@@ -3,6 +3,7 @@ use actix::prelude::*;
 use serde::ser::Serialize;
 
 /// POST JSON request message.
+#[derive(Debug)]
 pub struct PostJson<S: Serialize> {
     url: String,
     route: String,

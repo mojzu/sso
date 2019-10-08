@@ -313,7 +313,8 @@ impl Data {
     }
 }
 
-/// Server.
+/// Server functions.
+#[derive(Debug)]
 pub struct Server;
 
 impl Server {

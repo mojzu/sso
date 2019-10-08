@@ -2,7 +2,7 @@
 //! <https://www.postgresql.org/docs/9.3/functions-admin.html>
 
 mod types {
-    #[derive(Clone, Copy, SqlType)]
+    #[derive(Debug, Clone, Copy, SqlType)]
     #[postgres(oid = "2278", array_oid = "0")]
     #[sqlite_type = "Integer"]
     pub struct Void;

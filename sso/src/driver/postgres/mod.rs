@@ -11,6 +11,7 @@ use crate::{
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
+use std::fmt;
 use uuid::Uuid;
 
 embed_migrations!("migrations/postgres");
@@ -21,6 +22,12 @@ type PooledConnection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
 #[derive(Clone)]
 pub struct DriverPostgres {
     pool: r2d2::Pool<ConnectionManager<PgConnection>>,
+}
+
+impl fmt::Debug for DriverPostgres {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "DriverPostgres {{ pool }}")
+    }
 }
 
 impl DriverPostgres {

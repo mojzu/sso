@@ -94,7 +94,8 @@ impl JwtClaims {
     }
 }
 
-/// JSON web token.
+/// JSON web token functions.
+#[derive(Debug)]
 pub struct Jwt;
 
 impl Jwt {

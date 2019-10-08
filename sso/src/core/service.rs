@@ -57,6 +57,7 @@ pub enum ServiceList {
 }
 
 /// Service create data.
+#[derive(Debug)]
 pub struct ServiceCreate {
     pub is_enabled: bool,
     pub name: String,
@@ -67,6 +68,7 @@ pub struct ServiceCreate {
 }
 
 /// Service update data.
+#[derive(Debug)]
 pub struct ServiceUpdate {
     pub is_enabled: Option<bool>,
     pub name: Option<String>,

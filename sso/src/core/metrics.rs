@@ -28,7 +28,8 @@ lazy_static! {
     };
 }
 
-/// Metrics.
+/// Metrics functions.
+#[derive(Debug)]
 pub struct Metrics;
 
 impl Metrics {

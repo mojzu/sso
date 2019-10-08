@@ -87,6 +87,7 @@ pub enum UserList {
 }
 
 /// User create.
+#[derive(Debug)]
 pub struct UserCreate {
     pub is_enabled: bool,
     pub name: String,
@@ -106,6 +107,7 @@ pub enum UserRead {
 }
 
 /// User update.
+#[derive(Debug)]
 pub struct UserUpdate {
     pub is_enabled: Option<bool>,
     pub name: Option<String>,

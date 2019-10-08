@@ -106,6 +106,7 @@ impl ApiProviderOauth2 {
 }
 
 /// API functions.
+#[derive(Debug)]
 pub struct Api;
 
 impl Api {

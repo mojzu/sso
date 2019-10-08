@@ -4,15 +4,17 @@ use actix_identity::{IdentityPolicy, IdentityService};
 use actix_service::{Service, Transform};
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
-    Error as ActixWebError, Result as ActixWebResult,
+    Error, Result as ActixWebResult,
 };
 use futures::{
     future::{ok, FutureResult},
     Future, Poll,
 };
 use prometheus::{HistogramTimer, HistogramVec, IntCounterVec};
+use std::fmt;
 
 /// Authorisation identity policy middleware.
+#[derive(Debug)]
 pub struct AuthorisationIdentityPolicy {
     header: String,
 }
@@ -49,8 +51,8 @@ impl Default for AuthorisationIdentityPolicy {
 }
 
 impl IdentityPolicy for AuthorisationIdentityPolicy {
-    type Future = ActixWebResult<Option<String>, ActixWebError>;
-    type ResponseFuture = ActixWebResult<(), ActixWebError>;
+    type Future = ActixWebResult<Option<String>, Error>;
+    type ResponseFuture = ActixWebResult<(), Error>;
 
     fn from_request(&self, request: &mut ServiceRequest) -> Self::Future {
         let key = match request.headers().get(&self.header) {
@@ -79,6 +81,12 @@ pub struct Metrics {
     latency: HistogramVec,
 }
 
+impl fmt::Debug for Metrics {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Metrics {{ count, latency }}")
+    }
+}
+
 impl Metrics {
     pub fn new(count: IntCounterVec, latency: HistogramVec) -> Self {
         Self { count, latency }
@@ -87,13 +95,13 @@ impl Metrics {
 
 impl<S, B> Transform<S> for Metrics
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = ActixWebError>,
+    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
     B: 'static,
 {
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
-    type Error = ActixWebError;
+    type Error = Error;
     type InitError = ();
     type Transform = MetricsMiddleware<S>;
     type Future = FutureResult<Self::Transform, Self::InitError>;
@@ -114,15 +122,21 @@ pub struct MetricsMiddleware<S> {
     latency: HistogramVec,
 }
 
+impl<S> fmt::Debug for MetricsMiddleware<S> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "MetricsMiddleware {{ service, count, latency }}")
+    }
+}
+
 impl<S, B> Service for MetricsMiddleware<S>
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = ActixWebError>,
+    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
     B: 'static,
 {
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
-    type Error = ActixWebError;
+    type Error = Error;
     type Future = Box<dyn Future<Item = Self::Response, Error = Self::Error>>;
 
     fn poll_ready(&mut self) -> Poll<(), Self::Error> {
