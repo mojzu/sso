@@ -7,8 +7,8 @@ pub use crate::core::api::validate::*;
 use crate::{
     core::api::{api_type::*, oauth2::*},
     Audit, AuditData, AuditList, AuditMeta, Auth, AuthArgs, CoreError, CoreResult, Driver, Key,
-    KeyList, Metrics, NotifyActor, Service, ServiceCreate, ServiceList, ServiceUpdate, User,
-    UserCreate, UserList, UserPasswordMeta, UserRead, UserUpdate,
+    Metrics, NotifyActor, Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate,
+    UserList, UserPasswordMeta, UserRead, UserUpdate,
 };
 use actix::Addr;
 use prometheus::Registry;
@@ -211,10 +211,10 @@ impl Api {
 
         Key::authenticate(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
-                let list: KeyList = request.into();
-                let data = Key::list(driver, service.as_ref(), &mut audit, &list)?;
+                let (list, filter) = request.into_list_filter();
+                let data = Key::list(driver, service.as_ref(), &mut audit, &list, &filter)?;
                 Ok(KeyListResponse {
-                    meta: list.into(),
+                    meta: KeyListRequest::from_list_filter(list, filter),
                     data,
                 })
             })

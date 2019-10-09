@@ -1,9 +1,9 @@
 //! # API Types
 use crate::{
     ApiValidate, ApiValidateRequest, ApiValidateRequestQuery, Audit, AuditData, AuditList,
-    AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe, Core, Key, KeyList, KeyType,
-    Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserKey, UserList,
-    UserPasswordMeta, UserToken, UserTokenAccess,
+    AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe, Core, Key, KeyFilter, KeyList,
+    KeyType, Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserKey,
+    UserList, UserPasswordMeta, UserToken, UserTokenAccess,
 };
 use chrono::{DateTime, Utc};
 use serde_json::Value;
@@ -184,48 +184,84 @@ impl From<AuditDataRequest> for AuditData {
 // Key Types
 // ---------
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Builder)]
 #[serde(deny_unknown_fields)]
 pub struct KeyListRequest {
-    pub gt: Option<Uuid>,
-    pub lt: Option<Uuid>,
+    #[builder(default = "None")]
+    gt: Option<Uuid>,
+    #[builder(default = "None")]
+    lt: Option<Uuid>,
     #[validate(custom = "ApiValidate::limit")]
-    pub limit: Option<i64>,
+    #[builder(default = "None")]
+    limit: Option<i64>,
+    #[builder(default = "None")]
+    is_enabled: Option<bool>,
+    #[builder(default = "None")]
+    is_revoked: Option<bool>,
+    #[serde(rename = "type")]
+    #[builder(default = "None")]
+    type_: Option<Vec<KeyType>>,
+    #[builder(default = "None")]
+    service_id: Option<Vec<Uuid>>,
+    #[builder(default = "None")]
+    user_id: Option<Vec<Uuid>>,
 }
 
 impl ApiValidateRequest<KeyListRequest> for KeyListRequest {}
 impl ApiValidateRequestQuery<KeyListRequest> for KeyListRequest {}
 
-impl From<KeyListRequest> for KeyList {
-    fn from(query: KeyListRequest) -> KeyList {
-        let limit = query.limit.unwrap_or_else(Core::default_limit);
+impl KeyListRequest {
+    pub fn into_list_filter(self) -> (KeyList, KeyFilter) {
+        let limit = self.limit.unwrap_or_else(Core::default_limit);
+        let list = match (self.gt, self.lt) {
+            (Some(gt), Some(_lt)) => KeyList::IdGt(gt, limit),
+            (Some(gt), None) => KeyList::IdGt(gt, limit),
+            (None, Some(lt)) => KeyList::IdLt(lt, limit),
+            (None, None) => KeyList::Limit(limit),
+        };
 
-        match (query.gt, query.lt) {
-            (Some(gt), Some(_lt)) => Self::IdGt(gt, limit),
-            (Some(gt), None) => Self::IdGt(gt, limit),
-            (None, Some(lt)) => Self::IdLt(lt, limit),
-            (None, None) => Self::Limit(limit),
-        }
+        let filter = KeyFilter {
+            is_enabled: self.is_enabled,
+            is_revoked: self.is_revoked,
+            type_: self.type_,
+            service_id: self.service_id,
+            user_id: self.user_id,
+        };
+
+        (list, filter)
     }
-}
 
-impl From<KeyList> for KeyListRequest {
-    fn from(list: KeyList) -> Self {
+    pub fn from_list_filter(list: KeyList, filter: KeyFilter) -> Self {
         match list {
             KeyList::Limit(limit) => Self {
                 gt: None,
                 lt: None,
                 limit: Some(limit),
+                is_enabled: filter.is_enabled,
+                is_revoked: filter.is_revoked,
+                type_: filter.type_,
+                service_id: filter.service_id,
+                user_id: filter.user_id,
             },
             KeyList::IdGt(gt, limit) => Self {
                 gt: Some(gt),
                 lt: None,
                 limit: Some(limit),
+                is_enabled: filter.is_enabled,
+                is_revoked: filter.is_revoked,
+                type_: filter.type_,
+                service_id: filter.service_id,
+                user_id: filter.user_id,
             },
             KeyList::IdLt(lt, limit) => Self {
                 gt: None,
                 lt: Some(lt),
                 limit: Some(limit),
+                is_enabled: filter.is_enabled,
+                is_revoked: filter.is_revoked,
+                type_: filter.type_,
+                service_id: filter.service_id,
+                user_id: filter.user_id,
             },
         }
     }

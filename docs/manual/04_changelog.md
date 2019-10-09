@@ -5,6 +5,7 @@
 **Added**
 
 - Added `Debug` trait implementations for public types.
+- Added filters to key list endpoint with `KeyFilter` options.
 
 **Fixed**
 

@@ -222,7 +222,7 @@ background-color: #f4f4f4;
 <h2 id="quickstart">Quickstart</h2>
 <p>TODO(docs): Write quickstart guide.</p>
 <h2 id="deployment">Deployment</h2>
-<p>TODO(docs): How to deploy sso server.</p>
+<p>TODO(docs): How to deploy sso server. TODO(docs): Postgres encryption.</p>
 <p><strong>Nginx</strong></p>
 <p>Example <a href="https://www.nginx.com/">nginx</a> configuration.</p>
 <pre class="nginx"><code>http {
@@ -540,6 +540,15 @@ sso start-server</code></pre>
 <p>TODO(docs): CLI documentation.</p>
 <h1 id="changelog">Changelog</h1>
 <h2 id="section">0.7.0 (?)</h2>
+<p><strong>Added</strong></p>
+<ul>
+<li>Added <code>Debug</code> trait implementations for public types.</li>
+<li>Added filters to key list endpoint with <code>KeyFilter</code> options.</li>
+</ul>
+<p><strong>Fixed</strong></p>
+<ul>
+<li>Fixed <code>clippy</code> too many arguments warnings.</li>
+</ul>
 <h2 id="section-1">0.6.0 (2019-10-07)</h2>
 <p><strong>Changed</strong></p>
 <ul>
@@ -766,7 +775,7 @@ cargo make sqlite-migration $migration_name</code></pre>
 <pre class="shell"><code>cargo make build
 cargo make release
 cargo make release-flow
-cargo install --force --path sso</code></pre>
+cargo make install</code></pre>
 <p>To lint source code using <a href="clippy">clippy</a>.</p>
 <pre class="shell"><code>cargo make clippy</code></pre>
 <p>To build and open documentation.</p>

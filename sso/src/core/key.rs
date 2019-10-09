@@ -60,6 +60,16 @@ impl fmt::Display for Key {
     }
 }
 
+/// Key list filter.
+#[derive(Debug)]
+pub struct KeyFilter {
+    pub is_enabled: Option<bool>,
+    pub is_revoked: Option<bool>,
+    pub type_: Option<Vec<KeyType>>,
+    pub service_id: Option<Vec<Uuid>>,
+    pub user_id: Option<Vec<Uuid>>,
+}
+
 /// Key list.
 #[derive(Debug)]
 pub enum KeyList {
@@ -279,10 +289,11 @@ impl Key {
         service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         list: &KeyList,
+        filter: &KeyFilter,
     ) -> CoreResult<Vec<Key>> {
         let service_id_mask = service_mask.map(|s| &s.id);
         driver
-            .key_list(list, service_id_mask)
+            .key_list(list, filter, service_id_mask)
             .map_err(CoreError::Driver)
     }
 
