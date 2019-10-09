@@ -97,3 +97,9 @@ dependencies = ["format"]
 workspace = false
 dependencies = ["manual", "doc", "test", "release"]
 # test-integration
+
+[tasks.install]
+workspace = false
+command = "cargo"
+args = ["install", "--force", "--path", "sso"]
+dependencies = ["release"]

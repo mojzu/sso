@@ -107,7 +107,7 @@ To build libraries and binaries.
 cargo make build
 cargo make release
 cargo make release-flow
-cargo install --force --path sso
+cargo make install
 ```
 
 To lint source code using [clippy](clippy).
