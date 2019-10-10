@@ -8,19 +8,19 @@ use uuid::Uuid;
 
 #[derive(Debug, Identifiable, Queryable)]
 #[table_name = "sso_user"]
-#[primary_key(user_id)]
+#[primary_key(id)]
 pub struct ModelUser {
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
-    user_id: Uuid,
-    user_is_enabled: bool,
-    user_name: String,
-    user_email: String,
-    user_locale: String,
-    user_timezone: String,
-    user_password_allow_reset: bool,
-    user_password_require_update: bool,
-    user_password_hash: Option<String>,
+    id: Uuid,
+    is_enabled: bool,
+    name: String,
+    email: String,
+    locale: String,
+    timezone: String,
+    password_allow_reset: bool,
+    password_require_update: bool,
+    password_hash: Option<String>,
 }
 
 impl From<ModelUser> for User {
@@ -28,15 +28,15 @@ impl From<ModelUser> for User {
         Self {
             created_at: user.created_at,
             updated_at: user.updated_at,
-            id: user.user_id,
-            is_enabled: user.user_is_enabled,
-            name: user.user_name,
-            email: user.user_email,
-            locale: user.user_locale,
-            timezone: user.user_timezone,
-            password_allow_reset: user.user_password_allow_reset,
-            password_require_update: user.user_password_require_update,
-            password_hash: user.user_password_hash,
+            id: user.id,
+            is_enabled: user.is_enabled,
+            name: user.name,
+            email: user.email,
+            locale: user.locale,
+            timezone: user.timezone,
+            password_allow_reset: user.password_allow_reset,
+            password_require_update: user.password_require_update,
+            password_hash: user.password_hash,
         }
     }
 }
@@ -46,15 +46,15 @@ impl From<ModelUser> for User {
 struct ModelUserInsert<'a> {
     created_at: &'a DateTime<Utc>,
     updated_at: &'a DateTime<Utc>,
-    user_id: &'a Uuid,
-    user_is_enabled: bool,
-    user_name: &'a str,
-    user_email: &'a str,
-    user_locale: &'a str,
-    user_timezone: &'a str,
-    user_password_allow_reset: bool,
-    user_password_require_update: bool,
-    user_password_hash: Option<&'a str>,
+    id: &'a Uuid,
+    is_enabled: bool,
+    name: &'a str,
+    email: &'a str,
+    locale: &'a str,
+    timezone: &'a str,
+    password_allow_reset: bool,
+    password_require_update: bool,
+    password_hash: Option<&'a str>,
 }
 
 impl<'a> ModelUserInsert<'a> {
@@ -62,15 +62,15 @@ impl<'a> ModelUserInsert<'a> {
         Self {
             created_at: now,
             updated_at: now,
-            user_id: id,
-            user_is_enabled: create.is_enabled,
-            user_name: &create.name,
-            user_email: &create.email,
-            user_locale: &create.locale,
-            user_timezone: &create.timezone,
-            user_password_allow_reset: create.password_allow_reset,
-            user_password_require_update: create.password_require_update,
-            user_password_hash: create.password_hash.as_ref().map(|x| &**x),
+            id,
+            is_enabled: create.is_enabled,
+            name: &create.name,
+            email: &create.email,
+            locale: &create.locale,
+            timezone: &create.timezone,
+            password_allow_reset: create.password_allow_reset,
+            password_require_update: create.password_require_update,
+            password_hash: create.password_hash.as_ref().map(|x| &**x),
         }
     }
 }
@@ -79,42 +79,42 @@ impl<'a> ModelUserInsert<'a> {
 #[table_name = "sso_user"]
 struct ModelUserUpdate<'a> {
     updated_at: &'a DateTime<Utc>,
-    user_is_enabled: Option<bool>,
-    user_name: Option<&'a str>,
-    user_email: Option<&'a str>,
-    user_locale: Option<&'a str>,
-    user_timezone: Option<&'a str>,
-    user_password_allow_reset: Option<bool>,
-    user_password_require_update: Option<bool>,
-    user_password_hash: Option<&'a str>,
+    is_enabled: Option<bool>,
+    name: Option<&'a str>,
+    email: Option<&'a str>,
+    locale: Option<&'a str>,
+    timezone: Option<&'a str>,
+    password_allow_reset: Option<bool>,
+    password_require_update: Option<bool>,
+    password_hash: Option<&'a str>,
 }
 
 impl<'a> ModelUserUpdate<'a> {
     fn from_update(now: &'a DateTime<Utc>, update: &'a UserUpdate) -> Self {
         Self {
             updated_at: now,
-            user_is_enabled: update.is_enabled,
-            user_name: update.name.as_ref().map(|x| &**x),
-            user_email: None,
-            user_locale: update.locale.as_ref().map(|x| &**x),
-            user_timezone: update.timezone.as_ref().map(|x| &**x),
-            user_password_allow_reset: update.password_allow_reset,
-            user_password_require_update: update.password_require_update,
-            user_password_hash: None,
+            is_enabled: update.is_enabled,
+            name: update.name.as_ref().map(|x| &**x),
+            email: None,
+            locale: update.locale.as_ref().map(|x| &**x),
+            timezone: update.timezone.as_ref().map(|x| &**x),
+            password_allow_reset: update.password_allow_reset,
+            password_require_update: update.password_require_update,
+            password_hash: None,
         }
     }
 
     fn from_update2(now: &'a DateTime<Utc>, update: &'a UserUpdate2) -> Self {
         Self {
             updated_at: now,
-            user_is_enabled: None,
-            user_name: None,
-            user_email: update.email.as_ref().map(|x| &**x),
-            user_locale: None,
-            user_timezone: None,
-            user_password_allow_reset: None,
-            user_password_require_update: None,
-            user_password_hash: update.password_hash.as_ref().map(|x| &**x),
+            is_enabled: None,
+            name: None,
+            email: update.email.as_ref().map(|x| &**x),
+            locale: None,
+            timezone: None,
+            password_allow_reset: None,
+            password_require_update: None,
+            password_hash: update.password_hash.as_ref().map(|x| &**x),
         }
     }
 }
@@ -133,24 +133,20 @@ impl ModelUser {
     }
 
     fn list_where_id_gt(conn: &PgConnection, gt: &Uuid, limit: i64) -> DriverResult<Vec<User>> {
-        use crate::driver::postgres::schema::sso_user::dsl::*;
-
-        sso_user
-            .filter(user_id.gt(gt))
+        sso_user::table
+            .filter(sso_user::dsl::id.gt(gt))
             .limit(limit)
-            .order(user_id.asc())
+            .order(sso_user::dsl::id.asc())
             .load::<ModelUser>(conn)
             .map_err(Into::into)
             .map(|x| x.into_iter().map(|x| x.into()).collect())
     }
 
     fn list_where_id_lt(conn: &PgConnection, lt: &Uuid, limit: i64) -> DriverResult<Vec<User>> {
-        use crate::driver::postgres::schema::sso_user::dsl::*;
-
-        sso_user
-            .filter(user_id.lt(lt))
+        sso_user::table
+            .filter(sso_user::dsl::id.lt(lt))
             .limit(limit)
-            .order(user_id.desc())
+            .order(sso_user::dsl::id.desc())
             .load::<ModelUser>(conn)
             .map_err(Into::into)
             .map(|mut x| {
@@ -164,24 +160,20 @@ impl ModelUser {
         email_eq: &str,
         limit: i64,
     ) -> DriverResult<Vec<User>> {
-        use crate::driver::postgres::schema::sso_user::dsl::*;
-
-        sso_user
-            .filter(user_email.eq(email_eq))
+        sso_user::table
+            .filter(sso_user::dsl::email.eq(email_eq))
             .limit(limit)
-            .order(user_id.asc())
+            .order(sso_user::dsl::id.asc())
             .load::<ModelUser>(conn)
             .map_err(Into::into)
             .map(|x| x.into_iter().map(|x| x.into()).collect())
     }
 
     pub fn create(conn: &PgConnection, create: &UserCreate) -> DriverResult<User> {
-        use crate::driver::postgres::schema::sso_user::dsl::*;
-
         let now = Utc::now();
         let id = Uuid::new_v4();
         let value = ModelUserInsert::from_create(&now, &id, create);
-        diesel::insert_into(sso_user)
+        diesel::insert_into(sso_user::table)
             .values(&value)
             .get_result::<ModelUser>(conn)
             .map_err(Into::into)
@@ -196,10 +188,8 @@ impl ModelUser {
     }
 
     fn read_id(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<User>> {
-        use crate::driver::postgres::schema::sso_user::dsl::*;
-
-        sso_user
-            .filter(user_id.eq(id))
+        sso_user::table
+            .filter(sso_user::dsl::id.eq(id))
             .get_result::<ModelUser>(conn)
             .optional()
             .map_err(Into::into)
@@ -207,10 +197,8 @@ impl ModelUser {
     }
 
     fn read_email(conn: &PgConnection, email: &str) -> DriverResult<Option<User>> {
-        use crate::driver::postgres::schema::sso_user::dsl::*;
-
-        sso_user
-            .filter(user_email.eq(email))
+        sso_user::table
+            .filter(sso_user::dsl::email.eq(email))
             .get_result::<ModelUser>(conn)
             .optional()
             .map_err(Into::into)
@@ -230,9 +218,7 @@ impl ModelUser {
     }
 
     fn update_inner(conn: &PgConnection, id: &Uuid, value: &ModelUserUpdate) -> DriverResult<User> {
-        use crate::driver::postgres::schema::sso_user::dsl::*;
-
-        diesel::update(sso_user.filter(user_id.eq(id)))
+        diesel::update(sso_user::table.filter(sso_user::dsl::id.eq(id)))
             .set(value)
             .get_result::<ModelUser>(conn)
             .map_err(Into::into)
@@ -240,9 +226,7 @@ impl ModelUser {
     }
 
     pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<usize> {
-        use crate::driver::postgres::schema::sso_user::dsl::*;
-
-        diesel::delete(sso_user.filter(user_id.eq(id)))
+        diesel::delete(sso_user::table.filter(sso_user::dsl::id.eq(id)))
             .execute(conn)
             .map_err(Into::into)
     }

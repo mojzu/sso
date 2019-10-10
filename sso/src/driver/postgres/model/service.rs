@@ -8,17 +8,17 @@ use uuid::Uuid;
 
 #[derive(Debug, Identifiable, Queryable)]
 #[table_name = "sso_service"]
-#[primary_key(service_id)]
+#[primary_key(id)]
 pub struct ModelService {
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
-    service_id: Uuid,
-    service_is_enabled: bool,
-    service_name: String,
-    service_url: String,
-    service_provider_local_url: Option<String>,
-    service_provider_github_oauth2_url: Option<String>,
-    service_provider_microsoft_oauth2_url: Option<String>,
+    id: Uuid,
+    is_enabled: bool,
+    name: String,
+    url: String,
+    provider_local_url: Option<String>,
+    provider_github_oauth2_url: Option<String>,
+    provider_microsoft_oauth2_url: Option<String>,
 }
 
 impl From<ModelService> for Service {
@@ -26,13 +26,13 @@ impl From<ModelService> for Service {
         Self {
             created_at: service.created_at,
             updated_at: service.updated_at,
-            id: service.service_id,
-            is_enabled: service.service_is_enabled,
-            name: service.service_name,
-            url: service.service_url,
-            provider_local_url: service.service_provider_local_url,
-            provider_github_oauth2_url: service.service_provider_github_oauth2_url,
-            provider_microsoft_oauth2_url: service.service_provider_microsoft_oauth2_url,
+            id: service.id,
+            is_enabled: service.is_enabled,
+            name: service.name,
+            url: service.url,
+            provider_local_url: service.provider_local_url,
+            provider_github_oauth2_url: service.provider_github_oauth2_url,
+            provider_microsoft_oauth2_url: service.provider_microsoft_oauth2_url,
         }
     }
 }
@@ -42,13 +42,13 @@ impl From<ModelService> for Service {
 struct ModelServiceInsert<'a> {
     created_at: &'a DateTime<Utc>,
     updated_at: &'a DateTime<Utc>,
-    service_id: &'a Uuid,
-    service_is_enabled: bool,
-    service_name: &'a str,
-    service_url: &'a str,
-    service_provider_local_url: Option<&'a str>,
-    service_provider_github_oauth2_url: Option<&'a str>,
-    service_provider_microsoft_oauth2_url: Option<&'a str>,
+    id: &'a Uuid,
+    is_enabled: bool,
+    name: &'a str,
+    url: &'a str,
+    provider_local_url: Option<&'a str>,
+    provider_github_oauth2_url: Option<&'a str>,
+    provider_microsoft_oauth2_url: Option<&'a str>,
 }
 
 impl<'a> ModelServiceInsert<'a> {
@@ -56,16 +56,13 @@ impl<'a> ModelServiceInsert<'a> {
         Self {
             created_at: now,
             updated_at: now,
-            service_id: id,
-            service_is_enabled: create.is_enabled,
-            service_name: &create.name,
-            service_url: &create.url,
-            service_provider_local_url: create.provider_local_url.as_ref().map(|x| &**x),
-            service_provider_github_oauth2_url: create
-                .provider_github_oauth2_url
-                .as_ref()
-                .map(|x| &**x),
-            service_provider_microsoft_oauth2_url: create
+            id,
+            is_enabled: create.is_enabled,
+            name: &create.name,
+            url: &create.url,
+            provider_local_url: create.provider_local_url.as_ref().map(|x| &**x),
+            provider_github_oauth2_url: create.provider_github_oauth2_url.as_ref().map(|x| &**x),
+            provider_microsoft_oauth2_url: create
                 .provider_microsoft_oauth2_url
                 .as_ref()
                 .map(|x| &**x),
@@ -77,27 +74,24 @@ impl<'a> ModelServiceInsert<'a> {
 #[table_name = "sso_service"]
 struct ModelServiceUpdate<'a> {
     updated_at: &'a DateTime<Utc>,
-    service_is_enabled: Option<bool>,
-    service_name: Option<&'a str>,
-    service_url: Option<&'a str>,
-    service_provider_local_url: Option<&'a str>,
-    service_provider_github_oauth2_url: Option<&'a str>,
-    service_provider_microsoft_oauth2_url: Option<&'a str>,
+    is_enabled: Option<bool>,
+    name: Option<&'a str>,
+    url: Option<&'a str>,
+    provider_local_url: Option<&'a str>,
+    provider_github_oauth2_url: Option<&'a str>,
+    provider_microsoft_oauth2_url: Option<&'a str>,
 }
 
 impl<'a> ModelServiceUpdate<'a> {
     fn from_update(now: &'a DateTime<Utc>, update: &'a ServiceUpdate) -> Self {
         Self {
             updated_at: now,
-            service_is_enabled: update.is_enabled,
-            service_name: update.name.as_ref().map(|x| &**x),
-            service_url: update.url.as_ref().map(|x| &**x),
-            service_provider_local_url: update.provider_local_url.as_ref().map(|x| &**x),
-            service_provider_github_oauth2_url: update
-                .provider_github_oauth2_url
-                .as_ref()
-                .map(|x| &**x),
-            service_provider_microsoft_oauth2_url: update
+            is_enabled: update.is_enabled,
+            name: update.name.as_ref().map(|x| &**x),
+            url: update.url.as_ref().map(|x| &**x),
+            provider_local_url: update.provider_local_url.as_ref().map(|x| &**x),
+            provider_github_oauth2_url: update.provider_github_oauth2_url.as_ref().map(|x| &**x),
+            provider_microsoft_oauth2_url: update
                 .provider_microsoft_oauth2_url
                 .as_ref()
                 .map(|x| &**x),
@@ -110,28 +104,28 @@ impl ModelService {
         let mut query = sso_service::table.into_boxed();
 
         if let Some(is_enabled) = list.filter.is_enabled {
-            query = query.filter(sso_service::dsl::service_is_enabled.eq(is_enabled));
+            query = query.filter(sso_service::dsl::is_enabled.eq(is_enabled));
         }
 
         match list.query {
             ServiceListQuery::Limit(limit) => query
-                .filter(sso_service::dsl::service_id.gt(Uuid::nil()))
+                .filter(sso_service::dsl::id.gt(Uuid::nil()))
                 .limit(*limit)
-                .order(sso_service::dsl::service_id.asc())
+                .order(sso_service::dsl::id.asc())
                 .load::<ModelService>(conn)
                 .map_err(Into::into)
                 .map(|x| x.into_iter().map(|x| x.into()).collect()),
             ServiceListQuery::IdGt(gt, limit) => query
-                .filter(sso_service::dsl::service_id.gt(gt))
+                .filter(sso_service::dsl::id.gt(gt))
                 .limit(*limit)
-                .order(sso_service::dsl::service_id.asc())
+                .order(sso_service::dsl::id.asc())
                 .load::<ModelService>(conn)
                 .map_err(Into::into)
                 .map(|x| x.into_iter().map(|x| x.into()).collect()),
             ServiceListQuery::IdLt(lt, limit) => query
-                .filter(sso_service::dsl::service_id.lt(lt))
+                .filter(sso_service::dsl::id.lt(lt))
                 .limit(*limit)
-                .order(sso_service::dsl::service_id.desc())
+                .order(sso_service::dsl::id.desc())
                 .load::<ModelService>(conn)
                 .map_err(Into::into)
                 .map(|mut x| {
@@ -142,12 +136,10 @@ impl ModelService {
     }
 
     pub fn create(conn: &PgConnection, create: &ServiceCreate) -> DriverResult<Service> {
-        use crate::driver::postgres::schema::sso_service::dsl::*;
-
         let now = Utc::now();
         let id = Uuid::new_v4();
         let value = ModelServiceInsert::from_create(&now, &id, create);
-        diesel::insert_into(sso_service)
+        diesel::insert_into(sso_service::table)
             .values(value)
             .get_result::<ModelService>(conn)
             .map_err(Into::into)
@@ -155,10 +147,8 @@ impl ModelService {
     }
 
     pub fn read_opt(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<Service>> {
-        use crate::driver::postgres::schema::sso_service::dsl::*;
-
-        sso_service
-            .filter(service_id.eq(id))
+        sso_service::table
+            .filter(sso_service::dsl::id.eq(id))
             .get_result::<ModelService>(conn)
             .optional()
             .map_err(Into::into)
@@ -166,11 +156,9 @@ impl ModelService {
     }
 
     pub fn update(conn: &PgConnection, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service> {
-        use crate::driver::postgres::schema::sso_service::dsl::*;
-
         let now = chrono::Utc::now();
         let value = ModelServiceUpdate::from_update(&now, update);
-        diesel::update(sso_service.filter(service_id.eq(id)))
+        diesel::update(sso_service::table.filter(sso_service::dsl::id.eq(id)))
             .set(value)
             .get_result::<ModelService>(conn)
             .map_err(Into::into)
@@ -178,9 +166,7 @@ impl ModelService {
     }
 
     pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<usize> {
-        use crate::driver::postgres::schema::sso_service::dsl::*;
-
-        diesel::delete(sso_service.filter(service_id.eq(id)))
+        diesel::delete(sso_service::table.filter(sso_service::dsl::id.eq(id)))
             .execute(conn)
             .map_err(Into::into)
     }

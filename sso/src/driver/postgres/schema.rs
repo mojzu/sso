@@ -1,12 +1,13 @@
 table! {
-    sso_audit (audit_id) {
+    sso_audit (id) {
         created_at -> Timestamptz,
-        audit_id -> Uuid,
-        audit_user_agent -> Varchar,
-        audit_remote -> Varchar,
-        audit_forwarded -> Nullable<Varchar>,
-        audit_type -> Varchar,
-        audit_data -> Jsonb,
+        id -> Uuid,
+        user_agent -> Varchar,
+        remote -> Varchar,
+        forwarded -> Nullable<Varchar>,
+        #[sql_name = "type"]
+        type_ -> Varchar,
+        data -> Jsonb,
         key_id -> Nullable<Uuid>,
         service_id -> Nullable<Uuid>,
         user_id -> Nullable<Uuid>,
@@ -15,57 +16,58 @@ table! {
 }
 
 table! {
-    sso_csrf (csrf_key) {
+    sso_csrf (key) {
         created_at -> Timestamptz,
-        csrf_key -> Varchar,
-        csrf_value -> Varchar,
-        csrf_ttl -> Timestamptz,
+        key -> Varchar,
+        value -> Varchar,
+        ttl -> Timestamptz,
         service_id -> Uuid,
     }
 }
 
 table! {
-    sso_key (key_id) {
+    sso_key (id) {
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
-        key_id -> Uuid,
-        key_is_enabled -> Bool,
-        key_is_revoked -> Bool,
-        key_type -> Varchar,
-        key_name -> Varchar,
-        key_value -> Varchar,
+        id -> Uuid,
+        is_enabled -> Bool,
+        is_revoked -> Bool,
+        #[sql_name = "type"]
+        type_ -> Varchar,
+        name -> Varchar,
+        value -> Varchar,
         service_id -> Nullable<Uuid>,
         user_id -> Nullable<Uuid>,
     }
 }
 
 table! {
-    sso_service (service_id) {
+    sso_service (id) {
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
-        service_id -> Uuid,
-        service_is_enabled -> Bool,
-        service_name -> Varchar,
-        service_url -> Varchar,
-        service_provider_local_url -> Nullable<Varchar>,
-        service_provider_github_oauth2_url -> Nullable<Varchar>,
-        service_provider_microsoft_oauth2_url -> Nullable<Varchar>,
+        id -> Uuid,
+        is_enabled -> Bool,
+        name -> Varchar,
+        url -> Varchar,
+        provider_local_url -> Nullable<Varchar>,
+        provider_github_oauth2_url -> Nullable<Varchar>,
+        provider_microsoft_oauth2_url -> Nullable<Varchar>,
     }
 }
 
 table! {
-    sso_user (user_id) {
+    sso_user (id) {
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
-        user_id -> Uuid,
-        user_is_enabled -> Bool,
-        user_name -> Varchar,
-        user_email -> Varchar,
-        user_locale -> Varchar,
-        user_timezone -> Varchar,
-        user_password_allow_reset -> Bool,
-        user_password_require_update -> Bool,
-        user_password_hash -> Nullable<Varchar>,
+        id -> Uuid,
+        is_enabled -> Bool,
+        name -> Varchar,
+        email -> Varchar,
+        locale -> Varchar,
+        timezone -> Varchar,
+        password_allow_reset -> Bool,
+        password_require_update -> Bool,
+        password_hash -> Nullable<Varchar>,
     }
 }
 

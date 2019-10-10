@@ -8,6 +8,10 @@
 - Added filters to key list endpoint with `KeyFilter` options.
 - Added filters to service list endpoint with `ServiceFilter` options.
 
+**Changed**
+
+- Changed table column names to remove prefixes for `DriverPostgres`.
+
 **Fixed**
 
 - Fixed `clippy` too many arguments warnings.

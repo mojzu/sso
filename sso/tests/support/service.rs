@@ -13,7 +13,12 @@ macro_rules! service_integration_test {
             let limit = 3;
 
             let res1 = client
-                .service_list(ServiceListRequestBuilder::default().limit(Some(limit)).build().unwrap())
+                .service_list(
+                    ServiceListRequestBuilder::default()
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             assert_eq!(res1.data.len(), 3);
             let r1_1 = &res1.data[0].id;
@@ -21,7 +26,13 @@ macro_rules! service_integration_test {
             let r1_3 = &res1.data[2].id;
 
             let res2 = client
-                .service_list(ServiceListRequestBuilder::default().gt(Some(r1_1.to_owned())).limit(Some(limit)).build().unwrap())
+                .service_list(
+                    ServiceListRequestBuilder::default()
+                        .gt(Some(r1_1.to_owned()))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             assert_eq!(res2.data.len(), 3);
             let r2_2 = &res2.data[0].id;
@@ -31,7 +42,13 @@ macro_rules! service_integration_test {
             assert_eq!(r2_3, r1_3);
 
             let res3 = client
-                .service_list(ServiceListRequestBuilder::default().gt(Some(r1_2.to_owned())).limit(Some(limit)).build().unwrap())
+                .service_list(
+                    ServiceListRequestBuilder::default()
+                        .gt(Some(r1_2.to_owned()))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             assert_eq!(res3.data.len(), 3);
             let r3_3 = &res3.data[0].id;
@@ -41,7 +58,13 @@ macro_rules! service_integration_test {
             assert_eq!(r3_4, r2_4);
 
             let res4 = client
-                .service_list(ServiceListRequestBuilder::default().lt(Some(r3_5.to_owned())).limit(Some(limit)).build().unwrap())
+                .service_list(
+                    ServiceListRequestBuilder::default()
+                        .lt(Some(r3_5.to_owned()))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             assert_eq!(res4.data.len(), 3);
             let r4_2 = &res4.data[0].id;
@@ -52,7 +75,13 @@ macro_rules! service_integration_test {
             assert_eq!(r4_4, r3_4);
 
             let res5 = client
-                .service_list(ServiceListRequestBuilder::default().lt(Some(r4_4.to_owned())).limit(Some(limit)).build().unwrap())
+                .service_list(
+                    ServiceListRequestBuilder::default()
+                        .lt(Some(r4_4.to_owned()))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             assert_eq!(res5.data.len(), 3);
             let r5_1 = &res5.data[0].id;
