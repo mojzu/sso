@@ -1,6 +1,6 @@
 use crate::{
-    driver::postgres::schema::sso_key, DriverResult, Key, KeyCount, KeyCreate, KeyFilter, KeyList,
-    KeyRead, KeyReadUserId, KeyReadUserValue, KeyType, KeyUpdate,
+    driver::postgres::schema::sso_key, DriverResult, Key, KeyCount, KeyCreate, KeyList,
+    KeyListQuery, KeyRead, KeyReadUserId, KeyReadUserValue, KeyType, KeyUpdate,
 };
 use chrono::{DateTime, Utc};
 use diesel::{dsl::sql, prelude::*, sql_types::BigInt, PgConnection};
@@ -92,54 +92,49 @@ impl<'a> ModelKeyUpdate<'a> {
 }
 
 impl ModelKey {
-    pub fn list(
-        conn: &PgConnection,
-        list: &KeyList,
-        filter: &KeyFilter,
-        service_id_mask: Option<&Uuid>,
-    ) -> DriverResult<Vec<Key>> {
+    pub fn list(conn: &PgConnection, list: &KeyList) -> DriverResult<Vec<Key>> {
         use diesel::dsl::any;
 
         let mut query = sso_key::table.into_boxed();
 
-        if let Some(is_enabled) = filter.is_enabled {
+        if let Some(is_enabled) = list.filter.is_enabled {
             query = query.filter(sso_key::dsl::key_is_enabled.eq(is_enabled));
         }
-        if let Some(is_revoked) = filter.is_revoked {
+        if let Some(is_revoked) = list.filter.is_revoked {
             query = query.filter(sso_key::dsl::key_is_revoked.eq(is_revoked));
         }
-        if let Some(type_) = &filter.type_ {
+        if let Some(type_) = &list.filter.type_ {
             let type_: Vec<String> = type_.iter().map(|x| x.to_string().unwrap()).collect();
             query = query.filter(sso_key::dsl::key_type.eq(any(type_)));
         }
-        if let Some(service_id) = &filter.service_id {
+        if let Some(service_id) = &list.filter.service_id {
             let service_id: Vec<Uuid> = service_id.iter().copied().collect();
             query = query.filter(sso_key::dsl::service_id.eq(any(service_id)));
         }
-        if let Some(user_id) = &filter.user_id {
+        if let Some(user_id) = &list.filter.user_id {
             let user_id: Vec<Uuid> = user_id.iter().copied().collect();
             query = query.filter(sso_key::dsl::user_id.eq(any(user_id)));
         }
-        if let Some(service_id_mask) = service_id_mask {
+        if let Some(service_id_mask) = list.service_id_mask {
             query = query.filter(sso_key::dsl::service_id.eq(service_id_mask.clone()));
         }
 
-        match list {
-            KeyList::Limit(limit) => query
+        match list.query {
+            KeyListQuery::Limit(limit) => query
                 .filter(sso_key::dsl::key_id.gt(Uuid::nil()))
                 .limit(*limit)
                 .order(sso_key::dsl::key_id.asc())
                 .load::<ModelKey>(conn)
                 .map_err(Into::into)
                 .map(|x| x.into_iter().map(|x| x.into()).collect()),
-            KeyList::IdGt(gt, limit) => query
+            KeyListQuery::IdGt(gt, limit) => query
                 .filter(sso_key::dsl::key_id.gt(gt))
                 .limit(*limit)
                 .order(sso_key::dsl::key_id.asc())
                 .load::<ModelKey>(conn)
                 .map_err(Into::into)
                 .map(|x| x.into_iter().map(|x| x.into()).collect()),
-            KeyList::IdLt(lt, limit) => query
+            KeyListQuery::IdLt(lt, limit) => query
                 .filter(sso_key::dsl::key_id.lt(lt))
                 .limit(*limit)
                 .order(sso_key::dsl::key_id.desc())
@@ -202,6 +197,41 @@ impl ModelKey {
             KeyRead::UserId(r) => Self::read_by_user_id(conn, r),
             KeyRead::UserValue(r) => Self::read_by_user_value(conn, r),
         }
+    }
+
+    pub fn update(conn: &PgConnection, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key> {
+        use crate::driver::postgres::schema::sso_key::dsl::*;
+
+        let now = chrono::Utc::now();
+        let value = ModelKeyUpdate::from_update(&now, update);
+        diesel::update(sso_key.filter(key_id.eq(id)))
+            .set(&value)
+            .get_result::<ModelKey>(conn)
+            .map_err(Into::into)
+            .map(Into::into)
+    }
+
+    pub fn update_many(
+        conn: &PgConnection,
+        key_user_id: &Uuid,
+        update: &KeyUpdate,
+    ) -> DriverResult<usize> {
+        use crate::driver::postgres::schema::sso_key::dsl::*;
+
+        let now = chrono::Utc::now();
+        let value = ModelKeyUpdate::from_update(&now, update);
+        diesel::update(sso_key.filter(user_id.eq(key_user_id)))
+            .set(&value)
+            .execute(conn)
+            .map_err(Into::into)
+    }
+
+    pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<usize> {
+        use crate::driver::postgres::schema::sso_key::dsl::*;
+
+        diesel::delete(sso_key.filter(key_id.eq(id)))
+            .execute(conn)
+            .map_err(Into::into)
     }
 
     fn read_by_id(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<Key>> {
@@ -288,40 +318,5 @@ impl ModelKey {
             .optional()
             .map_err(Into::into)
             .map(|x| x.map(Into::into))
-    }
-
-    pub fn update(conn: &PgConnection, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key> {
-        use crate::driver::postgres::schema::sso_key::dsl::*;
-
-        let now = chrono::Utc::now();
-        let value = ModelKeyUpdate::from_update(&now, update);
-        diesel::update(sso_key.filter(key_id.eq(id)))
-            .set(&value)
-            .get_result::<ModelKey>(conn)
-            .map_err(Into::into)
-            .map(Into::into)
-    }
-
-    pub fn update_many(
-        conn: &PgConnection,
-        key_user_id: &Uuid,
-        update: &KeyUpdate,
-    ) -> DriverResult<usize> {
-        use crate::driver::postgres::schema::sso_key::dsl::*;
-
-        let now = chrono::Utc::now();
-        let value = ModelKeyUpdate::from_update(&now, update);
-        diesel::update(sso_key.filter(user_id.eq(key_user_id)))
-            .set(&value)
-            .execute(conn)
-            .map_err(Into::into)
-    }
-
-    pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<usize> {
-        use crate::driver::postgres::schema::sso_key::dsl::*;
-
-        diesel::delete(sso_key.filter(key_id.eq(id)))
-            .execute(conn)
-            .map_err(Into::into)
     }
 }

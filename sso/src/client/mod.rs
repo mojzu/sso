@@ -146,16 +146,16 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::api_type::ServiceListRequest;
+    use crate::api_type::ServiceListRequestBuilder;
     use uuid::Uuid;
 
     #[test]
     fn builds_url_from_route_and_request() {
-        let query = ServiceListRequest {
-            gt: Some(Uuid::nil()),
-            lt: None,
-            limit: Some(10),
-        };
+        let query = ServiceListRequestBuilder::default()
+            .gt(Some(Uuid::nil()))
+            .limit(Some(10))
+            .build()
+            .unwrap();
         let url = Client::url_query("http://localhost:9000", "/v1/service/", query).unwrap();
         assert_eq!(
             url.to_string(),

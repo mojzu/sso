@@ -1,9 +1,10 @@
 //! # API Types
 use crate::{
     ApiValidate, ApiValidateRequest, ApiValidateRequestQuery, Audit, AuditData, AuditList,
-    AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe, Core, Key, KeyFilter, KeyList,
-    KeyType, Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserKey,
-    UserList, UserPasswordMeta, UserToken, UserTokenAccess,
+    AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe, Core, Key, KeyListFilter,
+    KeyListQuery, KeyType, Service, ServiceCreate, ServiceListFilter, ServiceListQuery,
+    ServiceUpdate, User, UserCreate, UserKey, UserList, UserPasswordMeta, UserToken,
+    UserTokenAccess,
 };
 use chrono::{DateTime, Utc};
 use serde_json::Value;
@@ -211,16 +212,16 @@ impl ApiValidateRequest<KeyListRequest> for KeyListRequest {}
 impl ApiValidateRequestQuery<KeyListRequest> for KeyListRequest {}
 
 impl KeyListRequest {
-    pub fn into_list_filter(self) -> (KeyList, KeyFilter) {
+    pub fn into_query_filter(self) -> (KeyListQuery, KeyListFilter) {
         let limit = self.limit.unwrap_or_else(Core::default_limit);
-        let list = match (self.gt, self.lt) {
-            (Some(gt), Some(_lt)) => KeyList::IdGt(gt, limit),
-            (Some(gt), None) => KeyList::IdGt(gt, limit),
-            (None, Some(lt)) => KeyList::IdLt(lt, limit),
-            (None, None) => KeyList::Limit(limit),
+        let query = match (self.gt, self.lt) {
+            (Some(gt), Some(_lt)) => KeyListQuery::IdGt(gt, limit),
+            (Some(gt), None) => KeyListQuery::IdGt(gt, limit),
+            (None, Some(lt)) => KeyListQuery::IdLt(lt, limit),
+            (None, None) => KeyListQuery::Limit(limit),
         };
 
-        let filter = KeyFilter {
+        let filter = KeyListFilter {
             is_enabled: self.is_enabled,
             is_revoked: self.is_revoked,
             type_: self.type_,
@@ -228,12 +229,12 @@ impl KeyListRequest {
             user_id: self.user_id,
         };
 
-        (list, filter)
+        (query, filter)
     }
 
-    pub fn from_list_filter(list: KeyList, filter: KeyFilter) -> Self {
-        match list {
-            KeyList::Limit(limit) => Self {
+    pub fn from_query_filter(query: KeyListQuery, filter: KeyListFilter) -> Self {
+        match query {
+            KeyListQuery::Limit(limit) => Self {
                 gt: None,
                 lt: None,
                 limit: Some(limit),
@@ -243,7 +244,7 @@ impl KeyListRequest {
                 service_id: filter.service_id,
                 user_id: filter.user_id,
             },
-            KeyList::IdGt(gt, limit) => Self {
+            KeyListQuery::IdGt(gt, limit) => Self {
                 gt: Some(gt),
                 lt: None,
                 limit: Some(limit),
@@ -253,7 +254,7 @@ impl KeyListRequest {
                 service_id: filter.service_id,
                 user_id: filter.user_id,
             },
-            KeyList::IdLt(lt, limit) => Self {
+            KeyListQuery::IdLt(lt, limit) => Self {
                 gt: None,
                 lt: Some(lt),
                 limit: Some(limit),
@@ -346,48 +347,59 @@ impl ApiValidateRequest<KeyUpdateRequest> for KeyUpdateRequest {}
 // Service Types
 // -------------
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Builder)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceListRequest {
+    #[builder(default = "None")]
     pub gt: Option<Uuid>,
+    #[builder(default = "None")]
     pub lt: Option<Uuid>,
+    #[builder(default = "None")]
     #[validate(custom = "ApiValidate::limit")]
     pub limit: Option<i64>,
+    #[builder(default = "None")]
+    is_enabled: Option<bool>,
 }
 
 impl ApiValidateRequest<ServiceListRequest> for ServiceListRequest {}
 impl ApiValidateRequestQuery<ServiceListRequest> for ServiceListRequest {}
 
-impl From<ServiceListRequest> for ServiceList {
-    fn from(query: ServiceListRequest) -> ServiceList {
-        let limit = query.limit.unwrap_or_else(Core::default_limit);
+impl ServiceListRequest {
+    pub fn into_query_filter(self) -> (ServiceListQuery, ServiceListFilter) {
+        let limit = self.limit.unwrap_or_else(Core::default_limit);
+        let query = match (self.gt, self.lt) {
+            (Some(gt), Some(_lt)) => ServiceListQuery::IdGt(gt, limit),
+            (Some(gt), None) => ServiceListQuery::IdGt(gt, limit),
+            (None, Some(lt)) => ServiceListQuery::IdLt(lt, limit),
+            (None, None) => ServiceListQuery::Limit(limit),
+        };
 
-        match (query.gt, query.lt) {
-            (Some(gt), Some(_lt)) => Self::IdGt(gt, limit),
-            (Some(gt), None) => Self::IdGt(gt, limit),
-            (None, Some(lt)) => Self::IdLt(lt, limit),
-            (None, None) => Self::Limit(limit),
-        }
+        let filter = ServiceListFilter {
+            is_enabled: self.is_enabled,
+        };
+
+        (query, filter)
     }
-}
 
-impl From<ServiceList> for ServiceListRequest {
-    fn from(list: ServiceList) -> Self {
-        match list {
-            ServiceList::Limit(limit) => Self {
+    pub fn from_query_filter(query: ServiceListQuery, filter: ServiceListFilter) -> Self {
+        match query {
+            ServiceListQuery::Limit(limit) => Self {
                 gt: None,
                 lt: None,
                 limit: Some(limit),
+                is_enabled: filter.is_enabled,
             },
-            ServiceList::IdGt(gt, limit) => Self {
+            ServiceListQuery::IdGt(gt, limit) => Self {
                 gt: Some(gt),
                 lt: None,
                 limit: Some(limit),
+                is_enabled: filter.is_enabled,
             },
-            ServiceList::IdLt(lt, limit) => Self {
+            ServiceListQuery::IdLt(lt, limit) => Self {
                 gt: None,
                 lt: Some(lt),
                 limit: Some(limit),
+                is_enabled: filter.is_enabled,
             },
         }
     }

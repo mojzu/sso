@@ -7,8 +7,8 @@ pub use crate::core::api::validate::*;
 use crate::{
     core::api::{api_type::*, oauth2::*},
     Audit, AuditData, AuditList, AuditMeta, Auth, AuthArgs, CoreError, CoreResult, Driver, Key,
-    Metrics, NotifyActor, Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate,
-    UserList, UserPasswordMeta, UserRead, UserUpdate,
+    Metrics, NotifyActor, Service, ServiceCreate, ServiceUpdate, User, UserCreate, UserList,
+    UserPasswordMeta, UserRead, UserUpdate,
 };
 use actix::Addr;
 use prometheus::Registry;
@@ -211,10 +211,10 @@ impl Api {
 
         Key::authenticate(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
-                let (list, filter) = request.into_list_filter();
-                let data = Key::list(driver, service.as_ref(), &mut audit, &list, &filter)?;
+                let (query, filter) = request.into_query_filter();
+                let data = Key::list(driver, service.as_ref(), &mut audit, &query, &filter)?;
                 Ok(KeyListResponse {
-                    meta: KeyListRequest::from_list_filter(list, filter),
+                    meta: KeyListRequest::from_query_filter(query, filter),
                     data,
                 })
             })
@@ -341,10 +341,10 @@ impl Api {
 
         Key::authenticate_root(driver, audit_meta, key_value)
             .and_then(|mut audit| {
-                let list: ServiceList = request.into();
-                let data = Service::list(driver, &mut audit, &list)?;
+                let (query, filter) = request.into_query_filter();
+                let data = Service::list(driver, &mut audit, &query, &filter)?;
                 Ok(ServiceListResponse {
-                    meta: list.into(),
+                    meta: ServiceListRequest::from_query_filter(query, filter),
                     data,
                 })
             })

@@ -5,9 +5,9 @@ mod schema;
 use crate::{
     driver::postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
     Audit, AuditCreate, AuditList, Csrf, CsrfCreate, CsrfDelete, Driver, DriverError, DriverIf,
-    DriverLock, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate, KeyFilter, KeyList, KeyRead,
-    KeyUpdate, Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserList,
-    UserRead, UserUpdate, UserUpdate2,
+    DriverLock, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate,
+    Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserList, UserRead,
+    UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
@@ -137,14 +137,9 @@ impl DriverIf for DriverPostgres {
         ModelCsrf::delete(&conn, delete)
     }
 
-    fn key_list(
-        &self,
-        list: &KeyList,
-        filter: &KeyFilter,
-        service_id_mask: Option<&Uuid>,
-    ) -> DriverResult<Vec<Key>> {
+    fn key_list(&self, list: &KeyList) -> DriverResult<Vec<Key>> {
         let conn = self.conn()?;
-        ModelKey::list(&conn, list, filter, service_id_mask)
+        ModelKey::list(&conn, list)
     }
 
     fn key_count(&self, count: &KeyCount) -> DriverResult<usize> {
@@ -333,13 +328,8 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelCsrf::delete(self.conn(), delete)
     }
 
-    fn key_list(
-        &self,
-        list: &KeyList,
-        filter: &KeyFilter,
-        service_id_mask: Option<&Uuid>,
-    ) -> DriverResult<Vec<Key>> {
-        ModelKey::list(self.conn(), list, filter, service_id_mask)
+    fn key_list(&self, list: &KeyList) -> DriverResult<Vec<Key>> {
+        ModelKey::list(self.conn(), list)
     }
 
     fn key_count(&self, count: &KeyCount) -> DriverResult<usize> {

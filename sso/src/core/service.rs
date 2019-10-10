@@ -48,12 +48,25 @@ impl fmt::Display for Service {
     }
 }
 
-/// Service list.
+/// Service list filter.
 #[derive(Debug)]
-pub enum ServiceList {
+pub struct ServiceListFilter {
+    pub is_enabled: Option<bool>,
+}
+
+/// Service list query.
+#[derive(Debug)]
+pub enum ServiceListQuery {
     Limit(i64),
     IdGt(Uuid, i64),
     IdLt(Uuid, i64),
+}
+
+/// Service list.
+#[derive(Debug)]
+pub struct ServiceList<'a> {
+    pub query: &'a ServiceListQuery,
+    pub filter: &'a ServiceListFilter,
 }
 
 /// Service create data.
@@ -113,9 +126,11 @@ impl Service {
     pub fn list(
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
-        list: &ServiceList,
+        query: &ServiceListQuery,
+        filter: &ServiceListFilter,
     ) -> CoreResult<Vec<Service>> {
-        driver.service_list(list).map_err(CoreError::Driver)
+        let list = ServiceList { query, filter };
+        driver.service_list(&list).map_err(CoreError::Driver)
     }
 
     /// Create service.

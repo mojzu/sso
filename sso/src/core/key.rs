@@ -62,7 +62,7 @@ impl fmt::Display for Key {
 
 /// Key list filter.
 #[derive(Debug)]
-pub struct KeyFilter {
+pub struct KeyListFilter {
     pub is_enabled: Option<bool>,
     pub is_revoked: Option<bool>,
     pub type_: Option<Vec<KeyType>>,
@@ -70,12 +70,20 @@ pub struct KeyFilter {
     pub user_id: Option<Vec<Uuid>>,
 }
 
-/// Key list.
+/// Key list query.
 #[derive(Debug)]
-pub enum KeyList {
+pub enum KeyListQuery {
     Limit(i64),
     IdGt(Uuid, i64),
     IdLt(Uuid, i64),
+}
+
+/// Key list.
+#[derive(Debug)]
+pub struct KeyList<'a> {
+    pub query: &'a KeyListQuery,
+    pub filter: &'a KeyListFilter,
+    pub service_id_mask: Option<&'a Uuid>,
 }
 
 /// Key count.
@@ -288,13 +296,16 @@ impl Key {
         driver: &dyn Driver,
         service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
-        list: &KeyList,
-        filter: &KeyFilter,
+        query: &KeyListQuery,
+        filter: &KeyListFilter,
     ) -> CoreResult<Vec<Key>> {
         let service_id_mask = service_mask.map(|s| &s.id);
-        driver
-            .key_list(list, filter, service_id_mask)
-            .map_err(CoreError::Driver)
+        let list = KeyList {
+            query,
+            filter,
+            service_id_mask,
+        };
+        driver.key_list(&list).map_err(CoreError::Driver)
     }
 
     /// Create root key.

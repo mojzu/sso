@@ -1,6 +1,6 @@
 use crate::{
     driver::postgres::schema::sso_service, DriverResult, Service, ServiceCreate, ServiceList,
-    ServiceUpdate,
+    ServiceListQuery, ServiceUpdate,
 };
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
@@ -107,41 +107,38 @@ impl<'a> ModelServiceUpdate<'a> {
 
 impl ModelService {
     pub fn list(conn: &PgConnection, list: &ServiceList) -> DriverResult<Vec<Service>> {
-        match list {
-            ServiceList::Limit(limit) => {
-                let gt = Uuid::nil();
-                Self::list_where_id_gt(conn, &gt, *limit)
-            }
-            ServiceList::IdGt(gt, limit) => Self::list_where_id_gt(conn, gt, *limit),
-            ServiceList::IdLt(lt, limit) => Self::list_where_id_lt(conn, lt, *limit),
+        let mut query = sso_service::table.into_boxed();
+
+        if let Some(is_enabled) = list.filter.is_enabled {
+            query = query.filter(sso_service::dsl::service_is_enabled.eq(is_enabled));
         }
-    }
 
-    fn list_where_id_lt(conn: &PgConnection, lt: &Uuid, limit: i64) -> DriverResult<Vec<Service>> {
-        use crate::driver::postgres::schema::sso_service::dsl::*;
-
-        sso_service
-            .filter(service_id.lt(lt))
-            .limit(limit)
-            .order(service_id.desc())
-            .load::<ModelService>(conn)
-            .map_err(Into::into)
-            .map(|mut x| {
-                x.reverse();
-                x.into_iter().map(|x| x.into()).collect()
-            })
-    }
-
-    fn list_where_id_gt(conn: &PgConnection, gt: &Uuid, limit: i64) -> DriverResult<Vec<Service>> {
-        use crate::driver::postgres::schema::sso_service::dsl::*;
-
-        sso_service
-            .filter(service_id.gt(gt))
-            .limit(limit)
-            .order(service_id.asc())
-            .load::<ModelService>(conn)
-            .map_err(Into::into)
-            .map(|x| x.into_iter().map(|x| x.into()).collect())
+        match list.query {
+            ServiceListQuery::Limit(limit) => query
+                .filter(sso_service::dsl::service_id.gt(Uuid::nil()))
+                .limit(*limit)
+                .order(sso_service::dsl::service_id.asc())
+                .load::<ModelService>(conn)
+                .map_err(Into::into)
+                .map(|x| x.into_iter().map(|x| x.into()).collect()),
+            ServiceListQuery::IdGt(gt, limit) => query
+                .filter(sso_service::dsl::service_id.gt(gt))
+                .limit(*limit)
+                .order(sso_service::dsl::service_id.asc())
+                .load::<ModelService>(conn)
+                .map_err(Into::into)
+                .map(|x| x.into_iter().map(|x| x.into()).collect()),
+            ServiceListQuery::IdLt(lt, limit) => query
+                .filter(sso_service::dsl::service_id.lt(lt))
+                .limit(*limit)
+                .order(sso_service::dsl::service_id.desc())
+                .load::<ModelService>(conn)
+                .map_err(Into::into)
+                .map(|mut x| {
+                    x.reverse();
+                    x.into_iter().map(|x| x.into()).collect()
+                }),
+        }
     }
 
     pub fn create(conn: &PgConnection, create: &ServiceCreate) -> DriverResult<Service> {
