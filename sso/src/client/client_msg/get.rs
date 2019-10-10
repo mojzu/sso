@@ -57,7 +57,9 @@ impl Handler<Get> for ClientActor {
     type Result = ResponseActFuture<Self, String, ClientError>;
 
     fn handle(&mut self, msg: Get, _ctx: &mut Context<Self>) -> Self::Result {
-        let url = Client::url(&msg.url, &msg.route).unwrap();
+        let mut url = Client::url(&msg.url, &msg.route).unwrap();
+        url.set_query(msg.query.as_ref().map(|x| &**x));
+
         let req = self.client().get(url);
         let req = Client::request_headers(req, msg.authorisation, msg.forwarded);
 

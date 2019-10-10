@@ -10,6 +10,7 @@
 **Fixed**
 
 - Fixed `clippy` too many arguments warnings.
+- Fixed `ClientActor` GET request ignores query string.
 
 ## 0.6.0 (2019-10-07)
 
