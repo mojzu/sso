@@ -544,10 +544,16 @@ sso start-server</code></pre>
 <ul>
 <li>Added <code>Debug</code> trait implementations for public types.</li>
 <li>Added filters to key list endpoint with <code>KeyFilter</code> options.</li>
+<li>Added filters to service list endpoint with <code>ServiceFilter</code> options.</li>
+</ul>
+<p><strong>Changed</strong></p>
+<ul>
+<li>Changed table column names to remove prefixes for <code>DriverPostgres</code>.</li>
 </ul>
 <p><strong>Fixed</strong></p>
 <ul>
 <li>Fixed <code>clippy</code> too many arguments warnings.</li>
+<li>Fixed <code>ClientActor</code> GET request ignores query string.</li>
 </ul>
 <h2 id="section-1">0.6.0 (2019-10-07)</h2>
 <p><strong>Changed</strong></p>
