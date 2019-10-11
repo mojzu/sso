@@ -78,8 +78,69 @@ code span.vs { color: #4070a0; } /* VerbatimString */
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
   <style type="text/css">
+nav#TOC {
+width: 240px;
+position: absolute;
+z-index: 1;
+top: 240px;
+left: 0;
+background-color: #F4F4F4;
+overflow-x: hidden;
+}
+
+html {
+font-size: 100%;
+overflow-y: scroll;
+-webkit-text-size-adjust: 100%;
+-ms-text-size-adjust: 100%;
+}
 body {
-color: #111111;
+color: #444;
+font-family: Georgia, Palatino, "Palatino Linotype", Times, "Times New Roman", serif;
+font-size: 12px;
+line-height: 1.7;
+padding: 1em;
+margin: auto;
+max-width: 42em;
+background: #fefefe;
+}
+a {
+color: #0645ad;
+text-decoration: none;
+}
+a:visited {
+color: #0b0080;
+}
+a:hover {
+color: #06e;
+}
+a:active {
+color: #faa700;
+}
+a:focus {
+outline: thin dotted;
+}
+*::-moz-selection {
+background: rgba(255, 255, 0, 0.3);
+color: #000;
+}
+*::selection {
+background: rgba(255, 255, 0, 0.3);
+color: #000;
+}
+a::-moz-selection {
+background: rgba(255, 255, 0, 0.3);
+color: #0645ad;
+}
+a::selection {
+background: rgba(255, 255, 0, 0.3);
+color: #0645ad;
+}
+p {
+margin: 1em 0;
+}
+img {
+max-width: 100%;
 }
 h1,
 h2,
@@ -87,36 +148,231 @@ h3,
 h4,
 h5,
 h6 {
-line-height: 1.25;
+color: #111;
+line-height: 125%;
 margin-top: 2em;
 font-weight: normal;
 }
+h4,
+h5,
+h6 {
+font-weight: bold;
+}
 h1 {
-font-size: 3rem;
+font-size: 2.5em;
 }
 h2 {
-font-size: 2.25rem;
+font-size: 2em;
 }
 h3 {
-font-size: 1.5rem;
+font-size: 1.5em;
 }
 h4 {
-font-size: 1.25rem;
+font-size: 1.2em;
 }
 h5 {
-font-size: 1rem;
+font-size: 1em;
 }
 h6 {
-font-size: 0.875rem;
+font-size: 0.9em;
 }
-p {
-line-height: 1;
+blockquote {
+color: #666666;
+margin: 0;
+padding-left: 3em;
+border-left: 0.5em #eee solid;
+}
+hr {
+display: block;
+height: 2px;
+border: 0;
+border-top: 1px solid #aaa;
+border-bottom: 1px solid #eee;
 margin: 1em 0;
-font-weight: normal;
+padding: 0;
 }
 pre,
-code {
-background-color: #f4f4f4;
+code,
+kbd,
+samp {
+color: #000;
+font-family: monospace, monospace;
+_font-family: "courier new", monospace;
+font-size: 0.98em;
+}
+pre {
+white-space: pre;
+white-space: pre-wrap;
+word-wrap: break-word;
+}
+b,
+strong {
+font-weight: bold;
+}
+dfn {
+font-style: italic;
+}
+ins {
+background: #ff9;
+color: #000;
+text-decoration: none;
+}
+mark {
+background: #ff0;
+color: #000;
+font-style: italic;
+font-weight: bold;
+}
+sub,
+sup {
+font-size: 75%;
+line-height: 0;
+position: relative;
+vertical-align: baseline;
+}
+sup {
+top: -0.5em;
+}
+sub {
+bottom: -0.25em;
+}
+ul,
+ol {
+margin: 1em 0;
+padding: 0 0 0 2em;
+}
+li p:last-child {
+margin-bottom: 0;
+}
+ul ul,
+ol ol {
+margin: 0.3em 0;
+}
+dl {
+margin-bottom: 1em;
+}
+dt {
+font-weight: bold;
+margin-bottom: 0.8em;
+}
+dd {
+margin: 0 0 0.8em 2em;
+}
+dd:last-child {
+margin-bottom: 0;
+}
+img {
+border: 0;
+-ms-interpolation-mode: bicubic;
+vertical-align: middle;
+}
+figure {
+display: block;
+text-align: center;
+margin: 1em 0;
+}
+figure img {
+border: none;
+margin: 0 auto;
+}
+figcaption {
+font-size: 0.8em;
+font-style: italic;
+margin: 0 0 0.8em;
+}
+table {
+margin-bottom: 2em;
+border-bottom: 1px solid #ddd;
+border-right: 1px solid #ddd;
+border-spacing: 0;
+border-collapse: collapse;
+}
+table th {
+padding: 0.2em 1em;
+background-color: #eee;
+border-top: 1px solid #ddd;
+border-left: 1px solid #ddd;
+}
+table td {
+padding: 0.2em 1em;
+border-top: 1px solid #ddd;
+border-left: 1px solid #ddd;
+vertical-align: top;
+}
+.author {
+font-size: 1.2em;
+text-align: center;
+}
+@media only screen and (min-width: 480px) {
+body {
+font-size: 14px;
+}
+}
+@media only screen and (min-width: 768px) {
+body {
+font-size: 16px;
+}
+}
+@media print {
+* {
+background: transparent !important;
+color: black !important;
+filter: none !important;
+-ms-filter: none !important;
+}
+body {
+font-size: 12pt;
+max-width: 100%;
+}
+a,
+a:visited {
+text-decoration: underline;
+}
+hr {
+height: 1px;
+border: 0;
+border-bottom: 1px solid black;
+}
+a[href]:after {
+content: " (" attr(href) ")";
+}
+abbr[title]:after {
+content: " (" attr(title) ")";
+}
+.ir a:after,
+a[href^="javascript:"]:after,
+a[href^="#"]:after {
+content: "";
+}
+pre,
+blockquote {
+border: 1px solid #999;
+padding-right: 1em;
+page-break-inside: avoid;
+}
+tr,
+img {
+page-break-inside: avoid;
+}
+img {
+max-width: 100% !important;
+}
+@page :left {
+margin: 15mm 20mm 15mm 10mm;
+}
+@page :right {
+margin: 15mm 10mm 15mm 20mm;
+}
+p,
+h2,
+h3 {
+orphans: 3;
+widows: 3;
+}
+h2,
+h3 {
+page-break-after: avoid;
+}
 }
 </style>
   <!--[if lt IE 9]>
@@ -540,41 +796,41 @@ sso start-server</code></pre>
 <p>TODO(docs): CLI documentation.</p>
 <h1 id="changelog">Changelog</h1>
 <h2 id="section">0.7.0 (?)</h2>
-<p><strong>Added</strong></p>
+<h3 id="added">Added</h3>
 <ul>
 <li>Added <code>Debug</code> trait implementations for public types.</li>
 <li>Added filters to key list endpoint with <code>KeyFilter</code> options.</li>
 <li>Added filters to service list endpoint with <code>ServiceFilter</code> options.</li>
 </ul>
-<p><strong>Changed</strong></p>
+<h3 id="changed">Changed</h3>
 <ul>
 <li>Changed table column names to remove prefixes for <code>DriverPostgres</code>.</li>
 </ul>
-<p><strong>Fixed</strong></p>
+<h3 id="fixed">Fixed</h3>
 <ul>
 <li>Fixed <code>clippy</code> too many arguments warnings.</li>
 <li>Fixed <code>ClientActor</code> GET request ignores query string.</li>
 </ul>
 <h2 id="section-1">0.6.0 (2019-10-07)</h2>
-<p><strong>Changed</strong></p>
+<h3 id="changed-1">Changed</h3>
 <ul>
 <li>Replaced key flags with type: <code>Key</code>, <code>Token</code> or <code>Totp</code>.</li>
 <li>Added user flags: <code>password_allow_reset</code> and <code>password_require_update</code>.</li>
 <li>Return <code>Unauthorised</code> instead of <code>Forbidden</code> for missing authentication.</li>
 <li>User update email and password endpoints accept <code>user_id</code> instead of <code>key</code> or <code>token</code>.</li>
 </ul>
-<p><strong>Fixed</strong></p>
+<h3 id="fixed-1">Fixed</h3>
 <ul>
 <li>Fixed read user by ID route <code>/v1/user/{id}</code> attempts to read key.</li>
 </ul>
 <h2 id="section-2">0.5.0 (2019-10-05)</h2>
-<p><strong>Added</strong></p>
+<h3 id="added-1">Added</h3>
 <ul>
 <li>Added TOTP validation route.</li>
 <li>Added key flags: <code>allow_key</code>, <code>allow_token</code>, <code>allow_totp</code>.</li>
 <li>Added user fields: <code>locale</code>, <code>timezone</code>.</li>
 </ul>
-<p><strong>Changed</strong></p>
+<h3 id="changed-2">Changed</h3>
 <ul>
 <li>Renamed project <code>sso</code>, ark was taken by various products and crates.</li>
 <li>Code consistency improvements.</li>
@@ -584,13 +840,13 @@ sso start-server</code></pre>
 <li>Changed authentication provider interface so callbacks always go to service.</li>
 </ul>
 <h2 id="section-3">0.4.0 (2019-09-09)</h2>
-<p><strong>Added</strong></p>
+<h3 id="added-2">Added</h3>
 <ul>
 <li>Added some process metrics to Prometheus integration.</li>
 <li>Created asynchronous client actor to handle outgoing HTTP requests.</li>
 <li>Added environment variable <code>PASSWORD_PWNED_ENABLED</code> to enable pwned passwords integration.</li>
 </ul>
-<p><strong>Changed</strong></p>
+<h3 id="changed-3">Changed</h3>
 <ul>
 <li>Replaced <code>bcrypt</code> with <code>libreauth</code> crate for password hashing.</li>
 <li>Use <code>libreauth</code> key generation for CSRF keys and <code>Key</code> values.</li>
@@ -598,12 +854,12 @@ sso start-server</code></pre>
 <li>Changed driver interface to use <code>Uuid</code> types instead of strings.</li>
 <li>Renamed configuration structures to options to improve consistency.</li>
 </ul>
-<p><strong>Fixed</strong></p>
+<h3 id="fixed-2">Fixed</h3>
 <ul>
 <li>Fixed missing <code>dyn</code> keyword warnings.</li>
 </ul>
 <h2 id="section-4">0.3.0 (2019-08-03)</h2>
-<p><strong>Added</strong></p>
+<h3 id="added-3">Added</h3>
 <ul>
 <li>Improved email templates, removed template parameters from routes.</li>
 <li>Defined server routes and other constants in <code>server::api</code> module.</li>
@@ -614,7 +870,7 @@ sso start-server</code></pre>
 <li>Added TLS configuration support to server and clients.</li>
 <li>Added hostname configuration to server.</li>
 </ul>
-<p><strong>Changed</strong></p>
+<h3 id="changed-4">Changed</h3>
 <ul>
 <li>Changed audit list query parameters when using <code>created_gte</code> or <code>created_lte</code> options, added optional <code>offset_id</code> parameter to exclude previous results.</li>
 <li>Moved email handling from <code>server::smtp</code> module to <code>notify</code> module.</li>
@@ -623,14 +879,14 @@ sso start-server</code></pre>
 <li>Renamed local authentication provider reset, update routes.</li>
 <li>Improved configuration interfaces using <code>derive_builder</code> crate.</li>
 </ul>
-<p><strong>Fixed</strong></p>
+<h3 id="fixed-3">Fixed</h3>
 <ul>
 <li>Reset password route now returns OK in cases where user email address does not exist.</li>
 <li>Fixed audit log errors were created for root key authentication when authenticating a service key.</li>
 <li>Fixed internal server errors returned to client when OAuth2 provider is disabled.</li>
 </ul>
 <h2 id="section-5">0.2.0 (2019-07-07)</h2>
-<p><strong>Added</strong></p>
+<h3 id="added-4">Added</h3>
 <ul>
 <li>Added audit logging to authentication routes.</li>
 <li>Added is enabled flag to services, users and keys, added is revoked flag to keys.</li>
@@ -639,7 +895,7 @@ sso start-server</code></pre>
 <li>Added local provider update user email, password routes.</li>
 <li>Added type parameter to service URL callback queries.</li>
 </ul>
-<p><strong>Changed</strong></p>
+<h3 id="changed-5">Changed</h3>
 <ul>
 <li>Changed database schema to use strings as IDs.</li>
 <li>Changed list route endpoints to return data ID arrays.</li>
@@ -651,7 +907,7 @@ sso start-server</code></pre>
 <li>Removed <code>skeptic</code> from tests, use Cargo test runner.</li>
 <li>Moved route types to public api module.</li>
 </ul>
-<p><strong>Fixed</strong></p>
+<h3 id="fixed-4">Fixed</h3>
 <ul>
 <li>Fixed not validating service URLs before save using URL parse, improved URL error handling.</li>
 <li>Fixed inconsistent core error display strings.</li>
@@ -659,7 +915,7 @@ sso start-server</code></pre>
 <li>Fixed Lettre email error type handling.</li>
 </ul>
 <h2 id="section-6">0.1.0 (2019-05-16)</h2>
-<p><strong>Added</strong></p>
+<h3 id="added-5">Added</h3>
 <ul>
 <li>First version.</li>
 </ul>
@@ -767,7 +1023,7 @@ cargo make docker-down</code></pre>
 </tr>
 </tbody>
 </table>
-<p><strong>Ubuntu</strong></p>
+<h3 id="ubuntu">Ubuntu</h3>
 <p>Write <code>export $NAME=&quot;$VALUE&quot;</code> statements to file <code>.env</code> and run <code>source .env</code> to export variables in open terminal. See <code>sso/.env</code> for example.</p>
 <h2 id="database">Database</h2>
 <p>To reset and create new <a href="postgresql">PostgreSQL</a> database migrations for <a href="diesel">Diesel</a>. These commands assume docker container is running.</p>
