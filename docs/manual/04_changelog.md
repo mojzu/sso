@@ -2,43 +2,43 @@
 
 ## 0.7.0 (?)
 
-**Added**
+### Added
 
 - Added `Debug` trait implementations for public types.
 - Added filters to key list endpoint with `KeyFilter` options.
 - Added filters to service list endpoint with `ServiceFilter` options.
 
-**Changed**
+### Changed
 
 - Changed table column names to remove prefixes for `DriverPostgres`.
 
-**Fixed**
+### Fixed
 
 - Fixed `clippy` too many arguments warnings.
 - Fixed `ClientActor` GET request ignores query string.
 
 ## 0.6.0 (2019-10-07)
 
-**Changed**
+### Changed
 
 - Replaced key flags with type: `Key`, `Token` or `Totp`.
 - Added user flags: `password_allow_reset` and `password_require_update`.
 - Return `Unauthorised` instead of `Forbidden` for missing authentication.
 - User update email and password endpoints accept `user_id` instead of `key` or `token`.
 
-**Fixed**
+### Fixed
 
 - Fixed read user by ID route `/v1/user/{id}` attempts to read key.
 
 ## 0.5.0 (2019-10-05)
 
-**Added**
+### Added
 
 - Added TOTP validation route.
 - Added key flags: `allow_key`, `allow_token`, `allow_totp`.
 - Added user fields: `locale`, `timezone`.
 
-**Changed**
+### Changed
 
 - Renamed project `sso`, ark was taken by various products and crates.
 - Code consistency improvements.
@@ -49,13 +49,13 @@
 
 ## 0.4.0 (2019-09-09)
 
-**Added**
+### Added
 
 - Added some process metrics to Prometheus integration.
 - Created asynchronous client actor to handle outgoing HTTP requests.
 - Added environment variable `PASSWORD_PWNED_ENABLED` to enable pwned passwords integration.
 
-**Changed**
+### Changed
 
 - Replaced `bcrypt` with `libreauth` crate for password hashing.
 - Use `libreauth` key generation for CSRF keys and `Key` values.
@@ -63,13 +63,13 @@
 - Changed driver interface to use `Uuid` types instead of strings.
 - Renamed configuration structures to options to improve consistency.
 
-**Fixed**
+### Fixed
 
 - Fixed missing `dyn` keyword warnings.
 
 ## 0.3.0 (2019-08-03)
 
-**Added**
+### Added
 
 - Improved email templates, removed template parameters from routes.
 - Defined server routes and other constants in `server::api` module.
@@ -80,7 +80,7 @@
 - Added TLS configuration support to server and clients.
 - Added hostname configuration to server.
 
-**Changed**
+### Changed
 
 - Changed audit list query parameters when using `created_gte` or `created_lte` options, added optional `offset_id` parameter to exclude previous results.
 - Moved email handling from `server::smtp` module to `notify` module.
@@ -89,7 +89,7 @@
 - Renamed local authentication provider reset, update routes.
 - Improved configuration interfaces using `derive_builder` crate.
 
-**Fixed**
+### Fixed
 
 - Reset password route now returns OK in cases where user email address does not exist.
 - Fixed audit log errors were created for root key authentication when authenticating a service key.
@@ -97,7 +97,7 @@
 
 ## 0.2.0 (2019-07-07)
 
-**Added**
+### Added
 
 - Added audit logging to authentication routes.
 - Added is enabled flag to services, users and keys, added is revoked flag to keys.
@@ -106,7 +106,7 @@
 - Added local provider update user email, password routes.
 - Added type parameter to service URL callback queries.
 
-**Changed**
+### Changed
 
 - Changed database schema to use strings as IDs.
 - Changed list route endpoints to return data ID arrays.
@@ -118,7 +118,7 @@
 - Removed `skeptic` from tests, use Cargo test runner.
 - Moved route types to public api module.
 
-**Fixed**
+### Fixed
 
 - Fixed not validating service URLs before save using URL parse, improved URL error handling.
 - Fixed inconsistent core error display strings.
@@ -127,6 +127,6 @@
 
 ## 0.1.0 (2019-05-16)
 
-**Added**
+### Added
 
 - First version.

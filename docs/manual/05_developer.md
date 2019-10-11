@@ -79,7 +79,7 @@ cargo make manual
 | MICROSOFT_CLIENT_ID     | Microsoft OAuth2 provider, optional.                   |
 | MICROSOFT_CLIENT_SECRET | ...                                                    |
 
-**Ubuntu**
+### Ubuntu
 
 Write `export $NAME="$VALUE"` statements to file `.env` and run `source .env` to export variables in open terminal. See `sso/.env` for example.
 
