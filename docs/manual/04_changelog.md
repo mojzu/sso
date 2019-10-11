@@ -12,6 +12,7 @@
 ### Changed
 
 - Changed table column names to remove prefixes for `DriverPostgres`.
+- Key value is only returned via created endpoint.
 
 ### Fixed
 

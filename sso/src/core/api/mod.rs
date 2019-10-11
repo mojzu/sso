@@ -224,7 +224,7 @@ impl Api {
         key_value: Option<String>,
         audit_meta: AuditMeta,
         request: KeyCreateRequest,
-    ) -> CoreResult<KeyReadResponse> {
+    ) -> CoreResult<KeyCreateResponse> {
         KeyCreateRequest::api_validate(&request)?;
 
         // If service ID is some, root key is required to create service keys.
@@ -273,7 +273,7 @@ impl Api {
             ),
         }
         .map_err(Into::into)
-        .map(|key| KeyReadResponse { data: key })
+        .map(|key| KeyCreateResponse { data: key })
     }
 
     pub fn key_read(
@@ -288,7 +288,7 @@ impl Api {
             })
             .map_err(Into::into)
             .and_then(|key| key.ok_or_else(|| CoreError::NotFound))
-            .map(|key| KeyReadResponse { data: key })
+            .map(|key| KeyReadResponse { data: key.into() })
     }
 
     pub fn key_update(

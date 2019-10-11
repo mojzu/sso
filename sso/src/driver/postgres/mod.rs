@@ -6,8 +6,8 @@ use crate::{
     driver::postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
     Audit, AuditCreate, AuditList, Csrf, CsrfCreate, CsrfDelete, Driver, DriverError, DriverIf,
     DriverLock, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate,
-    Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserList, UserRead,
-    UserUpdate, UserUpdate2,
+    KeyWithValue, Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserList,
+    UserRead, UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
@@ -143,12 +143,12 @@ impl DriverIf for DriverPostgres {
         ModelKey::count(&conn, count)
     }
 
-    fn key_create(&self, create: &KeyCreate) -> DriverResult<Key> {
+    fn key_create(&self, create: &KeyCreate) -> DriverResult<KeyWithValue> {
         let conn = self.conn()?;
         ModelKey::create(&conn, create)
     }
 
-    fn key_read_opt(&self, read: &KeyRead) -> DriverResult<Option<Key>> {
+    fn key_read_opt(&self, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
         let conn = self.conn()?;
         ModelKey::read_opt(&conn, read)
     }
@@ -328,11 +328,11 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelKey::count(self.conn(), count)
     }
 
-    fn key_create(&self, create: &KeyCreate) -> DriverResult<Key> {
+    fn key_create(&self, create: &KeyCreate) -> DriverResult<KeyWithValue> {
         ModelKey::create(self.conn(), create)
     }
 
-    fn key_read_opt(&self, read: &KeyRead) -> DriverResult<Option<Key>> {
+    fn key_read_opt(&self, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
         ModelKey::read_opt(self.conn(), read)
     }
 

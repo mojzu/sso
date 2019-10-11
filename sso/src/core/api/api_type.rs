@@ -1,9 +1,9 @@
 //! # API Types
 use crate::{
     ApiValidate, ApiValidateRequest, ApiValidateRequestQuery, Audit, AuditData, AuditListFilter,
-    AuditListQuery, Core, Key, KeyListFilter, KeyListQuery, KeyType, Service, ServiceCreate,
-    ServiceListFilter, ServiceListQuery, ServiceUpdate, User, UserCreate, UserKey, UserListFilter,
-    UserListQuery, UserPasswordMeta, UserToken, UserTokenAccess,
+    AuditListQuery, Core, Key, KeyListFilter, KeyListQuery, KeyType, KeyWithValue, Service,
+    ServiceCreate, ServiceListFilter, ServiceListQuery, ServiceUpdate, User, UserCreate, UserKey,
+    UserListFilter, UserListQuery, UserPasswordMeta, UserToken, UserTokenAccess,
 };
 use chrono::{DateTime, Utc};
 use serde_json::Value;
@@ -67,7 +67,7 @@ impl AuditListRequest {
                 ge: None,
                 le: Some(le),
                 limit: Some(limit),
-                offset_id: offset_id,
+                offset_id,
                 id: filter.id,
                 type_: filter.type_,
                 service_id: filter.service_id,
@@ -77,7 +77,7 @@ impl AuditListRequest {
                 ge: Some(ge),
                 le: None,
                 limit: Some(limit),
-                offset_id: offset_id,
+                offset_id,
                 id: filter.id,
                 type_: filter.type_,
                 service_id: filter.service_id,
@@ -87,7 +87,7 @@ impl AuditListRequest {
                 ge: Some(ge),
                 le: Some(le),
                 limit: Some(limit),
-                offset_id: offset_id,
+                offset_id,
                 id: filter.id,
                 type_: filter.type_,
                 service_id: filter.service_id,
@@ -319,6 +319,12 @@ impl KeyCreateRequest {
             user_id: Some(user_id),
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct KeyCreateResponse {
+    pub data: KeyWithValue,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -10,8 +10,8 @@ pub use crate::driver::sqlite::DriverSqlite;
 
 use crate::core::{
     Audit, AuditCreate, AuditList, CoreError, Csrf, CsrfCreate, CsrfDelete, Key, KeyCount,
-    KeyCreate, KeyList, KeyRead, KeyUpdate, Service, ServiceCreate, ServiceList, ServiceUpdate,
-    User, UserCreate, UserList, UserRead, UserUpdate, UserUpdate2,
+    KeyCreate, KeyList, KeyRead, KeyUpdate, KeyWithValue, Service, ServiceCreate, ServiceList,
+    ServiceUpdate, User, UserCreate, UserList, UserRead, UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -130,10 +130,10 @@ pub trait DriverIf {
     fn key_count(&self, count: &KeyCount) -> DriverResult<usize>;
 
     /// Create key.
-    fn key_create(&self, create: &KeyCreate) -> DriverResult<Key>;
+    fn key_create(&self, create: &KeyCreate) -> DriverResult<KeyWithValue>;
 
     /// Read key (optional).
-    fn key_read_opt(&self, read: &KeyRead) -> DriverResult<Option<Key>>;
+    fn key_read_opt(&self, read: &KeyRead) -> DriverResult<Option<KeyWithValue>>;
 
     /// Update key.
     fn key_update(&self, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key>;

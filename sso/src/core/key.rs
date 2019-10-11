@@ -11,7 +11,7 @@ use uuid::Uuid;
 // TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
 // TODO(refactor): Improve key, user, service list query options (order by name, text search, ...).
 // TODO(refactor): User last login, key last use information (calculate in SQL).
-// TODO(refactor): Audit key value reads, separate endpoint?
+// TODO(refactor): CSRF endpoints?
 
 /// Key value size in bytes.
 pub const KEY_VALUE_BYTES: usize = 21;
@@ -26,9 +26,44 @@ pub enum KeyType {
 
 impl_enum_to_from_string!(KeyType);
 
-/// Key.
+/// Key without value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Key {
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    pub id: Uuid,
+    pub is_enabled: bool,
+    pub is_revoked: bool,
+    pub type_: KeyType,
+    pub name: String,
+    pub service_id: Option<Uuid>,
+    pub user_id: Option<Uuid>,
+}
+
+impl fmt::Display for Key {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Key {}", self.id)?;
+        write!(f, "\n\tcreated_at {}", self.created_at)?;
+        write!(f, "\n\tupdated_at {}", self.updated_at)?;
+        write!(f, "\n\tis_enabled {}", self.is_enabled)?;
+        write!(f, "\n\tis_revoked {}", self.is_revoked)?;
+        write!(f, "\n\ttype {}", self.type_.to_string().unwrap())?;
+        write!(f, "\n\tname {}", self.name)?;
+        if let Some(service_id) = &self.service_id {
+            write!(f, "\n\tservice_id {}", service_id)?;
+        }
+        if let Some(user_id) = &self.user_id {
+            write!(f, "\n\tuser_id {}", user_id)?;
+        }
+        Ok(())
+    }
+}
+
+/// Key with value.
+/// This is split from `Key` to make value private except when created
+/// or read internally.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyWithValue {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub id: Uuid,
@@ -41,7 +76,7 @@ pub struct Key {
     pub user_id: Option<Uuid>,
 }
 
-impl fmt::Display for Key {
+impl fmt::Display for KeyWithValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Key {}", self.id)?;
         write!(f, "\n\tcreated_at {}", self.created_at)?;
@@ -58,6 +93,22 @@ impl fmt::Display for Key {
             write!(f, "\n\tuser_id {}", user_id)?;
         }
         Ok(())
+    }
+}
+
+impl From<KeyWithValue> for Key {
+    fn from(k: KeyWithValue) -> Self {
+        Self {
+            created_at: k.created_at,
+            updated_at: k.updated_at,
+            id: k.id,
+            is_enabled: k.is_enabled,
+            is_revoked: k.is_revoked,
+            type_: k.type_,
+            name: k.name,
+            service_id: k.service_id,
+            user_id: k.user_id,
+        }
     }
 }
 
@@ -316,7 +367,7 @@ impl Key {
         _audit: &mut AuditBuilder,
         is_enabled: bool,
         name: String,
-    ) -> CoreResult<Key> {
+    ) -> CoreResult<KeyWithValue> {
         let value = Key::value_generate();
         let create = KeyCreate {
             is_enabled,
@@ -338,7 +389,7 @@ impl Key {
         is_enabled: bool,
         name: String,
         service_id: &Uuid,
-    ) -> CoreResult<Key> {
+    ) -> CoreResult<KeyWithValue> {
         let service = Service::read_opt(driver, None, audit, service_id)?
             .ok_or_else(|| CoreError::BadRequest)?;
 
@@ -366,7 +417,7 @@ impl Key {
         name: String,
         service_id: &Uuid,
         user_id: &Uuid,
-    ) -> CoreResult<Key> {
+    ) -> CoreResult<KeyWithValue> {
         if is_enabled {
             if type_ == KeyType::Token {
                 let count = KeyCount::Token(*service_id, *user_id);
@@ -408,7 +459,7 @@ impl Key {
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
         id: Uuid,
-    ) -> CoreResult<Option<Key>> {
+    ) -> CoreResult<Option<KeyWithValue>> {
         let read = KeyRead::Id(id);
         driver.key_read_opt(&read).map_err(CoreError::Driver)
     }
@@ -418,7 +469,7 @@ impl Key {
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
         value: String,
-    ) -> CoreResult<Option<Key>> {
+    ) -> CoreResult<Option<KeyWithValue>> {
         let read = KeyRead::RootValue(value);
         driver.key_read_opt(&read).map_err(CoreError::Driver)
     }
@@ -428,7 +479,7 @@ impl Key {
         driver: &dyn Driver,
         _audit: &mut AuditBuilder,
         value: String,
-    ) -> CoreResult<Option<Key>> {
+    ) -> CoreResult<Option<KeyWithValue>> {
         let read = KeyRead::ServiceValue(value);
         driver.key_read_opt(&read).map_err(CoreError::Driver)
     }
@@ -440,7 +491,7 @@ impl Key {
         _audit: &mut AuditBuilder,
         user: &User,
         type_: KeyType,
-    ) -> CoreResult<Option<Key>> {
+    ) -> CoreResult<Option<KeyWithValue>> {
         let read = KeyRead::UserId(KeyReadUserId {
             service_id: service.id,
             user_id: user.id,
@@ -458,7 +509,7 @@ impl Key {
         _audit: &mut AuditBuilder,
         value: String,
         type_: KeyType,
-    ) -> CoreResult<Option<Key>> {
+    ) -> CoreResult<Option<KeyWithValue>> {
         let read = KeyRead::UserValue(KeyReadUserValue {
             service_id: service.id,
             value,

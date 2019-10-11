@@ -1,4 +1,4 @@
-use crate::{impl_enum_to_from_string, CoreError, CoreResult, Driver, Key, Service, User};
+use crate::{impl_enum_to_from_string, CoreError, CoreResult, Driver, KeyWithValue, Service, User};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -259,7 +259,7 @@ impl AuditBuilder {
         }
     }
 
-    pub fn set_key(&mut self, key: Option<&Key>) -> &mut Self {
+    pub fn set_key(&mut self, key: Option<&KeyWithValue>) -> &mut Self {
         self.key = key.map(|x| x.id);
         self
     }
@@ -279,7 +279,7 @@ impl AuditBuilder {
         self
     }
 
-    pub fn set_user_key(&mut self, key: Option<&Key>) -> &mut Self {
+    pub fn set_user_key(&mut self, key: Option<&KeyWithValue>) -> &mut Self {
         self.user_key = key.map(|x| x.id);
         self
     }

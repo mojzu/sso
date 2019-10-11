@@ -11,7 +11,7 @@ mod user;
 use chrono::Utc;
 pub use serde_json::Value;
 use sso::{
-    api_type::AuthOauth2UrlResponse, Key, Service, User, UserKey, UserToken, UserTokenAccess,
+    api_type::AuthOauth2UrlResponse, KeyWithValue, Service, User, UserKey, UserToken, UserTokenAccess,
 };
 pub use sso::{
     api_type::{
@@ -64,7 +64,7 @@ pub fn email_create() -> String {
     format!("{}@test.com", random)
 }
 
-pub fn service_key_create(client: &ClientSync) -> (Service, Key) {
+pub fn service_key_create(client: &ClientSync) -> (Service, KeyWithValue) {
     let body = ServiceCreateRequest::new(true, "test", "http://localhost")
         .provider_local_url("http://localhost")
         .provider_github_oauth2_url("http://localhost")

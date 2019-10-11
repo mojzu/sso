@@ -1,7 +1,7 @@
 use crate::{
-    AuditBuilder, AuditMeta, ClientActor, ClientActorOptions, Driver, Key, NotifyActor,
-    NotifyActorOptions, Server, ServerError, ServerOptions, Service, ServiceCreate, SsoError,
-    SsoResult,
+    AuditBuilder, AuditMeta, ClientActor, ClientActorOptions, Driver, Key, KeyWithValue,
+    NotifyActor, NotifyActorOptions, Server, ServerError, ServerOptions, Service, ServiceCreate,
+    SsoError, SsoResult,
 };
 use actix_rt::System;
 
@@ -70,7 +70,7 @@ impl Cli {
     }
 
     /// Create a root key.
-    pub fn create_root_key(driver: Box<dyn Driver>, name: &str) -> SsoResult<Key> {
+    pub fn create_root_key(driver: Box<dyn Driver>, name: &str) -> SsoResult<KeyWithValue> {
         let mut audit = Cli::audit_builder();
         Key::create_root(driver.as_ref(), &mut audit, true, String::from(name)).map_err(Into::into)
     }
@@ -83,7 +83,7 @@ impl Cli {
         provider_local_url: Option<&str>,
         provider_github_oauth2_url: Option<&str>,
         provider_microsoft_oauth2_url: Option<&str>,
-    ) -> SsoResult<(Service, Key)> {
+    ) -> SsoResult<(Service, KeyWithValue)> {
         let mut audit = Cli::audit_builder();
         let service_create = ServiceCreate {
             is_enabled: true,

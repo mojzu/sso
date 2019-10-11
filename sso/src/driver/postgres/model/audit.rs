@@ -356,7 +356,7 @@ impl ModelAudit {
             query = query.filter(sso_audit::dsl::id.eq(any(id)));
         }
         if let Some(type_) = &filter.type_ {
-            let type_: Vec<String> = type_.iter().cloned().collect();
+            let type_: Vec<String> = type_.to_vec();
             query = query.filter(sso_audit::dsl::type_.eq(any(type_)));
         }
         if let Some(service_id) = &filter.service_id {

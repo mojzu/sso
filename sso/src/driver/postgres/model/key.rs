@@ -1,6 +1,6 @@
 use crate::{
     driver::postgres::schema::sso_key, DriverResult, Key, KeyCount, KeyCreate, KeyList,
-    KeyListQuery, KeyRead, KeyReadUserId, KeyReadUserValue, KeyType, KeyUpdate,
+    KeyListQuery, KeyRead, KeyReadUserId, KeyReadUserValue, KeyType, KeyUpdate, KeyWithValue,
 };
 use chrono::{DateTime, Utc};
 use diesel::{dsl::sql, prelude::*, sql_types::BigInt, PgConnection};
@@ -23,6 +23,22 @@ pub struct ModelKey {
 }
 
 impl From<ModelKey> for Key {
+    fn from(key: ModelKey) -> Self {
+        Self {
+            created_at: key.created_at,
+            updated_at: key.updated_at,
+            id: key.id,
+            is_enabled: key.is_enabled,
+            is_revoked: key.is_revoked,
+            type_: KeyType::from_string(&key.type_).unwrap(),
+            name: key.name,
+            service_id: key.service_id,
+            user_id: key.user_id,
+        }
+    }
+}
+
+impl From<ModelKey> for KeyWithValue {
     fn from(key: ModelKey) -> Self {
         Self {
             created_at: key.created_at,
@@ -178,7 +194,7 @@ impl ModelKey {
         .map(|x| x as usize)
     }
 
-    pub fn create(conn: &PgConnection, create: &KeyCreate) -> DriverResult<Key> {
+    pub fn create(conn: &PgConnection, create: &KeyCreate) -> DriverResult<KeyWithValue> {
         let now = Utc::now();
         let id = Uuid::new_v4();
         let value = ModelKeyInsert::from_create(&now, &id, create);
@@ -189,7 +205,7 @@ impl ModelKey {
             .map(Into::into)
     }
 
-    pub fn read_opt(conn: &PgConnection, read: &KeyRead) -> DriverResult<Option<Key>> {
+    pub fn read_opt(conn: &PgConnection, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
         match read {
             KeyRead::Id(id) => Self::read_by_id(conn, id),
             KeyRead::RootValue(value) => Self::read_by_root_value(conn, value),
@@ -228,7 +244,7 @@ impl ModelKey {
             .map_err(Into::into)
     }
 
-    fn read_by_id(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<Key>> {
+    fn read_by_id(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<KeyWithValue>> {
         sso_key::table
             .filter(sso_key::dsl::id.eq(id))
             .get_result::<ModelKey>(conn)
@@ -237,7 +253,7 @@ impl ModelKey {
             .map(|x| x.map(Into::into))
     }
 
-    fn read_by_root_value(conn: &PgConnection, value: &str) -> DriverResult<Option<Key>> {
+    fn read_by_root_value(conn: &PgConnection, value: &str) -> DriverResult<Option<KeyWithValue>> {
         sso_key::table
             .filter(
                 sso_key::dsl::value
@@ -251,7 +267,10 @@ impl ModelKey {
             .map(|x| x.map(Into::into))
     }
 
-    fn read_by_service_value(conn: &PgConnection, value: &str) -> DriverResult<Option<Key>> {
+    fn read_by_service_value(
+        conn: &PgConnection,
+        value: &str,
+    ) -> DriverResult<Option<KeyWithValue>> {
         sso_key::table
             .filter(
                 sso_key::dsl::value
@@ -265,7 +284,10 @@ impl ModelKey {
             .map(|x| x.map(Into::into))
     }
 
-    fn read_by_user_id(conn: &PgConnection, read: &KeyReadUserId) -> DriverResult<Option<Key>> {
+    fn read_by_user_id(
+        conn: &PgConnection,
+        read: &KeyReadUserId,
+    ) -> DriverResult<Option<KeyWithValue>> {
         let type_ = read.type_.to_string().unwrap();
         sso_key::table
             .filter(
@@ -286,7 +308,7 @@ impl ModelKey {
     fn read_by_user_value(
         conn: &PgConnection,
         read: &KeyReadUserValue,
-    ) -> DriverResult<Option<Key>> {
+    ) -> DriverResult<Option<KeyWithValue>> {
         let type_ = read.type_.to_string().unwrap();
         sso_key::table
             .filter(

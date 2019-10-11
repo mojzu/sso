@@ -1,8 +1,8 @@
 use crate::{
     notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
     AuditBuilder, AuditData, AuditMessage, AuditType, CoreError, CoreResult, Csrf, Driver, Jwt,
-    JwtClaimsType, Key, KeyType, NotifyActor, Service, User, UserKey, UserRead, UserToken,
-    UserTokenAccess, UserUpdate,
+    JwtClaimsType, Key, KeyType, KeyWithValue, NotifyActor, Service, User, UserKey, UserRead,
+    UserToken, UserTokenAccess, UserUpdate,
 };
 use actix::Addr;
 use libreauth::oath::TOTPBuilder;
@@ -1108,7 +1108,7 @@ impl Auth {
         audit_type: AuditType,
         user: &User,
         key_type: KeyType,
-    ) -> CoreResult<Key> {
+    ) -> CoreResult<KeyWithValue> {
         match Key::read_by_user(driver, &service, audit, &user, key_type)?
             .ok_or_else(|| CoreError::BadRequest)
         {
@@ -1136,7 +1136,7 @@ impl Auth {
         audit_type: AuditType,
         user: &User,
         key_type: KeyType,
-    ) -> CoreResult<Key> {
+    ) -> CoreResult<KeyWithValue> {
         match Key::read_by_user(driver, &service, audit, &user, key_type)?
             .ok_or_else(|| CoreError::BadRequest)
         {
@@ -1160,7 +1160,7 @@ impl Auth {
         audit_type: AuditType,
         key: String,
         key_type: KeyType,
-    ) -> CoreResult<Key> {
+    ) -> CoreResult<KeyWithValue> {
         match Key::read_by_user_value(driver, service, audit, key, key_type)?
             .ok_or_else(|| CoreError::BadRequest)
         {
@@ -1188,7 +1188,7 @@ impl Auth {
         audit_type: AuditType,
         key: String,
         key_type: KeyType,
-    ) -> CoreResult<Key> {
+    ) -> CoreResult<KeyWithValue> {
         match Key::read_by_user_value(driver, service, audit, key, key_type)?
             .ok_or_else(|| CoreError::BadRequest)
         {
@@ -1208,7 +1208,7 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         user: &User,
-        key: &Key,
+        key: &KeyWithValue,
         access_token_expires: i64,
         refresh_token_expires: i64,
     ) -> CoreResult<UserToken> {

@@ -9,7 +9,7 @@ use crate::{
         AuthUpdatePasswordRequest, KeyCreateRequest, KeyListRequest, KeyListResponse,
         KeyReadResponse, KeyUpdateRequest, ServiceCreateRequest, ServiceListRequest,
         ServiceListResponse, ServiceReadResponse, ServiceUpdateRequest, UserCreateRequest,
-        UserCreateResponse, UserListRequest, UserListResponse, UserReadResponse, UserUpdateRequest,
+        UserCreateResponse, UserListRequest, KeyCreateResponse, UserListResponse, UserReadResponse, UserUpdateRequest,
     },
     Client, ClientActorOptions, ClientError, ClientOptions, ClientResult, User,
 };
@@ -255,9 +255,9 @@ impl ClientSync {
     }
 
     /// Key create request.
-    pub fn key_create(&self, body: KeyCreateRequest) -> ClientResult<KeyReadResponse> {
+    pub fn key_create(&self, body: KeyCreateRequest) -> ClientResult<KeyCreateResponse> {
         self.post_json(api_route::KEY, &body)
-            .and_then(Client::response_json::<KeyReadResponse>)
+            .and_then(Client::response_json::<KeyCreateResponse>)
     }
 
     /// Key read request.

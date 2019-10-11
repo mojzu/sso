@@ -801,11 +801,12 @@ sso start-server</code></pre>
 <li>Added <code>Debug</code> trait implementations for public types.</li>
 <li>Added filters to key list endpoint with <code>KeyFilter</code> options.</li>
 <li>Added filters to service list endpoint with <code>ServiceFilter</code> options.</li>
-<li>Added <code>user_id</code> query parameter array for user list endpoint filtering.</li>
+<li>Added <code>id</code> query parameter array for key, service and user list endpoint filtering.</li>
 </ul>
 <h3 id="changed">Changed</h3>
 <ul>
 <li>Changed table column names to remove prefixes for <code>DriverPostgres</code>.</li>
+<li>Key value is only returned via created endpoint.</li>
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>

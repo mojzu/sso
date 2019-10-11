@@ -9,7 +9,7 @@ use crate::{
         AuthUpdatePasswordRequest, KeyCreateRequest, KeyListRequest, KeyListResponse,
         KeyReadResponse, KeyUpdateRequest, ServiceCreateRequest, ServiceListRequest,
         ServiceListResponse, ServiceReadResponse, ServiceUpdateRequest, UserCreateRequest,
-        UserCreateResponse, UserListRequest, UserListResponse, UserReadResponse, UserUpdateRequest,
+        UserCreateResponse, UserListRequest, KeyCreateResponse, UserListResponse, UserReadResponse, UserUpdateRequest,
     },
     client_msg::{Delete, Get, PatchJson, PostJson},
     Client, ClientActor, ClientActorRequest, ClientError, ClientOptions, User,
@@ -422,7 +422,7 @@ impl ClientAsync {
     pub fn key_create(
         &self,
         body: KeyCreateRequest,
-    ) -> impl Future<Item = KeyReadResponse, Error = ClientError> {
+    ) -> impl Future<Item = KeyCreateResponse, Error = ClientError> {
         self.addr
             .send(
                 PostJson::new(self.url(), api_route::KEY, Some(body))
@@ -430,7 +430,7 @@ impl ClientAsync {
                     .forwarded(self.options.forwarded()),
             )
             .map_err(Into::into)
-            .and_then(Client::result_json::<KeyReadResponse>)
+            .and_then(Client::result_json::<KeyCreateResponse>)
     }
 
     /// Key read request.
