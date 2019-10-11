@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "2b70845a-08f9-4557-9ba6-6e45d35cb4ca",
+		"_postman_id": "49659a43-10ae-47e4-b6cc-fafd07ca563c",
 		"name": "sso",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -814,36 +814,6 @@
 									"value": "10",
 									"description": "Limit number of returned keys (optional).",
 									"disabled": true
-								},
-								{
-									"key": "is_enabled",
-									"value": "false",
-									"description": "Is enabled filter (optional).",
-									"disabled": true
-								},
-								{
-									"key": "is_revoked",
-									"value": "true",
-									"description": "Is revoked filter (optional).",
-									"disabled": true
-								},
-								{
-									"key": "type[0]",
-									"value": "Key",
-									"description": "Type filter (optional).",
-									"disabled": true
-								},
-								{
-									"key": "service_id[0]",
-									"value": "{{service_id}}",
-									"description": "Service ID filter (optional).",
-									"disabled": true
-								},
-								{
-									"key": "user_id[0]",
-									"value": "{{user_id}}",
-									"description": "User ID filter (optional).",
-									"disabled": true
 								}
 							]
 						},
@@ -865,7 +835,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"is_enabled\": true,\n\t\"type\": \"Key\",\n\t\"name\": \"Service Key 2\",\n\t\"service_id\": \"{{service_id}}\",\n\t\"user_id\": \"{{user_id}}\"\n}\n",
+							"raw": "{\n\t\"is_enabled\": true,\n\t\"allow_key\": true,\n\t\"allow_token\": true,\n\t\"allow_totp\": false,\n\t\"name\": \"Service Key 2\",\n\t\"service_id\": \"{{service_id}}\",\n\t\"user_id\": \"{{user_id}}\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -974,7 +944,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{server_url}}/v1/service",
+							"raw": "{{server_url}}/v1/service?",
 							"host": [
 								"{{server_url}}"
 							],
@@ -999,12 +969,6 @@
 									"key": "limit",
 									"value": "10",
 									"description": "Limit number of returned services (optional).",
-									"disabled": true
-								},
-								{
-									"key": "is_enabled",
-									"value": "false",
-									"description": "Is enabled filter (optional).",
 									"disabled": true
 								}
 							]
@@ -1445,97 +1409,97 @@
 	],
 	"variable": [
 		{
-			"id": "5c28fa74-27d2-4736-87ab-514f08cd785d",
+			"id": "684047dd-6259-4fc0-bc89-d99024f15e5f",
 			"key": "server_url",
 			"value": "localhost:9000",
 			"type": "string"
 		},
 		{
-			"id": "ef33d5d2-a189-4fe6-b6eb-6d0141c43bd2",
+			"id": "fe3886d3-e713-4a26-a5c0-05d5a4ffaa12",
 			"key": "key",
 			"value": "{{root_key}}",
 			"type": "string"
 		},
 		{
-			"id": "442ff70f-58eb-43d3-aa80-e0479c7f932e",
+			"id": "0802dfe1-9641-464d-bc85-34c7e837826e",
 			"key": "root_key",
-			"value": "7UN2PUHMYE2U4RKIC66I3FSKJ4LWV462RY",
+			"value": "4QOHLEPHPJ4VSNYPTGB35SFGTQ3QIZ7Y3A",
 			"type": "string"
 		},
 		{
-			"id": "01b6a3ad-1e00-4dad-b6e8-f0130868b2c7",
+			"id": "f7f81508-866e-48cc-a83d-3a6791890f17",
 			"key": "service_key",
 			"value": "DIHLXAEMMC4IU5RZ76VQ4RGRMPLKJZNC4A",
 			"type": "string"
 		},
 		{
-			"id": "7f0a0511-34ac-48bf-aea5-0ec76fda8617",
+			"id": "ed2099f2-5355-48a9-ad61-807f89ab2830",
 			"key": "service_id",
-			"value": "a0dfd0c0-5f74-4ebd-a81a-40eb84f42662",
+			"value": "438ef04b-ec3a-4e1d-ae93-3a7965a26331",
 			"type": "string"
 		},
 		{
-			"id": "515d7126-f7a6-498e-936e-79340af10595",
+			"id": "ba1e725d-415c-4d1b-a505-f50ca9135d6f",
 			"key": "key_id",
-			"value": "936663bf-2106-4243-b8cb-c73447ac6cb5",
+			"value": "fc6e58c3-09ba-4375-ac61-58244fb7284c",
 			"type": "string"
 		},
 		{
-			"id": "5d3708db-d4ba-492b-8ef8-a50ac279893f",
+			"id": "5b532936-fc51-47c9-af77-13b83cb9edd8",
 			"key": "user_id",
 			"value": "8d7b3d44-94f6-4995-954b-20ce19f6923f",
 			"type": "string"
 		},
 		{
-			"id": "cd167f1b-8c92-4225-9b4b-3e120024a9af",
+			"id": "c6630e1f-523e-4f81-a6bc-255bf5a1e761",
 			"key": "user_email",
 			"value": "user@example.com",
 			"type": "string"
 		},
 		{
-			"id": "bbf80a87-0918-43a8-b21d-d4418995de10",
+			"id": "bc575c10-7d29-4858-a19f-51f57c567d1f",
 			"key": "audit_id",
 			"value": "961359b5-4d89-49e6-a3d2-714a73857eeb",
 			"type": "string"
 		},
 		{
-			"id": "8d2b5779-d6b0-46ad-be4b-37cd8ff9541b",
+			"id": "badc4e96-8fd0-4d06-95fb-68b9f0018702",
 			"key": "user_access_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTA5MDQsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.veHb4RzBlR4-QJKvD5RY4YdfhjMf9rdoQH0fPFxSiH4",
 			"type": "string"
 		},
 		{
-			"id": "03b9df2b-ffb6-40fa-a6f6-80c9f4f0d891",
+			"id": "8d58de37-66e4-4cd0-ac3b-d829e61c1228",
 			"key": "user_refresh_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiIxMmYyZGRjYy1jZGEzLTQxNWEtOTJmNy00OTNjODUzMDYwOTciLCJleHAiOjE1NzAxMzI1NzksInhfdHlwZSI6MSwieF9jc3JmIjoiNzI1SzdJRFpTS0QySE1URUFQTVo2S09RVVJTQktDT0VZVSJ9.P6H3vabqLwyUDrICyOCH8cUl-vFGWKtvEmKl2M3e6EI",
 			"type": "string"
 		},
 		{
-			"id": "d2294872-14fa-46e4-b5ba-37ec08ebc7e9",
+			"id": "a026f955-1e91-4697-a662-0c2a863a78f6",
 			"key": "user_key",
 			"value": "K54F4ORUAF6VBWACBENOANDZUHHHCVWR3A",
 			"type": "string"
 		},
 		{
-			"id": "091d0d39-2ea4-4c9f-b878-b331bbc6f914",
+			"id": "236b4350-5515-4dcc-9b11-55580918f544",
 			"key": "totp_code",
 			"value": "123456",
 			"type": "string"
 		},
 		{
-			"id": "615bec64-3f1b-41e7-bd78-9904b8284389",
+			"id": "0cbda1fd-2241-44b9-9f4b-753991ca1a83",
 			"key": "user_reset_password_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTAzMzcsInhfdHlwZSI6MiwieF9jc3JmIjoiNUxBT0xHQjI0N1pGWEYzM1pVMkZOVTZMM0hZSDJSQ1JSNCJ9.0rK1R-AswHV19POJEFKlv3yai9YAR8eK5e_6CbfXEPU",
 			"type": "string"
 		},
 		{
-			"id": "e0d2a3e3-3cb4-409b-ac18-9c3f6ed9c5eb",
+			"id": "820c0a57-e1a9-440d-9869-4059389114b7",
 			"key": "user_update_password_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIyOTQsInhfdHlwZSI6NCwieF9jc3JmIjoiRlRINERLUUU1S1M3RjVVUExYUkFCNkJPWEJDRUdIRlUyRSJ9.BG3cBT5s3GdCjJ3Wlc4F88P4oBfybzTvi6xgs0rQ_Cc",
 			"type": "string"
 		},
 		{
-			"id": "2409aa19-82bc-4f87-9130-f0bf4dd65c0b",
+			"id": "2a97a03c-f216-4756-a624-9c13382acb6c",
 			"key": "user_update_email_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIxNTUsInhfdHlwZSI6MywieF9jc3JmIjoiSEk1VEpaMzdBRUpJTU9UUUNEVlgyVUlLNVZRUTZSTUYyNCJ9.4Me_J7HUmLZQ4-OJTq5xyV5JNmaO-ZdvfD2UbiJ_kBY",
 			"type": "string"
