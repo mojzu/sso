@@ -15,7 +15,7 @@ use sso::{
 };
 pub use sso::{
     api_type::{
-        AuditCreateRequest, AuditListRequest, AuthKeyRequest, AuthLoginRequest,
+        AuditCreateRequest, AuditListRequestBuilder, AuthKeyRequest, AuthLoginRequest,
         AuthResetPasswordConfirmRequest, AuthResetPasswordRequest, AuthTokenRequest,
         AuthTotpRequest, KeyCreateRequest, KeyListRequestBuilder, ServiceCreateRequest,
         ServiceListRequestBuilder, UserCreateRequest, UserListRequestBuilder,

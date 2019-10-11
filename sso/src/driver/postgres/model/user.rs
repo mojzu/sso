@@ -125,12 +125,12 @@ impl ModelUser {
 
         let mut query = sso_user::table.into_boxed();
 
+        if let Some(id) = &list.filter.id {
+            let id: Vec<Uuid> = id.iter().copied().collect();
+            query = query.filter(sso_user::dsl::id.eq(any(id)));
+        }
         if let Some(email_eq) = &list.filter.email_eq {
             query = query.filter(sso_user::dsl::email.eq(email_eq));
-        }
-        if let Some(user_id) = &list.filter.user_id {
-            let user_id: Vec<Uuid> = user_id.iter().copied().collect();
-            query = query.filter(sso_user::dsl::id.eq(any(user_id)));
         }
 
         match list.query {

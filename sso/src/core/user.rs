@@ -77,19 +77,19 @@ impl Default for UserPasswordMeta {
     }
 }
 
-/// User list filter.
-#[derive(Debug)]
-pub struct UserListFilter {
-    pub email_eq: Option<String>,
-    pub user_id: Option<Vec<Uuid>>,
-}
-
 /// User list query.
 #[derive(Debug)]
 pub enum UserListQuery {
     Limit(i64),
     IdGt(Uuid, i64),
     IdLt(Uuid, i64),
+}
+
+/// User list filter.
+#[derive(Debug)]
+pub struct UserListFilter {
+    pub id: Option<Vec<Uuid>>,
+    pub email_eq: Option<String>,
 }
 
 /// User list.

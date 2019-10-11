@@ -48,18 +48,19 @@ impl fmt::Display for Service {
     }
 }
 
-/// Service list filter.
-#[derive(Debug)]
-pub struct ServiceListFilter {
-    pub is_enabled: Option<bool>,
-}
-
 /// Service list query.
 #[derive(Debug)]
 pub enum ServiceListQuery {
     Limit(i64),
     IdGt(Uuid, i64),
     IdLt(Uuid, i64),
+}
+
+/// Service list filter.
+#[derive(Debug)]
+pub struct ServiceListFilter {
+    pub id: Option<Vec<Uuid>>,
+    pub is_enabled: Option<bool>,
 }
 
 /// Service list.

@@ -120,47 +120,33 @@ impl<'a> AuditCreate<'a> {
     }
 }
 
-/// Audit list where created less than or equal.
+/// Audit list query.
 #[derive(Debug)]
-pub struct AuditListCreatedLe {
-    pub le: DateTime<Utc>,
-    pub limit: i64,
-    pub offset_id: Option<Uuid>,
+pub enum AuditListQuery {
+    /// Where created less than or equal.
+    CreatedLe(DateTime<Utc>, i64, Option<Uuid>),
+    /// Where created greater than or equal.
+    CreatedGe(DateTime<Utc>, i64, Option<Uuid>),
+    /// Where created less than or equal and greater than or equal.
+    CreatedLeAndGe(DateTime<Utc>, DateTime<Utc>, i64, Option<Uuid>),
+}
+
+/// Audit list filter.
+#[derive(Debug)]
+pub struct AuditListFilter {
+    pub id: Option<Vec<Uuid>>,
     pub type_: Option<Vec<String>>,
     pub service_id: Option<Vec<Uuid>>,
     pub user_id: Option<Vec<Uuid>>,
     // TODO(feature): Data matches filter.
 }
 
-/// Audit list where created greater than or equal.
-#[derive(Debug)]
-pub struct AuditListCreatedGe {
-    pub ge: DateTime<Utc>,
-    pub limit: i64,
-    pub offset_id: Option<Uuid>,
-    pub type_: Option<Vec<String>>,
-    pub service_id: Option<Vec<Uuid>>,
-    pub user_id: Option<Vec<Uuid>>,
-}
-
-/// Audit list where created less than or equal and greater than or equal.
-#[derive(Debug)]
-pub struct AuditListCreatedLeAndGe {
-    pub le: DateTime<Utc>,
-    pub ge: DateTime<Utc>,
-    pub limit: i64,
-    pub offset_id: Option<Uuid>,
-    pub type_: Option<Vec<String>>,
-    pub service_id: Option<Vec<Uuid>>,
-    pub user_id: Option<Vec<Uuid>>,
-}
-
 /// Audit list.
 #[derive(Debug)]
-pub enum AuditList {
-    CreatedLe(AuditListCreatedLe),
-    CreatedGe(AuditListCreatedGe),
-    CreatedLeAndGe(AuditListCreatedLeAndGe),
+pub struct AuditList<'a> {
+    pub query: &'a AuditListQuery,
+    pub filter: &'a AuditListFilter,
+    pub service_id_mask: Option<&'a Uuid>,
 }
 
 /// Audit metadata, HTTP request information.
@@ -371,11 +357,15 @@ impl Audit {
         driver: &dyn Driver,
         service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
-        list: &AuditList,
+        query: &AuditListQuery,
+        filter: &AuditListFilter,
     ) -> CoreResult<Vec<Audit>> {
-        driver
-            .audit_list(list, service_mask.map(|s| &s.id))
-            .map_err(Into::into)
+        let list = AuditList {
+            query,
+            filter,
+            service_id_mask: service_mask.map(|s| &s.id),
+        };
+        driver.audit_list(&list).map_err(Into::into)
     }
 
     /// Create one audit log.

@@ -6,9 +6,9 @@ pub use crate::core::api::validate::*;
 
 use crate::{
     core::api::{api_type::*, oauth2::*},
-    Audit, AuditData, AuditList, AuditMeta, Auth, AuthArgs, CoreError, CoreResult, Driver, Key,
-    Metrics, NotifyActor, Service, ServiceCreate, ServiceUpdate, User, UserCreate,
-    UserPasswordMeta, UserRead, UserUpdate,
+    Audit, AuditData, AuditMeta, Auth, AuthArgs, CoreError, CoreResult, Driver, Key, Metrics,
+    NotifyActor, Service, ServiceCreate, ServiceUpdate, User, UserCreate, UserPasswordMeta,
+    UserRead, UserUpdate,
 };
 use actix::Addr;
 use prometheus::Registry;
@@ -157,16 +157,14 @@ impl Api {
         request: AuditListRequest,
     ) -> CoreResult<AuditListResponse> {
         AuditListRequest::api_validate(&request)?;
-        let list: AuditList = request.into();
 
-        Key::authenticate(driver, audit_meta, key_value)
-            .and_then(|(service, mut audit)| {
-                Audit::list(driver, service.as_ref(), &mut audit, &list)
-            })
-            .map(|data| AuditListResponse {
-                meta: list.into(),
-                data,
-            })
+        let (service, mut audit) = Key::authenticate(driver, audit_meta, key_value)?;
+        let (query, filter) = request.into_query_filter();
+        let data = Audit::list(driver, service.as_ref(), &mut audit, &query, &filter)?;
+        Ok(AuditListResponse {
+            meta: AuditListRequest::from_query_filter(query, filter),
+            data,
+        })
     }
 
     pub fn audit_create(

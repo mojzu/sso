@@ -72,6 +72,7 @@ pub enum KeyListQuery {
 /// Key list filter.
 #[derive(Debug)]
 pub struct KeyListFilter {
+    pub id: Option<Vec<Uuid>>,
     pub is_enabled: Option<bool>,
     pub is_revoked: Option<bool>,
     pub type_: Option<Vec<KeyType>>,

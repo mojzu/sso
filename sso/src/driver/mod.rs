@@ -84,11 +84,7 @@ pub trait DriverIf {
     // ---------------
 
     /// List audit logs.
-    fn audit_list(
-        &self,
-        list: &AuditList,
-        service_id_mask: Option<&Uuid>,
-    ) -> DriverResult<Vec<Audit>>;
+    fn audit_list(&self, list: &AuditList) -> DriverResult<Vec<Audit>>;
 
     /// Create audit log.
     fn audit_create(&self, data: &AuditCreate) -> DriverResult<Audit>;

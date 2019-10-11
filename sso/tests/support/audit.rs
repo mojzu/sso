@@ -28,15 +28,13 @@ macro_rules! audit_integration_test {
                 .unwrap();
 
             let res1 = client
-                .audit_list(AuditListRequest {
-                    ge: Some(a1.created_at),
-                    le: None,
-                    offset_id: None,
-                    limit: Some(limit),
-                    type_: None,
-                    service_id: None,
-                    user_id: None,
-                })
+                .audit_list(
+                    AuditListRequestBuilder::default()
+                        .ge(Some(a1.created_at))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             assert_eq!(res1.data.len(), 3);
             let r1_1 = res1.data[0].id;
@@ -46,15 +44,14 @@ macro_rules! audit_integration_test {
             let a1 = client.audit_read(r1_1).unwrap().data;
 
             let res2 = client
-                .audit_list(AuditListRequest {
-                    ge: Some(a1.created_at),
-                    le: None,
-                    offset_id: Some(a1.id),
-                    limit: Some(limit),
-                    type_: None,
-                    service_id: None,
-                    user_id: None,
-                })
+                .audit_list(
+                    AuditListRequestBuilder::default()
+                        .ge(Some(a1.created_at))
+                        .offset_id(Some(a1.id))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             assert_eq!(res2.data.len(), 3);
             let r2_2 = res2.data[0].id;
@@ -65,15 +62,14 @@ macro_rules! audit_integration_test {
             let a2 = client.audit_read(r2_2).unwrap().data;
 
             let res3 = client
-                .audit_list(AuditListRequest {
-                    ge: Some(a2.created_at),
-                    le: None,
-                    offset_id: Some(a2.id),
-                    limit: Some(limit),
-                    type_: None,
-                    service_id: None,
-                    user_id: None,
-                })
+                .audit_list(
+                    AuditListRequestBuilder::default()
+                        .ge(Some(a2.created_at))
+                        .offset_id(Some(a2.id))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             assert_eq!(res3.data.len(), 3);
             let r3_3 = res3.data[0].id;
@@ -84,15 +80,14 @@ macro_rules! audit_integration_test {
             let a5 = client.audit_read(r3_5).unwrap().data;
 
             let res4 = client
-                .audit_list(AuditListRequest {
-                    ge: None,
-                    le: Some(a5.created_at),
-                    offset_id: Some(a5.id),
-                    limit: Some(limit),
-                    type_: None,
-                    service_id: None,
-                    user_id: None,
-                })
+                .audit_list(
+                    AuditListRequestBuilder::default()
+                        .le(Some(a5.created_at))
+                        .offset_id(Some(a5.id))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             assert_eq!(res4.data.len(), 3);
             let r4_2 = res4.data[0].id;
@@ -104,15 +99,14 @@ macro_rules! audit_integration_test {
             let a4 = client.audit_read(r4_4).unwrap().data;
 
             let res5 = client
-                .audit_list(AuditListRequest {
-                    ge: None,
-                    le: Some(a4.created_at),
-                    offset_id: Some(a4.id),
-                    limit: Some(limit),
-                    type_: None,
-                    service_id: None,
-                    user_id: None,
-                })
+                .audit_list(
+                    AuditListRequestBuilder::default()
+                        .le(Some(a4.created_at))
+                        .offset_id(Some(a4.id))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             assert_eq!(res5.data.len(), 3);
             let r5_1 = res5.data[0].id;
@@ -144,15 +138,13 @@ macro_rules! audit_integration_test {
                 .unwrap();
 
             let res1 = client
-                .audit_list(AuditListRequest {
-                    ge: Some(a1.created_at),
-                    le: None,
-                    offset_id: None,
-                    limit: Some(limit),
-                    type_: None,
-                    service_id: None,
-                    user_id: None,
-                })
+                .audit_list(
+                    AuditListRequestBuilder::default()
+                        .ge(Some(a1.created_at))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             assert_eq!(res1.data.len(), 3);
             let r1_1 = res1.data[0].id;
@@ -163,15 +155,15 @@ macro_rules! audit_integration_test {
             let a3 = client.audit_read(r1_3).unwrap().data;
 
             let res2 = client
-                .audit_list(AuditListRequest {
-                    ge: Some(a1.created_at),
-                    le: Some(a3.created_at),
-                    offset_id: Some(a1.id),
-                    limit: Some(limit),
-                    type_: None,
-                    service_id: None,
-                    user_id: None,
-                })
+                .audit_list(
+                    AuditListRequestBuilder::default()
+                        .ge(Some(a1.created_at))
+                        .le(Some(a3.created_at))
+                        .offset_id(Some(a1.id))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             assert_eq!(res2.data.len(), 2);
             let r2_2 = res2.data[0].id;

@@ -1,10 +1,9 @@
 //! # API Types
 use crate::{
-    ApiValidate, ApiValidateRequest, ApiValidateRequestQuery, Audit, AuditData, AuditList,
-    AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe, Core, Key, KeyListFilter,
-    KeyListQuery, KeyType, Service, ServiceCreate, ServiceListFilter, ServiceListQuery,
-    ServiceUpdate, User, UserCreate, UserKey, UserListFilter, UserListQuery, UserPasswordMeta,
-    UserToken, UserTokenAccess,
+    ApiValidate, ApiValidateRequest, ApiValidateRequestQuery, Audit, AuditData, AuditListFilter,
+    AuditListQuery, Core, Key, KeyListFilter, KeyListQuery, KeyType, Service, ServiceCreate,
+    ServiceListFilter, ServiceListQuery, ServiceUpdate, User, UserCreate, UserKey, UserListFilter,
+    UserListQuery, UserPasswordMeta, UserToken, UserTokenAccess,
 };
 use chrono::{DateTime, Utc};
 use serde_json::Value;
@@ -15,95 +14,84 @@ use validator::Validate;
 // Audit Types
 // -----------
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Builder)]
 #[serde(deny_unknown_fields)]
 pub struct AuditListRequest {
-    pub ge: Option<DateTime<Utc>>,
-    pub le: Option<DateTime<Utc>>,
+    #[builder(default = "None")]
+    ge: Option<DateTime<Utc>>,
+    #[builder(default = "None")]
+    le: Option<DateTime<Utc>>,
+    #[builder(default = "None")]
     #[validate(custom = "ApiValidate::limit")]
-    pub limit: Option<i64>,
-    pub offset_id: Option<Uuid>,
+    limit: Option<i64>,
+    #[builder(default = "None")]
+    offset_id: Option<Uuid>,
+    #[builder(default = "None")]
+    id: Option<Vec<Uuid>>,
+    #[builder(default = "None")]
     #[serde(rename = "type")]
     #[validate(custom = "ApiValidate::audit_type_vec")]
-    pub type_: Option<Vec<String>>,
-    pub service_id: Option<Vec<Uuid>>,
-    pub user_id: Option<Vec<Uuid>>,
+    type_: Option<Vec<String>>,
+    #[builder(default = "None")]
+    service_id: Option<Vec<Uuid>>,
+    #[builder(default = "None")]
+    user_id: Option<Vec<Uuid>>,
 }
 
 impl ApiValidateRequest<AuditListRequest> for AuditListRequest {}
 impl ApiValidateRequestQuery<AuditListRequest> for AuditListRequest {}
 
-impl From<AuditListRequest> for AuditList {
-    fn from(query: AuditListRequest) -> Self {
-        let limit = query.limit.unwrap_or_else(Core::default_limit);
+impl AuditListRequest {
+    pub fn into_query_filter(self) -> (AuditListQuery, AuditListFilter) {
+        let limit = self.limit.unwrap_or_else(Core::default_limit);
+        let query = match (self.ge, self.le) {
+            (Some(ge), Some(le)) => AuditListQuery::CreatedLeAndGe(le, ge, limit, self.offset_id),
+            (Some(ge), None) => AuditListQuery::CreatedGe(ge, limit, self.offset_id),
+            (None, Some(le)) => AuditListQuery::CreatedLe(le, limit, self.offset_id),
+            (None, None) => AuditListQuery::CreatedLe(Utc::now(), limit, self.offset_id),
+        };
 
-        match (query.ge, query.le) {
-            (Some(ge), Some(le)) => Self::CreatedLeAndGe(AuditListCreatedLeAndGe {
-                ge,
-                le,
-                limit,
-                offset_id: query.offset_id,
-                type_: query.type_,
-                service_id: query.service_id,
-                user_id: query.user_id,
-            }),
-            (Some(ge), None) => Self::CreatedGe(AuditListCreatedGe {
-                ge,
-                limit,
-                offset_id: query.offset_id,
-                type_: query.type_,
-                service_id: query.service_id,
-                user_id: query.user_id,
-            }),
-            (None, Some(le)) => Self::CreatedLe(AuditListCreatedLe {
-                le,
-                limit,
-                offset_id: query.offset_id,
-                type_: query.type_,
-                service_id: query.service_id,
-                user_id: query.user_id,
-            }),
-            (None, None) => Self::CreatedLe(AuditListCreatedLe {
-                le: Utc::now(),
-                limit,
-                offset_id: query.offset_id,
-                type_: query.type_,
-                service_id: query.service_id,
-                user_id: query.user_id,
-            }),
-        }
+        let filter = AuditListFilter {
+            id: self.id,
+            type_: self.type_,
+            service_id: self.service_id,
+            user_id: self.user_id,
+        };
+
+        (query, filter)
     }
-}
 
-impl From<AuditList> for AuditListRequest {
-    fn from(list: AuditList) -> Self {
-        match list {
-            AuditList::CreatedLe(l) => Self {
+    pub fn from_query_filter(query: AuditListQuery, filter: AuditListFilter) -> Self {
+        match query {
+            AuditListQuery::CreatedLe(le, limit, offset_id) => Self {
                 ge: None,
-                le: Some(l.le),
-                limit: Some(l.limit),
-                offset_id: l.offset_id,
-                type_: l.type_,
-                service_id: l.service_id,
-                user_id: l.user_id,
+                le: Some(le),
+                limit: Some(limit),
+                offset_id: offset_id,
+                id: filter.id,
+                type_: filter.type_,
+                service_id: filter.service_id,
+                user_id: filter.user_id,
             },
-            AuditList::CreatedGe(l) => Self {
-                ge: Some(l.ge),
+            AuditListQuery::CreatedGe(ge, limit, offset_id) => Self {
+                ge: Some(ge),
                 le: None,
-                limit: Some(l.limit),
-                offset_id: l.offset_id,
-                type_: l.type_,
-                service_id: l.service_id,
-                user_id: l.user_id,
+                limit: Some(limit),
+                offset_id: offset_id,
+                id: filter.id,
+                type_: filter.type_,
+                service_id: filter.service_id,
+                user_id: filter.user_id,
             },
-            AuditList::CreatedLeAndGe(l) => Self {
-                ge: Some(l.ge),
-                le: Some(l.le),
-                limit: Some(l.limit),
-                offset_id: l.offset_id,
-                type_: l.type_,
-                service_id: l.service_id,
-                user_id: l.user_id,
+            AuditListQuery::CreatedLeAndGe(le, ge, limit, offset_id) => Self {
+                ge: Some(ge),
+                le: Some(le),
+                limit: Some(limit),
+                offset_id: offset_id,
+                id: filter.id,
+                type_: filter.type_,
+                service_id: filter.service_id,
+                user_id: filter.user_id,
             },
         }
     }
@@ -196,6 +184,8 @@ pub struct KeyListRequest {
     #[builder(default = "None")]
     limit: Option<i64>,
     #[builder(default = "None")]
+    id: Option<Vec<Uuid>>,
+    #[builder(default = "None")]
     is_enabled: Option<bool>,
     #[builder(default = "None")]
     is_revoked: Option<bool>,
@@ -222,6 +212,7 @@ impl KeyListRequest {
         };
 
         let filter = KeyListFilter {
+            id: self.id,
             is_enabled: self.is_enabled,
             is_revoked: self.is_revoked,
             type_: self.type_,
@@ -238,6 +229,7 @@ impl KeyListRequest {
                 gt: None,
                 lt: None,
                 limit: Some(limit),
+                id: filter.id,
                 is_enabled: filter.is_enabled,
                 is_revoked: filter.is_revoked,
                 type_: filter.type_,
@@ -248,6 +240,7 @@ impl KeyListRequest {
                 gt: Some(gt),
                 lt: None,
                 limit: Some(limit),
+                id: filter.id,
                 is_enabled: filter.is_enabled,
                 is_revoked: filter.is_revoked,
                 type_: filter.type_,
@@ -258,6 +251,7 @@ impl KeyListRequest {
                 gt: None,
                 lt: Some(lt),
                 limit: Some(limit),
+                id: filter.id,
                 is_enabled: filter.is_enabled,
                 is_revoked: filter.is_revoked,
                 type_: filter.type_,
@@ -351,12 +345,14 @@ impl ApiValidateRequest<KeyUpdateRequest> for KeyUpdateRequest {}
 #[serde(deny_unknown_fields)]
 pub struct ServiceListRequest {
     #[builder(default = "None")]
-    pub gt: Option<Uuid>,
+    gt: Option<Uuid>,
     #[builder(default = "None")]
-    pub lt: Option<Uuid>,
+    lt: Option<Uuid>,
     #[builder(default = "None")]
     #[validate(custom = "ApiValidate::limit")]
-    pub limit: Option<i64>,
+    limit: Option<i64>,
+    #[builder(default = "None")]
+    id: Option<Vec<Uuid>>,
     #[builder(default = "None")]
     is_enabled: Option<bool>,
 }
@@ -375,6 +371,7 @@ impl ServiceListRequest {
         };
 
         let filter = ServiceListFilter {
+            id: self.id,
             is_enabled: self.is_enabled,
         };
 
@@ -387,18 +384,21 @@ impl ServiceListRequest {
                 gt: None,
                 lt: None,
                 limit: Some(limit),
+                id: filter.id,
                 is_enabled: filter.is_enabled,
             },
             ServiceListQuery::IdGt(gt, limit) => Self {
                 gt: Some(gt),
                 lt: None,
                 limit: Some(limit),
+                id: filter.id,
                 is_enabled: filter.is_enabled,
             },
             ServiceListQuery::IdLt(lt, limit) => Self {
                 gt: None,
                 lt: Some(lt),
                 limit: Some(limit),
+                id: filter.id,
                 is_enabled: filter.is_enabled,
             },
         }
@@ -526,17 +526,17 @@ impl From<ServiceUpdateRequest> for ServiceUpdate {
 #[serde(deny_unknown_fields)]
 pub struct UserListRequest {
     #[builder(default = "None")]
-    pub gt: Option<Uuid>,
+    gt: Option<Uuid>,
     #[builder(default = "None")]
-    pub lt: Option<Uuid>,
+    lt: Option<Uuid>,
     #[builder(default = "None")]
     #[validate(custom = "ApiValidate::limit")]
-    pub limit: Option<i64>,
+    limit: Option<i64>,
+    #[builder(default = "None")]
+    id: Option<Vec<Uuid>>,
     #[builder(default = "None")]
     #[validate(email)]
-    pub email_eq: Option<String>,
-    #[builder(default = "None")]
-    pub user_id: Option<Vec<Uuid>>,
+    email_eq: Option<String>,
 }
 
 impl ApiValidateRequest<UserListRequest> for UserListRequest {}
@@ -553,8 +553,8 @@ impl UserListRequest {
         };
 
         let filter = UserListFilter {
+            id: self.id,
             email_eq: self.email_eq,
-            user_id: self.user_id,
         };
 
         (query, filter)
@@ -566,22 +566,22 @@ impl UserListRequest {
                 gt: None,
                 lt: None,
                 limit: Some(limit),
+                id: filter.id,
                 email_eq: filter.email_eq,
-                user_id: filter.user_id,
             },
             UserListQuery::IdGt(gt, limit) => Self {
                 gt: Some(gt),
                 lt: None,
                 limit: Some(limit),
+                id: filter.id,
                 email_eq: filter.email_eq,
-                user_id: filter.user_id,
             },
             UserListQuery::IdLt(lt, limit) => Self {
                 gt: None,
                 lt: Some(lt),
                 limit: Some(limit),
+                id: filter.id,
                 email_eq: filter.email_eq,
-                user_id: filter.user_id,
             },
         }
     }

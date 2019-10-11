@@ -85,13 +85,9 @@ impl DriverIf for DriverPostgres {
         })
     }
 
-    fn audit_list(
-        &self,
-        list: &AuditList,
-        service_id_mask: Option<&Uuid>,
-    ) -> DriverResult<Vec<Audit>> {
+    fn audit_list(&self, list: &AuditList) -> DriverResult<Vec<Audit>> {
         let conn = self.conn()?;
-        ModelAudit::list(&conn, list, service_id_mask)
+        ModelAudit::list(&conn, list)
     }
 
     fn audit_create(&self, create: &AuditCreate) -> DriverResult<Audit> {
@@ -284,12 +280,8 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         })
     }
 
-    fn audit_list(
-        &self,
-        list: &AuditList,
-        service_id_mask: Option<&Uuid>,
-    ) -> DriverResult<Vec<Audit>> {
-        ModelAudit::list(self.conn(), list, service_id_mask)
+    fn audit_list(&self, list: &AuditList) -> DriverResult<Vec<Audit>> {
+        ModelAudit::list(self.conn(), list)
     }
 
     fn audit_create(&self, create: &AuditCreate) -> DriverResult<Audit> {

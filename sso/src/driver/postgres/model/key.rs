@@ -97,6 +97,10 @@ impl ModelKey {
 
         let mut query = sso_key::table.into_boxed();
 
+        if let Some(id) = &list.filter.id {
+            let id: Vec<Uuid> = id.iter().copied().collect();
+            query = query.filter(sso_key::dsl::id.eq(any(id)));
+        }
         if let Some(is_enabled) = list.filter.is_enabled {
             query = query.filter(sso_key::dsl::is_enabled.eq(is_enabled));
         }

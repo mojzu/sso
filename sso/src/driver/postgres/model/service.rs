@@ -101,8 +101,14 @@ impl<'a> ModelServiceUpdate<'a> {
 
 impl ModelService {
     pub fn list(conn: &PgConnection, list: &ServiceList) -> DriverResult<Vec<Service>> {
+        use diesel::dsl::any;
+
         let mut query = sso_service::table.into_boxed();
 
+        if let Some(id) = &list.filter.id {
+            let id: Vec<Uuid> = id.iter().copied().collect();
+            query = query.filter(sso_service::dsl::id.eq(any(id)));
+        }
         if let Some(is_enabled) = list.filter.is_enabled {
             query = query.filter(sso_service::dsl::is_enabled.eq(is_enabled));
         }

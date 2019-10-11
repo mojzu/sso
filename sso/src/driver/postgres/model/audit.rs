@@ -1,9 +1,9 @@
 use crate::{
-    driver::postgres::schema::sso_audit, Audit, AuditCreate, AuditList, AuditListCreatedGe,
-    AuditListCreatedLe, AuditListCreatedLeAndGe, DriverResult,
+    driver::postgres::schema::sso_audit, Audit, AuditCreate, AuditList, AuditListFilter,
+    AuditListQuery, DriverResult,
 };
 use chrono::{DateTime, Utc};
-use diesel::{dsl::sql, prelude::*, sql_types::BigInt};
+use diesel::{dsl::sql, pg::Pg, prelude::*, sql_types::BigInt};
 use serde_json::Value;
 use std::convert::TryInto;
 use uuid::Uuid;
@@ -78,16 +78,34 @@ impl<'a> ModelAuditInsert<'a> {
 }
 
 impl ModelAudit {
-    pub fn list(
-        conn: &PgConnection,
-        list: &AuditList,
-        service_id_mask: Option<&Uuid>,
-    ) -> DriverResult<Vec<Audit>> {
-        match list {
-            AuditList::CreatedLe(l) => Self::list_where_created_le(conn, l, service_id_mask),
-            AuditList::CreatedGe(l) => Self::list_where_created_ge(conn, l, service_id_mask),
-            AuditList::CreatedLeAndGe(l) => {
-                Self::list_where_created_le_and_ge(conn, l, service_id_mask)
+    pub fn list(conn: &PgConnection, list: &AuditList) -> DriverResult<Vec<Audit>> {
+        match list.query {
+            AuditListQuery::CreatedLe(le, limit, offset_id) => Self::list_where_created_le(
+                conn,
+                le,
+                *limit,
+                offset_id,
+                list.filter,
+                list.service_id_mask,
+            ),
+            AuditListQuery::CreatedGe(ge, limit, offset_id) => Self::list_where_created_ge(
+                conn,
+                ge,
+                *limit,
+                offset_id,
+                list.filter,
+                list.service_id_mask,
+            ),
+            AuditListQuery::CreatedLeAndGe(le, ge, limit, offset_id) => {
+                Self::list_where_created_le_and_ge(
+                    conn,
+                    le,
+                    ge,
+                    *limit,
+                    offset_id,
+                    list.filter,
+                    list.service_id_mask,
+                )
             }
         }
     }
@@ -156,40 +174,36 @@ impl ModelAudit {
 
     fn list_where_created_le(
         conn: &PgConnection,
-        list: &AuditListCreatedLe,
+        le: &DateTime<Utc>,
+        limit: i64,
+        offset_id: &Option<Uuid>,
+        filter: &AuditListFilter,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Audit>> {
-        let offset: i64 = if list.offset_id.is_some() { 1 } else { 0 };
-        ModelAudit::list_where_created_le_inner(
-            conn,
-            &list.le,
-            list.limit,
-            offset,
-            list.service_id.as_ref(),
-            service_id_mask,
-        )
-        .and_then(|res| {
-            if let Some(offset_id) = list.offset_id {
-                for (i, audit) in res.iter().enumerate() {
-                    if audit.id == offset_id {
-                        let offset: i64 = (i + 1).try_into().unwrap();
-                        return ModelAudit::list_where_created_le_inner(
-                            conn,
-                            &list.le,
-                            list.limit,
-                            offset,
-                            list.service_id.as_ref(),
-                            service_id_mask,
-                        );
+        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
+        ModelAudit::list_where_created_le_inner(conn, le, limit, offset, filter, service_id_mask)
+            .and_then(|res| {
+                if let Some(offset_id) = offset_id {
+                    for (i, audit) in res.iter().enumerate() {
+                        if &audit.id == offset_id {
+                            let offset: i64 = (i + 1).try_into().unwrap();
+                            return ModelAudit::list_where_created_le_inner(
+                                conn,
+                                le,
+                                limit,
+                                offset,
+                                filter,
+                                service_id_mask,
+                            );
+                        }
                     }
                 }
-            }
-            Ok(res)
-        })
-        .map(|mut v| {
-            v.reverse();
-            v
-        })
+                Ok(res)
+            })
+            .map(|mut v| {
+                v.reverse();
+                v
+            })
     }
 
     fn list_where_created_le_inner(
@@ -197,86 +211,50 @@ impl ModelAudit {
         created_le: &DateTime<Utc>,
         limit: i64,
         offset: i64,
-        service_id: Option<&Vec<Uuid>>,
+        filter: &AuditListFilter,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Audit>> {
-        use diesel::dsl::any;
+        let mut query = sso_audit::table.into_boxed();
+        query = Self::boxed_query_filter(query, filter, service_id_mask);
 
-        match (service_id, service_id_mask) {
-            (Some(service_id), Some(service_id_mask)) => sso_audit::table
-                .filter(
-                    sso_audit::dsl::service_id
-                        .eq(any(service_id))
-                        .and(sso_audit::dsl::service_id.eq(service_id_mask))
-                        .and(sso_audit::dsl::created_at.le(created_le)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(sso_audit::dsl::created_at.desc())
-                .load::<ModelAudit>(conn),
-            (Some(service_id), None) => sso_audit::table
-                .filter(
-                    sso_audit::dsl::service_id
-                        .eq(any(service_id))
-                        .and(sso_audit::dsl::created_at.le(created_le)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(sso_audit::dsl::created_at.desc())
-                .load::<ModelAudit>(conn),
-            (None, Some(service_id_mask)) => sso_audit::table
-                .filter(
-                    sso_audit::dsl::service_id
-                        .eq(service_id_mask)
-                        .and(sso_audit::dsl::created_at.le(created_le)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(sso_audit::dsl::created_at.desc())
-                .load::<ModelAudit>(conn),
-            (None, None) => sso_audit::table
-                .filter(sso_audit::dsl::created_at.le(created_le))
-                .limit(limit)
-                .offset(offset)
-                .order(sso_audit::dsl::created_at.desc())
-                .load::<ModelAudit>(conn),
-        }
-        .map_err(Into::into)
-        .map(|x| x.into_iter().map(|x| x.into()).collect())
+        query
+            .filter(sso_audit::dsl::created_at.le(created_le))
+            .limit(limit)
+            .offset(offset)
+            .order(sso_audit::dsl::created_at.desc())
+            .load::<ModelAudit>(conn)
+            .map_err(Into::into)
+            .map(|x| x.into_iter().map(|x| x.into()).collect())
     }
 
     fn list_where_created_ge(
         conn: &PgConnection,
-        list: &AuditListCreatedGe,
+        ge: &DateTime<Utc>,
+        limit: i64,
+        offset_id: &Option<Uuid>,
+        filter: &AuditListFilter,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Audit>> {
-        let offset: i64 = if list.offset_id.is_some() { 1 } else { 0 };
-        ModelAudit::list_where_created_ge_inner(
-            conn,
-            &list.ge,
-            list.limit,
-            offset,
-            list.service_id.as_ref(),
-            service_id_mask,
-        )
-        .and_then(|res| {
-            if let Some(offset_id) = list.offset_id {
-                for (i, audit) in res.iter().enumerate() {
-                    if audit.id == offset_id {
-                        let offset: i64 = (i + 1).try_into().unwrap();
-                        return ModelAudit::list_where_created_ge_inner(
-                            conn,
-                            &list.ge,
-                            list.limit,
-                            offset,
-                            list.service_id.as_ref(),
-                            service_id_mask,
-                        );
+        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
+        ModelAudit::list_where_created_ge_inner(conn, ge, limit, offset, filter, service_id_mask)
+            .and_then(|res| {
+                if let Some(offset_id) = offset_id {
+                    for (i, audit) in res.iter().enumerate() {
+                        if &audit.id == offset_id {
+                            let offset: i64 = (i + 1).try_into().unwrap();
+                            return ModelAudit::list_where_created_ge_inner(
+                                conn,
+                                ge,
+                                limit,
+                                offset,
+                                filter,
+                                service_id_mask,
+                            );
+                        }
                     }
                 }
-            }
-            Ok(res)
-        })
+                Ok(res)
+            })
     }
 
     fn list_where_created_ge_inner(
@@ -284,81 +262,53 @@ impl ModelAudit {
         created_ge: &DateTime<Utc>,
         limit: i64,
         offset: i64,
-        service_id: Option<&Vec<Uuid>>,
+        filter: &AuditListFilter,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Audit>> {
-        use diesel::dsl::any;
+        let mut query = sso_audit::table.into_boxed();
+        query = Self::boxed_query_filter(query, filter, service_id_mask);
 
-        match (service_id, service_id_mask) {
-            (Some(service_id), Some(service_id_mask)) => sso_audit::table
-                .filter(
-                    sso_audit::dsl::service_id
-                        .eq(any(service_id))
-                        .and(sso_audit::dsl::service_id.eq(service_id_mask))
-                        .and(sso_audit::dsl::created_at.ge(created_ge)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(sso_audit::dsl::created_at.asc())
-                .load::<ModelAudit>(conn),
-            (Some(service_id), None) => sso_audit::table
-                .filter(
-                    sso_audit::dsl::service_id
-                        .eq(any(service_id))
-                        .and(sso_audit::dsl::created_at.ge(created_ge)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(sso_audit::dsl::created_at.asc())
-                .load::<ModelAudit>(conn),
-            (None, Some(service_id_mask)) => sso_audit::table
-                .filter(
-                    sso_audit::dsl::service_id
-                        .eq(service_id_mask)
-                        .and(sso_audit::dsl::created_at.ge(created_ge)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(sso_audit::dsl::created_at.asc())
-                .load::<ModelAudit>(conn),
-            (None, None) => sso_audit::table
-                .filter(sso_audit::dsl::created_at.ge(created_ge))
-                .limit(limit)
-                .offset(offset)
-                .order(sso_audit::dsl::created_at.asc())
-                .load::<ModelAudit>(conn),
-        }
-        .map_err(Into::into)
-        .map(|x| x.into_iter().map(|x| x.into()).collect())
+        query
+            .filter(sso_audit::dsl::created_at.ge(created_ge))
+            .limit(limit)
+            .offset(offset)
+            .order(sso_audit::dsl::created_at.asc())
+            .load::<ModelAudit>(conn)
+            .map_err(Into::into)
+            .map(|x| x.into_iter().map(|x| x.into()).collect())
     }
 
     fn list_where_created_le_and_ge(
         conn: &PgConnection,
-        list: &AuditListCreatedLeAndGe,
+        le: &DateTime<Utc>,
+        ge: &DateTime<Utc>,
+        limit: i64,
+        offset_id: &Option<Uuid>,
+        filter: &AuditListFilter,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Audit>> {
-        let offset: i64 = if list.offset_id.is_some() { 1 } else { 0 };
+        let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
         ModelAudit::list_where_created_le_and_ge_inner(
             conn,
-            &list.le,
-            &list.ge,
-            list.limit,
+            le,
+            ge,
+            limit,
             offset,
-            list.service_id.as_ref(),
+            filter,
             service_id_mask,
         )
         .and_then(|res| {
-            if let Some(offset_id) = list.offset_id {
+            if let Some(offset_id) = offset_id {
                 for (i, audit) in res.iter().enumerate() {
-                    if audit.id == offset_id {
+                    if &audit.id == offset_id {
                         let offset: i64 = (i + 1).try_into().unwrap();
                         return ModelAudit::list_where_created_le_and_ge_inner(
                             conn,
-                            &list.le,
-                            &list.ge,
-                            list.limit,
+                            le,
+                            ge,
+                            limit,
                             offset,
-                            list.service_id.as_ref(),
+                            filter,
                             service_id_mask,
                         );
                     }
@@ -374,58 +324,53 @@ impl ModelAudit {
         created_ge: &DateTime<Utc>,
         limit: i64,
         offset: i64,
-        service_id: Option<&Vec<Uuid>>,
+        filter: &AuditListFilter,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<Audit>> {
+        let mut query = sso_audit::table.into_boxed();
+        query = Self::boxed_query_filter(query, filter, service_id_mask);
+
+        query
+            .filter(
+                sso_audit::dsl::created_at
+                    .ge(created_ge)
+                    .and(sso_audit::dsl::created_at.le(created_le)),
+            )
+            .limit(limit)
+            .offset(offset)
+            .order(sso_audit::dsl::created_at.asc())
+            .load::<ModelAudit>(conn)
+            .map_err(Into::into)
+            .map(|x| x.into_iter().map(|x| x.into()).collect())
+    }
+
+    fn boxed_query_filter<'a>(
+        mut query: sso_audit::BoxedQuery<'a, Pg>,
+        filter: &'a AuditListFilter,
+        service_id_mask: Option<&'a Uuid>,
+    ) -> sso_audit::BoxedQuery<'a, Pg> {
         use diesel::dsl::any;
 
-        match (service_id, service_id_mask) {
-            (Some(service_id), Some(service_id_mask)) => sso_audit::table
-                .filter(
-                    sso_audit::dsl::service_id
-                        .eq(any(service_id))
-                        .and(sso_audit::dsl::service_id.eq(service_id_mask))
-                        .and(sso_audit::dsl::created_at.ge(created_ge))
-                        .and(sso_audit::dsl::created_at.le(created_le)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(sso_audit::dsl::created_at.asc())
-                .load::<ModelAudit>(conn),
-            (Some(service_id), None) => sso_audit::table
-                .filter(
-                    sso_audit::dsl::service_id
-                        .eq(any(service_id))
-                        .and(sso_audit::dsl::created_at.ge(created_ge))
-                        .and(sso_audit::dsl::created_at.le(created_le)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(sso_audit::dsl::created_at.asc())
-                .load::<ModelAudit>(conn),
-            (None, Some(service_id_mask)) => sso_audit::table
-                .filter(
-                    sso_audit::dsl::service_id
-                        .eq(service_id_mask)
-                        .and(sso_audit::dsl::created_at.ge(created_ge))
-                        .and(sso_audit::dsl::created_at.le(created_le)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(sso_audit::dsl::created_at.asc())
-                .load::<ModelAudit>(conn),
-            (None, None) => sso_audit::table
-                .filter(
-                    sso_audit::dsl::created_at
-                        .ge(created_ge)
-                        .and(sso_audit::dsl::created_at.le(created_le)),
-                )
-                .limit(limit)
-                .offset(offset)
-                .order(sso_audit::dsl::created_at.asc())
-                .load::<ModelAudit>(conn),
+        if let Some(id) = &filter.id {
+            let id: Vec<Uuid> = id.iter().copied().collect();
+            query = query.filter(sso_audit::dsl::id.eq(any(id)));
         }
-        .map_err(Into::into)
-        .map(|x| x.into_iter().map(|x| x.into()).collect())
+        if let Some(type_) = &filter.type_ {
+            let type_: Vec<String> = type_.iter().cloned().collect();
+            query = query.filter(sso_audit::dsl::type_.eq(any(type_)));
+        }
+        if let Some(service_id) = &filter.service_id {
+            let service_id: Vec<Uuid> = service_id.iter().copied().collect();
+            query = query.filter(sso_audit::dsl::service_id.eq(any(service_id)));
+        }
+        if let Some(user_id) = &filter.user_id {
+            let user_id: Vec<Uuid> = user_id.iter().copied().collect();
+            query = query.filter(sso_audit::dsl::user_id.eq(any(user_id)));
+        }
+        if let Some(service_id_mask) = service_id_mask {
+            query = query.filter(sso_audit::dsl::service_id.eq(service_id_mask));
+        }
+
+        query
     }
 }
