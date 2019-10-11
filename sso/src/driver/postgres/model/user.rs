@@ -1,6 +1,6 @@
 use crate::{
-    driver::postgres::schema::sso_user, DriverResult, User, UserCreate, UserList, UserRead,
-    UserUpdate, UserUpdate2,
+    driver::postgres::schema::sso_user, DriverResult, User, UserCreate, UserList, UserListQuery,
+    UserRead, UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
@@ -121,52 +121,44 @@ impl<'a> ModelUserUpdate<'a> {
 
 impl ModelUser {
     pub fn list(conn: &PgConnection, list: &UserList) -> DriverResult<Vec<User>> {
-        match list {
-            UserList::Limit(limit) => {
-                let id = Uuid::nil();
-                Self::list_where_id_gt(conn, &id, *limit)
-            }
-            UserList::IdGt(gt, limit) => Self::list_where_id_gt(conn, gt, *limit),
-            UserList::IdLt(lt, limit) => Self::list_where_id_lt(conn, lt, *limit),
-            UserList::EmailEq(email_eq, limit) => Self::list_where_email_eq(conn, email_eq, *limit),
+        use diesel::dsl::any;
+
+        let mut query = sso_user::table.into_boxed();
+
+        if let Some(email_eq) = &list.filter.email_eq {
+            query = query.filter(sso_user::dsl::email.eq(email_eq));
         }
-    }
+        if let Some(user_id) = &list.filter.user_id {
+            let user_id: Vec<Uuid> = user_id.iter().copied().collect();
+            query = query.filter(sso_user::dsl::id.eq(any(user_id)));
+        }
 
-    fn list_where_id_gt(conn: &PgConnection, gt: &Uuid, limit: i64) -> DriverResult<Vec<User>> {
-        sso_user::table
-            .filter(sso_user::dsl::id.gt(gt))
-            .limit(limit)
-            .order(sso_user::dsl::id.asc())
-            .load::<ModelUser>(conn)
-            .map_err(Into::into)
-            .map(|x| x.into_iter().map(|x| x.into()).collect())
-    }
-
-    fn list_where_id_lt(conn: &PgConnection, lt: &Uuid, limit: i64) -> DriverResult<Vec<User>> {
-        sso_user::table
-            .filter(sso_user::dsl::id.lt(lt))
-            .limit(limit)
-            .order(sso_user::dsl::id.desc())
-            .load::<ModelUser>(conn)
-            .map_err(Into::into)
-            .map(|mut x| {
-                x.reverse();
-                x.into_iter().map(|x| x.into()).collect()
-            })
-    }
-
-    fn list_where_email_eq(
-        conn: &PgConnection,
-        email_eq: &str,
-        limit: i64,
-    ) -> DriverResult<Vec<User>> {
-        sso_user::table
-            .filter(sso_user::dsl::email.eq(email_eq))
-            .limit(limit)
-            .order(sso_user::dsl::id.asc())
-            .load::<ModelUser>(conn)
-            .map_err(Into::into)
-            .map(|x| x.into_iter().map(|x| x.into()).collect())
+        match list.query {
+            UserListQuery::Limit(limit) => query
+                .filter(sso_user::dsl::id.gt(Uuid::nil()))
+                .limit(*limit)
+                .order(sso_user::dsl::id.asc())
+                .load::<ModelUser>(conn)
+                .map_err(Into::into)
+                .map(|x| x.into_iter().map(|x| x.into()).collect()),
+            UserListQuery::IdGt(gt, limit) => query
+                .filter(sso_user::dsl::id.gt(gt))
+                .limit(*limit)
+                .order(sso_user::dsl::id.asc())
+                .load::<ModelUser>(conn)
+                .map_err(Into::into)
+                .map(|x| x.into_iter().map(|x| x.into()).collect()),
+            UserListQuery::IdLt(lt, limit) => query
+                .filter(sso_user::dsl::id.lt(lt))
+                .limit(*limit)
+                .order(sso_user::dsl::id.desc())
+                .load::<ModelUser>(conn)
+                .map_err(Into::into)
+                .map(|mut x| {
+                    x.reverse();
+                    x.into_iter().map(|x| x.into()).collect()
+                }),
+        }
     }
 
     pub fn create(conn: &PgConnection, create: &UserCreate) -> DriverResult<User> {

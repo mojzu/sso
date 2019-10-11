@@ -77,13 +77,26 @@ impl Default for UserPasswordMeta {
     }
 }
 
-/// User list.
+/// User list filter.
 #[derive(Debug)]
-pub enum UserList {
+pub struct UserListFilter {
+    pub email_eq: Option<String>,
+    pub user_id: Option<Vec<Uuid>>,
+}
+
+/// User list query.
+#[derive(Debug)]
+pub enum UserListQuery {
     Limit(i64),
     IdGt(Uuid, i64),
     IdLt(Uuid, i64),
-    EmailEq(String, i64),
+}
+
+/// User list.
+#[derive(Debug)]
+pub struct UserList<'a> {
+    pub query: &'a UserListQuery,
+    pub filter: &'a UserListFilter,
 }
 
 /// User create.
@@ -158,9 +171,11 @@ impl User {
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
-        list: &UserList,
+        query: &UserListQuery,
+        filter: &UserListFilter,
     ) -> CoreResult<Vec<User>> {
-        driver.user_list(list).map_err(CoreError::Driver)
+        let list = UserList { query, filter };
+        driver.user_list(&list).map_err(CoreError::Driver)
     }
 
     /// Create user.

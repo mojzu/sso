@@ -3,8 +3,8 @@ use crate::{
     ApiValidate, ApiValidateRequest, ApiValidateRequestQuery, Audit, AuditData, AuditList,
     AuditListCreatedGe, AuditListCreatedLe, AuditListCreatedLeAndGe, Core, Key, KeyListFilter,
     KeyListQuery, KeyType, Service, ServiceCreate, ServiceListFilter, ServiceListQuery,
-    ServiceUpdate, User, UserCreate, UserKey, UserList, UserPasswordMeta, UserToken,
-    UserTokenAccess,
+    ServiceUpdate, User, UserCreate, UserKey, UserListFilter, UserListQuery, UserPasswordMeta,
+    UserToken, UserTokenAccess,
 };
 use chrono::{DateTime, Utc};
 use serde_json::Value;
@@ -522,62 +522,66 @@ impl From<ServiceUpdateRequest> for ServiceUpdate {
 // User Types
 // ----------
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Builder)]
 #[serde(deny_unknown_fields)]
 pub struct UserListRequest {
+    #[builder(default = "None")]
     pub gt: Option<Uuid>,
+    #[builder(default = "None")]
     pub lt: Option<Uuid>,
+    #[builder(default = "None")]
     #[validate(custom = "ApiValidate::limit")]
     pub limit: Option<i64>,
+    #[builder(default = "None")]
     #[validate(email)]
     pub email_eq: Option<String>,
+    #[builder(default = "None")]
+    pub user_id: Option<Vec<Uuid>>,
 }
 
 impl ApiValidateRequest<UserListRequest> for UserListRequest {}
 impl ApiValidateRequestQuery<UserListRequest> for UserListRequest {}
 
-impl From<UserListRequest> for UserList {
-    fn from(query: UserListRequest) -> UserList {
-        let limit = query.limit.unwrap_or_else(Core::default_limit);
+impl UserListRequest {
+    pub fn into_query_filter(self) -> (UserListQuery, UserListFilter) {
+        let limit = self.limit.unwrap_or_else(Core::default_limit);
+        let query = match (self.gt, self.lt) {
+            (Some(gt), Some(_lt)) => UserListQuery::IdGt(gt, limit),
+            (Some(gt), None) => UserListQuery::IdGt(gt, limit),
+            (None, Some(lt)) => UserListQuery::IdLt(lt, limit),
+            (None, None) => UserListQuery::Limit(limit),
+        };
 
-        if let Some(email_eq) = query.email_eq {
-            return UserList::EmailEq(email_eq, limit);
-        }
-        match (query.gt, query.lt) {
-            (Some(gt), Some(_lt)) => Self::IdGt(gt, limit),
-            (Some(gt), None) => Self::IdGt(gt, limit),
-            (None, Some(lt)) => Self::IdLt(lt, limit),
-            (None, None) => Self::Limit(limit),
-        }
+        let filter = UserListFilter {
+            email_eq: self.email_eq,
+            user_id: self.user_id,
+        };
+
+        (query, filter)
     }
-}
 
-impl From<UserList> for UserListRequest {
-    fn from(list: UserList) -> Self {
-        match list {
-            UserList::Limit(limit) => Self {
+    pub fn from_query_filter(query: UserListQuery, filter: UserListFilter) -> Self {
+        match query {
+            UserListQuery::Limit(limit) => Self {
                 gt: None,
                 lt: None,
                 limit: Some(limit),
-                email_eq: None,
+                email_eq: filter.email_eq,
+                user_id: filter.user_id,
             },
-            UserList::IdGt(gt, limit) => Self {
+            UserListQuery::IdGt(gt, limit) => Self {
                 gt: Some(gt),
                 lt: None,
                 limit: Some(limit),
-                email_eq: None,
+                email_eq: filter.email_eq,
+                user_id: filter.user_id,
             },
-            UserList::IdLt(lt, limit) => Self {
+            UserListQuery::IdLt(lt, limit) => Self {
                 gt: None,
                 lt: Some(lt),
                 limit: Some(limit),
-                email_eq: None,
-            },
-            UserList::EmailEq(email_eq, limit) => Self {
-                gt: None,
-                lt: None,
-                limit: Some(limit),
-                email_eq: Some(email_eq),
+                email_eq: filter.email_eq,
+                user_id: filter.user_id,
             },
         }
     }

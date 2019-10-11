@@ -7,7 +7,7 @@ pub use crate::core::api::validate::*;
 use crate::{
     core::api::{api_type::*, oauth2::*},
     Audit, AuditData, AuditList, AuditMeta, Auth, AuthArgs, CoreError, CoreResult, Driver, Key,
-    Metrics, NotifyActor, Service, ServiceCreate, ServiceUpdate, User, UserCreate, UserList,
+    Metrics, NotifyActor, Service, ServiceCreate, ServiceUpdate, User, UserCreate,
     UserPasswordMeta, UserRead, UserUpdate,
 };
 use actix::Addr;
@@ -424,10 +424,10 @@ impl Api {
 
         Key::authenticate(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
-                let list: UserList = request.into();
-                let data = User::list(driver, service.as_ref(), &mut audit, &list)?;
+                let (query, filter) = request.into_query_filter();
+                let data = User::list(driver, service.as_ref(), &mut audit, &query, &filter)?;
                 Ok(UserListResponse {
-                    meta: list.into(),
+                    meta: UserListRequest::from_query_filter(query, filter),
                     data,
                 })
             })
