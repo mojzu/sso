@@ -1,6 +1,6 @@
 use crate::{
     impl_enum_to_from_string, AuditBuilder, AuditMessage, AuditMeta, AuditType, CoreError,
-    CoreResult, Driver, Service, User,
+    CoreResult, Driver, Service, User, UserRead,
 };
 use chrono::{DateTime, Utc};
 use libreauth::key::KeyBuilder;
@@ -12,7 +12,6 @@ use uuid::Uuid;
 // TODO(refactor): Improve key, user, service list query options (order by name, text search, ...).
 // TODO(refactor): User last login, key last use information (calculate in SQL).
 // TODO(refactor): Audit key value reads, separate endpoint?
-// TODO(refactor): Create with invalid ID returns 500.
 
 /// Key value size in bytes.
 pub const KEY_VALUE_BYTES: usize = 21;
@@ -62,6 +61,14 @@ impl fmt::Display for Key {
     }
 }
 
+/// Key list query.
+#[derive(Debug)]
+pub enum KeyListQuery {
+    Limit(i64),
+    IdGt(Uuid, i64),
+    IdLt(Uuid, i64),
+}
+
 /// Key list filter.
 #[derive(Debug)]
 pub struct KeyListFilter {
@@ -70,14 +77,6 @@ pub struct KeyListFilter {
     pub type_: Option<Vec<KeyType>>,
     pub service_id: Option<Vec<Uuid>>,
     pub user_id: Option<Vec<Uuid>>,
-}
-
-/// Key list query.
-#[derive(Debug)]
-pub enum KeyListQuery {
-    Limit(i64),
-    IdGt(Uuid, i64),
-    IdLt(Uuid, i64),
 }
 
 /// Key list.
@@ -275,7 +274,7 @@ impl Key {
         mut audit: AuditBuilder,
         service_id: Uuid,
     ) -> CoreResult<(Service, AuditBuilder)> {
-        Service::read_opt(driver, None, &mut audit, service_id).and_then(|service| {
+        Service::read_opt(driver, None, &mut audit, &service_id).and_then(|service| {
             match service.ok_or_else(|| CoreError::Unauthorised) {
                 Ok(service) => {
                     audit.set_service(Some(&service));
@@ -331,13 +330,17 @@ impl Key {
     }
 
     /// Create service key.
+    /// Returns bad request if service does not exist.
     pub fn create_service(
         driver: &dyn Driver,
-        _audit: &mut AuditBuilder,
+        audit: &mut AuditBuilder,
         is_enabled: bool,
         name: String,
-        service_id: Uuid,
+        service_id: &Uuid,
     ) -> CoreResult<Key> {
+        let service = Service::read_opt(driver, None, audit, service_id)?
+            .ok_or_else(|| CoreError::BadRequest)?;
+
         let value = Key::value_generate();
         let create = KeyCreate {
             is_enabled,
@@ -345,38 +348,45 @@ impl Key {
             type_: KeyType::Key,
             name,
             value,
-            service_id: Some(service_id),
+            service_id: Some(service.id),
             user_id: None,
         };
         driver.key_create(&create).map_err(CoreError::Driver)
     }
 
     /// Create user key.
+    /// Returns bad request if more than one `Token` or `Totp` type would be enabled.
+    /// Returns bad request if service or user does not exist.
     pub fn create_user(
         driver: &dyn Driver,
-        _audit: &mut AuditBuilder,
+        audit: &mut AuditBuilder,
         is_enabled: bool,
         type_: KeyType,
         name: String,
-        service_id: Uuid,
-        user_id: Uuid,
+        service_id: &Uuid,
+        user_id: &Uuid,
     ) -> CoreResult<Key> {
         if is_enabled {
             if type_ == KeyType::Token {
-                let count = KeyCount::Token(service_id, user_id);
+                let count = KeyCount::Token(*service_id, *user_id);
                 let count = driver.key_count(&count)?;
                 if count != 0 {
                     return Err(CoreError::BadRequest);
                 }
             }
             if type_ == KeyType::Totp {
-                let count = KeyCount::Totp(service_id, user_id);
+                let count = KeyCount::Totp(*service_id, *user_id);
                 let count = driver.key_count(&count)?;
                 if count != 0 {
                     return Err(CoreError::BadRequest);
                 }
             }
         }
+        let service = Service::read_opt(driver, None, audit, service_id)?
+            .ok_or_else(|| CoreError::BadRequest)?;
+        let user_read = UserRead::Id(*user_id);
+        let user = User::read_opt(driver, None, audit, &user_read)?
+            .ok_or_else(|| CoreError::BadRequest)?;
 
         let value = Key::value_generate();
         let create = KeyCreate {
@@ -385,8 +395,8 @@ impl Key {
             type_,
             name,
             value,
-            service_id: Some(service_id),
-            user_id: Some(user_id),
+            service_id: Some(service.id),
+            user_id: Some(user.id),
         };
         driver.key_create(&create).map_err(CoreError::Driver)
     }

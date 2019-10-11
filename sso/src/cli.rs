@@ -100,7 +100,7 @@ impl Cli {
             &mut audit,
             true,
             name.to_owned(),
-            service.id,
+            &service.id,
         )
         .map_err(SsoError::Core)?;
         Ok((service, key))

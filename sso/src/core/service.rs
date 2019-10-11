@@ -149,9 +149,9 @@ impl Service {
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         _audit: &mut AuditBuilder,
-        id: Uuid,
+        id: &Uuid,
     ) -> CoreResult<Option<Service>> {
-        driver.service_read_opt(&id).map_err(CoreError::Driver)
+        driver.service_read_opt(id).map_err(CoreError::Driver)
     }
 
     /// Update service by ID.

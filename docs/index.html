@@ -801,6 +801,7 @@ sso start-server</code></pre>
 <li>Added <code>Debug</code> trait implementations for public types.</li>
 <li>Added filters to key list endpoint with <code>KeyFilter</code> options.</li>
 <li>Added filters to service list endpoint with <code>ServiceFilter</code> options.</li>
+<li>Added <code>user_id</code> query parameter array for user list endpoint filtering.</li>
 </ul>
 <h3 id="changed">Changed</h3>
 <ul>
@@ -810,6 +811,7 @@ sso start-server</code></pre>
 <ul>
 <li>Fixed <code>clippy</code> too many arguments warnings.</li>
 <li>Fixed <code>ClientActor</code> GET request ignores query string.</li>
+<li>Fixed 500 status code returned trying to create key with invalid service or user ID.</li>
 </ul>
 <h2 id="section-1">0.6.0 (2019-10-07)</h2>
 <h3 id="changed-1">Changed</h3>

@@ -170,6 +170,27 @@ macro_rules! key_integration_test {
 
         #[test]
         #[ignore]
+        fn api_key_create_bad_request_invalid_service_id() {
+            let client = client_create(None);
+            let body = KeyCreateRequest::with_service_id(true, KeyType::Key, KEY_NAME, Uuid::nil());
+            let res = client.key_create(body.clone()).unwrap_err();
+            assert_eq!(res, ClientError::BadRequest);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_key_create_bad_request_invalid_user_id() {
+            let client = client_create(None);
+            let (_service, service_key) = service_key_create(&client);
+
+            let client = client_create(Some(&service_key.value));
+            let body = KeyCreateRequest::with_user_id(true, KeyType::Key, KEY_NAME, Uuid::nil());
+            let res = client.key_create(body.clone()).unwrap_err();
+            assert_eq!(res, ClientError::BadRequest);
+        }
+
+        #[test]
+        #[ignore]
         fn api_key_read_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let res = client.key_read(Uuid::nil()).unwrap_err();

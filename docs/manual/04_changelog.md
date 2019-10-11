@@ -17,6 +17,7 @@
 
 - Fixed `clippy` too many arguments warnings.
 - Fixed `ClientActor` GET request ignores query string.
+- Fixed 500 status code returned trying to create key with invalid service or user ID.
 
 ## 0.6.0 (2019-10-07)
 

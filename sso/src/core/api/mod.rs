@@ -241,8 +241,8 @@ impl Api {
                             request.is_enabled,
                             request.type_,
                             request.name,
-                            service_id,
-                            user_id,
+                            &service_id,
+                            &user_id,
                         ),
                         // Creating service key.
                         None => Key::create_service(
@@ -250,7 +250,7 @@ impl Api {
                             &mut audit,
                             request.is_enabled,
                             request.name,
-                            service_id,
+                            &service_id,
                         ),
                     }
                 })
@@ -265,8 +265,8 @@ impl Api {
                             request.is_enabled,
                             request.type_,
                             request.name,
-                            service.id,
-                            user_id,
+                            &service.id,
+                            &user_id,
                         ),
                         // Service cannot create service keys.
                         None => Err(CoreError::BadRequest),
@@ -376,7 +376,7 @@ impl Api {
     ) -> CoreResult<ServiceReadResponse> {
         Key::authenticate(driver, audit_meta, key_value)
             .and_then(|(service, mut audit)| {
-                Service::read_opt(driver, service.as_ref(), &mut audit, service_id)
+                Service::read_opt(driver, service.as_ref(), &mut audit, &service_id)
             })
             .map_err(Into::into)
             .and_then(|service| service.ok_or_else(|| CoreError::NotFound))
