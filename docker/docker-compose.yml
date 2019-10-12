@@ -1,12 +1,15 @@
 version: "3"
 
 services:
-  # PostgreSQL service.
+  # PostgreSQL with TimescaleDB extension service.
+  # <https://www.postgresql.org/>
+  # <https://www.timescale.com/>
   postgres:
-    image: postgres:11.3
+    build: postgres
     restart: always
+    network_mode: "host"
     environment:
-      POSTGRES_USER: sso
+      POSTGRES_USER: guest
       POSTGRES_PASSWORD: guest
     ports:
       - "5432:5432"

@@ -8,6 +8,7 @@
 - Added filters to key list endpoint with `KeyFilter` options.
 - Added filters to service list endpoint with `ServiceFilter` options.
 - Added `id` query parameter array for key, service and user list endpoint filtering.
+- Added `docker-pg-dump`, `docker-pg-restore` targets to `Makefile.toml`.
 
 ### Changed
 

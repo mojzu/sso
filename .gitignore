@@ -5,5 +5,8 @@
 /Cargo.toml
 /Cargo.lock
 
+# Ignore pgdump files.
+*.pgdump
+
 # Ignore SQLite databases.
 *.sqlite3

@@ -802,6 +802,7 @@ sso start-server</code></pre>
 <li>Added filters to key list endpoint with <code>KeyFilter</code> options.</li>
 <li>Added filters to service list endpoint with <code>ServiceFilter</code> options.</li>
 <li>Added <code>id</code> query parameter array for key, service and user list endpoint filtering.</li>
+<li>Added <code>docker-pg-dump</code>, <code>docker-pg-restore</code> targets to <code>Makefile.toml</code>.</li>
 </ul>
 <h3 id="changed">Changed</h3>
 <ul>
@@ -940,6 +941,9 @@ cargo install --force cargo-audit</code></pre>
 <p><a href="docker">Docker</a> and <a href="docker-compose">Docker Compose</a> are used for development, install them using the linked documentation.</p>
 <p>To start containers defined in <code>docker/docker-compose.yml</code>.</p>
 <pre class="shell"><code>cargo make docker-up</code></pre>
+<p>To backup and restore <code>sso</code> database in <code>postgres</code> container.</p>
+<pre class="shell"><code>cargo make docker-pg-dump
+cargo make docker-pg-restore</code></pre>
 <p>To stop and destroy containers.</p>
 <pre class="shell"><code>cargo make docker-stop
 cargo make docker-down</code></pre>

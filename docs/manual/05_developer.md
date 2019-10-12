@@ -40,6 +40,13 @@ To start containers defined in `docker/docker-compose.yml`.
 cargo make docker-up
 ```
 
+To backup and restore `sso` database in `postgres` container.
+
+```shell
+cargo make docker-pg-dump
+cargo make docker-pg-restore
+```
+
 To stop and destroy containers.
 
 ```shell
