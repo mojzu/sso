@@ -28,10 +28,10 @@ clap = "2.33.0"
 chrono = { version = "0.4.9", features = ["serde"] }
 chrono-tz = "0.5.1"
 derive_builder = "0.8.0"
-diesel = { version = "1.4.2", features = ["postgres", "sqlite", "r2d2", "chrono", "serde_json", "uuidv07"] }
+diesel = { version = "1.4.3", features = ["postgres", "sqlite", "r2d2", "chrono", "serde_json", "uuidv07"] }
 diesel_migrations = { version = "1.4.0", features = ["postgres", "sqlite"] }
 env_logger = "0.7.0"
-failure = "0.1.5"
+failure = "0.1.6"
 futures = "0.1.29"
 handlebars = "2.0.2"
 http = "0.1.18"
