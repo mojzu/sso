@@ -39,6 +39,7 @@ pub mod api_path {
     pub const REFRESH: &str = "/refresh";
     pub const REVOKE: &str = "/revoke";
     pub const TOTP: &str = "/totp";
+    pub const CSRF: &str = "/csrf";
     pub const AUDIT: &str = "/audit";
     pub const SERVICE: &str = "/service";
     pub const USER: &str = "/user";
@@ -67,6 +68,7 @@ pub mod api_route {
     pub const AUTH_TOKEN_REFRESH: &str = "/v1/auth/token/refresh";
     pub const AUTH_TOKEN_REVOKE: &str = "/v1/auth/token/revoke";
     pub const AUTH_TOTP: &str = "/v1/auth/totp";
+    pub const AUTH_CSRF: &str = "/v1/auth/csrf";
     pub const AUDIT: &str = "/v1/audit";
     pub const KEY: &str = "/v1/key";
     pub const SERVICE: &str = "/v1/service";
@@ -880,5 +882,33 @@ impl Api {
                 )
             })
             .map_err(Into::into)
+    }
+
+    pub fn auth_csrf_create(
+        driver: &dyn Driver,
+        key_value: Option<String>,
+        audit_meta: AuditMeta,
+        request: AuthCsrfCreateRequest,
+    ) -> CoreResult<AuthCsrfCreateResponse> {
+        AuthCsrfCreateRequest::api_validate(&request)?;
+
+        let (service, mut audit) = Key::authenticate_service(driver, audit_meta, key_value)?;
+        let data = Auth::csrf_create(
+            AuthArgs::new(driver, &service, &mut audit),
+            request.expires_s,
+        )?;
+        Ok(AuthCsrfCreateResponse { data })
+    }
+
+    pub fn auth_csrf_verify(
+        driver: &dyn Driver,
+        key_value: Option<String>,
+        audit_meta: AuditMeta,
+        request: AuthCsrfVerifyRequest,
+    ) -> CoreResult<()> {
+        AuthCsrfVerifyRequest::api_validate(&request)?;
+
+        let (service, mut audit) = Key::authenticate_service(driver, audit_meta, key_value)?;
+        Auth::csrf_verify(AuthArgs::new(driver, &service, &mut audit), request.key)
     }
 }

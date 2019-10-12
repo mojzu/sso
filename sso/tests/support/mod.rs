@@ -1,4 +1,5 @@
 mod audit;
+mod auth_csrf;
 mod auth_key;
 mod auth_local;
 mod auth_token;
@@ -11,14 +12,15 @@ mod user;
 use chrono::Utc;
 pub use serde_json::Value;
 use sso::{
-    api_type::AuthOauth2UrlResponse, KeyWithValue, Service, User, UserKey, UserToken, UserTokenAccess,
+    api_type::AuthOauth2UrlResponse, KeyWithValue, Service, User, UserKey, UserToken,
+    UserTokenAccess,
 };
 pub use sso::{
     api_type::{
-        AuditCreateRequest, AuditListRequestBuilder, AuthKeyRequest, AuthLoginRequest,
-        AuthResetPasswordConfirmRequest, AuthResetPasswordRequest, AuthTokenRequest,
-        AuthTotpRequest, KeyCreateRequest, KeyListRequestBuilder, ServiceCreateRequest,
-        ServiceListRequestBuilder, UserCreateRequest, UserListRequestBuilder,
+        AuditCreateRequest, AuditListRequestBuilder, AuthCsrfCreateRequest, AuthKeyRequest,
+        AuthLoginRequest, AuthResetPasswordConfirmRequest, AuthResetPasswordRequest,
+        AuthTokenRequest, AuthTotpRequest, KeyCreateRequest, KeyListRequestBuilder,
+        ServiceCreateRequest, ServiceListRequestBuilder, UserCreateRequest, UserListRequestBuilder,
     },
     Client, ClientActorOptions, ClientError, ClientOptions, ClientSync, KeyType,
 };

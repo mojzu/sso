@@ -126,4 +126,16 @@ impl ApiValidate {
             Ok(())
         }
     }
+
+    pub fn csrf_key(key: &str) -> Result<(), ValidationError> {
+        Self::key(key)
+    }
+
+    pub fn csrf_expires_s(expires_s: i64) -> Result<(), ValidationError> {
+        if expires_s < 0 || expires_s > 86400 {
+            Err(ValidationError::new("invalid_expires_s"))
+        } else {
+            Ok(())
+        }
+    }
 }

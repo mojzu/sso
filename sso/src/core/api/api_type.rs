@@ -1,7 +1,7 @@
 //! # API Types
 use crate::{
     ApiValidate, ApiValidateRequest, ApiValidateRequestQuery, Audit, AuditData, AuditListFilter,
-    AuditListQuery, Core, Key, KeyListFilter, KeyListQuery, KeyType, KeyWithValue, Service,
+    AuditListQuery, Core, Csrf, Key, KeyListFilter, KeyListQuery, KeyType, KeyWithValue, Service,
     ServiceCreate, ServiceListFilter, ServiceListQuery, ServiceUpdate, User, UserCreate, UserKey,
     UserListFilter, UserListQuery, UserPasswordMeta, UserToken, UserTokenAccess,
 };
@@ -779,6 +779,39 @@ impl AuthTotpRequest {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize, Validate, Builder)]
+#[serde(deny_unknown_fields)]
+pub struct AuthCsrfCreateRequest {
+    #[validate(custom = "ApiValidate::csrf_expires_s")]
+    pub expires_s: Option<i64>,
+}
+
+impl ApiValidateRequest<AuthCsrfCreateRequest> for AuthCsrfCreateRequest {}
+impl ApiValidateRequestQuery<AuthCsrfCreateRequest> for AuthCsrfCreateRequest {}
+
+impl AuthCsrfCreateRequest {
+    pub fn new(expires_s: i64) -> Self {
+        Self {
+            expires_s: Some(expires_s),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthCsrfCreateResponse {
+    pub data: Csrf,
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthCsrfVerifyRequest {
+    #[validate(custom = "ApiValidate::csrf_key")]
+    pub key: String,
+}
+
+impl ApiValidateRequest<AuthCsrfVerifyRequest> for AuthCsrfVerifyRequest {}
 
 // --------------------------
 // Authentication Local Types

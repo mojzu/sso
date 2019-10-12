@@ -14,6 +14,7 @@ use support::*;
 // Cannot reuse token.
 
 audit_integration_test!();
+auth_csrf_integration_test!();
 auth_key_integration_test!();
 auth_local_integration_test!();
 auth_token_integration_test!();

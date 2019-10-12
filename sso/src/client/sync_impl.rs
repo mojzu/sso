@@ -2,14 +2,16 @@ use crate::{
     api_route,
     api_type::{
         AuditCreateRequest, AuditDataRequest, AuditListRequest, AuditListResponse,
-        AuditReadResponse, AuthKeyRequest, AuthKeyResponse, AuthLoginRequest, AuthLoginResponse,
+        AuditReadResponse, AuthCsrfCreateRequest, AuthCsrfCreateResponse, AuthCsrfVerifyRequest,
+        AuthKeyRequest, AuthKeyResponse, AuthLoginRequest, AuthLoginResponse,
         AuthOauth2CallbackRequest, AuthOauth2UrlResponse, AuthPasswordMetaResponse,
         AuthResetPasswordConfirmRequest, AuthResetPasswordRequest, AuthTokenAccessResponse,
         AuthTokenRequest, AuthTokenResponse, AuthTotpRequest, AuthUpdateEmailRequest,
-        AuthUpdatePasswordRequest, KeyCreateRequest, KeyListRequest, KeyListResponse,
-        KeyReadResponse, KeyUpdateRequest, ServiceCreateRequest, ServiceListRequest,
-        ServiceListResponse, ServiceReadResponse, ServiceUpdateRequest, UserCreateRequest,
-        UserCreateResponse, UserListRequest, KeyCreateResponse, UserListResponse, UserReadResponse, UserUpdateRequest,
+        AuthUpdatePasswordRequest, KeyCreateRequest, KeyCreateResponse, KeyListRequest,
+        KeyListResponse, KeyReadResponse, KeyUpdateRequest, ServiceCreateRequest,
+        ServiceListRequest, ServiceListResponse, ServiceReadResponse, ServiceUpdateRequest,
+        UserCreateRequest, UserCreateResponse, UserListRequest, UserListResponse, UserReadResponse,
+        UserUpdateRequest,
     },
     Client, ClientActorOptions, ClientError, ClientOptions, ClientResult, User,
 };
@@ -226,6 +228,21 @@ impl ClientSync {
     /// Authentication TOTP.
     pub fn auth_totp(&self, body: AuthTotpRequest) -> ClientResult<()> {
         self.post_json(api_route::AUTH_TOTP, &body)
+            .and_then(Client::response_empty)
+    }
+
+    /// Authentication create CSRF.
+    pub fn auth_csrf_create(
+        &self,
+        query: AuthCsrfCreateRequest,
+    ) -> ClientResult<AuthCsrfCreateResponse> {
+        self.get_query(api_route::AUTH_CSRF, &query)
+            .and_then(Client::response_json::<AuthCsrfCreateResponse>)
+    }
+
+    /// Authentication verify CSRF.
+    pub fn auth_csrf_verify(&self, body: AuthCsrfVerifyRequest) -> ClientResult<()> {
+        self.post_json(api_route::AUTH_CSRF, &body)
             .and_then(Client::response_empty)
     }
 

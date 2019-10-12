@@ -38,6 +38,7 @@ pub enum AuditType {
     TokenRevoke,
     TokenRevokeError,
     TotpError,
+    CsrfError,
 }
 
 impl_enum_to_from_string!(AuditType);

@@ -1,7 +1,7 @@
 use crate::{
     notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
-    AuditBuilder, AuditData, AuditMessage, AuditType, CoreError, CoreResult, Csrf, Driver, Jwt,
-    JwtClaimsType, Key, KeyType, KeyWithValue, NotifyActor, Service, User, UserKey, UserRead,
+    AuditBuilder, AuditData, AuditMessage, AuditType, Core, CoreError, CoreResult, Csrf, Driver,
+    Jwt, JwtClaimsType, Key, KeyType, KeyWithValue, NotifyActor, Service, User, UserKey, UserRead,
     UserToken, UserTokenAccess, UserUpdate,
 };
 use actix::Addr;
@@ -89,7 +89,8 @@ impl Auth {
         // Successful login, encode and return user token.
         let user_token = Auth::encode_user_token(
             args.driver,
-            &args.service,
+            args.service,
+            args.audit,
             &user,
             &key,
             access_token_expires,
@@ -146,7 +147,7 @@ impl Auth {
         }
 
         // Successful reset password, encode reset token.
-        let csrf = Auth::csrf_create(args.driver, args.service, token_expires)?;
+        let csrf = Auth::csrf_create_inner(args.driver, args.service, args.audit, token_expires)?;
         let (token, _) = Jwt::encode_token_csrf(
             args.service.id,
             user.id,
@@ -231,10 +232,11 @@ impl Auth {
         };
 
         // Check the CSRF key to prevent reuse.
-        Auth::csrf_check(
+        Auth::csrf_verify_inner(
             args.driver,
+            args.service,
+            args.audit,
             csrf_key,
-            &args.audit,
             AuditType::ResetPasswordConfirmError,
         )?;
 
@@ -302,7 +304,8 @@ impl Auth {
         }
 
         // Successful update email, encode revoke token.
-        let csrf = Auth::csrf_create(args.driver, args.service, revoke_token_expires)?;
+        let csrf =
+            Auth::csrf_create_inner(args.driver, args.service, args.audit, revoke_token_expires)?;
         let (revoke_token, _) = Jwt::encode_token_csrf(
             args.service.id,
             user.id,
@@ -395,10 +398,11 @@ impl Auth {
         };
 
         // Check the CSRF key to prevent reuse.
-        Auth::csrf_check(
+        Auth::csrf_verify_inner(
             args.driver,
+            args.service,
+            args.audit,
             csrf_key,
-            &args.audit,
             AuditType::UpdateEmailRevokeError,
         )?;
 
@@ -479,7 +483,8 @@ impl Auth {
         }
 
         // Successful update password, encode revoke token.
-        let csrf = Auth::csrf_create(args.driver, args.service, revoke_token_expires)?;
+        let csrf =
+            Auth::csrf_create_inner(args.driver, args.service, args.audit, revoke_token_expires)?;
         let (revoke_token, _) = Jwt::encode_token_csrf(
             args.service.id,
             user.id,
@@ -571,10 +576,11 @@ impl Auth {
         };
 
         // Check the CSRF key to prevent reuse.
-        Auth::csrf_check(
+        Auth::csrf_verify_inner(
             args.driver,
+            args.service,
+            args.audit,
             csrf_key,
-            &args.audit,
             AuditType::UpdatePasswordRevokeError,
         )?;
 
@@ -800,17 +806,19 @@ impl Auth {
         };
 
         // Check the CSRF key to prevent reuse.
-        Auth::csrf_check(
+        Auth::csrf_verify_inner(
             args.driver,
+            args.service,
+            args.audit,
             csrf_key,
-            &args.audit,
             AuditType::TokenRefreshError,
         )?;
 
         // Successful token refresh, encode user token.
         let user_token = Auth::encode_user_token(
             args.driver,
-            &args.service,
+            args.service,
+            args.audit,
             &user,
             &key,
             access_token_expires,
@@ -932,6 +940,23 @@ impl Auth {
         }
     }
 
+    /// CSRF creation.
+    pub fn csrf_create(args: AuthArgs, expires_s: Option<i64>) -> CoreResult<Csrf> {
+        let expires_s = expires_s.unwrap_or_else(Core::default_csrf_expires_s);
+        Self::csrf_create_inner(args.driver, args.service, args.audit, expires_s)
+    }
+
+    /// CSRF verification.
+    pub fn csrf_verify(args: AuthArgs, csrf_key: String) -> CoreResult<()> {
+        Self::csrf_verify_inner(
+            args.driver,
+            args.service,
+            args.audit,
+            csrf_key,
+            AuditType::CsrfError,
+        )
+    }
+
     /// OAuth2 user login.
     pub fn oauth2_login(
         args: AuthArgs,
@@ -977,6 +1002,7 @@ impl Auth {
         let user_token = Auth::encode_user_token(
             args.driver,
             &service,
+            args.audit,
             &user,
             &key,
             access_token_expires,
@@ -1207,12 +1233,13 @@ impl Auth {
     fn encode_user_token(
         driver: &dyn Driver,
         service: &Service,
+        audit: &mut AuditBuilder,
         user: &User,
         key: &KeyWithValue,
         access_token_expires: i64,
         refresh_token_expires: i64,
     ) -> CoreResult<UserToken> {
-        let csrf = Auth::csrf_create(driver, &service, refresh_token_expires)?;
+        let csrf = Auth::csrf_create_inner(driver, service, audit, refresh_token_expires)?;
         let (access_token, access_token_expires) = Jwt::encode_token(
             service.id,
             user.id,
@@ -1238,24 +1265,35 @@ impl Auth {
     }
 
     /// Create a new CSRF key, value pair using random key.
-    fn csrf_create(driver: &dyn Driver, service: &Service, token_expires: i64) -> CoreResult<Csrf> {
+    fn csrf_create_inner(
+        driver: &dyn Driver,
+        service: &Service,
+        _audit: &mut AuditBuilder,
+        token_expires: i64,
+    ) -> CoreResult<Csrf> {
         let csrf_key = Key::value_generate();
         Csrf::create(driver, service, csrf_key.clone(), csrf_key, token_expires)
     }
 
-    /// Check a CSRF key is valid by reading it, this will also delete the key.
-    fn csrf_check(
+    /// Verify a CSRF key is valid by reading it, this will also delete the key.
+    /// Also checks service verifying CSRF is same service that created it.
+    fn csrf_verify_inner(
         driver: &dyn Driver,
+        service: &Service,
+        audit: &mut AuditBuilder,
         csrf_key: String,
-        audit: &AuditBuilder,
         audit_type: AuditType,
     ) -> CoreResult<()> {
-        let res = Csrf::read_opt(driver, csrf_key)?
-            .ok_or_else(|| CoreError::BadRequest)
-            .map(|_| ());
+        let res = Csrf::read_opt(driver, csrf_key)?.ok_or_else(|| CoreError::BadRequest);
 
         match res {
-            Ok(_) => Ok(()),
+            Ok(csrf) => {
+                if csrf.service_id != service.id {
+                    audit.create_internal(driver, audit_type, AuditMessage::CsrfNotFoundOrUsed);
+                    return Err(CoreError::BadRequest);
+                }
+                Ok(())
+            }
             Err(err) => {
                 audit.create_internal(driver, audit_type, AuditMessage::CsrfNotFoundOrUsed);
                 Err(err)

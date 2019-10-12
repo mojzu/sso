@@ -24,4 +24,9 @@ impl Core {
     pub fn default_limit() -> i64 {
         50
     }
+
+    /// Default CSRF expires in seconds.
+    pub fn default_csrf_expires_s() -> i64 {
+        1000
+    }
 }

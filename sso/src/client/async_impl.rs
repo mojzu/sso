@@ -2,14 +2,16 @@ use crate::{
     api_route,
     api_type::{
         AuditCreateRequest, AuditDataRequest, AuditListRequest, AuditListResponse,
-        AuditReadResponse, AuthKeyRequest, AuthKeyResponse, AuthLoginRequest, AuthLoginResponse,
+        AuditReadResponse, AuthCsrfCreateRequest, AuthCsrfCreateResponse, AuthCsrfVerifyRequest,
+        AuthKeyRequest, AuthKeyResponse, AuthLoginRequest, AuthLoginResponse,
         AuthOauth2CallbackRequest, AuthOauth2UrlResponse, AuthPasswordMetaResponse,
         AuthResetPasswordConfirmRequest, AuthResetPasswordRequest, AuthTokenAccessResponse,
         AuthTokenRequest, AuthTokenResponse, AuthTotpRequest, AuthUpdateEmailRequest,
-        AuthUpdatePasswordRequest, KeyCreateRequest, KeyListRequest, KeyListResponse,
-        KeyReadResponse, KeyUpdateRequest, ServiceCreateRequest, ServiceListRequest,
-        ServiceListResponse, ServiceReadResponse, ServiceUpdateRequest, UserCreateRequest,
-        UserCreateResponse, UserListRequest, KeyCreateResponse, UserListResponse, UserReadResponse, UserUpdateRequest,
+        AuthUpdatePasswordRequest, KeyCreateRequest, KeyCreateResponse, KeyListRequest,
+        KeyListResponse, KeyReadResponse, KeyUpdateRequest, ServiceCreateRequest,
+        ServiceListRequest, ServiceListResponse, ServiceReadResponse, ServiceUpdateRequest,
+        UserCreateRequest, UserCreateResponse, UserListRequest, UserListResponse, UserReadResponse,
+        UserUpdateRequest,
     },
     client_msg::{Delete, Get, PatchJson, PostJson},
     Client, ClientActor, ClientActorRequest, ClientError, ClientOptions, User,
@@ -349,6 +351,37 @@ impl ClientAsync {
         self.addr
             .send(
                 PostJson::new(self.url(), api_route::AUTH_TOTP, Some(body))
+                    .authorisation(self.options.authorisation())
+                    .forwarded(self.options.forwarded()),
+            )
+            .map_err(Into::into)
+            .and_then(Client::result_empty)
+    }
+
+    /// Authentication create CSRF.
+    pub fn auth_csrf_create(
+        &self,
+        query: AuthCsrfCreateRequest,
+    ) -> impl Future<Item = AuthCsrfCreateResponse, Error = ClientError> {
+        let msg = Get::new(self.url(), api_route::AUTH_CSRF)
+            .authorisation(self.options.authorisation())
+            .forwarded(self.options.forwarded())
+            .query(query)
+            .unwrap();
+        self.addr
+            .send(msg)
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuthCsrfCreateResponse>)
+    }
+
+    /// Authentication verify CSRF.
+    pub fn auth_csrf_verify(
+        &self,
+        body: AuthCsrfVerifyRequest,
+    ) -> impl Future<Item = (), Error = ClientError> {
+        self.addr
+            .send(
+                PostJson::new(self.url(), api_route::AUTH_CSRF, Some(body))
                     .authorisation(self.options.authorisation())
                     .forwarded(self.options.forwarded()),
             )

@@ -401,6 +401,7 @@ page-break-after: avoid;
 <li><a href="#api-key">API Key</a></li>
 <li><a href="#oauth2-login">OAuth2 Login</a></li>
 <li><a href="#totp">TOTP</a></li>
+<li><a href="#csrf">CSRF</a></li>
 </ul></li>
 <li><a href="#cli">CLI</a></li>
 <li><a href="#changelog">Changelog</a><ul>
@@ -792,6 +793,8 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39; \
   $server_url/v1/auth/key/revoke</code></pre>
+<h2 id="csrf">CSRF</h2>
+<p>TODO(docs): Write CSRF guide.</p>
 <h1 id="cli">CLI</h1>
 <p>TODO(docs): CLI documentation.</p>
 <h1 id="changelog">Changelog</h1>
@@ -803,6 +806,7 @@ sso start-server</code></pre>
 <li>Added filters to service list endpoint with <code>ServiceFilter</code> options.</li>
 <li>Added <code>id</code> query parameter array for key, service and user list endpoint filtering.</li>
 <li>Added <code>docker-pg-dump</code>, <code>docker-pg-restore</code> targets to <code>Makefile.toml</code>.</li>
+<li>Added CSRF create and verify API endpoints.</li>
 </ul>
 <h3 id="changed">Changed</h3>
 <ul>
