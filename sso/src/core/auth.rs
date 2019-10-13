@@ -91,7 +91,7 @@ impl Auth {
             args.driver,
             args.service,
             args.audit,
-            &user,
+            user,
             &key,
             access_token_expires,
             refresh_token_expires,
@@ -638,21 +638,27 @@ impl Auth {
         )?;
 
         // Check key is associated with user.
-        let user_id = match key.user_id.ok_or_else(|| CoreError::BadRequest) {
-            Ok(user_id) => user_id,
+        let user = match key.user_id.ok_or_else(|| CoreError::BadRequest) {
+            Ok(user_id) => Auth::user_read_by_id(
+                args.driver,
+                Some(args.service),
+                args.audit,
+                AuditType::KeyVerifyError,
+                user_id,
+            ),
             Err(err) => {
                 args.audit.create_internal(
                     args.driver,
                     AuditType::KeyVerifyError,
                     AuditMessage::KeyNotFound,
                 );
-                return Err(err);
+                Err(err)
             }
-        };
+        }?;
 
         // Successful key verify.
         let user_key = UserKey {
-            user_id,
+            user,
             key: key.value,
         };
 
@@ -746,7 +752,7 @@ impl Auth {
 
         // Successful token verify.
         let user_token = UserTokenAccess {
-            user_id: user.id.to_owned(),
+            user,
             access_token: token.to_owned(),
             access_token_expires,
         };
@@ -819,7 +825,7 @@ impl Auth {
             args.driver,
             args.service,
             args.audit,
-            &user,
+            user,
             &key,
             access_token_expires,
             refresh_token_expires,
@@ -1003,7 +1009,7 @@ impl Auth {
             args.driver,
             &service,
             args.audit,
-            &user,
+            user,
             &key,
             access_token_expires,
             refresh_token_expires,
@@ -1234,7 +1240,7 @@ impl Auth {
         driver: &dyn Driver,
         service: &Service,
         audit: &mut AuditBuilder,
-        user: &User,
+        user: User,
         key: &KeyWithValue,
         access_token_expires: i64,
         refresh_token_expires: i64,
@@ -1256,7 +1262,7 @@ impl Auth {
             refresh_token_expires,
         )?;
         Ok(UserToken {
-            user_id: user.id.to_owned(),
+            user,
             access_token,
             access_token_expires,
             refresh_token,

@@ -671,7 +671,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{server_url}}/v1/auth/csrf?expires=1000",
+							"raw": "{{server_url}}/v1/auth/csrf?expires_s=1000",
 							"host": [
 								"{{server_url}}"
 							],
@@ -682,7 +682,7 @@
 							],
 							"query": [
 								{
-									"key": "expires",
+									"key": "expires_s",
 									"value": "1000",
 									"description": "Expiry time in seconds (required)."
 								}
@@ -877,6 +877,12 @@
 									"disabled": true
 								},
 								{
+									"key": "id[0]",
+									"value": "{{key_id}}",
+									"description": "ID filter (optional).",
+									"disabled": true
+								},
+								{
 									"key": "is_enabled",
 									"value": "false",
 									"description": "Is enabled filter (optional).",
@@ -943,7 +949,7 @@
 								"key"
 							]
 						},
-						"description": "Service keys can only be created with root key authorisation, else user is created for service making request.\n\nUnless creating a service key, `service_id` field must be removed.\n\nService keys `allow_token` and `allow_totp` are always false.\n\nUsers may only have one enabled and not revoked key where `allow_token` is true.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key name is invalid.\n- Service ID is invalid or service does not exist.\n- User ID is invalid or user does not exist.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
+						"description": "Service keys can only be created with root key authorisation, else user key is created for service making request.\n\nUnless creating a service key, `service_id` field must be removed.\n\nKey types are: `Key`, `Token`, `Totp`.\n\nRoot and service keys must be `Key` type.\n\nUsers may only have one enabled and not revoked key where type is `Token`.\n\nUsers may only have one enabled and not revoked key where type is `Totp`.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- Key name is invalid.\n- Service ID is invalid or service does not exist.\n- User ID is invalid or user does not exist.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -981,7 +987,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"is_enabled\": true,\n\t\"allow_key\": true,\n\t\"allow_token\": true,\n\t\"allow_totp\": false,\n\t\"name\": \"Service Key 01\"\n}",
+							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"Service Key 01\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1035,7 +1041,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{server_url}}/v1/service",
+							"raw": "{{server_url}}/v1/service?",
 							"host": [
 								"{{server_url}}"
 							],
@@ -1063,8 +1069,14 @@
 									"disabled": true
 								},
 								{
+									"key": "id[0]",
+									"value": "{{service_id}}",
+									"description": "ID filter array (optional).",
+									"disabled": true
+								},
+								{
 									"key": "is_enabled",
-									"value": "false",
+									"value": "true",
 									"description": "Is enabled filter (optional).",
 									"disabled": true
 								}
@@ -1088,7 +1100,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"Service 2\",\n\t\"url\": \"http://localhost:9002\"\n}\n",
+							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"Service 1\",\n\t\"url\": \"http://localhost:9001\",\n\t\"provider_local_url\": \"http://localhost:9001/sso/local\",\n\t\"provider_github_oauth2_url\": \"http://localhost:9001/sso/github/oauth2\",\n\t\"provider_microsoft_oauth2_url\": \"http://localhost:9001/sso/microsoft/oauth2\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1143,7 +1155,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"Service 1\"\n}",
+							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"Named Service\",\n\t\"url\": \"http://localhost:9002\",\n\t\"provider_local_url\": \"http://localhost:9002/sso/local\",\n\t\"provider_github_oauth2_url\": \"http://localhost:9002/sso/github/oauth2\",\n\t\"provider_microsoft_oauth2_url\": \"http://localhost:9002/sso/microsoft/oauth2\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1197,7 +1209,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{server_url}}/v1/user?",
+							"raw": "{{server_url}}/v1/user",
 							"host": [
 								"{{server_url}}"
 							],
@@ -1225,6 +1237,12 @@
 									"disabled": true
 								},
 								{
+									"key": "id[0]",
+									"value": "{{user_id}}",
+									"description": "ID filter (optional).",
+									"disabled": true
+								},
+								{
 									"key": "email_eq",
 									"value": "{{user_email}}",
 									"description": "Filter users by email address (optional).",
@@ -1244,13 +1262,13 @@
 							{
 								"key": "Content-Type",
 								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
+								"type": "text",
+								"value": "application/json"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"is_enabled\": true,\n  \"name\": \"UserName\",\n  \"email\": \"{{user_email}}\",\n  \"locale\": \"en_GB\",\n  \"timezone\": \"Etc/UTC\",\n  \"password\": \"guestguest\",\n  \"password_update_required\": false\n}\n",
+							"raw": "{\n  \"is_enabled\": true,\n  \"name\": \"UserName\",\n  \"email\": \"{{user_email}}\",\n  \"locale\": \"en\",\n  \"timezone\": \"Etc/UTC\",\n  \"password_allow_reset\": false,\n  \"password_require_update\": false,\n  \"password\": \"guestguest\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1267,7 +1285,7 @@
 								"user"
 							]
 						},
-						"description": "Users can be created without a password by excluding `password` and `password_update_required` fields.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User name is invalid.\n- User email address is invalid or not unique.\n- User password is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
+						"description": "Users can be created without a password by excluding password related fields.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User name is invalid.\n- User email address is invalid or not unique.\n- User password is invalid.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
 					},
 					"response": []
 				},
@@ -1305,7 +1323,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"NewName\",\n\t\"locale\": \"de_DE\",\n\t\"timezone\": \"Europe/London\",\n\t\"password_update_required\": true\n}",
+							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"NewName\",\n\t\"locale\": \"en_GB\",\n\t\"timezone\": \"Europe/London\",\n\t\"password_allow_reset\": true,\n\t\"password_require_update\": false\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1506,103 +1524,103 @@
 	],
 	"variable": [
 		{
-			"id": "147685e6-04f6-4054-ac65-d1f52f9f94ee",
+			"id": "32dc325d-aa77-4d8a-bf21-bac131f67549",
 			"key": "server_url",
 			"value": "localhost:9000",
 			"type": "string"
 		},
 		{
-			"id": "9fc4f955-0f91-4bf7-bc70-e82fbd92bfc4",
+			"id": "e9aeed46-08fb-4646-abfe-27672fba3100",
 			"key": "key",
 			"value": "{{root_key}}",
 			"type": "string"
 		},
 		{
-			"id": "f7653287-1bdf-4712-9d9b-6ce2d47ea163",
+			"id": "76d3a265-db8a-4b23-b014-c37b1b5543de",
 			"key": "root_key",
-			"value": "HTRRI4EDZYPNBB57SU2E2XWZO3RHVRHSWI",
+			"value": "Q7THHXZDIZQKQTNPSBKQDJAHAE4XGPDI2Y",
 			"type": "string"
 		},
 		{
-			"id": "6eacd508-8d4e-4d97-85c6-1f67e5ed4c41",
+			"id": "0cf83f45-46ad-493b-8feb-5fc76fb24b12",
 			"key": "service_key",
-			"value": "PT3BPWLKFUX26732KQCKO3V7NIX6FM2RBE",
+			"value": "AN3SRWT2TG2KP2NOSCJ2TPYN2FYHSOE6MU",
 			"type": "string"
 		},
 		{
-			"id": "7925cadd-b309-4ada-b2a2-8c02465c087c",
+			"id": "69c530de-45e1-4602-bd18-b0115f658897",
 			"key": "service_id",
-			"value": "b20c6344-3f92-4b64-a5b9-1e7ce3cd565f",
+			"value": "2107d8d6-c9ec-4fa4-9c4d-d0d095d6ec62",
 			"type": "string"
 		},
 		{
-			"id": "02380261-2658-41d0-9966-2a6f505a5385",
+			"id": "9592d62f-f7f1-4336-a524-1e3728795422",
 			"key": "key_id",
-			"value": "b78cf18a-090d-43ee-8bd4-d520dda753a0",
+			"value": "7fe29d76-1af8-4364-bf2f-a24e1ac6717c",
 			"type": "string"
 		},
 		{
-			"id": "a6f2d4c5-ef0a-45be-80fe-80967718d805",
+			"id": "eac7b54d-f3ec-4557-a69e-e2507720f893",
 			"key": "user_id",
-			"value": "8d7b3d44-94f6-4995-954b-20ce19f6923f",
+			"value": "f013baa6-89cc-4873-a49e-1e76bbb8293a",
 			"type": "string"
 		},
 		{
-			"id": "f3416300-be96-488a-8735-adcd18481d48",
+			"id": "60a08bad-78d4-411f-b04f-7fdcebcd3624",
 			"key": "user_email",
 			"value": "user@example.com",
 			"type": "string"
 		},
 		{
-			"id": "8d255dbb-449d-4067-a6e6-faba98814850",
+			"id": "4920c93f-472a-4965-90ac-98492692ab7f",
 			"key": "audit_id",
 			"value": "961359b5-4d89-49e6-a3d2-714a73857eeb",
 			"type": "string"
 		},
 		{
-			"id": "f05eaa84-60ca-473a-8d9b-5a2cec3f66a9",
+			"id": "5983bbd4-af16-4b92-afa6-f051f81191b1",
 			"key": "user_access_token",
-			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTA5MDQsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.veHb4RzBlR4-QJKvD5RY4YdfhjMf9rdoQH0fPFxSiH4",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyMTA3ZDhkNi1jOWVjLTRmYTQtOWM0ZC1kMGQwOTVkNmVjNjIiLCJzdWIiOiJmMDEzYmFhNi04OWNjLTQ4NzMtYTQ5ZS0xZTc2YmJiODI5M2EiLCJleHAiOjE1NzA5NzgyOTEsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.4NRPIQMZRJP-Su_EoHWSeJClYIwhKjwE_1bRxAQeTqU",
 			"type": "string"
 		},
 		{
-			"id": "5493a64f-e0bb-4788-9bdd-06c8e4f4c0de",
+			"id": "f34687c0-db37-4ec2-9696-971906850510",
 			"key": "user_refresh_token",
-			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiIxMmYyZGRjYy1jZGEzLTQxNWEtOTJmNy00OTNjODUzMDYwOTciLCJleHAiOjE1NzAxMzI1NzksInhfdHlwZSI6MSwieF9jc3JmIjoiNzI1SzdJRFpTS0QySE1URUFQTVo2S09RVVJTQktDT0VZVSJ9.P6H3vabqLwyUDrICyOCH8cUl-vFGWKtvEmKl2M3e6EI",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyMTA3ZDhkNi1jOWVjLTRmYTQtOWM0ZC1kMGQwOTVkNmVjNjIiLCJzdWIiOiJmMDEzYmFhNi04OWNjLTQ4NzMtYTQ5ZS0xZTc2YmJiODI5M2EiLCJleHAiOjE1NzEwNjEwOTEsInhfdHlwZSI6MSwieF9jc3JmIjoiU1ZaQjZSM0RIVloyUksyUDcySUs2WFpINTZQVlROQ0FEUSJ9.7p6ou_c9GjptwQsOeSpxby8hRyZFUgGu6lummCvlhQE",
 			"type": "string"
 		},
 		{
-			"id": "3a609097-b489-4a49-b8a4-19f9c4836a05",
+			"id": "d10fcfb5-a69a-461e-a96d-c218411c4511",
 			"key": "user_key",
-			"value": "K54F4ORUAF6VBWACBENOANDZUHHHCVWR3A",
+			"value": "PVYBXVXJATJHIVMNCZORHE3GDUXDJCJCIE",
 			"type": "string"
 		},
 		{
-			"id": "14a0220d-cac8-4bca-9f97-67255572c533",
+			"id": "4a45bf93-e98c-4b59-9a51-15ede926216d",
 			"key": "totp_code",
 			"value": "123456",
 			"type": "string"
 		},
 		{
-			"id": "de34b066-a9c6-4320-be92-e67966f43913",
+			"id": "3f3d147c-6c61-419b-b10a-fd28ca754c8b",
 			"key": "user_reset_password_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTAzMzcsInhfdHlwZSI6MiwieF9jc3JmIjoiNUxBT0xHQjI0N1pGWEYzM1pVMkZOVTZMM0hZSDJSQ1JSNCJ9.0rK1R-AswHV19POJEFKlv3yai9YAR8eK5e_6CbfXEPU",
 			"type": "string"
 		},
 		{
-			"id": "d43890ff-09ee-410a-8dde-3b08f7ec69ba",
+			"id": "1841988b-735d-44da-ac01-1bccac6bf0c8",
 			"key": "user_update_password_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIyOTQsInhfdHlwZSI6NCwieF9jc3JmIjoiRlRINERLUUU1S1M3RjVVUExYUkFCNkJPWEJDRUdIRlUyRSJ9.BG3cBT5s3GdCjJ3Wlc4F88P4oBfybzTvi6xgs0rQ_Cc",
 			"type": "string"
 		},
 		{
-			"id": "5bebbfa6-c786-43ad-9b16-e4604214b52e",
+			"id": "6aca5c68-4b39-4dc2-a44a-8a4df36723e7",
 			"key": "user_update_email_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIxNTUsInhfdHlwZSI6MywieF9jc3JmIjoiSEk1VEpaMzdBRUpJTU9UUUNEVlgyVUlLNVZRUTZSTUYyNCJ9.4Me_J7HUmLZQ4-OJTq5xyV5JNmaO-ZdvfD2UbiJ_kBY",
 			"type": "string"
 		},
 		{
-			"id": "9bed8238-e4c1-49bb-be32-11b12872dacd",
+			"id": "6c58b3ed-6e40-4477-a2bb-22338a54d6b2",
 			"key": "csrf_key",
 			"value": "V6FKGIP3OFG4AARS4QMG6PWFNHQP6FNQFM",
 			"type": "string"

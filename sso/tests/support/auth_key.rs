@@ -40,7 +40,7 @@ macro_rules! auth_key_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service1.id, user.id);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service1.id, user);
 
             let client = client_create(Some(&service2_key.value));
             let body = AuthKeyRequest::new(&user_key.key, None);
@@ -69,7 +69,7 @@ macro_rules! auth_key_integration_test {
 
             let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email);
-            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
 
             let body = AuthKeyRequest::new(&user_key.key, None);
             let res = client.auth_key_verify(body).unwrap_err();
@@ -85,7 +85,7 @@ macro_rules! auth_key_integration_test {
 
             let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email);
-            let user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user.id);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user);
 
             let body = AuthKeyRequest::new(&user_key.key, None);
             client.auth_key_verify(body).unwrap();
@@ -130,7 +130,7 @@ macro_rules! auth_key_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service1.id, user.id);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service1.id, user);
 
             let client = client_create(Some(&service2_key.value));
             let body = AuthKeyRequest::new(&user_key.key, None);
@@ -159,7 +159,7 @@ macro_rules! auth_key_integration_test {
 
             let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email);
-            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
 
             let body = AuthKeyRequest::new(&user_key.key, None);
             let res = client.auth_key_revoke(body).unwrap_err();
@@ -175,7 +175,7 @@ macro_rules! auth_key_integration_test {
 
             let client = client_create(Some(&service_key.value));
             let user = user_create(&client, true, USER_NAME, &user_email);
-            let user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user.id);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user);
 
             let body = AuthKeyRequest::new(&user_key.key, None);
             client.auth_key_revoke(body).unwrap();

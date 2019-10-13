@@ -40,9 +40,9 @@ macro_rules! auth_token_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key =
-                user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user.id);
-            let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user);
+            let user_token =
+                auth_local_login(&client, user_key.user.id, &user_email, USER_PASSWORD);
 
             let client = client_create(Some(&service2_key.value));
             let body = AuthTokenRequest::new(&user_token.access_token, None);
@@ -67,8 +67,9 @@ macro_rules! auth_token_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
-            let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
+            let user_token =
+                auth_local_login(&client, user_key.user.id, &user_email, USER_PASSWORD);
 
             let body = AuthTokenRequest::new(&user_token.access_token, None);
             client.auth_token_verify(body).unwrap();
@@ -113,9 +114,9 @@ macro_rules! auth_token_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key =
-                user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user.id);
-            let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user);
+            let user_token =
+                auth_local_login(&client, user_key.user.id, &user_email, USER_PASSWORD);
 
             let client = client_create(Some(&service2_key.value));
             let body = AuthTokenRequest::new(&user_token.refresh_token, None);
@@ -140,8 +141,9 @@ macro_rules! auth_token_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
-            let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
+            let user_token =
+                auth_local_login(&client, user_key.user.id, &user_email, USER_PASSWORD);
 
             user_token_verify(&client, &user_token);
             let user_token2 = user_token_refresh(&client, &user_token);
@@ -170,8 +172,9 @@ macro_rules! auth_token_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
-            let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
+            let user_token =
+                auth_local_login(&client, user_key.user.id, &user_email, USER_PASSWORD);
 
             user_token_verify(&client, &user_token);
             let user_token = user_token_refresh(&client, &user_token);
@@ -218,9 +221,9 @@ macro_rules! auth_token_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key =
-                user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user.id);
-            let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user);
+            let user_token =
+                auth_local_login(&client, user_key.user.id, &user_email, USER_PASSWORD);
 
             let client = client_create(Some(&service2_key.value));
             let body = AuthTokenRequest::new(&user_token.refresh_token, None);
@@ -245,9 +248,10 @@ macro_rules! auth_token_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
 
-            let user_token = auth_local_login(&client, user.id, &user_email, USER_PASSWORD);
+            let user_token =
+                auth_local_login(&client, user_key.user.id, &user_email, USER_PASSWORD);
 
             user_token_verify(&client, &user_token);
             let body = AuthTokenRequest::new(&user_token.access_token, None);

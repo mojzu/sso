@@ -123,16 +123,16 @@ pub fn user_key_create(
     name: &str,
     type_: KeyType,
     service_id: Uuid,
-    user_id: Uuid,
+    user: User,
 ) -> UserKey {
-    let body = KeyCreateRequest::with_user_id(true, type_, name, user_id);
+    let body = KeyCreateRequest::with_user_id(true, type_, name, user.id);
     let create = client.key_create(body).unwrap();
     let key = create.data;
     assert_eq!(key.name, name);
     assert_eq!(key.service_id.unwrap(), service_id);
-    assert_eq!(key.user_id.unwrap(), user_id);
+    assert_eq!(key.user_id.unwrap(), user.id);
     UserKey {
-        user_id: user_id.to_owned(),
+        user,
         key: key.value.to_owned(),
     }
 }
@@ -141,7 +141,7 @@ pub fn user_key_verify(client: &ClientSync, key: &UserKey) -> UserKey {
     let body = AuthKeyRequest::new(&key.key, None);
     let verify = client.auth_key_verify(body).unwrap();
     let user_key = verify.data;
-    assert_eq!(user_key.user_id, key.user_id);
+    assert_eq!(user_key.user.id, key.user.id);
     assert_eq!(user_key.key, key.key);
     user_key
 }
@@ -156,7 +156,7 @@ pub fn user_token_verify(client: &ClientSync, token: &UserToken) -> UserTokenAcc
     let body = AuthTokenRequest::new(&token.access_token, None);
     let verify = client.auth_token_verify(body).unwrap();
     let user_token = verify.data;
-    assert_eq!(user_token.user_id, token.user_id);
+    assert_eq!(user_token.user.id, token.user.id);
     assert_eq!(user_token.access_token, token.access_token);
     assert_eq!(user_token.access_token_expires, token.access_token_expires);
     user_token
@@ -167,7 +167,7 @@ pub fn user_token_refresh(client: &ClientSync, token: &UserToken) -> UserToken {
     let body = AuthTokenRequest::new(&token.refresh_token, None);
     let refresh = client.auth_token_refresh(body).unwrap();
     let user_token = refresh.data;
-    assert_eq!(user_token.user_id, token.user_id);
+    assert_eq!(user_token.user.id, token.user.id);
     assert_ne!(user_token.access_token, token.access_token);
     assert_ne!(user_token.access_token_expires, token.access_token_expires);
     assert_ne!(user_token.access_token, token.access_token);
@@ -184,7 +184,7 @@ pub fn auth_local_login(
     let body = AuthLoginRequest::new(email, password);
     let login = client.auth_local_login(body).unwrap();
     let user_token = login.data;
-    assert_eq!(user_token.user_id, user_id);
+    assert_eq!(user_token.user.id, user_id);
     user_token
 }
 

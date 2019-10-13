@@ -109,7 +109,7 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
 
             let body = AuthLoginRequest::new(&user_email, INVALID_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
@@ -134,8 +134,7 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key =
-                user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user.id);
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user);
 
             let client = client_create(Some(&service2_key.value));
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
@@ -160,7 +159,7 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user.id);
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user);
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
@@ -184,7 +183,7 @@ macro_rules! auth_local_integration_test {
                 true,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
@@ -208,11 +207,11 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap();
-            assert_eq!(res.data.user_id, user.id);
+            assert_eq!(res.data.user.id, user_key.user.id);
         }
 
         #[test]
@@ -269,8 +268,7 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key =
-                user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user.id);
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user);
 
             // Endpoint should not infer users existence.
             let client = client_create(Some(&service2_key.value));
@@ -295,7 +293,7 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user.id);
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user);
 
             // Endpoint should not infer users existence.
             let body = AuthResetPasswordRequest::new(&user_email);
@@ -319,7 +317,7 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
 
             // Endpoint should not infer users existence.
             let body = AuthResetPasswordRequest::new(&user_email);
@@ -343,7 +341,7 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user.id);
+            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
 
             let body = AuthResetPasswordRequest::new(&user_email);
             client.auth_local_reset_password(body).unwrap();

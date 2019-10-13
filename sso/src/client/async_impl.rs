@@ -662,12 +662,7 @@ impl ClientAsync {
         match key_or_token {
             Some(key_or_token) => match Client::authorisation_type(key_or_token) {
                 Ok((type_, value)) => {
-                    let s1 = self.clone();
-                    Either::A(Either::A(
-                        self.authenticate_inner(type_, value, audit)
-                            .and_then(move |user_id| s1.user_read(user_id))
-                            .map(|res| res.data),
-                    ))
+                    Either::A(Either::A(self.authenticate_inner(type_, value, audit)))
                 }
                 Err(e) => Either::A(Either::B(future::err(e))),
             },
@@ -680,18 +675,18 @@ impl ClientAsync {
         type_: String,
         value: String,
         audit: Option<AuditDataRequest>,
-    ) -> impl Future<Item = Uuid, Error = ClientError> {
+    ) -> impl Future<Item = User, Error = ClientError> {
         match type_.as_ref() {
             "key" => {
                 let body = AuthKeyRequest::new(value, audit);
                 Either::A(Either::A(
-                    self.auth_key_verify(body).map(|res| res.data.user_id),
+                    self.auth_key_verify(body).map(|res| res.data.user),
                 ))
             }
             "token" => {
                 let body = AuthTokenRequest::new(value, audit);
                 Either::A(Either::B(
-                    self.auth_token_verify(body).map(|res| res.data.user_id),
+                    self.auth_token_verify(body).map(|res| res.data.user),
                 ))
             }
             _ => Either::B(future::err(ClientError::Unauthorised)),

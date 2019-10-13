@@ -15,6 +15,7 @@
 
 - Changed table column names to remove prefixes for `DriverPostgres`.
 - Key value is only returned via created endpoint.
+- Include user data in token and key responses so user read is unnecessary.
 
 ### Fixed
 

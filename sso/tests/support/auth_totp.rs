@@ -39,13 +39,13 @@ macro_rules! auth_totp_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user.id);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user);
 
             let totp = libreauth::oath::TOTPBuilder::new()
                 .base32_key(&user_key.key)
                 .finalize()
                 .unwrap();
-            let body = AuthTotpRequest::new(user.id, totp.generate());
+            let body = AuthTotpRequest::new(user_key.user.id, totp.generate());
             let res = client.auth_totp(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -67,13 +67,13 @@ macro_rules! auth_totp_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let user_key = user_key_create(&client, KEY_NAME, KeyType::Totp, service.id, user.id);
+            let user_key = user_key_create(&client, KEY_NAME, KeyType::Totp, service.id, user);
 
             let totp = libreauth::oath::TOTPBuilder::new()
                 .base32_key(&user_key.key)
                 .finalize()
                 .unwrap();
-            let body = AuthTotpRequest::new(user.id, totp.generate());
+            let body = AuthTotpRequest::new(user_key.user.id, totp.generate());
             client.auth_totp(body).unwrap();
         }
     };

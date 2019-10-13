@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
+
 CREATE TABLE sso_service (
     "created_at"                    TIMESTAMPTZ NOT NULL,
     "updated_at"                    TIMESTAMPTZ NOT NULL,

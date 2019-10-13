@@ -143,7 +143,7 @@ pub struct UserUpdate2 {
 /// User token.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserToken {
-    pub user_id: Uuid,
+    pub user: User,
     pub access_token: String,
     pub access_token_expires: i64,
     pub refresh_token: String,
@@ -153,7 +153,7 @@ pub struct UserToken {
 /// User access token.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserTokenAccess {
-    pub user_id: Uuid,
+    pub user: User,
     pub access_token: String,
     pub access_token_expires: i64,
 }
@@ -161,7 +161,7 @@ pub struct UserTokenAccess {
 /// User key.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserKey {
-    pub user_id: Uuid,
+    pub user: User,
     pub key: String,
 }
 

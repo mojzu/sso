@@ -421,16 +421,14 @@ impl ClientSync {
                 match type_.as_ref() {
                     "key" => {
                         let body = AuthKeyRequest::new(value, audit);
-                        self.auth_key_verify(body).map(|res| res.data.user_id)
+                        self.auth_key_verify(body).map(|res| res.data.user)
                     }
                     "token" => {
                         let body = AuthTokenRequest::new(value, audit);
-                        self.auth_token_verify(body).map(|res| res.data.user_id)
+                        self.auth_token_verify(body).map(|res| res.data.user)
                     }
                     _ => Err(ClientError::Unauthorised),
                 }
-                .and_then(|user_id| self.user_read(user_id))
-                .map(|res| res.data)
             }
             None => Err(ClientError::Unauthorised),
         }
