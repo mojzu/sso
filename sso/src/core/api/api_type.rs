@@ -1,6 +1,6 @@
 //! # API Types
 use crate::{
-    ApiValidate, ApiValidateRequest, ApiValidateRequestQuery, Audit, AuditData, AuditListFilter,
+    ApiValidate, ApiValidateRequest, ApiValidateRequestQuery, Audit, AuditCreate2, AuditListFilter,
     AuditListQuery, Core, Csrf, Key, KeyListFilter, KeyListQuery, KeyType, KeyWithValue, Service,
     ServiceCreate, ServiceListFilter, ServiceListQuery, ServiceUpdate, User, UserCreate, UserKey,
     UserListFilter, UserListQuery, UserPasswordMeta, UserToken, UserTokenAccess,
@@ -33,6 +33,9 @@ pub struct AuditListRequest {
     #[validate(custom = "ApiValidate::audit_type_vec")]
     type_: Option<Vec<String>>,
     #[builder(default = "None")]
+    #[validate(custom = "ApiValidate::audit_subject_vec")]
+    subject: Option<Vec<String>>,
+    #[builder(default = "None")]
     service_id: Option<Vec<Uuid>>,
     #[builder(default = "None")]
     user_id: Option<Vec<Uuid>>,
@@ -54,6 +57,7 @@ impl AuditListRequest {
         let filter = AuditListFilter {
             id: self.id,
             type_: self.type_,
+            subject: self.subject,
             service_id: self.service_id,
             user_id: self.user_id,
         };
@@ -70,6 +74,7 @@ impl AuditListRequest {
                 offset_id,
                 id: filter.id,
                 type_: filter.type_,
+                subject: filter.subject,
                 service_id: filter.service_id,
                 user_id: filter.user_id,
             },
@@ -80,6 +85,7 @@ impl AuditListRequest {
                 offset_id,
                 id: filter.id,
                 type_: filter.type_,
+                subject: filter.subject,
                 service_id: filter.service_id,
                 user_id: filter.user_id,
             },
@@ -90,6 +96,7 @@ impl AuditListRequest {
                 offset_id,
                 id: filter.id,
                 type_: filter.type_,
+                subject: filter.subject,
                 service_id: filter.service_id,
                 user_id: filter.user_id,
             },
@@ -104,29 +111,47 @@ pub struct AuditListResponse {
     pub data: Vec<Audit>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, Builder)]
 #[serde(deny_unknown_fields)]
 pub struct AuditCreateRequest {
-    #[serde(alias = "type")]
+    #[serde(rename = "type")]
     #[validate(custom = "ApiValidate::audit_type")]
     pub type_: String,
-    pub data: Value,
+    #[builder(default = "None")]
+    #[validate(custom = "ApiValidate::audit_subject")]
+    pub subject: Option<String>,
+    #[builder(default = "None")]
+    pub data: Option<Value>,
+    #[builder(default = "None")]
     pub user_id: Option<Uuid>,
+    #[builder(default = "None")]
     pub user_key_id: Option<Uuid>,
 }
 
 impl ApiValidateRequest<AuditCreateRequest> for AuditCreateRequest {}
 
-impl AuditCreateRequest {
-    pub fn new<T1>(type_: T1, data: Value, user_id: Option<Uuid>, user_key_id: Option<Uuid>) -> Self
-    where
-        T1: Into<String>,
-    {
+// TODO(refactor): Check this behaviour, return audit in responses for patching.
+#[derive(Debug, Serialize, Deserialize, Validate, Builder)]
+#[serde(deny_unknown_fields)]
+pub struct AuditCreate2Request {
+    #[serde(rename = "type")]
+    #[validate(custom = "ApiValidate::audit_type")]
+    pub type_: String,
+    #[builder(default = "None")]
+    #[validate(custom = "ApiValidate::audit_subject")]
+    pub subject: Option<String>,
+    #[builder(default = "None")]
+    pub data: Option<Value>,
+}
+
+impl ApiValidateRequest<AuditCreate2Request> for AuditCreate2Request {}
+
+impl From<AuditCreate2Request> for AuditCreate2 {
+    fn from(data: AuditCreate2Request) -> Self {
         Self {
-            type_: type_.into(),
-            data,
-            user_id,
-            user_key_id,
+            type_: data.type_,
+            subject: data.subject,
+            data: data.data,
         }
     }
 }
@@ -137,36 +162,16 @@ pub struct AuditReadResponse {
     pub data: Audit,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuditReadOptResponse {
+    pub data: Option<Audit>,
+}
+
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
-pub struct AuditDataRequest {
-    #[serde(alias = "type")]
-    #[validate(custom = "ApiValidate::audit_type")]
-    pub type_: String,
+pub struct AuditUpdateRequest {
     pub data: Value,
-}
-
-impl ApiValidateRequest<AuditDataRequest> for AuditDataRequest {}
-
-impl AuditDataRequest {
-    pub fn new<T1>(type_: T1, data: Value) -> Self
-    where
-        T1: Into<String>,
-    {
-        Self {
-            type_: type_.into(),
-            data,
-        }
-    }
-}
-
-impl From<AuditDataRequest> for AuditData {
-    fn from(data: AuditDataRequest) -> AuditData {
-        AuditData {
-            type_: data.type_,
-            data: data.data,
-        }
-    }
 }
 
 // ---------
@@ -710,13 +715,13 @@ impl ApiValidateRequest<UserUpdateRequest> for UserUpdateRequest {}
 pub struct AuthTokenRequest {
     #[validate(custom = "ApiValidate::token")]
     pub token: String,
-    pub audit: Option<AuditDataRequest>,
+    pub audit: Option<AuditCreate2Request>,
 }
 
 impl ApiValidateRequest<AuthTokenRequest> for AuthTokenRequest {}
 
 impl AuthTokenRequest {
-    pub fn new<S1: Into<String>>(token: S1, audit: Option<AuditDataRequest>) -> Self {
+    pub fn new<S1: Into<String>>(token: S1, audit: Option<AuditCreate2Request>) -> Self {
         Self {
             token: token.into(),
             audit,
@@ -728,12 +733,14 @@ impl AuthTokenRequest {
 #[serde(deny_unknown_fields)]
 pub struct AuthTokenResponse {
     pub data: UserToken,
+    pub audit: Option<Audit>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthTokenAccessResponse {
     pub data: UserTokenAccess,
+    pub audit: Option<Audit>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -741,13 +748,13 @@ pub struct AuthTokenAccessResponse {
 pub struct AuthKeyRequest {
     #[validate(custom = "ApiValidate::key")]
     pub key: String,
-    pub audit: Option<AuditDataRequest>,
+    pub audit: Option<AuditCreate2Request>,
 }
 
 impl ApiValidateRequest<AuthKeyRequest> for AuthKeyRequest {}
 
 impl AuthKeyRequest {
-    pub fn new<S: Into<String>>(key: S, audit: Option<AuditDataRequest>) -> Self {
+    pub fn new<S: Into<String>>(key: S, audit: Option<AuditCreate2Request>) -> Self {
         Self {
             key: key.into(),
             audit,
@@ -759,6 +766,7 @@ impl AuthKeyRequest {
 #[serde(deny_unknown_fields)]
 pub struct AuthKeyResponse {
     pub data: UserKey,
+    pub audit: Option<Audit>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]

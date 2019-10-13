@@ -1,7 +1,7 @@
 use crate::{
-    CoreError, CoreResult, CoreUtil, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES,
-    USER_LOCALE_MAX_LEN, USER_NAME_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
-    USER_TIMEZONE_MAX_LEN,
+    CoreError, CoreResult, CoreUtil, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN,
+    KEY_VALUE_BYTES, USER_LOCALE_MAX_LEN, USER_NAME_MAX_LEN, USER_PASSWORD_MAX_LEN,
+    USER_PASSWORD_MIN_LEN, USER_TIMEZONE_MAX_LEN,
 };
 use chrono_tz::Tz;
 use futures::future;
@@ -99,6 +99,21 @@ impl ApiValidate {
     pub fn audit_type_vec(audit_type: &[String]) -> Result<(), ValidationError> {
         for v in audit_type {
             Self::audit_type(v)?;
+        }
+        Ok(())
+    }
+
+    pub fn audit_subject(audit_subject: &str) -> Result<(), ValidationError> {
+        if audit_subject.is_empty() || audit_subject.len() > AUDIT_SUBJECT_MAX_LEN {
+            Err(ValidationError::new("invalid_audit_subject"))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn audit_subject_vec(audit_subject: &[String]) -> Result<(), ValidationError> {
+        for v in audit_subject {
+            Self::audit_subject(v)?;
         }
         Ok(())
     }

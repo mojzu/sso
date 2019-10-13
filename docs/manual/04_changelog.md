@@ -10,12 +10,16 @@
 - Added `id` query parameter array for key, service and user list endpoint filtering.
 - Added `docker-pg-dump`, `docker-pg-restore` targets to `Makefile.toml`.
 - Added CSRF create and verify API endpoints.
+- Added `PATCH` audit log endpoint for appending data to audit logs.
+- Added optional `subject` column to audit log table, added support for filtering.
+- Use TimescaleDB hypertable for audit log table.
 
 ### Changed
 
 - Changed table column names to remove prefixes for `DriverPostgres`.
 - Key value is only returned via created endpoint.
 - Include user data in token and key responses so user read is unnecessary.
+- Return audit log on endpoints which accept optional audit properties.
 
 ### Fixed
 

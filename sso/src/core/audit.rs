@@ -1,6 +1,5 @@
 use crate::{impl_enum_to_from_string, CoreError, CoreResult, Driver, KeyWithValue, Service, User};
 use chrono::{DateTime, Utc};
-use serde::ser::Serialize;
 use serde_json::Value;
 use std::fmt;
 use time::Duration;
@@ -9,49 +8,113 @@ use uuid::Uuid;
 /// Audit type maximum length.
 pub const AUDIT_TYPE_MAX_LEN: usize = 200;
 
+/// Audit subject maximum length.
+pub const AUDIT_SUBJECT_MAX_LEN: usize = 200;
+
 /// Audit types.
 #[derive(Debug, Copy, PartialEq, Clone, Serialize, Deserialize)]
 pub enum AuditType {
-    AuthenticateError,
-    Login,
-    LoginError,
-    ResetPassword,
-    ResetPasswordError,
-    ResetPasswordConfirm,
-    ResetPasswordConfirmError,
-    UpdateEmail,
-    UpdateEmailError,
-    UpdateEmailRevoke,
-    UpdateEmailRevokeError,
-    UpdatePassword,
-    UpdatePasswordError,
-    UpdatePasswordRevoke,
-    UpdatePasswordRevokeError,
-    Oauth2Login,
-    Oauth2LoginError,
-    KeyVerifyError,
-    KeyRevoke,
-    KeyRevokeError,
-    TokenVerifyError,
-    TokenRefresh,
-    TokenRefreshError,
-    TokenRevoke,
-    TokenRevokeError,
-    TotpError,
-    CsrfError,
+    Metrics,
+    AuditList,
+    AuditCreate,
+    AuditRead,
+    AuditUpdate,
+    KeyList,
+    KeyCreate,
+    KeyRead,
+    KeyUpdate,
+    KeyDelete,
+    ServiceList,
+    ServiceCreate,
+    ServiceRead,
+    ServiceUpdate,
+    ServiceDelete,
+    UserList,
+    UserCreate,
+    UserRead,
+    UserUpdate,
+    UserDelete,
+    AuthLocalLogin,
+    AuthLocalResetPassword,
+    AuthLocalResetPasswordConfirm,
+    AuthLocalUpdateEmail,
+    AuthLocalUpdateEmailRevoke,
+    AuthLocalUpdatePassword,
+    AuthLocalUpdatePasswordRevoke,
+    AuthGithubOauth2Url,
+    AuthGithubOauth2Callback,
+    AuthMicrosoftOauth2Url,
+    AuthMicrosoftOauth2Callback,
+    AuthOauth2Login,
+    AuthKeyVerify,
+    AuthKeyRevoke,
+    AuthTokenVerify,
+    AuthTokenRefresh,
+    AuthTokenRevoke,
+    AuthTotp,
+    AuthCsrfCreate,
+    AuthCsrfVerify,
 }
 
 impl_enum_to_from_string!(AuditType);
+
+/// Audit messages.
+#[derive(Debug, Serialize, Deserialize)]
+pub enum AuditMessage {
+    ServiceNotFound,
+    ServiceDisabled,
+    UserNotFound,
+    UserDisabled,
+    KeyNotFound,
+    KeyInvalid,
+    KeyUndefined,
+    KeyDisabledOrRevoked,
+    PasswordUpdateRequired,
+    PasswordNotSetOrIncorrect,
+    Login,
+    ResetPassword,
+    ResetPasswordDisabled,
+    TokenInvalidOrExpired,
+    CsrfNotFoundOrUsed,
+    ResetPasswordConfirm,
+    UpdateEmail,
+    UpdateEmailRevoke,
+    UpdatePassword,
+    UpdatePasswordRevoke,
+    Oauth2Login,
+    ServiceMismatch,
+    KeyRevoke,
+    TokenRefresh,
+    TokenRevoke,
+    TotpInvalid,
+}
+
+/// Audit message container.
+#[derive(Debug, Serialize)]
+struct AuditMessageObject {
+    #[serde(rename = "type")]
+    type_: AuditType,
+    message: AuditMessage,
+}
+
+impl AuditMessageObject {
+    fn new(type_: AuditType, message: AuditMessage) -> Self {
+        Self { type_, message }
+    }
+}
 
 /// Audit.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Audit {
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub id: Uuid,
     pub user_agent: String,
     pub remote: String,
     pub forwarded: Option<String>,
+    #[serde(rename = "type")]
     pub type_: String,
+    pub subject: Option<String>,
     pub data: Value,
     pub key_id: Option<Uuid>,
     pub service_id: Option<Uuid>,
@@ -69,6 +132,9 @@ impl fmt::Display for Audit {
             write!(f, "\n\tforwarded {}", forwarded)?;
         }
         write!(f, "\n\ttype {}", self.type_)?;
+        if let Some(subject) = &self.subject {
+            write!(f, "\n\tsubject {}", subject)?;
+        }
         write!(f, "\n\tdata {}", self.data)?;
         if let Some(key_id) = &self.key_id {
             write!(f, "\n\tkey_id {}", key_id)?;
@@ -86,37 +152,58 @@ impl fmt::Display for Audit {
     }
 }
 
-/// Audit create data.
+/// Audit create.
 #[derive(Debug)]
-pub struct AuditCreate<'a> {
-    pub meta: &'a AuditMeta,
-    pub type_: &'a str,
-    pub data: &'a Value,
-    pub key_id: Option<&'a Uuid>,
-    pub service_id: Option<&'a Uuid>,
-    pub user_id: Option<&'a Uuid>,
-    pub user_key_id: Option<&'a Uuid>,
+pub struct AuditCreate {
+    pub meta: AuditMeta,
+    pub type_: String,
+    pub subject: Option<String>,
+    pub data: Option<Value>,
+    pub key_id: Option<Uuid>,
+    pub service_id: Option<Uuid>,
+    pub user_id: Option<Uuid>,
+    pub user_key_id: Option<Uuid>,
 }
 
-impl<'a> AuditCreate<'a> {
-    /// New create data reference.
+impl AuditCreate {
     pub fn new(
-        meta: &'a AuditMeta,
-        type_: &'a str,
-        data: &'a Value,
-        key_id: Option<&'a Uuid>,
-        service_id: Option<&'a Uuid>,
-        user_id: Option<&'a Uuid>,
-        user_key_id: Option<&'a Uuid>,
+        meta: AuditMeta,
+        type_: String,
+        subject: Option<String>,
+        data: Option<Value>,
+        key_id: Option<Uuid>,
+        service_id: Option<Uuid>,
+        user_id: Option<Uuid>,
+        user_key_id: Option<Uuid>,
     ) -> Self {
         Self {
             meta,
             type_,
+            subject,
             data,
             key_id,
             service_id,
             user_id,
             user_key_id,
+        }
+    }
+}
+
+/// Audit create 2.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AuditCreate2 {
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub subject: Option<String>,
+    pub data: Option<Value>,
+}
+
+impl AuditCreate2 {
+    pub fn new(type_: String, subject: Option<String>, data: Option<Value>) -> Self {
+        Self {
+            type_,
+            subject,
+            data,
         }
     }
 }
@@ -137,9 +224,9 @@ pub enum AuditListQuery {
 pub struct AuditListFilter {
     pub id: Option<Vec<Uuid>>,
     pub type_: Option<Vec<String>>,
+    pub subject: Option<Vec<String>>,
     pub service_id: Option<Vec<Uuid>>,
     pub user_id: Option<Vec<Uuid>>,
-    // TODO(feature): Data matches filter.
 }
 
 /// Audit list.
@@ -188,56 +275,6 @@ impl AuditMeta {
     }
 }
 
-/// Audit data.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AuditData {
-    pub type_: String,
-    pub data: Value,
-}
-
-/// Audit messages.
-#[derive(Debug, Serialize, Deserialize)]
-pub enum AuditMessage {
-    ServiceNotFound,
-    ServiceDisabled,
-    UserNotFound,
-    UserDisabled,
-    KeyNotFound,
-    KeyInvalid,
-    KeyUndefined,
-    KeyDisabledOrRevoked,
-    PasswordUpdateRequired,
-    PasswordNotSetOrIncorrect,
-    Login,
-    ResetPassword,
-    ResetPasswordDisabled,
-    TokenInvalidOrExpired,
-    CsrfNotFoundOrUsed,
-    ResetPasswordConfirm,
-    UpdateEmail,
-    UpdateEmailRevoke,
-    UpdatePassword,
-    UpdatePasswordRevoke,
-    Oauth2Login,
-    ServiceMismatch,
-    KeyRevoke,
-    TokenRefresh,
-    TokenRevoke,
-    TotpInvalid,
-}
-
-/// Audit data message container.
-#[derive(Debug, Serialize)]
-pub struct AuditMessageObject<T: Serialize> {
-    pub message: T,
-}
-
-impl From<AuditMessage> for AuditMessageObject<AuditMessage> {
-    fn from(message: AuditMessage) -> AuditMessageObject<AuditMessage> {
-        AuditMessageObject { message }
-    }
-}
-
 /// Audit log builder pattern.
 #[derive(Debug)]
 pub struct AuditBuilder {
@@ -260,100 +297,76 @@ impl AuditBuilder {
         }
     }
 
-    pub fn set_key(&mut self, key: Option<&KeyWithValue>) -> &mut Self {
+    pub fn key(&mut self, key: Option<&KeyWithValue>) -> &mut Self {
         self.key = key.map(|x| x.id);
         self
     }
 
-    pub fn set_service(&mut self, service: Option<&Service>) -> &mut Self {
+    pub fn service(&mut self, service: Option<&Service>) -> &mut Self {
         self.service = service.map(|x| x.id);
         self
     }
 
-    pub fn set_user(&mut self, user: Option<&User>) -> &mut Self {
+    pub fn user(&mut self, user: Option<&User>) -> &mut Self {
         self.user = user.map(|x| x.id);
         self
     }
 
-    pub fn set_user_id(&mut self, user: Option<Uuid>) -> &mut Self {
+    pub fn user_id(&mut self, user: Option<Uuid>) -> &mut Self {
         self.user = user;
         self
     }
 
-    pub fn set_user_key(&mut self, key: Option<&KeyWithValue>) -> &mut Self {
+    pub fn user_key(&mut self, key: Option<&KeyWithValue>) -> &mut Self {
         self.user_key = key.map(|x| x.id);
         self
     }
 
-    pub fn set_user_key_id(&mut self, key: Option<Uuid>) -> &mut Self {
+    pub fn user_key_id(&mut self, key: Option<Uuid>) -> &mut Self {
         self.user_key = key;
         self
     }
 
     /// Create audit log from internal parameters.
-    pub fn create(&self, driver: &dyn Driver, type_: &str, data: &Value) -> CoreResult<Audit> {
+    pub fn create(&mut self, driver: &dyn Driver, create: AuditCreate2) -> CoreResult<Audit> {
         let data = AuditCreate::new(
-            &self.meta,
-            type_,
-            data,
-            self.key.as_ref(),
-            self.service.as_ref(),
-            self.user.as_ref(),
-            self.user_key.as_ref(),
+            self.meta.clone(),
+            create.type_,
+            create.subject,
+            create.data,
+            self.key,
+            self.service,
+            self.user,
+            self.user_key,
         );
         Audit::create(driver, &data)
     }
 
     /// Create audit log from internal parameters.
     /// In case of error, log as warning and return None.
-    pub fn create_unchecked(
-        &self,
-        driver: &dyn Driver,
-        type_: &str,
-        data: &Value,
-    ) -> Option<Audit> {
-        match self.create(driver, type_, data) {
-            Ok(audit) => Some(audit),
-            Err(err) => {
-                warn!("{}", err);
-                None
-            }
-        }
-    }
-
-    /// Create audit log from internal parameters.
-    /// In case of error, log as warning and return None.
     pub fn create_internal(
-        &self,
+        &mut self,
         driver: &dyn Driver,
         type_: AuditType,
         data: AuditMessage,
-    ) -> Option<Audit> {
-        let type_ = type_.to_string().unwrap();
-        let data: AuditMessageObject<AuditMessage> = data.into();
-        let data = serde_json::to_value(data).unwrap();
+    ) -> CoreResult<Audit> {
+        let data = serde_json::to_value(AuditMessageObject::new(type_, data)).unwrap();
         let audit_data = AuditCreate::new(
-            &self.meta,
-            &type_,
-            &data,
-            self.key.as_ref(),
-            self.service.as_ref(),
-            self.user.as_ref(),
-            self.user_key.as_ref(),
+            self.meta.clone(),
+            type_.to_string().unwrap(),
+            None,
+            Some(data),
+            self.key,
+            self.service,
+            self.user,
+            self.user_key,
         );
-
-        match Audit::create(driver, &audit_data) {
-            Ok(audit) => Some(audit),
-            Err(err) => {
-                warn!("{}", err);
-                None
-            }
-        }
+        Audit::create(driver, &audit_data)
     }
 }
 
 impl Audit {
-    /// List audit IDs.
+    /// List audit logs.
     pub fn list(
         driver: &dyn Driver,
         service_mask: Option<&Service>,
@@ -369,12 +382,12 @@ impl Audit {
         driver.audit_list(&list).map_err(Into::into)
     }
 
-    /// Create one audit log.
+    /// Create audit log.
     pub fn create(driver: &dyn Driver, data: &AuditCreate) -> CoreResult<Audit> {
         driver.audit_create(data).map_err(CoreError::Driver)
     }
 
-    /// Read audit by ID.
+    /// Read audit log.
     pub fn read(
         driver: &dyn Driver,
         service_mask: Option<&Service>,
@@ -383,6 +396,19 @@ impl Audit {
     ) -> CoreResult<Option<Audit>> {
         driver
             .audit_read_opt(&id, service_mask.map(|s| &s.id))
+            .map_err(CoreError::Driver)
+    }
+
+    // Update audit log.
+    pub fn update(
+        driver: &dyn Driver,
+        service_mask: Option<&Service>,
+        _audit: &mut AuditBuilder,
+        id: Uuid,
+        data: Value,
+    ) -> CoreResult<Audit> {
+        driver
+            .audit_update(&id, &data, service_mask.map(|s| &s.id))
             .map_err(CoreError::Driver)
     }
 

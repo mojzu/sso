@@ -11,6 +11,7 @@ use crate::{
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
+use serde_json::Value;
 use std::fmt;
 use uuid::Uuid;
 
@@ -111,6 +112,16 @@ impl DriverIf for DriverPostgres {
     ) -> DriverResult<Vec<(String, i64)>> {
         let conn = self.conn()?;
         ModelAudit::read_metrics(&conn, from, service_id_mask)
+    }
+
+    fn audit_update(
+        &self,
+        id: &Uuid,
+        data: &Value,
+        service_id_mask: Option<&Uuid>,
+    ) -> DriverResult<Audit> {
+        let conn = self.conn()?;
+        ModelAudit::update(&conn, id, data, service_id_mask)
     }
 
     fn audit_delete(&self, created_at: &DateTime<Utc>) -> DriverResult<usize> {
@@ -302,6 +313,15 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<(String, i64)>> {
         ModelAudit::read_metrics(self.conn(), from, service_id_mask)
+    }
+
+    fn audit_update(
+        &self,
+        id: &Uuid,
+        data: &Value,
+        service_id_mask: Option<&Uuid>,
+    ) -> DriverResult<Audit> {
+        ModelAudit::update(self.conn(), id, data, service_id_mask)
     }
 
     fn audit_delete(&self, created_at: &DateTime<Utc>) -> DriverResult<usize> {

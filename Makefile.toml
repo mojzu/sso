@@ -7,13 +7,13 @@
 [tasks.postgres-reset]
 workspace = false
 script = [
-    "(cd sso && DATABASE_URL=\"postgres://sso:guest@localhost:5432/sso\" diesel database reset --migration-dir migrations/postgres)",
+    "(cd sso && DATABASE_URL=\"postgres://guest:guest@localhost:5432/sso\" diesel database reset --migration-dir migrations/postgres)",
 ]
 
 [tasks.postgres-migration]
 workspace = false
 script = [
-    "(cd sso && DATABASE_URL=\"postgres://sso:guest@localhost:5432/sso\" diesel migration generate ${@} --migration-dir migrations/postgres)",
+    "(cd sso && DATABASE_URL=\"postgres://guest:guest@localhost:5432/sso\" diesel migration generate ${@} --migration-dir migrations/postgres)",
 ]
 
 [tasks.sqlite-reset]

@@ -8,16 +8,18 @@ use serde_json::Value;
 use std::convert::TryInto;
 use uuid::Uuid;
 
-#[derive(Debug, Identifiable, Queryable)]
+#[derive(Debug, Identifiable, Queryable, QueryableByName)]
 #[table_name = "sso_audit"]
 #[primary_key(id)]
 pub struct ModelAudit {
     created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
     id: Uuid,
     user_agent: String,
     remote: String,
     forwarded: Option<String>,
     type_: String,
+    subject: Option<String>,
     data: Value,
     key_id: Option<Uuid>,
     service_id: Option<Uuid>,
@@ -29,11 +31,13 @@ impl From<ModelAudit> for Audit {
     fn from(audit: ModelAudit) -> Self {
         Self {
             created_at: audit.created_at,
+            updated_at: audit.updated_at,
             id: audit.id,
             user_agent: audit.user_agent,
             remote: audit.remote,
             forwarded: audit.forwarded,
             type_: audit.type_,
+            subject: audit.subject,
             data: audit.data,
             key_id: audit.key_id,
             service_id: audit.service_id,
@@ -47,11 +51,13 @@ impl From<ModelAudit> for Audit {
 #[table_name = "sso_audit"]
 struct ModelAuditInsert<'a> {
     created_at: &'a DateTime<Utc>,
+    updated_at: &'a DateTime<Utc>,
     id: &'a Uuid,
     user_agent: &'a str,
     remote: &'a str,
     forwarded: Option<&'a str>,
     type_: &'a str,
+    subject: Option<&'a str>,
     data: &'a Value,
     key_id: Option<&'a Uuid>,
     service_id: Option<&'a Uuid>,
@@ -60,19 +66,26 @@ struct ModelAuditInsert<'a> {
 }
 
 impl<'a> ModelAuditInsert<'a> {
-    fn from_create(now: &'a DateTime<Utc>, id: &'a Uuid, create: &'a AuditCreate) -> Self {
+    fn from_create(
+        now: &'a DateTime<Utc>,
+        id: &'a Uuid,
+        create: &'a AuditCreate,
+        data: &'a Value,
+    ) -> Self {
         Self {
             created_at: now,
+            updated_at: now,
             id,
             user_agent: create.meta.user_agent(),
             remote: create.meta.remote(),
             forwarded: create.meta.forwarded(),
-            type_: create.type_,
-            data: create.data,
-            key_id: create.key_id,
-            service_id: create.service_id,
-            user_id: create.user_id,
-            user_key_id: create.user_key_id,
+            type_: &create.type_,
+            subject: create.subject.as_ref().map(|x| &**x),
+            data,
+            key_id: create.key_id.as_ref(),
+            service_id: create.service_id.as_ref(),
+            user_id: create.user_id.as_ref(),
+            user_key_id: create.user_key_id.as_ref(),
         }
     }
 }
@@ -113,7 +126,11 @@ impl ModelAudit {
     pub fn create(conn: &PgConnection, create: &AuditCreate) -> DriverResult<Audit> {
         let now = Utc::now();
         let id = Uuid::new_v4();
-        let value = ModelAuditInsert::from_create(&now, &id, create);
+        let data = match &create.data {
+            Some(data) => json!([data]),
+            None => json!([]),
+        };
+        let value = ModelAuditInsert::from_create(&now, &id, create, &data);
         diesel::insert_into(sso_audit::table)
             .values(&value)
             .get_result::<ModelAudit>(conn)
@@ -164,6 +181,26 @@ impl ModelAudit {
                 .load(conn),
         }
         .map_err(Into::into)
+    }
+
+    pub fn update(
+        conn: &PgConnection,
+        id: &Uuid,
+        data: &Value,
+        _service_id_mask: Option<&Uuid>,
+    ) -> DriverResult<Audit> {
+        use diesel::sql_types;
+
+        // TODO(refactor): Use service ID mask.
+        let now = Utc::now();
+        let data = json!([data]);
+        diesel::sql_query(include_str!("audit_update.sql"))
+            .bind::<sql_types::Uuid, _>(id)
+            .bind::<sql_types::Timestamptz, _>(now)
+            .bind::<sql_types::Jsonb, _>(data)
+            .get_result::<ModelAudit>(conn)
+            .map_err(Into::into)
+            .map(Into::into)
     }
 
     pub fn delete(conn: &PgConnection, created_at: &DateTime<Utc>) -> DriverResult<usize> {
@@ -358,6 +395,10 @@ impl ModelAudit {
         if let Some(type_) = &filter.type_ {
             let type_: Vec<String> = type_.to_vec();
             query = query.filter(sso_audit::dsl::type_.eq(any(type_)));
+        }
+        if let Some(subject) = &filter.subject {
+            let subject: Vec<String> = subject.to_vec();
+            query = query.filter(sso_audit::dsl::subject.eq(any(subject)));
         }
         if let Some(service_id) = &filter.service_id {
             let service_id: Vec<Uuid> = service_id.iter().copied().collect();

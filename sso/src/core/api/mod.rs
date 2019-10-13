@@ -6,9 +6,9 @@ pub use crate::core::api::validate::*;
 
 use crate::{
     core::api::{api_type::*, oauth2::*},
-    Audit, AuditData, AuditMeta, Auth, AuthArgs, CoreError, CoreResult, Driver, Key, Metrics,
-    NotifyActor, Service, ServiceCreate, ServiceUpdate, User, UserCreate, UserPasswordMeta,
-    UserRead, UserUpdate,
+    Audit, AuditCreate2, AuditMeta, AuditType, Auth, AuthArgs, CoreError, CoreResult, Driver, Key,
+    Metrics, NotifyActor, Service, ServiceCreate, ServiceUpdate, User, UserCreate,
+    UserPasswordMeta, UserRead, UserUpdate,
 };
 use actix::Addr;
 use prometheus::Registry;
@@ -147,9 +147,9 @@ impl Api {
         audit_meta: AuditMeta,
         registry: &Registry,
     ) -> CoreResult<String> {
-        Key::authenticate(driver, audit_meta, key_value).and_then(|(service, mut audit)| {
-            Metrics::read(driver, service.as_ref(), &mut audit, registry)
-        })
+        Key::authenticate(driver, audit_meta, key_value, AuditType::Metrics).and_then(
+            |(service, mut audit)| Metrics::read(driver, service.as_ref(), &mut audit, registry),
+        )
     }
 
     pub fn audit_list(
@@ -160,7 +160,8 @@ impl Api {
     ) -> CoreResult<AuditListResponse> {
         AuditListRequest::api_validate(&request)?;
 
-        let (service, mut audit) = Key::authenticate(driver, audit_meta, key_value)?;
+        let (service, mut audit) =
+            Key::authenticate(driver, audit_meta, key_value, AuditType::AuditList)?;
         let (query, filter) = request.into_query_filter();
         let data = Audit::list(driver, service.as_ref(), &mut audit, &query, &filter)?;
         Ok(AuditListResponse {
@@ -177,12 +178,13 @@ impl Api {
     ) -> CoreResult<AuditReadResponse> {
         AuditCreateRequest::api_validate(&request)?;
 
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::AuditCreate)
             .and_then(move |(_, mut audit)| {
+                let audit_create = AuditCreate2::new(request.type_, request.subject, request.data);
                 audit
-                    .set_user_id(request.user_id)
-                    .set_user_key_id(request.user_key_id)
-                    .create(driver, &request.type_, &request.data)
+                    .user_id(request.user_id)
+                    .user_key_id(request.user_key_id)
+                    .create(driver, audit_create)
             })
             .map(|data| AuditReadResponse { data })
     }
@@ -193,11 +195,25 @@ impl Api {
         audit_meta: AuditMeta,
         audit_id: Uuid,
     ) -> CoreResult<AuditReadResponse> {
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::AuditRead)
             .and_then(|(service, mut audit)| {
                 Audit::read(driver, service.as_ref(), &mut audit, audit_id)
             })
             .and_then(|audit| audit.ok_or_else(|| CoreError::NotFound))
+            .map(|data| AuditReadResponse { data })
+    }
+
+    pub fn audit_update(
+        driver: &dyn Driver,
+        key_value: Option<String>,
+        audit_meta: AuditMeta,
+        audit_id: Uuid,
+        request: AuditUpdateRequest,
+    ) -> CoreResult<AuditReadResponse> {
+        Key::authenticate(driver, audit_meta, key_value, AuditType::AuditUpdate)
+            .and_then(|(service, mut audit)| {
+                Audit::update(driver, service.as_ref(), &mut audit, audit_id, request.data)
+            })
             .map(|data| AuditReadResponse { data })
     }
 
@@ -209,7 +225,7 @@ impl Api {
     ) -> CoreResult<KeyListResponse> {
         KeyListRequest::api_validate(&request)?;
 
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::KeyList)
             .and_then(|(service, mut audit)| {
                 let (query, filter) = request.into_query_filter();
                 let data = Key::list(driver, service.as_ref(), &mut audit, &query, &filter)?;
@@ -232,31 +248,32 @@ impl Api {
         // If service ID is some, root key is required to create service keys.
         match request.service_id {
             Some(service_id) => {
-                Key::authenticate_root(driver, audit_meta, key_value).and_then(|mut audit| {
-                    match request.user_id {
-                        // User ID is defined, creating user key for service.
-                        Some(user_id) => Key::create_user(
-                            driver,
-                            &mut audit,
-                            request.is_enabled,
-                            request.type_,
-                            request.name,
-                            &service_id,
-                            &user_id,
-                        ),
-                        // Creating service key.
-                        None => Key::create_service(
-                            driver,
-                            &mut audit,
-                            request.is_enabled,
-                            request.name,
-                            &service_id,
-                        ),
-                    }
-                })
+                Key::authenticate_root(driver, audit_meta, key_value, AuditType::KeyCreate)
+                    .and_then(|mut audit| {
+                        match request.user_id {
+                            // User ID is defined, creating user key for service.
+                            Some(user_id) => Key::create_user(
+                                driver,
+                                &mut audit,
+                                request.is_enabled,
+                                request.type_,
+                                request.name,
+                                &service_id,
+                                &user_id,
+                            ),
+                            // Creating service key.
+                            None => Key::create_service(
+                                driver,
+                                &mut audit,
+                                request.is_enabled,
+                                request.name,
+                                &service_id,
+                            ),
+                        }
+                    })
             }
-            None => Key::authenticate_service(driver, audit_meta, key_value).and_then(
-                |(service, mut audit)| {
+            None => Key::authenticate_service(driver, audit_meta, key_value, AuditType::KeyCreate)
+                .and_then(|(service, mut audit)| {
                     match request.user_id {
                         // User ID is defined, creating user key for service.
                         Some(user_id) => Key::create_user(
@@ -271,8 +288,7 @@ impl Api {
                         // Service cannot create service keys.
                         None => Err(CoreError::BadRequest),
                     }
-                },
-            ),
+                }),
         }
         .map_err(Into::into)
         .map(|key| KeyCreateResponse { data: key })
@@ -284,7 +300,7 @@ impl Api {
         audit_meta: AuditMeta,
         key_id: Uuid,
     ) -> CoreResult<KeyReadResponse> {
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::KeyRead)
             .and_then(|(service, mut audit)| {
                 Key::read_opt(driver, service.as_ref(), &mut audit, key_id)
             })
@@ -302,7 +318,7 @@ impl Api {
     ) -> CoreResult<KeyReadResponse> {
         KeyUpdateRequest::api_validate(&request)?;
 
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::KeyUpdate)
             .and_then(|(service, mut audit)| {
                 Key::update(
                     driver,
@@ -324,7 +340,7 @@ impl Api {
         audit_meta: AuditMeta,
         key_id: Uuid,
     ) -> CoreResult<usize> {
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::KeyDelete)
             .and_then(|(service, mut audit)| {
                 Key::delete(driver, service.as_ref(), &mut audit, key_id)
             })
@@ -339,7 +355,7 @@ impl Api {
     ) -> CoreResult<ServiceListResponse> {
         ServiceListRequest::api_validate(&request)?;
 
-        Key::authenticate_root(driver, audit_meta, key_value)
+        Key::authenticate_root(driver, audit_meta, key_value, AuditType::ServiceList)
             .and_then(|mut audit| {
                 let (query, filter) = request.into_query_filter();
                 let data = Service::list(driver, &mut audit, &query, &filter)?;
@@ -359,7 +375,7 @@ impl Api {
     ) -> CoreResult<ServiceReadResponse> {
         ServiceCreateRequest::api_validate(&request)?;
 
-        Key::authenticate_root(driver, audit_meta, key_value)
+        Key::authenticate_root(driver, audit_meta, key_value, AuditType::ServiceCreate)
             .and_then(|mut audit| {
                 let create: ServiceCreate = request.into();
                 Service::create(driver, &mut audit, &create)
@@ -374,7 +390,7 @@ impl Api {
         audit_meta: AuditMeta,
         service_id: Uuid,
     ) -> CoreResult<ServiceReadResponse> {
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::ServiceRead)
             .and_then(|(service, mut audit)| {
                 Service::read_opt(driver, service.as_ref(), &mut audit, &service_id)
             })
@@ -392,7 +408,7 @@ impl Api {
     ) -> CoreResult<ServiceReadResponse> {
         ServiceUpdateRequest::api_validate(&request)?;
 
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::ServiceUpdate)
             .and_then(|(service, mut audit)| {
                 let update: ServiceUpdate = request.into();
                 Service::update(driver, service.as_ref(), &mut audit, service_id, &update)
@@ -407,7 +423,7 @@ impl Api {
         audit_meta: AuditMeta,
         service_id: Uuid,
     ) -> CoreResult<usize> {
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::ServiceDelete)
             .and_then(|(service, mut audit)| {
                 Service::delete(driver, service.as_ref(), &mut audit, service_id)
             })
@@ -422,7 +438,7 @@ impl Api {
     ) -> CoreResult<UserListResponse> {
         UserListRequest::api_validate(&request)?;
 
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::UserList)
             .and_then(|(service, mut audit)| {
                 let (query, filter) = request.into_query_filter();
                 let data = User::list(driver, service.as_ref(), &mut audit, &query, &filter)?;
@@ -443,7 +459,7 @@ impl Api {
     ) -> CoreResult<UserCreateResponse> {
         UserCreateRequest::api_validate(&request)?;
 
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::UserCreate)
             .and_then(|(service, mut audit)| {
                 let mut create: UserCreate = request.into();
                 User::create(driver, service.as_ref(), &mut audit, &mut create)
@@ -461,7 +477,7 @@ impl Api {
         audit_meta: AuditMeta,
         user_id: Uuid,
     ) -> CoreResult<UserReadResponse> {
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::UserRead)
             .and_then(|(service, mut audit)| {
                 let read = UserRead::Id(user_id);
                 User::read_opt(driver, service.as_ref(), &mut audit, &read)
@@ -480,7 +496,7 @@ impl Api {
     ) -> CoreResult<UserReadResponse> {
         UserUpdateRequest::api_validate(&request)?;
 
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::UserUpdate)
             .and_then(|(service, mut audit)| {
                 let update = UserUpdate {
                     is_enabled: request.is_enabled,
@@ -502,7 +518,7 @@ impl Api {
         audit_meta: AuditMeta,
         user_id: Uuid,
     ) -> CoreResult<usize> {
-        Key::authenticate(driver, audit_meta, key_value)
+        Key::authenticate(driver, audit_meta, key_value, AuditType::UserDelete)
             .and_then(|(service, mut audit)| {
                 User::delete(driver, service.as_ref(), &mut audit, user_id)
             })
@@ -520,7 +536,7 @@ impl Api {
     ) -> CoreResult<AuthLoginResponse> {
         AuthLoginRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
+        Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthLocalLogin)
             .and_then(|(service, mut audit)| {
                 Auth::login(
                     AuthArgs::new(driver, &service, &mut audit),
@@ -530,7 +546,6 @@ impl Api {
                     refresh_token_expires,
                 )
             })
-            .map_err(Into::into)
             .map(|data| AuthLoginResponse {
                 meta: password_meta,
                 data,
@@ -547,16 +562,20 @@ impl Api {
     ) -> CoreResult<()> {
         AuthResetPasswordRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
-            .and_then(|(service, mut audit)| {
-                Auth::reset_password(
-                    AuthArgs::new(driver, &service, &mut audit),
-                    notify,
-                    request.email,
-                    access_token_expires,
-                )
-            })
-            .map_err(Into::into)
+        Key::authenticate_service(
+            driver,
+            audit_meta,
+            key_value,
+            AuditType::AuthLocalResetPassword,
+        )
+        .and_then(|(service, mut audit)| {
+            Auth::reset_password(
+                AuthArgs::new(driver, &service, &mut audit),
+                notify,
+                request.email,
+                access_token_expires,
+            )
+        })
     }
 
     pub fn auth_provider_local_reset_password_confirm(
@@ -568,18 +587,22 @@ impl Api {
     ) -> CoreResult<AuthPasswordMetaResponse> {
         AuthResetPasswordConfirmRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
-            .and_then(|(service, mut audit)| {
-                Auth::reset_password_confirm(
-                    AuthArgs::new(driver, &service, &mut audit),
-                    request.token,
-                    request.password,
-                )
-            })
-            .map_err(Into::into)
-            .map(|_| AuthPasswordMetaResponse {
-                meta: password_meta,
-            })
+        Key::authenticate_service(
+            driver,
+            audit_meta,
+            key_value,
+            AuditType::AuthLocalResetPasswordConfirm,
+        )
+        .and_then(|(service, mut audit)| {
+            Auth::reset_password_confirm(
+                AuthArgs::new(driver, &service, &mut audit),
+                request.token,
+                request.password,
+            )
+        })
+        .map(|_| AuthPasswordMetaResponse {
+            meta: password_meta,
+        })
     }
 
     pub fn auth_provider_local_update_email(
@@ -592,18 +615,22 @@ impl Api {
     ) -> CoreResult<()> {
         AuthUpdateEmailRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
-            .and_then(|(service, mut audit)| {
-                Auth::update_email(
-                    AuthArgs::new(driver, &service, &mut audit),
-                    notify,
-                    request.user_id,
-                    request.password,
-                    request.new_email,
-                    revoke_token_expires,
-                )
-            })
-            .map_err(Into::into)
+        Key::authenticate_service(
+            driver,
+            audit_meta,
+            key_value,
+            AuditType::AuthLocalUpdateEmail,
+        )
+        .and_then(|(service, mut audit)| {
+            Auth::update_email(
+                AuthArgs::new(driver, &service, &mut audit),
+                notify,
+                request.user_id,
+                request.password,
+                request.new_email,
+                revoke_token_expires,
+            )
+        })
     }
 
     pub fn auth_provider_local_update_email_revoke(
@@ -611,19 +638,24 @@ impl Api {
         key_value: Option<String>,
         audit_meta: AuditMeta,
         request: AuthTokenRequest,
-    ) -> CoreResult<usize> {
+    ) -> CoreResult<AuditReadOptResponse> {
         AuthTokenRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
-            .and_then(|(service, mut audit)| {
-                let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
-                Auth::update_email_revoke(
-                    AuthArgs::new(driver, &service, &mut audit),
-                    request.token,
-                    audit_data.as_ref(),
-                )
-            })
-            .map_err(Into::into)
+        Key::authenticate_service(
+            driver,
+            audit_meta,
+            key_value,
+            AuditType::AuthLocalUpdateEmailRevoke,
+        )
+        .and_then(|(service, mut audit)| {
+            let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
+            Auth::update_email_revoke(
+                AuthArgs::new(driver, &service, &mut audit),
+                request.token,
+                audit_create,
+            )
+        })
+        .map(|data| AuditReadOptResponse { data })
     }
 
     pub fn auth_provider_local_update_password(
@@ -637,21 +669,25 @@ impl Api {
     ) -> CoreResult<AuthPasswordMetaResponse> {
         AuthUpdatePasswordRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
-            .and_then(|(service, mut audit)| {
-                Auth::update_password(
-                    AuthArgs::new(driver, &service, &mut audit),
-                    notify,
-                    request.user_id,
-                    request.password,
-                    request.new_password,
-                    revoke_token_expires,
-                )
-            })
-            .map_err(Into::into)
-            .map(|_| AuthPasswordMetaResponse {
-                meta: password_meta,
-            })
+        Key::authenticate_service(
+            driver,
+            audit_meta,
+            key_value,
+            AuditType::AuthLocalUpdatePassword,
+        )
+        .and_then(|(service, mut audit)| {
+            Auth::update_password(
+                AuthArgs::new(driver, &service, &mut audit),
+                notify,
+                request.user_id,
+                request.password,
+                request.new_password,
+                revoke_token_expires,
+            )
+        })
+        .map(|_| AuthPasswordMetaResponse {
+            meta: password_meta,
+        })
     }
 
     pub fn auth_provider_local_update_password_revoke(
@@ -659,19 +695,24 @@ impl Api {
         key_value: Option<String>,
         audit_meta: AuditMeta,
         request: AuthTokenRequest,
-    ) -> CoreResult<usize> {
+    ) -> CoreResult<AuditReadOptResponse> {
         AuthTokenRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
-            .and_then(|(service, mut audit)| {
-                let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
-                Auth::update_password_revoke(
-                    AuthArgs::new(driver, &service, &mut audit),
-                    request.token,
-                    audit_data.as_ref(),
-                )
-            })
-            .map_err(Into::into)
+        Key::authenticate_service(
+            driver,
+            audit_meta,
+            key_value,
+            AuditType::AuthLocalUpdatePasswordRevoke,
+        )
+        .and_then(|(service, mut audit)| {
+            let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
+            Auth::update_password_revoke(
+                AuthArgs::new(driver, &service, &mut audit),
+                request.token,
+                audit_create,
+            )
+        })
+        .map(|data| AuditReadOptResponse { data })
     }
 
     pub fn auth_provider_github_oauth2_url(
@@ -680,17 +721,22 @@ impl Api {
         audit_meta: AuditMeta,
         args: ApiProviderOauth2Args,
     ) -> CoreResult<AuthOauth2UrlResponse> {
-        Key::authenticate_service(driver, audit_meta, key_value)
-            .and_then(|(service, mut audit)| {
-                github_oauth2_url(
-                    driver,
-                    &service,
-                    &mut audit,
-                    args.provider,
-                    args.access_token_expires,
-                )
-            })
-            .map(|url| AuthOauth2UrlResponse { url })
+        Key::authenticate_service(
+            driver,
+            audit_meta,
+            key_value,
+            AuditType::AuthGithubOauth2Url,
+        )
+        .and_then(|(service, mut audit)| {
+            github_oauth2_url(
+                driver,
+                &service,
+                &mut audit,
+                args.provider,
+                args.access_token_expires,
+            )
+        })
+        .map(|url| AuthOauth2UrlResponse { url })
     }
 
     pub fn auth_provider_github_oauth2_callback(
@@ -702,7 +748,12 @@ impl Api {
     ) -> CoreResult<AuthTokenResponse> {
         AuthOauth2CallbackRequest::api_validate(&request)?;
 
-        let (service, mut audit) = Key::authenticate_service(driver, audit_meta, key_value)?;
+        let (service, mut audit) = Key::authenticate_service(
+            driver,
+            audit_meta,
+            key_value,
+            AuditType::AuthGithubOauth2Callback,
+        )?;
         let (service_id, access_token) =
             github_oauth2_callback(driver, &service, &mut audit, args.provider, request)?;
         let user_email = github_api_user_email(args.user_agent, access_token)?;
@@ -713,7 +764,7 @@ impl Api {
             args.access_token_expires,
             args.refresh_token_expires,
         )
-        .map(|(_service, data)| AuthTokenResponse { data })
+        .map(|(_service, data)| AuthTokenResponse { data, audit: None })
     }
 
     pub fn auth_provider_microsoft_oauth2_url(
@@ -722,17 +773,22 @@ impl Api {
         audit_meta: AuditMeta,
         args: ApiProviderOauth2Args,
     ) -> CoreResult<AuthOauth2UrlResponse> {
-        Key::authenticate_service(driver, audit_meta, key_value)
-            .and_then(|(service, mut audit)| {
-                microsoft_oauth2_url(
-                    driver,
-                    &service,
-                    &mut audit,
-                    args.provider,
-                    args.access_token_expires,
-                )
-            })
-            .map(|url| AuthOauth2UrlResponse { url })
+        Key::authenticate_service(
+            driver,
+            audit_meta,
+            key_value,
+            AuditType::AuthMicrosoftOauth2Url,
+        )
+        .and_then(|(service, mut audit)| {
+            microsoft_oauth2_url(
+                driver,
+                &service,
+                &mut audit,
+                args.provider,
+                args.access_token_expires,
+            )
+        })
+        .map(|url| AuthOauth2UrlResponse { url })
     }
 
     pub fn auth_provider_microsoft_oauth2_callback(
@@ -744,7 +800,12 @@ impl Api {
     ) -> CoreResult<AuthTokenResponse> {
         AuthOauth2CallbackRequest::api_validate(&request)?;
 
-        let (service, mut audit) = Key::authenticate_service(driver, audit_meta, key_value)?;
+        let (service, mut audit) = Key::authenticate_service(
+            driver,
+            audit_meta,
+            key_value,
+            AuditType::AuthMicrosoftOauth2Callback,
+        )?;
         let (service_id, access_token) =
             microsoft_oauth2_callback(driver, &service, &mut audit, args.provider, request)?;
         let user_email = microsoft_api_user_email(args.user_agent, access_token)?;
@@ -755,7 +816,7 @@ impl Api {
             args.access_token_expires,
             args.refresh_token_expires,
         )
-        .map(|(_service, data)| AuthTokenResponse { data })
+        .map(|(_service, data)| AuthTokenResponse { data, audit: None })
     }
 
     pub fn auth_key_verify(
@@ -766,17 +827,16 @@ impl Api {
     ) -> CoreResult<AuthKeyResponse> {
         AuthKeyRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
+        Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthKeyVerify)
             .and_then(|(service, mut audit)| {
-                let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
+                let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
                 Auth::key_verify(
                     AuthArgs::new(driver, &service, &mut audit),
                     request.key,
-                    audit_data.as_ref(),
+                    audit_create,
                 )
             })
-            .map_err(Into::into)
-            .map(|user_key| AuthKeyResponse { data: user_key })
+            .map(|(data, audit)| AuthKeyResponse { data, audit })
     }
 
     pub fn auth_key_revoke(
@@ -784,19 +844,19 @@ impl Api {
         key_value: Option<String>,
         audit_meta: AuditMeta,
         request: AuthKeyRequest,
-    ) -> CoreResult<usize> {
+    ) -> CoreResult<AuditReadOptResponse> {
         AuthKeyRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
+        Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthKeyRevoke)
             .and_then(|(service, mut audit)| {
-                let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
+                let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
                 Auth::key_revoke(
                     AuthArgs::new(driver, &service, &mut audit),
                     request.key,
-                    audit_data.as_ref(),
+                    audit_create,
                 )
             })
-            .map_err(Into::into)
+            .map(|data| AuditReadOptResponse { data })
     }
 
     pub fn auth_token_verify(
@@ -807,17 +867,16 @@ impl Api {
     ) -> CoreResult<AuthTokenAccessResponse> {
         AuthTokenRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
+        Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthTokenVerify)
             .and_then(|(service, mut audit)| {
-                let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
+                let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
                 Auth::token_verify(
                     AuthArgs::new(driver, &service, &mut audit),
                     request.token,
-                    audit_data.as_ref(),
+                    audit_create,
                 )
             })
-            .map_err(Into::into)
-            .map(|user_token| AuthTokenAccessResponse { data: user_token })
+            .map(|(data, audit)| AuthTokenAccessResponse { data, audit })
     }
 
     pub fn auth_token_refresh(
@@ -830,19 +889,18 @@ impl Api {
     ) -> CoreResult<AuthTokenResponse> {
         AuthTokenRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
+        Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthTokenRefresh)
             .and_then(|(service, mut audit)| {
-                let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
+                let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
                 Auth::token_refresh(
                     AuthArgs::new(driver, &service, &mut audit),
                     request.token,
-                    audit_data.as_ref(),
+                    audit_create,
                     access_token_expires,
                     refresh_token_expires,
                 )
             })
-            .map_err(Into::into)
-            .map(|user_token| AuthTokenResponse { data: user_token })
+            .map(|(data, audit)| AuthTokenResponse { data, audit })
     }
 
     pub fn auth_token_revoke(
@@ -850,19 +908,19 @@ impl Api {
         key_value: Option<String>,
         audit_meta: AuditMeta,
         request: AuthTokenRequest,
-    ) -> CoreResult<usize> {
+    ) -> CoreResult<AuditReadOptResponse> {
         AuthTokenRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
+        Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthTokenRevoke)
             .and_then(|(service, mut audit)| {
-                let audit_data: Option<AuditData> = request.audit.map(|x| x.into());
+                let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
                 Auth::token_revoke(
                     AuthArgs::new(driver, &service, &mut audit),
                     request.token,
-                    audit_data.as_ref(),
+                    audit_create,
                 )
             })
-            .map_err(Into::into)
+            .map(|data| AuditReadOptResponse { data })
     }
 
     pub fn auth_totp(
@@ -873,7 +931,7 @@ impl Api {
     ) -> CoreResult<()> {
         AuthTotpRequest::api_validate(&request)?;
 
-        Key::authenticate_service(driver, audit_meta, key_value)
+        Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthTotp)
             .and_then(|(service, mut audit)| {
                 Auth::totp(
                     AuthArgs::new(driver, &service, &mut audit),
@@ -892,7 +950,8 @@ impl Api {
     ) -> CoreResult<AuthCsrfCreateResponse> {
         AuthCsrfCreateRequest::api_validate(&request)?;
 
-        let (service, mut audit) = Key::authenticate_service(driver, audit_meta, key_value)?;
+        let (service, mut audit) =
+            Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthCsrfCreate)?;
         let data = Auth::csrf_create(
             AuthArgs::new(driver, &service, &mut audit),
             request.expires_s,
@@ -908,7 +967,8 @@ impl Api {
     ) -> CoreResult<()> {
         AuthCsrfVerifyRequest::api_validate(&request)?;
 
-        let (service, mut audit) = Key::authenticate_service(driver, audit_meta, key_value)?;
+        let (service, mut audit) =
+            Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthCsrfVerify)?;
         Auth::csrf_verify(AuthArgs::new(driver, &service, &mut audit), request.key)
     }
 }

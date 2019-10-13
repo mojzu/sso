@@ -1,8 +1,8 @@
 use crate::{
     notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
-    AuditBuilder, AuditData, AuditMessage, AuditType, Core, CoreError, CoreResult, Csrf, Driver,
-    Jwt, JwtClaimsType, Key, KeyType, KeyWithValue, NotifyActor, Service, User, UserKey, UserRead,
-    UserToken, UserTokenAccess, UserUpdate,
+    Audit, AuditBuilder, AuditCreate2, AuditMessage, AuditType, Core, CoreError, CoreResult, Csrf,
+    Driver, Jwt, JwtClaimsType, Key, KeyType, KeyWithValue, NotifyActor, Service, User, UserKey,
+    UserRead, UserToken, UserTokenAccess, UserUpdate,
 };
 use actix::Addr;
 use libreauth::oath::TOTPBuilder;
@@ -53,14 +53,14 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::LoginError,
+            AuditType::AuthLocalLogin,
             email,
         )?;
         let key = Auth::key_read_by_user(
             args.driver,
             args.service,
             args.audit,
-            AuditType::LoginError,
+            AuditType::AuthLocalLogin,
             &user,
             KeyType::Token,
         )?;
@@ -69,9 +69,9 @@ impl Auth {
         if user.password_require_update {
             args.audit.create_internal(
                 args.driver,
-                AuditType::LoginError,
+                AuditType::AuthLocalLogin,
                 AuditMessage::PasswordUpdateRequired,
-            );
+            )?;
             return Err(CoreError::Forbidden);
         }
 
@@ -80,9 +80,9 @@ impl Auth {
         {
             args.audit.create_internal(
                 args.driver,
-                AuditType::LoginError,
+                AuditType::AuthLocalLogin,
                 AuditMessage::PasswordNotSetOrIncorrect,
-            );
+            )?;
             return Err(err);
         }
 
@@ -98,7 +98,7 @@ impl Auth {
         )?;
 
         args.audit
-            .create_internal(args.driver, AuditType::Login, AuditMessage::Login);
+            .create_internal(args.driver, AuditType::AuthLocalLogin, AuditMessage::Login)?;
         Ok(user_token)
     }
 
@@ -124,14 +124,14 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::ResetPasswordError,
+            AuditType::AuthLocalResetPassword,
             email,
         )?;
         let key = Auth::key_read_by_user(
             args.driver,
             args.service,
             args.audit,
-            AuditType::ResetPasswordError,
+            AuditType::AuthLocalResetPassword,
             &user,
             KeyType::Token,
         )?;
@@ -140,9 +140,9 @@ impl Auth {
         if !user.password_allow_reset {
             args.audit.create_internal(
                 args.driver,
-                AuditType::ResetPasswordError,
+                AuditType::AuthLocalResetPassword,
                 AuditMessage::ResetPasswordDisabled,
-            );
+            )?;
             return Err(CoreError::BadRequest);
         }
 
@@ -160,9 +160,9 @@ impl Auth {
         // Pass audit log to notification actor.
         let audit = args.audit.create_internal(
             args.driver,
-            AuditType::ResetPassword,
+            AuditType::AuthLocalResetPassword,
             AuditMessage::ResetPassword,
-        );
+        )?;
 
         // Send reset password action email.
         notify
@@ -170,7 +170,7 @@ impl Auth {
                 args.service.clone(),
                 user,
                 token,
-                audit,
+                Some(audit),
             ))
             .map_err(|_err| CoreError::BadRequest)?;
         Ok(())
@@ -189,14 +189,14 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::ResetPasswordConfirmError,
+            AuditType::AuthLocalResetPasswordConfirm,
             user_id,
         )?;
         let key = Auth::key_read_by_user(
             args.driver,
             args.service,
             args.audit,
-            AuditType::ResetPasswordConfirmError,
+            AuditType::AuthLocalResetPasswordConfirm,
             &user,
             KeyType::Token,
         )?;
@@ -205,9 +205,9 @@ impl Auth {
         if !user.password_allow_reset {
             args.audit.create_internal(
                 args.driver,
-                AuditType::ResetPasswordConfirmError,
+                AuditType::AuthLocalResetPasswordConfirm,
                 AuditMessage::ResetPasswordDisabled,
-            );
+            )?;
             return Err(CoreError::BadRequest);
         }
 
@@ -224,9 +224,9 @@ impl Auth {
             Err(err) => {
                 args.audit.create_internal(
                     args.driver,
-                    AuditType::ResetPasswordConfirmError,
+                    AuditType::AuthLocalResetPasswordConfirm,
                     AuditMessage::TokenInvalidOrExpired,
-                );
+                )?;
                 return Err(err);
             }
         };
@@ -237,7 +237,7 @@ impl Auth {
             args.service,
             args.audit,
             csrf_key,
-            AuditType::ResetPasswordConfirmError,
+            AuditType::AuthLocalResetPasswordConfirm,
         )?;
 
         // Sucessful reset password confirm, update user password.
@@ -250,9 +250,9 @@ impl Auth {
         )?;
         args.audit.create_internal(
             args.driver,
-            AuditType::ResetPasswordConfirm,
+            AuditType::AuthLocalResetPasswordConfirm,
             AuditMessage::ResetPasswordConfirm,
-        );
+        )?;
         Ok(())
     }
 
@@ -269,14 +269,14 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::UpdateEmailError,
+            AuditType::AuthLocalUpdateEmail,
             user_id,
         )?;
         let key = Auth::key_read_by_user(
             args.driver,
             args.service,
             args.audit,
-            AuditType::UpdateEmailError,
+            AuditType::AuthLocalUpdateEmail,
             &user,
             KeyType::Token,
         )?;
@@ -286,9 +286,9 @@ impl Auth {
         if user.password_require_update {
             args.audit.create_internal(
                 args.driver,
-                AuditType::UpdateEmailError,
+                AuditType::AuthLocalUpdateEmail,
                 AuditMessage::PasswordUpdateRequired,
-            );
+            )?;
             return Err(CoreError::Forbidden);
         }
 
@@ -297,9 +297,9 @@ impl Auth {
         {
             args.audit.create_internal(
                 args.driver,
-                AuditType::UpdateEmailError,
+                AuditType::AuthLocalUpdateEmail,
                 AuditMessage::PasswordNotSetOrIncorrect,
-            );
+            )?;
             return Err(err);
         }
 
@@ -327,16 +327,16 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::UpdateEmailError,
+            AuditType::AuthLocalUpdateEmail,
             user_id,
         )?;
 
         // Pass audit log to notification actor.
         let audit = args.audit.create_internal(
             args.driver,
-            AuditType::UpdateEmail,
+            AuditType::AuthLocalUpdateEmail,
             AuditMessage::UpdateEmail,
-        );
+        )?;
 
         // Send update email action email.
         notify
@@ -345,7 +345,7 @@ impl Auth {
                 user,
                 old_email,
                 revoke_token,
-                audit,
+                Some(audit),
             ))
             .map_err(|_err| CoreError::BadRequest)?;
         Ok(())
@@ -354,8 +354,8 @@ impl Auth {
     pub fn update_email_revoke(
         args: AuthArgs,
         token: String,
-        audit_data: Option<&AuditData>,
-    ) -> CoreResult<usize> {
+        audit_create: Option<AuditCreate2>,
+    ) -> CoreResult<Option<Audit>> {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) = Jwt::decode_unsafe(&token, args.service.id)?;
 
@@ -365,14 +365,14 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::UpdateEmailRevokeError,
+            AuditType::AuthLocalUpdateEmailRevoke,
             user_id,
         )?;
         let key = Auth::key_read_by_user_unchecked(
             args.driver,
             args.service,
             args.audit,
-            AuditType::UpdateEmailRevokeError,
+            AuditType::AuthLocalUpdateEmailRevoke,
             &user,
             KeyType::Token,
         )?;
@@ -390,9 +390,9 @@ impl Auth {
             Err(err) => {
                 args.audit.create_internal(
                     args.driver,
-                    AuditType::UpdateEmailRevokeError,
+                    AuditType::AuthLocalUpdateEmailRevoke,
                     AuditMessage::TokenInvalidOrExpired,
-                );
+                )?;
                 return Err(err);
             }
         };
@@ -403,7 +403,7 @@ impl Auth {
             args.service,
             args.audit,
             csrf_key,
-            AuditType::UpdateEmailRevokeError,
+            AuditType::AuthLocalUpdateEmailRevoke,
         )?;
 
         // Successful update email revoke, disable user and disable and revoke all keys associated with user.
@@ -422,7 +422,7 @@ impl Auth {
             user.id,
             &update,
         )?;
-        let count = Key::update_many(
+        Key::update_many(
             args.driver,
             Some(args.service),
             args.audit,
@@ -434,14 +434,15 @@ impl Auth {
 
         args.audit.create_internal(
             args.driver,
-            AuditType::UpdateEmailRevoke,
+            AuditType::AuthLocalUpdateEmailRevoke,
             AuditMessage::UpdateEmailRevoke,
-        );
-        if let Some(audit_data) = audit_data {
-            args.audit
-                .create_unchecked(args.driver, &audit_data.type_, &audit_data.data);
-        }
-        Ok(count + 1)
+        )?;
+        let audit = if let Some(audit_create) = audit_create {
+            Some(args.audit.create(args.driver, audit_create)?)
+        } else {
+            None
+        };
+        Ok(audit)
     }
 
     pub fn update_password(
@@ -457,14 +458,14 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::UpdatePasswordError,
+            AuditType::AuthLocalUpdatePassword,
             user_id,
         )?;
         let key = Auth::key_read_by_user(
             args.driver,
             args.service,
             args.audit,
-            AuditType::UpdatePasswordError,
+            AuditType::AuthLocalUpdatePassword,
             &user,
             KeyType::Token,
         )?;
@@ -476,9 +477,9 @@ impl Auth {
         {
             args.audit.create_internal(
                 args.driver,
-                AuditType::UpdatePasswordError,
+                AuditType::AuthLocalUpdatePassword,
                 AuditMessage::PasswordNotSetOrIncorrect,
-            );
+            )?;
             return Err(err);
         }
 
@@ -506,16 +507,16 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::UpdatePasswordError,
+            AuditType::AuthLocalUpdatePassword,
             user_id,
         )?;
 
         // Pass audit log to notification actor.
         let audit = args.audit.create_internal(
             args.driver,
-            AuditType::UpdatePassword,
+            AuditType::AuthLocalUpdatePassword,
             AuditMessage::UpdatePassword,
-        );
+        )?;
 
         // Send update password action email.
         notify
@@ -523,7 +524,7 @@ impl Auth {
                 args.service.clone(),
                 user,
                 revoke_token,
-                audit,
+                Some(audit),
             ))
             .map_err(|_err| CoreError::BadRequest)?;
         Ok(())
@@ -532,8 +533,8 @@ impl Auth {
     pub fn update_password_revoke(
         args: AuthArgs,
         token: String,
-        audit_data: Option<&AuditData>,
-    ) -> CoreResult<usize> {
+        audit_create: Option<AuditCreate2>,
+    ) -> CoreResult<Option<Audit>> {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) = Jwt::decode_unsafe(&token, args.service.id)?;
 
@@ -543,14 +544,14 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::UpdatePasswordRevokeError,
+            AuditType::AuthLocalUpdatePasswordRevoke,
             user_id,
         )?;
         let key = Auth::key_read_by_user_unchecked(
             args.driver,
             args.service,
             args.audit,
-            AuditType::UpdatePasswordRevokeError,
+            AuditType::AuthLocalUpdatePasswordRevoke,
             &user,
             KeyType::Token,
         )?;
@@ -568,9 +569,9 @@ impl Auth {
             Err(err) => {
                 args.audit.create_internal(
                     args.driver,
-                    AuditType::UpdatePasswordRevokeError,
+                    AuditType::AuthLocalUpdatePasswordRevoke,
                     AuditMessage::TokenInvalidOrExpired,
-                );
+                )?;
                 return Err(err);
             }
         };
@@ -581,7 +582,7 @@ impl Auth {
             args.service,
             args.audit,
             csrf_key,
-            AuditType::UpdatePasswordRevokeError,
+            AuditType::AuthLocalUpdatePasswordRevoke,
         )?;
 
         // Successful update password revoke, disable user and disable and revoke all keys associated with user.
@@ -600,7 +601,7 @@ impl Auth {
             user.id,
             &update,
         )?;
-        let count = Key::update_many(
+        Key::update_many(
             args.driver,
             Some(args.service),
             args.audit,
@@ -612,27 +613,28 @@ impl Auth {
 
         args.audit.create_internal(
             args.driver,
-            AuditType::UpdatePasswordRevoke,
+            AuditType::AuthLocalUpdatePasswordRevoke,
             AuditMessage::UpdatePasswordRevoke,
-        );
-        if let Some(audit_data) = audit_data {
-            args.audit
-                .create_unchecked(args.driver, &audit_data.type_, &audit_data.data);
-        }
-        Ok(count + 1)
+        )?;
+        let audit = if let Some(audit_create) = audit_create {
+            Some(args.audit.create(args.driver, audit_create)?)
+        } else {
+            None
+        };
+        Ok(audit)
     }
 
     pub fn key_verify(
         args: AuthArgs,
         key: String,
-        audit_data: Option<&AuditData>,
-    ) -> CoreResult<UserKey> {
+        audit_create: Option<AuditCreate2>,
+    ) -> CoreResult<(UserKey, Option<Audit>)> {
         // Key verify requires key key type.
         let key = Auth::key_read_by_user_value(
             args.driver,
             args.service,
             args.audit,
-            AuditType::KeyVerifyError,
+            AuditType::AuthKeyVerify,
             key,
             KeyType::Key,
         )?;
@@ -643,15 +645,15 @@ impl Auth {
                 args.driver,
                 Some(args.service),
                 args.audit,
-                AuditType::KeyVerifyError,
+                AuditType::AuthKeyVerify,
                 user_id,
             ),
             Err(err) => {
                 args.audit.create_internal(
                     args.driver,
-                    AuditType::KeyVerifyError,
+                    AuditType::AuthKeyVerify,
                     AuditMessage::KeyNotFound,
-                );
+                )?;
                 Err(err)
             }
         }?;
@@ -662,25 +664,26 @@ impl Auth {
             key: key.value,
         };
 
-        if let Some(audit_data) = audit_data {
-            args.audit
-                .create_unchecked(args.driver, &audit_data.type_, &audit_data.data);
-        }
-        Ok(user_key)
+        let audit = if let Some(audit_create) = audit_create {
+            Some(args.audit.create(args.driver, audit_create)?)
+        } else {
+            None
+        };
+        Ok((user_key, audit))
     }
 
     pub fn key_revoke(
         args: AuthArgs,
         key: String,
-        audit_data: Option<&AuditData>,
-    ) -> CoreResult<usize> {
+        audit_create: Option<AuditCreate2>,
+    ) -> CoreResult<Option<Audit>> {
         // Key revoke requires key key type.
         // Do not check key is enabled or not revoked.
         let key = Auth::key_read_by_user_value_unchecked(
             args.driver,
             args.service,
             args.audit,
-            AuditType::KeyRevokeError,
+            AuditType::AuthKeyRevoke,
             key,
             KeyType::Key,
         )?;
@@ -696,20 +699,24 @@ impl Auth {
             None,
         )?;
 
-        args.audit
-            .create_internal(args.driver, AuditType::KeyRevoke, AuditMessage::KeyRevoke);
-        if let Some(audit_data) = audit_data {
-            args.audit
-                .create_unchecked(args.driver, &audit_data.type_, &audit_data.data);
-        }
-        Ok(1)
+        args.audit.create_internal(
+            args.driver,
+            AuditType::AuthKeyRevoke,
+            AuditMessage::KeyRevoke,
+        )?;
+        let audit = if let Some(audit_create) = audit_create {
+            Some(args.audit.create(args.driver, audit_create)?)
+        } else {
+            None
+        };
+        Ok(audit)
     }
 
     pub fn token_verify(
         args: AuthArgs,
         token: String,
-        audit_data: Option<&AuditData>,
-    ) -> CoreResult<UserTokenAccess> {
+        audit_create: Option<AuditCreate2>,
+    ) -> CoreResult<(UserTokenAccess, Option<Audit>)> {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) = Jwt::decode_unsafe(&token, args.service.id)?;
 
@@ -718,14 +725,14 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::TokenVerifyError,
+            AuditType::AuthTokenVerify,
             user_id,
         )?;
         let key = Auth::key_read_by_user(
             args.driver,
             args.service,
             args.audit,
-            AuditType::TokenVerifyError,
+            AuditType::AuthTokenVerify,
             &user,
             KeyType::Token,
         )?;
@@ -743,9 +750,9 @@ impl Auth {
             Err(err) => {
                 args.audit.create_internal(
                     args.driver,
-                    AuditType::TokenVerifyError,
+                    AuditType::AuthTokenVerify,
                     AuditMessage::TokenInvalidOrExpired,
-                );
+                )?;
                 return Err(err);
             }
         };
@@ -757,20 +764,21 @@ impl Auth {
             access_token_expires,
         };
 
-        if let Some(audit_data) = audit_data {
-            args.audit
-                .create_unchecked(args.driver, &audit_data.type_, &audit_data.data);
-        }
-        Ok(user_token)
+        let audit = if let Some(audit_create) = audit_create {
+            Some(args.audit.create(args.driver, audit_create)?)
+        } else {
+            None
+        };
+        Ok((user_token, audit))
     }
 
     pub fn token_refresh(
         args: AuthArgs,
         token: String,
-        audit_data: Option<&AuditData>,
+        audit_create: Option<AuditCreate2>,
         access_token_expires: i64,
         refresh_token_expires: i64,
-    ) -> CoreResult<UserToken> {
+    ) -> CoreResult<(UserToken, Option<Audit>)> {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) = Jwt::decode_unsafe(&token, args.service.id)?;
 
@@ -779,14 +787,14 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::TokenRefreshError,
+            AuditType::AuthTokenRefresh,
             user_id,
         )?;
         let key = Auth::key_read_by_user(
             args.driver,
             args.service,
             args.audit,
-            AuditType::TokenRefreshError,
+            AuditType::AuthTokenRefresh,
             &user,
             KeyType::Token,
         )?;
@@ -804,9 +812,9 @@ impl Auth {
             Err(err) => {
                 args.audit.create_internal(
                     args.driver,
-                    AuditType::TokenRefreshError,
+                    AuditType::AuthTokenRefresh,
                     AuditMessage::TokenInvalidOrExpired,
-                );
+                )?;
                 return Err(err);
             }
         };
@@ -817,7 +825,7 @@ impl Auth {
             args.service,
             args.audit,
             csrf_key,
-            AuditType::TokenRefreshError,
+            AuditType::AuthTokenRefresh,
         )?;
 
         // Successful token refresh, encode user token.
@@ -833,21 +841,22 @@ impl Auth {
 
         args.audit.create_internal(
             args.driver,
-            AuditType::TokenRefresh,
+            AuditType::AuthTokenRefresh,
             AuditMessage::TokenRefresh,
-        );
-        if let Some(audit_data) = audit_data {
-            args.audit
-                .create_unchecked(args.driver, &audit_data.type_, &audit_data.data);
-        }
-        Ok(user_token)
+        )?;
+        let audit = if let Some(audit_create) = audit_create {
+            Some(args.audit.create(args.driver, audit_create)?)
+        } else {
+            None
+        };
+        Ok((user_token, audit))
     }
 
     pub fn token_revoke(
         args: AuthArgs,
         token: String,
-        audit_data: Option<&AuditData>,
-    ) -> CoreResult<usize> {
+        audit_create: Option<AuditCreate2>,
+    ) -> CoreResult<Option<Audit>> {
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, token_type) = Jwt::decode_unsafe(&token, args.service.id)?;
 
@@ -857,14 +866,14 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::TokenRevokeError,
+            AuditType::AuthTokenRevoke,
             user_id,
         )?;
         let key = Auth::key_read_by_user_unchecked(
             args.driver,
             args.service,
             args.audit,
-            AuditType::TokenRevokeError,
+            AuditType::AuthTokenRevoke,
             &user,
             KeyType::Token,
         )?;
@@ -876,9 +885,9 @@ impl Auth {
                 Err(err) => {
                     args.audit.create_internal(
                         args.driver,
-                        AuditType::TokenRevokeError,
+                        AuditType::AuthTokenRevoke,
                         AuditMessage::TokenInvalidOrExpired,
-                    );
+                    )?;
                     return Err(err);
                 }
             };
@@ -901,14 +910,15 @@ impl Auth {
 
         args.audit.create_internal(
             args.driver,
-            AuditType::TokenRevoke,
+            AuditType::AuthTokenRevoke,
             AuditMessage::TokenRevoke,
-        );
-        if let Some(audit_data) = audit_data {
-            args.audit
-                .create_unchecked(args.driver, &audit_data.type_, &audit_data.data);
-        }
-        Ok(1)
+        )?;
+        let audit = if let Some(audit_create) = audit_create {
+            Some(args.audit.create(args.driver, audit_create)?)
+        } else {
+            None
+        };
+        Ok(audit)
     }
 
     /// TOTP code verification.
@@ -918,14 +928,14 @@ impl Auth {
             args.driver,
             Some(args.service),
             args.audit,
-            AuditType::TotpError,
+            AuditType::AuthTotp,
             user_id,
         )?;
         let key = Auth::key_read_by_user(
             args.driver,
             args.service,
             args.audit,
-            AuditType::TotpError,
+            AuditType::AuthTotp,
             &user,
             KeyType::Totp,
         )?;
@@ -937,9 +947,9 @@ impl Auth {
         if !totp.is_valid(&totp_code) {
             args.audit.create_internal(
                 args.driver,
-                AuditType::TotpError,
+                AuditType::AuthTotp,
                 AuditMessage::TotpInvalid,
-            );
+            )?;
             Err(CoreError::BadRequest)
         } else {
             Ok(())
@@ -959,7 +969,7 @@ impl Auth {
             args.service,
             args.audit,
             csrf_key,
-            AuditType::CsrfError,
+            AuditType::AuthCsrfVerify,
         )
     }
 
@@ -975,9 +985,9 @@ impl Auth {
         if args.service.id != service_id {
             args.audit.create_internal(
                 args.driver,
-                AuditType::Oauth2LoginError,
+                AuditType::AuthGithubOauth2Callback,
                 AuditMessage::ServiceMismatch,
-            );
+            )?;
             return Err(CoreError::BadRequest);
         }
 
@@ -986,20 +996,20 @@ impl Auth {
             args.driver,
             service_id,
             args.audit,
-            AuditType::Oauth2LoginError,
+            AuditType::AuthGithubOauth2Callback,
         )?;
         let user = Auth::user_read_by_email(
             args.driver,
             Some(&service),
             args.audit,
-            AuditType::Oauth2LoginError,
+            AuditType::AuthGithubOauth2Callback,
             email,
         )?;
         let key = Auth::key_read_by_user(
             args.driver,
             &service,
             args.audit,
-            AuditType::Oauth2LoginError,
+            AuditType::AuthGithubOauth2Callback,
             &user,
             KeyType::Token,
         )?;
@@ -1017,9 +1027,9 @@ impl Auth {
 
         args.audit.create_internal(
             args.driver,
-            AuditType::Oauth2Login,
+            AuditType::AuthOauth2Login,
             AuditMessage::Oauth2Login,
-        );
+        )?;
         Ok((service, user_token))
     }
 
@@ -1037,15 +1047,15 @@ impl Auth {
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(service) => {
-                audit.set_service(Some(&service));
+                audit.service(Some(&service));
                 if !service.is_enabled {
-                    audit.create_internal(driver, audit_type, AuditMessage::ServiceDisabled);
+                    audit.create_internal(driver, audit_type, AuditMessage::ServiceDisabled)?;
                     return Err(CoreError::BadRequest);
                 }
                 Ok(service)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::ServiceNotFound);
+                audit.create_internal(driver, audit_type, AuditMessage::ServiceNotFound)?;
                 Err(err)
             }
         }
@@ -1065,15 +1075,15 @@ impl Auth {
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(user) => {
-                audit.set_user(Some(&user));
+                audit.user(Some(&user));
                 if !user.is_enabled {
-                    audit.create_internal(driver, audit_type, AuditMessage::UserDisabled);
+                    audit.create_internal(driver, audit_type, AuditMessage::UserDisabled)?;
                     return Err(CoreError::BadRequest);
                 }
                 Ok(user)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::UserNotFound);
+                audit.create_internal(driver, audit_type, AuditMessage::UserNotFound)?;
                 Err(err)
             }
         }
@@ -1093,11 +1103,11 @@ impl Auth {
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(user) => {
-                audit.set_user(Some(&user));
+                audit.user(Some(&user));
                 Ok(user)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::UserNotFound);
+                audit.create_internal(driver, audit_type, AuditMessage::UserNotFound)?;
                 Err(err)
             }
         }
@@ -1117,15 +1127,15 @@ impl Auth {
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(user) => {
-                audit.set_user(Some(&user));
+                audit.user(Some(&user));
                 if !user.is_enabled {
-                    audit.create_internal(driver, audit_type, AuditMessage::UserDisabled);
+                    audit.create_internal(driver, audit_type, AuditMessage::UserDisabled)?;
                     return Err(CoreError::BadRequest);
                 }
                 Ok(user)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::UserNotFound);
+                audit.create_internal(driver, audit_type, AuditMessage::UserNotFound)?;
                 Err(err)
             }
         }
@@ -1145,15 +1155,19 @@ impl Auth {
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
-                audit.set_user_key(Some(&key));
+                audit.user_key(Some(&key));
                 if !key.is_enabled || key.is_revoked {
-                    audit.create_internal(driver, audit_type, AuditMessage::KeyDisabledOrRevoked);
+                    audit.create_internal(
+                        driver,
+                        audit_type,
+                        AuditMessage::KeyDisabledOrRevoked,
+                    )?;
                     return Err(CoreError::BadRequest);
                 }
                 Ok(key)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound);
+                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound)?;
                 Err(err)
             }
         }
@@ -1173,11 +1187,11 @@ impl Auth {
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
-                audit.set_user_key(Some(&key));
+                audit.user_key(Some(&key));
                 Ok(key)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound);
+                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound)?;
                 Err(err)
             }
         }
@@ -1197,15 +1211,19 @@ impl Auth {
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
-                audit.set_user_key(Some(&key));
+                audit.user_key(Some(&key));
                 if !key.is_enabled || key.is_revoked {
-                    audit.create_internal(driver, audit_type, AuditMessage::KeyDisabledOrRevoked);
+                    audit.create_internal(
+                        driver,
+                        audit_type,
+                        AuditMessage::KeyDisabledOrRevoked,
+                    )?;
                     return Err(CoreError::BadRequest);
                 }
                 Ok(key)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound);
+                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound)?;
                 Err(err)
             }
         }
@@ -1225,11 +1243,11 @@ impl Auth {
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
-                audit.set_user_key(Some(&key));
+                audit.user_key(Some(&key));
                 Ok(key)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound);
+                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound)?;
                 Err(err)
             }
         }
@@ -1295,13 +1313,13 @@ impl Auth {
         match res {
             Ok(csrf) => {
                 if csrf.service_id != service.id {
-                    audit.create_internal(driver, audit_type, AuditMessage::CsrfNotFoundOrUsed);
+                    audit.create_internal(driver, audit_type, AuditMessage::CsrfNotFoundOrUsed)?;
                     return Err(CoreError::BadRequest);
                 }
                 Ok(())
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::CsrfNotFoundOrUsed);
+                audit.create_internal(driver, audit_type, AuditMessage::CsrfNotFoundOrUsed)?;
                 Err(err)
             }
         }

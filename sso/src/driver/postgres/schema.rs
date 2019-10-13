@@ -1,12 +1,14 @@
 table! {
-    sso_audit (id) {
+    sso_audit (created_at, id) {
         created_at -> Timestamptz,
+        updated_at -> Timestamptz,
         id -> Uuid,
         user_agent -> Varchar,
         remote -> Varchar,
         forwarded -> Nullable<Varchar>,
         #[sql_name = "type"]
         type_ -> Varchar,
+        subject -> Nullable<Varchar>,
         data -> Jsonb,
         key_id -> Nullable<Uuid>,
         service_id -> Nullable<Uuid>,

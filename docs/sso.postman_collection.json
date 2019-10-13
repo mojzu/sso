@@ -796,7 +796,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"type\": \"Example\",\n\t\"data\": {\n\t\t\"message\": \"Some message string.\"\n\t},\n\t\"user_id\": \"{{user_id}}\"\n}",
+							"raw": "{\n\t\"type\": \"Example\",\n\t\"subject\": \"some-id\",\n\t\"data\": {\n\t\t\"message\": \"Some message string.\"\n\t},\n\t\"user_id\": \"{{user_id}}\",\n\t\"user_key_id\": \"{{user_key_id}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -834,6 +834,42 @@
 							]
 						},
 						"description": "**401, Unauthorised**\n\n- Authorisation header is invalid.\n\n**404, Not Found**\n\n- Audit log ID not found."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Audit Log",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"data\": {\n\t\t\"key\": \"value\"\n\t}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{server_url}}/v1/audit/{{audit_id}}",
+							"host": [
+								"{{server_url}}"
+							],
+							"path": [
+								"v1",
+								"audit",
+								"{{audit_id}}"
+							]
+						},
+						"description": "Append data to existing audit log data.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid.\n\n**404, Not Found**\n\n- Audit log ID not found."
 					},
 					"response": []
 				}
@@ -1524,103 +1560,103 @@
 	],
 	"variable": [
 		{
-			"id": "32dc325d-aa77-4d8a-bf21-bac131f67549",
+			"id": "bc368521-98b2-4e77-b9b6-75e3b42d97a8",
 			"key": "server_url",
 			"value": "localhost:9000",
 			"type": "string"
 		},
 		{
-			"id": "e9aeed46-08fb-4646-abfe-27672fba3100",
+			"id": "5c9e9b32-afc9-406b-9c99-6d4a6341786d",
 			"key": "key",
 			"value": "{{root_key}}",
 			"type": "string"
 		},
 		{
-			"id": "76d3a265-db8a-4b23-b014-c37b1b5543de",
+			"id": "bc6c2397-74d0-4a51-90ef-4aef5ee8ab5a",
 			"key": "root_key",
-			"value": "Q7THHXZDIZQKQTNPSBKQDJAHAE4XGPDI2Y",
+			"value": "CQSXRIYGPTVJ4KWFOMGAUE3VENEI3GJZZM",
 			"type": "string"
 		},
 		{
-			"id": "0cf83f45-46ad-493b-8feb-5fc76fb24b12",
+			"id": "4f0069e7-5300-471d-85b2-a2f1b9fc267a",
 			"key": "service_key",
 			"value": "AN3SRWT2TG2KP2NOSCJ2TPYN2FYHSOE6MU",
 			"type": "string"
 		},
 		{
-			"id": "69c530de-45e1-4602-bd18-b0115f658897",
+			"id": "a2651b64-265b-4a9d-9e77-8c7ffb968492",
 			"key": "service_id",
 			"value": "2107d8d6-c9ec-4fa4-9c4d-d0d095d6ec62",
 			"type": "string"
 		},
 		{
-			"id": "9592d62f-f7f1-4336-a524-1e3728795422",
+			"id": "45f4655f-aaff-4541-a0f6-b262b6c02aa4",
 			"key": "key_id",
 			"value": "7fe29d76-1af8-4364-bf2f-a24e1ac6717c",
 			"type": "string"
 		},
 		{
-			"id": "eac7b54d-f3ec-4557-a69e-e2507720f893",
+			"id": "8139ea31-d820-42d3-b42e-9aa77fb0ba0d",
 			"key": "user_id",
 			"value": "f013baa6-89cc-4873-a49e-1e76bbb8293a",
 			"type": "string"
 		},
 		{
-			"id": "60a08bad-78d4-411f-b04f-7fdcebcd3624",
+			"id": "81015f13-bf0b-436b-84de-4d36ce2513e3",
 			"key": "user_email",
 			"value": "user@example.com",
 			"type": "string"
 		},
 		{
-			"id": "4920c93f-472a-4965-90ac-98492692ab7f",
+			"id": "dad6a85f-f4b1-4d25-b68a-441d3a63a7c5",
 			"key": "audit_id",
-			"value": "961359b5-4d89-49e6-a3d2-714a73857eeb",
+			"value": "5da68099-3d48-4c92-b71e-9d8c0ef1714e",
 			"type": "string"
 		},
 		{
-			"id": "5983bbd4-af16-4b92-afa6-f051f81191b1",
+			"id": "da57ed8c-3371-4204-a6c7-739528950a55",
 			"key": "user_access_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyMTA3ZDhkNi1jOWVjLTRmYTQtOWM0ZC1kMGQwOTVkNmVjNjIiLCJzdWIiOiJmMDEzYmFhNi04OWNjLTQ4NzMtYTQ5ZS0xZTc2YmJiODI5M2EiLCJleHAiOjE1NzA5NzgyOTEsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.4NRPIQMZRJP-Su_EoHWSeJClYIwhKjwE_1bRxAQeTqU",
 			"type": "string"
 		},
 		{
-			"id": "f34687c0-db37-4ec2-9696-971906850510",
+			"id": "633a2ea8-ffdf-41e6-acb8-f7f24bcc0aee",
 			"key": "user_refresh_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyMTA3ZDhkNi1jOWVjLTRmYTQtOWM0ZC1kMGQwOTVkNmVjNjIiLCJzdWIiOiJmMDEzYmFhNi04OWNjLTQ4NzMtYTQ5ZS0xZTc2YmJiODI5M2EiLCJleHAiOjE1NzEwNjEwOTEsInhfdHlwZSI6MSwieF9jc3JmIjoiU1ZaQjZSM0RIVloyUksyUDcySUs2WFpINTZQVlROQ0FEUSJ9.7p6ou_c9GjptwQsOeSpxby8hRyZFUgGu6lummCvlhQE",
 			"type": "string"
 		},
 		{
-			"id": "d10fcfb5-a69a-461e-a96d-c218411c4511",
+			"id": "832b3189-2463-45bc-86f7-4683f936a99f",
 			"key": "user_key",
 			"value": "PVYBXVXJATJHIVMNCZORHE3GDUXDJCJCIE",
 			"type": "string"
 		},
 		{
-			"id": "4a45bf93-e98c-4b59-9a51-15ede926216d",
+			"id": "9b88af3a-88a0-4a1b-bb9c-d669e7f0e2db",
 			"key": "totp_code",
 			"value": "123456",
 			"type": "string"
 		},
 		{
-			"id": "3f3d147c-6c61-419b-b10a-fd28ca754c8b",
+			"id": "78ae89c7-0b2b-4a9a-b2e8-b701ec4f59a4",
 			"key": "user_reset_password_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTAzMzcsInhfdHlwZSI6MiwieF9jc3JmIjoiNUxBT0xHQjI0N1pGWEYzM1pVMkZOVTZMM0hZSDJSQ1JSNCJ9.0rK1R-AswHV19POJEFKlv3yai9YAR8eK5e_6CbfXEPU",
 			"type": "string"
 		},
 		{
-			"id": "1841988b-735d-44da-ac01-1bccac6bf0c8",
+			"id": "13e49d22-f897-469d-b235-34160e3ab8a6",
 			"key": "user_update_password_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIyOTQsInhfdHlwZSI6NCwieF9jc3JmIjoiRlRINERLUUU1S1M3RjVVUExYUkFCNkJPWEJDRUdIRlUyRSJ9.BG3cBT5s3GdCjJ3Wlc4F88P4oBfybzTvi6xgs0rQ_Cc",
 			"type": "string"
 		},
 		{
-			"id": "6aca5c68-4b39-4dc2-a44a-8a4df36723e7",
+			"id": "b17cf254-233a-4b63-be09-2469450b897c",
 			"key": "user_update_email_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIxNTUsInhfdHlwZSI6MywieF9jc3JmIjoiSEk1VEpaMzdBRUpJTU9UUUNEVlgyVUlLNVZRUTZSTUYyNCJ9.4Me_J7HUmLZQ4-OJTq5xyV5JNmaO-ZdvfD2UbiJ_kBY",
 			"type": "string"
 		},
 		{
-			"id": "6c58b3ed-6e40-4477-a2bb-22338a54d6b2",
+			"id": "af2a5d7b-609a-423d-aa04-672e29b5006c",
 			"key": "csrf_key",
 			"value": "V6FKGIP3OFG4AARS4QMG6PWFNHQP6FNQFM",
 			"type": "string"

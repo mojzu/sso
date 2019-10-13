@@ -71,17 +71,19 @@ CREATE TABLE sso_csrf (
 
 CREATE TABLE sso_audit (
     "created_at"  TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
     "id"          UUID        NOT NULL,
     "user_agent"  VARCHAR     NOT NULL,
     "remote"      VARCHAR     NOT NULL,
     "forwarded"   VARCHAR,
     "type"        VARCHAR     NOT NULL,
+    "subject"     VARCHAR,
     "data"        JSONB       NOT NULL,
     "key_id"      UUID,
     "service_id"  UUID,
     "user_id"     UUID,
     "user_key_id" UUID,
-    PRIMARY KEY ("id"),
+    PRIMARY KEY ("created_at", "id"),
     CONSTRAINT fk_sso_audit_key
         FOREIGN KEY ("key_id")
         REFERENCES sso_key("id")
@@ -99,4 +101,5 @@ CREATE TABLE sso_audit (
         REFERENCES sso_key("id")
         ON DELETE RESTRICT
 );
+SELECT create_hypertable('sso_audit', 'created_at');
 CREATE INDEX idx_sso_audit_created_at ON sso_audit("created_at" DESC, "type");

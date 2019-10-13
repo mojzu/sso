@@ -14,6 +14,7 @@ use crate::core::{
     ServiceUpdate, User, UserCreate, UserList, UserRead, UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
+use serde_json::Value;
 use uuid::Uuid;
 
 /// Driver errors.
@@ -102,6 +103,14 @@ pub trait DriverIf {
         from: &DateTime<Utc>,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Vec<(String, i64)>>;
+
+    /// Update audit log, append data to data array.
+    fn audit_update(
+        &self,
+        id: &Uuid,
+        data: &Value,
+        service_id_mask: Option<&Uuid>,
+    ) -> DriverResult<Audit>;
 
     /// Delete many audit logs.
     fn audit_delete(&self, created_at: &DateTime<Utc>) -> DriverResult<usize>;

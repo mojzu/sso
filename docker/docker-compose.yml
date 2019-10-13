@@ -21,7 +21,7 @@ services:
   #     - postgres
   #   restart: always
   #   environment:
-  #     DATABASE_URL: "postgres://sso:guest@postgres:5432/sso"
+  #     DATABASE_URL: "postgres://guest:guest@postgres:5432/sso"
   #     DATABASE_CONNECTIONS: "10"
   #     SERVER_HOSTNAME: "sso"
   #     SERVER_BIND: "0.0.0.0:9000"

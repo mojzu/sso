@@ -7,24 +7,49 @@ macro_rules! audit_integration_test {
             let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
             let client = client_create(Some(&service_key.value));
-            let path = "test_1";
+            let type_ = "test_1".to_owned();
             let limit = 3;
 
             let a1 = client
-                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_(type_.clone())
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap()
                 .data;
             client
-                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_(type_.clone())
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             client
-                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_(type_.clone())
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             client
-                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_(type_.clone())
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             client
-                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_(type_.clone())
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
 
             let res1 = client
@@ -123,18 +148,33 @@ macro_rules! audit_integration_test {
             let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
             let client = client_create(Some(&service_key.value));
-            let path = "test_1";
+            let type_ = "test_1".to_owned();
             let limit = 3;
 
             let a1 = client
-                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_(type_.to_owned())
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap()
                 .data;
             client
-                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_(type_.to_owned())
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
             client
-                .audit_create(AuditCreateRequest::new(path, Value::Null, None, None))
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_(type_.to_owned())
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap();
 
             let res1 = client
@@ -192,7 +232,12 @@ macro_rules! audit_integration_test {
 
             let client = client_create(Some(&service_key1.value));
             let a1 = client
-                .audit_create(AuditCreateRequest::new("test_1", Value::Null, None, None))
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_("type_1".to_owned())
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap()
                 .data;
 
@@ -214,12 +259,12 @@ macro_rules! audit_integration_test {
         fn api_audit_read_ok() {
             let client = client_create(None);
             let audit = client
-                .audit_create(AuditCreateRequest::new(
-                    "read_test",
-                    Value::Null,
-                    None,
-                    None,
-                ))
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_("read_test".to_owned())
+                        .build()
+                        .unwrap(),
+                )
                 .unwrap()
                 .data;
             let res = client.audit_read(audit.id).unwrap();
