@@ -130,7 +130,6 @@ pub struct AuditCreateRequest {
 
 impl ApiValidateRequest<AuditCreateRequest> for AuditCreateRequest {}
 
-// TODO(refactor): Check this behaviour, return audit in responses for patching.
 #[derive(Debug, Serialize, Deserialize, Validate, Builder)]
 #[serde(deny_unknown_fields)]
 pub struct AuditCreate2Request {

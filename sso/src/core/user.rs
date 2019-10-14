@@ -1,4 +1,4 @@
-use crate::{client_msg::Get, AuditBuilder, ClientActor, CoreError, CoreResult, Driver, Service};
+use crate::{client_msg::Get, ClientActor, CoreError, CoreResult, Driver, Service};
 use actix::Addr;
 use chrono::{DateTime, Utc};
 use futures::{future, Future};
@@ -166,11 +166,10 @@ pub struct UserKey {
 }
 
 impl User {
-    /// List usersy.
+    /// List users.
     pub fn list(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         query: &UserListQuery,
         filter: &UserListFilter,
     ) -> CoreResult<Vec<User>> {
@@ -183,11 +182,10 @@ impl User {
     pub fn create(
         driver: &dyn Driver,
         service_mask: Option<&Service>,
-        audit: &mut AuditBuilder,
         create: &mut UserCreate,
     ) -> CoreResult<User> {
         let read = UserRead::Email(create.email.clone());
-        let user = User::read_opt(driver, service_mask, audit, &read)?;
+        let user = User::read_opt(driver, service_mask, &read)?;
         if user.is_some() {
             return Err(CoreError::BadRequest);
         }
@@ -196,11 +194,19 @@ impl User {
         driver.user_create(create).map_err(CoreError::Driver)
     }
 
+    /// Read user.
+    pub fn read(
+        driver: &dyn Driver,
+        _service_mask: Option<&Service>,
+        read: &UserRead,
+    ) -> CoreResult<User> {
+        driver.user_read(read).map_err(CoreError::Driver)
+    }
+
     /// Read user (optional).
     pub fn read_opt(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         read: &UserRead,
     ) -> CoreResult<Option<User>> {
         driver.user_read_opt(read).map_err(CoreError::Driver)
@@ -210,7 +216,6 @@ impl User {
     pub fn update(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         id: Uuid,
         update: &UserUpdate,
     ) -> CoreResult<User> {
@@ -221,7 +226,6 @@ impl User {
     pub fn update_email(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         id: Uuid,
         email: String,
     ) -> CoreResult<User> {
@@ -236,7 +240,6 @@ impl User {
     pub fn update_password(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         id: Uuid,
         password: String,
     ) -> CoreResult<User> {
@@ -253,7 +256,6 @@ impl User {
     pub fn delete(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         id: Uuid,
     ) -> CoreResult<usize> {
         driver.user_delete(&id).map_err(CoreError::Driver)

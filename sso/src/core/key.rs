@@ -206,20 +206,20 @@ impl Key {
         let mut audit = AuditBuilder::new(audit_meta);
 
         match key_value {
-            Some(key_value) => Key::read_by_root_value(driver, &mut audit, key_value)
+            Some(key_value) => Key::read_by_root_value(driver, key_value)
                 .and_then(|key| match key.ok_or_else(|| CoreError::Unauthorised) {
                     Ok(key) => {
                         audit.key(Some(&key));
                         Ok(key)
                     }
                     Err(err) => {
-                        audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound)?;
+                        audit.create_message(driver, audit_type, AuditMessage::KeyNotFound)?;
                         Err(err)
                     }
                 })
                 .map(|_key| audit),
             None => {
-                audit.create_internal(driver, audit_type, AuditMessage::KeyUndefined)?;
+                audit.create_message(driver, audit_type, AuditMessage::KeyUndefined)?;
                 Err(CoreError::Unauthorised)
             }
         }
@@ -235,14 +235,14 @@ impl Key {
         let mut audit = AuditBuilder::new(audit_meta);
 
         match key_value {
-            Some(key_value) => Key::read_by_service_value(driver, &mut audit, key_value)
+            Some(key_value) => Key::read_by_service_value(driver, key_value)
                 .and_then(|key| match key.ok_or_else(|| CoreError::Unauthorised) {
                     Ok(key) => {
                         audit.key(Some(&key));
                         Ok(key)
                     }
                     Err(err) => {
-                        audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound)?;
+                        audit.create_message(driver, audit_type, AuditMessage::KeyNotFound)?;
                         Err(err)
                     }
                 })
@@ -250,7 +250,7 @@ impl Key {
                     |key| match key.service_id.ok_or_else(|| CoreError::Unauthorised) {
                         Ok(service_id) => Ok(service_id),
                         Err(err) => {
-                            audit.create_internal(driver, audit_type, AuditMessage::KeyInvalid)?;
+                            audit.create_message(driver, audit_type, AuditMessage::KeyInvalid)?;
                             Err(err)
                         }
                     },
@@ -259,7 +259,7 @@ impl Key {
                     Key::authenticate_service_inner(driver, audit, service_id, audit_type)
                 }),
             None => {
-                audit.create_internal(driver, audit_type, AuditMessage::KeyUndefined)?;
+                audit.create_message(driver, audit_type, AuditMessage::KeyUndefined)?;
                 Err(CoreError::Unauthorised)
             }
         }
@@ -298,7 +298,7 @@ impl Key {
         let mut audit = AuditBuilder::new(audit_meta);
 
         match key_value {
-            Some(key_value) => Key::read_by_service_value(driver, &mut audit, key_value)
+            Some(key_value) => Key::read_by_service_value(driver, key_value)
                 .and_then(|key| key.ok_or_else(|| CoreError::Unauthorised))
                 .and_then(|key| key.service_id.ok_or_else(|| CoreError::Unauthorised))
                 .and_then(|service_id| {
@@ -314,14 +314,14 @@ impl Key {
         service_id: Uuid,
         audit_type: AuditType,
     ) -> CoreResult<(Service, AuditBuilder)> {
-        Service::read_opt(driver, None, &mut audit, &service_id).and_then(|service| {
+        Service::read_opt(driver, None, &service_id).and_then(|service| {
             match service.ok_or_else(|| CoreError::Unauthorised) {
                 Ok(service) => {
                     audit.service(Some(&service));
                     Ok((service, audit))
                 }
                 Err(err) => {
-                    audit.create_internal(driver, audit_type, AuditMessage::ServiceNotFound)?;
+                    audit.create_message(driver, audit_type, AuditMessage::ServiceNotFound)?;
                     Err(err)
                 }
             }
@@ -332,7 +332,6 @@ impl Key {
     pub fn list(
         driver: &dyn Driver,
         service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         query: &KeyListQuery,
         filter: &KeyListFilter,
     ) -> CoreResult<Vec<Key>> {
@@ -348,7 +347,6 @@ impl Key {
     /// Create root key.
     pub fn create_root(
         driver: &dyn Driver,
-        _audit: &mut AuditBuilder,
         is_enabled: bool,
         name: String,
     ) -> CoreResult<KeyWithValue> {
@@ -369,13 +367,12 @@ impl Key {
     /// Returns bad request if service does not exist.
     pub fn create_service(
         driver: &dyn Driver,
-        audit: &mut AuditBuilder,
         is_enabled: bool,
         name: String,
         service_id: &Uuid,
     ) -> CoreResult<KeyWithValue> {
-        let service = Service::read_opt(driver, None, audit, service_id)?
-            .ok_or_else(|| CoreError::BadRequest)?;
+        let service =
+            Service::read_opt(driver, None, service_id)?.ok_or_else(|| CoreError::BadRequest)?;
 
         let value = Key::value_generate();
         let create = KeyCreate {
@@ -395,7 +392,6 @@ impl Key {
     /// Returns bad request if service or user does not exist.
     pub fn create_user(
         driver: &dyn Driver,
-        audit: &mut AuditBuilder,
         is_enabled: bool,
         type_: KeyType,
         name: String,
@@ -418,11 +414,11 @@ impl Key {
                 }
             }
         }
-        let service = Service::read_opt(driver, None, audit, service_id)?
-            .ok_or_else(|| CoreError::BadRequest)?;
+        let service =
+            Service::read_opt(driver, None, service_id)?.ok_or_else(|| CoreError::BadRequest)?;
         let user_read = UserRead::Id(*user_id);
-        let user = User::read_opt(driver, None, audit, &user_read)?
-            .ok_or_else(|| CoreError::BadRequest)?;
+        let user =
+            User::read_opt(driver, None, &user_read)?.ok_or_else(|| CoreError::BadRequest)?;
 
         let value = Key::value_generate();
         let create = KeyCreate {
@@ -441,7 +437,6 @@ impl Key {
     pub fn read_opt(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         id: Uuid,
     ) -> CoreResult<Option<KeyWithValue>> {
         let read = KeyRead::Id(id);
@@ -451,7 +446,6 @@ impl Key {
     /// Read key by value (root only).
     pub fn read_by_root_value(
         driver: &dyn Driver,
-        _audit: &mut AuditBuilder,
         value: String,
     ) -> CoreResult<Option<KeyWithValue>> {
         let read = KeyRead::RootValue(value);
@@ -461,7 +455,6 @@ impl Key {
     /// Read key by value (services only).
     pub fn read_by_service_value(
         driver: &dyn Driver,
-        _audit: &mut AuditBuilder,
         value: String,
     ) -> CoreResult<Option<KeyWithValue>> {
         let read = KeyRead::ServiceValue(value);
@@ -472,7 +465,6 @@ impl Key {
     pub fn read_by_user(
         driver: &dyn Driver,
         service: &Service,
-        _audit: &mut AuditBuilder,
         user: &User,
         type_: KeyType,
     ) -> CoreResult<Option<KeyWithValue>> {
@@ -490,7 +482,6 @@ impl Key {
     pub fn read_by_user_value(
         driver: &dyn Driver,
         service: &Service,
-        _audit: &mut AuditBuilder,
         value: String,
         type_: KeyType,
     ) -> CoreResult<Option<KeyWithValue>> {
@@ -508,7 +499,6 @@ impl Key {
     pub fn update(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         id: Uuid,
         is_enabled: Option<bool>,
         is_revoked: Option<bool>,
@@ -526,7 +516,6 @@ impl Key {
     pub fn update_many(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         user_id: Uuid,
         is_enabled: Option<bool>,
         is_revoked: Option<bool>,
@@ -546,7 +535,6 @@ impl Key {
     pub fn delete(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         id: Uuid,
     ) -> CoreResult<usize> {
         driver.key_delete(&id).map_err(CoreError::Driver)

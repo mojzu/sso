@@ -172,29 +172,18 @@ impl ModelUser {
             .map(Into::into)
     }
 
-    pub fn read_opt(conn: &PgConnection, read: &UserRead) -> DriverResult<Option<User>> {
+    pub fn read(conn: &PgConnection, read: &UserRead) -> DriverResult<User> {
         match read {
             UserRead::Id(id) => Self::read_id(conn, id),
             UserRead::Email(email) => Self::read_email(conn, email),
         }
     }
 
-    fn read_id(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<User>> {
-        sso_user::table
-            .filter(sso_user::dsl::id.eq(id))
-            .get_result::<ModelUser>(conn)
-            .optional()
-            .map_err(Into::into)
-            .map(|x| x.map(Into::into))
-    }
-
-    fn read_email(conn: &PgConnection, email: &str) -> DriverResult<Option<User>> {
-        sso_user::table
-            .filter(sso_user::dsl::email.eq(email))
-            .get_result::<ModelUser>(conn)
-            .optional()
-            .map_err(Into::into)
-            .map(|x| x.map(Into::into))
+    pub fn read_opt(conn: &PgConnection, read: &UserRead) -> DriverResult<Option<User>> {
+        match read {
+            UserRead::Id(id) => Self::read_id_opt(conn, id),
+            UserRead::Email(email) => Self::read_email_opt(conn, email),
+        }
     }
 
     pub fn update(conn: &PgConnection, id: &Uuid, update: &UserUpdate) -> DriverResult<User> {
@@ -209,17 +198,55 @@ impl ModelUser {
         Self::update_inner(conn, id, &value)
     }
 
+    pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<usize> {
+        diesel::delete(sso_user::table.filter(sso_user::dsl::id.eq(id)))
+            .execute(conn)
+            .map_err(Into::into)
+    }
+
+    fn read_id(conn: &PgConnection, id: &Uuid) -> DriverResult<User> {
+        Self::read_id_inner(conn, id)
+            .map_err(Into::into)
+            .map(Into::into)
+    }
+
+    fn read_email(conn: &PgConnection, email: &str) -> DriverResult<User> {
+        Self::read_email_inner(conn, email)
+            .map_err(Into::into)
+            .map(Into::into)
+    }
+
+    fn read_id_opt(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<User>> {
+        Self::read_id_inner(conn, id)
+            .optional()
+            .map_err(Into::into)
+            .map(|x| x.map(Into::into))
+    }
+
+    fn read_email_opt(conn: &PgConnection, email: &str) -> DriverResult<Option<User>> {
+        Self::read_email_inner(conn, email)
+            .optional()
+            .map_err(Into::into)
+            .map(|x| x.map(Into::into))
+    }
+
+    fn read_id_inner(conn: &PgConnection, id: &Uuid) -> QueryResult<ModelUser> {
+        sso_user::table
+            .filter(sso_user::dsl::id.eq(id))
+            .get_result::<ModelUser>(conn)
+    }
+
+    fn read_email_inner(conn: &PgConnection, email: &str) -> QueryResult<ModelUser> {
+        sso_user::table
+            .filter(sso_user::dsl::email.eq(email))
+            .get_result::<ModelUser>(conn)
+    }
+
     fn update_inner(conn: &PgConnection, id: &Uuid, value: &ModelUserUpdate) -> DriverResult<User> {
         diesel::update(sso_user::table.filter(sso_user::dsl::id.eq(id)))
             .set(value)
             .get_result::<ModelUser>(conn)
             .map_err(Into::into)
             .map(Into::into)
-    }
-
-    pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<usize> {
-        diesel::delete(sso_user::table.filter(sso_user::dsl::id.eq(id)))
-            .execute(conn)
-            .map_err(Into::into)
     }
 }

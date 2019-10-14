@@ -66,13 +66,13 @@ pub struct Cli;
 impl Cli {
     /// Create an audit builder for local commands.
     pub fn audit_builder() -> AuditBuilder {
+        // TODO(refactor): Call into Api from this layer.
         AuditBuilder::new(AuditMeta::new("cli", "127.0.0.1", None))
     }
 
     /// Create a root key.
     pub fn create_root_key(driver: Box<dyn Driver>, name: &str) -> SsoResult<KeyWithValue> {
-        let mut audit = Cli::audit_builder();
-        Key::create_root(driver.as_ref(), &mut audit, true, String::from(name)).map_err(Into::into)
+        Key::create_root(driver.as_ref(), true, String::from(name)).map_err(Into::into)
     }
 
     /// Create a service with service key.
@@ -84,7 +84,6 @@ impl Cli {
         provider_github_oauth2_url: Option<&str>,
         provider_microsoft_oauth2_url: Option<&str>,
     ) -> SsoResult<(Service, KeyWithValue)> {
-        let mut audit = Cli::audit_builder();
         let service_create = ServiceCreate {
             is_enabled: true,
             name: name.to_owned(),
@@ -93,16 +92,9 @@ impl Cli {
             provider_github_oauth2_url: provider_github_oauth2_url.map(|x| x.to_owned()),
             provider_microsoft_oauth2_url: provider_microsoft_oauth2_url.map(|x| x.to_owned()),
         };
-        let service = Service::create(driver.as_ref(), &mut audit, &service_create)
+        let service = Service::create(driver.as_ref(), &service_create).map_err(SsoError::Core)?;
+        let key = Key::create_service(driver.as_ref(), true, name.to_owned(), &service.id)
             .map_err(SsoError::Core)?;
-        let key = Key::create_service(
-            driver.as_ref(),
-            &mut audit,
-            true,
-            name.to_owned(),
-            &service.id,
-        )
-        .map_err(SsoError::Core)?;
         Ok((service, key))
     }
 

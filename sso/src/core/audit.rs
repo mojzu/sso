@@ -1,5 +1,6 @@
 use crate::{impl_enum_to_from_string, CoreError, CoreResult, Driver, KeyWithValue, Service, User};
 use chrono::{DateTime, Utc};
+use serde::ser::Serialize;
 use serde_json::Value;
 use std::fmt;
 use time::Duration;
@@ -327,7 +328,7 @@ impl AuditBuilder {
         self
     }
 
-    /// Create audit log from internal parameters.
+    /// Create audit log from parameters.
     pub fn create(&mut self, driver: &dyn Driver, create: AuditCreate2) -> CoreResult<Audit> {
         let data = AuditCreate::new(
             self.meta.clone(),
@@ -342,9 +343,29 @@ impl AuditBuilder {
         Audit::create(driver, &data)
     }
 
-    /// Create audit log from internal parameters.
-    /// In case of error, log as warning and return None.
-    pub fn create_internal(
+    /// Create audit log with data.
+    pub fn create_data<S: Serialize>(
+        &mut self,
+        driver: &dyn Driver,
+        type_: AuditType,
+        data: Option<S>,
+    ) -> CoreResult<Audit> {
+        let data = data.map(|x| serde_json::to_value(x).unwrap());
+        let audit_data = AuditCreate::new(
+            self.meta.clone(),
+            type_.to_string().unwrap(),
+            None,
+            data,
+            self.key,
+            self.service,
+            self.user,
+            self.user_key,
+        );
+        Audit::create(driver, &audit_data)
+    }
+
+    /// Create audit log with message.
+    pub fn create_message(
         &mut self,
         driver: &dyn Driver,
         type_: AuditType,
@@ -370,7 +391,6 @@ impl Audit {
     pub fn list(
         driver: &dyn Driver,
         service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         query: &AuditListQuery,
         filter: &AuditListFilter,
     ) -> CoreResult<Vec<Audit>> {
@@ -391,7 +411,6 @@ impl Audit {
     pub fn read(
         driver: &dyn Driver,
         service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         id: Uuid,
     ) -> CoreResult<Option<Audit>> {
         driver
@@ -403,7 +422,6 @@ impl Audit {
     pub fn update(
         driver: &dyn Driver,
         service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         id: Uuid,
         data: Value,
     ) -> CoreResult<Audit> {

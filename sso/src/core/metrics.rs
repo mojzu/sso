@@ -1,4 +1,4 @@
-use crate::{AuditBuilder, CoreError, CoreResult, Driver, Service};
+use crate::{CoreError, CoreResult, Driver, Service};
 use chrono::{DateTime, Utc};
 use prometheus::{Counter, Encoder, IntCounter, IntCounterVec, Opts, Registry, TextEncoder};
 use std::{convert::TryInto, sync::Mutex};
@@ -71,7 +71,6 @@ impl Metrics {
     pub fn read(
         driver: &dyn Driver,
         service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         registry: &Registry,
     ) -> CoreResult<String> {
         let mut cache = CACHE.lock().unwrap();

@@ -1,4 +1,4 @@
-use crate::{AuditBuilder, CoreError, CoreResult, CoreUtil, Driver};
+use crate::{CoreError, CoreResult, CoreUtil, Driver};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use std::fmt;
@@ -126,7 +126,6 @@ impl Service {
     /// List services using query.
     pub fn list(
         driver: &dyn Driver,
-        _audit: &mut AuditBuilder,
         query: &ServiceListQuery,
         filter: &ServiceListFilter,
     ) -> CoreResult<Vec<Service>> {
@@ -135,11 +134,7 @@ impl Service {
     }
 
     /// Create service.
-    pub fn create(
-        driver: &dyn Driver,
-        _audit: &mut AuditBuilder,
-        create: &ServiceCreate,
-    ) -> CoreResult<Service> {
+    pub fn create(driver: &dyn Driver, create: &ServiceCreate) -> CoreResult<Service> {
         // TODO(refactor): Improve URL validation, validate provider URLs (option to enforce HTTPS).
         Url::parse(&create.url).map_err(|_err| CoreError::BadRequest)?;
         driver.service_create(create).map_err(CoreError::Driver)
@@ -149,7 +144,6 @@ impl Service {
     pub fn read_opt(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         id: &Uuid,
     ) -> CoreResult<Option<Service>> {
         driver.service_read_opt(id).map_err(CoreError::Driver)
@@ -159,7 +153,6 @@ impl Service {
     pub fn update(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         id: Uuid,
         update: &ServiceUpdate,
     ) -> CoreResult<Service> {
@@ -172,7 +165,6 @@ impl Service {
     pub fn delete(
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
-        _audit: &mut AuditBuilder,
         id: Uuid,
     ) -> CoreResult<usize> {
         driver.service_delete(&id).map_err(CoreError::Driver)

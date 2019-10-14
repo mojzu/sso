@@ -67,7 +67,7 @@ impl Auth {
 
         // If user password update required, return forbidden.
         if user.password_require_update {
-            args.audit.create_internal(
+            args.audit.create_message(
                 args.driver,
                 AuditType::AuthLocalLogin,
                 AuditMessage::PasswordUpdateRequired,
@@ -78,7 +78,7 @@ impl Auth {
         // Check user password matches password hash.
         if let Err(err) = User::password_check(user.password_hash.as_ref().map(|x| &**x), &password)
         {
-            args.audit.create_internal(
+            args.audit.create_message(
                 args.driver,
                 AuditType::AuthLocalLogin,
                 AuditMessage::PasswordNotSetOrIncorrect,
@@ -98,7 +98,7 @@ impl Auth {
         )?;
 
         args.audit
-            .create_internal(args.driver, AuditType::AuthLocalLogin, AuditMessage::Login)?;
+            .create_message(args.driver, AuditType::AuthLocalLogin, AuditMessage::Login)?;
         Ok(user_token)
     }
 
@@ -138,7 +138,7 @@ impl Auth {
 
         // Check user password reset is allowed.
         if !user.password_allow_reset {
-            args.audit.create_internal(
+            args.audit.create_message(
                 args.driver,
                 AuditType::AuthLocalResetPassword,
                 AuditMessage::ResetPasswordDisabled,
@@ -147,7 +147,7 @@ impl Auth {
         }
 
         // Successful reset password, encode reset token.
-        let csrf = Auth::csrf_create_inner(args.driver, args.service, args.audit, token_expires)?;
+        let csrf = Auth::csrf_create_inner(args.driver, args.service, token_expires)?;
         let (token, _) = Jwt::encode_token_csrf(
             args.service.id,
             user.id,
@@ -158,7 +158,7 @@ impl Auth {
         )?;
 
         // Pass audit log to notification actor.
-        let audit = args.audit.create_internal(
+        let audit = args.audit.create_message(
             args.driver,
             AuditType::AuthLocalResetPassword,
             AuditMessage::ResetPassword,
@@ -203,7 +203,7 @@ impl Auth {
 
         // Check user password reset is allowed.
         if !user.password_allow_reset {
-            args.audit.create_internal(
+            args.audit.create_message(
                 args.driver,
                 AuditType::AuthLocalResetPasswordConfirm,
                 AuditMessage::ResetPasswordDisabled,
@@ -222,7 +222,7 @@ impl Auth {
         let csrf_key = match decoded {
             Ok((_, csrf_key)) => csrf_key.ok_or_else(|| CoreError::BadRequest)?,
             Err(err) => {
-                args.audit.create_internal(
+                args.audit.create_message(
                     args.driver,
                     AuditType::AuthLocalResetPasswordConfirm,
                     AuditMessage::TokenInvalidOrExpired,
@@ -241,14 +241,8 @@ impl Auth {
         )?;
 
         // Sucessful reset password confirm, update user password.
-        User::update_password(
-            args.driver,
-            Some(args.service),
-            args.audit,
-            user.id,
-            password,
-        )?;
-        args.audit.create_internal(
+        User::update_password(args.driver, Some(args.service), user.id, password)?;
+        args.audit.create_message(
             args.driver,
             AuditType::AuthLocalResetPasswordConfirm,
             AuditMessage::ResetPasswordConfirm,
@@ -284,7 +278,7 @@ impl Auth {
 
         // If user password update required, return forbidden.
         if user.password_require_update {
-            args.audit.create_internal(
+            args.audit.create_message(
                 args.driver,
                 AuditType::AuthLocalUpdateEmail,
                 AuditMessage::PasswordUpdateRequired,
@@ -295,7 +289,7 @@ impl Auth {
         // Check user password matches password hash.
         if let Err(err) = User::password_check(user.password_hash.as_ref().map(|x| &**x), &password)
         {
-            args.audit.create_internal(
+            args.audit.create_message(
                 args.driver,
                 AuditType::AuthLocalUpdateEmail,
                 AuditMessage::PasswordNotSetOrIncorrect,
@@ -304,8 +298,7 @@ impl Auth {
         }
 
         // Successful update email, encode revoke token.
-        let csrf =
-            Auth::csrf_create_inner(args.driver, args.service, args.audit, revoke_token_expires)?;
+        let csrf = Auth::csrf_create_inner(args.driver, args.service, revoke_token_expires)?;
         let (revoke_token, _) = Jwt::encode_token_csrf(
             args.service.id,
             user.id,
@@ -316,13 +309,7 @@ impl Auth {
         )?;
 
         // Update user email.
-        User::update_email(
-            args.driver,
-            Some(args.service),
-            args.audit,
-            user.id,
-            new_email,
-        )?;
+        User::update_email(args.driver, Some(args.service), user.id, new_email)?;
         let user = Auth::user_read_by_id(
             args.driver,
             Some(args.service),
@@ -332,7 +319,7 @@ impl Auth {
         )?;
 
         // Pass audit log to notification actor.
-        let audit = args.audit.create_internal(
+        let audit = args.audit.create_message(
             args.driver,
             AuditType::AuthLocalUpdateEmail,
             AuditMessage::UpdateEmail,
@@ -388,7 +375,7 @@ impl Auth {
         let csrf_key = match decoded {
             Ok((_, csrf_key)) => csrf_key.ok_or_else(|| CoreError::BadRequest)?,
             Err(err) => {
-                args.audit.create_internal(
+                args.audit.create_message(
                     args.driver,
                     AuditType::AuthLocalUpdateEmailRevoke,
                     AuditMessage::TokenInvalidOrExpired,
@@ -415,24 +402,17 @@ impl Auth {
             password_allow_reset: None,
             password_require_update: None,
         };
-        User::update(
-            args.driver,
-            Some(args.service),
-            args.audit,
-            user.id,
-            &update,
-        )?;
+        User::update(args.driver, Some(args.service), user.id, &update)?;
         Key::update_many(
             args.driver,
             Some(args.service),
-            args.audit,
             user.id,
             Some(false),
             Some(true),
             None,
         )?;
 
-        args.audit.create_internal(
+        args.audit.create_message(
             args.driver,
             AuditType::AuthLocalUpdateEmailRevoke,
             AuditMessage::UpdateEmailRevoke,
@@ -475,7 +455,7 @@ impl Auth {
         // Check user password matches password hash.
         if let Err(err) = User::password_check(user.password_hash.as_ref().map(|x| &**x), &password)
         {
-            args.audit.create_internal(
+            args.audit.create_message(
                 args.driver,
                 AuditType::AuthLocalUpdatePassword,
                 AuditMessage::PasswordNotSetOrIncorrect,
@@ -484,8 +464,7 @@ impl Auth {
         }
 
         // Successful update password, encode revoke token.
-        let csrf =
-            Auth::csrf_create_inner(args.driver, args.service, args.audit, revoke_token_expires)?;
+        let csrf = Auth::csrf_create_inner(args.driver, args.service, revoke_token_expires)?;
         let (revoke_token, _) = Jwt::encode_token_csrf(
             args.service.id,
             user.id,
@@ -496,13 +475,7 @@ impl Auth {
         )?;
 
         // Update user password, reread from driver.
-        User::update_password(
-            args.driver,
-            Some(args.service),
-            args.audit,
-            user.id,
-            new_password,
-        )?;
+        User::update_password(args.driver, Some(args.service), user.id, new_password)?;
         let user = Auth::user_read_by_id(
             args.driver,
             Some(args.service),
@@ -512,7 +485,7 @@ impl Auth {
         )?;
 
         // Pass audit log to notification actor.
-        let audit = args.audit.create_internal(
+        let audit = args.audit.create_message(
             args.driver,
             AuditType::AuthLocalUpdatePassword,
             AuditMessage::UpdatePassword,
@@ -567,7 +540,7 @@ impl Auth {
         let csrf_key = match decoded {
             Ok((_, csrf_key)) => csrf_key.ok_or_else(|| CoreError::BadRequest)?,
             Err(err) => {
-                args.audit.create_internal(
+                args.audit.create_message(
                     args.driver,
                     AuditType::AuthLocalUpdatePasswordRevoke,
                     AuditMessage::TokenInvalidOrExpired,
@@ -594,24 +567,17 @@ impl Auth {
             password_allow_reset: None,
             password_require_update: None,
         };
-        User::update(
-            args.driver,
-            Some(args.service),
-            args.audit,
-            user.id,
-            &update,
-        )?;
+        User::update(args.driver, Some(args.service), user.id, &update)?;
         Key::update_many(
             args.driver,
             Some(args.service),
-            args.audit,
             user.id,
             Some(false),
             Some(true),
             None,
         )?;
 
-        args.audit.create_internal(
+        args.audit.create_message(
             args.driver,
             AuditType::AuthLocalUpdatePasswordRevoke,
             AuditMessage::UpdatePasswordRevoke,
@@ -649,7 +615,7 @@ impl Auth {
                 user_id,
             ),
             Err(err) => {
-                args.audit.create_internal(
+                args.audit.create_message(
                     args.driver,
                     AuditType::AuthKeyVerify,
                     AuditMessage::KeyNotFound,
@@ -692,14 +658,13 @@ impl Auth {
         Key::update(
             args.driver,
             Some(args.service),
-            args.audit,
             key.id,
             Some(false),
             Some(true),
             None,
         )?;
 
-        args.audit.create_internal(
+        args.audit.create_message(
             args.driver,
             AuditType::AuthKeyRevoke,
             AuditMessage::KeyRevoke,
@@ -748,7 +713,7 @@ impl Auth {
         let access_token_expires = match decoded {
             Ok((access_token_expires, _)) => access_token_expires,
             Err(err) => {
-                args.audit.create_internal(
+                args.audit.create_message(
                     args.driver,
                     AuditType::AuthTokenVerify,
                     AuditMessage::TokenInvalidOrExpired,
@@ -810,7 +775,7 @@ impl Auth {
         let csrf_key = match decoded {
             Ok((_, csrf_key)) => csrf_key.ok_or_else(|| CoreError::BadRequest)?,
             Err(err) => {
-                args.audit.create_internal(
+                args.audit.create_message(
                     args.driver,
                     AuditType::AuthTokenRefresh,
                     AuditMessage::TokenInvalidOrExpired,
@@ -839,7 +804,7 @@ impl Auth {
             refresh_token_expires,
         )?;
 
-        args.audit.create_internal(
+        args.audit.create_message(
             args.driver,
             AuditType::AuthTokenRefresh,
             AuditMessage::TokenRefresh,
@@ -883,7 +848,7 @@ impl Auth {
             match Jwt::decode_token(args.service.id, user.id, token_type, &key.value, &token) {
                 Ok((_, csrf_key)) => csrf_key,
                 Err(err) => {
-                    args.audit.create_internal(
+                    args.audit.create_message(
                         args.driver,
                         AuditType::AuthTokenRevoke,
                         AuditMessage::TokenInvalidOrExpired,
@@ -901,14 +866,13 @@ impl Auth {
         Key::update(
             args.driver,
             Some(args.service),
-            args.audit,
             key.id,
             Some(false),
             Some(true),
             None,
         )?;
 
-        args.audit.create_internal(
+        args.audit.create_message(
             args.driver,
             AuditType::AuthTokenRevoke,
             AuditMessage::TokenRevoke,
@@ -945,7 +909,7 @@ impl Auth {
             .map_err(CoreError::libreauth_oath)?;
 
         if !totp.is_valid(&totp_code) {
-            args.audit.create_internal(
+            args.audit.create_message(
                 args.driver,
                 AuditType::AuthTotp,
                 AuditMessage::TotpInvalid,
@@ -959,7 +923,7 @@ impl Auth {
     /// CSRF creation.
     pub fn csrf_create(args: AuthArgs, expires_s: Option<i64>) -> CoreResult<Csrf> {
         let expires_s = expires_s.unwrap_or_else(Core::default_csrf_expires_s);
-        Self::csrf_create_inner(args.driver, args.service, args.audit, expires_s)
+        Self::csrf_create_inner(args.driver, args.service, expires_s)
     }
 
     /// CSRF verification.
@@ -983,7 +947,7 @@ impl Auth {
     ) -> CoreResult<(Service, UserToken)> {
         // Check service making url and callback requests match.
         if args.service.id != service_id {
-            args.audit.create_internal(
+            args.audit.create_message(
                 args.driver,
                 AuditType::AuthGithubOauth2Callback,
                 AuditMessage::ServiceMismatch,
@@ -1025,7 +989,7 @@ impl Auth {
             refresh_token_expires,
         )?;
 
-        args.audit.create_internal(
+        args.audit.create_message(
             args.driver,
             AuditType::AuthOauth2Login,
             AuditMessage::Oauth2Login,
@@ -1049,13 +1013,13 @@ impl Auth {
             Ok(service) => {
                 audit.service(Some(&service));
                 if !service.is_enabled {
-                    audit.create_internal(driver, audit_type, AuditMessage::ServiceDisabled)?;
+                    audit.create_message(driver, audit_type, AuditMessage::ServiceDisabled)?;
                     return Err(CoreError::BadRequest);
                 }
                 Ok(service)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::ServiceNotFound)?;
+                audit.create_message(driver, audit_type, AuditMessage::ServiceNotFound)?;
                 Err(err)
             }
         }
@@ -1071,19 +1035,17 @@ impl Auth {
         id: Uuid,
     ) -> CoreResult<User> {
         let read = UserRead::Id(id);
-        match User::read_opt(driver, service_mask, audit, &read)?
-            .ok_or_else(|| CoreError::BadRequest)
-        {
+        match User::read_opt(driver, service_mask, &read)?.ok_or_else(|| CoreError::BadRequest) {
             Ok(user) => {
                 audit.user(Some(&user));
                 if !user.is_enabled {
-                    audit.create_internal(driver, audit_type, AuditMessage::UserDisabled)?;
+                    audit.create_message(driver, audit_type, AuditMessage::UserDisabled)?;
                     return Err(CoreError::BadRequest);
                 }
                 Ok(user)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::UserNotFound)?;
+                audit.create_message(driver, audit_type, AuditMessage::UserNotFound)?;
                 Err(err)
             }
         }
@@ -1099,15 +1061,13 @@ impl Auth {
         id: Uuid,
     ) -> CoreResult<User> {
         let read = UserRead::Id(id);
-        match User::read_opt(driver, service_mask, audit, &read)?
-            .ok_or_else(|| CoreError::BadRequest)
-        {
+        match User::read_opt(driver, service_mask, &read)?.ok_or_else(|| CoreError::BadRequest) {
             Ok(user) => {
                 audit.user(Some(&user));
                 Ok(user)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::UserNotFound)?;
+                audit.create_message(driver, audit_type, AuditMessage::UserNotFound)?;
                 Err(err)
             }
         }
@@ -1123,19 +1083,17 @@ impl Auth {
         email: String,
     ) -> CoreResult<User> {
         let read = UserRead::Email(email);
-        match User::read_opt(driver, service_mask, audit, &read)?
-            .ok_or_else(|| CoreError::BadRequest)
-        {
+        match User::read_opt(driver, service_mask, &read)?.ok_or_else(|| CoreError::BadRequest) {
             Ok(user) => {
                 audit.user(Some(&user));
                 if !user.is_enabled {
-                    audit.create_internal(driver, audit_type, AuditMessage::UserDisabled)?;
+                    audit.create_message(driver, audit_type, AuditMessage::UserDisabled)?;
                     return Err(CoreError::BadRequest);
                 }
                 Ok(user)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::UserNotFound)?;
+                audit.create_message(driver, audit_type, AuditMessage::UserNotFound)?;
                 Err(err)
             }
         }
@@ -1151,23 +1109,19 @@ impl Auth {
         user: &User,
         key_type: KeyType,
     ) -> CoreResult<KeyWithValue> {
-        match Key::read_by_user(driver, &service, audit, &user, key_type)?
+        match Key::read_by_user(driver, &service, &user, key_type)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
                 audit.user_key(Some(&key));
                 if !key.is_enabled || key.is_revoked {
-                    audit.create_internal(
-                        driver,
-                        audit_type,
-                        AuditMessage::KeyDisabledOrRevoked,
-                    )?;
+                    audit.create_message(driver, audit_type, AuditMessage::KeyDisabledOrRevoked)?;
                     return Err(CoreError::BadRequest);
                 }
                 Ok(key)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound)?;
+                audit.create_message(driver, audit_type, AuditMessage::KeyNotFound)?;
                 Err(err)
             }
         }
@@ -1183,7 +1137,7 @@ impl Auth {
         user: &User,
         key_type: KeyType,
     ) -> CoreResult<KeyWithValue> {
-        match Key::read_by_user(driver, &service, audit, &user, key_type)?
+        match Key::read_by_user(driver, &service, &user, key_type)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
@@ -1191,7 +1145,7 @@ impl Auth {
                 Ok(key)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound)?;
+                audit.create_message(driver, audit_type, AuditMessage::KeyNotFound)?;
                 Err(err)
             }
         }
@@ -1207,23 +1161,19 @@ impl Auth {
         key: String,
         key_type: KeyType,
     ) -> CoreResult<KeyWithValue> {
-        match Key::read_by_user_value(driver, service, audit, key, key_type)?
+        match Key::read_by_user_value(driver, service, key, key_type)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
                 audit.user_key(Some(&key));
                 if !key.is_enabled || key.is_revoked {
-                    audit.create_internal(
-                        driver,
-                        audit_type,
-                        AuditMessage::KeyDisabledOrRevoked,
-                    )?;
+                    audit.create_message(driver, audit_type, AuditMessage::KeyDisabledOrRevoked)?;
                     return Err(CoreError::BadRequest);
                 }
                 Ok(key)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound)?;
+                audit.create_message(driver, audit_type, AuditMessage::KeyNotFound)?;
                 Err(err)
             }
         }
@@ -1239,7 +1189,7 @@ impl Auth {
         key: String,
         key_type: KeyType,
     ) -> CoreResult<KeyWithValue> {
-        match Key::read_by_user_value(driver, service, audit, key, key_type)?
+        match Key::read_by_user_value(driver, service, key, key_type)?
             .ok_or_else(|| CoreError::BadRequest)
         {
             Ok(key) => {
@@ -1247,7 +1197,7 @@ impl Auth {
                 Ok(key)
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::KeyNotFound)?;
+                audit.create_message(driver, audit_type, AuditMessage::KeyNotFound)?;
                 Err(err)
             }
         }
@@ -1263,7 +1213,7 @@ impl Auth {
         access_token_expires: i64,
         refresh_token_expires: i64,
     ) -> CoreResult<UserToken> {
-        let csrf = Auth::csrf_create_inner(driver, service, audit, refresh_token_expires)?;
+        let csrf = Auth::csrf_create_inner(driver, service, refresh_token_expires)?;
         let (access_token, access_token_expires) = Jwt::encode_token(
             service.id,
             user.id,
@@ -1292,7 +1242,6 @@ impl Auth {
     fn csrf_create_inner(
         driver: &dyn Driver,
         service: &Service,
-        _audit: &mut AuditBuilder,
         token_expires: i64,
     ) -> CoreResult<Csrf> {
         let csrf_key = Key::value_generate();
@@ -1313,13 +1262,13 @@ impl Auth {
         match res {
             Ok(csrf) => {
                 if csrf.service_id != service.id {
-                    audit.create_internal(driver, audit_type, AuditMessage::CsrfNotFoundOrUsed)?;
+                    audit.create_message(driver, audit_type, AuditMessage::CsrfNotFoundOrUsed)?;
                     return Err(CoreError::BadRequest);
                 }
                 Ok(())
             }
             Err(err) => {
-                audit.create_internal(driver, audit_type, AuditMessage::CsrfNotFoundOrUsed)?;
+                audit.create_message(driver, audit_type, AuditMessage::CsrfNotFoundOrUsed)?;
                 Err(err)
             }
         }
