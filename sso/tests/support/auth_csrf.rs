@@ -10,6 +10,36 @@ macro_rules! auth_csrf_integration_test {
             assert_eq!(res, ClientError::Unauthorised);
         }
 
-        // TODO(test): CSRF endpoint tests.
+        #[test]
+        #[ignore]
+        fn api_auth_csrf_bad_request_verify_once() {
+            let client = client_create(None);
+            let (_service, service_key) = service_key_create(&client);
+
+            let client = client_create(Some(&service_key.value));
+            let body = AuthCsrfCreateRequest::new(500);
+            let res = client.auth_csrf_create(body).unwrap();
+            let csrf = res.data;
+
+            let body = AuthCsrfVerifyRequest::new(&csrf.key);
+            client.auth_csrf_verify(body).unwrap();
+            let body = AuthCsrfVerifyRequest::new(&csrf.key);
+            client.auth_csrf_verify(body).unwrap_err();
+        }
+
+        #[test]
+        #[ignore]
+        fn api_auth_csrf_create_verify_ok() {
+            let client = client_create(None);
+            let (_service, service_key) = service_key_create(&client);
+
+            let client = client_create(Some(&service_key.value));
+            let body = AuthCsrfCreateRequest::new(500);
+            let res = client.auth_csrf_create(body).unwrap();
+            let csrf = res.data;
+
+            let body = AuthCsrfVerifyRequest::new(&csrf.key);
+            client.auth_csrf_verify(body).unwrap();
+        }
     };
 }

@@ -21,15 +21,17 @@ impl CoreUtil {
 /// serde `Serialize` and `Deserialize` traits.
 #[macro_export]
 macro_rules! impl_enum_to_from_string {
-    ($x:ident) => {
+    ($x:ident, $prefix:expr) => {
         impl $x {
             pub fn to_string(self) -> CoreResult<String> {
                 let s = serde_json::to_string(&self).map_err(CoreError::SerdeJson)?;
-                Ok(String::from(s.trim_matches('"')))
+                let trim = s.trim_matches('"');
+                Ok(format!("{}{}", $prefix, trim))
             }
 
-            pub fn from_string(s: &str) -> CoreResult<Self> {
-                let s = format!("\"{}\"", s);
+            pub fn from_string<S: Into<String>>(s: S) -> CoreResult<Self> {
+                let mut s: String = s.into();
+                let s = format!("\"{}\"", s.split_off($prefix.len()));
                 serde_json::from_str(&s).map_err(CoreError::SerdeJson)
             }
         }

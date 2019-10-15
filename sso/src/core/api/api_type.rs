@@ -847,6 +847,12 @@ pub struct AuthCsrfVerifyRequest {
 
 impl ApiValidateRequest<AuthCsrfVerifyRequest> for AuthCsrfVerifyRequest {}
 
+impl AuthCsrfVerifyRequest {
+    pub fn new<S: Into<String>>(key: S) -> Self {
+        Self { key: key.into() }
+    }
+}
+
 // --------------------------
 // Authentication Local Types
 // --------------------------

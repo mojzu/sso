@@ -24,7 +24,7 @@ pub enum KeyType {
     Totp,
 }
 
-impl_enum_to_from_string!(KeyType);
+impl_enum_to_from_string!(KeyType, "");
 
 /// Key without value.
 #[derive(Debug, Clone, Serialize, Deserialize)]

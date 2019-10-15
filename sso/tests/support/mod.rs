@@ -17,10 +17,11 @@ use sso::{
 };
 pub use sso::{
     api_type::{
-        AuditCreateRequestBuilder, AuditListRequestBuilder, AuthCsrfCreateRequest, AuthKeyRequest,
-        AuthLoginRequest, AuthResetPasswordConfirmRequest, AuthResetPasswordRequest,
-        AuthTokenRequest, AuthTotpRequest, KeyCreateRequest, KeyListRequestBuilder,
-        ServiceCreateRequest, ServiceListRequestBuilder, UserCreateRequest, UserListRequestBuilder,
+        AuditCreateRequestBuilder, AuditListRequestBuilder, AuthCsrfCreateRequest,
+        AuthCsrfVerifyRequest, AuthKeyRequest, AuthLoginRequest, AuthResetPasswordConfirmRequest,
+        AuthResetPasswordRequest, AuthTokenRequest, AuthTotpRequest, KeyCreateRequest,
+        KeyListRequestBuilder, ServiceCreateRequest, ServiceListRequestBuilder, UserCreateRequest,
+        UserListRequestBuilder,
     },
     Client, ClientActorOptions, ClientError, ClientOptions, ClientSync, KeyType,
 };
