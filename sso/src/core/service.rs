@@ -1,6 +1,7 @@
-use crate::{CoreError, CoreResult, CoreUtil, Driver};
+use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, CoreError, CoreResult, CoreUtil, Driver};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
+use serde_json::Value;
 use std::fmt;
 use url::Url;
 use uuid::Uuid;
@@ -45,6 +46,64 @@ impl fmt::Display for Service {
             )?;
         }
         Ok(())
+    }
+}
+
+impl AuditSubject for Service {
+    fn subject(&self) -> String {
+        format!("{}", self.id)
+    }
+}
+
+impl AuditDiff for Service {
+    fn diff(&self, previous: &Self) -> Value {
+        let c_provider_local_url = self.provider_local_url.as_ref().map(|x| &**x).unwrap_or("");
+        let p_provider_local_url = previous
+            .provider_local_url
+            .as_ref()
+            .map(|x| &**x)
+            .unwrap_or("");
+        let c_provider_github_oauth2_url = self
+            .provider_github_oauth2_url
+            .as_ref()
+            .map(|x| &**x)
+            .unwrap_or("");
+        let p_provider_github_oauth2_url = previous
+            .provider_github_oauth2_url
+            .as_ref()
+            .map(|x| &**x)
+            .unwrap_or("");
+        let c_provider_microsoft_oauth2_url = self
+            .provider_microsoft_oauth2_url
+            .as_ref()
+            .map(|x| &**x)
+            .unwrap_or("");
+        let p_provider_microsoft_oauth2_url = previous
+            .provider_microsoft_oauth2_url
+            .as_ref()
+            .map(|x| &**x)
+            .unwrap_or("");
+
+        AuditDiffBuilder::default()
+            .compare("is_enabled", &self.is_enabled, &previous.is_enabled)
+            .compare("name", &self.name, &previous.name)
+            .compare("url", &self.url, &previous.url)
+            .compare(
+                "provider_local_url",
+                &c_provider_local_url,
+                &p_provider_local_url,
+            )
+            .compare(
+                "provider_github_oauth2_url",
+                &c_provider_github_oauth2_url,
+                &p_provider_github_oauth2_url,
+            )
+            .compare(
+                "provider_microsoft_oauth2_url",
+                &c_provider_microsoft_oauth2_url,
+                &p_provider_microsoft_oauth2_url,
+            )
+            .into_value()
     }
 }
 

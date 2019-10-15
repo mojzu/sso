@@ -90,7 +90,6 @@ impl Auth {
         let user_token = Auth::encode_user_token(
             args.driver,
             args.service,
-            args.audit,
             user,
             &key,
             access_token_expires,
@@ -797,7 +796,6 @@ impl Auth {
         let user_token = Auth::encode_user_token(
             args.driver,
             args.service,
-            args.audit,
             user,
             &key,
             access_token_expires,
@@ -982,7 +980,6 @@ impl Auth {
         let user_token = Auth::encode_user_token(
             args.driver,
             &service,
-            args.audit,
             user,
             &key,
             access_token_expires,
@@ -1207,7 +1204,6 @@ impl Auth {
     fn encode_user_token(
         driver: &dyn Driver,
         service: &Service,
-        audit: &mut AuditBuilder,
         user: User,
         key: &KeyWithValue,
         access_token_expires: i64,

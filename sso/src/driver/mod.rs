@@ -26,6 +26,9 @@ pub enum DriverError {
     #[fail(display = "DriverError:LockFn {}", _0)]
     LockFn(String),
 
+    #[fail(display = "DriverError:Delete")]
+    Delete,
+
     #[fail(display = "DriverError:DieselResult {}", _0)]
     DieselResult(#[fail(cause)] diesel::result::Error),
 
@@ -151,7 +154,7 @@ pub trait DriverIf {
     fn key_update_many(&self, user_id: &Uuid, update: &KeyUpdate) -> DriverResult<usize>;
 
     /// Delete key.
-    fn key_delete(&self, id: &Uuid) -> DriverResult<usize>;
+    fn key_delete(&self, id: &Uuid) -> DriverResult<()>;
 
     // -----------------
     // Service Functions

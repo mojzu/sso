@@ -1,6 +1,7 @@
 use crate::{
-    driver::postgres::schema::sso_key, DriverResult, Key, KeyCount, KeyCreate, KeyList,
-    KeyListQuery, KeyRead, KeyReadUserId, KeyReadUserValue, KeyType, KeyUpdate, KeyWithValue,
+    driver::postgres::schema::sso_key, DriverError, DriverResult, Key, KeyCount, KeyCreate,
+    KeyList, KeyListQuery, KeyRead, KeyReadUserId, KeyReadUserValue, KeyType, KeyUpdate,
+    KeyWithValue,
 };
 use chrono::{DateTime, Utc};
 use diesel::{dsl::sql, prelude::*, sql_types::BigInt, PgConnection};
@@ -238,10 +239,17 @@ impl ModelKey {
             .map_err(Into::into)
     }
 
-    pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<usize> {
+    pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<()> {
         diesel::delete(sso_key::table.filter(sso_key::dsl::id.eq(id)))
             .execute(conn)
             .map_err(Into::into)
+            .and_then(|count| {
+                if count != 1 {
+                    Err(DriverError::Delete)
+                } else {
+                    Ok(())
+                }
+            })
     }
 
     fn read_by_id(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<KeyWithValue>> {

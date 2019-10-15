@@ -1,16 +1,17 @@
 use crate::{
-    impl_enum_to_from_string, AuditBuilder, AuditMessage, AuditMeta, AuditType, CoreError,
-    CoreResult, Driver, Service, User, UserRead,
+    impl_enum_to_from_string, AuditBuilder, AuditDiff, AuditDiffBuilder, AuditMessage, AuditMeta,
+    AuditSubject, AuditType, CoreError, CoreResult, Driver, Service, User, UserRead,
 };
 use chrono::{DateTime, Utc};
 use libreauth::key::KeyBuilder;
+use serde_json::Value;
 use std::fmt;
 use uuid::Uuid;
 
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
-// TODO(refactor): Use _audit unused, finish audit logs for routes, add optional properties.
 // TODO(refactor): Improve key, user, service list query options (order by name, text search, ...).
 // TODO(refactor): User last login, key last use information (calculate in SQL).
+// TODO(refactor): Check audit logging in auth module, add tests.
 
 /// Key value size in bytes.
 pub const KEY_VALUE_BYTES: usize = 21;
@@ -58,6 +59,22 @@ impl fmt::Display for Key {
     }
 }
 
+impl AuditSubject for Key {
+    fn subject(&self) -> String {
+        format!("{}", self.id)
+    }
+}
+
+impl AuditDiff for Key {
+    fn diff(&self, previous: &Self) -> Value {
+        AuditDiffBuilder::default()
+            .compare("is_enabled", &self.is_enabled, &previous.is_enabled)
+            .compare("is_revoked", &self.is_revoked, &previous.is_revoked)
+            .compare("name", &self.name, &previous.name)
+            .into_value()
+    }
+}
+
 /// Key with value.
 /// This is split from `Key` to make value private except when created
 /// or read internally.
@@ -92,6 +109,12 @@ impl fmt::Display for KeyWithValue {
             write!(f, "\n\tuser_id {}", user_id)?;
         }
         Ok(())
+    }
+}
+
+impl AuditSubject for KeyWithValue {
+    fn subject(&self) -> String {
+        format!("{}", self.id)
     }
 }
 
@@ -295,7 +318,7 @@ impl Key {
         key_value: Option<String>,
         audit_type: AuditType,
     ) -> CoreResult<(Service, AuditBuilder)> {
-        let mut audit = AuditBuilder::new(audit_meta);
+        let audit = AuditBuilder::new(audit_meta);
 
         match key_value {
             Some(key_value) => Key::read_by_service_value(driver, key_value)
@@ -536,7 +559,7 @@ impl Key {
         driver: &dyn Driver,
         _service_mask: Option<&Service>,
         id: Uuid,
-    ) -> CoreResult<usize> {
+    ) -> CoreResult<()> {
         driver.key_delete(&id).map_err(CoreError::Driver)
     }
 

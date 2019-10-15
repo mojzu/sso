@@ -20,6 +20,7 @@
 - Key value is only returned via created endpoint.
 - Include user data in token and key responses so user read is unnecessary.
 - Return audit log on endpoints which accept optional audit properties.
+- Audit logging improvements, more endpoints now create audit logs for success/failure, diff data is generated for key, service and user updates.
 
 ### Fixed
 

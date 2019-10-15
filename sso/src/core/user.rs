@@ -1,8 +1,12 @@
-use crate::{client_msg::Get, ClientActor, CoreError, CoreResult, Driver, Service};
+use crate::{
+    client_msg::Get, AuditDiff, AuditDiffBuilder, AuditSubject, ClientActor, CoreError, CoreResult,
+    Driver, Service,
+};
 use actix::Addr;
 use chrono::{DateTime, Utc};
 use futures::{future, Future};
 use libreauth::pass::HashBuilder;
+use serde_json::Value;
 use sha1::{Digest, Sha1};
 use std::fmt;
 use uuid::Uuid;
@@ -58,6 +62,34 @@ impl fmt::Display for User {
             "\n\tpassword_require_update {}",
             self.password_require_update
         )
+    }
+}
+
+impl AuditSubject for User {
+    fn subject(&self) -> String {
+        format!("{}", self.id)
+    }
+}
+
+impl AuditDiff for User {
+    fn diff(&self, previous: &Self) -> Value {
+        AuditDiffBuilder::default()
+            .compare("is_enabled", &self.is_enabled, &previous.is_enabled)
+            .compare("name", &self.name, &previous.name)
+            .compare("email", &self.email, &previous.email)
+            .compare("locale", &self.locale, &previous.locale)
+            .compare("timezone", &self.timezone, &previous.timezone)
+            .compare(
+                "password_allow_reset",
+                &self.password_allow_reset,
+                &previous.password_allow_reset,
+            )
+            .compare(
+                "password_require_update",
+                &self.password_require_update,
+                &previous.password_require_update,
+            )
+            .into_value()
     }
 }
 

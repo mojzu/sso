@@ -348,13 +348,14 @@ impl AuditBuilder {
         &mut self,
         driver: &dyn Driver,
         type_: AuditType,
+        subject: Option<String>,
         data: Option<S>,
     ) -> CoreResult<Audit> {
         let data = data.map(|x| serde_json::to_value(x).unwrap());
         let audit_data = AuditCreate::new(
             self.meta.clone(),
             type_.to_string().unwrap(),
-            None,
+            subject,
             data,
             self.key,
             self.service,
@@ -383,6 +384,52 @@ impl AuditBuilder {
             self.user_key,
         );
         Audit::create(driver, &audit_data)
+    }
+}
+
+/// Audit subject trait.
+pub trait AuditSubject {
+    /// Return subject value for audit log.
+    fn subject(&self) -> String;
+}
+
+/// Audit diff trait.
+pub trait AuditDiff {
+    /// Return diff object for audit log.
+    fn diff(&self, other: &Self) -> Value;
+}
+
+/// Audit diff builder pattern.
+#[derive(Debug)]
+pub struct AuditDiffBuilder {
+    data: Vec<(String, String, String)>,
+}
+
+impl Default for AuditDiffBuilder {
+    fn default() -> Self {
+        Self { data: Vec::new() }
+    }
+}
+
+impl AuditDiffBuilder {
+    pub fn compare<T: PartialEq + fmt::Display>(
+        mut self,
+        key: &str,
+        current: &T,
+        previous: &T,
+    ) -> Self {
+        if current != previous {
+            self.data.push((
+                String::from(key),
+                format!("{}", previous),
+                format!("{}", current),
+            ))
+        }
+        self
+    }
+
+    pub fn into_value(self) -> Value {
+        serde_json::to_value(self.data).unwrap()
     }
 }
 
