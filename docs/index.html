@@ -810,7 +810,7 @@ sso start-server</code></pre>
 <li>Added <code>id</code> query parameter array for key, service and user list endpoint filtering.</li>
 <li>Added <code>docker-pg-dump</code>, <code>docker-pg-restore</code> targets to <code>Makefile.toml</code>.</li>
 <li>Added CSRF create and verify API endpoints.</li>
-<li>Added <code>PATCH</code> audit log endpoint for appending data to audit logs.</li>
+<li>Added <code>PATCH</code> audit log endpoint for appending data to audit logs. Subject may be left null when audit log created and added later (existing data may not be overwritten).</li>
 <li>Added optional <code>subject</code> column to audit log table, added support for filtering.</li>
 <li>Use TimescaleDB hypertable for audit log table.</li>
 </ul>

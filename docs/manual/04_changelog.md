@@ -10,7 +10,7 @@
 - Added `id` query parameter array for key, service and user list endpoint filtering.
 - Added `docker-pg-dump`, `docker-pg-restore` targets to `Makefile.toml`.
 - Added CSRF create and verify API endpoints.
-- Added `PATCH` audit log endpoint for appending data to audit logs.
+- Added `PATCH` audit log endpoint for appending data to audit logs. Subject may be left null when audit log created and added later (existing data may not be overwritten).
 - Added optional `subject` column to audit log table, added support for filtering.
 - Use TimescaleDB hypertable for audit log table.
 

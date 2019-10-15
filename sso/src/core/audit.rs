@@ -238,6 +238,13 @@ pub struct AuditList<'a> {
     pub service_id_mask: Option<&'a Uuid>,
 }
 
+/// Audit update.
+#[derive(Debug)]
+pub struct AuditUpdate {
+    pub subject: Option<String>,
+    pub data: Value,
+}
+
 /// Audit metadata, HTTP request information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuditMeta {
@@ -469,11 +476,11 @@ impl Audit {
     pub fn update(
         driver: &dyn Driver,
         service_mask: Option<&Service>,
-        id: Uuid,
-        data: Value,
+        id: &Uuid,
+        update: &AuditUpdate,
     ) -> CoreResult<Audit> {
         driver
-            .audit_update(&id, &data, service_mask.map(|s| &s.id))
+            .audit_update(id, update, service_mask.map(|s| &s.id))
             .map_err(CoreError::Driver)
     }
 

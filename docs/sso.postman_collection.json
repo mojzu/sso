@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "2b70845a-08f9-4557-9ba6-6e45d35cb4ca",
+		"_postman_id": "3663a940-46ac-404a-9b6d-3280f45ba3c2",
 		"name": "sso",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -738,7 +738,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{server_url}}/v1/audit?",
+							"raw": "{{server_url}}/v1/audit",
 							"host": [
 								"{{server_url}}"
 							],
@@ -1245,7 +1245,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{server_url}}/v1/user",
+							"raw": "{{server_url}}/v1/user?",
 							"host": [
 								"{{server_url}}"
 							],
@@ -1359,7 +1359,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"is_enabled\": true,\n\t\"name\": \"NewName\",\n\t\"locale\": \"en_GB\",\n\t\"timezone\": \"Europe/London\",\n\t\"password_allow_reset\": true,\n\t\"password_require_update\": false\n}",
+							"raw": "{\n\t\"is_enabled\": false,\n\t\"name\": \"UserName\",\n\t\"locale\": \"en_GB\",\n\t\"timezone\": \"Europe/London\",\n\t\"password_allow_reset\": true,\n\t\"password_require_update\": true\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1560,103 +1560,103 @@
 	],
 	"variable": [
 		{
-			"id": "bc368521-98b2-4e77-b9b6-75e3b42d97a8",
+			"id": "1e20c3aa-6f95-40c4-bada-7597413a385c",
 			"key": "server_url",
 			"value": "localhost:9000",
 			"type": "string"
 		},
 		{
-			"id": "5c9e9b32-afc9-406b-9c99-6d4a6341786d",
+			"id": "c49bab67-5574-4906-8cf1-944da4d43485",
 			"key": "key",
 			"value": "{{root_key}}",
 			"type": "string"
 		},
 		{
-			"id": "bc6c2397-74d0-4a51-90ef-4aef5ee8ab5a",
+			"id": "d1ee6bc7-cce3-4e41-87c1-4bbc5a86d318",
 			"key": "root_key",
-			"value": "CQSXRIYGPTVJ4KWFOMGAUE3VENEI3GJZZM",
+			"value": "42JWOJ7AJUHXZLMYN3STWDYXDIS4BTU4P4",
 			"type": "string"
 		},
 		{
-			"id": "4f0069e7-5300-471d-85b2-a2f1b9fc267a",
+			"id": "813ca5c7-f637-42f9-9db5-776614f92e43",
 			"key": "service_key",
 			"value": "AN3SRWT2TG2KP2NOSCJ2TPYN2FYHSOE6MU",
 			"type": "string"
 		},
 		{
-			"id": "a2651b64-265b-4a9d-9e77-8c7ffb968492",
+			"id": "c9e4a2ab-f9ab-46c3-aafe-1d33ce17d0f8",
 			"key": "service_id",
 			"value": "2107d8d6-c9ec-4fa4-9c4d-d0d095d6ec62",
 			"type": "string"
 		},
 		{
-			"id": "45f4655f-aaff-4541-a0f6-b262b6c02aa4",
+			"id": "728de49e-5f73-4027-9c7e-7a17228668cd",
 			"key": "key_id",
 			"value": "7fe29d76-1af8-4364-bf2f-a24e1ac6717c",
 			"type": "string"
 		},
 		{
-			"id": "8139ea31-d820-42d3-b42e-9aa77fb0ba0d",
+			"id": "7a53f1a1-0dc9-4dd6-b544-7a67f49fefc7",
 			"key": "user_id",
-			"value": "f013baa6-89cc-4873-a49e-1e76bbb8293a",
+			"value": "0039002d-6806-4d04-88d9-bafeaf35a123",
 			"type": "string"
 		},
 		{
-			"id": "81015f13-bf0b-436b-84de-4d36ce2513e3",
+			"id": "f1f55522-669d-48fc-8f3f-f03d9a81ec88",
 			"key": "user_email",
 			"value": "user@example.com",
 			"type": "string"
 		},
 		{
-			"id": "dad6a85f-f4b1-4d25-b68a-441d3a63a7c5",
+			"id": "d8a74ba8-b31c-4b5d-abed-e5da216dddf0",
 			"key": "audit_id",
 			"value": "5da68099-3d48-4c92-b71e-9d8c0ef1714e",
 			"type": "string"
 		},
 		{
-			"id": "da57ed8c-3371-4204-a6c7-739528950a55",
+			"id": "dfb3cdd3-75e9-4661-b0e9-f55f71136105",
 			"key": "user_access_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyMTA3ZDhkNi1jOWVjLTRmYTQtOWM0ZC1kMGQwOTVkNmVjNjIiLCJzdWIiOiJmMDEzYmFhNi04OWNjLTQ4NzMtYTQ5ZS0xZTc2YmJiODI5M2EiLCJleHAiOjE1NzA5NzgyOTEsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.4NRPIQMZRJP-Su_EoHWSeJClYIwhKjwE_1bRxAQeTqU",
 			"type": "string"
 		},
 		{
-			"id": "633a2ea8-ffdf-41e6-acb8-f7f24bcc0aee",
+			"id": "6a7b8348-2f1b-487a-b561-627938482fb4",
 			"key": "user_refresh_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyMTA3ZDhkNi1jOWVjLTRmYTQtOWM0ZC1kMGQwOTVkNmVjNjIiLCJzdWIiOiJmMDEzYmFhNi04OWNjLTQ4NzMtYTQ5ZS0xZTc2YmJiODI5M2EiLCJleHAiOjE1NzEwNjEwOTEsInhfdHlwZSI6MSwieF9jc3JmIjoiU1ZaQjZSM0RIVloyUksyUDcySUs2WFpINTZQVlROQ0FEUSJ9.7p6ou_c9GjptwQsOeSpxby8hRyZFUgGu6lummCvlhQE",
 			"type": "string"
 		},
 		{
-			"id": "832b3189-2463-45bc-86f7-4683f936a99f",
+			"id": "3448080a-33a5-4fd5-be78-cc3152e8fe16",
 			"key": "user_key",
 			"value": "PVYBXVXJATJHIVMNCZORHE3GDUXDJCJCIE",
 			"type": "string"
 		},
 		{
-			"id": "9b88af3a-88a0-4a1b-bb9c-d669e7f0e2db",
+			"id": "b20ad54c-d391-4e7c-bc8b-3ad3db522c0f",
 			"key": "totp_code",
 			"value": "123456",
 			"type": "string"
 		},
 		{
-			"id": "78ae89c7-0b2b-4a9a-b2e8-b701ec4f59a4",
+			"id": "59bcab07-bf40-4aa6-881d-bcac84a38628",
 			"key": "user_reset_password_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTAzMzcsInhfdHlwZSI6MiwieF9jc3JmIjoiNUxBT0xHQjI0N1pGWEYzM1pVMkZOVTZMM0hZSDJSQ1JSNCJ9.0rK1R-AswHV19POJEFKlv3yai9YAR8eK5e_6CbfXEPU",
 			"type": "string"
 		},
 		{
-			"id": "13e49d22-f897-469d-b235-34160e3ab8a6",
+			"id": "60c06ace-fee9-4f71-af9d-f014b510de4d",
 			"key": "user_update_password_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIyOTQsInhfdHlwZSI6NCwieF9jc3JmIjoiRlRINERLUUU1S1M3RjVVUExYUkFCNkJPWEJDRUdIRlUyRSJ9.BG3cBT5s3GdCjJ3Wlc4F88P4oBfybzTvi6xgs0rQ_Cc",
 			"type": "string"
 		},
 		{
-			"id": "b17cf254-233a-4b63-be09-2469450b897c",
+			"id": "030903c2-4ffd-4664-b67a-d930f29750b5",
 			"key": "user_update_email_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIxNTUsInhfdHlwZSI6MywieF9jc3JmIjoiSEk1VEpaMzdBRUpJTU9UUUNEVlgyVUlLNVZRUTZSTUYyNCJ9.4Me_J7HUmLZQ4-OJTq5xyV5JNmaO-ZdvfD2UbiJ_kBY",
 			"type": "string"
 		},
 		{
-			"id": "af2a5d7b-609a-423d-aa04-672e29b5006c",
+			"id": "6e91d63c-1ab5-42fe-adb4-5b5a0ad25d09",
 			"key": "csrf_key",
 			"value": "V6FKGIP3OFG4AARS4QMG6PWFNHQP6FNQFM",
 			"type": "string"

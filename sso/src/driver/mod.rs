@@ -9,12 +9,11 @@ pub use crate::driver::postgres::DriverPostgres;
 pub use crate::driver::sqlite::DriverSqlite;
 
 use crate::core::{
-    Audit, AuditCreate, AuditList, CoreError, Csrf, CsrfCreate, CsrfDelete, Key, KeyCount,
-    KeyCreate, KeyList, KeyRead, KeyUpdate, KeyWithValue, Service, ServiceCreate, ServiceList,
-    ServiceUpdate, User, UserCreate, UserList, UserRead, UserUpdate, UserUpdate2,
+    Audit, AuditCreate, AuditList, AuditUpdate, CoreError, Csrf, CsrfCreate, CsrfDelete, Key,
+    KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate, KeyWithValue, Service, ServiceCreate,
+    ServiceList, ServiceUpdate, User, UserCreate, UserList, UserRead, UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
-use serde_json::Value;
 use uuid::Uuid;
 
 /// Driver errors.
@@ -111,7 +110,7 @@ pub trait DriverIf {
     fn audit_update(
         &self,
         id: &Uuid,
-        data: &Value,
+        update: &AuditUpdate,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Audit>;
 

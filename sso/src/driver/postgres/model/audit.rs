@@ -1,6 +1,6 @@
 use crate::{
     driver::postgres::schema::sso_audit, Audit, AuditCreate, AuditList, AuditListFilter,
-    AuditListQuery, DriverResult,
+    AuditListQuery, AuditUpdate, DriverResult,
 };
 use chrono::{DateTime, Utc};
 use diesel::{dsl::sql, pg::Pg, prelude::*, sql_types::BigInt};
@@ -186,17 +186,18 @@ impl ModelAudit {
     pub fn update(
         conn: &PgConnection,
         id: &Uuid,
-        data: &Value,
+        update: &AuditUpdate,
         _service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Audit> {
         use diesel::sql_types;
 
         // TODO(refactor): Use service ID mask.
         let now = Utc::now();
-        let data = json!([data]);
+        let data = json!([update.data]);
         diesel::sql_query(include_str!("audit_update.sql"))
             .bind::<sql_types::Uuid, _>(id)
             .bind::<sql_types::Timestamptz, _>(now)
+            .bind::<sql_types::Nullable<sql_types::Text>, _>(&update.subject)
             .bind::<sql_types::Jsonb, _>(data)
             .get_result::<ModelAudit>(conn)
             .map_err(Into::into)

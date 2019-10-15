@@ -2,13 +2,13 @@ use crate::{
     api_route,
     api_type::{
         AuditCreate2Request, AuditCreateRequest, AuditListRequest, AuditListResponse,
-        AuditReadResponse, AuthCsrfCreateRequest, AuthCsrfCreateResponse, AuthCsrfVerifyRequest,
-        AuthKeyRequest, AuthKeyResponse, AuthLoginRequest, AuthLoginResponse,
-        AuthOauth2CallbackRequest, AuthOauth2UrlResponse, AuthPasswordMetaResponse,
-        AuthResetPasswordConfirmRequest, AuthResetPasswordRequest, AuthTokenAccessResponse,
-        AuthTokenRequest, AuthTokenResponse, AuthTotpRequest, AuthUpdateEmailRequest,
-        AuthUpdatePasswordRequest, KeyCreateRequest, KeyCreateResponse, KeyListRequest,
-        KeyListResponse, KeyReadResponse, KeyUpdateRequest, ServiceCreateRequest,
+        AuditReadResponse, AuditUpdateRequest, AuthCsrfCreateRequest, AuthCsrfCreateResponse,
+        AuthCsrfVerifyRequest, AuthKeyRequest, AuthKeyResponse, AuthLoginRequest,
+        AuthLoginResponse, AuthOauth2CallbackRequest, AuthOauth2UrlResponse,
+        AuthPasswordMetaResponse, AuthResetPasswordConfirmRequest, AuthResetPasswordRequest,
+        AuthTokenAccessResponse, AuthTokenRequest, AuthTokenResponse, AuthTotpRequest,
+        AuthUpdateEmailRequest, AuthUpdatePasswordRequest, KeyCreateRequest, KeyCreateResponse,
+        KeyListRequest, KeyListResponse, KeyReadResponse, KeyUpdateRequest, ServiceCreateRequest,
         ServiceListRequest, ServiceListResponse, ServiceReadResponse, ServiceUpdateRequest,
         UserCreateRequest, UserCreateResponse, UserListRequest, UserListResponse, UserReadResponse,
         UserUpdateRequest,
@@ -420,7 +420,7 @@ impl ClientAsync {
             .and_then(Client::result_json::<AuditReadResponse>)
     }
 
-    /// Audit read by ID request.
+    /// Audit read request.
     pub fn audit_read(
         &self,
         id: Uuid,
@@ -428,6 +428,22 @@ impl ClientAsync {
         self.addr
             .send(
                 Get::new(self.url(), api_route::audit_id(id))
+                    .authorisation(self.options.authorisation())
+                    .forwarded(self.options.forwarded()),
+            )
+            .map_err(Into::into)
+            .and_then(Client::result_json::<AuditReadResponse>)
+    }
+
+    /// Audit update request.
+    pub fn audit_update(
+        &self,
+        id: Uuid,
+        body: AuditUpdateRequest,
+    ) -> impl Future<Item = AuditReadResponse, Error = ClientError> {
+        self.addr
+            .send(
+                PatchJson::new(self.url(), api_route::audit_id(id), Some(body))
                     .authorisation(self.options.authorisation())
                     .forwarded(self.options.forwarded()),
             )
@@ -658,7 +674,7 @@ impl ClientAsync {
         &self,
         key_or_token: Option<String>,
         audit: Option<AuditCreate2Request>,
-    ) -> impl Future<Item = User, Error = ClientError> {
+    ) -> impl Future<Item = (User, Option<Uuid>), Error = ClientError> {
         match key_or_token {
             Some(key_or_token) => match Client::authorisation_type(key_or_token) {
                 Ok((type_, value)) => {
@@ -675,18 +691,20 @@ impl ClientAsync {
         type_: String,
         value: String,
         audit: Option<AuditCreate2Request>,
-    ) -> impl Future<Item = User, Error = ClientError> {
+    ) -> impl Future<Item = (User, Option<Uuid>), Error = ClientError> {
         match type_.as_ref() {
             "key" => {
                 let body = AuthKeyRequest::new(value, audit);
                 Either::A(Either::A(
-                    self.auth_key_verify(body).map(|res| res.data.user),
+                    self.auth_key_verify(body)
+                        .map(|res| (res.data.user, res.audit)),
                 ))
             }
             "token" => {
                 let body = AuthTokenRequest::new(value, audit);
                 Either::A(Either::B(
-                    self.auth_token_verify(body).map(|res| res.data.user),
+                    self.auth_token_verify(body)
+                        .map(|res| (res.data.user, res.audit)),
                 ))
             }
             _ => Either::B(future::err(ClientError::Unauthorised)),

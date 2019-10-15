@@ -4,14 +4,13 @@ mod schema;
 
 use crate::{
     driver::postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
-    Audit, AuditCreate, AuditList, Csrf, CsrfCreate, CsrfDelete, Driver, DriverError, DriverIf,
-    DriverLock, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate,
-    KeyWithValue, Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate, UserList,
-    UserRead, UserUpdate, UserUpdate2,
+    Audit, AuditCreate, AuditList, AuditUpdate, Csrf, CsrfCreate, CsrfDelete, Driver, DriverError,
+    DriverIf, DriverLock, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead,
+    KeyUpdate, KeyWithValue, Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate,
+    UserList, UserRead, UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
-use serde_json::Value;
 use std::fmt;
 use uuid::Uuid;
 
@@ -117,11 +116,11 @@ impl DriverIf for DriverPostgres {
     fn audit_update(
         &self,
         id: &Uuid,
-        data: &Value,
+        update: &AuditUpdate,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Audit> {
         let conn = self.conn()?;
-        ModelAudit::update(&conn, id, data, service_id_mask)
+        ModelAudit::update(&conn, id, update, service_id_mask)
     }
 
     fn audit_delete(&self, created_at: &DateTime<Utc>) -> DriverResult<usize> {
@@ -323,10 +322,10 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
     fn audit_update(
         &self,
         id: &Uuid,
-        data: &Value,
+        update: &AuditUpdate,
         service_id_mask: Option<&Uuid>,
     ) -> DriverResult<Audit> {
-        ModelAudit::update(self.conn(), id, data, service_id_mask)
+        ModelAudit::update(self.conn(), id, update, service_id_mask)
     }
 
     fn audit_delete(&self, created_at: &DateTime<Utc>) -> DriverResult<usize> {

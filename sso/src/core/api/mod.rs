@@ -6,9 +6,9 @@ pub use crate::core::api::validate::*;
 
 use crate::{
     core::api::{api_type::*, oauth2::*},
-    Audit, AuditBuilder, AuditCreate2, AuditDiff, AuditMeta, AuditSubject, AuditType, Auth,
-    AuthArgs, CoreError, CoreResult, Driver, Key, Metrics, NotifyActor, Service, ServiceCreate,
-    ServiceUpdate, User, UserCreate, UserPasswordMeta, UserRead, UserUpdate,
+    Audit, AuditBuilder, AuditCreate2, AuditDiff, AuditMeta, AuditSubject, AuditType, AuditUpdate,
+    Auth, AuthArgs, CoreError, CoreResult, Driver, Key, Metrics, NotifyActor, Service,
+    ServiceCreate, ServiceUpdate, User, UserCreate, UserPasswordMeta, UserRead, UserUpdate,
 };
 use actix::Addr;
 use prometheus::Registry;
@@ -212,7 +212,8 @@ impl Api {
         let audit_type = AuditType::AuditUpdate;
         let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
 
-        Audit::update(driver, service.as_ref(), audit_id, request.data)
+        let update: AuditUpdate = request.into();
+        Audit::update(driver, service.as_ref(), &audit_id, &update)
             .map(|data| AuditReadResponse { data })
     }
 
@@ -457,7 +458,6 @@ impl Api {
         password_meta: UserPasswordMeta,
         request: UserCreateRequest,
     ) -> CoreResult<UserCreateResponse> {
-        // TODO(refactor): Add support for audit logs in this layer.
         UserCreateRequest::api_validate(&request)?;
         let audit_type = AuditType::UserCreate;
         let (service, mut audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
@@ -644,7 +644,7 @@ impl Api {
         key_value: Option<String>,
         audit_meta: AuditMeta,
         request: AuthTokenRequest,
-    ) -> CoreResult<AuditReadOptResponse> {
+    ) -> CoreResult<AuditIdOptResponse> {
         AuthTokenRequest::api_validate(&request)?;
 
         Key::authenticate_service(
@@ -661,7 +661,9 @@ impl Api {
                 audit_create,
             )
         })
-        .map(|data| AuditReadOptResponse { data })
+        .map(|audit| AuditIdOptResponse {
+            audit: audit.map(|x| x.id),
+        })
     }
 
     pub fn auth_provider_local_update_password(
@@ -701,7 +703,7 @@ impl Api {
         key_value: Option<String>,
         audit_meta: AuditMeta,
         request: AuthTokenRequest,
-    ) -> CoreResult<AuditReadOptResponse> {
+    ) -> CoreResult<AuditIdOptResponse> {
         AuthTokenRequest::api_validate(&request)?;
 
         Key::authenticate_service(
@@ -718,7 +720,9 @@ impl Api {
                 audit_create,
             )
         })
-        .map(|data| AuditReadOptResponse { data })
+        .map(|audit| AuditIdOptResponse {
+            audit: audit.map(|x| x.id),
+        })
     }
 
     pub fn auth_provider_github_oauth2_url(
@@ -842,7 +846,10 @@ impl Api {
                     audit_create,
                 )
             })
-            .map(|(data, audit)| AuthKeyResponse { data, audit })
+            .map(|(data, audit)| AuthKeyResponse {
+                data,
+                audit: audit.map(|x| x.id),
+            })
     }
 
     pub fn auth_key_revoke(
@@ -850,7 +857,7 @@ impl Api {
         key_value: Option<String>,
         audit_meta: AuditMeta,
         request: AuthKeyRequest,
-    ) -> CoreResult<AuditReadOptResponse> {
+    ) -> CoreResult<AuditIdOptResponse> {
         AuthKeyRequest::api_validate(&request)?;
 
         Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthKeyRevoke)
@@ -862,7 +869,9 @@ impl Api {
                     audit_create,
                 )
             })
-            .map(|data| AuditReadOptResponse { data })
+            .map(|audit| AuditIdOptResponse {
+                audit: audit.map(|x| x.id),
+            })
     }
 
     pub fn auth_token_verify(
@@ -882,7 +891,10 @@ impl Api {
                     audit_create,
                 )
             })
-            .map(|(data, audit)| AuthTokenAccessResponse { data, audit })
+            .map(|(data, audit)| AuthTokenAccessResponse {
+                data,
+                audit: audit.map(|x| x.id),
+            })
     }
 
     pub fn auth_token_refresh(
@@ -906,7 +918,10 @@ impl Api {
                     refresh_token_expires,
                 )
             })
-            .map(|(data, audit)| AuthTokenResponse { data, audit })
+            .map(|(data, audit)| AuthTokenResponse {
+                data,
+                audit: audit.map(|x| x.id),
+            })
     }
 
     pub fn auth_token_revoke(
@@ -914,7 +929,7 @@ impl Api {
         key_value: Option<String>,
         audit_meta: AuditMeta,
         request: AuthTokenRequest,
-    ) -> CoreResult<AuditReadOptResponse> {
+    ) -> CoreResult<AuditIdOptResponse> {
         AuthTokenRequest::api_validate(&request)?;
 
         Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthTokenRevoke)
@@ -926,7 +941,9 @@ impl Api {
                     audit_create,
                 )
             })
-            .map(|data| AuditReadOptResponse { data })
+            .map(|audit| AuditIdOptResponse {
+                audit: audit.map(|x| x.id),
+            })
     }
 
     pub fn auth_totp(

@@ -1,11 +1,13 @@
 //! # API Types
 use crate::{
     ApiValidate, ApiValidateRequest, ApiValidateRequestQuery, Audit, AuditCreate2, AuditListFilter,
-    AuditListQuery, Core, Csrf, Key, KeyListFilter, KeyListQuery, KeyType, KeyWithValue, Service,
-    ServiceCreate, ServiceListFilter, ServiceListQuery, ServiceUpdate, User, UserCreate, UserKey,
-    UserListFilter, UserListQuery, UserPasswordMeta, UserToken, UserTokenAccess,
+    AuditListQuery, AuditUpdate, Core, Csrf, Key, KeyListFilter, KeyListQuery, KeyType,
+    KeyWithValue, Service, ServiceCreate, ServiceListFilter, ServiceListQuery, ServiceUpdate, User,
+    UserCreate, UserKey, UserListFilter, UserListQuery, UserPasswordMeta, UserToken,
+    UserTokenAccess,
 };
 use chrono::{DateTime, Utc};
+use serde::ser::Serialize;
 use serde_json::Value;
 use uuid::Uuid;
 use validator::Validate;
@@ -163,14 +165,39 @@ pub struct AuditReadResponse {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct AuditReadOptResponse {
-    pub data: Option<Audit>,
+pub struct AuditIdOptResponse {
+    pub audit: Option<Uuid>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuditUpdateRequest {
+    #[validate(custom = "ApiValidate::audit_subject")]
+    pub subject: Option<String>,
     pub data: Value,
+}
+
+impl AuditUpdateRequest {
+    pub fn new<S: Serialize>(data: S) -> Self {
+        Self {
+            subject: None,
+            data: serde_json::to_value(data).unwrap(),
+        }
+    }
+
+    pub fn subject<S: Into<String>>(mut self, subject: S) -> Self {
+        self.subject = Some(subject.into());
+        self
+    }
+}
+
+impl From<AuditUpdateRequest> for AuditUpdate {
+    fn from(request: AuditUpdateRequest) -> Self {
+        Self {
+            subject: request.subject,
+            data: request.data,
+        }
+    }
 }
 
 // ---------
@@ -732,14 +759,14 @@ impl AuthTokenRequest {
 #[serde(deny_unknown_fields)]
 pub struct AuthTokenResponse {
     pub data: UserToken,
-    pub audit: Option<Audit>,
+    pub audit: Option<Uuid>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthTokenAccessResponse {
     pub data: UserTokenAccess,
-    pub audit: Option<Audit>,
+    pub audit: Option<Uuid>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
@@ -765,7 +792,7 @@ impl AuthKeyRequest {
 #[serde(deny_unknown_fields)]
 pub struct AuthKeyResponse {
     pub data: UserKey,
-    pub audit: Option<Audit>,
+    pub audit: Option<Uuid>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
