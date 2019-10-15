@@ -1002,7 +1002,7 @@ impl Api {
         audit_type: AuditType,
     ) -> CoreResult<T> {
         res.or_else(|e| {
-            let data = format!("{}", e);
+            let data = Audit::typed_data("error", &e);
             audit.create_data(driver, audit_type, None, Some(data))?;
             Err(e)
         })
@@ -1019,7 +1019,7 @@ impl Api {
         audit_type: AuditType,
     ) -> CoreResult<T> {
         res.or_else(|e| {
-            let data = format!("{}", e);
+            let data = Audit::typed_data("error", &e);
             audit.create_data(driver, audit_type, None, Some(data))?;
             Err(e)
         })

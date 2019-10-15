@@ -1,4 +1,5 @@
 use crate::{ClientError, DriverError};
+use serde::ser::{Serialize, Serializer};
 
 /// Core OAuth2 errors.
 #[derive(Debug, Fail)]
@@ -97,5 +98,15 @@ impl From<DriverError> for CoreError {
 impl From<ClientError> for CoreError {
     fn from(e: ClientError) -> Self {
         Self::Client(e)
+    }
+}
+
+impl Serialize for CoreError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let v = format!("{}", self);
+        serializer.serialize_str(&v)
     }
 }

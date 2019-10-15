@@ -62,6 +62,7 @@ impl_enum_to_from_string!(AuditType, "sso");
 /// Audit messages.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum AuditMessage {
+    // TODO(refactor): Replace this with CoreError.
     ServiceNotFound,
     ServiceDisabled,
     UserNotFound,
@@ -407,6 +408,7 @@ pub trait AuditDiff {
 }
 
 /// Audit diff builder pattern.
+/// Key -> previous value -> current value.
 #[derive(Debug)]
 pub struct AuditDiffBuilder {
     data: Vec<(String, String, String)>,
@@ -436,11 +438,26 @@ impl AuditDiffBuilder {
     }
 
     pub fn into_value(self) -> Value {
-        serde_json::to_value(self.data).unwrap()
+        Audit::typed_data("diff", self.data)
     }
 }
 
 impl Audit {
+    /// Wrap serialisable data in object with type property.
+    pub fn typed_data<T: Into<String>, D1: Serialize>(type_: T, data: D1) -> Value {
+        #[derive(Serialize)]
+        struct TypedData<D2: Serialize> {
+            #[serde(rename = "type")]
+            type_: String,
+            data: D2,
+        }
+        let v = TypedData {
+            type_: type_.into(),
+            data,
+        };
+        serde_json::to_value(v).unwrap()
+    }
+
     /// List audit logs.
     pub fn list(
         driver: &dyn Driver,
