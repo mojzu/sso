@@ -4,11 +4,7 @@ mod key;
 mod service;
 mod user;
 
-use crate::{
-    api::{path as api_path, Api},
-    server::Data,
-    AuditMeta, ServerError, ServerResult,
-};
+use crate::{api, server::Data, AuditMeta, ServerError, ServerResult};
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, ResponseError, Result, Scope};
 use futures::{future, Future};
@@ -19,9 +15,9 @@ pub fn route_service(config: &mut web::ServiceConfig) {
 }
 
 fn route_v1_scope() -> Scope {
-    web::scope(api_path::V1)
-        .service(web::resource(api_path::PING).route(web::get().to(ping_handler)))
-        .service(web::resource(api_path::METRICS).route(web::get().to_async(metrics_handler)))
+    web::scope(api::path::V1)
+        .service(web::resource(api::path::PING).route(web::get().to(ping_handler)))
+        .service(web::resource(api::path::METRICS).route(web::get().to_async(metrics_handler)))
         .service(audit::route_v1_scope())
         .service(auth::route_v1_scope())
         .service(key::route_v1_scope())
@@ -30,7 +26,7 @@ fn route_v1_scope() -> Scope {
 }
 
 fn ping_handler() -> Result<HttpResponse> {
-    let body = Api::ping();
+    let body = api::ping();
     Ok(HttpResponse::Ok().json(body))
 }
 
@@ -45,7 +41,7 @@ fn metrics_handler(
     audit_meta
         .and_then(|audit_meta| {
             web::block(move || {
-                Api::metrics(data.driver(), key_value, audit_meta, data.registry())
+                api::metrics(data.driver(), key_value, audit_meta, data.registry())
                     .map_err(Into::into)
             })
             .map_err(Into::into)

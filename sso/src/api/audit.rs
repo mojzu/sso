@@ -1,5 +1,5 @@
 use crate::{
-    api::{Api, ApiValidate, ApiValidateRequest, ApiValidateRequestQuery},
+    api::{validate, ValidateRequest, ValidateRequestQuery},
     Audit, AuditCreate2, AuditListFilter, AuditListQuery, AuditMeta, AuditType, AuditUpdate, Core,
     CoreError, CoreResult, Driver, Key,
 };
@@ -17,7 +17,7 @@ pub struct AuditListRequest {
     #[builder(default = "None")]
     le: Option<DateTime<Utc>>,
     #[builder(default = "None")]
-    #[validate(custom = "ApiValidate::limit")]
+    #[validate(custom = "validate::limit")]
     limit: Option<i64>,
     #[builder(default = "None")]
     offset_id: Option<Uuid>,
@@ -25,10 +25,10 @@ pub struct AuditListRequest {
     id: Option<Vec<Uuid>>,
     #[builder(default = "None")]
     #[serde(rename = "type")]
-    #[validate(custom = "ApiValidate::audit_type_vec")]
+    #[validate(custom = "validate::audit_type_vec")]
     type_: Option<Vec<String>>,
     #[builder(default = "None")]
-    #[validate(custom = "ApiValidate::audit_subject_vec")]
+    #[validate(custom = "validate::audit_subject_vec")]
     subject: Option<Vec<String>>,
     #[builder(default = "None")]
     service_id: Option<Vec<Uuid>>,
@@ -36,8 +36,8 @@ pub struct AuditListRequest {
     user_id: Option<Vec<Uuid>>,
 }
 
-impl ApiValidateRequest<AuditListRequest> for AuditListRequest {}
-impl ApiValidateRequestQuery<AuditListRequest> for AuditListRequest {}
+impl ValidateRequest<AuditListRequest> for AuditListRequest {}
+impl ValidateRequestQuery<AuditListRequest> for AuditListRequest {}
 
 impl AuditListRequest {
     pub fn into_query_filter(self) -> (AuditListQuery, AuditListFilter) {
@@ -110,10 +110,10 @@ pub struct AuditListResponse {
 #[serde(deny_unknown_fields)]
 pub struct AuditCreateRequest {
     #[serde(rename = "type")]
-    #[validate(custom = "ApiValidate::audit_type")]
+    #[validate(custom = "validate::audit_type")]
     pub type_: String,
     #[builder(default = "None")]
-    #[validate(custom = "ApiValidate::audit_subject")]
+    #[validate(custom = "validate::audit_subject")]
     pub subject: Option<String>,
     #[builder(default = "None")]
     pub data: Option<Value>,
@@ -123,22 +123,22 @@ pub struct AuditCreateRequest {
     pub user_key_id: Option<Uuid>,
 }
 
-impl ApiValidateRequest<AuditCreateRequest> for AuditCreateRequest {}
+impl ValidateRequest<AuditCreateRequest> for AuditCreateRequest {}
 
 #[derive(Debug, Serialize, Deserialize, Validate, Builder)]
 #[serde(deny_unknown_fields)]
 pub struct AuditCreate2Request {
     #[serde(rename = "type")]
-    #[validate(custom = "ApiValidate::audit_type")]
+    #[validate(custom = "validate::audit_type")]
     pub type_: String,
     #[builder(default = "None")]
-    #[validate(custom = "ApiValidate::audit_subject")]
+    #[validate(custom = "validate::audit_subject")]
     pub subject: Option<String>,
     #[builder(default = "None")]
     pub data: Option<Value>,
 }
 
-impl ApiValidateRequest<AuditCreate2Request> for AuditCreate2Request {}
+impl ValidateRequest<AuditCreate2Request> for AuditCreate2Request {}
 
 impl From<AuditCreate2Request> for AuditCreate2 {
     fn from(data: AuditCreate2Request) -> Self {
@@ -165,7 +165,7 @@ pub struct AuditIdOptResponse {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuditUpdateRequest {
-    #[validate(custom = "ApiValidate::audit_subject")]
+    #[validate(custom = "validate::audit_subject")]
     pub subject: Option<String>,
     pub data: Option<Value>,
 }
@@ -200,68 +200,66 @@ impl From<AuditUpdateRequest> for AuditUpdate {
     }
 }
 
-impl Api {
-    pub fn audit_list(
-        driver: &dyn Driver,
-        key_value: Option<String>,
-        audit_meta: AuditMeta,
-        request: AuditListRequest,
-    ) -> CoreResult<AuditListResponse> {
-        AuditListRequest::api_validate(&request)?;
-        let audit_type = AuditType::AuditList;
-        let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+pub fn audit_list(
+    driver: &dyn Driver,
+    key_value: Option<String>,
+    audit_meta: AuditMeta,
+    request: AuditListRequest,
+) -> CoreResult<AuditListResponse> {
+    AuditListRequest::api_validate(&request)?;
+    let audit_type = AuditType::AuditList;
+    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
 
-        let (query, filter) = request.into_query_filter();
-        Audit::list(driver, service.as_ref(), &query, &filter).map(|data| AuditListResponse {
-            meta: AuditListRequest::from_query_filter(query, filter),
-            data,
-        })
-    }
+    let (query, filter) = request.into_query_filter();
+    Audit::list(driver, service.as_ref(), &query, &filter).map(|data| AuditListResponse {
+        meta: AuditListRequest::from_query_filter(query, filter),
+        data,
+    })
+}
 
-    pub fn audit_create(
-        driver: &dyn Driver,
-        key_value: Option<String>,
-        audit_meta: AuditMeta,
-        request: AuditCreateRequest,
-    ) -> CoreResult<AuditReadResponse> {
-        AuditCreateRequest::api_validate(&request)?;
-        let audit_type = AuditType::AuditCreate;
-        let (_service, mut audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+pub fn audit_create(
+    driver: &dyn Driver,
+    key_value: Option<String>,
+    audit_meta: AuditMeta,
+    request: AuditCreateRequest,
+) -> CoreResult<AuditReadResponse> {
+    AuditCreateRequest::api_validate(&request)?;
+    let audit_type = AuditType::AuditCreate;
+    let (_service, mut audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
 
-        let audit_create = AuditCreate2::new(request.type_, request.subject, request.data);
-        audit
-            .user_id(request.user_id)
-            .user_key_id(request.user_key_id)
-            .create(driver, audit_create)
-            .map(|data| AuditReadResponse { data })
-    }
+    let audit_create = AuditCreate2::new(request.type_, request.subject, request.data);
+    audit
+        .user_id(request.user_id)
+        .user_key_id(request.user_key_id)
+        .create(driver, audit_create)
+        .map(|data| AuditReadResponse { data })
+}
 
-    pub fn audit_read(
-        driver: &dyn Driver,
-        key_value: Option<String>,
-        audit_meta: AuditMeta,
-        audit_id: Uuid,
-    ) -> CoreResult<AuditReadResponse> {
-        let audit_type = AuditType::AuditRead;
-        let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+pub fn audit_read(
+    driver: &dyn Driver,
+    key_value: Option<String>,
+    audit_meta: AuditMeta,
+    audit_id: Uuid,
+) -> CoreResult<AuditReadResponse> {
+    let audit_type = AuditType::AuditRead;
+    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
 
-        Audit::read(driver, service.as_ref(), audit_id)
-            .and_then(|audit| audit.ok_or_else(|| CoreError::NotFound))
-            .map(|data| AuditReadResponse { data })
-    }
+    Audit::read(driver, service.as_ref(), audit_id)
+        .and_then(|audit| audit.ok_or_else(|| CoreError::NotFound))
+        .map(|data| AuditReadResponse { data })
+}
 
-    pub fn audit_update(
-        driver: &dyn Driver,
-        key_value: Option<String>,
-        audit_meta: AuditMeta,
-        audit_id: Uuid,
-        request: AuditUpdateRequest,
-    ) -> CoreResult<AuditReadResponse> {
-        let audit_type = AuditType::AuditUpdate;
-        let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+pub fn audit_update(
+    driver: &dyn Driver,
+    key_value: Option<String>,
+    audit_meta: AuditMeta,
+    audit_id: Uuid,
+    request: AuditUpdateRequest,
+) -> CoreResult<AuditReadResponse> {
+    let audit_type = AuditType::AuditUpdate;
+    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
 
-        let update: AuditUpdate = request.into();
-        Audit::update(driver, service.as_ref(), &audit_id, &update)
-            .map(|data| AuditReadResponse { data })
-    }
+    let update: AuditUpdate = request.into();
+    Audit::update(driver, service.as_ref(), &audit_id, &update)
+        .map(|data| AuditReadResponse { data })
 }

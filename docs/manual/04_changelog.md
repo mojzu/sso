@@ -22,6 +22,7 @@
 - Return audit log on endpoints which accept optional audit properties.
 - Audit logging improvements, more endpoints now create audit logs for success/failure, diff data is generated for key, service and user updates.
 - Added prefix `Sso` to internal audit log types.
+- Refactoring, move `api` module to crate root.
 
 ### Fixed
 

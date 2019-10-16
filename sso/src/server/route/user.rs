@@ -1,8 +1,5 @@
 use crate::{
-    api::{
-        path as api_path, Api, ApiValidateRequestQuery, UserCreateRequest, UserListRequest,
-        UserUpdateRequest,
-    },
+    api::{self, ValidateRequestQuery},
     server::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
@@ -15,14 +12,14 @@ use futures::Future;
 use uuid::Uuid;
 
 pub fn route_v1_scope() -> Scope {
-    web::scope(api_path::USER)
+    web::scope(api::path::USER)
         .service(
-            web::resource(api_path::NONE)
+            web::resource(api::path::NONE)
                 .route(web::get().to_async(list_handler))
                 .route(web::post().to_async(create_handler)),
         )
         .service(
-            web::resource(api_path::ID)
+            web::resource(api::path::ID)
                 .route(web::get().to_async(read_handler))
                 .route(web::patch().to_async(update_handler))
                 .route(web::delete().to_async(delete_handler)),
@@ -36,13 +33,13 @@ fn list_handler(
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let request = UserListRequest::from_str_fut(req.query_string()).map_err(ServerError::Core);
+    let request = api::UserListRequest::from_str_fut(req.query_string()).map_err(ServerError::Core);
 
     audit_meta
         .join(request)
         .and_then(move |(audit_meta, request)| {
             web::block(move || {
-                Api::user_list(data.driver(), id, audit_meta, request).map_err(Into::into)
+                api::user_list(data.driver(), id, audit_meta, request).map_err(Into::into)
             })
             .map_err(Into::into)
         })
@@ -53,7 +50,7 @@ fn create_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<UserCreateRequest>,
+    body: web::Json<api::UserCreateRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
@@ -69,7 +66,7 @@ fn create_handler(
         .join(password_meta)
         .and_then(move |(audit_meta, password_meta)| {
             web::block(move || {
-                Api::user_create(data.driver(), id, audit_meta, password_meta, request)
+                api::user_create(data.driver(), id, audit_meta, password_meta, request)
                     .map_err(Into::into)
             })
             .map_err(Into::into)
@@ -90,7 +87,7 @@ fn read_handler(
     audit_meta
         .and_then(move |audit_meta| {
             web::block(move || {
-                Api::user_read(data.driver(), id, audit_meta, user_id).map_err(Into::into)
+                api::user_read(data.driver(), id, audit_meta, user_id).map_err(Into::into)
             })
             .map_err(Into::into)
         })
@@ -102,7 +99,7 @@ fn update_handler(
     req: HttpRequest,
     id: Identity,
     path: web::Path<(Uuid,)>,
-    body: web::Json<UserUpdateRequest>,
+    body: web::Json<api::UserUpdateRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
@@ -112,7 +109,7 @@ fn update_handler(
     audit_meta
         .and_then(move |audit_meta| {
             web::block(move || {
-                Api::user_update(data.driver(), id, audit_meta, user_id, request)
+                api::user_update(data.driver(), id, audit_meta, user_id, request)
                     .map_err(Into::into)
             })
             .map_err(Into::into)
@@ -133,7 +130,7 @@ fn delete_handler(
     audit_meta
         .and_then(move |audit_meta| {
             web::block(move || {
-                Api::user_delete(data.driver(), id, audit_meta, user_id).map_err(Into::into)
+                api::user_delete(data.driver(), id, audit_meta, user_id).map_err(Into::into)
             })
             .map_err(Into::into)
         })

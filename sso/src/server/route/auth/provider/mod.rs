@@ -1,7 +1,7 @@
 mod local;
 
 use crate::{
-    api::{path as api_path, Api, AuthOauth2CallbackRequest},
+    api,
     server::{
         route::{request_audit_meta, route_response_json},
         Data,
@@ -12,18 +12,18 @@ use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 
 pub fn route_v1_scope() -> Scope {
-    web::scope(api_path::PROVIDER)
+    web::scope(api::path::PROVIDER)
         .service(local::route_v1_scope())
         .service(
-            web::scope(api_path::GITHUB).service(
-                web::resource(api_path::OAUTH2)
+            web::scope(api::path::GITHUB).service(
+                web::resource(api::path::OAUTH2)
                     .route(web::get().to_async(github_oauth2_url_handler))
                     .route(web::post().to_async(github_oauth2_callback_handler)),
             ),
         )
         .service(
-            web::scope(api_path::MICROSOFT).service(
-                web::resource(api_path::OAUTH2)
+            web::scope(api::path::MICROSOFT).service(
+                web::resource(api::path::OAUTH2)
                     .route(web::get().to_async(microsoft_oauth2_url_handler))
                     .route(web::post().to_async(microsoft_oauth2_callback_handler)),
             ),
@@ -40,7 +40,7 @@ fn github_oauth2_url_handler(
     request_audit_meta(&req)
         .and_then(move |audit_meta| {
             web::block(move || {
-                Api::auth_provider_github_oauth2_url(
+                api::auth_provider_github_oauth2_url(
                     data.driver(),
                     id,
                     audit_meta,
@@ -57,7 +57,7 @@ fn github_oauth2_callback_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<AuthOauth2CallbackRequest>,
+    body: web::Json<api::AuthOauth2CallbackRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let request = body.into_inner();
@@ -65,7 +65,7 @@ fn github_oauth2_callback_handler(
     request_audit_meta(&req)
         .and_then(move |audit_meta| {
             web::block(move || {
-                Api::auth_provider_github_oauth2_callback(
+                api::auth_provider_github_oauth2_callback(
                     data.driver(),
                     id,
                     audit_meta,
@@ -89,7 +89,7 @@ fn microsoft_oauth2_url_handler(
     request_audit_meta(&req)
         .and_then(move |audit_meta| {
             web::block(move || {
-                Api::auth_provider_microsoft_oauth2_url(
+                api::auth_provider_microsoft_oauth2_url(
                     data.driver(),
                     id,
                     audit_meta,
@@ -106,7 +106,7 @@ fn microsoft_oauth2_callback_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<AuthOauth2CallbackRequest>,
+    body: web::Json<api::AuthOauth2CallbackRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let request = body.into_inner();
@@ -114,7 +114,7 @@ fn microsoft_oauth2_callback_handler(
     request_audit_meta(&req)
         .and_then(move |audit_meta| {
             web::block(move || {
-                Api::auth_provider_microsoft_oauth2_callback(
+                api::auth_provider_microsoft_oauth2_callback(
                     data.driver(),
                     id,
                     audit_meta,

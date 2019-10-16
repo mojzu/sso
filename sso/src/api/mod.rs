@@ -2,12 +2,18 @@
 mod audit;
 mod auth;
 mod key;
-mod oauth2;
 mod service;
 mod user;
-mod validate;
+pub mod validate;
 
-pub use crate::api::{audit::*, auth::*, key::*, service::*, user::*, validate::*};
+pub use crate::api::{
+    audit::*,
+    auth::*,
+    key::*,
+    service::*,
+    user::*,
+    validate::{ValidateRequest, ValidateRequestQuery},
+};
 
 use crate::{
     Audit, AuditBuilder, AuditDiff, AuditMeta, AuditSubject, AuditType, CoreResult, Driver, Key,
@@ -92,100 +98,53 @@ pub mod route {
     }
 }
 
-/// API provider OAuth2 options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiProviderOauth2 {
-    pub client_id: String,
-    pub client_secret: String,
+pub fn ping() -> Value {
+    json!("pong")
 }
 
-impl ApiProviderOauth2 {
-    pub fn new(client_id: String, client_secret: String) -> Self {
-        Self {
-            client_id,
-            client_secret,
-        }
-    }
+pub fn metrics(
+    driver: &dyn Driver,
+    key_value: Option<String>,
+    audit_meta: AuditMeta,
+    registry: &Registry,
+) -> CoreResult<String> {
+    let audit_type = AuditType::Metrics;
+    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+
+    Metrics::read(driver, service.as_ref(), registry)
 }
 
-/// API provider OAuth2 common arguments.
-#[derive(Debug)]
-pub struct ApiProviderOauth2Args<'a> {
-    provider: Option<&'a ApiProviderOauth2>,
-    user_agent: String,
-    access_token_expires: i64,
-    refresh_token_expires: i64,
+fn result_audit<T: AuditSubject>(
+    driver: &dyn Driver,
+    res: CoreResult<T>,
+    audit: &mut AuditBuilder,
+    audit_type: AuditType,
+) -> CoreResult<T> {
+    res.or_else(|e| {
+        let data = Audit::typed_data("error", &e);
+        audit.create_data(driver, audit_type, None, Some(data))?;
+        Err(e)
+    })
+    .and_then(|res| {
+        audit.create_data::<bool>(driver, audit_type, Some(res.subject()), None)?;
+        Ok(res)
+    })
 }
 
-impl<'a> ApiProviderOauth2Args<'a> {
-    pub fn new<S1: Into<String>>(
-        provider: Option<&'a ApiProviderOauth2>,
-        user_agent: S1,
-        access_token_expires: i64,
-        refresh_token_expires: i64,
-    ) -> Self {
-        Self {
-            provider,
-            user_agent: user_agent.into(),
-            access_token_expires,
-            refresh_token_expires,
-        }
-    }
-}
-
-/// API functions.
-#[derive(Debug)]
-pub struct Api;
-
-impl Api {
-    pub fn ping() -> Value {
-        json!("pong")
-    }
-
-    pub fn metrics(
-        driver: &dyn Driver,
-        key_value: Option<String>,
-        audit_meta: AuditMeta,
-        registry: &Registry,
-    ) -> CoreResult<String> {
-        let audit_type = AuditType::Metrics;
-        let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
-
-        Metrics::read(driver, service.as_ref(), registry)
-    }
-
-    fn result_audit<T: AuditSubject>(
-        driver: &dyn Driver,
-        res: CoreResult<T>,
-        audit: &mut AuditBuilder,
-        audit_type: AuditType,
-    ) -> CoreResult<T> {
-        res.or_else(|e| {
-            let data = Audit::typed_data("error", &e);
-            audit.create_data(driver, audit_type, None, Some(data))?;
-            Err(e)
-        })
-        .and_then(|res| {
-            audit.create_data::<bool>(driver, audit_type, Some(res.subject()), None)?;
-            Ok(res)
-        })
-    }
-
-    fn result_audit_diff<T: AuditSubject + AuditDiff>(
-        driver: &dyn Driver,
-        res: CoreResult<(T, T)>,
-        audit: &mut AuditBuilder,
-        audit_type: AuditType,
-    ) -> CoreResult<T> {
-        res.or_else(|e| {
-            let data = Audit::typed_data("error", &e);
-            audit.create_data(driver, audit_type, None, Some(data))?;
-            Err(e)
-        })
-        .and_then(|(p, n)| {
-            let diff = n.diff(&p);
-            audit.create_data(driver, audit_type, Some(n.subject()), Some(diff))?;
-            Ok(n)
-        })
-    }
+fn result_audit_diff<T: AuditSubject + AuditDiff>(
+    driver: &dyn Driver,
+    res: CoreResult<(T, T)>,
+    audit: &mut AuditBuilder,
+    audit_type: AuditType,
+) -> CoreResult<T> {
+    res.or_else(|e| {
+        let data = Audit::typed_data("error", &e);
+        audit.create_data(driver, audit_type, None, Some(data))?;
+        Err(e)
+    })
+    .and_then(|(p, n)| {
+        let diff = n.diff(&p);
+        audit.create_data(driver, audit_type, Some(n.subject()), Some(diff))?;
+        Ok(n)
+    })
 }

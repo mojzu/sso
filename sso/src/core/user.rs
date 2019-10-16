@@ -20,7 +20,9 @@ pub const USER_LOCALE_MAX_LEN: usize = 10;
 /// User timezone maximum length.
 pub const USER_TIMEZONE_MAX_LEN: usize = 50;
 
-/// User password hash version passed to libreauth hash builder.
+/// User password hash version.
+///
+/// Passed to libreauth hash builder.
 pub const USER_PASSWORD_HASH_VERSION: usize = 1;
 
 /// User password minimum length.
@@ -162,7 +164,8 @@ pub struct UserUpdate {
     pub password_require_update: Option<bool>,
 }
 
-/// User update.
+/// User update 2.
+///
 /// This is split from `UserUpdate` to prevent `User::update_email` or
 /// `User::update_password` functions being bypassed which could
 /// allow an unhashed password to be saved to the database.

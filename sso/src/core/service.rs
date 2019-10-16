@@ -1,4 +1,4 @@
-use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, CoreError, CoreResult, CoreUtil, Driver};
+use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, Core, CoreError, CoreResult, Driver};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -129,7 +129,7 @@ pub struct ServiceList<'a> {
     pub filter: &'a ServiceListFilter,
 }
 
-/// Service create data.
+/// Service create.
 #[derive(Debug)]
 pub struct ServiceCreate {
     pub is_enabled: bool,
@@ -140,7 +140,7 @@ pub struct ServiceCreate {
     pub provider_microsoft_oauth2_url: Option<String>,
 }
 
-/// Service update data.
+/// Service update.
 #[derive(Debug)]
 pub struct ServiceUpdate {
     pub is_enabled: Option<bool>,
@@ -177,7 +177,7 @@ impl Service {
             .ok_or_else(|| CoreError::BadRequest)?;
         let mut url = Url::parse(provider_local_url).unwrap();
         let query = ServiceCallbackQuery::new(type_, data);
-        let query = CoreUtil::qs_ser(&query)?;
+        let query = Core::qs_ser(&query)?;
         url.set_query(Some(&query));
         Ok(url)
     }

@@ -75,7 +75,7 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
     }
 }
 
-/// Metrics middleware.
+/// Metrics middleware constructor.
 pub struct Metrics {
     count: IntCounterVec,
     latency: HistogramVec,

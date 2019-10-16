@@ -9,7 +9,7 @@ use libreauth::oath::TOTPBuilder;
 use std::fmt;
 use uuid::Uuid;
 
-/// Authentication functions common arguments.
+/// Authentication functions arguments.
 pub struct AuthArgs<'a> {
     driver: &'a dyn Driver,
     service: &'a Service,

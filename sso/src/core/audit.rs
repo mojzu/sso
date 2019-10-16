@@ -246,7 +246,9 @@ pub struct AuditUpdate {
     pub data: Option<Value>,
 }
 
-/// Audit metadata, HTTP request information.
+/// Audit metadata.
+///
+/// HTTP request information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuditMeta {
     user_agent: String,
@@ -408,6 +410,8 @@ pub trait AuditDiff {
 }
 
 /// Audit diff builder pattern.
+///
+/// Internal structure is:
 /// Key -> previous value -> current value.
 #[derive(Debug)]
 pub struct AuditDiffBuilder {

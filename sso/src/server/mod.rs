@@ -2,7 +2,7 @@ pub mod actix_web_middleware;
 mod route;
 
 use crate::{
-    api::{ApiProviderOauth2, ApiProviderOauth2Args},
+    api::{AuthProviderOauth2, AuthProviderOauth2Args},
     ClientActor, ClientError, CoreError, Driver, Metrics, NotifyActor,
 };
 use actix::{Addr, MailboxError as ActixMailboxError};
@@ -110,19 +110,19 @@ impl ResponseError for ServerError {
     }
 }
 
-/// Server provider options.
+/// Server options provider options.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ServerOptionsProvider {
-    oauth2: Option<ApiProviderOauth2>,
+    oauth2: Option<AuthProviderOauth2>,
 }
 
 impl ServerOptionsProvider {
-    pub fn new(oauth2: Option<ApiProviderOauth2>) -> Self {
+    pub fn new(oauth2: Option<AuthProviderOauth2>) -> Self {
         Self { oauth2 }
     }
 }
 
-/// Server provider group options.
+/// Server options provider group options.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ServerOptionsProviderGroup {
     github: ServerOptionsProvider,
@@ -213,13 +213,13 @@ impl ServerOptions {
     }
 
     /// Returns provider GitHub OAuth2 reference.
-    pub fn provider_github_oauth2(&self) -> Option<&ApiProviderOauth2> {
+    pub fn provider_github_oauth2(&self) -> Option<&AuthProviderOauth2> {
         self.provider.github.oauth2.as_ref()
     }
 
     /// Returns provider GitHub OAuth2 common arguments.
-    pub fn provider_github_oauth2_args(&self) -> ApiProviderOauth2Args {
-        ApiProviderOauth2Args::new(
+    pub fn provider_github_oauth2_args(&self) -> AuthProviderOauth2Args {
+        AuthProviderOauth2Args::new(
             self.provider_github_oauth2(),
             self.user_agent(),
             self.access_token_expires(),
@@ -228,13 +228,13 @@ impl ServerOptions {
     }
 
     /// Returns provider Microsoft OAuth2 reference.
-    pub fn provider_microsoft_oauth2(&self) -> Option<&ApiProviderOauth2> {
+    pub fn provider_microsoft_oauth2(&self) -> Option<&AuthProviderOauth2> {
         self.provider.microsoft.oauth2.as_ref()
     }
 
     /// Returns provider Microsoft OAuth2 common arguments.
-    pub fn provider_microsoft_oauth2_args(&self) -> ApiProviderOauth2Args {
-        ApiProviderOauth2Args::new(
+    pub fn provider_microsoft_oauth2_args(&self) -> AuthProviderOauth2Args {
+        AuthProviderOauth2Args::new(
             self.provider_microsoft_oauth2(),
             self.user_agent(),
             self.access_token_expires(),

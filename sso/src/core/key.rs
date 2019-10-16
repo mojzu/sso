@@ -26,7 +26,7 @@ pub enum KeyType {
 
 impl_enum_to_from_string!(KeyType, "");
 
-/// Key without value.
+/// Key.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Key {
     pub created_at: DateTime<Utc>,
@@ -76,6 +76,7 @@ impl AuditDiff for Key {
 }
 
 /// Key with value.
+///
 /// This is split from `Key` to make value private except when created
 /// or read internally.
 #[derive(Debug, Clone, Serialize, Deserialize)]

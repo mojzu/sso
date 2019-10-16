@@ -12,7 +12,7 @@ pub use crate::client::async_impl::*;
 pub use crate::client::sync_impl::*;
 pub use crate::client::{actor::*, error::*};
 
-use crate::CoreUtil;
+use crate::Core;
 use http::header;
 use reqwest::{r#async::RequestBuilder as AsyncRequestBuilder, RequestBuilder, Response};
 use serde::{de::DeserializeOwned, ser::Serialize};
@@ -70,7 +70,7 @@ impl Client {
     /// Build and return Url with serialised query parameters.
     pub fn url_query<T: Serialize>(url: &str, route: &str, query: T) -> ClientResult<Url> {
         let mut url = Client::url(url, route)?;
-        let query = CoreUtil::qs_ser(&query).map_err(ClientError::core)?;
+        let query = Core::qs_ser(&query).map_err(ClientError::core)?;
         url.set_query(Some(&query));
         Ok(url)
     }

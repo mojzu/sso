@@ -1,9 +1,5 @@
 use crate::{
-    api::{
-        path as api_path, Api, AuthLoginRequest, AuthResetPasswordConfirmRequest,
-        AuthResetPasswordRequest, AuthTokenRequest, AuthUpdateEmailRequest,
-        AuthUpdatePasswordRequest,
-    },
+    api,
     server::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
@@ -15,37 +11,38 @@ use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 
 pub fn route_v1_scope() -> Scope {
-    web::scope(api_path::LOCAL)
-        .service(web::resource(api_path::LOGIN).route(web::post().to_async(login_handler)))
+    web::scope(api::path::LOCAL)
+        .service(web::resource(api::path::LOGIN).route(web::post().to_async(login_handler)))
         .service(
-            web::scope(api_path::RESET_PASSWORD)
+            web::scope(api::path::RESET_PASSWORD)
                 .service(
-                    web::resource(api_path::NONE)
+                    web::resource(api::path::NONE)
                         .route(web::post().to_async(reset_password_handler)),
                 )
                 .service(
-                    web::resource(api_path::CONFIRM)
+                    web::resource(api::path::CONFIRM)
                         .route(web::post().to_async(reset_password_confirm_handler)),
                 ),
         )
         .service(
-            web::scope(api_path::UPDATE_EMAIL)
+            web::scope(api::path::UPDATE_EMAIL)
                 .service(
-                    web::resource(api_path::NONE).route(web::post().to_async(update_email_handler)),
+                    web::resource(api::path::NONE)
+                        .route(web::post().to_async(update_email_handler)),
                 )
                 .service(
-                    web::resource(api_path::REVOKE)
+                    web::resource(api::path::REVOKE)
                         .route(web::post().to_async(update_email_revoke_handler)),
                 ),
         )
         .service(
-            web::scope(api_path::UPDATE_PASSWORD)
+            web::scope(api::path::UPDATE_PASSWORD)
                 .service(
-                    web::resource(api_path::NONE)
+                    web::resource(api::path::NONE)
                         .route(web::post().to_async(update_password_handler)),
                 )
                 .service(
-                    web::resource(api_path::REVOKE)
+                    web::resource(api::path::REVOKE)
                         .route(web::post().to_async(update_password_revoke_handler)),
                 ),
         )
@@ -55,7 +52,7 @@ fn login_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<AuthLoginRequest>,
+    body: web::Json<api::AuthLoginRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
@@ -71,7 +68,7 @@ fn login_handler(
         .join(password_meta)
         .and_then(move |(audit_meta, password_meta)| {
             web::block(move || {
-                Api::auth_provider_local_login(
+                api::auth_provider_local_login(
                     data.driver(),
                     id,
                     audit_meta,
@@ -91,7 +88,7 @@ fn reset_password_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<AuthResetPasswordRequest>,
+    body: web::Json<api::AuthResetPasswordRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
@@ -100,7 +97,7 @@ fn reset_password_handler(
     audit_meta
         .and_then(move |audit_meta| {
             web::block(move || {
-                Api::auth_provider_local_reset_password(
+                api::auth_provider_local_reset_password(
                     data.driver(),
                     id,
                     audit_meta,
@@ -119,7 +116,7 @@ fn reset_password_confirm_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<AuthResetPasswordConfirmRequest>,
+    body: web::Json<api::AuthResetPasswordConfirmRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
@@ -135,7 +132,7 @@ fn reset_password_confirm_handler(
         .join(password_meta)
         .and_then(move |(audit_meta, password_meta)| {
             web::block(move || {
-                Api::auth_provider_local_reset_password_confirm(
+                api::auth_provider_local_reset_password_confirm(
                     data.driver(),
                     id,
                     audit_meta,
@@ -153,7 +150,7 @@ fn update_email_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<AuthUpdateEmailRequest>,
+    body: web::Json<api::AuthUpdateEmailRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
@@ -162,7 +159,7 @@ fn update_email_handler(
     audit_meta
         .and_then(move |audit_meta| {
             web::block(move || {
-                Api::auth_provider_local_update_email(
+                api::auth_provider_local_update_email(
                     data.driver(),
                     id,
                     audit_meta,
@@ -181,7 +178,7 @@ fn update_email_revoke_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<AuthTokenRequest>,
+    body: web::Json<api::AuthTokenRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
@@ -190,7 +187,7 @@ fn update_email_revoke_handler(
     audit_meta
         .and_then(move |audit_meta| {
             web::block(move || {
-                Api::auth_provider_local_update_email_revoke(data.driver(), id, audit_meta, request)
+                api::auth_provider_local_update_email_revoke(data.driver(), id, audit_meta, request)
                     .map_err(Into::into)
             })
             .map_err(Into::into)
@@ -202,7 +199,7 @@ fn update_password_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<AuthUpdatePasswordRequest>,
+    body: web::Json<api::AuthUpdatePasswordRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
@@ -218,7 +215,7 @@ fn update_password_handler(
         .join(password_meta)
         .and_then(move |(audit_meta, password_meta)| {
             web::block(move || {
-                Api::auth_provider_local_update_password(
+                api::auth_provider_local_update_password(
                     data.driver(),
                     id,
                     audit_meta,
@@ -238,7 +235,7 @@ fn update_password_revoke_handler(
     data: web::Data<Data>,
     req: HttpRequest,
     id: Identity,
-    body: web::Json<AuthTokenRequest>,
+    body: web::Json<api::AuthTokenRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     let id = id.identity();
     let audit_meta = request_audit_meta(&req);
@@ -247,7 +244,7 @@ fn update_password_revoke_handler(
     audit_meta
         .and_then(move |audit_meta| {
             web::block(move || {
-                Api::auth_provider_local_update_password_revoke(
+                api::auth_provider_local_update_password_revoke(
                     data.driver(),
                     id,
                     audit_meta,

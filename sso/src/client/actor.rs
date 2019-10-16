@@ -131,7 +131,7 @@ impl Actor for ClientActor {
     type Context = Context<Self>;
 }
 
-/// Client actor message request trait.
+/// Client actor request trait.
 pub trait ClientActorRequest {
     /// Set authorisation header on request.
     fn authorisation<T1: Into<String>>(self, authorisation: T1) -> Self;
