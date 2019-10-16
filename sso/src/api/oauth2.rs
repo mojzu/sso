@@ -1,6 +1,6 @@
 use crate::{
-    api_type::AuthOauth2CallbackRequest, ApiProviderOauth2, AuditBuilder, Client, CoreError,
-    CoreOauth2Error, CoreResult, Csrf, Driver, Service,
+    api::{ApiProviderOauth2, AuthOauth2CallbackRequest},
+    AuditBuilder, Client, CoreError, CoreOauth2Error, CoreResult, Csrf, Driver, Service,
 };
 use http::header;
 use oauth2::{
@@ -11,11 +11,6 @@ use oauth2::{
 use reqwest::Client as ReqwestClient;
 use url::Url;
 use uuid::Uuid;
-
-#[derive(Debug, Serialize, Deserialize)]
-struct GithubUser {
-    email: String,
-}
 
 pub fn github_oauth2_url(
     driver: &dyn Driver,
@@ -68,6 +63,11 @@ pub fn github_oauth2_callback(
 }
 
 pub fn github_api_user_email(user_agent: String, access_token: String) -> CoreResult<String> {
+    #[derive(Debug, Serialize, Deserialize)]
+    struct GithubUser {
+        email: String,
+    }
+
     let authorisation = format!("token {}", access_token);
     let client = ReqwestClient::builder().use_rustls_tls().build().unwrap();
 
@@ -118,11 +118,6 @@ fn github_client(
         Some(token_url),
     )
     .set_redirect_url(RedirectUrl::new(redirect_url)))
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct MicrosoftUser {
-    mail: String,
 }
 
 pub fn microsoft_oauth2_url(
@@ -186,6 +181,11 @@ pub fn microsoft_oauth2_callback(
 }
 
 pub fn microsoft_api_user_email(user_agent: String, access_token: String) -> CoreResult<String> {
+    #[derive(Debug, Serialize, Deserialize)]
+    struct MicrosoftUser {
+        mail: String,
+    }
+
     let authorisation = format!("Bearer {}", access_token);
     let client = ReqwestClient::builder().use_rustls_tls().build().unwrap();
 

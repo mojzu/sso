@@ -12,11 +12,10 @@ mod user;
 use chrono::Utc;
 pub use serde_json::Value;
 use sso::{
-    api_type::AuthOauth2UrlResponse, KeyWithValue, Service, User, UserKey, UserToken,
-    UserTokenAccess,
+    api::AuthOauth2UrlResponse, KeyWithValue, Service, User, UserKey, UserToken, UserTokenAccess,
 };
 pub use sso::{
-    api_type::{
+    api::{
         AuditCreateRequestBuilder, AuditListRequestBuilder, AuthCsrfCreateRequest,
         AuthCsrfVerifyRequest, AuthKeyRequest, AuthLoginRequest, AuthResetPasswordConfirmRequest,
         AuthResetPasswordRequest, AuthTokenRequest, AuthTotpRequest, KeyCreateRequest,

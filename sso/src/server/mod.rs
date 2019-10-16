@@ -2,8 +2,8 @@ pub mod actix_web_middleware;
 mod route;
 
 use crate::{
-    ApiProviderOauth2, ApiProviderOauth2Args, ClientActor, ClientError, CoreError, Driver, Metrics,
-    NotifyActor,
+    api::{ApiProviderOauth2, ApiProviderOauth2Args},
+    ClientActor, ClientError, CoreError, Driver, Metrics, NotifyActor,
 };
 use actix::{Addr, MailboxError as ActixMailboxError};
 use actix_web::{

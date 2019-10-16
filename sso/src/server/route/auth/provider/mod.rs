@@ -1,13 +1,11 @@
 mod local;
 
 use crate::{
-    api_path,
-    api_type::AuthOauth2CallbackRequest,
+    api::{path as api_path, Api, AuthOauth2CallbackRequest},
     server::{
         route::{request_audit_meta, route_response_json},
         Data,
     },
-    Api,
 };
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};

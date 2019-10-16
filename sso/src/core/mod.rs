@@ -1,4 +1,3 @@
-mod api;
 mod audit;
 mod auth;
 mod csrf;
@@ -11,8 +10,7 @@ mod user;
 mod util;
 
 pub use crate::core::{
-    api::*, audit::*, auth::*, csrf::*, error::*, jwt::*, key::*, metrics::*, service::*, user::*,
-    util::*,
+    audit::*, auth::*, csrf::*, error::*, jwt::*, key::*, metrics::*, service::*, user::*, util::*,
 };
 
 /// Core functions.

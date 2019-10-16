@@ -1,11 +1,13 @@
 use crate::{
-    api_path,
-    api_type::{UserCreateRequest, UserListRequest, UserUpdateRequest},
+    api::{
+        path as api_path, Api, ApiValidateRequestQuery, UserCreateRequest, UserListRequest,
+        UserUpdateRequest,
+    },
     server::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
     },
-    Api, ApiValidateRequestQuery, ServerError, User,
+    ServerError, User,
 };
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};

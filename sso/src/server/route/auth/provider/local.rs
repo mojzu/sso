@@ -1,14 +1,14 @@
 use crate::{
-    api_path,
-    api_type::{
-        AuthLoginRequest, AuthResetPasswordConfirmRequest, AuthResetPasswordRequest,
-        AuthTokenRequest, AuthUpdateEmailRequest, AuthUpdatePasswordRequest,
+    api::{
+        path as api_path, Api, AuthLoginRequest, AuthResetPasswordConfirmRequest,
+        AuthResetPasswordRequest, AuthTokenRequest, AuthUpdateEmailRequest,
+        AuthUpdatePasswordRequest,
     },
     server::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
     },
-    Api, User,
+    User,
 };
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};

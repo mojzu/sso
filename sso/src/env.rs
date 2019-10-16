@@ -1,4 +1,6 @@
-use crate::{ApiProviderOauth2, NotifyActorOptionsSmtp, ServerOptionsRustls, SsoError, SsoResult};
+use crate::{
+    api::ApiProviderOauth2, NotifyActorOptionsSmtp, ServerOptionsRustls, SsoError, SsoResult,
+};
 use std::str::FromStr;
 
 /// Environment helper functions.

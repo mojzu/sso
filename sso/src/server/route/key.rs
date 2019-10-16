@@ -1,11 +1,13 @@
 use crate::{
-    api_path,
-    api_type::{KeyCreateRequest, KeyListRequest, KeyUpdateRequest},
+    api::{
+        path as api_path, Api, ApiValidateRequestQuery, KeyCreateRequest, KeyListRequest,
+        KeyUpdateRequest,
+    },
     server::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
     },
-    Api, ApiValidateRequestQuery, ServerError,
+    ServerError,
 };
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};

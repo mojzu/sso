@@ -25,6 +25,7 @@ extern crate serde_json;
 #[macro_use]
 extern crate validator_derive;
 
+pub mod api;
 mod cli;
 mod client;
 mod core;

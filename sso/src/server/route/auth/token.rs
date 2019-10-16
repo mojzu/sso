@@ -1,11 +1,9 @@
 use crate::{
-    api_path,
-    api_type::AuthTokenRequest,
+    api::{path as api_path, Api, AuthTokenRequest},
     server::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
     },
-    Api,
 };
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};

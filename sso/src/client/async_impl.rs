@@ -1,10 +1,9 @@
 use crate::{
-    api_route,
-    api_type::{
-        AuditCreate2Request, AuditCreateRequest, AuditListRequest, AuditListResponse,
-        AuditReadResponse, AuditUpdateRequest, AuthCsrfCreateRequest, AuthCsrfCreateResponse,
-        AuthCsrfVerifyRequest, AuthKeyRequest, AuthKeyResponse, AuthLoginRequest,
-        AuthLoginResponse, AuthOauth2CallbackRequest, AuthOauth2UrlResponse,
+    api::{
+        route as api_route, AuditCreate2Request, AuditCreateRequest, AuditListRequest,
+        AuditListResponse, AuditReadResponse, AuditUpdateRequest, AuthCsrfCreateRequest,
+        AuthCsrfCreateResponse, AuthCsrfVerifyRequest, AuthKeyRequest, AuthKeyResponse,
+        AuthLoginRequest, AuthLoginResponse, AuthOauth2CallbackRequest, AuthOauth2UrlResponse,
         AuthPasswordMetaResponse, AuthResetPasswordConfirmRequest, AuthResetPasswordRequest,
         AuthTokenAccessResponse, AuthTokenRequest, AuthTokenResponse, AuthTotpRequest,
         AuthUpdateEmailRequest, AuthUpdatePasswordRequest, KeyCreateRequest, KeyCreateResponse,
