@@ -174,15 +174,22 @@ pub struct AuditIdOptResponse {
 pub struct AuditUpdateRequest {
     #[validate(custom = "ApiValidate::audit_subject")]
     pub subject: Option<String>,
-    pub data: Value,
+    pub data: Option<Value>,
+}
+
+impl Default for AuditUpdateRequest {
+    fn default() -> Self {
+        Self {
+            subject: None,
+            data: None,
+        }
+    }
 }
 
 impl AuditUpdateRequest {
-    pub fn new<S: Serialize>(data: S) -> Self {
-        Self {
-            subject: None,
-            data: serde_json::to_value(data).unwrap(),
-        }
+    pub fn data<S: Serialize>(mut self, data: S) -> Self {
+        self.data = Some(serde_json::to_value(data).unwrap());
+        self
     }
 
     pub fn subject<S: Into<String>>(mut self, subject: S) -> Self {

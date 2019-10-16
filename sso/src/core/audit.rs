@@ -57,7 +57,7 @@ pub enum AuditType {
     AuthCsrfVerify,
 }
 
-impl_enum_to_from_string!(AuditType, "sso");
+impl_enum_to_from_string!(AuditType, "Sso");
 
 /// Audit messages.
 #[derive(Debug, Serialize, Deserialize)]
@@ -243,7 +243,7 @@ pub struct AuditList<'a> {
 #[derive(Debug)]
 pub struct AuditUpdate {
     pub subject: Option<String>,
-    pub data: Value,
+    pub data: Option<Value>,
 }
 
 /// Audit metadata, HTTP request information.

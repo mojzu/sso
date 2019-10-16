@@ -126,10 +126,7 @@ impl ModelAudit {
     pub fn create(conn: &PgConnection, create: &AuditCreate) -> DriverResult<Audit> {
         let now = Utc::now();
         let id = Uuid::new_v4();
-        let data = match &create.data {
-            Some(data) => json!([data]),
-            None => json!([]),
-        };
+        let data = Self::wrap_data(create.data.as_ref());
         let value = ModelAuditInsert::from_create(&now, &id, create, &data);
         diesel::insert_into(sso_audit::table)
             .values(&value)
@@ -193,7 +190,7 @@ impl ModelAudit {
 
         // TODO(refactor): Use service ID mask.
         let now = Utc::now();
-        let data = json!([update.data]);
+        let data = Self::wrap_data(update.data.as_ref());
         diesel::sql_query(include_str!("audit_update.sql"))
             .bind::<sql_types::Uuid, _>(id)
             .bind::<sql_types::Timestamptz, _>(now)
@@ -414,5 +411,12 @@ impl ModelAudit {
         }
 
         query
+    }
+
+    fn wrap_data(data: Option<&Value>) -> Value {
+        match data {
+            Some(data) => json!([data]),
+            None => json!([]),
+        }
     }
 }
