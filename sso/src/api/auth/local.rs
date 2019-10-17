@@ -1,7 +1,7 @@
 use crate::{
-    api::{validate, AuditIdOptResponse, AuthTokenRequest, ValidateRequest},
-    AuditCreate2, AuditMeta, AuditType, Auth, AuthArgs, CoreResult, Driver, Key, NotifyActor,
-    UserPasswordMeta, UserToken,
+    api::{result_audit, validate, AuditIdOptResponse, AuthTokenRequest, ValidateRequest},
+    AuditBuilder, AuditCreate2, AuditMeta, AuditType, Auth, AuthArgs, CoreResult, Driver, Key,
+    NotifyActor, UserPasswordMeta, UserToken,
 };
 use actix::Addr;
 use uuid::Uuid;
@@ -119,9 +119,12 @@ pub fn auth_provider_local_login(
     refresh_token_expires: i64,
 ) -> CoreResult<AuthLoginResponse> {
     AuthLoginRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalLogin);
 
-    Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthLocalLogin)
-        .and_then(|(service, mut audit)| {
+    result_audit(
+        driver,
+        &mut audit,
+        Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
             Auth::login(
                 AuthArgs::new(driver, &service, &mut audit),
                 request.email,
@@ -129,11 +132,12 @@ pub fn auth_provider_local_login(
                 access_token_expires,
                 refresh_token_expires,
             )
-        })
-        .map(|data| AuthLoginResponse {
-            meta: password_meta,
-            data,
-        })
+        }),
+    )
+    .map(|data| AuthLoginResponse {
+        meta: password_meta,
+        data,
+    })
 }
 
 pub fn auth_provider_local_reset_password(
@@ -145,21 +149,20 @@ pub fn auth_provider_local_reset_password(
     access_token_expires: i64,
 ) -> CoreResult<()> {
     AuthResetPasswordRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPassword);
 
-    Key::authenticate_service(
+    result_audit(
         driver,
-        audit_meta,
-        key_value,
-        AuditType::AuthLocalResetPassword,
+        &mut audit,
+        Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+            Auth::reset_password(
+                AuthArgs::new(driver, &service, &mut audit),
+                notify,
+                request.email,
+                access_token_expires,
+            )
+        }),
     )
-    .and_then(|(service, mut audit)| {
-        Auth::reset_password(
-            AuthArgs::new(driver, &service, &mut audit),
-            notify,
-            request.email,
-            access_token_expires,
-        )
-    })
 }
 
 pub fn auth_provider_local_reset_password_confirm(
@@ -170,20 +173,19 @@ pub fn auth_provider_local_reset_password_confirm(
     request: AuthResetPasswordConfirmRequest,
 ) -> CoreResult<AuthPasswordMetaResponse> {
     AuthResetPasswordConfirmRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPasswordConfirm);
 
-    Key::authenticate_service(
+    result_audit(
         driver,
-        audit_meta,
-        key_value,
-        AuditType::AuthLocalResetPasswordConfirm,
+        &mut audit,
+        Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+            Auth::reset_password_confirm(
+                AuthArgs::new(driver, &service, &mut audit),
+                request.token,
+                request.password,
+            )
+        }),
     )
-    .and_then(|(service, mut audit)| {
-        Auth::reset_password_confirm(
-            AuthArgs::new(driver, &service, &mut audit),
-            request.token,
-            request.password,
-        )
-    })
     .map(|_| AuthPasswordMetaResponse {
         meta: password_meta,
     })
@@ -198,23 +200,22 @@ pub fn auth_provider_local_update_email(
     revoke_token_expires: i64,
 ) -> CoreResult<()> {
     AuthUpdateEmailRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdateEmail);
 
-    Key::authenticate_service(
+    result_audit(
         driver,
-        audit_meta,
-        key_value,
-        AuditType::AuthLocalUpdateEmail,
+        &mut audit,
+        Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+            Auth::update_email(
+                AuthArgs::new(driver, &service, &mut audit),
+                notify,
+                request.user_id,
+                request.password,
+                request.new_email,
+                revoke_token_expires,
+            )
+        }),
     )
-    .and_then(|(service, mut audit)| {
-        Auth::update_email(
-            AuthArgs::new(driver, &service, &mut audit),
-            notify,
-            request.user_id,
-            request.password,
-            request.new_email,
-            revoke_token_expires,
-        )
-    })
 }
 
 pub fn auth_provider_local_update_email_revoke(
@@ -224,21 +225,20 @@ pub fn auth_provider_local_update_email_revoke(
     request: AuthTokenRequest,
 ) -> CoreResult<AuditIdOptResponse> {
     AuthTokenRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdateEmailRevoke);
 
-    Key::authenticate_service(
+    result_audit(
         driver,
-        audit_meta,
-        key_value,
-        AuditType::AuthLocalUpdateEmailRevoke,
+        &mut audit,
+        Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+            let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
+            Auth::update_email_revoke(
+                AuthArgs::new(driver, &service, &mut audit),
+                request.token,
+                audit_create,
+            )
+        }),
     )
-    .and_then(|(service, mut audit)| {
-        let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
-        Auth::update_email_revoke(
-            AuthArgs::new(driver, &service, &mut audit),
-            request.token,
-            audit_create,
-        )
-    })
     .map(|audit| AuditIdOptResponse {
         audit: audit.map(|x| x.id),
     })
@@ -254,23 +254,22 @@ pub fn auth_provider_local_update_password(
     revoke_token_expires: i64,
 ) -> CoreResult<AuthPasswordMetaResponse> {
     AuthUpdatePasswordRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdatePassword);
 
-    Key::authenticate_service(
+    result_audit(
         driver,
-        audit_meta,
-        key_value,
-        AuditType::AuthLocalUpdatePassword,
+        &mut audit,
+        Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+            Auth::update_password(
+                AuthArgs::new(driver, &service, &mut audit),
+                notify,
+                request.user_id,
+                request.password,
+                request.new_password,
+                revoke_token_expires,
+            )
+        }),
     )
-    .and_then(|(service, mut audit)| {
-        Auth::update_password(
-            AuthArgs::new(driver, &service, &mut audit),
-            notify,
-            request.user_id,
-            request.password,
-            request.new_password,
-            revoke_token_expires,
-        )
-    })
     .map(|_| AuthPasswordMetaResponse {
         meta: password_meta,
     })
@@ -283,21 +282,20 @@ pub fn auth_provider_local_update_password_revoke(
     request: AuthTokenRequest,
 ) -> CoreResult<AuditIdOptResponse> {
     AuthTokenRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdatePasswordRevoke);
 
-    Key::authenticate_service(
+    result_audit(
         driver,
-        audit_meta,
-        key_value,
-        AuditType::AuthLocalUpdatePasswordRevoke,
+        &mut audit,
+        Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+            let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
+            Auth::update_password_revoke(
+                AuthArgs::new(driver, &service, &mut audit),
+                request.token,
+                audit_create,
+            )
+        }),
     )
-    .and_then(|(service, mut audit)| {
-        let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
-        Auth::update_password_revoke(
-            AuthArgs::new(driver, &service, &mut audit),
-            request.token,
-            audit_create,
-        )
-    })
     .map(|audit| AuditIdOptResponse {
         audit: audit.map(|x| x.id),
     })

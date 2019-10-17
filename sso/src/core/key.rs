@@ -1,6 +1,6 @@
 use crate::{
-    impl_enum_to_from_string, AuditBuilder, AuditDiff, AuditDiffBuilder, AuditMeta, AuditSubject,
-    AuditType, CoreAuthError, CoreError, CoreResult, Driver, Service, User, UserRead,
+    impl_enum_to_from_string, AuditBuilder, AuditDiff, AuditDiffBuilder, AuditSubject,
+    CoreAuthError, CoreError, CoreResult, Driver, Service, User, UserRead,
 };
 use chrono::{DateTime, Utc};
 use libreauth::key::KeyBuilder;

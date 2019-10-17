@@ -115,7 +115,7 @@ pub fn metrics(
     result_audit_err(driver, &mut audit, res)
 }
 
-fn result_audit<T: AuditSubject>(
+fn result_audit(
     driver: &dyn Driver,
     audit: &mut AuditBuilder,
     res: CoreResult<T>,
@@ -126,7 +126,7 @@ fn result_audit<T: AuditSubject>(
         Err(e)
     })
     .and_then(|res| {
-        audit.create_data::<bool>(driver, Some(res.subject()), None)?;
+        audit.create_data::<bool>(driver, None, None)?;
         Ok(res)
     })
 }
@@ -140,6 +140,22 @@ fn result_audit_err<T>(
         let data = Audit::typed_data("error", &e);
         audit.create_data(driver, None, Some(data))?;
         Err(e)
+    })
+}
+
+fn result_audit_subject<T: AuditSubject>(
+    driver: &dyn Driver,
+    audit: &mut AuditBuilder,
+    res: CoreResult<T>,
+) -> CoreResult<T> {
+    res.or_else(|e| {
+        let data = Audit::typed_data("error", &e);
+        audit.create_data(driver, None, Some(data))?;
+        Err(e)
+    })
+    .and_then(|res| {
+        audit.create_data::<bool>(driver, Some(res.subject()), None)?;
+        Ok(res)
     })
 }
 

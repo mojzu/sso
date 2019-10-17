@@ -1,5 +1,7 @@
 use crate::{
-    api::{result_audit, result_audit_diff, validate, ValidateRequest, ValidateRequestQuery},
+    api::{
+        result_audit_diff, result_audit_subject, validate, ValidateRequest, ValidateRequestQuery,
+    },
     AuditMeta, AuditType, Core, CoreError, CoreResult, Driver, Key, Service, ServiceCreate,
     ServiceListFilter, ServiceListQuery, ServiceUpdate,
 };
@@ -212,7 +214,8 @@ pub fn service_create(
 
     let create: ServiceCreate = request.into();
     let res = Service::create(driver, &create);
-    result_audit(driver, res, &mut audit, audit_type).map(|data| ServiceReadResponse { data })
+    result_audit_subject(driver, res, &mut audit, audit_type)
+        .map(|data| ServiceReadResponse { data })
 }
 
 pub fn service_read(
@@ -264,5 +267,5 @@ pub fn service_delete(
         .and_then(|previous_service| {
             Service::delete(driver, service.as_ref(), service_id).map(|_| previous_service)
         });
-    result_audit(driver, res, &mut audit, audit_type).map(|_| ())
+    result_audit_subject(driver, res, &mut audit, audit_type).map(|_| ())
 }

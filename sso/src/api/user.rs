@@ -1,5 +1,7 @@
 use crate::{
-    api::{result_audit, result_audit_diff, validate, ValidateRequest, ValidateRequestQuery},
+    api::{
+        result_audit_diff, result_audit_subject, validate, ValidateRequest, ValidateRequestQuery,
+    },
     AuditMeta, AuditType, Core, CoreError, CoreResult, Driver, Key, User, UserCreate,
     UserListFilter, UserListQuery, UserPasswordMeta, UserRead, UserUpdate,
 };
@@ -209,7 +211,7 @@ pub fn user_create(
 
     let mut create: UserCreate = request.into();
     let res = User::create(driver, service.as_ref(), &mut create);
-    result_audit(driver, res, &mut audit, audit_type).map(|data| UserCreateResponse {
+    result_audit_subject(driver, res, &mut audit, audit_type).map(|data| UserCreateResponse {
         meta: password_meta,
         data,
     })
@@ -272,5 +274,5 @@ pub fn user_delete(
     let res = User::read_opt(driver, service.as_ref(), &read)
         .and_then(|user| user.ok_or_else(|| CoreError::NotFound))
         .and_then(|user| User::delete(driver, service.as_ref(), user_id).map(|_| user));
-    result_audit(driver, res, &mut audit, audit_type).map(|_| ())
+    result_audit_subject(driver, res, &mut audit, audit_type).map(|_| ())
 }

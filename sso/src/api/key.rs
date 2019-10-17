@@ -1,6 +1,6 @@
 use crate::{
     api::{
-        result_audit, result_audit_diff, result_audit_err, validate, ValidateRequest,
+        result_audit_diff, result_audit_err, result_audit_subject, validate, ValidateRequest,
         ValidateRequestQuery,
     },
     AuditBuilder, AuditMeta, AuditType, Core, CoreError, CoreResult, Driver, Key, KeyListFilter,
@@ -187,14 +187,13 @@ pub fn key_list(
 ) -> CoreResult<KeyListResponse> {
     KeyListRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyList);
+    let (query, filter) = request.into_query_filter();
 
     result_audit_err(
         driver,
         &mut audit,
-        Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
-            let (query, filter) = request.into_query_filter();
-            Key::list(driver, service.as_ref(), &query, &filter)
-        }),
+        Key::authenticate(driver, &mut audit, key_value)
+            .and_then(|service| Key::list(driver, service.as_ref(), &query, &filter)),
     )
     .map(|data| KeyListResponse {
         meta: KeyListRequest::from_query_filter(query, filter),
@@ -211,7 +210,7 @@ pub fn key_create(
     KeyCreateRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyCreate);
 
-    result_audit(
+    result_audit_subject(
         driver,
         &mut audit,
         // If service ID is some, root key is required to create service keys.
@@ -266,12 +265,17 @@ pub fn key_read(
     audit_meta: AuditMeta,
     key_id: Uuid,
 ) -> CoreResult<KeyReadResponse> {
-    let audit_type = AuditType::KeyRead;
-    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyRead);
 
-    Key::read_opt(driver, service.as_ref(), key_id)
-        .and_then(|key| key.ok_or_else(|| CoreError::NotFound))
-        .map(|key| KeyReadResponse { data: key.into() })
+    result_audit_err(
+        driver,
+        &mut audit,
+        Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
+            Key::read_opt(driver, service.as_ref(), key_id)
+                .and_then(|key| key.ok_or_else(|| CoreError::NotFound))
+        }),
+    )
+    .map(|key| KeyReadResponse { data: key.into() })
 }
 
 pub fn key_update(
@@ -282,23 +286,28 @@ pub fn key_update(
     request: KeyUpdateRequest,
 ) -> CoreResult<KeyReadResponse> {
     KeyUpdateRequest::api_validate(&request)?;
-    let audit_type = AuditType::KeyUpdate;
-    let (service, mut audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyUpdate);
 
-    let res = Key::read_opt(driver, service.as_ref(), key_id)
-        .and_then(|key| key.ok_or_else(|| CoreError::NotFound))
-        .and_then(|previous_key| {
-            Key::update(
-                driver,
-                service.as_ref(),
-                key_id,
-                request.is_enabled,
-                None,
-                request.name,
-            )
-            .map(|next_key| (previous_key.into(), next_key))
-        });
-    result_audit_diff(driver, res, &mut audit, audit_type).map(|key| KeyReadResponse { data: key })
+    result_audit_diff(
+        driver,
+        &mut audit,
+        Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
+            Key::read_opt(driver, service.as_ref(), key_id)
+                .and_then(|key| key.ok_or_else(|| CoreError::NotFound))
+                .and_then(|previous_key| {
+                    Key::update(
+                        driver,
+                        service.as_ref(),
+                        key_id,
+                        request.is_enabled,
+                        None,
+                        request.name,
+                    )
+                    .map(|next_key| (previous_key.into(), next_key))
+                })
+        }),
+    )
+    .map(|key| KeyReadResponse { data: key })
 }
 
 pub fn key_delete(
@@ -307,14 +316,19 @@ pub fn key_delete(
     audit_meta: AuditMeta,
     key_id: Uuid,
 ) -> CoreResult<()> {
-    let audit_type = AuditType::KeyDelete;
-    let (service, mut audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyDelete);
 
-    let res = Key::read_opt(driver, service.as_ref(), key_id)
-        .and_then(|key| key.ok_or_else(|| CoreError::NotFound))
-        .and_then(|key| {
-            let key: Key = key.into();
-            Key::delete(driver, service.as_ref(), key_id).map(|_| key)
-        });
-    result_audit(driver, res, &mut audit, audit_type).map(|_| ())
+    result_audit_subject(
+        driver,
+        &mut audit,
+        Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
+            Key::read_opt(driver, service.as_ref(), key_id)
+                .and_then(|key| key.ok_or_else(|| CoreError::NotFound))
+                .and_then(|key| {
+                    let key: Key = key.into();
+                    Key::delete(driver, service.as_ref(), key_id).map(|_| key)
+                })
+        }),
+    )
+    .map(|_| ())
 }
