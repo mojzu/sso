@@ -1,6 +1,63 @@
 use crate::{ClientError, DriverError};
 use serde::ser::{Serialize, Serializer};
 
+/// Core authentication errors.
+#[derive(Debug, Fail)]
+pub enum CoreAuthError {
+    #[fail(display = "CoreAuthError:ServiceNotFound")]
+    ServiceNotFound,
+    #[fail(display = "CoreAuthError:ServiceDisabled")]
+    ServiceDisabled,
+    #[fail(display = "CoreAuthError:UserNotFound")]
+    UserNotFound,
+    #[fail(display = "CoreAuthError:UserDisabled")]
+    UserDisabled,
+    #[fail(display = "CoreAuthError:KeyNotFound")]
+    KeyNotFound,
+    #[fail(display = "CoreAuthError:KeyInvalid")]
+    KeyInvalid,
+    #[fail(display = "CoreAuthError:KeyUndefined")]
+    KeyUndefined,
+    #[fail(display = "CoreAuthError:KeyDisabledOrRevoked")]
+    KeyDisabledOrRevoked,
+    #[fail(display = "CoreAuthError:PasswordUpdateRequired")]
+    PasswordUpdateRequired,
+    #[fail(display = "CoreAuthError:PasswordNotSetOrIncorrect")]
+    PasswordNotSetOrIncorrect,
+    #[fail(display = "CoreAuthError:Login")]
+    Login,
+    #[fail(display = "CoreAuthError:ResetPassword")]
+    ResetPassword,
+    #[fail(display = "CoreAuthError:ResetPasswordDisabled")]
+    ResetPasswordDisabled,
+    #[fail(display = "CoreAuthError:TokenInvalidOrExpired")]
+    TokenInvalidOrExpired,
+    #[fail(display = "CoreAuthError:CsrfNotFoundOrUsed")]
+    CsrfNotFoundOrUsed,
+    #[fail(display = "CoreAuthError:ResetPasswordConfirm")]
+    ResetPasswordConfirm,
+    #[fail(display = "CoreAuthError:UpdateEmail")]
+    UpdateEmail,
+    #[fail(display = "CoreAuthError:UpdateEmailRevoke")]
+    UpdateEmailRevoke,
+    #[fail(display = "CoreAuthError:UpdatePassword")]
+    UpdatePassword,
+    #[fail(display = "CoreAuthError:UpdatePasswordRevoke")]
+    UpdatePasswordRevoke,
+    #[fail(display = "CoreAuthError:Oauth2Login")]
+    Oauth2Login,
+    #[fail(display = "CoreAuthError:ServiceMismatch")]
+    ServiceMismatch,
+    #[fail(display = "CoreAuthError:KeyRevoke")]
+    KeyRevoke,
+    #[fail(display = "CoreAuthError:TokenRefresh")]
+    TokenRefresh,
+    #[fail(display = "CoreAuthError:TokenRevoke")]
+    TokenRevoke,
+    #[fail(display = "CoreAuthError:TotpInvalid")]
+    TotpInvalid,
+}
+
 /// Core OAuth2 errors.
 #[derive(Debug, Fail)]
 pub enum CoreOauth2Error {
@@ -17,14 +74,14 @@ pub enum CoreOauth2Error {
 /// Core errors.
 #[derive(Debug, Fail)]
 pub enum CoreError {
+    #[fail(display = "CoreError:Auth {}", _0)]
+    Auth(CoreAuthError),
+
     #[fail(display = "CoreError:BadRequest")]
     BadRequest,
 
     #[fail(display = "CoreError:Forbidden")]
     Forbidden,
-
-    #[fail(display = "CoreError:Unauthorised")]
-    Unauthorised,
 
     #[fail(display = "CoreError:NotFound")]
     NotFound,
@@ -86,6 +143,12 @@ impl CoreError {
 
     pub fn serde_qs(e: serde_qs::Error) -> Self {
         Self::SerdeQs(e.description().to_owned())
+    }
+}
+
+impl From<CoreAuthError> for CoreError {
+    fn from(e: CoreAuthError) -> Self {
+        Self::Auth(e)
     }
 }
 

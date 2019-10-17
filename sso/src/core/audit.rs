@@ -59,51 +59,51 @@ pub enum AuditType {
 
 impl_enum_to_from_string!(AuditType, "Sso");
 
-/// Audit messages.
-#[derive(Debug, Serialize, Deserialize)]
-pub enum AuditMessage {
-    // TODO(refactor): Replace this with CoreError.
-    ServiceNotFound,
-    ServiceDisabled,
-    UserNotFound,
-    UserDisabled,
-    KeyNotFound,
-    KeyInvalid,
-    KeyUndefined,
-    KeyDisabledOrRevoked,
-    PasswordUpdateRequired,
-    PasswordNotSetOrIncorrect,
-    Login,
-    ResetPassword,
-    ResetPasswordDisabled,
-    TokenInvalidOrExpired,
-    CsrfNotFoundOrUsed,
-    ResetPasswordConfirm,
-    UpdateEmail,
-    UpdateEmailRevoke,
-    UpdatePassword,
-    UpdatePasswordRevoke,
-    Oauth2Login,
-    ServiceMismatch,
-    KeyRevoke,
-    TokenRefresh,
-    TokenRevoke,
-    TotpInvalid,
-}
+// /// Audit messages.
+// #[derive(Debug, Serialize, Deserialize)]
+// pub enum AuditMessage {
+//     // TODO(refactor): Replace this with CoreError.
+//     ServiceNotFound,
+//     ServiceDisabled,
+//     UserNotFound,
+//     UserDisabled,
+//     KeyNotFound,
+//     KeyInvalid,
+//     KeyUndefined,
+//     KeyDisabledOrRevoked,
+//     PasswordUpdateRequired,
+//     PasswordNotSetOrIncorrect,
+//     Login,
+//     ResetPassword,
+//     ResetPasswordDisabled,
+//     TokenInvalidOrExpired,
+//     CsrfNotFoundOrUsed,
+//     ResetPasswordConfirm,
+//     UpdateEmail,
+//     UpdateEmailRevoke,
+//     UpdatePassword,
+//     UpdatePasswordRevoke,
+//     Oauth2Login,
+//     ServiceMismatch,
+//     KeyRevoke,
+//     TokenRefresh,
+//     TokenRevoke,
+//     TotpInvalid,
+// }
 
-/// Audit message container.
-#[derive(Debug, Serialize)]
-struct AuditMessageObject {
-    #[serde(rename = "type")]
-    type_: AuditType,
-    message: AuditMessage,
-}
+// /// Audit message container.
+// #[derive(Debug, Serialize)]
+// struct AuditMessageObject {
+//     #[serde(rename = "type")]
+//     type_: AuditType,
+//     message: AuditMessage,
+// }
 
-impl AuditMessageObject {
-    fn new(type_: AuditType, message: AuditMessage) -> Self {
-        Self { type_, message }
-    }
-}
+// impl AuditMessageObject {
+//     fn new(type_: AuditType, message: AuditMessage) -> Self {
+//         Self { type_, message }
+//     }
+// }
 
 /// Audit.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -290,6 +290,7 @@ impl AuditMeta {
 #[derive(Debug)]
 pub struct AuditBuilder {
     meta: AuditMeta,
+    type_: AuditType,
     key: Option<Uuid>,
     service: Option<Uuid>,
     user: Option<Uuid>,
@@ -298,9 +299,10 @@ pub struct AuditBuilder {
 
 impl AuditBuilder {
     /// Create a new audit log builder with required parameters.
-    pub fn new(meta: AuditMeta) -> Self {
+    pub fn new(meta: AuditMeta, type_: AuditType) -> Self {
         AuditBuilder {
             meta,
+            type_,
             key: None,
             service: None,
             user: None,
@@ -357,14 +359,13 @@ impl AuditBuilder {
     pub fn create_data<S: Serialize>(
         &mut self,
         driver: &dyn Driver,
-        type_: AuditType,
         subject: Option<String>,
         data: Option<S>,
     ) -> CoreResult<Audit> {
         let data = data.map(|x| serde_json::to_value(x).unwrap());
         let audit_data = AuditCreate::new(
             self.meta.clone(),
-            type_.to_string().unwrap(),
+            self.type_.to_string().unwrap(),
             subject,
             data,
             self.key,
@@ -375,26 +376,26 @@ impl AuditBuilder {
         Audit::create(driver, &audit_data)
     }
 
-    /// Create audit log with message.
-    pub fn create_message(
-        &mut self,
-        driver: &dyn Driver,
-        type_: AuditType,
-        data: AuditMessage,
-    ) -> CoreResult<Audit> {
-        let data = serde_json::to_value(AuditMessageObject::new(type_, data)).unwrap();
-        let audit_data = AuditCreate::new(
-            self.meta.clone(),
-            type_.to_string().unwrap(),
-            None,
-            Some(data),
-            self.key,
-            self.service,
-            self.user,
-            self.user_key,
-        );
-        Audit::create(driver, &audit_data)
-    }
+    // /// Create audit log with message.
+    // pub fn create_message(
+    //     &mut self,
+    //     driver: &dyn Driver,
+    //     type_: AuditType,
+    //     data: AuditMessage,
+    // ) -> CoreResult<Audit> {
+    //     let data = serde_json::to_value(AuditMessageObject::new(type_, data)).unwrap();
+    //     let audit_data = AuditCreate::new(
+    //         self.meta.clone(),
+    //         type_.to_string().unwrap(),
+    //         None,
+    //         Some(data),
+    //         self.key,
+    //         self.service,
+    //         self.user,
+    //         self.user_key,
+    //     );
+    //     Audit::create(driver, &audit_data)
+    // }
 }
 
 /// Audit subject trait.

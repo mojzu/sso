@@ -6,10 +6,11 @@ pub use crate::api::auth::{github::*, local::*, microsoft::*};
 
 use crate::{
     api::{
-        validate, AuditCreate2Request, AuditIdOptResponse, ValidateRequest, ValidateRequestQuery,
+        result_audit, validate, AuditCreate2Request, AuditIdOptResponse, ValidateRequest,
+        ValidateRequestQuery,
     },
-    AuditCreate2, AuditMeta, AuditType, Auth, AuthArgs, CoreResult, Csrf, Driver, Key, UserKey,
-    UserToken, UserTokenAccess,
+    AuditBuilder, AuditCreate2, AuditMeta, AuditType, Auth, AuthArgs, CoreResult, Csrf, Driver,
+    Key, UserKey, UserToken, UserTokenAccess,
 };
 use uuid::Uuid;
 use validator::Validate;
@@ -219,19 +220,23 @@ pub fn auth_key_revoke(
     request: AuthKeyRequest,
 ) -> CoreResult<AuditIdOptResponse> {
     AuthKeyRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthKeyRevoke);
 
-    Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthKeyRevoke)
-        .and_then(|(service, mut audit)| {
+    result_audit(
+        driver,
+        &mut audit,
+        Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
             let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
             Auth::key_revoke(
                 AuthArgs::new(driver, &service, &mut audit),
                 request.key,
                 audit_create,
             )
-        })
-        .map(|audit| AuditIdOptResponse {
-            audit: audit.map(|x| x.id),
-        })
+        }),
+    )
+    .map(|audit| AuditIdOptResponse {
+        audit: audit.map(|x| x.id),
+    })
 }
 
 pub fn auth_token_verify(

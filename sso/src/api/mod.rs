@@ -108,43 +108,54 @@ pub fn metrics(
     audit_meta: AuditMeta,
     registry: &Registry,
 ) -> CoreResult<String> {
-    let audit_type = AuditType::Metrics;
-    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::Metrics);
 
-    Metrics::read(driver, service.as_ref(), registry)
+    let res = Key::authenticate(driver, audit_meta, key_value)
+        .and_then(|service| Metrics::read(driver, service.as_ref(), registry));
+    result_audit_err(driver, &mut audit, res)
 }
 
 fn result_audit<T: AuditSubject>(
     driver: &dyn Driver,
-    res: CoreResult<T>,
     audit: &mut AuditBuilder,
-    audit_type: AuditType,
+    res: CoreResult<T>,
 ) -> CoreResult<T> {
     res.or_else(|e| {
         let data = Audit::typed_data("error", &e);
-        audit.create_data(driver, audit_type, None, Some(data))?;
+        audit.create_data(driver, None, Some(data))?;
         Err(e)
     })
     .and_then(|res| {
-        audit.create_data::<bool>(driver, audit_type, Some(res.subject()), None)?;
+        audit.create_data::<bool>(driver, Some(res.subject()), None)?;
         Ok(res)
+    })
+}
+
+fn result_audit_err<T>(
+    driver: &dyn Driver,
+    audit: &mut AuditBuilder,
+    res: CoreResult<T>,
+) -> CoreResult<T> {
+    res.or_else(|e| {
+        let data = Audit::typed_data("error", &e);
+        audit.create_data(driver, None, Some(data))?;
+        Err(e)
     })
 }
 
 fn result_audit_diff<T: AuditSubject + AuditDiff>(
     driver: &dyn Driver,
-    res: CoreResult<(T, T)>,
     audit: &mut AuditBuilder,
-    audit_type: AuditType,
+    res: CoreResult<(T, T)>,
 ) -> CoreResult<T> {
     res.or_else(|e| {
         let data = Audit::typed_data("error", &e);
-        audit.create_data(driver, audit_type, None, Some(data))?;
+        audit.create_data(driver, None, Some(data))?;
         Err(e)
     })
     .and_then(|(p, n)| {
         let diff = n.diff(&p);
-        audit.create_data(driver, audit_type, Some(n.subject()), Some(diff))?;
+        audit.create_data(driver, Some(n.subject()), Some(diff))?;
         Ok(n)
     })
 }

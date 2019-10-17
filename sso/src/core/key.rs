@@ -1,6 +1,6 @@
 use crate::{
-    impl_enum_to_from_string, AuditBuilder, AuditDiff, AuditDiffBuilder, AuditMessage, AuditMeta,
-    AuditSubject, AuditType, CoreError, CoreResult, Driver, Service, User, UserRead,
+    impl_enum_to_from_string, AuditBuilder, AuditDiff, AuditDiffBuilder, AuditMeta, AuditSubject,
+    AuditType, CoreAuthError, CoreError, CoreResult, Driver, Service, User, UserRead,
 };
 use chrono::{DateTime, Utc};
 use libreauth::key::KeyBuilder;
@@ -223,88 +223,69 @@ impl Key {
     /// Authenticate root key.
     pub fn authenticate_root(
         driver: &dyn Driver,
-        audit_meta: AuditMeta,
+        audit: &mut AuditBuilder,
         key_value: Option<String>,
-        audit_type: AuditType,
-    ) -> CoreResult<AuditBuilder> {
-        let mut audit = AuditBuilder::new(audit_meta);
-
+    ) -> CoreResult<()> {
         match key_value {
             Some(key_value) => Key::read_by_root_value(driver, key_value)
-                .and_then(|key| match key.ok_or_else(|| CoreError::Unauthorised) {
-                    Ok(key) => {
-                        audit.key(Some(&key));
-                        Ok(key)
-                    }
-                    Err(err) => {
-                        audit.create_message(driver, audit_type, AuditMessage::KeyNotFound)?;
-                        Err(err)
-                    }
-                })
-                .map(|_key| audit),
-            None => {
-                audit.create_message(driver, audit_type, AuditMessage::KeyUndefined)?;
-                Err(CoreError::Unauthorised)
-            }
+                .and_then(
+                    |key| match key.ok_or_else(|| CoreAuthError::KeyNotFound.into()) {
+                        Ok(key) => {
+                            audit.key(Some(&key));
+                            Ok(key)
+                        }
+                        Err(err) => Err(err),
+                    },
+                )
+                .map(|_key| ()),
+            None => Err(CoreAuthError::KeyUndefined.into()),
         }
     }
 
     /// Authenticate service key.
     pub fn authenticate_service(
         driver: &dyn Driver,
-        audit_meta: AuditMeta,
+        audit: &mut AuditBuilder,
         key_value: Option<String>,
-        audit_type: AuditType,
-    ) -> CoreResult<(Service, AuditBuilder)> {
-        let mut audit = AuditBuilder::new(audit_meta);
-
+    ) -> CoreResult<Service> {
         match key_value {
             Some(key_value) => Key::read_by_service_value(driver, key_value)
-                .and_then(|key| match key.ok_or_else(|| CoreError::Unauthorised) {
-                    Ok(key) => {
-                        audit.key(Some(&key));
-                        Ok(key)
-                    }
-                    Err(err) => {
-                        audit.create_message(driver, audit_type, AuditMessage::KeyNotFound)?;
-                        Err(err)
-                    }
-                })
                 .and_then(
-                    |key| match key.service_id.ok_or_else(|| CoreError::Unauthorised) {
-                        Ok(service_id) => Ok(service_id),
-                        Err(err) => {
-                            audit.create_message(driver, audit_type, AuditMessage::KeyInvalid)?;
-                            Err(err)
+                    |key| match key.ok_or_else(|| CoreAuthError::KeyNotFound.into()) {
+                        Ok(key) => {
+                            audit.key(Some(&key));
+                            Ok(key)
                         }
+                        Err(err) => Err(err),
                     },
                 )
-                .and_then(|service_id| {
-                    Key::authenticate_service_inner(driver, audit, service_id, audit_type)
-                }),
-            None => {
-                audit.create_message(driver, audit_type, AuditMessage::KeyUndefined)?;
-                Err(CoreError::Unauthorised)
-            }
+                .and_then(|key| {
+                    match key
+                        .service_id
+                        .ok_or_else(|| CoreAuthError::KeyInvalid.into())
+                    {
+                        Ok(service_id) => Ok(service_id),
+                        Err(err) => Err(err),
+                    }
+                })
+                .and_then(|service_id| Key::authenticate_service_inner(driver, audit, service_id)),
+            None => Err(CoreAuthError::KeyUndefined.into()),
         }
     }
 
     /// Authenticate service or root key.
     pub fn authenticate(
         driver: &dyn Driver,
-        audit_meta: AuditMeta,
+        audit: &mut AuditBuilder,
         key_value: Option<String>,
-        audit_type: AuditType,
-    ) -> CoreResult<(Option<Service>, AuditBuilder)> {
+    ) -> CoreResult<Option<Service>> {
         let key_value_1 = key_value.to_owned();
-        let audit_meta_copy = audit_meta.clone();
 
-        Key::try_authenticate_service(driver, audit_meta, key_value, audit_type)
-            .map(|(service, audit)| (Some(service), audit))
+        Key::try_authenticate_service(driver, audit, key_value)
+            .map(Some)
             .or_else(move |err| match err {
-                CoreError::Unauthorised => {
-                    Key::authenticate_root(driver, audit_meta_copy, key_value_1, audit_type)
-                        .map(|audit| (None, audit))
+                CoreError::Auth(_) => {
+                    Key::authenticate_root(driver, audit, key_value_1).map(|_| None)
                 }
                 _ => Err(err),
             })
@@ -315,41 +296,30 @@ impl Key {
     /// handler in case the key does not exist or is invalid.
     fn try_authenticate_service(
         driver: &dyn Driver,
-        audit_meta: AuditMeta,
+        audit: &mut AuditBuilder,
         key_value: Option<String>,
-        audit_type: AuditType,
-    ) -> CoreResult<(Service, AuditBuilder)> {
-        let audit = AuditBuilder::new(audit_meta);
-
+    ) -> CoreResult<Service> {
         match key_value {
             Some(key_value) => Key::read_by_service_value(driver, key_value)
-                .and_then(|key| key.ok_or_else(|| CoreError::Unauthorised))
-                .and_then(|key| key.service_id.ok_or_else(|| CoreError::Unauthorised))
-                .and_then(|service_id| {
-                    Key::authenticate_service_inner(driver, audit, service_id, audit_type)
-                }),
-            None => Err(CoreError::Unauthorised),
+                .and_then(|key| key.ok_or_else(|| CoreAuthError::KeyNotFound.into()))
+                .and_then(|key| {
+                    key.service_id
+                        .ok_or_else(|| CoreAuthError::KeyInvalid.into())
+                })
+                .and_then(|service_id| Key::authenticate_service_inner(driver, audit, service_id)),
+            None => Err(CoreAuthError::KeyUndefined.into()),
         }
     }
 
     fn authenticate_service_inner(
         driver: &dyn Driver,
-        mut audit: AuditBuilder,
+        audit: &mut AuditBuilder,
         service_id: Uuid,
-        audit_type: AuditType,
-    ) -> CoreResult<(Service, AuditBuilder)> {
-        Service::read_opt(driver, None, &service_id).and_then(|service| {
-            match service.ok_or_else(|| CoreError::Unauthorised) {
-                Ok(service) => {
-                    audit.service(Some(&service));
-                    Ok((service, audit))
-                }
-                Err(err) => {
-                    audit.create_message(driver, audit_type, AuditMessage::ServiceNotFound)?;
-                    Err(err)
-                }
-            }
-        })
+    ) -> CoreResult<Service> {
+        let service = Service::read_opt(driver, None, &service_id)?
+            .ok_or_else(|| CoreAuthError::ServiceNotFound.into())?;
+        audit.service(Some(&service));
+        Ok(service)
     }
 
     /// List keys using query.

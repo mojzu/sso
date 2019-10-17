@@ -1,7 +1,10 @@
 use crate::{
-    api::{result_audit, result_audit_diff, validate, ValidateRequest, ValidateRequestQuery},
-    AuditMeta, AuditType, Core, CoreError, CoreResult, Driver, Key, KeyListFilter, KeyListQuery,
-    KeyType, KeyWithValue,
+    api::{
+        result_audit, result_audit_diff, result_audit_err, validate, ValidateRequest,
+        ValidateRequestQuery,
+    },
+    AuditBuilder, AuditMeta, AuditType, Core, CoreError, CoreResult, Driver, Key, KeyListFilter,
+    KeyListQuery, KeyType, KeyWithValue,
 };
 use uuid::Uuid;
 use validator::Validate;
@@ -183,11 +186,17 @@ pub fn key_list(
     request: KeyListRequest,
 ) -> CoreResult<KeyListResponse> {
     KeyListRequest::api_validate(&request)?;
-    let audit_type = AuditType::KeyList;
-    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyList);
 
-    let (query, filter) = request.into_query_filter();
-    Key::list(driver, service.as_ref(), &query, &filter).map(|data| KeyListResponse {
+    result_audit_err(
+        driver,
+        &mut audit,
+        Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
+            let (query, filter) = request.into_query_filter();
+            Key::list(driver, service.as_ref(), &query, &filter)
+        }),
+    )
+    .map(|data| KeyListResponse {
         meta: KeyListRequest::from_query_filter(query, filter),
         data,
     })
@@ -200,48 +209,54 @@ pub fn key_create(
     request: KeyCreateRequest,
 ) -> CoreResult<KeyCreateResponse> {
     KeyCreateRequest::api_validate(&request)?;
-    let audit_type = AuditType::KeyCreate;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyCreate);
 
-    // If service ID is some, root key is required to create service keys.
-    match request.service_id {
-        Some(service_id) => {
-            let mut audit = Key::authenticate_root(driver, audit_meta, key_value, audit_type)?;
-
-            let res = match request.user_id {
-                // User ID is defined, creating user key for service.
-                Some(user_id) => Key::create_user(
-                    driver,
-                    request.is_enabled,
-                    request.type_,
-                    request.name,
-                    &service_id,
-                    &user_id,
-                ),
-                // Creating service key.
-                None => Key::create_service(driver, request.is_enabled, request.name, &service_id),
-            };
-            result_audit(driver, res, &mut audit, audit_type)
-        }
-        None => {
-            let (service, mut audit) =
-                Key::authenticate_service(driver, audit_meta, key_value, audit_type)?;
-
-            let res = match request.user_id {
-                // User ID is defined, creating user key for service.
-                Some(user_id) => Key::create_user(
-                    driver,
-                    request.is_enabled,
-                    request.type_,
-                    request.name,
-                    &service.id,
-                    &user_id,
-                ),
-                // Service cannot create service keys.
-                None => Err(CoreError::BadRequest),
-            };
-            result_audit(driver, res, &mut audit, audit_type)
-        }
-    }
+    result_audit(
+        driver,
+        &mut audit,
+        // If service ID is some, root key is required to create service keys.
+        match request.service_id {
+            Some(service_id) => {
+                Key::authenticate_root(driver, &mut audit, key_value).and_then(|_| {
+                    match request.user_id {
+                        // User ID is defined, creating user key for service.
+                        Some(user_id) => Key::create_user(
+                            driver,
+                            request.is_enabled,
+                            request.type_,
+                            request.name,
+                            &service_id,
+                            &user_id,
+                        ),
+                        // Creating service key.
+                        None => Key::create_service(
+                            driver,
+                            request.is_enabled,
+                            request.name,
+                            &service_id,
+                        ),
+                    }
+                })
+            }
+            None => {
+                Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+                    match request.user_id {
+                        // User ID is defined, creating user key for service.
+                        Some(user_id) => Key::create_user(
+                            driver,
+                            request.is_enabled,
+                            request.type_,
+                            request.name,
+                            &service.id,
+                            &user_id,
+                        ),
+                        // Service cannot create service keys.
+                        None => Err(CoreError::BadRequest),
+                    }
+                })
+            }
+        },
+    )
     .map(|key| KeyCreateResponse { data: key })
 }
 
