@@ -3,8 +3,8 @@ use crate::{
         result_audit_diff, result_audit_err, result_audit_subject, validate, ValidateRequest,
         ValidateRequestQuery,
     },
-    AuditBuilder, AuditMeta, AuditType, Core, CoreError, CoreResult, Driver, Key, KeyListFilter,
-    KeyListQuery, KeyType, KeyWithValue,
+    AuditBuilder, AuditMeta, AuditType, Core, CoreCause, CoreError, CoreResult, Driver, Key,
+    KeyListFilter, KeyListQuery, KeyRead, KeyType, KeyWithValue,
 };
 use uuid::Uuid;
 use validator::Validate;
@@ -189,13 +189,9 @@ pub fn key_list(
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyList);
     let (query, filter) = request.into_query_filter();
 
-    result_audit_err(
-        driver,
-        &mut audit,
-        Key::authenticate(driver, &mut audit, key_value)
-            .and_then(|service| Key::list(driver, service.as_ref(), &query, &filter)),
-    )
-    .map(|data| KeyListResponse {
+    let res = Key::authenticate(driver, &mut audit, key_value)
+        .and_then(|service| Key::list(driver, service.as_ref(), &query, &filter));
+    result_audit_err(driver, &audit, res).map(|data| KeyListResponse {
         meta: KeyListRequest::from_query_filter(query, filter),
         data,
     })
@@ -210,53 +206,49 @@ pub fn key_create(
     KeyCreateRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyCreate);
 
-    result_audit_subject(
-        driver,
-        &mut audit,
-        // If service ID is some, root key is required to create service keys.
-        match request.service_id {
-            Some(service_id) => {
-                Key::authenticate_root(driver, &mut audit, key_value).and_then(|_| {
-                    match request.user_id {
-                        // User ID is defined, creating user key for service.
-                        Some(user_id) => Key::create_user(
-                            driver,
-                            request.is_enabled,
-                            request.type_,
-                            request.name,
-                            &service_id,
-                            &user_id,
-                        ),
-                        // Creating service key.
-                        None => Key::create_service(
-                            driver,
-                            request.is_enabled,
-                            request.name,
-                            &service_id,
-                        ),
+    // If service ID is some, root key is required to create service keys.
+
+    let res = match request.service_id {
+        Some(service_id) => {
+            Key::authenticate_root(driver, &mut audit, key_value).and_then(|_| {
+                match request.user_id {
+                    // User ID is defined, creating user key for service.
+                    Some(user_id) => Key::create_user(
+                        driver,
+                        request.is_enabled,
+                        request.type_,
+                        request.name,
+                        &service_id,
+                        &user_id,
+                    ),
+                    // Creating service key.
+                    None => {
+                        Key::create_service(driver, request.is_enabled, request.name, &service_id)
                     }
-                })
-            }
-            None => {
-                Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
-                    match request.user_id {
-                        // User ID is defined, creating user key for service.
-                        Some(user_id) => Key::create_user(
-                            driver,
-                            request.is_enabled,
-                            request.type_,
-                            request.name,
-                            &service.id,
-                            &user_id,
-                        ),
-                        // Service cannot create service keys.
-                        None => Err(CoreError::BadRequest),
-                    }
-                })
-            }
-        },
-    )
-    .map(|key| KeyCreateResponse { data: key })
+                }
+            })
+        }
+        None => {
+            Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+                match request.user_id {
+                    // User ID is defined, creating user key for service.
+                    Some(user_id) => Key::create_user(
+                        driver,
+                        request.is_enabled,
+                        request.type_,
+                        request.name,
+                        &service.id,
+                        &user_id,
+                    ),
+                    // Service cannot create service keys.
+                    None => Err(CoreError::BadRequest(
+                        CoreCause::ServiceCannotCreateServiceKey,
+                    )),
+                }
+            })
+        }
+    };
+    result_audit_subject(driver, &audit, res).map(|key| KeyCreateResponse { data: key })
 }
 
 pub fn key_read(
@@ -267,15 +259,11 @@ pub fn key_read(
 ) -> CoreResult<KeyReadResponse> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyRead);
 
-    result_audit_err(
-        driver,
-        &mut audit,
-        Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
-            Key::read_opt(driver, service.as_ref(), key_id)
-                .and_then(|key| key.ok_or_else(|| CoreError::NotFound))
-        }),
-    )
-    .map(|key| KeyReadResponse { data: key.into() })
+    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
+        let read = KeyRead::Id(key_id);
+        Key::read(driver, service.as_ref(), &read)
+    });
+    result_audit_err(driver, &audit, res).map(|key| KeyReadResponse { data: key.into() })
 }
 
 pub fn key_update(
@@ -288,26 +276,21 @@ pub fn key_update(
     KeyUpdateRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyUpdate);
 
-    result_audit_diff(
-        driver,
-        &mut audit,
-        Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
-            Key::read_opt(driver, service.as_ref(), key_id)
-                .and_then(|key| key.ok_or_else(|| CoreError::NotFound))
-                .and_then(|previous_key| {
-                    Key::update(
-                        driver,
-                        service.as_ref(),
-                        key_id,
-                        request.is_enabled,
-                        None,
-                        request.name,
-                    )
-                    .map(|next_key| (previous_key.into(), next_key))
-                })
-        }),
-    )
-    .map(|key| KeyReadResponse { data: key })
+    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
+        let read = KeyRead::Id(key_id);
+        Key::read(driver, service.as_ref(), &read).and_then(|previous_key| {
+            Key::update(
+                driver,
+                service.as_ref(),
+                key_id,
+                request.is_enabled,
+                None,
+                request.name,
+            )
+            .map(|next_key| (previous_key.into(), next_key))
+        })
+    });
+    result_audit_diff(driver, &audit, res).map(|key| KeyReadResponse { data: key })
 }
 
 pub fn key_delete(
@@ -318,17 +301,12 @@ pub fn key_delete(
 ) -> CoreResult<()> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyDelete);
 
-    result_audit_subject(
-        driver,
-        &mut audit,
-        Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
-            Key::read_opt(driver, service.as_ref(), key_id)
-                .and_then(|key| key.ok_or_else(|| CoreError::NotFound))
-                .and_then(|key| {
-                    let key: Key = key.into();
-                    Key::delete(driver, service.as_ref(), key_id).map(|_| key)
-                })
-        }),
-    )
-    .map(|_| ())
+    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
+        let read = KeyRead::Id(key_id);
+        Key::read(driver, service.as_ref(), &read).and_then(|key| {
+            let key: Key = key.into();
+            Key::delete(driver, service.as_ref(), key_id).map(|_| key)
+        })
+    });
+    result_audit_subject(driver, &audit, res).map(|_| ())
 }

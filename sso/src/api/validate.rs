@@ -1,6 +1,6 @@
 //! # API Validation
 use crate::{
-    Core, CoreError, CoreResult, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN,
+    Core, CoreCause, CoreError, CoreResult, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN,
     KEY_VALUE_BYTES, USER_LOCALE_MAX_LEN, USER_NAME_MAX_LEN, USER_PASSWORD_MAX_LEN,
     USER_PASSWORD_MIN_LEN, USER_TIMEZONE_MAX_LEN,
 };
@@ -14,10 +14,8 @@ use validator::{Validate, ValidationError};
 /// API validate request trait.
 pub trait ValidateRequest<T: Validate> {
     fn api_validate(t: &T) -> Result<(), CoreError> {
-        t.validate().map_err(|e| {
-            debug!("{}", e);
-            CoreError::BadRequest
-        })?;
+        t.validate()
+            .map_err(|e| CoreError::BadRequest(CoreCause::ValidateError(format!("{}", e))))?;
         Ok(())
     }
 
@@ -29,10 +27,8 @@ pub trait ValidateRequest<T: Validate> {
 /// API deserialise from request query string trait.
 pub trait ValidateRequestQuery<T: DeserializeOwned> {
     fn from_str(s: &str) -> CoreResult<T> {
-        Core::qs_de::<T>(s).map_err(|e| {
-            debug!("{}", e);
-            CoreError::BadRequest
-        })
+        Core::qs_de::<T>(s)
+            .map_err(|e| CoreError::BadRequest(CoreCause::ValidateError(format!("{}", e))))
     }
 
     fn from_str_fut(s: &str) -> future::FutureResult<T, CoreError> {

@@ -1,10 +1,10 @@
 use crate::{
     api::{
-        AuthOauth2CallbackRequest, AuthOauth2UrlResponse, AuthProviderOauth2,
-        AuthProviderOauth2Args, AuthTokenResponse, ValidateRequest,
+        result_audit, result_audit_err, AuthOauth2CallbackRequest, AuthOauth2UrlResponse,
+        AuthProviderOauth2, AuthProviderOauth2Args, AuthTokenResponse, ValidateRequest,
     },
-    AuditBuilder, AuditMeta, AuditType, Auth, AuthArgs, Client, CoreError, CoreOauth2Error,
-    CoreResult, Csrf, Driver, Key, Service,
+    AuditBuilder, AuditMeta, AuditType, Auth, AuthArgs, Client, CoreCause, CoreError, CoreResult,
+    Csrf, Driver, Key, Service,
 };
 use http::header;
 use oauth2::{
@@ -21,13 +21,9 @@ pub fn auth_provider_github_oauth2_url(
     audit_meta: AuditMeta,
     args: AuthProviderOauth2Args,
 ) -> CoreResult<AuthOauth2UrlResponse> {
-    Key::authenticate_service(
-        driver,
-        audit_meta,
-        key_value,
-        AuditType::AuthGithubOauth2Url,
-    )
-    .and_then(|(service, mut audit)| {
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Url);
+
+    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
         github_oauth2_url(
             driver,
             &service,
@@ -35,8 +31,8 @@ pub fn auth_provider_github_oauth2_url(
             args.provider,
             args.access_token_expires,
         )
-    })
-    .map(|url| AuthOauth2UrlResponse { url })
+    });
+    result_audit_err(driver, &audit, res).map(|url| AuthOauth2UrlResponse { url })
 }
 
 pub fn auth_provider_github_oauth2_callback(
@@ -47,24 +43,22 @@ pub fn auth_provider_github_oauth2_callback(
     request: AuthOauth2CallbackRequest,
 ) -> CoreResult<AuthTokenResponse> {
     AuthOauth2CallbackRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Callback);
 
-    let (service, mut audit) = Key::authenticate_service(
-        driver,
-        audit_meta,
-        key_value,
-        AuditType::AuthGithubOauth2Callback,
-    )?;
-    let (service_id, access_token) =
-        github_oauth2_callback(driver, &service, &mut audit, args.provider, request)?;
-    let user_email = github_api_user_email(args.user_agent, access_token)?;
-    Auth::oauth2_login(
-        AuthArgs::new(driver, &service, &mut audit),
-        service_id,
-        user_email,
-        args.access_token_expires,
-        args.refresh_token_expires,
-    )
-    .map(|(_service, data)| AuthTokenResponse { data, audit: None })
+    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+        let (service_id, access_token) =
+            github_oauth2_callback(driver, &service, &mut audit, args.provider, request)?;
+        let user_email = github_api_user_email(args.user_agent, access_token)?;
+        Auth::oauth2_login(
+            AuthArgs::new(driver, &service, &mut audit),
+            service_id,
+            user_email,
+            args.access_token_expires,
+            args.refresh_token_expires,
+        )
+    });
+    result_audit(driver, &audit, res)
+        .map(|(_service, data)| AuthTokenResponse { data, audit: None })
 }
 
 fn github_oauth2_url(
@@ -102,8 +96,8 @@ fn github_oauth2_callback(
     request: AuthOauth2CallbackRequest,
 ) -> CoreResult<(Uuid, String)> {
     // Read the CSRF key using state value, rebuild code verifier from value.
-    let csrf = Csrf::read_opt(driver, request.state)?;
-    let csrf = csrf.ok_or_else(|| CoreError::Oauth2(CoreOauth2Error::Csrf))?;
+    let csrf = Csrf::read_opt(driver, request.state)?
+        .ok_or_else(|| CoreError::BadRequest(CoreCause::CsrfNotFoundOrUsed))?;
 
     // Exchange the code with a token.
     let client = github_client(service, provider)?;
@@ -111,7 +105,7 @@ fn github_oauth2_callback(
     let token = client
         .exchange_code(code)
         .request(http_client)
-        .map_err(|err| CoreError::Oauth2(CoreOauth2Error::Oauth2Request(err.into())))?;
+        .map_err(|err| CoreError::Oauth2Request(err.into()))?;
 
     // Return access token value.
     Ok((csrf.service_id, token.access_token().secret().to_owned()))
@@ -147,11 +141,12 @@ fn github_client(
                 Ok((provider_github_oauth2_url, provider))
             }
             _ => {
+                Err(CoreError::BadRequest(CoreCause::GithubOauth2Disabled))
+                // TODO(refactor): Move this to server error.
                 // Warn OAuth2 is disabled, return bad request error so internal server error
                 // is not returned to the client.
-                let err = CoreError::Oauth2(CoreOauth2Error::Disabled);
-                warn!("{}", err);
-                Err(CoreError::BadRequest)
+                // let err = CoreError::Oauth2(CoreOauth2Error::Disabled);
+                // warn!("{}", err);
             }
         }?;
 

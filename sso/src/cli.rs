@@ -1,7 +1,7 @@
 use crate::{
-    AuditBuilder, AuditMeta, ClientActor, ClientActorOptions, Driver, Key, KeyWithValue,
-    NotifyActor, NotifyActorOptions, Server, ServerError, ServerOptions, Service, ServiceCreate,
-    SsoError, SsoResult,
+    AuditBuilder, ClientActor, ClientActorOptions, Driver, Key, KeyWithValue, NotifyActor,
+    NotifyActorOptions, Server, ServerError, ServerOptions, Service, ServiceCreate, SsoError,
+    SsoResult,
 };
 use actix_rt::System;
 
@@ -67,7 +67,8 @@ impl Cli {
     /// Create an audit builder for local commands.
     pub fn audit_builder() -> AuditBuilder {
         // TODO(refactor): Call into Api from this layer.
-        AuditBuilder::new(AuditMeta::new("cli", "127.0.0.1", None))
+        // AuditBuilder::new(AuditMeta::new("cli", "127.0.0.1", None))
+        unimplemented!();
     }
 
     /// Create a root key.

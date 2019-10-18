@@ -1,6 +1,6 @@
 use crate::{
-    client_msg::Get, AuditDiff, AuditDiffBuilder, AuditSubject, ClientActor, CoreError, CoreResult,
-    Driver, Service,
+    client_msg::Get, AuditDiff, AuditDiffBuilder, AuditSubject, ClientActor, CoreCause, CoreError,
+    CoreResult, Driver, Service,
 };
 use actix::Addr;
 use chrono::{DateTime, Utc};
@@ -222,7 +222,7 @@ impl User {
         let read = UserRead::Email(create.email.clone());
         let user = User::read_opt(driver, service_mask, &read)?;
         if user.is_some() {
-            return Err(CoreError::BadRequest);
+            return Err(CoreError::BadRequest(CoreCause::UserExists));
         }
 
         create.password_hash = User::password_hash(create.password_hash.as_ref().map(|x| &**x))?;
@@ -232,10 +232,11 @@ impl User {
     /// Read user.
     pub fn read(
         driver: &dyn Driver,
-        _service_mask: Option<&Service>,
+        service_mask: Option<&Service>,
         read: &UserRead,
     ) -> CoreResult<User> {
-        driver.user_read(read).map_err(CoreError::Driver)
+        Self::read_opt(driver, service_mask, read)?
+            .ok_or_else(|| CoreError::NotFound(CoreCause::UserNotFound))
     }
 
     /// Read user (optional).
@@ -278,8 +279,8 @@ impl User {
         id: Uuid,
         password: String,
     ) -> CoreResult<User> {
-        let password_hash =
-            User::password_hash(Some(&password))?.ok_or_else(|| CoreError::BadRequest)?;
+        let password_hash = User::password_hash(Some(&password))?
+            .ok_or_else(|| CoreError::BadRequest(CoreCause::PasswordUndefined))?;
         let update = UserUpdate2 {
             email: None,
             password_hash: Some(password_hash),
@@ -326,10 +327,10 @@ impl User {
                 if checker.is_valid(password) {
                     Ok(checker.needs_update(Some(USER_PASSWORD_HASH_VERSION)))
                 } else {
-                    Err(CoreError::BadRequest)
+                    Err(CoreError::BadRequest(CoreCause::PasswordNotSetOrIncorrect))
                 }
             }
-            None => Err(CoreError::BadRequest),
+            None => Err(CoreError::BadRequest(CoreCause::PasswordNotSetOrIncorrect)),
         }
     }
 
@@ -406,7 +407,9 @@ impl User {
                     }),
             )
         } else {
-            future::Either::B(future::err(CoreError::PwnedPasswordsDisabled))
+            future::Either::B(future::err(CoreError::BadRequest(
+                CoreCause::PwnedPasswordsDisabled,
+            )))
         }
     }
 }

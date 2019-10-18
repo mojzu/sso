@@ -184,9 +184,6 @@ pub trait DriverIf {
     /// Create user.
     fn user_create(&self, create: &UserCreate) -> DriverResult<User>;
 
-    /// Read user.
-    fn user_read(&self, read: &UserRead) -> DriverResult<User>;
-
     /// Read user (optional).
     fn user_read_opt(&self, read: &UserRead) -> DriverResult<Option<User>>;
 

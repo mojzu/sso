@@ -1,8 +1,8 @@
 use crate::{
     notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
-    Audit, AuditBuilder, AuditCreate2, AuditType, Core, CoreAuthError, CoreError, CoreResult, Csrf,
-    Driver, Jwt, JwtClaimsType, Key, KeyType, KeyWithValue, NotifyActor, Service, User, UserKey,
-    UserRead, UserToken, UserTokenAccess, UserUpdate,
+    Audit, AuditBuilder, AuditCreate2, Core, CoreCause, CoreError, CoreResult, Csrf, Driver, Jwt,
+    JwtClaimsType, Key, KeyType, KeyWithValue, NotifyActor, Service, User, UserKey, UserRead,
+    UserToken, UserTokenAccess, UserUpdate,
 };
 use actix::Addr;
 use libreauth::oath::TOTPBuilder;
@@ -55,14 +55,11 @@ impl Auth {
 
         // If user password update required, return forbidden.
         if user.password_require_update {
-            return Err(CoreAuthError::PasswordUpdateRequired.into());
+            return Err(CoreError::Forbidden(CoreCause::PasswordUpdateRequired));
         }
 
         // Check user password matches password hash.
-        if let Err(err) = User::password_check(user.password_hash.as_ref().map(|x| &**x), &password)
-        {
-            return Err(CoreAuthError::PasswordNotSetOrIncorrect.into());
-        }
+        User::password_check(user.password_hash.as_ref().map(|x| &**x), &password)?;
 
         // Successful login, encode and return user token.
         let user_token = Auth::encode_user_token(
@@ -100,7 +97,7 @@ impl Auth {
 
         // Check user password reset is allowed.
         if !user.password_allow_reset {
-            return Err(CoreAuthError::ResetPasswordDisabled.into());
+            return Err(CoreError::BadRequest(CoreCause::ResetPasswordDisabled));
         }
 
         // Successful reset password, encode reset token.
@@ -114,22 +111,15 @@ impl Auth {
             token_expires,
         )?;
 
-        // Pass audit log to notification actor.
-        let audit = args.audit.create_message(
-            args.driver,
-            AuditType::AuthLocalResetPassword,
-            AuditMessage::ResetPassword,
-        )?;
-
         // Send reset password action email.
         notify
             .try_send(EmailResetPassword::new(
                 args.service.clone(),
                 user,
                 token,
-                Some(audit),
+                args.audit.meta().clone(),
             ))
-            .map_err(|_err| CoreError::BadRequest)?;
+            .map_err(|_err| CoreError::BadRequest(CoreCause::NotifySendError))?;
         Ok(())
     }
 
@@ -148,7 +138,7 @@ impl Auth {
 
         // Check user password reset is allowed.
         if !user.password_allow_reset {
-            return Err(CoreAuthError::ResetPasswordDisabled.into());
+            return Err(CoreError::BadRequest(CoreCause::ResetPasswordDisabled));
         }
 
         // Safely decode token with user key, this checks the type.
@@ -160,14 +150,16 @@ impl Auth {
             &token,
         );
         let csrf_key = match decoded {
-            Ok((_, csrf_key)) => csrf_key.ok_or_else(|| CoreError::BadRequest)?,
-            Err(err) => {
-                return Err(CoreAuthError::TokenInvalidOrExpired.into());
+            Ok((_, csrf_key)) => {
+                csrf_key.ok_or_else(|| CoreError::BadRequest(CoreCause::CsrfNotFoundOrUsed))?
+            }
+            Err(_err) => {
+                return Err(CoreError::BadRequest(CoreCause::TokenInvalidOrExpired));
             }
         };
 
         // Check the CSRF key to prevent reuse.
-        Auth::csrf_verify_inner(args.driver, args.service, args.audit, csrf_key)?;
+        Auth::csrf_verify_inner(args.driver, args.service, csrf_key)?;
 
         // Sucessful reset password confirm, update user password.
         User::update_password(args.driver, Some(args.service), user.id, password)?;
@@ -190,14 +182,11 @@ impl Auth {
 
         // If user password update required, return forbidden.
         if user.password_require_update {
-            return Err(CoreAuthError::PasswordUpdateRequired.into());
+            return Err(CoreError::Forbidden(CoreCause::PasswordUpdateRequired));
         }
 
         // Check user password matches password hash.
-        if let Err(err) = User::password_check(user.password_hash.as_ref().map(|x| &**x), &password)
-        {
-            return Err(CoreAuthError::PasswordNotSetOrIncorrect.into());
-        }
+        User::password_check(user.password_hash.as_ref().map(|x| &**x), &password)?;
 
         // Successful update email, encode revoke token.
         let csrf = Auth::csrf_create_inner(args.driver, args.service, revoke_token_expires)?;
@@ -214,13 +203,6 @@ impl Auth {
         User::update_email(args.driver, Some(args.service), user.id, new_email)?;
         let user = Auth::user_read_by_id(args.driver, Some(args.service), args.audit, user_id)?;
 
-        // Pass audit log to notification actor.
-        let audit = args.audit.create_message(
-            args.driver,
-            AuditType::AuthLocalUpdateEmail,
-            AuditMessage::UpdateEmail,
-        )?;
-
         // Send update email action email.
         notify
             .try_send(EmailUpdateEmail::new(
@@ -228,9 +210,9 @@ impl Auth {
                 user,
                 old_email,
                 revoke_token,
-                Some(audit),
+                args.audit.meta().clone(),
             ))
-            .map_err(|_err| CoreError::BadRequest)?;
+            .map_err(|_err| CoreError::BadRequest(CoreCause::NotifySendError))?;
         Ok(())
     }
 
@@ -263,14 +245,16 @@ impl Auth {
             &token,
         );
         let csrf_key = match decoded {
-            Ok((_, csrf_key)) => csrf_key.ok_or_else(|| CoreError::BadRequest)?,
-            Err(err) => {
-                return Err(CoreAuthError::TokenInvalidOrExpired.into());
+            Ok((_, csrf_key)) => {
+                csrf_key.ok_or_else(|| CoreError::BadRequest(CoreCause::CsrfNotFoundOrUsed))?
+            }
+            Err(_err) => {
+                return Err(CoreError::BadRequest(CoreCause::TokenInvalidOrExpired));
             }
         };
 
         // Check the CSRF key to prevent reuse.
-        Auth::csrf_verify_inner(args.driver, args.service, args.audit, csrf_key)?;
+        Auth::csrf_verify_inner(args.driver, args.service, csrf_key)?;
 
         // Successful update email revoke, disable user and disable and revoke all keys associated with user.
         let update = UserUpdate {
@@ -315,10 +299,7 @@ impl Auth {
         // User is allowed to update password in case `password_require_update` is true.
 
         // Check user password matches password hash.
-        if let Err(err) = User::password_check(user.password_hash.as_ref().map(|x| &**x), &password)
-        {
-            return Err(CoreAuthError::PasswordNotSetOrIncorrect.into());
-        }
+        User::password_check(user.password_hash.as_ref().map(|x| &**x), &password)?;
 
         // Successful update password, encode revoke token.
         let csrf = Auth::csrf_create_inner(args.driver, args.service, revoke_token_expires)?;
@@ -335,22 +316,15 @@ impl Auth {
         User::update_password(args.driver, Some(args.service), user.id, new_password)?;
         let user = Auth::user_read_by_id(args.driver, Some(args.service), args.audit, user_id)?;
 
-        // Pass audit log to notification actor.
-        let audit = args.audit.create_message(
-            args.driver,
-            AuditType::AuthLocalUpdatePassword,
-            AuditMessage::UpdatePassword,
-        )?;
-
         // Send update password action email.
         notify
             .try_send(EmailUpdatePassword::new(
                 args.service.clone(),
                 user,
                 revoke_token,
-                Some(audit),
+                args.audit.meta().clone(),
             ))
-            .map_err(|_err| CoreError::BadRequest)?;
+            .map_err(|_err| CoreError::BadRequest(CoreCause::NotifySendError))?;
         Ok(())
     }
 
@@ -383,14 +357,16 @@ impl Auth {
             &token,
         );
         let csrf_key = match decoded {
-            Ok((_, csrf_key)) => csrf_key.ok_or_else(|| CoreError::BadRequest)?,
-            Err(err) => {
-                return Err(CoreAuthError::TokenInvalidOrExpired.into());
+            Ok((_, csrf_key)) => {
+                csrf_key.ok_or_else(|| CoreError::BadRequest(CoreCause::CsrfNotFoundOrUsed))?
+            }
+            Err(_err) => {
+                return Err(CoreError::BadRequest(CoreCause::TokenInvalidOrExpired));
             }
         };
 
         // Check the CSRF key to prevent reuse.
-        Auth::csrf_verify_inner(args.driver, args.service, args.audit, csrf_key)?;
+        Auth::csrf_verify_inner(args.driver, args.service, csrf_key)?;
 
         // Successful update password revoke, disable user and disable and revoke all keys associated with user.
         let update = UserUpdate {
@@ -429,12 +405,10 @@ impl Auth {
             Auth::key_read_by_user_value(args.driver, args.service, args.audit, key, KeyType::Key)?;
 
         // Check key is associated with user.
-        let user = match key.user_id.ok_or_else(|| CoreError::BadRequest) {
-            Ok(user_id) => {
-                Auth::user_read_by_id(args.driver, Some(args.service), args.audit, user_id)
-            }
-            Err(err) => Err(CoreAuthError::KeyNotFound.into()),
-        }?;
+        let user_id = key
+            .user_id
+            .ok_or_else(|| CoreError::BadRequest(CoreCause::KeyInvalid))?;
+        let user = Auth::user_read_by_id(args.driver, Some(args.service), args.audit, user_id)?;
 
         // Successful key verify.
         let user_key = UserKey {
@@ -506,8 +480,8 @@ impl Auth {
         );
         let access_token_expires = match decoded {
             Ok((access_token_expires, _)) => access_token_expires,
-            Err(err) => {
-                return Err(CoreAuthError::TokenInvalidOrExpired.into());
+            Err(_err) => {
+                return Err(CoreError::BadRequest(CoreCause::TokenInvalidOrExpired));
             }
         };
 
@@ -550,14 +524,16 @@ impl Auth {
             &token,
         );
         let csrf_key = match decoded {
-            Ok((_, csrf_key)) => csrf_key.ok_or_else(|| CoreError::BadRequest)?,
-            Err(err) => {
-                return Err(CoreAuthError::TokenInvalidOrExpired.into());
+            Ok((_, csrf_key)) => {
+                csrf_key.ok_or_else(|| CoreError::BadRequest(CoreCause::CsrfNotFoundOrUsed))?
+            }
+            Err(_err) => {
+                return Err(CoreError::BadRequest(CoreCause::TokenInvalidOrExpired));
             }
         };
 
         // Check the CSRF key to prevent reuse.
-        Auth::csrf_verify_inner(args.driver, args.service, args.audit, csrf_key)?;
+        Auth::csrf_verify_inner(args.driver, args.service, csrf_key)?;
 
         // Successful token refresh, encode user token.
         let user_token = Auth::encode_user_token(
@@ -601,8 +577,8 @@ impl Auth {
         let csrf_key =
             match Jwt::decode_token(args.service.id, user.id, token_type, &key.value, &token) {
                 Ok((_, csrf_key)) => csrf_key,
-                Err(err) => {
-                    return Err(CoreAuthError::TokenInvalidOrExpired.into());
+                Err(_err) => {
+                    return Err(CoreError::BadRequest(CoreCause::TokenInvalidOrExpired));
                 }
             };
 
@@ -641,7 +617,7 @@ impl Auth {
             .map_err(CoreError::libreauth_oath)?;
 
         if !totp.is_valid(&totp_code) {
-            Err(CoreAuthError::TotpInvalid.into())
+            Err(CoreError::BadRequest(CoreCause::TotpInvalid))
         } else {
             Ok(())
         }
@@ -655,7 +631,7 @@ impl Auth {
 
     /// CSRF verification.
     pub fn csrf_verify(args: AuthArgs, csrf_key: String) -> CoreResult<()> {
-        Self::csrf_verify_inner(args.driver, args.service, args.audit, csrf_key)
+        Self::csrf_verify_inner(args.driver, args.service, csrf_key)
     }
 
     /// OAuth2 user login.
@@ -668,7 +644,7 @@ impl Auth {
     ) -> CoreResult<(Service, UserToken)> {
         // Check service making url and callback requests match.
         if args.service.id != service_id {
-            return Err(CoreAuthError::ServiceMismatch.into());
+            return Err(CoreError::BadRequest(CoreCause::ServiceMismatch));
         }
 
         // OAuth2 login requires token key type.
@@ -695,20 +671,12 @@ impl Auth {
         service_id: Uuid,
         audit: &mut AuditBuilder,
     ) -> CoreResult<Service> {
-        match driver
-            .service_read_opt(&service_id)
-            .map_err(CoreError::Driver)?
-            .ok_or_else(|| CoreError::BadRequest)
-        {
-            Ok(service) => {
-                audit.service(Some(&service));
-                if !service.is_enabled {
-                    return Err(CoreAuthError::ServiceDisabled.into());
-                }
-                Ok(service)
-            }
-            Err(err) => Err(CoreAuthError::ServiceNotFound.into()),
+        let service = Service::read(driver, None, &service_id)?;
+        audit.service(Some(&service));
+        if !service.is_enabled {
+            return Err(CoreError::BadRequest(CoreCause::ServiceDisabled));
         }
+        Ok(service)
     }
 
     /// Read user by ID.
@@ -720,16 +688,12 @@ impl Auth {
         id: Uuid,
     ) -> CoreResult<User> {
         let read = UserRead::Id(id);
-        match User::read_opt(driver, service_mask, &read)?.ok_or_else(|| CoreError::BadRequest) {
-            Ok(user) => {
-                audit.user(Some(&user));
-                if !user.is_enabled {
-                    return Err(CoreAuthError::UserDisabled.into());
-                }
-                Ok(user)
-            }
-            Err(err) => Err(CoreAuthError::UserNotFound.into()),
+        let user = User::read(driver, service_mask, &read)?;
+        audit.user(Some(&user));
+        if !user.is_enabled {
+            return Err(CoreError::BadRequest(CoreCause::UserDisabled));
         }
+        Ok(user)
     }
 
     /// Unchecked read user by ID.
@@ -741,13 +705,9 @@ impl Auth {
         id: Uuid,
     ) -> CoreResult<User> {
         let read = UserRead::Id(id);
-        match User::read_opt(driver, service_mask, &read)?.ok_or_else(|| CoreError::BadRequest) {
-            Ok(user) => {
-                audit.user(Some(&user));
-                Ok(user)
-            }
-            Err(err) => Err(CoreAuthError::UserNotFound.into()),
-        }
+        let user = User::read(driver, service_mask, &read)?;
+        audit.user(Some(&user));
+        Ok(user)
     }
 
     /// Read user by email address.
@@ -759,16 +719,12 @@ impl Auth {
         email: String,
     ) -> CoreResult<User> {
         let read = UserRead::Email(email);
-        match User::read_opt(driver, service_mask, &read)?.ok_or_else(|| CoreError::BadRequest) {
-            Ok(user) => {
-                audit.user(Some(&user));
-                if !user.is_enabled {
-                    return Err(CoreAuthError::UserDisabled.into());
-                }
-                Ok(user)
-            }
-            Err(err) => Err(CoreAuthError::UserNotFound.into()),
+        let user = User::read(driver, service_mask, &read)?;
+        audit.user(Some(&user));
+        if !user.is_enabled {
+            return Err(CoreError::BadRequest(CoreCause::UserDisabled));
         }
+        Ok(user)
     }
 
     /// Read key by user reference and key type.
@@ -780,18 +736,12 @@ impl Auth {
         user: &User,
         key_type: KeyType,
     ) -> CoreResult<KeyWithValue> {
-        match Key::read_by_user(driver, &service, &user, key_type)?
-            .ok_or_else(|| CoreError::BadRequest)
-        {
-            Ok(key) => {
-                audit.user_key(Some(&key));
-                if !key.is_enabled || key.is_revoked {
-                    return Err(CoreAuthError::KeyDisabledOrRevoked.into());
-                }
-                Ok(key)
-            }
-            Err(err) => Err(CoreAuthError::KeyNotFound.into()),
+        let key = Key::read_by_user(driver, &service, &user, key_type)?;
+        audit.user_key(Some(&key));
+        if !key.is_enabled || key.is_revoked {
+            return Err(CoreError::BadRequest(CoreCause::KeyDisabledOrRevoked));
         }
+        Ok(key)
     }
 
     /// Unchecked read key by user reference.
@@ -803,15 +753,9 @@ impl Auth {
         user: &User,
         key_type: KeyType,
     ) -> CoreResult<KeyWithValue> {
-        match Key::read_by_user(driver, &service, &user, key_type)?
-            .ok_or_else(|| CoreError::BadRequest)
-        {
-            Ok(key) => {
-                audit.user_key(Some(&key));
-                Ok(key)
-            }
-            Err(err) => Err(CoreAuthError::KeyNotFound.into()),
-        }
+        let key = Key::read_by_user(driver, &service, &user, key_type)?;
+        audit.user_key(Some(&key));
+        Ok(key)
     }
 
     /// Read key by user value.
@@ -823,18 +767,12 @@ impl Auth {
         key: String,
         key_type: KeyType,
     ) -> CoreResult<KeyWithValue> {
-        match Key::read_by_user_value(driver, service, key, key_type)?
-            .ok_or_else(|| CoreError::BadRequest)
-        {
-            Ok(key) => {
-                audit.user_key(Some(&key));
-                if !key.is_enabled || key.is_revoked {
-                    return Err(CoreAuthError::KeyDisabledOrRevoked.into());
-                }
-                Ok(key)
-            }
-            Err(err) => Err(CoreAuthError::KeyNotFound.into()),
+        let key = Key::read_by_user_value(driver, service, key, key_type)?;
+        audit.user_key(Some(&key));
+        if !key.is_enabled || key.is_revoked {
+            return Err(CoreError::BadRequest(CoreCause::KeyDisabledOrRevoked));
         }
+        Ok(key)
     }
 
     /// Unchecked read key by user value.
@@ -846,15 +784,9 @@ impl Auth {
         key: String,
         key_type: KeyType,
     ) -> CoreResult<KeyWithValue> {
-        match Key::read_by_user_value(driver, service, key, key_type)?
-            .ok_or_else(|| CoreError::BadRequest)
-        {
-            Ok(key) => {
-                audit.user_key(Some(&key));
-                Ok(key)
-            }
-            Err(err) => Err(CoreAuthError::KeyNotFound.into()),
-        }
+        let key = Key::read_by_user_value(driver, service, key, key_type)?;
+        audit.user_key(Some(&key));
+        Ok(key)
     }
 
     /// Build user token by encoding access and refresh tokens.
@@ -906,19 +838,19 @@ impl Auth {
     fn csrf_verify_inner(
         driver: &dyn Driver,
         service: &Service,
-        audit: &mut AuditBuilder,
         csrf_key: String,
     ) -> CoreResult<()> {
-        let res = Csrf::read_opt(driver, csrf_key)?.ok_or_else(|| CoreError::BadRequest);
+        let res = Csrf::read_opt(driver, csrf_key)?
+            .ok_or_else(|| CoreError::BadRequest(CoreCause::CsrfNotFoundOrUsed));
 
         match res {
             Ok(csrf) => {
                 if csrf.service_id != service.id {
-                    return Err(CoreAuthError::CsrfNotFoundOrUsed.into());
+                    return Err(CoreError::BadRequest(CoreCause::CsrfNotFoundOrUsed));
                 }
                 Ok(())
             }
-            Err(err) => Err(CoreAuthError::CsrfNotFoundOrUsed.into()),
+            Err(_err) => Err(CoreError::BadRequest(CoreCause::CsrfNotFoundOrUsed)),
         }
     }
 }

@@ -1,8 +1,9 @@
 use crate::{
     api::{
-        result_audit_diff, result_audit_subject, validate, ValidateRequest, ValidateRequestQuery,
+        result_audit_diff, result_audit_err, result_audit_subject, validate, ValidateRequest,
+        ValidateRequestQuery,
     },
-    AuditMeta, AuditType, Core, CoreError, CoreResult, Driver, Key, Service, ServiceCreate,
+    AuditBuilder, AuditMeta, AuditType, Core, CoreResult, Driver, Key, Service, ServiceCreate,
     ServiceListFilter, ServiceListQuery, ServiceUpdate,
 };
 use uuid::Uuid;
@@ -192,11 +193,12 @@ pub fn service_list(
     request: ServiceListRequest,
 ) -> CoreResult<ServiceListResponse> {
     ServiceListRequest::api_validate(&request)?;
-    let audit_type = AuditType::ServiceList;
-    let _audit = Key::authenticate_root(driver, audit_meta, key_value, audit_type)?;
-
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceList);
     let (query, filter) = request.into_query_filter();
-    Service::list(driver, &query, &filter).map(|data| ServiceListResponse {
+
+    let res = Key::authenticate_root(driver, &mut audit, key_value)
+        .and_then(|_| Service::list(driver, &query, &filter));
+    result_audit_err(driver, &audit, res).map(|data| ServiceListResponse {
         meta: ServiceListRequest::from_query_filter(query, filter),
         data,
     })
@@ -209,13 +211,12 @@ pub fn service_create(
     request: ServiceCreateRequest,
 ) -> CoreResult<ServiceReadResponse> {
     ServiceCreateRequest::api_validate(&request)?;
-    let audit_type = AuditType::ServiceCreate;
-    let mut audit = Key::authenticate_root(driver, audit_meta, key_value, audit_type)?;
-
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceCreate);
     let create: ServiceCreate = request.into();
-    let res = Service::create(driver, &create);
-    result_audit_subject(driver, res, &mut audit, audit_type)
-        .map(|data| ServiceReadResponse { data })
+
+    let res = Key::authenticate_root(driver, &mut audit, key_value)
+        .and_then(|_| Service::create(driver, &create));
+    result_audit_subject(driver, &audit, res).map(|data| ServiceReadResponse { data })
 }
 
 pub fn service_read(
@@ -224,12 +225,11 @@ pub fn service_read(
     audit_meta: AuditMeta,
     service_id: Uuid,
 ) -> CoreResult<ServiceReadResponse> {
-    let audit_type = AuditType::ServiceRead;
-    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceRead);
 
-    Service::read_opt(driver, service.as_ref(), &service_id)
-        .and_then(|service| service.ok_or_else(|| CoreError::NotFound))
-        .map(|data| ServiceReadResponse { data })
+    let res = Key::authenticate(driver, &mut audit, key_value)
+        .and_then(|service| Service::read(driver, service.as_ref(), &service_id));
+    result_audit_err(driver, &audit, res).map(|data| ServiceReadResponse { data })
 }
 
 pub fn service_update(
@@ -240,17 +240,16 @@ pub fn service_update(
     request: ServiceUpdateRequest,
 ) -> CoreResult<ServiceReadResponse> {
     ServiceUpdateRequest::api_validate(&request)?;
-    let audit_type = AuditType::ServiceUpdate;
-    let (service, mut audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceUpdate);
 
-    let res = Service::read_opt(driver, service.as_ref(), &service_id)
-        .and_then(|service| service.ok_or_else(|| CoreError::NotFound))
-        .and_then(|previous_service| {
+    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
+        Service::read(driver, service.as_ref(), &service_id).and_then(|previous_service| {
             let update: ServiceUpdate = request.into();
             Service::update(driver, service.as_ref(), service_id, &update)
                 .map(|next_service| (previous_service, next_service))
-        });
-    result_audit_diff(driver, res, &mut audit, audit_type).map(|data| ServiceReadResponse { data })
+        })
+    });
+    result_audit_diff(driver, &audit, res).map(|data| ServiceReadResponse { data })
 }
 
 pub fn service_delete(
@@ -259,13 +258,12 @@ pub fn service_delete(
     audit_meta: AuditMeta,
     service_id: Uuid,
 ) -> CoreResult<()> {
-    let audit_type = AuditType::ServiceDelete;
-    let (service, mut audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceDelete);
 
-    let res = Service::read_opt(driver, service.as_ref(), &service_id)
-        .and_then(|service| service.ok_or_else(|| CoreError::NotFound))
-        .and_then(|previous_service| {
+    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
+        Service::read(driver, service.as_ref(), &service_id).and_then(|previous_service| {
             Service::delete(driver, service.as_ref(), service_id).map(|_| previous_service)
-        });
-    result_audit_subject(driver, res, &mut audit, audit_type).map(|_| ())
+        })
+    });
+    result_audit_subject(driver, &audit, res).map(|_| ())
 }

@@ -1,96 +1,68 @@
 use crate::{ClientError, DriverError};
 use serde::ser::{Serialize, Serializer};
+use std::fmt;
 
-/// Core authentication errors.
-#[derive(Debug, Fail)]
-pub enum CoreAuthError {
-    #[fail(display = "CoreAuthError:ServiceNotFound")]
+/// Core error causes.
+#[derive(Debug)]
+pub enum CoreCause {
+    ValidateError(String),
     ServiceNotFound,
-    #[fail(display = "CoreAuthError:ServiceDisabled")]
     ServiceDisabled,
-    #[fail(display = "CoreAuthError:UserNotFound")]
+    ServiceProviderLocalUndefined,
+    ServiceInvalidUrl,
+    ServiceCannotCreateServiceKey,
     UserNotFound,
-    #[fail(display = "CoreAuthError:UserDisabled")]
+    UserExists,
     UserDisabled,
-    #[fail(display = "CoreAuthError:KeyNotFound")]
+    UserKeyTooManyEnabledToken,
+    UserKeyTooManyEnabledTotp,
     KeyNotFound,
-    #[fail(display = "CoreAuthError:KeyInvalid")]
     KeyInvalid,
-    #[fail(display = "CoreAuthError:KeyUndefined")]
     KeyUndefined,
-    #[fail(display = "CoreAuthError:KeyDisabledOrRevoked")]
     KeyDisabledOrRevoked,
-    #[fail(display = "CoreAuthError:PasswordUpdateRequired")]
+    PasswordUndefined,
     PasswordUpdateRequired,
-    #[fail(display = "CoreAuthError:PasswordNotSetOrIncorrect")]
     PasswordNotSetOrIncorrect,
-    #[fail(display = "CoreAuthError:Login")]
-    Login,
-    #[fail(display = "CoreAuthError:ResetPassword")]
-    ResetPassword,
-    #[fail(display = "CoreAuthError:ResetPasswordDisabled")]
     ResetPasswordDisabled,
-    #[fail(display = "CoreAuthError:TokenInvalidOrExpired")]
     TokenInvalidOrExpired,
-    #[fail(display = "CoreAuthError:CsrfNotFoundOrUsed")]
     CsrfNotFoundOrUsed,
-    #[fail(display = "CoreAuthError:ResetPasswordConfirm")]
-    ResetPasswordConfirm,
-    #[fail(display = "CoreAuthError:UpdateEmail")]
-    UpdateEmail,
-    #[fail(display = "CoreAuthError:UpdateEmailRevoke")]
     UpdateEmailRevoke,
-    #[fail(display = "CoreAuthError:UpdatePassword")]
-    UpdatePassword,
-    #[fail(display = "CoreAuthError:UpdatePasswordRevoke")]
     UpdatePasswordRevoke,
-    #[fail(display = "CoreAuthError:Oauth2Login")]
-    Oauth2Login,
-    #[fail(display = "CoreAuthError:ServiceMismatch")]
     ServiceMismatch,
-    #[fail(display = "CoreAuthError:KeyRevoke")]
-    KeyRevoke,
-    #[fail(display = "CoreAuthError:TokenRefresh")]
-    TokenRefresh,
-    #[fail(display = "CoreAuthError:TokenRevoke")]
-    TokenRevoke,
-    #[fail(display = "CoreAuthError:TotpInvalid")]
     TotpInvalid,
+    JwtInvalidClaimsType,
+    JwtClaimsTypeMismatch,
+    JwtServiceMismatch,
+    NotifySendError,
+    PwnedPasswordsDisabled,
+    GithubOauth2Disabled,
+    MicrosoftOauth2Disabled,
+    AuditNotFound,
 }
 
-/// Core OAuth2 errors.
-#[derive(Debug, Fail)]
-pub enum CoreOauth2Error {
-    #[fail(display = "CoreOauth2Error:Disabled")]
-    Disabled,
-
-    #[fail(display = "CoreOauth2Error:Csrf")]
-    Csrf,
-
-    #[fail(display = "CoreOauth2Error:Oauth2Request {}", _0)]
-    Oauth2Request(failure::Error),
+impl fmt::Display for CoreCause {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 /// Core errors.
 #[derive(Debug, Fail)]
 pub enum CoreError {
-    #[fail(display = "CoreError:Auth {}", _0)]
-    Auth(CoreAuthError),
+    #[fail(display = "CoreError:BadRequest {:?}", _0)]
+    BadRequest(CoreCause),
 
-    #[fail(display = "CoreError:BadRequest")]
-    BadRequest,
+    #[fail(display = "CoreError:Unauthorised {:?}", _0)]
+    Unauthorised(CoreCause),
 
-    #[fail(display = "CoreError:Forbidden")]
-    Forbidden,
+    #[fail(display = "CoreError:Forbidden {:?}", _0)]
+    Forbidden(CoreCause),
 
-    #[fail(display = "CoreError:NotFound")]
-    NotFound,
+    #[fail(display = "CoreError:NotFound {:?}", _0)]
+    NotFound(CoreCause),
 
-    #[fail(display = "CoreError:PwnedPasswordsDisabled")]
-    PwnedPasswordsDisabled,
-
-    #[fail(display = "CoreError:Oauth2 {}", _0)]
-    Oauth2(CoreOauth2Error),
+    #[fail(display = "CoreError:Oauth2Request {}", _0)]
+    Oauth2Request(failure::Error),
 
     #[fail(display = "CoreError:UrlParse {}", _0)]
     UrlParse(#[fail(cause)] url::ParseError),
@@ -143,12 +115,6 @@ impl CoreError {
 
     pub fn serde_qs(e: serde_qs::Error) -> Self {
         Self::SerdeQs(e.description().to_owned())
-    }
-}
-
-impl From<CoreAuthError> for CoreError {
-    fn from(e: CoreAuthError) -> Self {
-        Self::Auth(e)
     }
 }
 

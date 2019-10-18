@@ -3,7 +3,7 @@ mod route;
 
 use crate::{
     api::{AuthProviderOauth2, AuthProviderOauth2Args},
-    ClientActor, ClientError, CoreError, Driver, Metrics, NotifyActor,
+    ClientActor, ClientError, CoreCause, CoreError, Driver, Metrics, NotifyActor,
 };
 use actix::{Addr, MailboxError as ActixMailboxError};
 use actix_web::{
@@ -76,10 +76,10 @@ pub type ServerResult<T> = Result<T, ServerError>;
 impl From<CoreError> for ServerError {
     fn from(e: CoreError) -> Self {
         match e {
-            CoreError::BadRequest => Self::BadRequest,
-            CoreError::Unauthorised => Self::Unauthorised,
-            CoreError::Forbidden => Self::Forbidden,
-            CoreError::NotFound => Self::NotFound,
+            CoreError::BadRequest(_e) => Self::BadRequest,
+            CoreError::Unauthorised(_e) => Self::Unauthorised,
+            CoreError::Forbidden(_e) => Self::Forbidden,
+            CoreError::NotFound(_e) => Self::NotFound,
             CoreError::Jsonwebtoken(_e) => Self::BadRequest,
             _ => Self::Core(e),
         }

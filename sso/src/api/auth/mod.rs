@@ -6,8 +6,8 @@ pub use crate::api::auth::{github::*, local::*, microsoft::*};
 
 use crate::{
     api::{
-        result_audit, validate, AuditCreate2Request, AuditIdOptResponse, ValidateRequest,
-        ValidateRequestQuery,
+        result_audit, result_audit_err, validate, AuditCreate2Request, AuditIdOptResponse,
+        ValidateRequest, ValidateRequestQuery,
     },
     AuditBuilder, AuditCreate2, AuditMeta, AuditType, Auth, AuthArgs, CoreResult, Csrf, Driver,
     Key, UserKey, UserToken, UserTokenAccess,
@@ -197,20 +197,20 @@ pub fn auth_key_verify(
     request: AuthKeyRequest,
 ) -> CoreResult<AuthKeyResponse> {
     AuthKeyRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthKeyVerify);
 
-    Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthKeyVerify)
-        .and_then(|(service, mut audit)| {
-            let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
-            Auth::key_verify(
-                AuthArgs::new(driver, &service, &mut audit),
-                request.key,
-                audit_create,
-            )
-        })
-        .map(|(data, audit)| AuthKeyResponse {
-            data,
-            audit: audit.map(|x| x.id),
-        })
+    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+        let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
+        Auth::key_verify(
+            AuthArgs::new(driver, &service, &mut audit),
+            request.key,
+            audit_create,
+        )
+    });
+    result_audit_err(driver, &audit, res).map(|(data, audit)| AuthKeyResponse {
+        data,
+        audit: audit.map(|x| x.id),
+    })
 }
 
 pub fn auth_key_revoke(
@@ -222,19 +222,15 @@ pub fn auth_key_revoke(
     AuthKeyRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthKeyRevoke);
 
-    result_audit(
-        driver,
-        &mut audit,
-        Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
-            let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
-            Auth::key_revoke(
-                AuthArgs::new(driver, &service, &mut audit),
-                request.key,
-                audit_create,
-            )
-        }),
-    )
-    .map(|audit| AuditIdOptResponse {
+    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+        let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
+        Auth::key_revoke(
+            AuthArgs::new(driver, &service, &mut audit),
+            request.key,
+            audit_create,
+        )
+    });
+    result_audit(driver, &audit, res).map(|audit| AuditIdOptResponse {
         audit: audit.map(|x| x.id),
     })
 }
@@ -246,20 +242,20 @@ pub fn auth_token_verify(
     request: AuthTokenRequest,
 ) -> CoreResult<AuthTokenAccessResponse> {
     AuthTokenRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTokenVerify);
 
-    Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthTokenVerify)
-        .and_then(|(service, mut audit)| {
-            let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
-            Auth::token_verify(
-                AuthArgs::new(driver, &service, &mut audit),
-                request.token,
-                audit_create,
-            )
-        })
-        .map(|(data, audit)| AuthTokenAccessResponse {
-            data,
-            audit: audit.map(|x| x.id),
-        })
+    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+        let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
+        Auth::token_verify(
+            AuthArgs::new(driver, &service, &mut audit),
+            request.token,
+            audit_create,
+        )
+    });
+    result_audit_err(driver, &audit, res).map(|(data, audit)| AuthTokenAccessResponse {
+        data,
+        audit: audit.map(|x| x.id),
+    })
 }
 
 pub fn auth_token_refresh(
@@ -271,22 +267,22 @@ pub fn auth_token_refresh(
     refresh_token_expires: i64,
 ) -> CoreResult<AuthTokenResponse> {
     AuthTokenRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTokenRefresh);
 
-    Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthTokenRefresh)
-        .and_then(|(service, mut audit)| {
-            let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
-            Auth::token_refresh(
-                AuthArgs::new(driver, &service, &mut audit),
-                request.token,
-                audit_create,
-                access_token_expires,
-                refresh_token_expires,
-            )
-        })
-        .map(|(data, audit)| AuthTokenResponse {
-            data,
-            audit: audit.map(|x| x.id),
-        })
+    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+        let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
+        Auth::token_refresh(
+            AuthArgs::new(driver, &service, &mut audit),
+            request.token,
+            audit_create,
+            access_token_expires,
+            refresh_token_expires,
+        )
+    });
+    result_audit_err(driver, &audit, res).map(|(data, audit)| AuthTokenResponse {
+        data,
+        audit: audit.map(|x| x.id),
+    })
 }
 
 pub fn auth_token_revoke(
@@ -296,19 +292,19 @@ pub fn auth_token_revoke(
     request: AuthTokenRequest,
 ) -> CoreResult<AuditIdOptResponse> {
     AuthTokenRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTokenRevoke);
 
-    Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthTokenRevoke)
-        .and_then(|(service, mut audit)| {
-            let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
-            Auth::token_revoke(
-                AuthArgs::new(driver, &service, &mut audit),
-                request.token,
-                audit_create,
-            )
-        })
-        .map(|audit| AuditIdOptResponse {
-            audit: audit.map(|x| x.id),
-        })
+    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+        let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
+        Auth::token_revoke(
+            AuthArgs::new(driver, &service, &mut audit),
+            request.token,
+            audit_create,
+        )
+    });
+    result_audit(driver, &audit, res).map(|audit| AuditIdOptResponse {
+        audit: audit.map(|x| x.id),
+    })
 }
 
 pub fn auth_totp(
@@ -318,16 +314,16 @@ pub fn auth_totp(
     request: AuthTotpRequest,
 ) -> CoreResult<()> {
     AuthTotpRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTotp);
 
-    Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthTotp)
-        .and_then(|(service, mut audit)| {
-            Auth::totp(
-                AuthArgs::new(driver, &service, &mut audit),
-                request.user_id,
-                request.totp,
-            )
-        })
-        .map_err(Into::into)
+    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+        Auth::totp(
+            AuthArgs::new(driver, &service, &mut audit),
+            request.user_id,
+            request.totp,
+        )
+    });
+    result_audit_err(driver, &audit, res)
 }
 
 pub fn auth_csrf_create(
@@ -337,14 +333,15 @@ pub fn auth_csrf_create(
     request: AuthCsrfCreateRequest,
 ) -> CoreResult<AuthCsrfCreateResponse> {
     AuthCsrfCreateRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthCsrfCreate);
 
-    let (service, mut audit) =
-        Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthCsrfCreate)?;
-    let data = Auth::csrf_create(
-        AuthArgs::new(driver, &service, &mut audit),
-        request.expires_s,
-    )?;
-    Ok(AuthCsrfCreateResponse { data })
+    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+        Auth::csrf_create(
+            AuthArgs::new(driver, &service, &mut audit),
+            request.expires_s,
+        )
+    });
+    result_audit_err(driver, &audit, res).map(|data| AuthCsrfCreateResponse { data })
 }
 
 pub fn auth_csrf_verify(
@@ -354,8 +351,10 @@ pub fn auth_csrf_verify(
     request: AuthCsrfVerifyRequest,
 ) -> CoreResult<()> {
     AuthCsrfVerifyRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthCsrfVerify);
 
-    let (service, mut audit) =
-        Key::authenticate_service(driver, audit_meta, key_value, AuditType::AuthCsrfVerify)?;
-    Auth::csrf_verify(AuthArgs::new(driver, &service, &mut audit), request.key)
+    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
+        Auth::csrf_verify(AuthArgs::new(driver, &service, &mut audit), request.key)
+    });
+    result_audit_err(driver, &audit, res)
 }

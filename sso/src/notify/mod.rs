@@ -1,8 +1,9 @@
 pub mod notify_msg;
 mod smtp;
 
-use crate::{Audit, CoreError};
+use crate::{AuditMeta, CoreError};
 use actix::{Actor, Addr, SyncArbiter, SyncContext};
+use chrono::Utc;
 use handlebars::Handlebars;
 use serde_json::Value;
 use std::fmt;
@@ -160,17 +161,13 @@ impl NotifyActor {
     }
 
     /// Returns optional audit log template values.
-    fn audit_value(audit: Option<&Audit>) -> Option<Value> {
-        match audit {
-            Some(audit) => Some(json!({
-                "id": audit.id,
-                "created_at": audit.created_at,
-                "user_agent": audit.user_agent,
-                "remote": audit.remote,
-                "forwarded": audit.forwarded,
-            })),
-            None => None,
-        }
+    fn audit_value(audit: &AuditMeta) -> Value {
+        json!({
+            "created_at": Utc::now(),
+            "user_agent": audit.user_agent(),
+            "remote": audit.remote(),
+            "forwarded": audit.forwarded(),
+        })
     }
 }
 

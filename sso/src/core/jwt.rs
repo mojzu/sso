@@ -1,4 +1,4 @@
-use crate::{CoreError, CoreResult};
+use crate::{CoreCause, CoreError, CoreResult};
 use jsonwebtoken::{dangerous_unsafe_decode, decode, encode, Header, Validation};
 use uuid::Uuid;
 
@@ -33,7 +33,7 @@ impl JwtClaimsType {
             2 => Ok(JwtClaimsType::ResetPasswordToken),
             3 => Ok(JwtClaimsType::UpdateEmailRevokeToken),
             4 => Ok(JwtClaimsType::UpdatePasswordRevokeToken),
-            _ => Err(CoreError::BadRequest),
+            _ => Err(CoreError::BadRequest(CoreCause::JwtInvalidClaimsType)),
         }
     }
 }
@@ -156,7 +156,7 @@ impl Jwt {
 
         let iss = Uuid::parse_str(&claims.iss).map_err(CoreError::UuidParse)?;
         if service_id != iss {
-            return Err(CoreError::BadRequest);
+            return Err(CoreError::BadRequest(CoreCause::JwtServiceMismatch));
         }
 
         let sub = Uuid::parse_str(&claims.sub).map_err(CoreError::UuidParse)?;
@@ -175,7 +175,7 @@ impl Jwt {
         let data = decode::<JwtClaims>(token, key_value.as_bytes(), &validation)
             .map_err(CoreError::Jsonwebtoken)?;
         if data.claims.x_type != x_type.to_i64() {
-            return Err(CoreError::BadRequest);
+            return Err(CoreError::BadRequest(CoreCause::JwtClaimsTypeMismatch));
         }
         Ok(data.claims)
     }

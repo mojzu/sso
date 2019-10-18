@@ -1,8 +1,9 @@
 use crate::{
     api::{
-        result_audit_diff, result_audit_subject, validate, ValidateRequest, ValidateRequestQuery,
+        result_audit_diff, result_audit_err, result_audit_subject, validate, ValidateRequest,
+        ValidateRequestQuery,
     },
-    AuditMeta, AuditType, Core, CoreError, CoreResult, Driver, Key, User, UserCreate,
+    AuditBuilder, AuditMeta, AuditType, Core, CoreResult, Driver, Key, User, UserCreate,
     UserListFilter, UserListQuery, UserPasswordMeta, UserRead, UserUpdate,
 };
 use uuid::Uuid;
@@ -188,11 +189,12 @@ pub fn user_list(
     request: UserListRequest,
 ) -> CoreResult<UserListResponse> {
     UserListRequest::api_validate(&request)?;
-    let audit_type = AuditType::UserList;
-    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
-
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::UserList);
     let (query, filter) = request.into_query_filter();
-    User::list(driver, service.as_ref(), &query, &filter).map(|data| UserListResponse {
+
+    let res = Key::authenticate(driver, &mut audit, key_value)
+        .and_then(|service| User::list(driver, service.as_ref(), &query, &filter));
+    result_audit_err(driver, &audit, res).map(|data| UserListResponse {
         meta: UserListRequest::from_query_filter(query, filter),
         data,
     })
@@ -206,12 +208,12 @@ pub fn user_create(
     request: UserCreateRequest,
 ) -> CoreResult<UserCreateResponse> {
     UserCreateRequest::api_validate(&request)?;
-    let audit_type = AuditType::UserCreate;
-    let (service, mut audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
-
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::UserCreate);
     let mut create: UserCreate = request.into();
-    let res = User::create(driver, service.as_ref(), &mut create);
-    result_audit_subject(driver, res, &mut audit, audit_type).map(|data| UserCreateResponse {
+
+    let res = Key::authenticate(driver, &mut audit, key_value)
+        .and_then(|service| User::create(driver, service.as_ref(), &mut create));
+    result_audit_subject(driver, &audit, res).map(|data| UserCreateResponse {
         meta: password_meta,
         data,
     })
@@ -223,13 +225,12 @@ pub fn user_read(
     audit_meta: AuditMeta,
     user_id: Uuid,
 ) -> CoreResult<UserReadResponse> {
-    let audit_type = AuditType::UserRead;
-    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
-
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::UserRead);
     let read = UserRead::Id(user_id);
-    User::read_opt(driver, service.as_ref(), &read)
-        .and_then(|user| user.ok_or_else(|| CoreError::NotFound))
-        .map(|data| UserReadResponse { data })
+
+    let res = Key::authenticate(driver, &mut audit, key_value)
+        .and_then(|service| User::read(driver, service.as_ref(), &read));
+    result_audit_err(driver, &audit, res).map(|data| UserReadResponse { data })
 }
 
 pub fn user_update(
@@ -240,13 +241,11 @@ pub fn user_update(
     request: UserUpdateRequest,
 ) -> CoreResult<UserReadResponse> {
     UserUpdateRequest::api_validate(&request)?;
-    let audit_type = AuditType::UserUpdate;
-    let (service, mut audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
-
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::UserUpdate);
     let read = UserRead::Id(user_id);
-    let res = User::read_opt(driver, service.as_ref(), &read)
-        .and_then(|user| user.ok_or_else(|| CoreError::NotFound))
-        .and_then(|previous_user| {
+
+    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
+        User::read(driver, service.as_ref(), &read).and_then(|previous_user| {
             let update = UserUpdate {
                 is_enabled: request.is_enabled,
                 name: request.name,
@@ -257,8 +256,9 @@ pub fn user_update(
             };
             User::update(driver, service.as_ref(), user_id, &update)
                 .map(|next_user| (previous_user, next_user))
-        });
-    result_audit_diff(driver, res, &mut audit, audit_type).map(|data| UserReadResponse { data })
+        })
+    });
+    result_audit_diff(driver, &audit, res).map(|data| UserReadResponse { data })
 }
 
 pub fn user_delete(
@@ -267,12 +267,12 @@ pub fn user_delete(
     audit_meta: AuditMeta,
     user_id: Uuid,
 ) -> CoreResult<()> {
-    let audit_type = AuditType::UserDelete;
-    let (service, mut audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
-
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::UserDelete);
     let read = UserRead::Id(user_id);
-    let res = User::read_opt(driver, service.as_ref(), &read)
-        .and_then(|user| user.ok_or_else(|| CoreError::NotFound))
-        .and_then(|user| User::delete(driver, service.as_ref(), user_id).map(|_| user));
-    result_audit_subject(driver, res, &mut audit, audit_type).map(|_| ())
+
+    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
+        User::read(driver, service.as_ref(), &read)
+            .and_then(|user| User::delete(driver, service.as_ref(), user_id).map(|_| user))
+    });
+    result_audit_subject(driver, &audit, res).map(|_| ())
 }

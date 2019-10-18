@@ -213,11 +213,6 @@ impl DriverIf for DriverPostgres {
         ModelUser::create(&conn, create)
     }
 
-    fn user_read(&self, read: &UserRead) -> DriverResult<User> {
-        let conn = self.conn()?;
-        ModelUser::read(&conn, read)
-    }
-
     fn user_read_opt(&self, read: &UserRead) -> DriverResult<Option<User>> {
         let conn = self.conn()?;
         ModelUser::read_opt(&conn, read)
@@ -398,10 +393,6 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
 
     fn user_create(&self, create: &UserCreate) -> DriverResult<User> {
         ModelUser::create(self.conn(), create)
-    }
-
-    fn user_read(&self, read: &UserRead) -> DriverResult<User> {
-        ModelUser::read(self.conn(), read)
     }
 
     fn user_read_opt(&self, read: &UserRead) -> DriverResult<Option<User>> {

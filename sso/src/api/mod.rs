@@ -110,16 +110,12 @@ pub fn metrics(
 ) -> CoreResult<String> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::Metrics);
 
-    let res = Key::authenticate(driver, audit_meta, key_value)
+    let res = Key::authenticate(driver, &mut audit, key_value)
         .and_then(|service| Metrics::read(driver, service.as_ref(), registry));
-    result_audit_err(driver, &mut audit, res)
+    result_audit_err(driver, &audit, res)
 }
 
-fn result_audit(
-    driver: &dyn Driver,
-    audit: &mut AuditBuilder,
-    res: CoreResult<T>,
-) -> CoreResult<T> {
+fn result_audit<T>(driver: &dyn Driver, audit: &AuditBuilder, res: CoreResult<T>) -> CoreResult<T> {
     res.or_else(|e| {
         let data = Audit::typed_data("error", &e);
         audit.create_data(driver, None, Some(data))?;
@@ -133,7 +129,7 @@ fn result_audit(
 
 fn result_audit_err<T>(
     driver: &dyn Driver,
-    audit: &mut AuditBuilder,
+    audit: &AuditBuilder,
     res: CoreResult<T>,
 ) -> CoreResult<T> {
     res.or_else(|e| {
@@ -145,7 +141,7 @@ fn result_audit_err<T>(
 
 fn result_audit_subject<T: AuditSubject>(
     driver: &dyn Driver,
-    audit: &mut AuditBuilder,
+    audit: &AuditBuilder,
     res: CoreResult<T>,
 ) -> CoreResult<T> {
     res.or_else(|e| {
@@ -161,7 +157,7 @@ fn result_audit_subject<T: AuditSubject>(
 
 fn result_audit_diff<T: AuditSubject + AuditDiff>(
     driver: &dyn Driver,
-    audit: &mut AuditBuilder,
+    audit: &AuditBuilder,
     res: CoreResult<(T, T)>,
 ) -> CoreResult<T> {
     res.or_else(|e| {

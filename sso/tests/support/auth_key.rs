@@ -12,19 +12,19 @@ macro_rules! auth_key_integration_test {
 
         #[test]
         #[ignore]
-        fn api_auth_key_verify_bad_request_invalid_key() {
+        fn api_auth_key_verify_not_found_invalid_key() {
             let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
 
             let client = client_create(Some(&service_key.value));
             let body = AuthKeyRequest::new(INVALID_KEY, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res, ClientError::NotFound);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_key_verify_bad_request_unknown_user_key_for_service() {
+        fn api_auth_key_verify_not_found_unknown_user_key_for_service() {
             let client = client_create(None);
             let (service1, service1_key) = service_key_create(&client);
             let (_service2, service2_key) = service_key_create(&client);
@@ -45,24 +45,24 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthKeyRequest::new(&user_key.key, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res, ClientError::NotFound);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_key_verify_bad_request_service_key() {
+        fn api_auth_key_verify_not_found_service_key() {
             let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
 
             let client = client_create(Some(&service_key.value));
             let body = AuthKeyRequest::new(&service_key.value, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res, ClientError::NotFound);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_key_verify_bad_request_unknown_user_key_key() {
+        fn api_auth_key_verify_not_found_unknown_user_key_key() {
             let client = client_create(None);
             let (service, service_key) = service_key_create(&client);
             let user_email = email_create();
@@ -73,7 +73,7 @@ macro_rules! auth_key_integration_test {
 
             let body = AuthKeyRequest::new(&user_key.key, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res, ClientError::NotFound);
         }
 
         #[test]
@@ -102,19 +102,19 @@ macro_rules! auth_key_integration_test {
 
         #[test]
         #[ignore]
-        fn api_auth_key_revoke_bad_request_invalid_key() {
+        fn api_auth_key_revoke_not_found_invalid_key() {
             let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
 
             let client = client_create(Some(&service_key.value));
             let body = AuthKeyRequest::new(INVALID_KEY, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res, ClientError::NotFound);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_key_revoke_bad_request_unknown_user_key_for_service() {
+        fn api_auth_key_revoke_not_found_unknown_user_key_for_service() {
             let client = client_create(None);
             let (service1, service1_key) = service_key_create(&client);
             let (_service2, service2_key) = service_key_create(&client);
@@ -135,7 +135,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthKeyRequest::new(&user_key.key, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res, ClientError::NotFound);
         }
 
         #[test]
@@ -147,12 +147,12 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthKeyRequest::new(&service_key.value, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res, ClientError::NotFound);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_key_revoke_bad_request_unknown_user_key_key() {
+        fn api_auth_key_revoke_not_found_unknown_user_key_key() {
             let client = client_create(None);
             let (service, service_key) = service_key_create(&client);
             let user_email = email_create();
@@ -163,7 +163,7 @@ macro_rules! auth_key_integration_test {
 
             let body = AuthKeyRequest::new(&user_key.key, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res, ClientError::NotFound);
         }
 
         #[test]
@@ -181,7 +181,7 @@ macro_rules! auth_key_integration_test {
             client.auth_key_revoke(body).unwrap();
             let body = AuthKeyRequest::new(&user_key.key, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res, ClientError::NotFound);
         }
     };
 }

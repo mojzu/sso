@@ -1,7 +1,7 @@
 use crate::{
-    api::{validate, ValidateRequest, ValidateRequestQuery},
-    Audit, AuditCreate2, AuditListFilter, AuditListQuery, AuditMeta, AuditType, AuditUpdate, Core,
-    CoreError, CoreResult, Driver, Key,
+    api::{result_audit_err, validate, ValidateRequest, ValidateRequestQuery},
+    Audit, AuditBuilder, AuditCreate2, AuditListFilter, AuditListQuery, AuditMeta, AuditType,
+    AuditUpdate, Core, CoreResult, Driver, Key,
 };
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
@@ -207,11 +207,12 @@ pub fn audit_list(
     request: AuditListRequest,
 ) -> CoreResult<AuditListResponse> {
     AuditListRequest::api_validate(&request)?;
-    let audit_type = AuditType::AuditList;
-    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
-
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditList);
     let (query, filter) = request.into_query_filter();
-    Audit::list(driver, service.as_ref(), &query, &filter).map(|data| AuditListResponse {
+
+    let res = Key::authenticate(driver, &mut audit, key_value)
+        .and_then(|service| Audit::list(driver, service.as_ref(), &query, &filter));
+    result_audit_err(driver, &audit, res).map(|data| AuditListResponse {
         meta: AuditListRequest::from_query_filter(query, filter),
         data,
     })
@@ -224,15 +225,18 @@ pub fn audit_create(
     request: AuditCreateRequest,
 ) -> CoreResult<AuditReadResponse> {
     AuditCreateRequest::api_validate(&request)?;
-    let audit_type = AuditType::AuditCreate;
-    let (_service, mut audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
-
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditCreate);
     let audit_create = AuditCreate2::new(request.type_, request.subject, request.data);
-    audit
-        .user_id(request.user_id)
-        .user_key_id(request.user_key_id)
-        .create(driver, audit_create)
-        .map(|data| AuditReadResponse { data })
+    let user_id = request.user_id;
+    let user_key_id = request.user_key_id;
+
+    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|_service| {
+        audit
+            .user_id(user_id)
+            .user_key_id(user_key_id)
+            .create(driver, audit_create)
+    });
+    result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
 }
 
 pub fn audit_read(
@@ -241,12 +245,11 @@ pub fn audit_read(
     audit_meta: AuditMeta,
     audit_id: Uuid,
 ) -> CoreResult<AuditReadResponse> {
-    let audit_type = AuditType::AuditRead;
-    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditRead);
 
-    Audit::read(driver, service.as_ref(), audit_id)
-        .and_then(|audit| audit.ok_or_else(|| CoreError::NotFound))
-        .map(|data| AuditReadResponse { data })
+    let res = Key::authenticate(driver, &mut audit, key_value)
+        .and_then(|service| Audit::read(driver, service.as_ref(), &audit_id));
+    result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
 }
 
 pub fn audit_update(
@@ -256,10 +259,10 @@ pub fn audit_update(
     audit_id: Uuid,
     request: AuditUpdateRequest,
 ) -> CoreResult<AuditReadResponse> {
-    let audit_type = AuditType::AuditUpdate;
-    let (service, _audit) = Key::authenticate(driver, audit_meta, key_value, audit_type)?;
-
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditUpdate);
     let update: AuditUpdate = request.into();
-    Audit::update(driver, service.as_ref(), &audit_id, &update)
-        .map(|data| AuditReadResponse { data })
+
+    let res = Key::authenticate(driver, &mut audit, key_value)
+        .and_then(|service| Audit::update(driver, service.as_ref(), &audit_id, &update));
+    result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
 }

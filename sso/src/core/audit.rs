@@ -1,4 +1,6 @@
-use crate::{impl_enum_to_from_string, CoreError, CoreResult, Driver, KeyWithValue, Service, User};
+use crate::{
+    impl_enum_to_from_string, CoreCause, CoreError, CoreResult, Driver, KeyWithValue, Service, User,
+};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -58,52 +60,6 @@ pub enum AuditType {
 }
 
 impl_enum_to_from_string!(AuditType, "Sso");
-
-// /// Audit messages.
-// #[derive(Debug, Serialize, Deserialize)]
-// pub enum AuditMessage {
-//     // TODO(refactor): Replace this with CoreError.
-//     ServiceNotFound,
-//     ServiceDisabled,
-//     UserNotFound,
-//     UserDisabled,
-//     KeyNotFound,
-//     KeyInvalid,
-//     KeyUndefined,
-//     KeyDisabledOrRevoked,
-//     PasswordUpdateRequired,
-//     PasswordNotSetOrIncorrect,
-//     Login,
-//     ResetPassword,
-//     ResetPasswordDisabled,
-//     TokenInvalidOrExpired,
-//     CsrfNotFoundOrUsed,
-//     ResetPasswordConfirm,
-//     UpdateEmail,
-//     UpdateEmailRevoke,
-//     UpdatePassword,
-//     UpdatePasswordRevoke,
-//     Oauth2Login,
-//     ServiceMismatch,
-//     KeyRevoke,
-//     TokenRefresh,
-//     TokenRevoke,
-//     TotpInvalid,
-// }
-
-// /// Audit message container.
-// #[derive(Debug, Serialize)]
-// struct AuditMessageObject {
-//     #[serde(rename = "type")]
-//     type_: AuditType,
-//     message: AuditMessage,
-// }
-
-// impl AuditMessageObject {
-//     fn new(type_: AuditType, message: AuditMessage) -> Self {
-//         Self { type_, message }
-//     }
-// }
 
 /// Audit.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -340,8 +296,13 @@ impl AuditBuilder {
         self
     }
 
+    /// Get reference to metadata.
+    pub fn meta(&self) -> &AuditMeta {
+        &self.meta
+    }
+
     /// Create audit log from parameters.
-    pub fn create(&mut self, driver: &dyn Driver, create: AuditCreate2) -> CoreResult<Audit> {
+    pub fn create(&self, driver: &dyn Driver, create: AuditCreate2) -> CoreResult<Audit> {
         let data = AuditCreate::new(
             self.meta.clone(),
             create.type_,
@@ -357,7 +318,7 @@ impl AuditBuilder {
 
     /// Create audit log with data.
     pub fn create_data<S: Serialize>(
-        &mut self,
+        &self,
         driver: &dyn Driver,
         subject: Option<String>,
         data: Option<S>,
@@ -375,27 +336,6 @@ impl AuditBuilder {
         );
         Audit::create(driver, &audit_data)
     }
-
-    // /// Create audit log with message.
-    // pub fn create_message(
-    //     &mut self,
-    //     driver: &dyn Driver,
-    //     type_: AuditType,
-    //     data: AuditMessage,
-    // ) -> CoreResult<Audit> {
-    //     let data = serde_json::to_value(AuditMessageObject::new(type_, data)).unwrap();
-    //     let audit_data = AuditCreate::new(
-    //         self.meta.clone(),
-    //         type_.to_string().unwrap(),
-    //         None,
-    //         Some(data),
-    //         self.key,
-    //         self.service,
-    //         self.user,
-    //         self.user_key,
-    //     );
-    //     Audit::create(driver, &audit_data)
-    // }
 }
 
 /// Audit subject trait.
@@ -483,11 +423,21 @@ impl Audit {
         driver.audit_create(data).map_err(CoreError::Driver)
     }
 
-    /// Read audit log.
+    // Read audit log.
     pub fn read(
         driver: &dyn Driver,
         service_mask: Option<&Service>,
-        id: Uuid,
+        id: &Uuid,
+    ) -> CoreResult<Audit> {
+        Self::read_opt(driver, service_mask, id)?
+            .ok_or_else(|| CoreError::NotFound(CoreCause::AuditNotFound))
+    }
+
+    /// Read audit log (optional).
+    pub fn read_opt(
+        driver: &dyn Driver,
+        service_mask: Option<&Service>,
+        id: &Uuid,
     ) -> CoreResult<Option<Audit>> {
         driver
             .audit_read_opt(&id, service_mask.map(|s| &s.id))

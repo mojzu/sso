@@ -1,4 +1,6 @@
-use crate::{Audit, NotifyActor, NotifyActorOptionsSmtp, NotifyError, NotifyResult, Service, User};
+use crate::{
+    AuditMeta, NotifyActor, NotifyActorOptionsSmtp, NotifyError, NotifyResult, Service, User,
+};
 use actix::{Handler, Message};
 
 /// Update email email message.
@@ -8,7 +10,7 @@ pub struct EmailUpdateEmail {
     user: User,
     old_email: String,
     token: String,
-    audit: Option<Audit>,
+    audit: AuditMeta,
 }
 
 impl EmailUpdateEmail {
@@ -18,7 +20,7 @@ impl EmailUpdateEmail {
         user: User,
         old_email: String,
         token: String,
-        audit: Option<Audit>,
+        audit: AuditMeta,
     ) -> Self {
         Self {
             service,
@@ -76,7 +78,7 @@ impl NotifyActor {
             "url": url.as_str(),
             "service_name": &data.service.name,
             "service_url": &data.service.url,
-            "audit": NotifyActor::audit_value(data.audit.as_ref()),
+            "audit": NotifyActor::audit_value(&data.audit),
         });
         let text = self.template_email_update_email(&parameters)?;
 

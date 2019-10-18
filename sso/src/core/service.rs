@@ -1,4 +1,6 @@
-use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, Core, CoreError, CoreResult, Driver};
+use crate::{
+    AuditDiff, AuditDiffBuilder, AuditSubject, Core, CoreCause, CoreError, CoreResult, Driver,
+};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -174,7 +176,7 @@ impl Service {
         let provider_local_url = self
             .provider_local_url
             .as_ref()
-            .ok_or_else(|| CoreError::BadRequest)?;
+            .ok_or_else(|| CoreError::BadRequest(CoreCause::ServiceProviderLocalUndefined))?;
         let mut url = Url::parse(provider_local_url).unwrap();
         let query = ServiceCallbackQuery::new(type_, data);
         let query = Core::qs_ser(&query)?;
@@ -195,8 +197,19 @@ impl Service {
     /// Create service.
     pub fn create(driver: &dyn Driver, create: &ServiceCreate) -> CoreResult<Service> {
         // TODO(refactor): Improve URL validation, validate provider URLs (option to enforce HTTPS).
-        Url::parse(&create.url).map_err(|_err| CoreError::BadRequest)?;
+        Url::parse(&create.url)
+            .map_err(|_err| CoreError::BadRequest(CoreCause::ServiceInvalidUrl))?;
         driver.service_create(create).map_err(CoreError::Driver)
+    }
+
+    /// Read service.
+    pub fn read(
+        driver: &dyn Driver,
+        service_mask: Option<&Service>,
+        id: &Uuid,
+    ) -> CoreResult<Service> {
+        Self::read_opt(driver, service_mask, id)?
+            .ok_or_else(|| CoreError::NotFound(CoreCause::ServiceNotFound))
     }
 
     /// Read service (optional).

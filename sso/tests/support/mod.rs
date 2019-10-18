@@ -146,10 +146,10 @@ pub fn user_key_verify(client: &ClientSync, key: &UserKey) -> UserKey {
     user_key
 }
 
-pub fn user_key_verify_bad_request(client: &ClientSync, key: &str) {
+pub fn user_key_verify_not_found(client: &ClientSync, key: &str) {
     let body = AuthKeyRequest::new(key, None);
     let err = client.auth_key_verify(body).unwrap_err();
-    assert_eq!(err, ClientError::BadRequest);
+    assert_eq!(err, ClientError::NotFound);
 }
 
 pub fn user_token_verify(client: &ClientSync, token: &UserToken) -> UserTokenAccess {
