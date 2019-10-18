@@ -3,7 +3,7 @@ mod route;
 
 use crate::{
     api::{AuthProviderOauth2, AuthProviderOauth2Args},
-    ClientActor, ClientError, CoreCause, CoreError, Driver, Metrics, NotifyActor,
+    ClientActor, ClientError, CoreError, Driver, Metrics, NotifyActor,
 };
 use actix::{Addr, MailboxError as ActixMailboxError};
 use actix_web::{
