@@ -49,16 +49,16 @@ impl fmt::Display for CoreCause {
 /// Core errors.
 #[derive(Debug, Fail)]
 pub enum CoreError {
-    #[fail(display = "CoreError:BadRequest {:?}", _0)]
+    #[fail(display = "CoreError:BadRequest {}", _0)]
     BadRequest(CoreCause),
 
-    #[fail(display = "CoreError:Unauthorised {:?}", _0)]
+    #[fail(display = "CoreError:Unauthorised {}", _0)]
     Unauthorised(CoreCause),
 
-    #[fail(display = "CoreError:Forbidden {:?}", _0)]
+    #[fail(display = "CoreError:Forbidden {}", _0)]
     Forbidden(CoreCause),
 
-    #[fail(display = "CoreError:NotFound {:?}", _0)]
+    #[fail(display = "CoreError:NotFound {}", _0)]
     NotFound(CoreCause),
 
     #[fail(display = "CoreError:Oauth2Request {}", _0)]
