@@ -76,10 +76,10 @@ pub type ServerResult<T> = Result<T, ServerError>;
 impl From<CoreError> for ServerError {
     fn from(e: CoreError) -> Self {
         match e {
-            CoreError::BadRequest(_e) => Self::BadRequest,
-            CoreError::Unauthorised(_e) => Self::Unauthorised,
-            CoreError::Forbidden(_e) => Self::Forbidden,
-            CoreError::NotFound(_e) => Self::NotFound,
+            CoreError::BadRequest(_cause) => Self::BadRequest,
+            CoreError::Unauthorised(_cause) => Self::Unauthorised,
+            CoreError::Forbidden(_cause) => Self::Forbidden,
+            CoreError::NotFound(_cause) => Self::NotFound,
             CoreError::Jsonwebtoken(_e) => Self::BadRequest,
             _ => Self::Core(e),
         }
