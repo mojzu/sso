@@ -96,7 +96,7 @@ pub trait DriverIf {
     fn audit_read_opt(
         &self,
         id: &Uuid,
-        service_id_mask: Option<&Uuid>,
+        service_id_mask: Option<Uuid>,
     ) -> DriverResult<Option<Audit>>;
 
     /// Read audit metrics, returns array of counts for distinct audit types.
@@ -111,7 +111,7 @@ pub trait DriverIf {
         &self,
         id: &Uuid,
         update: &AuditUpdate,
-        service_id_mask: Option<&Uuid>,
+        service_id_mask: Option<Uuid>,
     ) -> DriverResult<Audit>;
 
     /// Delete many audit logs.

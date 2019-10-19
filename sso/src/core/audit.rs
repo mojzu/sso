@@ -1,6 +1,4 @@
-use crate::{
-    impl_enum_to_from_string, CoreCause, CoreError, CoreResult, Driver, KeyWithValue, Service, User,
-};
+use crate::{impl_enum_to_from_string, CoreError, CoreResult, Driver, KeyWithValue, Service, User};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -192,7 +190,7 @@ pub struct AuditListFilter {
 pub struct AuditList<'a> {
     pub query: &'a AuditListQuery,
     pub filter: &'a AuditListFilter,
-    pub service_id_mask: Option<&'a Uuid>,
+    pub service_id_mask: Option<Uuid>,
 }
 
 /// Audit update.
@@ -313,7 +311,7 @@ impl AuditBuilder {
             self.user,
             self.user_key,
         );
-        Audit::create(driver, &data)
+        driver.audit_create(&data).map_err(CoreError::Driver)
     }
 
     /// Create audit log with data.
@@ -334,7 +332,7 @@ impl AuditBuilder {
             self.user,
             self.user_key,
         );
-        Audit::create(driver, &audit_data)
+        driver.audit_create(&audit_data).map_err(CoreError::Driver)
     }
 }
 
@@ -401,59 +399,6 @@ impl Audit {
             data,
         };
         serde_json::to_value(v).unwrap()
-    }
-
-    /// List audit logs.
-    pub fn list(
-        driver: &dyn Driver,
-        service_mask: Option<&Service>,
-        query: &AuditListQuery,
-        filter: &AuditListFilter,
-    ) -> CoreResult<Vec<Audit>> {
-        let list = AuditList {
-            query,
-            filter,
-            service_id_mask: service_mask.map(|s| &s.id),
-        };
-        driver.audit_list(&list).map_err(Into::into)
-    }
-
-    /// Create audit log.
-    pub fn create(driver: &dyn Driver, data: &AuditCreate) -> CoreResult<Audit> {
-        driver.audit_create(data).map_err(CoreError::Driver)
-    }
-
-    // Read audit log.
-    pub fn read(
-        driver: &dyn Driver,
-        service_mask: Option<&Service>,
-        id: &Uuid,
-    ) -> CoreResult<Audit> {
-        Self::read_opt(driver, service_mask, id)?
-            .ok_or_else(|| CoreError::NotFound(CoreCause::AuditNotFound))
-    }
-
-    /// Read audit log (optional).
-    pub fn read_opt(
-        driver: &dyn Driver,
-        service_mask: Option<&Service>,
-        id: &Uuid,
-    ) -> CoreResult<Option<Audit>> {
-        driver
-            .audit_read_opt(&id, service_mask.map(|s| &s.id))
-            .map_err(CoreError::Driver)
-    }
-
-    // Update audit log.
-    pub fn update(
-        driver: &dyn Driver,
-        service_mask: Option<&Service>,
-        id: &Uuid,
-        update: &AuditUpdate,
-    ) -> CoreResult<Audit> {
-        driver
-            .audit_update(id, update, service_mask.map(|s| &s.id))
-            .map_err(CoreError::Driver)
     }
 
     /// Delete many audit logs older than days.

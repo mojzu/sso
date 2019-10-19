@@ -4,7 +4,6 @@ use crate::{
         route::{request_audit_meta, route_response_json},
         Data,
     },
-    ServerError,
 };
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
@@ -30,19 +29,17 @@ fn list_handler(
     req: HttpRequest,
     id: Identity,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let request =
-        api::AuditListRequest::from_str_fut(req.query_string()).map_err(ServerError::Core);
+    let id = id.identity();
+    let request = api::AuditListRequest::from_str_fut(req.query_string());
 
     audit_meta
         .join(request)
         .and_then(move |(audit_meta, request)| {
-            web::block(move || {
-                api::audit_list(data.driver(), id, audit_meta, request).map_err(Into::into)
-            })
-            .map_err(Into::into)
+            web::block(move || api::audit_list(data.driver(), audit_meta, id, request))
+                .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_json)
 }
 
@@ -52,17 +49,16 @@ fn create_handler(
     id: Identity,
     body: web::Json<api::AuditCreateRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let id = id.identity();
     let audit_meta = request_audit_meta(&req);
+    let id = id.identity();
     let request = body.into_inner();
 
     audit_meta
         .and_then(move |audit_meta| {
-            web::block(move || {
-                api::audit_create(data.driver(), id, audit_meta, request).map_err(Into::into)
-            })
-            .map_err(Into::into)
+            web::block(move || api::audit_create(data.driver(), audit_meta, id, request))
+                .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_json)
 }
 
@@ -72,17 +68,16 @@ fn read_handler(
     id: Identity,
     path: web::Path<(Uuid,)>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let audit_id = path.0;
+    let id = id.identity();
+    let (audit_id,) = path.into_inner();
 
     audit_meta
         .and_then(move |audit_meta| {
-            web::block(move || {
-                api::audit_read(data.driver(), id, audit_meta, audit_id).map_err(Into::into)
-            })
-            .map_err(Into::into)
+            web::block(move || api::audit_read(data.driver(), audit_meta, id, audit_id))
+                .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_json)
 }
 
@@ -93,18 +88,16 @@ fn update_handler(
     path: web::Path<(Uuid,)>,
     body: web::Json<api::AuditUpdateRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let id = id.identity();
     let audit_meta = request_audit_meta(&req);
-    let audit_id = path.0;
+    let id = id.identity();
+    let (audit_id,) = path.into_inner();
     let request = body.into_inner();
 
     audit_meta
         .and_then(move |audit_meta| {
-            web::block(move || {
-                api::audit_update(data.driver(), id, audit_meta, audit_id, request)
-                    .map_err(Into::into)
-            })
-            .map_err(Into::into)
+            web::block(move || api::audit_update(data.driver(), audit_meta, id, audit_id, request))
+                .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_json)
 }

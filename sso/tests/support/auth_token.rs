@@ -258,7 +258,7 @@ macro_rules! auth_token_integration_test {
             client.auth_token_revoke(body).unwrap();
             let body = AuthTokenRequest::new(&user_token.access_token, None);
             let res = client.auth_token_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res, ClientError::BadRequest);
         }
     };
 }

@@ -1,6 +1,7 @@
 //! # API Module
 mod audit;
 mod auth;
+mod error;
 mod key;
 mod service;
 mod user;
@@ -9,16 +10,14 @@ pub mod validate;
 pub use crate::api::{
     audit::*,
     auth::*,
+    error::*,
     key::*,
     service::*,
     user::*,
     validate::{ValidateRequest, ValidateRequestQuery},
 };
 
-use crate::{
-    Audit, AuditBuilder, AuditDiff, AuditMeta, AuditSubject, AuditType, CoreResult, Driver, Key,
-    Metrics,
-};
+use crate::{Audit, AuditBuilder, AuditDiff, AuditMeta, AuditSubject, AuditType, Driver};
 use prometheus::Registry;
 use serde_json::Value;
 
@@ -104,25 +103,44 @@ pub fn ping() -> Value {
 
 pub fn metrics(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     registry: &Registry,
-) -> CoreResult<String> {
+) -> ApiResult<String> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::Metrics);
 
-    let res = Key::authenticate(driver, &mut audit, key_value)
-        .and_then(|service| Metrics::read(driver, service.as_ref(), registry));
+    let res = server::metrics(driver, &mut audit, key_value, registry);
     result_audit_err(driver, &audit, res)
 }
 
-fn result_audit<T>(driver: &dyn Driver, audit: &AuditBuilder, res: CoreResult<T>) -> CoreResult<T> {
+mod server {
+    use crate::{
+        api::{ApiError, ApiResult},
+        AuditBuilder, Auth, Driver, Metrics,
+    };
+    use prometheus::Registry;
+
+    pub fn metrics(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        registry: &Registry,
+    ) -> ApiResult<String> {
+        let service =
+            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        Metrics::read(driver, service.as_ref(), registry).map_err(ApiError::BadRequest)
+    }
+}
+
+fn result_audit<T>(driver: &dyn Driver, audit: &AuditBuilder, res: ApiResult<T>) -> ApiResult<T> {
     res.or_else(|e| {
         let data = Audit::typed_data("error", &e);
-        audit.create_data(driver, None, Some(data))?;
+        audit.create_data(driver, None, Some(data)).unwrap();
         Err(e)
     })
     .and_then(|res| {
-        audit.create_data::<bool>(driver, None, None)?;
+        audit.create_data::<bool>(driver, None, None).unwrap();
         Ok(res)
     })
 }
@@ -130,11 +148,11 @@ fn result_audit<T>(driver: &dyn Driver, audit: &AuditBuilder, res: CoreResult<T>
 fn result_audit_err<T>(
     driver: &dyn Driver,
     audit: &AuditBuilder,
-    res: CoreResult<T>,
-) -> CoreResult<T> {
+    res: ApiResult<T>,
+) -> ApiResult<T> {
     res.or_else(|e| {
         let data = Audit::typed_data("error", &e);
-        audit.create_data(driver, None, Some(data))?;
+        audit.create_data(driver, None, Some(data)).unwrap();
         Err(e)
     })
 }
@@ -142,15 +160,17 @@ fn result_audit_err<T>(
 fn result_audit_subject<T: AuditSubject>(
     driver: &dyn Driver,
     audit: &AuditBuilder,
-    res: CoreResult<T>,
-) -> CoreResult<T> {
+    res: ApiResult<T>,
+) -> ApiResult<T> {
     res.or_else(|e| {
         let data = Audit::typed_data("error", &e);
-        audit.create_data(driver, None, Some(data))?;
+        audit.create_data(driver, None, Some(data)).unwrap();
         Err(e)
     })
     .and_then(|res| {
-        audit.create_data::<bool>(driver, Some(res.subject()), None)?;
+        audit
+            .create_data::<bool>(driver, Some(res.subject()), None)
+            .unwrap();
         Ok(res)
     })
 }
@@ -158,16 +178,18 @@ fn result_audit_subject<T: AuditSubject>(
 fn result_audit_diff<T: AuditSubject + AuditDiff>(
     driver: &dyn Driver,
     audit: &AuditBuilder,
-    res: CoreResult<(T, T)>,
-) -> CoreResult<T> {
+    res: ApiResult<(T, T)>,
+) -> ApiResult<T> {
     res.or_else(|e| {
         let data = Audit::typed_data("error", &e);
-        audit.create_data(driver, None, Some(data))?;
+        audit.create_data(driver, None, Some(data)).unwrap();
         Err(e)
     })
     .and_then(|(p, n)| {
         let diff = n.diff(&p);
-        audit.create_data(driver, Some(n.subject()), Some(diff))?;
+        audit
+            .create_data(driver, Some(n.subject()), Some(diff))
+            .unwrap();
         Ok(n)
     })
 }

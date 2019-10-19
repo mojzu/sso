@@ -1,6 +1,4 @@
-use crate::{
-    AuditDiff, AuditDiffBuilder, AuditSubject, Core, CoreCause, CoreError, CoreResult, Driver,
-};
+use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, Core, CoreError, CoreResult, Driver};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -176,7 +174,7 @@ impl Service {
         let provider_local_url = self
             .provider_local_url
             .as_ref()
-            .ok_or_else(|| CoreError::BadRequest(CoreCause::ServiceProviderLocalUndefined))?;
+            .ok_or_else(|| CoreError::ServiceProviderLocalDisabled)?;
         let mut url = Url::parse(provider_local_url).unwrap();
         let query = ServiceCallbackQuery::new(type_, data);
         let query = Core::qs_ser(&query)?;
@@ -184,21 +182,10 @@ impl Service {
         Ok(url)
     }
 
-    /// List services using query.
-    pub fn list(
-        driver: &dyn Driver,
-        query: &ServiceListQuery,
-        filter: &ServiceListFilter,
-    ) -> CoreResult<Vec<Service>> {
-        let list = ServiceList { query, filter };
-        driver.service_list(&list).map_err(CoreError::Driver)
-    }
-
     /// Create service.
     pub fn create(driver: &dyn Driver, create: &ServiceCreate) -> CoreResult<Service> {
         // TODO(refactor): Improve URL validation, validate provider URLs (option to enforce HTTPS).
-        Url::parse(&create.url)
-            .map_err(|_err| CoreError::BadRequest(CoreCause::ServiceInvalidUrl))?;
+        Url::parse(&create.url).map_err(CoreError::UrlParse)?;
         driver.service_create(create).map_err(CoreError::Driver)
     }
 
@@ -208,8 +195,7 @@ impl Service {
         service_mask: Option<&Service>,
         id: &Uuid,
     ) -> CoreResult<Service> {
-        Self::read_opt(driver, service_mask, id)?
-            .ok_or_else(|| CoreError::NotFound(CoreCause::ServiceNotFound))
+        Self::read_opt(driver, service_mask, id)?.ok_or_else(|| CoreError::ServiceNotFound)
     }
 
     /// Read service (optional).
@@ -231,15 +217,6 @@ impl Service {
         driver
             .service_update(&id, update)
             .map_err(CoreError::Driver)
-    }
-
-    /// Delete service by ID.
-    pub fn delete(
-        driver: &dyn Driver,
-        _service_mask: Option<&Service>,
-        id: Uuid,
-    ) -> CoreResult<usize> {
-        driver.service_delete(&id).map_err(CoreError::Driver)
     }
 }
 

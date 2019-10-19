@@ -4,7 +4,11 @@ mod key;
 mod service;
 mod user;
 
-use crate::{api, server::Data, AuditMeta, ServerError, ServerResult};
+use crate::{
+    api::{self, ApiError, ApiResult},
+    server::Data,
+    AuditMeta, CoreError,
+};
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, ResponseError, Result, Scope};
 use futures::{future, Future};
@@ -35,38 +39,39 @@ fn metrics_handler(
     req: HttpRequest,
     id: Identity,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let key_value = id.identity();
     let audit_meta = request_audit_meta(&req);
+    let key_value = id.identity();
 
     audit_meta
         .and_then(|audit_meta| {
-            web::block(move || {
-                api::metrics(data.driver(), key_value, audit_meta, data.registry())
-                    .map_err(Into::into)
-            })
-            .map_err(Into::into)
+            web::block(move || api::metrics(data.driver(), audit_meta, key_value, data.registry()))
+                .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_text)
 }
 
 /// Build audit meta from HTTP request.
-fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, ServerError> {
+fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, ApiError> {
     let connection_info = req.connection_info();
     let remote = connection_info
         .remote()
-        .ok_or_else(|| ServerError::BadRequest);
+        .ok_or_else(|| ApiError::BadRequest(CoreError::HttpHeader));
 
     let user_agent = req
         .headers()
         .get(http::header::USER_AGENT)
-        .ok_or_else(|| ServerError::BadRequest)
-        .and_then(|x| x.to_str().map_err(|_err| ServerError::BadRequest));
+        .ok_or_else(|| ApiError::BadRequest(CoreError::HttpHeader))
+        .and_then(|x| {
+            x.to_str()
+                .map_err(|_err| ApiError::BadRequest(CoreError::HttpHeader))
+        });
 
     let forwarded = req.headers().get(http::header::FORWARDED);
     let forwarded = if let Some(forwarded) = forwarded {
         forwarded
             .to_str()
-            .map_err(|_err| ServerError::BadRequest)
+            .map_err(|_err| ApiError::BadRequest(CoreError::HttpHeader))
             .map(|x| Some(x.to_owned()))
     } else {
         Ok(None)
@@ -81,7 +86,7 @@ fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, Serv
 
 /// Route response empty handler.
 fn route_response_empty<T: Serialize>(
-    result: ServerResult<T>,
+    result: ApiResult<T>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     match result {
         Ok(_res) => future::ok(HttpResponse::Ok().finish()),
@@ -91,7 +96,7 @@ fn route_response_empty<T: Serialize>(
 
 /// Route response JSON handler.
 fn route_response_json<T: Serialize>(
-    result: ServerResult<T>,
+    result: ApiResult<T>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     match result {
         Ok(res) => future::ok(HttpResponse::Ok().json(res)),
@@ -101,7 +106,7 @@ fn route_response_json<T: Serialize>(
 
 /// Route response text handler.
 fn route_response_text(
-    result: ServerResult<String>,
+    result: ApiResult<String>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     match result {
         Ok(res) => future::ok(HttpResponse::Ok().body(res)),

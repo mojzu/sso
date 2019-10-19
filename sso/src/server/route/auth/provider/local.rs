@@ -1,5 +1,5 @@
 use crate::{
-    api,
+    api::{self, ApiError},
     server::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
@@ -54,15 +54,15 @@ fn login_handler(
     id: Identity,
     body: web::Json<api::AuthLoginRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let id = id.identity();
     let audit_meta = request_audit_meta(&req);
+    let id = id.identity();
     let request = body.into_inner();
     let password_meta = User::password_meta(
         data.options().password_pwned_enabled(),
         data.client(),
         Some(&request.password),
     )
-    .map_err(Into::into);
+    .map_err(ApiError::BadRequest);
 
     audit_meta
         .join(password_meta)
@@ -70,17 +70,17 @@ fn login_handler(
             web::block(move || {
                 api::auth_provider_local_login(
                     data.driver(),
-                    id,
                     audit_meta,
+                    id,
                     password_meta,
                     request,
                     data.options().access_token_expires(),
                     data.options().refresh_token_expires(),
                 )
-                .map_err(Into::into)
             })
             .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_json)
 }
 
@@ -90,8 +90,8 @@ fn reset_password_handler(
     id: Identity,
     body: web::Json<api::AuthResetPasswordRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let id = id.identity();
     let audit_meta = request_audit_meta(&req);
+    let id = id.identity();
     let request = body.into_inner();
 
     audit_meta
@@ -99,16 +99,16 @@ fn reset_password_handler(
             web::block(move || {
                 api::auth_provider_local_reset_password(
                     data.driver(),
-                    id,
                     audit_meta,
+                    id,
                     request,
                     data.notify(),
                     data.options().refresh_token_expires(),
                 )
-                .map_err(Into::into)
             })
             .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_empty)
 }
 
@@ -118,15 +118,15 @@ fn reset_password_confirm_handler(
     id: Identity,
     body: web::Json<api::AuthResetPasswordConfirmRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let id = id.identity();
     let audit_meta = request_audit_meta(&req);
+    let id = id.identity();
     let request = body.into_inner();
     let password_meta = User::password_meta(
         data.options().password_pwned_enabled(),
         data.client(),
         Some(&request.password),
     )
-    .map_err(Into::into);
+    .map_err(ApiError::BadRequest);
 
     audit_meta
         .join(password_meta)
@@ -134,15 +134,15 @@ fn reset_password_confirm_handler(
             web::block(move || {
                 api::auth_provider_local_reset_password_confirm(
                     data.driver(),
-                    id,
                     audit_meta,
+                    id,
                     password_meta,
                     request,
                 )
-                .map_err(Into::into)
             })
             .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_json)
 }
 
@@ -152,8 +152,8 @@ fn update_email_handler(
     id: Identity,
     body: web::Json<api::AuthUpdateEmailRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let id = id.identity();
     let audit_meta = request_audit_meta(&req);
+    let id = id.identity();
     let request = body.into_inner();
 
     audit_meta
@@ -161,16 +161,16 @@ fn update_email_handler(
             web::block(move || {
                 api::auth_provider_local_update_email(
                     data.driver(),
-                    id,
                     audit_meta,
+                    id,
                     request,
                     data.notify(),
                     data.options().revoke_token_expires(),
                 )
-                .map_err(Into::into)
             })
             .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_empty)
 }
 
@@ -180,18 +180,18 @@ fn update_email_revoke_handler(
     id: Identity,
     body: web::Json<api::AuthTokenRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let id = id.identity();
     let audit_meta = request_audit_meta(&req);
+    let id = id.identity();
     let request = body.into_inner();
 
     audit_meta
         .and_then(move |audit_meta| {
             web::block(move || {
-                api::auth_provider_local_update_email_revoke(data.driver(), id, audit_meta, request)
-                    .map_err(Into::into)
+                api::auth_provider_local_update_email_revoke(data.driver(), audit_meta, id, request)
             })
             .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_empty)
 }
 
@@ -201,15 +201,15 @@ fn update_password_handler(
     id: Identity,
     body: web::Json<api::AuthUpdatePasswordRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let id = id.identity();
     let audit_meta = request_audit_meta(&req);
+    let id = id.identity();
     let request = body.into_inner();
     let password_meta = User::password_meta(
         data.options().password_pwned_enabled(),
         data.client(),
         Some(&request.password),
     )
-    .map_err(Into::into);
+    .map_err(ApiError::BadRequest);
 
     audit_meta
         .join(password_meta)
@@ -217,17 +217,17 @@ fn update_password_handler(
             web::block(move || {
                 api::auth_provider_local_update_password(
                     data.driver(),
-                    id,
                     audit_meta,
+                    id,
                     password_meta,
                     request,
                     data.notify(),
                     data.options().revoke_token_expires(),
                 )
-                .map_err(Into::into)
             })
             .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_json)
 }
 
@@ -237,8 +237,8 @@ fn update_password_revoke_handler(
     id: Identity,
     body: web::Json<api::AuthTokenRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let id = id.identity();
     let audit_meta = request_audit_meta(&req);
+    let id = id.identity();
     let request = body.into_inner();
 
     audit_meta
@@ -246,13 +246,13 @@ fn update_password_revoke_handler(
             web::block(move || {
                 api::auth_provider_local_update_password_revoke(
                     data.driver(),
-                    id,
                     audit_meta,
+                    id,
                     request,
                 )
-                .map_err(Into::into)
             })
             .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_empty)
 }

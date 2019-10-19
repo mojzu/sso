@@ -2,7 +2,7 @@ pub mod actix_web_middleware;
 mod route;
 
 use crate::{
-    api::{AuthProviderOauth2, AuthProviderOauth2Args},
+    api::{ApiError, AuthProviderOauth2, AuthProviderOauth2Args},
     ClientActor, ClientError, CoreError, Driver, Metrics, NotifyActor,
 };
 use actix::{Addr, MailboxError as ActixMailboxError};
@@ -36,21 +36,6 @@ use std::{
 /// Server errors.
 #[derive(Debug, Fail)]
 pub enum ServerError {
-    #[fail(display = "ServerError:BadRequest")]
-    BadRequest,
-
-    #[fail(display = "ServerError:Unauthorised")]
-    Unauthorised,
-
-    #[fail(display = "ServerError:Forbidden")]
-    Forbidden,
-
-    #[fail(display = "ServerError:NotFound")]
-    NotFound,
-
-    #[fail(display = "ServerError:Core {}", _0)]
-    Core(#[fail(cause)] CoreError),
-
     #[fail(display = "ServerError:Client {}", _0)]
     Client(#[fail(cause)] ClientError),
 
@@ -73,35 +58,24 @@ pub enum ServerError {
 /// Server result wrapper type.
 pub type ServerResult<T> = Result<T, ServerError>;
 
-impl From<CoreError> for ServerError {
-    fn from(e: CoreError) -> Self {
-        match e {
-            CoreError::BadRequest(_cause) => Self::BadRequest,
-            CoreError::Unauthorised(_cause) => Self::Unauthorised,
-            CoreError::Forbidden(_cause) => Self::Forbidden,
-            CoreError::NotFound(_cause) => Self::NotFound,
-            CoreError::Jsonwebtoken(_e) => Self::BadRequest,
-            _ => Self::Core(e),
-        }
-    }
-}
-
-impl From<ActixWebBlockingError<ServerError>> for ServerError {
-    fn from(e: ActixWebBlockingError<ServerError>) -> Self {
+impl From<ActixWebBlockingError<ApiError>> for ApiError {
+    fn from(e: ActixWebBlockingError<ApiError>) -> Self {
         match e {
             ActixWebBlockingError::Error(e) => e,
-            ActixWebBlockingError::Canceled => Self::ActixWebBlockingCancelled,
+            ActixWebBlockingError::Canceled => {
+                Self::InternalServerError(CoreError::ActixWebBlockingCancelled)
+            }
         }
     }
 }
 
-impl ResponseError for ServerError {
+impl ResponseError for ApiError {
     fn error_response(&self) -> HttpResponse {
         match self {
-            Self::BadRequest => HttpResponse::BadRequest().finish(),
-            Self::Unauthorised => HttpResponse::Unauthorized().finish(),
-            Self::Forbidden => HttpResponse::Forbidden().finish(),
-            Self::NotFound => HttpResponse::NotFound().finish(),
+            Self::BadRequest(_e) => HttpResponse::BadRequest().finish(),
+            Self::Unauthorised(_e) => HttpResponse::Unauthorized().finish(),
+            Self::Forbidden(_e) => HttpResponse::Forbidden().finish(),
+            Self::NotFound(_e) => HttpResponse::NotFound().finish(),
             _ => {
                 error!("{}", self);
                 HttpResponse::InternalServerError().finish()

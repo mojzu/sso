@@ -98,7 +98,7 @@ impl DriverIf for DriverPostgres {
     fn audit_read_opt(
         &self,
         id: &Uuid,
-        service_id_mask: Option<&Uuid>,
+        service_id_mask: Option<Uuid>,
     ) -> DriverResult<Option<Audit>> {
         let conn = self.conn()?;
         ModelAudit::read_opt(&conn, id, service_id_mask)
@@ -117,7 +117,7 @@ impl DriverIf for DriverPostgres {
         &self,
         id: &Uuid,
         update: &AuditUpdate,
-        service_id_mask: Option<&Uuid>,
+        service_id_mask: Option<Uuid>,
     ) -> DriverResult<Audit> {
         let conn = self.conn()?;
         ModelAudit::update(&conn, id, update, service_id_mask)
@@ -301,7 +301,7 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
     fn audit_read_opt(
         &self,
         id: &Uuid,
-        service_id_mask: Option<&Uuid>,
+        service_id_mask: Option<Uuid>,
     ) -> DriverResult<Option<Audit>> {
         ModelAudit::read_opt(self.conn(), id, service_id_mask)
     }
@@ -318,7 +318,7 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         &self,
         id: &Uuid,
         update: &AuditUpdate,
-        service_id_mask: Option<&Uuid>,
+        service_id_mask: Option<Uuid>,
     ) -> DriverResult<Audit> {
         ModelAudit::update(self.conn(), id, update, service_id_mask)
     }

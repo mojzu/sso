@@ -1,7 +1,8 @@
 use crate::{
-    api::{result_audit, validate, AuditIdOptResponse, AuthTokenRequest, ValidateRequest},
-    AuditBuilder, AuditCreate2, AuditMeta, AuditType, Auth, AuthArgs, CoreResult, Driver, Key,
-    NotifyActor, UserPasswordMeta, UserToken,
+    api::{
+        result_audit, validate, ApiResult, AuditIdOptResponse, AuthTokenRequest, ValidateRequest,
+    },
+    AuditBuilder, AuditMeta, AuditType, Driver, NotifyActor, UserPasswordMeta, UserToken,
 };
 use actix::Addr;
 use uuid::Uuid;
@@ -111,25 +112,24 @@ impl ValidateRequest<AuthUpdatePasswordRequest> for AuthUpdatePasswordRequest {}
 
 pub fn auth_provider_local_login(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     password_meta: UserPasswordMeta,
     request: AuthLoginRequest,
     access_token_expires: i64,
     refresh_token_expires: i64,
-) -> CoreResult<AuthLoginResponse> {
+) -> ApiResult<AuthLoginResponse> {
     AuthLoginRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalLogin);
 
-    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
-        Auth::login(
-            AuthArgs::new(driver, &service, &mut audit),
-            request.email,
-            request.password,
-            access_token_expires,
-            refresh_token_expires,
-        )
-    });
+    let res = provider_local::login(
+        driver,
+        &mut audit,
+        key_value,
+        request,
+        access_token_expires,
+        refresh_token_expires,
+    );
     result_audit(driver, &audit, res).map(|data| AuthLoginResponse {
         meta: password_meta,
         data,
@@ -138,43 +138,40 @@ pub fn auth_provider_local_login(
 
 pub fn auth_provider_local_reset_password(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     request: AuthResetPasswordRequest,
     notify: &Addr<NotifyActor>,
     access_token_expires: i64,
-) -> CoreResult<()> {
+) -> ApiResult<()> {
     AuthResetPasswordRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPassword);
 
-    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
-        Auth::reset_password(
-            AuthArgs::new(driver, &service, &mut audit),
-            notify,
-            request.email,
-            access_token_expires,
-        )
-    });
+    let res = provider_local::reset_password(
+        driver,
+        &mut audit,
+        key_value,
+        notify,
+        request,
+        access_token_expires,
+    );
     result_audit(driver, &audit, res)
+        // Catch Err result so this function returns Ok to prevent the caller
+        // from inferring a users existence.
+        .or_else(|_e| Ok(()))
 }
 
 pub fn auth_provider_local_reset_password_confirm(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     password_meta: UserPasswordMeta,
     request: AuthResetPasswordConfirmRequest,
-) -> CoreResult<AuthPasswordMetaResponse> {
+) -> ApiResult<AuthPasswordMetaResponse> {
     AuthResetPasswordConfirmRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPasswordConfirm);
 
-    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
-        Auth::reset_password_confirm(
-            AuthArgs::new(driver, &service, &mut audit),
-            request.token,
-            request.password,
-        )
-    });
+    let res = provider_local::reset_password_confirm(driver, &mut audit, key_value, request);
     result_audit(driver, &audit, res).map(|_| AuthPasswordMetaResponse {
         meta: password_meta,
     })
@@ -182,45 +179,36 @@ pub fn auth_provider_local_reset_password_confirm(
 
 pub fn auth_provider_local_update_email(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     request: AuthUpdateEmailRequest,
     notify: &Addr<NotifyActor>,
     revoke_token_expires: i64,
-) -> CoreResult<()> {
+) -> ApiResult<()> {
     AuthUpdateEmailRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdateEmail);
 
-    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
-        Auth::update_email(
-            AuthArgs::new(driver, &service, &mut audit),
-            notify,
-            request.user_id,
-            request.password,
-            request.new_email,
-            revoke_token_expires,
-        )
-    });
+    let res = provider_local::update_email(
+        driver,
+        &mut audit,
+        key_value,
+        notify,
+        request,
+        revoke_token_expires,
+    );
     result_audit(driver, &audit, res)
 }
 
 pub fn auth_provider_local_update_email_revoke(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     request: AuthTokenRequest,
-) -> CoreResult<AuditIdOptResponse> {
+) -> ApiResult<AuditIdOptResponse> {
     AuthTokenRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdateEmailRevoke);
 
-    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
-        let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
-        Auth::update_email_revoke(
-            AuthArgs::new(driver, &service, &mut audit),
-            request.token,
-            audit_create,
-        )
-    });
+    let res = provider_local::update_email_revoke(driver, &mut audit, key_value, request);
     result_audit(driver, &audit, res).map(|audit| AuditIdOptResponse {
         audit: audit.map(|x| x.id),
     })
@@ -228,26 +216,24 @@ pub fn auth_provider_local_update_email_revoke(
 
 pub fn auth_provider_local_update_password(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     password_meta: UserPasswordMeta,
     request: AuthUpdatePasswordRequest,
     notify: &Addr<NotifyActor>,
     revoke_token_expires: i64,
-) -> CoreResult<AuthPasswordMetaResponse> {
+) -> ApiResult<AuthPasswordMetaResponse> {
     AuthUpdatePasswordRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdatePassword);
 
-    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
-        Auth::update_password(
-            AuthArgs::new(driver, &service, &mut audit),
-            notify,
-            request.user_id,
-            request.password,
-            request.new_password,
-            revoke_token_expires,
-        )
-    });
+    let res = provider_local::update_password(
+        driver,
+        &mut audit,
+        key_value,
+        notify,
+        request,
+        revoke_token_expires,
+    );
     result_audit(driver, &audit, res).map(|_| AuthPasswordMetaResponse {
         meta: password_meta,
     })
@@ -255,22 +241,337 @@ pub fn auth_provider_local_update_password(
 
 pub fn auth_provider_local_update_password_revoke(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     request: AuthTokenRequest,
-) -> CoreResult<AuditIdOptResponse> {
+) -> ApiResult<AuditIdOptResponse> {
     AuthTokenRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdatePasswordRevoke);
 
-    let res = Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
-        let audit_create: Option<AuditCreate2> = request.audit.map(|x| x.into());
-        Auth::update_password_revoke(
-            AuthArgs::new(driver, &service, &mut audit),
-            request.token,
-            audit_create,
-        )
-    });
+    let res = provider_local::update_password_revoke(driver, &mut audit, key_value, request);
     result_audit(driver, &audit, res).map(|audit| AuditIdOptResponse {
         audit: audit.map(|x| x.id),
     })
+}
+
+mod provider_local {
+    use super::*;
+    use crate::{
+        api::{ApiError, ApiResult},
+        Audit, AuditBuilder, Auth, CoreError, Driver, Jwt, Key, KeyType, NotifyActor, User,
+        UserToken, UserUpdate,
+    };
+    use actix::Addr;
+
+    pub fn login(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        request: AuthLoginRequest,
+        access_token_expires: i64,
+        refresh_token_expires: i64,
+    ) -> ApiResult<UserToken> {
+        let service =
+            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        // Login requires token key type.
+        let user = Auth::user_read_by_email(driver, Some(&service), audit, request.email)
+            .map_err(ApiError::BadRequest)?;
+        let key = Auth::key_read_by_user(driver, &service, audit, &user, KeyType::Token)
+            .map_err(ApiError::BadRequest)?;
+
+        // Forbidden if user password update required.
+        if user.password_require_update {
+            return Err(ApiError::Forbidden(CoreError::UserPasswordUpdateRequired));
+        }
+
+        // Check user password.
+        Auth::password_check(user.password_hash(), &request.password)
+            .map_err(ApiError::BadRequest)?;
+
+        // Encode user token.
+        Auth::encode_user_token(
+            driver,
+            &service,
+            user,
+            &key,
+            access_token_expires,
+            refresh_token_expires,
+        )
+        .map_err(ApiError::BadRequest)
+    }
+
+    pub fn reset_password(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        notify: &Addr<NotifyActor>,
+        request: AuthResetPasswordRequest,
+        access_token_expires: i64,
+    ) -> ApiResult<()> {
+        let service =
+            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        // Reset password requires token key type.
+        let user = Auth::user_read_by_email(driver, Some(&service), audit, request.email)
+            .map_err(ApiError::BadRequest)?;
+        let key = Auth::key_read_by_user(driver, &service, audit, &user, KeyType::Token)
+            .map_err(ApiError::BadRequest)?;
+
+        // Bad request if user password reset is disabled.
+        if !user.password_allow_reset {
+            return Err(ApiError::BadRequest(CoreError::UserResetPasswordDisabled));
+        }
+
+        // Encode reset token.
+        let token =
+            Auth::encode_reset_password_token(driver, &service, &user, &key, access_token_expires)
+                .map_err(ApiError::BadRequest)?;
+
+        // Send reset password email.
+        Auth::notify_email_reset_password(notify, service, user, token, audit.meta().clone())
+            .map_err(ApiError::BadRequest)
+    }
+
+    pub fn reset_password_confirm(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        request: AuthResetPasswordConfirmRequest,
+    ) -> ApiResult<()> {
+        let service =
+            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        // Unsafely decode token to get user identifier, used to read key for safe token decode.
+        let (user_id, _) =
+            Jwt::decode_unsafe(&request.token, service.id).map_err(ApiError::BadRequest)?;
+
+        // Reset password confirm requires token key type.
+        let user = Auth::user_read_by_id(driver, Some(&service), audit, user_id)
+            .map_err(ApiError::BadRequest)?;
+        let key = Auth::key_read_by_user(driver, &service, audit, &user, KeyType::Token)
+            .map_err(ApiError::BadRequest)?;
+
+        // Bad request if user password reset is disabled.
+        if !user.password_allow_reset {
+            return Err(ApiError::BadRequest(CoreError::UserResetPasswordDisabled));
+        }
+
+        // Safely decode token with user key.
+        let csrf_key = Auth::decode_reset_password_token(&service, &user, &key, &request.token)
+            .map_err(ApiError::BadRequest)?;
+
+        // Verify CSRF to prevent reuse.
+        Auth::csrf_verify(driver, &service, csrf_key).map_err(ApiError::BadRequest)?;
+
+        // Update user password.
+        User::update_password(driver, Some(&service), user.id, request.password)
+            .map_err(ApiError::BadRequest)?;
+        Ok(())
+    }
+
+    pub fn update_email(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        notify: &Addr<NotifyActor>,
+        request: AuthUpdateEmailRequest,
+        revoke_token_expires: i64,
+    ) -> ApiResult<()> {
+        let service =
+            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        // Update email requires token key type.
+        let user = Auth::user_read_by_id(driver, Some(&service), audit, request.user_id)
+            .map_err(ApiError::BadRequest)?;
+        let key = Auth::key_read_by_user(driver, &service, audit, &user, KeyType::Token)
+            .map_err(ApiError::BadRequest)?;
+
+        // Forbidden if user password update required.
+        if user.password_require_update {
+            return Err(ApiError::Forbidden(CoreError::UserPasswordUpdateRequired));
+        }
+
+        // Check user password.
+        Auth::password_check(user.password_hash(), &request.password)
+            .map_err(ApiError::BadRequest)?;
+
+        // Encode revoke token.
+        let token =
+            Auth::encode_update_email_token(driver, &service, &user, &key, revoke_token_expires)
+                .map_err(ApiError::BadRequest)?;
+
+        // Update user email.
+        let old_email = user.email.to_owned();
+        User::update_email(driver, Some(&service), user.id, request.new_email)
+            .map_err(ApiError::BadRequest)?;
+        let user = Auth::user_read_by_id(driver, Some(&service), audit, request.user_id)
+            .map_err(ApiError::BadRequest)?;
+
+        // Send update email email.
+        Auth::notify_email_update_email(
+            notify,
+            service,
+            user,
+            old_email,
+            token,
+            audit.meta().clone(),
+        )
+        .map_err(ApiError::BadRequest)
+    }
+
+    pub fn update_email_revoke(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        request: AuthTokenRequest,
+    ) -> ApiResult<Option<Audit>> {
+        let service =
+            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        // Unsafely decode token to get user identifier, used to read key for safe token decode.
+        let (user_id, _) =
+            Jwt::decode_unsafe(&request.token, service.id).map_err(ApiError::BadRequest)?;
+
+        // Update email revoke requires token key type.
+        // Do not check user, key is enabled or not revoked.
+        let user = Auth::user_read_by_id_unchecked(driver, Some(&service), audit, user_id)
+            .map_err(ApiError::BadRequest)?;
+        let key = Auth::key_read_by_user_unchecked(driver, &service, audit, &user, KeyType::Token)
+            .map_err(ApiError::BadRequest)?;
+
+        // Safely decode token with user key.
+        let csrf_key = Auth::decode_update_email_token(&service, &user, &key, &request.token)
+            .map_err(ApiError::BadRequest)?;
+
+        // Verify CSRF to prevent reuse.
+        Auth::csrf_verify(driver, &service, csrf_key).map_err(ApiError::BadRequest)?;
+
+        // Disable user and disable and revoke all keys associated with user.
+        let update = UserUpdate {
+            is_enabled: Some(false),
+            name: None,
+            locale: None,
+            timezone: None,
+            password_allow_reset: None,
+            password_require_update: None,
+        };
+        User::update(driver, Some(&service), user.id, &update).map_err(ApiError::BadRequest)?;
+        Key::update_many(
+            driver,
+            Some(&service),
+            user.id,
+            Some(false),
+            Some(true),
+            None,
+        )
+        .map_err(ApiError::BadRequest)?;
+
+        // Optionally create custom audit log.
+        if let Some(x) = request.audit {
+            let audit = audit
+                .create(driver, x.into())
+                .map_err(ApiError::BadRequest)?;
+            Ok(Some(audit))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn update_password(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        notify: &Addr<NotifyActor>,
+        request: AuthUpdatePasswordRequest,
+        revoke_token_expires: i64,
+    ) -> ApiResult<()> {
+        let service =
+            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        // Update password requires token key type.
+        let user = Auth::user_read_by_id(driver, Some(&service), audit, request.user_id)
+            .map_err(ApiError::BadRequest)?;
+        let key = Auth::key_read_by_user(driver, &service, audit, &user, KeyType::Token)
+            .map_err(ApiError::BadRequest)?;
+
+        // User is allowed to update password if `password_require_update` is true.
+
+        // Check user password.
+        Auth::password_check(user.password_hash(), &request.password)
+            .map_err(ApiError::BadRequest)?;
+
+        // Encode revoke token.
+        let token =
+            Auth::encode_update_password_token(driver, &service, &user, &key, revoke_token_expires)
+                .map_err(ApiError::BadRequest)?;
+
+        // Update user password.
+        User::update_password(driver, Some(&service), user.id, request.new_password)
+            .map_err(ApiError::BadRequest)?;
+        let user = Auth::user_read_by_id(driver, Some(&service), audit, request.user_id)
+            .map_err(ApiError::BadRequest)?;
+
+        // Send update password email.
+        Auth::notify_email_update_password(notify, service, user, token, audit.meta().clone())
+            .map_err(ApiError::BadRequest)
+    }
+
+    pub fn update_password_revoke(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        request: AuthTokenRequest,
+    ) -> ApiResult<Option<Audit>> {
+        let service =
+            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        // Unsafely decode token to get user identifier, used to read key for safe token decode.
+        let (user_id, _) =
+            Jwt::decode_unsafe(&request.token, service.id).map_err(ApiError::BadRequest)?;
+
+        // Update password revoke requires token key type.
+        // Do not check user, key is enabled or not revoked.
+        let user = Auth::user_read_by_id_unchecked(driver, Some(&service), audit, user_id)
+            .map_err(ApiError::BadRequest)?;
+        let key = Auth::key_read_by_user_unchecked(driver, &service, audit, &user, KeyType::Token)
+            .map_err(ApiError::BadRequest)?;
+
+        // Safely decode token with user key.
+        let csrf_key = Auth::decode_update_password_token(&service, &user, &key, &request.token)
+            .map_err(ApiError::BadRequest)?;
+
+        // Verify CSRF to prevent reuse.
+        Auth::csrf_verify(driver, &service, csrf_key).map_err(ApiError::BadRequest)?;
+
+        // Successful update password revoke, disable user and disable and revoke all keys associated with user.
+        let update = UserUpdate {
+            is_enabled: Some(false),
+            name: None,
+            locale: None,
+            timezone: None,
+            password_allow_reset: None,
+            password_require_update: None,
+        };
+        User::update(driver, Some(&service), user.id, &update).map_err(ApiError::BadRequest)?;
+        Key::update_many(
+            driver,
+            Some(&service),
+            user.id,
+            Some(false),
+            Some(true),
+            None,
+        )
+        .map_err(ApiError::BadRequest)?;
+
+        // Optionally create custom audit log.
+        if let Some(x) = request.audit {
+            let audit = audit
+                .create(driver, x.into())
+                .map_err(ApiError::BadRequest)?;
+            Ok(Some(audit))
+        } else {
+            Ok(None)
+        }
+    }
 }

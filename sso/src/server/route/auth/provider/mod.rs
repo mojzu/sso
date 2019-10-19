@@ -42,14 +42,14 @@ fn github_oauth2_url_handler(
             web::block(move || {
                 api::auth_provider_github_oauth2_url(
                     data.driver(),
-                    id,
                     audit_meta,
+                    id,
                     data.options().provider_github_oauth2_args(),
                 )
-                .map_err(Into::into)
             })
             .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_json)
 }
 
@@ -67,15 +67,15 @@ fn github_oauth2_callback_handler(
             web::block(move || {
                 api::auth_provider_github_oauth2_callback(
                     data.driver(),
-                    id,
                     audit_meta,
+                    id,
                     data.options().provider_github_oauth2_args(),
                     request,
                 )
-                .map_err(Into::into)
             })
             .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_json)
 }
 
@@ -91,14 +91,14 @@ fn microsoft_oauth2_url_handler(
             web::block(move || {
                 api::auth_provider_microsoft_oauth2_url(
                     data.driver(),
-                    id,
                     audit_meta,
+                    id,
                     data.options().provider_microsoft_oauth2_args(),
                 )
-                .map_err(Into::into)
             })
             .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_json)
 }
 
@@ -116,14 +116,14 @@ fn microsoft_oauth2_callback_handler(
             web::block(move || {
                 api::auth_provider_microsoft_oauth2_callback(
                     data.driver(),
-                    id,
                     audit_meta,
+                    id,
                     data.options().provider_microsoft_oauth2_args(),
                     request,
                 )
-                .map_err(Into::into)
             })
             .map_err(Into::into)
         })
+        .map_err(Into::into)
         .then(route_response_json)
 }

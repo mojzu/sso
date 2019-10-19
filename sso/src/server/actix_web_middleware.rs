@@ -1,5 +1,5 @@
 //! # Actix Web Middleware
-use crate::ServerError;
+use crate::{api::ApiError, CoreError};
 use actix_identity::{IdentityPolicy, IdentityService};
 use actix_service::{Service, Transform};
 use actix_web::{
@@ -57,7 +57,9 @@ impl IdentityPolicy for AuthorisationIdentityPolicy {
     fn from_request(&self, request: &mut ServiceRequest) -> Self::Future {
         let key = match request.headers().get(&self.header) {
             Some(value) => {
-                let value = value.to_str().map_err(|_err| ServerError::Unauthorised)?;
+                let value = value
+                    .to_str()
+                    .map_err(|_err| ApiError::Unauthorised(CoreError::HttpHeader))?;
                 AuthorisationIdentityPolicy::trim_authorisation(value)
             }
             None => None,

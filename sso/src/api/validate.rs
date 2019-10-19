@@ -1,8 +1,9 @@
 //! # API Validation
 use crate::{
-    Core, CoreCause, CoreError, CoreResult, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN,
-    KEY_VALUE_BYTES, USER_LOCALE_MAX_LEN, USER_NAME_MAX_LEN, USER_PASSWORD_MAX_LEN,
-    USER_PASSWORD_MIN_LEN, USER_TIMEZONE_MAX_LEN,
+    api::{ApiError, ApiResult},
+    Core, CoreError, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES,
+    USER_LOCALE_MAX_LEN, USER_NAME_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
+    USER_TIMEZONE_MAX_LEN,
 };
 use chrono_tz::Tz;
 use futures::future;
@@ -13,25 +14,24 @@ use validator::{Validate, ValidationError};
 
 /// API validate request trait.
 pub trait ValidateRequest<T: Validate> {
-    fn api_validate(t: &T) -> Result<(), CoreError> {
+    fn api_validate(t: &T) -> ApiResult<()> {
         t.validate()
-            .map_err(|e| CoreError::BadRequest(CoreCause::ValidateError(format!("{}", e))))?;
-        Ok(())
+            .map_err(CoreError::validate)
+            .map_err(ApiError::BadRequest)
     }
 
-    fn api_validate_fut(t: &T) -> future::FutureResult<(), CoreError> {
+    fn api_validate_fut(t: &T) -> future::FutureResult<(), ApiError> {
         future::result(Self::api_validate(t))
     }
 }
 
 /// API deserialise from request query string trait.
 pub trait ValidateRequestQuery<T: DeserializeOwned> {
-    fn from_str(s: &str) -> CoreResult<T> {
-        Core::qs_de::<T>(s)
-            .map_err(|e| CoreError::BadRequest(CoreCause::ValidateError(format!("{}", e))))
+    fn from_str(s: &str) -> ApiResult<T> {
+        Core::qs_de::<T>(s).map_err(ApiError::BadRequest)
     }
 
-    fn from_str_fut(s: &str) -> future::FutureResult<T, CoreError> {
+    fn from_str_fut(s: &str) -> future::FutureResult<T, ApiError> {
         future::result(Self::from_str(s))
     }
 }

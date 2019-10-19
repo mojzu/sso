@@ -24,7 +24,7 @@ macro_rules! auth_totp_integration_test {
 
         #[test]
         #[ignore]
-        fn api_auth_totp_not_found_unknown_user_totp_key() {
+        fn api_auth_totp_bad_request_unknown_user_totp_key() {
             let client = client_create(None);
             let (service, service_key) = service_key_create(&client);
             let user_email = email_create();
@@ -47,7 +47,7 @@ macro_rules! auth_totp_integration_test {
                 .unwrap();
             let body = AuthTotpRequest::new(user_key.user.id, totp.generate());
             let res = client.auth_totp(body).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]

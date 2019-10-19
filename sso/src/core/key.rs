@@ -1,6 +1,6 @@
 use crate::{
-    impl_enum_to_from_string, AuditBuilder, AuditDiff, AuditDiffBuilder, AuditSubject, CoreCause,
-    CoreError, CoreResult, Driver, Service, User, UserRead,
+    impl_enum_to_from_string, AuditDiff, AuditDiffBuilder, AuditSubject, CoreError, CoreResult,
+    Driver, Service, User, UserRead,
 };
 use chrono::{DateTime, Utc};
 use libreauth::key::KeyBuilder;
@@ -159,7 +159,7 @@ pub struct KeyListFilter {
 pub struct KeyList<'a> {
     pub query: &'a KeyListQuery,
     pub filter: &'a KeyListFilter,
-    pub service_id_mask: Option<&'a Uuid>,
+    pub service_id_mask: Option<Uuid>,
 }
 
 /// Key count.
@@ -220,123 +220,6 @@ pub struct KeyUpdate {
 }
 
 impl Key {
-    /// Authenticate root key.
-    pub fn authenticate_root(
-        driver: &dyn Driver,
-        audit: &mut AuditBuilder,
-        key_value: Option<String>,
-    ) -> CoreResult<()> {
-        match key_value {
-            Some(key_value) => Key::read_by_root_value(driver, key_value)
-                .map(|key| {
-                    audit.key(Some(&key));
-                    key
-                })
-                .map(|_key| ()),
-            None => Err(CoreError::Unauthorised(CoreCause::KeyUndefined)),
-        }
-        .map_err(Self::map_err_unauthorised)
-    }
-
-    /// Authenticate service key.
-    pub fn authenticate_service(
-        driver: &dyn Driver,
-        audit: &mut AuditBuilder,
-        key_value: Option<String>,
-    ) -> CoreResult<Service> {
-        match key_value {
-            Some(key_value) => Key::read_by_service_value(driver, key_value)
-                .and_then(|key| {
-                    audit.key(Some(&key));
-
-                    match key
-                        .service_id
-                        .ok_or_else(|| CoreError::Unauthorised(CoreCause::KeyInvalid))
-                    {
-                        Ok(service_id) => Ok(service_id),
-                        Err(err) => Err(err),
-                    }
-                })
-                .and_then(|service_id| Key::authenticate_service_inner(driver, audit, service_id)),
-            None => Err(CoreError::Unauthorised(CoreCause::KeyUndefined)),
-        }
-        .map_err(Self::map_err_unauthorised)
-    }
-
-    /// Authenticate service or root key.
-    pub fn authenticate(
-        driver: &dyn Driver,
-        audit: &mut AuditBuilder,
-        key_value: Option<String>,
-    ) -> CoreResult<Option<Service>> {
-        let key_value_1 = key_value.to_owned();
-
-        Key::try_authenticate_service(driver, audit, key_value)
-            .map(Some)
-            .or_else(move |err| match err {
-                CoreError::Unauthorised(_) => {
-                    Key::authenticate_root(driver, audit, key_value_1).map(|_| None)
-                }
-                _ => Err(err),
-            })
-            .map_err(Self::map_err_unauthorised)
-    }
-
-    /// Authenticate service key, in case key does not exist or is not a service key, do not create audit log.
-    /// This is used in cases where a key may be a service or root key, audit logs will be created by root key
-    /// handler in case the key does not exist or is invalid.
-    fn try_authenticate_service(
-        driver: &dyn Driver,
-        audit: &mut AuditBuilder,
-        key_value: Option<String>,
-    ) -> CoreResult<Service> {
-        match key_value {
-            Some(key_value) => Key::read_by_service_value(driver, key_value)
-                .and_then(|key| {
-                    key.service_id
-                        .ok_or_else(|| CoreError::Unauthorised(CoreCause::KeyInvalid))
-                })
-                .and_then(|service_id| Key::authenticate_service_inner(driver, audit, service_id)),
-            None => Err(CoreError::Unauthorised(CoreCause::KeyUndefined)),
-        }
-        .map_err(Self::map_err_unauthorised)
-    }
-
-    fn authenticate_service_inner(
-        driver: &dyn Driver,
-        audit: &mut AuditBuilder,
-        service_id: Uuid,
-    ) -> CoreResult<Service> {
-        let service = Service::read(driver, None, &service_id)?;
-        audit.service(Some(&service));
-        Ok(service)
-    }
-
-    fn map_err_unauthorised(e: CoreError) -> CoreError {
-        match e {
-            CoreError::BadRequest(cause) => CoreError::Unauthorised(cause),
-            CoreError::Forbidden(cause) => CoreError::Unauthorised(cause),
-            CoreError::NotFound(cause) => CoreError::Unauthorised(cause),
-            _ => e,
-        }
-    }
-
-    /// List keys using query.
-    pub fn list(
-        driver: &dyn Driver,
-        service_mask: Option<&Service>,
-        query: &KeyListQuery,
-        filter: &KeyListFilter,
-    ) -> CoreResult<Vec<Key>> {
-        let service_id_mask = service_mask.map(|s| &s.id);
-        let list = KeyList {
-            query,
-            filter,
-            service_id_mask,
-        };
-        driver.key_list(&list).map_err(CoreError::Driver)
-    }
-
     /// Create root key.
     pub fn create_root(
         driver: &dyn Driver,
@@ -364,9 +247,7 @@ impl Key {
         name: String,
         service_id: &Uuid,
     ) -> CoreResult<KeyWithValue> {
-        let service = Service::read_opt(driver, None, service_id)?
-            .ok_or_else(|| CoreError::BadRequest(CoreCause::ServiceNotFound))?;
-
+        let service = Service::read(driver, None, service_id)?;
         let value = Key::value_generate();
         let create = KeyCreate {
             is_enabled,
@@ -396,22 +277,20 @@ impl Key {
                 let count = KeyCount::Token(*service_id, *user_id);
                 let count = driver.key_count(&count)?;
                 if count != 0 {
-                    return Err(CoreError::BadRequest(CoreCause::UserKeyTooManyEnabledToken));
+                    return Err(CoreError::KeyUserTokenConstraint);
                 }
             }
             if type_ == KeyType::Totp {
                 let count = KeyCount::Totp(*service_id, *user_id);
                 let count = driver.key_count(&count)?;
                 if count != 0 {
-                    return Err(CoreError::BadRequest(CoreCause::UserKeyTooManyEnabledTotp));
+                    return Err(CoreError::KeyUserTotpConstraint);
                 }
             }
         }
-        let service = Service::read_opt(driver, None, service_id)?
-            .ok_or_else(|| CoreError::BadRequest(CoreCause::ServiceNotFound))?;
+        let service = Service::read(driver, None, service_id)?;
         let user_read = UserRead::Id(*user_id);
-        let user = User::read_opt(driver, None, &user_read)?
-            .ok_or_else(|| CoreError::BadRequest(CoreCause::UserNotFound))?;
+        let user = User::read(driver, None, &user_read)?;
 
         let value = Key::value_generate();
         let create = KeyCreate {
@@ -432,8 +311,7 @@ impl Key {
         service_mask: Option<&Service>,
         read: &KeyRead,
     ) -> CoreResult<KeyWithValue> {
-        Self::read_opt(driver, service_mask, read)?
-            .ok_or_else(|| CoreError::NotFound(CoreCause::KeyNotFound))
+        Self::read_opt(driver, service_mask, read)?.ok_or_else(|| CoreError::KeyNotFound)
     }
 
     /// Read key (optional).
@@ -525,15 +403,6 @@ impl Key {
         driver
             .key_update_many(&user_id, &update)
             .map_err(CoreError::Driver)
-    }
-
-    /// Delete key.
-    pub fn delete(
-        driver: &dyn Driver,
-        _service_mask: Option<&Service>,
-        id: Uuid,
-    ) -> CoreResult<()> {
-        driver.key_delete(&id).map_err(CoreError::Driver)
     }
 
     /// Create new key value from random bytes.

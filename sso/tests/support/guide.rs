@@ -15,7 +15,7 @@ macro_rules! guide_integration_test {
             user_key_verify(&client, &user_key);
             let body = AuthKeyRequest::new(&user_key.key, None);
             client.auth_key_revoke(body).unwrap();
-            user_key_verify_not_found(&client, &user_key.key);
+            user_key_verify_bad_request(&client, &user_key.key);
         }
 
         #[test]
@@ -46,7 +46,7 @@ macro_rules! guide_integration_test {
 
             let body = AuthTokenRequest::new(&user_token.refresh_token, None);
             let res = client.auth_token_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]

@@ -1,7 +1,7 @@
 use crate::{
-    api::{result_audit_err, validate, ValidateRequest, ValidateRequestQuery},
+    api::{result_audit_err, validate, ApiResult, ValidateRequest, ValidateRequestQuery},
     Audit, AuditBuilder, AuditCreate2, AuditListFilter, AuditListQuery, AuditMeta, AuditType,
-    AuditUpdate, Core, CoreResult, Driver, Key,
+    AuditUpdate, Core, Driver,
 };
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
@@ -202,16 +202,15 @@ impl From<AuditUpdateRequest> for AuditUpdate {
 
 pub fn audit_list(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     request: AuditListRequest,
-) -> CoreResult<AuditListResponse> {
+) -> ApiResult<AuditListResponse> {
     AuditListRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditList);
     let (query, filter) = request.into_query_filter();
 
-    let res = Key::authenticate(driver, &mut audit, key_value)
-        .and_then(|service| Audit::list(driver, service.as_ref(), &query, &filter));
+    let res = server_audit::list(driver, &mut audit, key_value, &query, &filter);
     result_audit_err(driver, &audit, res).map(|data| AuditListResponse {
         meta: AuditListRequest::from_query_filter(query, filter),
         data,
@@ -220,49 +219,119 @@ pub fn audit_list(
 
 pub fn audit_create(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     request: AuditCreateRequest,
-) -> CoreResult<AuditReadResponse> {
+) -> ApiResult<AuditReadResponse> {
     AuditCreateRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditCreate);
-    let audit_create = AuditCreate2::new(request.type_, request.subject, request.data);
-    let user_id = request.user_id;
-    let user_key_id = request.user_key_id;
 
-    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|_service| {
-        audit
-            .user_id(user_id)
-            .user_key_id(user_key_id)
-            .create(driver, audit_create)
-    });
+    let res = server_audit::create(driver, &mut audit, key_value, request);
     result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
 }
 
 pub fn audit_read(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     audit_id: Uuid,
-) -> CoreResult<AuditReadResponse> {
+) -> ApiResult<AuditReadResponse> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditRead);
 
-    let res = Key::authenticate(driver, &mut audit, key_value)
-        .and_then(|service| Audit::read(driver, service.as_ref(), &audit_id));
+    let res = server_audit::read(driver, &mut audit, key_value, audit_id);
     result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
 }
 
 pub fn audit_update(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     audit_id: Uuid,
     request: AuditUpdateRequest,
-) -> CoreResult<AuditReadResponse> {
+) -> ApiResult<AuditReadResponse> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditUpdate);
     let update: AuditUpdate = request.into();
 
-    let res = Key::authenticate(driver, &mut audit, key_value)
-        .and_then(|service| Audit::update(driver, service.as_ref(), &audit_id, &update));
+    let res = server_audit::update(driver, &mut audit, key_value, audit_id, update);
     result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
+}
+
+mod server_audit {
+    use super::*;
+    use crate::{
+        api::{ApiError, ApiResult},
+        Audit, AuditBuilder, AuditList, AuditListFilter, AuditListQuery, Auth, CoreError, Driver,
+    };
+
+    pub fn list(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        query: &AuditListQuery,
+        filter: &AuditListFilter,
+    ) -> ApiResult<Vec<Audit>> {
+        let service =
+            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        let list = AuditList {
+            query,
+            filter,
+            service_id_mask: service.map(|s| s.id),
+        };
+        driver
+            .audit_list(&list)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)
+    }
+
+    pub fn create(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        request: AuditCreateRequest,
+    ) -> ApiResult<Audit> {
+        let _service =
+            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let audit_create = AuditCreate2::new(request.type_, request.subject, request.data);
+        let user_id = request.user_id;
+        let user_key_id = request.user_key_id;
+
+        audit
+            .user_id(user_id)
+            .user_key_id(user_key_id)
+            .create(driver, audit_create)
+            .map_err(ApiError::BadRequest)
+    }
+
+    pub fn read(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        audit_id: Uuid,
+    ) -> ApiResult<Audit> {
+        let service =
+            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        driver
+            .audit_read_opt(&audit_id, service.map(|x| x.id))
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?
+            .ok_or_else(|| ApiError::NotFound(CoreError::AuditNotFound))
+    }
+
+    pub fn update(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        audit_id: Uuid,
+        update: AuditUpdate,
+    ) -> ApiResult<Audit> {
+        let service =
+            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        driver
+            .audit_update(&audit_id, &update, service.map(|x| x.id))
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)
+    }
 }

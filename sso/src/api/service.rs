@@ -1,10 +1,10 @@
 use crate::{
     api::{
-        result_audit_diff, result_audit_err, result_audit_subject, validate, ValidateRequest,
-        ValidateRequestQuery,
+        result_audit_diff, result_audit_err, result_audit_subject, validate, ApiResult,
+        ValidateRequest, ValidateRequestQuery,
     },
-    AuditBuilder, AuditMeta, AuditType, Core, CoreResult, Driver, Key, Service, ServiceCreate,
-    ServiceListFilter, ServiceListQuery, ServiceUpdate,
+    AuditBuilder, AuditMeta, AuditType, Core, Driver, Service, ServiceCreate, ServiceListFilter,
+    ServiceListQuery, ServiceUpdate,
 };
 use uuid::Uuid;
 use validator::Validate;
@@ -188,16 +188,15 @@ impl From<ServiceUpdateRequest> for ServiceUpdate {
 
 pub fn service_list(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     request: ServiceListRequest,
-) -> CoreResult<ServiceListResponse> {
+) -> ApiResult<ServiceListResponse> {
     ServiceListRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceList);
     let (query, filter) = request.into_query_filter();
 
-    let res = Key::authenticate_root(driver, &mut audit, key_value)
-        .and_then(|_| Service::list(driver, &query, &filter));
+    let res = server_service::list(driver, &mut audit, key_value, &query, &filter);
     result_audit_err(driver, &audit, res).map(|data| ServiceListResponse {
         meta: ServiceListRequest::from_query_filter(query, filter),
         data,
@@ -206,64 +205,150 @@ pub fn service_list(
 
 pub fn service_create(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     request: ServiceCreateRequest,
-) -> CoreResult<ServiceReadResponse> {
+) -> ApiResult<ServiceReadResponse> {
     ServiceCreateRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceCreate);
     let create: ServiceCreate = request.into();
 
-    let res = Key::authenticate_root(driver, &mut audit, key_value)
-        .and_then(|_| Service::create(driver, &create));
+    let res = server_service::create(driver, &mut audit, key_value, create);
     result_audit_subject(driver, &audit, res).map(|data| ServiceReadResponse { data })
 }
 
 pub fn service_read(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     service_id: Uuid,
-) -> CoreResult<ServiceReadResponse> {
+) -> ApiResult<ServiceReadResponse> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceRead);
 
-    let res = Key::authenticate(driver, &mut audit, key_value)
-        .and_then(|service| Service::read(driver, service.as_ref(), &service_id));
+    let res = server_service::read(driver, &mut audit, key_value, service_id);
     result_audit_err(driver, &audit, res).map(|data| ServiceReadResponse { data })
 }
 
 pub fn service_update(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     service_id: Uuid,
     request: ServiceUpdateRequest,
-) -> CoreResult<ServiceReadResponse> {
+) -> ApiResult<ServiceReadResponse> {
     ServiceUpdateRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceUpdate);
+    let update: ServiceUpdate = request.into();
 
-    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
-        Service::read(driver, service.as_ref(), &service_id).and_then(|previous_service| {
-            let update: ServiceUpdate = request.into();
-            Service::update(driver, service.as_ref(), service_id, &update)
-                .map(|next_service| (previous_service, next_service))
-        })
-    });
+    let res = server_service::update(driver, &mut audit, key_value, service_id, update);
     result_audit_diff(driver, &audit, res).map(|data| ServiceReadResponse { data })
 }
 
 pub fn service_delete(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     service_id: Uuid,
-) -> CoreResult<()> {
+) -> ApiResult<()> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceDelete);
 
-    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
-        Service::read(driver, service.as_ref(), &service_id).and_then(|previous_service| {
-            Service::delete(driver, service.as_ref(), service_id).map(|_| previous_service)
-        })
-    });
+    let res = server_service::delete(driver, &mut audit, key_value, service_id);
     result_audit_subject(driver, &audit, res).map(|_| ())
+}
+
+mod server_service {
+    use super::*;
+    use crate::{
+        api::{ApiError, ApiResult},
+        AuditBuilder, Auth, CoreError, Driver, Service, ServiceList, ServiceListFilter,
+        ServiceListQuery,
+    };
+    use url::Url;
+
+    pub fn list(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        query: &ServiceListQuery,
+        filter: &ServiceListFilter,
+    ) -> ApiResult<Vec<Service>> {
+        Auth::authenticate_root(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        let list = ServiceList { query, filter };
+        driver
+            .service_list(&list)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)
+    }
+
+    pub fn create(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        create: ServiceCreate,
+    ) -> ApiResult<Service> {
+        Auth::authenticate_root(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        // TODO(refactor): Improve URL validation, validate provider URLs (option to enforce HTTPS).
+        Url::parse(&create.url)
+            .map_err(CoreError::UrlParse)
+            .map_err(ApiError::BadRequest)?;
+        driver
+            .service_create(&create)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)
+    }
+
+    pub fn read(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        service_id: Uuid,
+    ) -> ApiResult<Service> {
+        let service =
+            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        read_inner(driver, service.as_ref(), service_id)
+    }
+
+    pub fn update(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        service_id: Uuid,
+        update: ServiceUpdate,
+    ) -> ApiResult<(Service, Service)> {
+        let service =
+            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        let previous_service = read_inner(driver, service.as_ref(), service_id)?;
+        let service = Service::update(driver, service.as_ref(), service_id, &update)
+            .map_err(ApiError::BadRequest)?;
+        Ok((previous_service, service))
+    }
+
+    pub fn delete(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        service_id: Uuid,
+    ) -> ApiResult<Service> {
+        let service =
+            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        let service = read_inner(driver, service.as_ref(), service_id)?;
+        driver
+            .service_delete(&service_id)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)
+            .map(|_| service)
+    }
+
+    fn read_inner(
+        driver: &dyn Driver,
+        service: Option<&Service>,
+        service_id: Uuid,
+    ) -> ApiResult<Service> {
+        Service::read(driver, service, &service_id).map_err(ApiError::NotFound)
+    }
 }

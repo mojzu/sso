@@ -137,7 +137,7 @@ impl ModelKey {
             query = query.filter(sso_key::dsl::user_id.eq(any(user_id)));
         }
         if let Some(service_id_mask) = list.service_id_mask {
-            query = query.filter(sso_key::dsl::service_id.eq(service_id_mask.clone()));
+            query = query.filter(sso_key::dsl::service_id.eq(service_id_mask));
         }
 
         match list.query {

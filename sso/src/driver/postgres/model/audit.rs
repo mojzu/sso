@@ -99,7 +99,7 @@ impl ModelAudit {
                 *limit,
                 offset_id,
                 list.filter,
-                list.service_id_mask,
+                list.service_id_mask.as_ref(),
             ),
             AuditListQuery::CreatedGe(ge, limit, offset_id) => Self::list_where_created_ge(
                 conn,
@@ -107,7 +107,7 @@ impl ModelAudit {
                 *limit,
                 offset_id,
                 list.filter,
-                list.service_id_mask,
+                list.service_id_mask.as_ref(),
             ),
             AuditListQuery::CreatedLeAndGe(le, ge, limit, offset_id) => {
                 Self::list_where_created_le_and_ge(
@@ -117,7 +117,7 @@ impl ModelAudit {
                     *limit,
                     offset_id,
                     list.filter,
-                    list.service_id_mask,
+                    list.service_id_mask.as_ref(),
                 )
             }
         }
@@ -138,7 +138,7 @@ impl ModelAudit {
     pub fn read_opt(
         conn: &PgConnection,
         id: &Uuid,
-        service_id_mask: Option<&Uuid>,
+        service_id_mask: Option<Uuid>,
     ) -> DriverResult<Option<Audit>> {
         match service_id_mask {
             Some(service_id_mask) => sso_audit::table
@@ -184,7 +184,7 @@ impl ModelAudit {
         conn: &PgConnection,
         id: &Uuid,
         update: &AuditUpdate,
-        _service_id_mask: Option<&Uuid>,
+        _service_id_mask: Option<Uuid>,
     ) -> DriverResult<Audit> {
         use diesel::sql_types;
 

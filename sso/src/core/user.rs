@@ -1,11 +1,10 @@
 use crate::{
-    client_msg::Get, AuditDiff, AuditDiffBuilder, AuditSubject, ClientActor, CoreCause, CoreError,
+    client_msg::Get, AuditDiff, AuditDiffBuilder, AuditSubject, Auth, ClientActor, CoreError,
     CoreResult, Driver, Service,
 };
 use actix::Addr;
 use chrono::{DateTime, Utc};
 use futures::{future, Future};
-use libreauth::pass::HashBuilder;
 use serde_json::Value;
 use sha1::{Digest, Sha1};
 use std::fmt;
@@ -201,15 +200,8 @@ pub struct UserKey {
 }
 
 impl User {
-    /// List users.
-    pub fn list(
-        driver: &dyn Driver,
-        _service_mask: Option<&Service>,
-        query: &UserListQuery,
-        filter: &UserListFilter,
-    ) -> CoreResult<Vec<User>> {
-        let list = UserList { query, filter };
-        driver.user_list(&list).map_err(CoreError::Driver)
+    pub fn password_hash(&self) -> Option<&str> {
+        self.password_hash.as_ref().map(|x| &**x)
     }
 
     /// Create user.
@@ -222,10 +214,10 @@ impl User {
         let read = UserRead::Email(create.email.clone());
         let user = User::read_opt(driver, service_mask, &read)?;
         if user.is_some() {
-            return Err(CoreError::BadRequest(CoreCause::UserExists));
+            return Err(CoreError::UserEmailConstraint);
         }
 
-        create.password_hash = User::password_hash(create.password_hash.as_ref().map(|x| &**x))?;
+        create.password_hash = Auth::password_hash(create.password_hash.as_ref().map(|x| &**x))?;
         driver.user_create(create).map_err(CoreError::Driver)
     }
 
@@ -235,8 +227,7 @@ impl User {
         service_mask: Option<&Service>,
         read: &UserRead,
     ) -> CoreResult<User> {
-        Self::read_opt(driver, service_mask, read)?
-            .ok_or_else(|| CoreError::NotFound(CoreCause::UserNotFound))
+        Self::read_opt(driver, service_mask, read)?.ok_or_else(|| CoreError::UserNotFound)
     }
 
     /// Read user (optional).
@@ -279,59 +270,12 @@ impl User {
         id: Uuid,
         password: String,
     ) -> CoreResult<User> {
-        let password_hash = User::password_hash(Some(&password))?
-            .ok_or_else(|| CoreError::BadRequest(CoreCause::PasswordUndefined))?;
+        let password_hash = Auth::password_hash(Some(&password))?.unwrap();
         let update = UserUpdate2 {
             email: None,
             password_hash: Some(password_hash),
         };
         driver.user_update2(&id, &update).map_err(CoreError::Driver)
-    }
-
-    /// Delete user.
-    pub fn delete(
-        driver: &dyn Driver,
-        _service_mask: Option<&Service>,
-        id: Uuid,
-    ) -> CoreResult<usize> {
-        driver.user_delete(&id).map_err(CoreError::Driver)
-    }
-
-    /// Hash password string, none is returned if none is given as the input.
-    /// <https://github.com/breard-r/libreauth>
-    pub fn password_hash(password: Option<&str>) -> CoreResult<Option<String>> {
-        match password {
-            Some(password) => {
-                let hasher = HashBuilder::new()
-                    .version(USER_PASSWORD_HASH_VERSION)
-                    .min_len(USER_PASSWORD_MIN_LEN)
-                    .max_len(USER_PASSWORD_MAX_LEN)
-                    .finalize()
-                    .map_err(CoreError::libreauth_pass)?;
-
-                let hashed = hasher.hash(password).map_err(CoreError::libreauth_pass)?;
-                Ok(Some(hashed))
-            }
-            None => Ok(None),
-        }
-    }
-
-    /// Check if password string and password hash match, an error is returned if they do not match or the hash is none.
-    /// Returns true if the hash version does not match the current hash version.
-    pub fn password_check(password_hash: Option<&str>, password: &str) -> CoreResult<bool> {
-        match password_hash {
-            Some(password_hash) => {
-                let checker =
-                    HashBuilder::from_phc(password_hash).map_err(CoreError::libreauth_pass)?;
-
-                if checker.is_valid(password) {
-                    Ok(checker.needs_update(Some(USER_PASSWORD_HASH_VERSION)))
-                } else {
-                    Err(CoreError::BadRequest(CoreCause::PasswordNotSetOrIncorrect))
-                }
-            }
-            None => Err(CoreError::BadRequest(CoreCause::PasswordNotSetOrIncorrect)),
-        }
     }
 
     /// Returns password strength and pwned checks.
@@ -407,9 +351,7 @@ impl User {
                     }),
             )
         } else {
-            future::Either::B(future::err(CoreError::BadRequest(
-                CoreCause::PwnedPasswordsDisabled,
-            )))
+            future::Either::B(future::err(CoreError::PwnedPasswordsDisabled))
         }
     }
 }

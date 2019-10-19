@@ -35,7 +35,7 @@ macro_rules! auth_local_integration_test {
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_not_found_unknown_email() {
+        fn api_auth_local_login_bad_request_unknown_email() {
             let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
             let user_email = email_create();
@@ -43,12 +43,12 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_not_found_disabled_user() {
+        fn api_auth_local_login_bad_request_disabled_user() {
             let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
             let user_email = email_create();
@@ -71,7 +71,7 @@ macro_rules! auth_local_integration_test {
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_not_found_unknown_user_key() {
+        fn api_auth_local_login_bad_request_unknown_user_key() {
             let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
             let user_email = email_create();
@@ -89,7 +89,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -118,7 +118,7 @@ macro_rules! auth_local_integration_test {
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_not_found_unknown_user_key_for_service() {
+        fn api_auth_local_login_bad_request_unknown_user_key_for_service() {
             let client = client_create(None);
             let (service1, service1_key) = service_key_create(&client);
             let (_service2, service2_key) = service_key_create(&client);
@@ -139,12 +139,12 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_not_found_unknown_user_token_key() {
+        fn api_auth_local_login_bad_request_unknown_user_token_key() {
             let client = client_create(None);
             let (service, service_key) = service_key_create(&client);
             let user_email = email_create();
@@ -163,7 +163,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res, ClientError::BadRequest);
         }
 
         #[test]
@@ -221,8 +221,7 @@ macro_rules! auth_local_integration_test {
             let user_email = email_create();
 
             let body = AuthResetPasswordRequest::new(&user_email);
-            let res = client.auth_local_reset_password(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            client.auth_local_reset_password(body).unwrap()
         }
 
         #[test]

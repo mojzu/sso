@@ -1,10 +1,10 @@
 use crate::{
     api::{
-        result_audit_diff, result_audit_err, result_audit_subject, validate, ValidateRequest,
-        ValidateRequestQuery,
+        result_audit_diff, result_audit_err, result_audit_subject, validate, ApiResult,
+        ValidateRequest, ValidateRequestQuery,
     },
-    AuditBuilder, AuditMeta, AuditType, Core, CoreCause, CoreError, CoreResult, Driver, Key,
-    KeyListFilter, KeyListQuery, KeyRead, KeyType, KeyWithValue,
+    AuditBuilder, AuditMeta, AuditType, Core, Driver, Key, KeyListFilter, KeyListQuery, KeyRead,
+    KeyType, KeyWithValue,
 };
 use uuid::Uuid;
 use validator::Validate;
@@ -181,16 +181,15 @@ impl ValidateRequest<KeyUpdateRequest> for KeyUpdateRequest {}
 
 pub fn key_list(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     request: KeyListRequest,
-) -> CoreResult<KeyListResponse> {
+) -> ApiResult<KeyListResponse> {
     KeyListRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyList);
     let (query, filter) = request.into_query_filter();
 
-    let res = Key::authenticate(driver, &mut audit, key_value)
-        .and_then(|service| Key::list(driver, service.as_ref(), &query, &filter));
+    let res = server_key::list(driver, &mut audit, key_value, &query, &filter);
     result_audit_err(driver, &audit, res).map(|data| KeyListResponse {
         meta: KeyListRequest::from_query_filter(query, filter),
         data,
@@ -199,114 +198,198 @@ pub fn key_list(
 
 pub fn key_create(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     request: KeyCreateRequest,
-) -> CoreResult<KeyCreateResponse> {
+) -> ApiResult<KeyCreateResponse> {
     KeyCreateRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyCreate);
 
-    // If service ID is some, root key is required to create service keys.
-
-    let res = match request.service_id {
-        Some(service_id) => {
-            Key::authenticate_root(driver, &mut audit, key_value).and_then(|_| {
-                match request.user_id {
-                    // User ID is defined, creating user key for service.
-                    Some(user_id) => Key::create_user(
-                        driver,
-                        request.is_enabled,
-                        request.type_,
-                        request.name,
-                        &service_id,
-                        &user_id,
-                    ),
-                    // Creating service key.
-                    None => {
-                        Key::create_service(driver, request.is_enabled, request.name, &service_id)
-                    }
-                }
-            })
-        }
-        None => {
-            Key::authenticate_service(driver, &mut audit, key_value).and_then(|service| {
-                match request.user_id {
-                    // User ID is defined, creating user key for service.
-                    Some(user_id) => Key::create_user(
-                        driver,
-                        request.is_enabled,
-                        request.type_,
-                        request.name,
-                        &service.id,
-                        &user_id,
-                    ),
-                    // Service cannot create service keys.
-                    None => Err(CoreError::BadRequest(
-                        CoreCause::ServiceCannotCreateServiceKey,
-                    )),
-                }
-            })
-        }
-    };
+    let res = server_key::create(driver, &mut audit, key_value, request);
     result_audit_subject(driver, &audit, res).map(|key| KeyCreateResponse { data: key })
 }
 
 pub fn key_read(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     key_id: Uuid,
-) -> CoreResult<KeyReadResponse> {
+) -> ApiResult<KeyReadResponse> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyRead);
 
-    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
-        let read = KeyRead::Id(key_id);
-        Key::read(driver, service.as_ref(), &read)
-    });
-    result_audit_err(driver, &audit, res).map(|key| KeyReadResponse { data: key.into() })
+    let res = server_key::read(driver, &mut audit, key_value, key_id);
+    result_audit_err(driver, &audit, res).map(|data| KeyReadResponse { data })
 }
 
 pub fn key_update(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     key_id: Uuid,
     request: KeyUpdateRequest,
-) -> CoreResult<KeyReadResponse> {
+) -> ApiResult<KeyReadResponse> {
     KeyUpdateRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyUpdate);
 
-    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
-        let read = KeyRead::Id(key_id);
-        Key::read(driver, service.as_ref(), &read).and_then(|previous_key| {
-            Key::update(
-                driver,
-                service.as_ref(),
-                key_id,
-                request.is_enabled,
-                None,
-                request.name,
-            )
-            .map(|next_key| (previous_key.into(), next_key))
-        })
-    });
+    let res = server_key::update(driver, &mut audit, key_value, key_id, request);
     result_audit_diff(driver, &audit, res).map(|key| KeyReadResponse { data: key })
 }
 
 pub fn key_delete(
     driver: &dyn Driver,
-    key_value: Option<String>,
     audit_meta: AuditMeta,
+    key_value: Option<String>,
     key_id: Uuid,
-) -> CoreResult<()> {
+) -> ApiResult<()> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyDelete);
 
-    let res = Key::authenticate(driver, &mut audit, key_value).and_then(|service| {
-        let read = KeyRead::Id(key_id);
-        Key::read(driver, service.as_ref(), &read).and_then(|key| {
-            let key: Key = key.into();
-            Key::delete(driver, service.as_ref(), key_id).map(|_| key)
-        })
-    });
+    let res = server_key::delete(driver, &mut audit, key_value, key_id);
     result_audit_subject(driver, &audit, res).map(|_| ())
+}
+
+mod server_key {
+    use super::*;
+    use crate::{
+        api::{ApiError, ApiResult},
+        AuditBuilder, Auth, CoreError, Driver, Key, KeyList, KeyListFilter, KeyListQuery,
+    };
+
+    pub fn list(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        query: &KeyListQuery,
+        filter: &KeyListFilter,
+    ) -> ApiResult<Vec<Key>> {
+        let service =
+            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        let list = KeyList {
+            query,
+            filter,
+            service_id_mask: service.map(|s| s.id),
+        };
+        driver
+            .key_list(&list)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)
+    }
+
+    pub fn create(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        request: KeyCreateRequest,
+    ) -> ApiResult<KeyWithValue> {
+        // If service ID is some, root key is required to create service keys.
+        match request.service_id {
+            Some(service_id) => {
+                Auth::authenticate_root(driver, audit, key_value)
+                    .map_err(ApiError::Unauthorised)
+                    .and_then(|_| {
+                        match request.user_id {
+                            // User ID is defined, creating user key for service.
+                            Some(user_id) => Key::create_user(
+                                driver,
+                                request.is_enabled,
+                                request.type_,
+                                request.name,
+                                &service_id,
+                                &user_id,
+                            ),
+                            // Creating service key.
+                            None => Key::create_service(
+                                driver,
+                                request.is_enabled,
+                                request.name,
+                                &service_id,
+                            ),
+                        }
+                        .map_err(ApiError::BadRequest)
+                    })
+            }
+            None => {
+                Auth::authenticate_service(driver, audit, key_value)
+                    .map_err(ApiError::Unauthorised)
+                    .and_then(|service| {
+                        match request.user_id {
+                            // User ID is defined, creating user key for service.
+                            Some(user_id) => Key::create_user(
+                                driver,
+                                request.is_enabled,
+                                request.type_,
+                                request.name,
+                                &service.id,
+                                &user_id,
+                            ),
+                            // Service cannot create service keys.
+                            None => Err(CoreError::ServiceCannotCreateServiceKey),
+                        }
+                        .map_err(ApiError::BadRequest)
+                    })
+            }
+        }
+    }
+
+    pub fn read(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        key_id: Uuid,
+    ) -> ApiResult<Key> {
+        let _service =
+            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        read_inner(driver, key_id).map(Into::into)
+    }
+
+    pub fn update(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        key_id: Uuid,
+        request: KeyUpdateRequest,
+    ) -> ApiResult<(Key, Key)> {
+        let service =
+            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        let previous_key = read_inner(driver, key_id)?;
+        let key = Key::update(
+            driver,
+            service.as_ref(),
+            key_id,
+            request.is_enabled,
+            None,
+            request.name,
+        )
+        .map_err(ApiError::BadRequest)?;
+        Ok((previous_key, key))
+    }
+
+    pub fn delete(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        key_id: Uuid,
+    ) -> ApiResult<Key> {
+        let _service =
+            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        let key = read_inner(driver, key_id)?;
+        driver
+            .key_delete(&key_id)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)
+            .map(|_| key)
+    }
+
+    fn read_inner(driver: &dyn Driver, key_id: Uuid) -> ApiResult<Key> {
+        let read = KeyRead::Id(key_id);
+        driver
+            .key_read_opt(&read)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?
+            .ok_or_else(|| ApiError::NotFound(CoreError::KeyNotFound))
+            .map(|x| x.into())
+    }
 }

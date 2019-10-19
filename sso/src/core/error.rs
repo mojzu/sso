@@ -1,110 +1,156 @@
 use crate::{ClientError, DriverError};
-use serde::ser::{Serialize, Serializer};
-use std::fmt;
-
-/// Core error causes.
-#[derive(Debug)]
-pub enum CoreCause {
-    ValidateError(String),
-    ServiceNotFound,
-    ServiceDisabled,
-    ServiceProviderLocalUndefined,
-    ServiceInvalidUrl,
-    ServiceCannotCreateServiceKey,
-    UserNotFound,
-    UserExists,
-    UserDisabled,
-    UserKeyTooManyEnabledToken,
-    UserKeyTooManyEnabledTotp,
-    KeyNotFound,
-    KeyInvalid,
-    KeyUndefined,
-    KeyDisabledOrRevoked,
-    PasswordUndefined,
-    PasswordUpdateRequired,
-    PasswordNotSetOrIncorrect,
-    ResetPasswordDisabled,
-    TokenInvalidOrExpired,
-    CsrfNotFoundOrUsed,
-    UpdateEmailRevoke,
-    UpdatePasswordRevoke,
-    ServiceMismatch,
-    TotpInvalid,
-    JwtInvalidClaimsType,
-    JwtClaimsTypeMismatch,
-    JwtServiceMismatch,
-    NotifySendError,
-    PwnedPasswordsDisabled,
-    GithubOauth2Disabled,
-    MicrosoftOauth2Disabled,
-    AuditNotFound,
-}
-
-impl fmt::Display for CoreCause {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
+use serde_json::Value;
 
 /// Core errors.
 #[derive(Debug, Fail)]
 pub enum CoreError {
-    #[fail(display = "CoreError:BadRequest {}", _0)]
-    BadRequest(CoreCause),
+    #[fail(display = "AuditNotFound")]
+    AuditNotFound,
 
-    #[fail(display = "CoreError:Unauthorised {}", _0)]
-    Unauthorised(CoreCause),
+    #[fail(display = "KeyNotFound")]
+    KeyNotFound,
 
-    #[fail(display = "CoreError:Forbidden {}", _0)]
-    Forbidden(CoreCause),
+    #[fail(display = "KeyUndefined")]
+    KeyUndefined,
 
-    #[fail(display = "CoreError:NotFound {}", _0)]
-    NotFound(CoreCause),
+    #[fail(display = "KeyServiceUndefined")]
+    KeyServiceUndefined,
 
-    #[fail(display = "CoreError:Oauth2Request {}", _0)]
-    Oauth2Request(failure::Error),
+    #[fail(display = "KeyUserTokenConstraint")]
+    KeyUserTokenConstraint,
 
-    #[fail(display = "CoreError:UrlParse {}", _0)]
-    UrlParse(#[fail(cause)] url::ParseError),
+    #[fail(display = "KeyUserTotpConstraint")]
+    KeyUserTotpConstraint,
 
-    #[fail(display = "CoreError:Metrics")]
-    Metrics,
+    #[fail(display = "KeyDisabled")]
+    KeyDisabled,
 
-    #[fail(display = "CoreError:Driver {}", _0)]
+    #[fail(display = "KeyRevoked")]
+    KeyRevoked,
+
+    #[fail(display = "ServiceNotFound")]
+    ServiceNotFound,
+
+    #[fail(display = "ServiceDisabled")]
+    ServiceDisabled,
+
+    #[fail(display = "ServiceProviderLocalDisabled")]
+    ServiceProviderLocalDisabled,
+
+    #[fail(display = "ServiceProviderMicrosoftOauth2Disabled")]
+    ServiceProviderMicrosoftOauth2Disabled,
+
+    #[fail(display = "ServiceProviderGithubOauth2Disabled")]
+    ServiceProviderGithubOauth2Disabled,
+
+    #[fail(display = "ServiceCannotCreateServiceKey")]
+    ServiceCannotCreateServiceKey,
+
+    #[fail(display = "UserNotFound")]
+    UserNotFound,
+
+    #[fail(display = "UserEmailConstraint")]
+    UserEmailConstraint,
+
+    #[fail(display = "UserDisabled")]
+    UserDisabled,
+
+    #[fail(display = "UserPasswordIncorrect")]
+    UserPasswordIncorrect,
+
+    #[fail(display = "UserPasswordUndefined")]
+    UserPasswordUndefined,
+
+    #[fail(display = "UserPasswordUpdateRequired")]
+    UserPasswordUpdateRequired,
+
+    #[fail(display = "UserResetPasswordDisabled")]
+    UserResetPasswordDisabled,
+
+    #[fail(display = "JwtClaimsTypeInvalid")]
+    JwtClaimsTypeInvalid,
+
+    #[fail(display = "JwtServiceMismatch")]
+    JwtServiceMismatch,
+
+    #[fail(display = "JwtClaimsTypeMismatch")]
+    JwtClaimsTypeMismatch,
+
+    #[fail(display = "JwtInvalidOrExpired")]
+    JwtInvalidOrExpired,
+
+    #[fail(display = "CsrfNotFoundOrUsed")]
+    CsrfNotFoundOrUsed,
+
+    #[fail(display = "CsrfServiceMismatch")]
+    CsrfServiceMismatch,
+
+    #[fail(display = "TotpInvalid")]
+    TotpInvalid,
+
+    #[fail(display = "PwnedPasswordsDisabled")]
+    PwnedPasswordsDisabled,
+
+    #[fail(display = "Validate {}", _0)]
+    Validate(Value),
+
+    #[fail(display = "NotifySendError")]
+    NotifySendError,
+
+    #[fail(display = "Driver {}", _0)]
     Driver(#[fail(cause)] DriverError),
 
-    #[fail(display = "CoreError:Client {}", _0)]
+    #[fail(display = "Client {}", _0)]
     Client(#[fail(cause)] ClientError),
 
-    #[fail(display = "CoreError:LibreauthPass {}", _0)]
+    #[fail(display = "Oauth2Request {}", _0)]
+    Oauth2Request(failure::Error),
+
+    #[fail(display = "UrlParse {}", _0)]
+    UrlParse(#[fail(cause)] url::ParseError),
+
+    #[fail(display = "LibreauthPass {}", _0)]
     LibreauthPass(usize),
 
-    #[fail(display = "CoreError:LibreauthOath {}", _0)]
+    #[fail(display = "LibreauthOath {}", _0)]
     LibreauthOath(usize),
 
-    #[fail(display = "CoreError:Jsonwebtoken {}", _0)]
+    #[fail(display = "Jsonwebtoken {}", _0)]
     Jsonwebtoken(#[fail(cause)] jsonwebtoken::errors::Error),
 
-    #[fail(display = "CoreError:UuidParse {}", _0)]
+    #[fail(display = "UuidParse {}", _0)]
     UuidParse(#[fail(cause)] uuid::parser::ParseError),
 
-    #[fail(display = "CoreError:ActixMailbox {}", _0)]
+    #[fail(display = "ActixMailbox {}", _0)]
     ActixMailbox(#[fail(cause)] actix::MailboxError),
 
-    #[fail(display = "CoreError:SerdeJson {}", _0)]
+    #[fail(display = "SerdeJson {}", _0)]
     SerdeJson(#[fail(cause)] serde_json::Error),
 
-    #[fail(display = "CoreError:SerdeQs {}", _0)]
+    #[fail(display = "SerdeQs {}", _0)]
     SerdeQs(String),
 
-    #[fail(display = "CoreError:Zxcvbn {}", _0)]
+    #[fail(display = "Zxcvbn {}", _0)]
     Zxcvbn(#[fail(cause)] zxcvbn::ZxcvbnError),
+
+    #[fail(display = "Metrics")]
+    Metrics,
+
+    #[fail(display = "HttpHeader")]
+    HttpHeader,
+
+    #[fail(display = "ActixWebBlockingCancelled")]
+    ActixWebBlockingCancelled,
 }
 
 /// Core result wrapper type.
 pub type CoreResult<T> = Result<T, CoreError>;
 
 impl CoreError {
+    pub fn validate(e: validator::ValidationErrors) -> Self {
+        Self::Validate(serde_json::to_value(e).unwrap())
+    }
+
     pub fn libreauth_pass(e: libreauth::pass::ErrorCode) -> Self {
         Self::LibreauthPass(e as usize)
     }
@@ -127,15 +173,5 @@ impl From<DriverError> for CoreError {
 impl From<ClientError> for CoreError {
     fn from(e: ClientError) -> Self {
         Self::Client(e)
-    }
-}
-
-impl Serialize for CoreError {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let v = format!("{}", self);
-        serializer.serialize_str(&v)
     }
 }
