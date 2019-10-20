@@ -5,4 +5,5 @@
 
 [Single sign-on](https://en.wikipedia.org/wiki/Single_sign-on) authentication server library and binary crate.
 
-[Manual](https://mojzu.net/sso/)
+- [Manual](https://mojzu.net/sso/)
+- [Repository](https://github.com/mojzu/sso)

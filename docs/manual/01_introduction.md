@@ -15,16 +15,16 @@ Authentication methods are organised into provider groups, The following provide
 ### Password Login (local)
 
 - Users can authenticate to a service using a unique email address and password.
-- Successful login returns time-limited, revokable access and refresh [JSON web tokens](jwt).
+- Successful login returns time-limited, revokable access and refresh [JSON web tokens][jwt].
 - Access tokens are used to authenticate user requests.
 - Refresh tokens are used to produce new access and refresh tokens.
 - User passwords can be reset via email, this feature can also be disabled for a user.
 - Users can be required to update their passwords.
 - User email address and password updates cause notification emails to be sent to the user.
 - Notification emails contain revokation links in case a login is compromised.
-- Passwords are stored as [argon2](https://en.wikipedia.org/wiki/Argon2) hashes.
-- Password strength is checked by [zxcvbn](https://github.com/shssoichiro/zxcvbn-rs).
-- Password leaks are checked by [Pwned Passwords](pwned-passwords).
+- Passwords are stored as [argon2][argon2] hashes using [libreauth][libreauth].
+- Password strength is checked by [zxcvbn][zxcvbn].
+- Password leaks are checked by [Pwned Passwords][pwned-passwords].
 - Users can be created without passwords to disable password login.
 
 ### API Key (local)
@@ -34,12 +34,12 @@ Authentication methods are organised into provider groups, The following provide
 
 ### TOTP (local)
 
-- Services can authenticate user requests that contain a [TOTP](totp) code.
+- Services can authenticate user requests that contain a [TOTP][totp] code.
 
 ### OAuth2 (github, microsoft)
 
 - Users can authenticate to a service via supported OAuth2 providers.
-- Successful login returns time-limited, revokable access and refresh [JSON web tokens](jwt).
+- Successful login returns time-limited, revokable access and refresh [JSON web tokens][jwt].
 - Access tokens are used to authenticate user requests.
 - Refresh tokens are used to produce new access and refresh tokens.
 
@@ -73,4 +73,4 @@ Keys linked to one user and one service, allows user to authenticate with the li
 
 ### Token
 
-[JSON web tokens](jwt) used for time-limited authentication, produced for users from a user key. Revoking the key used to produce a token also revokes the token. Tokens have a type which determines what the token may be used for (e.g. single use reset password token).
+[JSON web tokens][jwt] used for time-limited authentication, produced for users from a user key. Revoking the key used to produce a token also revokes the token. Tokens have a type which determines what the token may be used for (e.g. single use reset password token).

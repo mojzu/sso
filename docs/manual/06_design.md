@@ -1,8 +1,19 @@
 # Design
 
+## Architecture
+
+| Directory     | Description                                                                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/src/api`    | API request and response types and synchronous handlers, calls into `core`, `driver` modules.                                               |
+| `/src/client` | Synchronous and asynchronous clients using `reqwest` crate and `api` module types.                                                          |
+| `/src/core`   | Types/functions between API and driver, in process of refactoring types and some logic to `driver` module, and other logic to `api` module. |
+| `/src/driver` | Database types and driver for Postgres, SQLite support is planned.                                                                          |
+| `/src/server` | Actix-web frontend for API, asynchronous route handlers deserialise data for synchronous `api` calls.                                       |
+| `/tests`      | Integration tests which use `ClientSync` to run tests against an instance of `sso`.                                                         |
+
 ## OWASP: ASVS
 
-<https://www.owasp.org/index.php/Category:OWASP_Application_Security_Verification_Standard_Project>
+[OWASP ASVS][owasp-asvs]
 
 The OWASP Application Security Verification Standard is being used as a reference to improve this application. These are some development and design notes based on requirements from the 4.0 version of the ASVS standard.
 

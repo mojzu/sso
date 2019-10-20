@@ -16,3 +16,9 @@
 [totp]: https://en.wikipedia.org/wiki/Time-based_One-time_Password_algorithm
 [argon2]: https://en.wikipedia.org/wiki/Argon2
 [zxcvbn]: https://github.com/shssoichiro/zxcvbn-rs
+[postman]: https://www.getpostman.com/
+[openapi]: https://swagger.io/docs/specification/about/
+[libreauth]: https://docs.rs/libreauth/0.12.0/libreauth/
+[nginx]: https://www.nginx.com/
+[prometheus]: https://prometheus.io/
+[owasp-asvs]: https://www.owasp.org/index.php/Category:OWASP_Application_Security_Verification_Standard_Project

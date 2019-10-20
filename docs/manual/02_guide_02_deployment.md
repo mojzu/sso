@@ -5,7 +5,7 @@ TODO(docs): Postgres encryption.
 
 **Nginx**
 
-Example [nginx](https://www.nginx.com/) configuration.
+Example [nginx][nginx] configuration.
 
 ```nginx
 http {
@@ -31,7 +31,7 @@ http {
 
 **Prometheus**
 
-Example [Prometheus](https://prometheus.io/) configuration.
+Example [Prometheus][prometheus] configuration.
 
 ```yml
 scrape_configs:

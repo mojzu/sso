@@ -2,14 +2,14 @@
 
 ## Tools
 
-The `sso` crate depends on [PostgreSQL](postgresql) and [SQLite](sqlite) libraries.
+The `sso` crate depends on [PostgreSQL][postgresql] and [SQLite][sqlite] libraries.
 
 ```shell
 # Install on Ubuntu.
 sudo apt install libpq-dev libsqlite3-dev libssl-dev libfuse-dev pkg-config
 ```
 
-Install [Rust](rust) using [rustup](rustup).
+Install [Rust][rust] using [rustup][rustup].
 
 To update the toolchain.
 
@@ -18,7 +18,7 @@ rustup self update
 rustup update
 ```
 
-The `sso` crate depends on [cargo make](cargo-make), [Diesel](diesel) and [cargo audit](cargo-audit), install them with Cargo.
+The `sso` crate depends on [cargo make][cargo-make], [Diesel][diesel] and [cargo audit][cargo-audit], install them with Cargo.
 
 ```shell
 cargo install --force cargo-make
@@ -32,7 +32,7 @@ To update crate dependencies.
 cargo update
 ```
 
-[Docker](docker) and [Docker Compose](docker-compose) are used for development, install them using the linked documentation.
+[Docker][docker] and [Docker Compose][docker-compose] are used for development, install them using the linked documentation.
 
 To start containers defined in `docker/docker-compose.yml`.
 
@@ -56,7 +56,7 @@ cargo make docker-down
 
 ## Manual
 
-This manual is written in [Markdown](pandoc-markdown) and converted into other formats using [Pandoc](pandoc).
+This manual is written in [Markdown][pandoc-markdown] and converted into other formats using [Pandoc][pandoc].
 
 To build the HTML manual.
 
@@ -80,7 +80,7 @@ cargo make manual
 | SMTP_PORT               | ...                                                    |
 | SMTP_USER               | ...                                                    |
 | SMTP_PASSWORD           | ...                                                    |
-| PASSWORD_PWNED_ENABLED  | Enable [Pwned Passwords](pwned-passwords) integration. |
+| PASSWORD_PWNED_ENABLED  | Enable [Pwned Passwords][pwned-passwords] integration. |
 | GITHUB_CLIENT_ID        | GitHub OAuth2 provider, optional.                      |
 | GITHUB_CLIENT_SECRET    | ...                                                    |
 | MICROSOFT_CLIENT_ID     | Microsoft OAuth2 provider, optional.                   |
@@ -92,14 +92,14 @@ Write `export $NAME="$VALUE"` statements to file `.env` and run `source .env` to
 
 ## Database
 
-To reset and create new [PostgreSQL](postgresql) database migrations for [Diesel](diesel). These commands assume docker container is running.
+To reset and create new [PostgreSQL][postgresql] database migrations for [Diesel][diesel]. These commands assume docker container is running.
 
 ```shell
 cargo make postgres-reset
 cargo make postgres-migration $migration_name
 ```
 
-To reset and create new [SQLite](sqlite) database migrations for [Diesel](diesel).
+To reset and create new [SQLite][sqlite] database migrations for [Diesel][diesel].
 
 ```shell
 cargo make sqlite-reset
@@ -117,7 +117,7 @@ cargo make release-flow
 cargo make install
 ```
 
-To lint source code using [clippy](clippy).
+To lint source code using [clippy][clippy].
 
 ```shell
 cargo make clippy
@@ -141,7 +141,7 @@ To audit crate dependencies.
 cargo make audit
 ```
 
-[To publish crate(s)](cargo-publishing).
+[To publish crate(s)][cargo-publishing].
 
 ## Test
 

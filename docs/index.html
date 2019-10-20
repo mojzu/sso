@@ -403,6 +403,7 @@ page-break-after: avoid;
 <li><a href="#totp">TOTP</a></li>
 <li><a href="#csrf">CSRF</a></li>
 </ul></li>
+<li><a href="#api">API</a></li>
 <li><a href="#cli">CLI</a></li>
 <li><a href="#changelog">Changelog</a><ul>
 <li><a href="#section">0.7.0 (?)</a></li>
@@ -414,6 +415,7 @@ page-break-after: avoid;
 <li><a href="#section-6">0.1.0 (2019-05-16)</a></li>
 </ul></li>
 <li><a href="#design">Design</a><ul>
+<li><a href="#architecture">Architecture</a></li>
 <li><a href="#owasp-asvs">OWASP: ASVS</a></li>
 </ul></li>
 <li><a href="#developer">Developer</a><ul>
@@ -434,16 +436,16 @@ page-break-after: avoid;
 <h3 id="password-login-local">Password Login (local)</h3>
 <ul>
 <li>Users can authenticate to a service using a unique email address and password.</li>
-<li>Successful login returns time-limited, revokable access and refresh <a href="jwt">JSON web tokens</a>.</li>
+<li>Successful login returns time-limited, revokable access and refresh <a href="https://jwt.io/">JSON web tokens</a>.</li>
 <li>Access tokens are used to authenticate user requests.</li>
 <li>Refresh tokens are used to produce new access and refresh tokens.</li>
 <li>User passwords can be reset via email, this feature can also be disabled for a user.</li>
 <li>Users can be required to update their passwords.</li>
 <li>User email address and password updates cause notification emails to be sent to the user.</li>
 <li>Notification emails contain revokation links in case a login is compromised.</li>
-<li>Passwords are stored as <a href="https://en.wikipedia.org/wiki/Argon2">argon2</a> hashes.</li>
+<li>Passwords are stored as <a href="https://en.wikipedia.org/wiki/Argon2">argon2</a> hashes using <a href="https://docs.rs/libreauth/0.12.0/libreauth/">libreauth</a>.</li>
 <li>Password strength is checked by <a href="https://github.com/shssoichiro/zxcvbn-rs">zxcvbn</a>.</li>
-<li>Password leaks are checked by <a href="pwned-passwords">Pwned Passwords</a>.</li>
+<li>Password leaks are checked by <a href="https://haveibeenpwned.com/Passwords">Pwned Passwords</a>.</li>
 <li>Users can be created without passwords to disable password login.</li>
 </ul>
 <h3 id="api-key-local">API Key (local)</h3>
@@ -453,12 +455,12 @@ page-break-after: avoid;
 </ul>
 <h3 id="totp-local">TOTP (local)</h3>
 <ul>
-<li>Services can authenticate user requests that contain a <a href="totp">TOTP</a> code.</li>
+<li>Services can authenticate user requests that contain a <a href="https://en.wikipedia.org/wiki/Time-based_One-time_Password_algorithm">TOTP</a> code.</li>
 </ul>
 <h3 id="oauth2-github-microsoft">OAuth2 (github, microsoft)</h3>
 <ul>
 <li>Users can authenticate to a service via supported OAuth2 providers.</li>
-<li>Successful login returns time-limited, revokable access and refresh <a href="jwt">JSON web tokens</a>.</li>
+<li>Successful login returns time-limited, revokable access and refresh <a href="https://jwt.io/">JSON web tokens</a>.</li>
 <li>Access tokens are used to authenticate user requests.</li>
 <li>Refresh tokens are used to produce new access and refresh tokens.</li>
 </ul>
@@ -477,7 +479,7 @@ page-break-after: avoid;
 <h3 id="user-key">User Key</h3>
 <p>Keys linked to one user and one service, allows user to authenticate with the linked service. Any type, type determines what the key may be used for (e.g. <code>Token</code> keys are used for email and password login).</p>
 <h3 id="token">Token</h3>
-<p><a href="jwt">JSON web tokens</a> used for time-limited authentication, produced for users from a user key. Revoking the key used to produce a token also revokes the token. Tokens have a type which determines what the token may be used for (e.g. single use reset password token).</p>
+<p><a href="https://jwt.io/">JSON web tokens</a> used for time-limited authentication, produced for users from a user key. Revoking the key used to produce a token also revokes the token. Tokens have a type which determines what the token may be used for (e.g. single use reset password token).</p>
 <h1 id="guides">Guides</h1>
 <h2 id="quickstart">Quickstart</h2>
 <p>TODO(docs): Write quickstart guide.</p>
@@ -798,6 +800,9 @@ sso start-server</code></pre>
   $server_url/v1/auth/key/revoke</code></pre>
 <h2 id="csrf">CSRF</h2>
 <p>TODO(docs): Write CSRF guide.</p>
+<h1 id="api">API</h1>
+<p>The <a href="https://www.getpostman.com/">Postman</a> collection JSON file can be found in <code>docs/sso.postman_collection.json</code>.</p>
+<p>TODO(docs): <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> definition file?</p>
 <h1 id="cli">CLI</h1>
 <p>TODO(docs): CLI documentation.</p>
 <h1 id="changelog">Changelog</h1>
@@ -939,8 +944,47 @@ sso start-server</code></pre>
 <li>First version.</li>
 </ul>
 <h1 id="design">Design</h1>
+<h2 id="architecture">Architecture</h2>
+<table>
+<colgroup>
+<col style="width: 8%"></col>
+<col style="width: 91%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Directory</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>/src/api</code></td>
+<td>API request and response types and synchronous handlers, calls into <code>core</code>, <code>driver</code> modules.</td>
+</tr>
+<tr class="even">
+<td><code>/src/client</code></td>
+<td>Synchronous and asynchronous clients using <code>reqwest</code> crate and <code>api</code> module types.</td>
+</tr>
+<tr class="odd">
+<td><code>/src/core</code></td>
+<td>Types/functions between API and driver, in process of refactoring types and some logic to <code>driver</code> module, and other logic to <code>api</code> module.</td>
+</tr>
+<tr class="even">
+<td><code>/src/driver</code></td>
+<td>Database types and driver for Postgres, SQLite support is planned.</td>
+</tr>
+<tr class="odd">
+<td><code>/src/server</code></td>
+<td>Actix-web frontend for API, asynchronous route handlers deserialise data for synchronous <code>api</code> calls.</td>
+</tr>
+<tr class="even">
+<td><code>/tests</code></td>
+<td>Integration tests which use <code>ClientSync</code> to run tests against an instance of <code>sso</code>.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="owasp-asvs">OWASP: ASVS</h2>
-<p><a href="https://www.owasp.org/index.php/Category:OWASP_Application_Security_Verification_Standard_Project" class="uri">https://www.owasp.org/index.php/Category:OWASP_Application_Security_Verification_Standard_Project</a></p>
+<p><a href="https://www.owasp.org/index.php/Category:OWASP_Application_Security_Verification_Standard_Project">OWASP ASVS</a></p>
 <p>The OWASP Application Security Verification Standard is being used as a reference to improve this application. These are some development and design notes based on requirements from the 4.0 version of the ASVS standard.</p>
 <h3 id="section-7">1.2.1</h3>
 <ul>
@@ -991,20 +1035,20 @@ sso start-server</code></pre>
 </ul>
 <h1 id="developer">Developer</h1>
 <h2 id="tools">Tools</h2>
-<p>The <code>sso</code> crate depends on <a href="postgresql">PostgreSQL</a> and <a href="sqlite">SQLite</a> libraries.</p>
+<p>The <code>sso</code> crate depends on <a href="https://www.postgresql.org/">PostgreSQL</a> and <a href="https://www.sqlite.org/index.html">SQLite</a> libraries.</p>
 <pre class="shell"><code># Install on Ubuntu.
 sudo apt install libpq-dev libsqlite3-dev libssl-dev libfuse-dev pkg-config</code></pre>
-<p>Install <a href="rust">Rust</a> using <a href="rustup">rustup</a>.</p>
+<p>Install <a href="https://www.rust-lang.org/">Rust</a> using <a href="https://rustup.rs/">rustup</a>.</p>
 <p>To update the toolchain.</p>
 <pre class="shell"><code>rustup self update
 rustup update</code></pre>
-<p>The <code>sso</code> crate depends on <a href="cargo-make">cargo make</a>, <a href="diesel">Diesel</a> and <a href="cargo-audit">cargo audit</a>, install them with Cargo.</p>
+<p>The <code>sso</code> crate depends on <a href="https://github.com/sagiegurari/cargo-make">cargo make</a>, <a href="http://diesel.rs/">Diesel</a> and <a href="https://github.com/RustSec/cargo-audit">cargo audit</a>, install them with Cargo.</p>
 <pre class="shell"><code>cargo install --force cargo-make
 cargo install --force diesel_cli --no-default-features --features &quot;postgres sqlite&quot;
 cargo install --force cargo-audit</code></pre>
 <p>To update crate dependencies.</p>
 <pre class="shell"><code>cargo update</code></pre>
-<p><a href="docker">Docker</a> and <a href="docker-compose">Docker Compose</a> are used for development, install them using the linked documentation.</p>
+<p><a href="https://docs.docker.com/install/">Docker</a> and <a href="https://docs.docker.com/compose/">Docker Compose</a> are used for development, install them using the linked documentation.</p>
 <p>To start containers defined in <code>docker/docker-compose.yml</code>.</p>
 <pre class="shell"><code>cargo make docker-up</code></pre>
 <p>To backup and restore <code>sso</code> database in <code>postgres</code> container.</p>
@@ -1014,11 +1058,15 @@ cargo make docker-pg-restore</code></pre>
 <pre class="shell"><code>cargo make docker-stop
 cargo make docker-down</code></pre>
 <h2 id="manual-1">Manual</h2>
-<p>This manual is written in <a href="pandoc-markdown">Markdown</a> and converted into other formats using <a href="pandoc">Pandoc</a>.</p>
+<p>This manual is written in <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Markdown</a> and converted into other formats using <a href="https://pandoc.org/">Pandoc</a>.</p>
 <p>To build the HTML manual.</p>
 <pre class="shell"><code>cargo make manual</code></pre>
 <h2 id="environment">Environment</h2>
 <table>
+<colgroup>
+<col style="width: 29%"></col>
+<col style="width: 70%"></col>
+</colgroup>
 <thead>
 <tr class="header">
 <th>Variable</th>
@@ -1076,7 +1124,7 @@ cargo make docker-down</code></pre>
 </tr>
 <tr class="odd">
 <td>PASSWORD_PWNED_ENABLED</td>
-<td>Enable <a href="pwned-passwords">Pwned Passwords</a> integration.</td>
+<td>Enable <a href="https://haveibeenpwned.com/Passwords">Pwned Passwords</a> integration.</td>
 </tr>
 <tr class="even">
 <td>GITHUB_CLIENT_ID</td>
@@ -1099,10 +1147,10 @@ cargo make docker-down</code></pre>
 <h3 id="ubuntu">Ubuntu</h3>
 <p>Write <code>export $NAME=&quot;$VALUE&quot;</code> statements to file <code>.env</code> and run <code>source .env</code> to export variables in open terminal. See <code>sso/.env</code> for example.</p>
 <h2 id="database">Database</h2>
-<p>To reset and create new <a href="postgresql">PostgreSQL</a> database migrations for <a href="diesel">Diesel</a>. These commands assume docker container is running.</p>
+<p>To reset and create new <a href="https://www.postgresql.org/">PostgreSQL</a> database migrations for <a href="http://diesel.rs/">Diesel</a>. These commands assume docker container is running.</p>
 <pre class="shell"><code>cargo make postgres-reset
 cargo make postgres-migration $migration_name</code></pre>
-<p>To reset and create new <a href="sqlite">SQLite</a> database migrations for <a href="diesel">Diesel</a>.</p>
+<p>To reset and create new <a href="https://www.sqlite.org/index.html">SQLite</a> database migrations for <a href="http://diesel.rs/">Diesel</a>.</p>
 <pre class="shell"><code>cargo make sqlite-reset
 cargo make sqlite-migration $migration_name</code></pre>
 <h2 id="build">Build</h2>
@@ -1111,7 +1159,7 @@ cargo make sqlite-migration $migration_name</code></pre>
 cargo make release
 cargo make release-flow
 cargo make install</code></pre>
-<p>To lint source code using <a href="clippy">clippy</a>.</p>
+<p>To lint source code using <a href="https://github.com/rust-lang/rust-clippy">clippy</a>.</p>
 <pre class="shell"><code>cargo make clippy</code></pre>
 <p>To build and open documentation.</p>
 <pre class="shell"><code>cargo make doc</code></pre>
@@ -1119,7 +1167,7 @@ cargo make install</code></pre>
 <pre class="shell"><code>cargo make docker-build</code></pre>
 <p>To audit crate dependencies.</p>
 <pre class="shell"><code>cargo make audit</code></pre>
-<p><a href="cargo-publishing">To publish crate(s)</a>.</p>
+<p><a href="https://doc.rust-lang.org/cargo/reference/publishing.html">To publish crate(s)</a>.</p>
 <h2 id="test">Test</h2>
 <p>To run unit tests.</p>
 <pre class="shell"><code>cargo make test</code></pre>
