@@ -10,7 +10,6 @@ use uuid::Uuid;
 
 // TODO(refactor): Use service_mask in functions to limit results, etc. Add tests for this.
 // TODO(refactor): Improve key, user, service list query options (order by name, text search, ...).
-// TODO(refactor): User last login, key last use information (calculate in SQL).
 // TODO(refactor): Check audit logging in auth module, add tests.
 
 /// Key value size in bytes.
@@ -247,7 +246,9 @@ impl Key {
         name: String,
         service_id: &Uuid,
     ) -> CoreResult<KeyWithValue> {
-        let service = Service::read(driver, None, service_id)?;
+        let service = driver
+            .service_read_opt(service_id)?
+            .ok_or_else(|| CoreError::ServiceNotFound)?;
         let value = Key::value_generate();
         let create = KeyCreate {
             is_enabled,
@@ -288,7 +289,9 @@ impl Key {
                 }
             }
         }
-        let service = Service::read(driver, None, service_id)?;
+        let service = driver
+            .service_read_opt(service_id)?
+            .ok_or_else(|| CoreError::ServiceNotFound)?;
         let user_read = UserRead::Id(*user_id);
         let user = User::read(driver, None, &user_read)?;
 

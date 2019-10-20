@@ -17,7 +17,9 @@ pub use crate::api::{
     validate::{ValidateRequest, ValidateRequestQuery},
 };
 
-use crate::{Audit, AuditBuilder, AuditDiff, AuditMeta, AuditSubject, AuditType, Driver};
+use crate::{
+    AuditBuilder, AuditDiff, AuditDiffBuilder, AuditMeta, AuditSubject, AuditType, Driver,
+};
 use prometheus::Registry;
 use serde_json::Value;
 
@@ -97,11 +99,11 @@ pub mod route {
     }
 }
 
-pub fn ping() -> Value {
+pub fn server_ping() -> Value {
     json!("pong")
 }
 
-pub fn metrics(
+pub fn server_metrics(
     driver: &dyn Driver,
     audit_meta: AuditMeta,
     key_value: Option<String>,
@@ -135,7 +137,7 @@ mod server {
 
 fn result_audit<T>(driver: &dyn Driver, audit: &AuditBuilder, res: ApiResult<T>) -> ApiResult<T> {
     res.or_else(|e| {
-        let data = Audit::typed_data("error", &e);
+        let data = AuditDiffBuilder::typed_data("error", &e);
         audit.create_data(driver, None, Some(data)).unwrap();
         Err(e)
     })
@@ -151,7 +153,7 @@ fn result_audit_err<T>(
     res: ApiResult<T>,
 ) -> ApiResult<T> {
     res.or_else(|e| {
-        let data = Audit::typed_data("error", &e);
+        let data = AuditDiffBuilder::typed_data("error", &e);
         audit.create_data(driver, None, Some(data)).unwrap();
         Err(e)
     })
@@ -163,7 +165,7 @@ fn result_audit_subject<T: AuditSubject>(
     res: ApiResult<T>,
 ) -> ApiResult<T> {
     res.or_else(|e| {
-        let data = Audit::typed_data("error", &e);
+        let data = AuditDiffBuilder::typed_data("error", &e);
         audit.create_data(driver, None, Some(data)).unwrap();
         Err(e)
     })
@@ -181,7 +183,7 @@ fn result_audit_diff<T: AuditSubject + AuditDiff>(
     res: ApiResult<(T, T)>,
 ) -> ApiResult<T> {
     res.or_else(|e| {
-        let data = Audit::typed_data("error", &e);
+        let data = AuditDiffBuilder::typed_data("error", &e);
         audit.create_data(driver, None, Some(data)).unwrap();
         Err(e)
     })

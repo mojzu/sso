@@ -13,6 +13,8 @@ use uuid::Uuid;
 #[derive(Debug)]
 pub struct Auth;
 
+// TODO(refactor): Move this logic, other core methods into api/driver?
+
 impl Auth {
     pub fn notify_email_reset_password(
         notify: &Addr<NotifyActor>,
@@ -106,7 +108,6 @@ impl Auth {
         notify: &Addr<NotifyActor>,
         service: Service,
         user: User,
-        // TODO(refactor): Change to new_email.
         old_email: String,
         revoke_token: String,
         audit: AuditMeta,
@@ -254,7 +255,6 @@ impl Auth {
         }
     }
 
-    // TODO(refactor): Use checked read.
     /// Authenticate service key.
     pub fn authenticate_service(
         driver: &dyn Driver,
@@ -295,7 +295,10 @@ impl Auth {
         audit: &mut AuditBuilder,
         service_id: Uuid,
     ) -> CoreResult<Service> {
-        let service = Service::read(driver, None, &service_id)?;
+        let service = driver
+            .service_read_opt(&service_id)?
+            .ok_or_else(|| CoreError::ServiceNotFound)?
+            .check()?;
         audit.service(Some(&service));
         Ok(service)
     }
@@ -335,21 +338,6 @@ impl Auth {
             }
             None => Err(CoreError::UserPasswordUndefined),
         }
-    }
-
-    /// Read service by ID.
-    /// Also checks service is enabled, returns bad request if disabled.
-    pub fn service_read_by_id(
-        driver: &dyn Driver,
-        service_id: Uuid,
-        audit: &mut AuditBuilder,
-    ) -> CoreResult<Service> {
-        let service = Service::read(driver, None, &service_id)?;
-        audit.service(Some(&service));
-        if !service.is_enabled {
-            return Err(CoreError::ServiceDisabled);
-        }
-        Ok(service)
     }
 
     /// Read user by ID.

@@ -1,4 +1,4 @@
-use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, Core, CoreError, CoreResult, Driver};
+use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, Core, CoreError, CoreResult};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -18,6 +18,45 @@ pub struct Service {
     pub provider_local_url: Option<String>,
     pub provider_github_oauth2_url: Option<String>,
     pub provider_microsoft_oauth2_url: Option<String>,
+}
+
+impl Service {
+    /// Check service is enabled.
+    pub fn check(self) -> CoreResult<Self> {
+        if !self.is_enabled {
+            Err(CoreError::ServiceDisabled)
+        } else {
+            Ok(self)
+        }
+    }
+
+    /// Build a local provider callback URL with type and serialisable data.
+    pub fn provider_local_callback_url<T: Into<String>, D: Serialize>(
+        &self,
+        type_: T,
+        data: D,
+    ) -> CoreResult<Url> {
+        #[derive(Serialize, Deserialize)]
+        struct ServiceCallbackQuery<S: Serialize> {
+            #[serde(rename = "type")]
+            type_: String,
+            #[serde(flatten)]
+            data: S,
+        }
+
+        let provider_local_url = self
+            .provider_local_url
+            .as_ref()
+            .ok_or_else(|| CoreError::ServiceProviderLocalDisabled)?;
+        let mut url = Url::parse(provider_local_url).unwrap();
+        let query = ServiceCallbackQuery {
+            type_: type_.into(),
+            data,
+        };
+        let query = Core::qs_ser(&query)?;
+        url.set_query(Some(&query));
+        Ok(url)
+    }
 }
 
 impl fmt::Display for Service {
@@ -151,75 +190,6 @@ pub struct ServiceUpdate {
     pub provider_microsoft_oauth2_url: Option<String>,
 }
 
-/// Service callback URL query.
-#[derive(Serialize, Deserialize)]
-struct ServiceCallbackQuery<S: Serialize> {
-    #[serde(rename = "type")]
-    type_: String,
-    #[serde(flatten)]
-    data: S,
-}
-
-impl<S: Serialize> ServiceCallbackQuery<S> {
-    pub fn new<T: Into<String>>(type_: T, data: S) -> Self {
-        Self {
-            type_: type_.into(),
-            data,
-        }
-    }
-}
-
-impl Service {
-    pub fn callback_url<S: Serialize>(&self, type_: &str, data: S) -> CoreResult<Url> {
-        let provider_local_url = self
-            .provider_local_url
-            .as_ref()
-            .ok_or_else(|| CoreError::ServiceProviderLocalDisabled)?;
-        let mut url = Url::parse(provider_local_url).unwrap();
-        let query = ServiceCallbackQuery::new(type_, data);
-        let query = Core::qs_ser(&query)?;
-        url.set_query(Some(&query));
-        Ok(url)
-    }
-
-    /// Create service.
-    pub fn create(driver: &dyn Driver, create: &ServiceCreate) -> CoreResult<Service> {
-        // TODO(refactor): Improve URL validation, validate provider URLs (option to enforce HTTPS).
-        Url::parse(&create.url).map_err(CoreError::UrlParse)?;
-        driver.service_create(create).map_err(CoreError::Driver)
-    }
-
-    /// Read service.
-    pub fn read(
-        driver: &dyn Driver,
-        service_mask: Option<&Service>,
-        id: &Uuid,
-    ) -> CoreResult<Service> {
-        Self::read_opt(driver, service_mask, id)?.ok_or_else(|| CoreError::ServiceNotFound)
-    }
-
-    /// Read service (optional).
-    pub fn read_opt(
-        driver: &dyn Driver,
-        _service_mask: Option<&Service>,
-        id: &Uuid,
-    ) -> CoreResult<Option<Service>> {
-        driver.service_read_opt(id).map_err(CoreError::Driver)
-    }
-
-    /// Update service by ID.
-    pub fn update(
-        driver: &dyn Driver,
-        _service_mask: Option<&Service>,
-        id: Uuid,
-        update: &ServiceUpdate,
-    ) -> CoreResult<Service> {
-        driver
-            .service_update(&id, update)
-            .map_err(CoreError::Driver)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -232,7 +202,7 @@ mod tests {
     }
 
     #[test]
-    fn builds_service_callback_url() {
+    fn service_provider_local_callback_url() {
         let id = "6a9c6cfb7e15498b99e057153f0a212b";
         let id = Uuid::parse_str(id).unwrap();
         let service = Service {
@@ -251,7 +221,7 @@ mod tests {
             token: "6a9c6cfb7e15498b99e057153f0a212b".to_owned(),
         };
         let url = service
-            .callback_url("reset_password", &callback_data)
+            .provider_local_callback_url("reset_password", &callback_data)
             .unwrap();
         assert_eq!(
             url.to_string(),

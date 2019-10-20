@@ -188,7 +188,6 @@ impl ModelAudit {
     ) -> DriverResult<Audit> {
         use diesel::sql_types;
 
-        // TODO(refactor): Use service ID mask.
         let now = Utc::now();
         let data = Self::wrap_data(update.data.as_ref());
         diesel::sql_query(include_str!("audit_update.sql"))

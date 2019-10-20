@@ -1,16 +1,12 @@
-mod audit;
 mod auth;
 mod csrf;
 mod error;
 mod jwt;
 mod key;
 mod metrics;
-mod service;
 mod user;
 
-pub use crate::core::{
-    audit::*, auth::*, csrf::*, error::*, jwt::*, key::*, metrics::*, service::*, user::*,
-};
+pub use crate::core::{auth::*, csrf::*, error::*, jwt::*, key::*, metrics::*, user::*};
 
 use serde::{de::DeserializeOwned, ser::Serialize};
 

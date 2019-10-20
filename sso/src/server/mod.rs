@@ -32,6 +32,8 @@ use std::{
 // TODO(feature): Improved public library API interface (gui service as example?).
 // TODO(feature): Email translation/formatting using user locale and timezone.
 // TODO(feature): Handle changes to password hash version.
+// TODO(feature): Option to enforce provider URLs HTTPS.
+// TODO(feature): User last login, key last use information (calculate in SQL).
 
 /// Server errors.
 #[derive(Debug, Fail)]

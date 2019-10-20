@@ -30,7 +30,7 @@ fn route_v1_scope() -> Scope {
 }
 
 fn ping_handler() -> Result<HttpResponse> {
-    let body = api::ping();
+    let body = api::server_ping();
     Ok(HttpResponse::Ok().json(body))
 }
 
@@ -44,8 +44,10 @@ fn metrics_handler(
 
     audit_meta
         .and_then(|audit_meta| {
-            web::block(move || api::metrics(data.driver(), audit_meta, key_value, data.registry()))
-                .map_err(Into::into)
+            web::block(move || {
+                api::server_metrics(data.driver(), audit_meta, key_value, data.registry())
+            })
+            .map_err(Into::into)
         })
         .map_err(Into::into)
         .then(route_response_text)

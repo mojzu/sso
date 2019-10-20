@@ -142,11 +142,7 @@ impl ValidateRequest<AuditCreate2Request> for AuditCreate2Request {}
 
 impl From<AuditCreate2Request> for AuditCreate2 {
     fn from(data: AuditCreate2Request) -> Self {
-        Self {
-            type_: data.type_,
-            subject: data.subject,
-            data: data.data,
-        }
+        Self::new(data.type_, data.subject, data.data)
     }
 }
 

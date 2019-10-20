@@ -3,7 +3,6 @@ use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
 use std::fmt;
-use time::Duration;
 use uuid::Uuid;
 
 /// Audit type maximum length.
@@ -127,21 +126,37 @@ impl AuditCreate {
         type_: String,
         subject: Option<String>,
         data: Option<Value>,
-        key_id: Option<Uuid>,
-        service_id: Option<Uuid>,
-        user_id: Option<Uuid>,
-        user_key_id: Option<Uuid>,
     ) -> Self {
         Self {
             meta,
             type_,
             subject,
             data,
-            key_id,
-            service_id,
-            user_id,
-            user_key_id,
+            key_id: None,
+            service_id: None,
+            user_id: None,
+            user_key_id: None,
         }
+    }
+
+    pub fn key_id(mut self, key_id: Option<Uuid>) -> Self {
+        self.key_id = key_id;
+        self
+    }
+
+    pub fn service_id(mut self, service_id: Option<Uuid>) -> Self {
+        self.service_id = service_id;
+        self
+    }
+
+    pub fn user_id(mut self, user_id: Option<Uuid>) -> Self {
+        self.user_id = user_id;
+        self
+    }
+
+    pub fn user_key_id(mut self, user_key_id: Option<Uuid>) -> Self {
+        self.user_key_id = user_key_id;
+        self
     }
 }
 
@@ -149,9 +164,9 @@ impl AuditCreate {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuditCreate2 {
     #[serde(rename = "type")]
-    pub type_: String,
-    pub subject: Option<String>,
-    pub data: Option<Value>,
+    type_: String,
+    subject: Option<String>,
+    data: Option<Value>,
 }
 
 impl AuditCreate2 {
@@ -301,16 +316,11 @@ impl AuditBuilder {
 
     /// Create audit log from parameters.
     pub fn create(&self, driver: &dyn Driver, create: AuditCreate2) -> CoreResult<Audit> {
-        let data = AuditCreate::new(
-            self.meta.clone(),
-            create.type_,
-            create.subject,
-            create.data,
-            self.key,
-            self.service,
-            self.user,
-            self.user_key,
-        );
+        let data = AuditCreate::new(self.meta.clone(), create.type_, create.subject, create.data)
+            .key_id(self.key)
+            .service_id(self.service)
+            .user_id(self.user)
+            .user_key_id(self.user_key);
         driver.audit_create(&data).map_err(CoreError::Driver)
     }
 
@@ -327,11 +337,11 @@ impl AuditBuilder {
             self.type_.to_string().unwrap(),
             subject,
             data,
-            self.key,
-            self.service,
-            self.user,
-            self.user_key,
-        );
+        )
+        .key_id(self.key)
+        .service_id(self.service)
+        .user_id(self.user)
+        .user_key_id(self.user_key);
         driver.audit_create(&audit_data).map_err(CoreError::Driver)
     }
 }
@@ -351,7 +361,7 @@ pub trait AuditDiff {
 /// Audit diff builder pattern.
 ///
 /// Internal structure is:
-/// Key -> previous value -> current value.
+/// key -> previous value -> current value.
 #[derive(Debug)]
 pub struct AuditDiffBuilder {
     data: Vec<(String, String, String)>,
@@ -364,6 +374,7 @@ impl Default for AuditDiffBuilder {
 }
 
 impl AuditDiffBuilder {
+    /// Compare 2 versions of a value, if different push a row to diff data.
     pub fn compare<T: PartialEq + fmt::Display>(
         mut self,
         key: &str,
@@ -380,12 +391,11 @@ impl AuditDiffBuilder {
         self
     }
 
+    /// Serialise diff data into Value.
     pub fn into_value(self) -> Value {
-        Audit::typed_data("diff", self.data)
+        Self::typed_data("diff", self.data)
     }
-}
 
-impl Audit {
     /// Wrap serialisable data in object with type property.
     pub fn typed_data<T: Into<String>, D1: Serialize>(type_: T, data: D1) -> Value {
         #[derive(Serialize)]
@@ -399,18 +409,5 @@ impl Audit {
             data,
         };
         serde_json::to_value(v).unwrap()
-    }
-
-    /// Delete many audit logs older than days.
-    pub fn delete_many(driver: &dyn Driver, days: i64) -> CoreResult<usize> {
-        let days: i64 = 0 - days;
-        let created_at = Utc::now() + Duration::days(days);
-        match driver.audit_delete(&created_at) {
-            Ok(count) => Ok(count),
-            Err(err) => {
-                warn!("{}", CoreError::Driver(err));
-                Ok(0)
-            }
-        }
     }
 }

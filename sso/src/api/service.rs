@@ -263,7 +263,6 @@ mod server_service {
         AuditBuilder, Auth, CoreError, Driver, Service, ServiceList, ServiceListFilter,
         ServiceListQuery,
     };
-    use url::Url;
 
     pub fn list(
         driver: &dyn Driver,
@@ -289,10 +288,6 @@ mod server_service {
     ) -> ApiResult<Service> {
         Auth::authenticate_root(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        // TODO(refactor): Improve URL validation, validate provider URLs (option to enforce HTTPS).
-        Url::parse(&create.url)
-            .map_err(CoreError::UrlParse)
-            .map_err(ApiError::BadRequest)?;
         driver
             .service_create(&create)
             .map_err(CoreError::Driver)
@@ -322,7 +317,9 @@ mod server_service {
             Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let previous_service = read_inner(driver, service.as_ref(), service_id)?;
-        let service = Service::update(driver, service.as_ref(), service_id, &update)
+        let service = driver
+            .service_update(&service_id, &update)
+            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
         Ok((previous_service, service))
     }
@@ -346,9 +343,14 @@ mod server_service {
 
     fn read_inner(
         driver: &dyn Driver,
-        service: Option<&Service>,
+        _service: Option<&Service>,
         service_id: Uuid,
     ) -> ApiResult<Service> {
-        Service::read(driver, service, &service_id).map_err(ApiError::NotFound)
+        driver
+            .service_read_opt(&service_id)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?
+            .ok_or_else(|| CoreError::ServiceNotFound)
+            .map_err(ApiError::NotFound)
     }
 }

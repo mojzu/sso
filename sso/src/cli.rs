@@ -1,7 +1,7 @@
 use crate::{
-    AuditBuilder, ClientActor, ClientActorOptions, Driver, Key, KeyWithValue, NotifyActor,
-    NotifyActorOptions, Server, ServerError, ServerOptions, Service, ServiceCreate, SsoError,
-    SsoResult,
+    AuditBuilder, ClientActor, ClientActorOptions, CoreError, Driver, Key, KeyWithValue,
+    NotifyActor, NotifyActorOptions, Server, ServerError, ServerOptions, Service, ServiceCreate,
+    SsoError, SsoResult,
 };
 use actix_rt::System;
 
@@ -93,7 +93,10 @@ impl Cli {
             provider_github_oauth2_url: provider_github_oauth2_url.map(|x| x.to_owned()),
             provider_microsoft_oauth2_url: provider_microsoft_oauth2_url.map(|x| x.to_owned()),
         };
-        let service = Service::create(driver.as_ref(), &service_create).map_err(SsoError::Core)?;
+        let service = driver
+            .service_create(&service_create)
+            .map_err(CoreError::Driver)
+            .map_err(SsoError::Core)?;
         let key = Key::create_service(driver.as_ref(), true, name.to_owned(), &service.id)
             .map_err(SsoError::Core)?;
         Ok((service, key))

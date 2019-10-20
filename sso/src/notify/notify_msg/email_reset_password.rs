@@ -52,7 +52,7 @@ impl NotifyActor {
     ) -> NotifyResult<()> {
         let url = data
             .service
-            .callback_url(
+            .provider_local_callback_url(
                 "reset_password",
                 EmailResetPasswordQuery {
                     email: data.user.email.to_owned(),
