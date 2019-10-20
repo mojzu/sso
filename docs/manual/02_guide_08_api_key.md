@@ -24,7 +24,7 @@ Service creates a key for user.
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"is_enabled":true,"name":"$key_name","user_id":"$user_id"}' \
+  --data '{"is_enabled":true,"type":"Key","name":"$key_name","user_id":"$user_id"}' \
   $server_url/v1/key
 ```
 
@@ -38,7 +38,7 @@ curl --header "Content-Type: application/json" \
   $server_url/v1/auth/key/verify
 ```
 
-Key can be revoked, this will disable the key created earlier and prevent verify.
+Key can be revoked, this will disable and revoke the key created earlier and prevent verification.
 
 ```shell
 curl --header "Content-Type: application/json" \

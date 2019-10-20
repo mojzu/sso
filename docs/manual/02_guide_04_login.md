@@ -3,7 +3,8 @@
 Create service with key and start server.
 
 ```shell
-sso create-service-with-key $service_name $service_url
+sso create-service-with-key $service_name $service_url \
+    [--local-url $service_local_url]
 sso start-server
 ```
 
@@ -13,7 +14,7 @@ Service creates a user with password.
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"is_enabled":true,"name":"$user_name","email":"$user_email","password":"$user_password"}' \
+  --data '{"is_enabled":true,"name":"$user_name","email":"$user_email","locale":"en","timezone":"Etc/UTC","password_allow_reset":true,"password_require_update":false,"password":"$user_password"}' \
   $server_url/v1/user
 ```
 
@@ -23,7 +24,7 @@ Service creates a key for user.
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"is_enabled":true,"name":"$key_name","user_id":"$user_id"}' \
+  --data '{"is_enabled":true,"type":"Token","name":"$key_name","user_id":"$user_id"}' \
   $server_url/v1/key
 ```
 

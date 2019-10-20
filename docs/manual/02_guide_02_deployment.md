@@ -1,7 +1,6 @@
 ## Deployment
 
 TODO(docs): How to deploy sso server.
-TODO(docs): Postgres encryption.
 
 **Nginx**
 

@@ -406,13 +406,14 @@ page-break-after: avoid;
 <li><a href="#api">API</a></li>
 <li><a href="#cli">CLI</a></li>
 <li><a href="#changelog">Changelog</a><ul>
-<li><a href="#section">0.7.0 (?)</a></li>
-<li><a href="#section-1">0.6.0 (2019-10-07)</a></li>
-<li><a href="#section-2">0.5.0 (2019-10-05)</a></li>
-<li><a href="#section-3">0.4.0 (2019-09-09)</a></li>
-<li><a href="#section-4">0.3.0 (2019-08-03)</a></li>
-<li><a href="#section-5">0.2.0 (2019-07-07)</a></li>
-<li><a href="#section-6">0.1.0 (2019-05-16)</a></li>
+<li><a href="#section">0.8.0 (?)</a></li>
+<li><a href="#section-1">0.7.0 (2019-10-19)</a></li>
+<li><a href="#section-2">0.6.0 (2019-10-07)</a></li>
+<li><a href="#section-3">0.5.0 (2019-10-05)</a></li>
+<li><a href="#section-4">0.4.0 (2019-09-09)</a></li>
+<li><a href="#section-5">0.3.0 (2019-08-03)</a></li>
+<li><a href="#section-6">0.2.0 (2019-07-07)</a></li>
+<li><a href="#section-7">0.1.0 (2019-05-16)</a></li>
 </ul></li>
 <li><a href="#design">Design</a><ul>
 <li><a href="#architecture">Architecture</a></li>
@@ -483,8 +484,9 @@ page-break-after: avoid;
 <h1 id="guides">Guides</h1>
 <h2 id="quickstart">Quickstart</h2>
 <p>TODO(docs): Write quickstart guide.</p>
+<pre class="shell"><code>cargo install sso</code></pre>
 <h2 id="deployment">Deployment</h2>
-<p>TODO(docs): How to deploy sso server. TODO(docs): Postgres encryption.</p>
+<p>TODO(docs): How to deploy sso server.</p>
 <p><strong>Nginx</strong></p>
 <p>Example <a href="https://www.nginx.com/">nginx</a> configuration.</p>
 <pre class="nginx"><code>http {
@@ -508,14 +510,14 @@ page-break-after: avoid;
 }</code></pre>
 <p><strong>Prometheus</strong></p>
 <p>Example <a href="https://prometheus.io/">Prometheus</a> configuration.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1"></a><span class="fu">scrape_configs</span><span class="kw">:</span></span>
-<span id="cb2-2"><a href="#cb2-2"></a><span class="co">    # ...</span></span>
-<span id="cb2-3"><a href="#cb2-3"></a></span>
-<span id="cb2-4"><a href="#cb2-4"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">job_name</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;sso&quot;</span></span>
-<span id="cb2-5"><a href="#cb2-5"></a><span class="at">      </span><span class="fu">metrics_path</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;/v1/metrics&quot;</span></span>
-<span id="cb2-6"><a href="#cb2-6"></a><span class="at">      </span><span class="fu">bearer_token</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;$root_or_service_key&quot;</span></span>
-<span id="cb2-7"><a href="#cb2-7"></a><span class="at">      </span><span class="fu">static_configs</span><span class="kw">:</span></span>
-<span id="cb2-8"><a href="#cb2-8"></a><span class="at">          </span><span class="kw">-</span><span class="at"> </span><span class="fu">targets</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="st">&quot;$server_url&quot;</span><span class="kw">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">scrape_configs</span><span class="kw">:</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="co">    # ...</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">job_name</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;sso&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="at">      </span><span class="fu">metrics_path</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;/v1/metrics&quot;</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="at">      </span><span class="fu">bearer_token</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;$root_or_service_key&quot;</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="at">      </span><span class="fu">static_configs</span><span class="kw">:</span></span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="at">          </span><span class="kw">-</span><span class="at"> </span><span class="fu">targets</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="st">&quot;$server_url&quot;</span><span class="kw">]</span></span></code></pre></div>
 <pre class="shell"><code>curl --header &quot;Authorization: $root_or_service_key&quot; $server_url/v1/metrics</code></pre>
 <h2 id="integration">Integration</h2>
 <p>The following diagram illustrates how services and sso integrate to authenticate user requests.</p>
@@ -530,6 +532,7 @@ page-break-after: avoid;
 <li>User handles HTTP response.</li>
 </ol>
 <p><strong>Callbacks</strong></p>
+<p>TODO(docs): This is out of date with changes to service urls.</p>
 <p>A service integrating with sso can provide the following HTTPS endpoints as callbacks.</p>
 <pre class="shell"><code>GET $service_url?type=oauth2&amp;user_id=$id&amp;access_token=$token&amp;access_token_expires=$token_expires&amp;refresh_token=$token&amp;refresh_token_expires=$token_expires</code></pre>
 <p>User is redirected to this URL after successful authentication by an OAuth2 provider. The service can verify the <code>access_token</code> query parameter to authenticate the user and their requests.</p>
@@ -541,19 +544,20 @@ page-break-after: avoid;
 <p>User requests this URL by clicking update password revoke link. The service can present the user information on securing their account, and then make an update password revoke request with the <code>token</code> query parameter. This will disable the user and all user keys.</p>
 <h2 id="login">Login</h2>
 <p>Create service with key and start server.</p>
-<pre class="shell"><code>sso create-service-with-key $service_name $service_url
+<pre class="shell"><code>sso create-service-with-key $service_name $service_url \
+    [--local-url $service_local_url]
 sso start-server</code></pre>
 <p>Service creates a user with password.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;locale&quot;:&quot;en&quot;,&quot;timezone&quot;:&quot;Etc/UTC&quot;,&quot;password_allow_reset&quot;:true,&quot;password_require_update&quot;:false,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
   $server_url/v1/user</code></pre>
 <p>Service creates a key for user.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;Token&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
   $server_url/v1/key</code></pre>
 <p>User makes login request to service, services makes a login request.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
@@ -581,19 +585,20 @@ sso start-server</code></pre>
   $server_url/v1/auth/token/revoke</code></pre>
 <h2 id="reset-password">Reset Password</h2>
 <p>Create service with key and start server.</p>
-<pre class="shell"><code>sso create-service-with-key $service_name $service_url
+<pre class="shell"><code>sso create-service-with-key $service_name $service_url \
+    [--local-url $service_local_url]
 sso start-server</code></pre>
 <p>Service creates a user with password.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;locale&quot;:&quot;en&quot;,&quot;timezone&quot;:&quot;Etc/UTC&quot;,&quot;password_allow_reset&quot;:true,&quot;password_require_update&quot;:false,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
   $server_url/v1/user</code></pre>
 <p>Service creates a key for user.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;Token&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
   $server_url/v1/key</code></pre>
 <p>User makes reset password request to service, service makes a reset password request.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
@@ -601,7 +606,7 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;email&quot;:&quot;$user_email&quot;}&#39; \
   $server_url/v1/auth/provider/local/reset-password</code></pre>
-<p>Email containing URL is sent to user email address, URL in format <code>$service_url?email=$user_email&amp;reset_password_token=$token</code>.</p>
+<p>Email containing URL is sent to user email address, URL in format <code>$service_provider_local_url?type=reset_password&amp;email=$user_email&amp;token=$token</code>.</p>
 <p>Service receives token via query parameter and makes reset password confirm request.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -616,25 +621,26 @@ sso start-server</code></pre>
   $server_url/v1/auth/provider/local/login</code></pre>
 <h2 id="update-email">Update Email</h2>
 <p>Create service with key and start server.</p>
-<pre class="shell"><code>sso create-service-with-key $service_name $service_url
+<pre class="shell"><code>sso create-service-with-key $service_name $service_url \
+    [--local-url $service_local_url]
 sso start-server</code></pre>
 <p>Service creates a user with password.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;locale&quot;:&quot;en&quot;,&quot;timezone&quot;:&quot;Etc/UTC&quot;,&quot;password_allow_reset&quot;:true,&quot;password_require_update&quot;:false,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
   $server_url/v1/user</code></pre>
 <p>Service creates a key for user.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;Token&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
   $server_url/v1/key</code></pre>
 <p>User makes update email request to service, service makes an update email request.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;key&quot;:&quot;$user_key&quot;,&quot;password&quot;:&quot;$user_password&quot;,&quot;new_email&quot;:&quot;$new_user_email&quot;}&#39; \
+  --data &#39;{&quot;user_id&quot;:&quot;$user_id&quot;,&quot;password&quot;:&quot;$user_password&quot;,&quot;new_email&quot;:&quot;$new_user_email&quot;}&#39; \
   $server_url/v1/auth/provider/local/update-email</code></pre>
 <p>User makes login request to service, service makes a login request.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
@@ -642,7 +648,7 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;email&quot;:&quot;$new_user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
   $server_url/v1/auth/provider/local/login</code></pre>
-<p>After successful update, an email containing URL is sent to the old user email address, URL in format: <code>$service_url?email=$email&amp;update_email_token=$token</code>.</p>
+<p>After successful update, an email containing URL is sent to the old user email address, URL in format: <code>$service_provider_local_url?type=update_email&amp;email=$email&amp;old_email=$old_email&amp;token=$token</code>.</p>
 <p>If user opens URL, service receives token via query parameter and makes update email revoke request, this will disable user and all linked keys and prevent login.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -651,25 +657,26 @@ sso start-server</code></pre>
   $server_url/v1/auth/provider/local/update-email/revoke</code></pre>
 <h2 id="update-password">Update Password</h2>
 <p>Create service with key and start server.</p>
-<pre class="shell"><code>sso create-service-with-key $service_name $service_url
+<pre class="shell"><code>sso create-service-with-key $service_name $service_url \
+    [--local-url $service_local_url]
 sso start-server</code></pre>
 <p>Service creates a user with password.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;locale&quot;:&quot;en&quot;,&quot;timezone&quot;:&quot;Etc/UTC&quot;,&quot;password_allow_reset&quot;:true,&quot;password_require_update&quot;:false,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
   $server_url/v1/user</code></pre>
 <p>Service creates a key for user.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;Token&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
   $server_url/v1/key</code></pre>
 <p>User makes update password request to service, service makes an update password request.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;key&quot;:&quot;$user_key&quot;,&quot;password&quot;:&quot;$user_password&quot;,&quot;new_password&quot;:&quot;$new_user_password&quot;}&#39; \
+  --data &#39;{&quot;user_id&quot;:&quot;$user_id&quot;,&quot;password&quot;:&quot;$user_password&quot;,&quot;new_password&quot;:&quot;$new_user_password&quot;}&#39; \
   $server_url/v1/auth/provider/local/update-password</code></pre>
 <p>User makes login request to service, service makes a login request.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
@@ -677,7 +684,7 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$new_user_password&quot;}&#39; \
   $server_url/v1/auth/provider/local/login</code></pre>
-<p>After successful update, an email containing URL is sent to user email address, URL in format: <code>$service_url?email=$email&amp;update_password_token=$token</code>.</p>
+<p>After successful update, an email containing URL is sent to user email address, URL in format: <code>$service_provider_local_url?type=update_password&amp;email=$email&amp;token=$token</code>.</p>
 <p>If user opens URL, service receives token via query parameter and makes update password revoke request, this will disable user and all linked keys and prevent login.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
@@ -699,7 +706,7 @@ sso start-server</code></pre>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;Key&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
   $server_url/v1/key</code></pre>
 <p>User makes requests to service with key value, key can be verified to authenticate requests.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
@@ -707,7 +714,7 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39; \
   $server_url/v1/auth/key/verify</code></pre>
-<p>Key can be revoked, this will disable the key created earlier and prevent verify.</p>
+<p>Key can be revoked, this will disable and revoke the key created earlier and prevent verification.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
@@ -724,21 +731,25 @@ sso start-server</code></pre>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}&#39; \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;locale&quot;:&quot;en&quot;,&quot;timezone&quot;:&quot;Etc/UTC&quot;}&#39; \
   $server_url/v1/user</code></pre>
 <p>Service creates a key for user.</p>
 <pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
   --header &quot;Authorization: $service_key&quot; \
   --request POST \
-  --data &#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
+  --data &#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;Token&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39; \
   $server_url/v1/key</code></pre>
 <p>User makes OAuth2 login request to service.</p>
 <p>Service requests a redirect URL for OAuth2 provider, supported providers are <code>github</code>, <code>microsoft</code>.</p>
 <pre class="shell"><code>curl --header &quot;Authorization: $service_key&quot; \
-  --request POST \
   $server_url/v1/auth/provider/$oauth2_provider/oauth2</code></pre>
 <p>Service redirects user to returned URL, OAuth2 provider authentication occurs.</p>
-<p>If successful, OAuth2 provider redirects user to <code>$server_url/v1/auth/provider/$oauth2_provider/oauth2</code> with required query parameters.</p>
+<p>If successful, OAuth2 provider redirects user to <code>$service_provider_local_url?code=$code&amp;state=$state</code>. Service uses query parameters for callback.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;code&quot;:&quot;$code&quot;,&quot;state&quot;:&quot;$state&quot;}&#39; \
+  $server_url/v1/auth/provider/$oauth2_provider/oauth2</code></pre>
 <p>Query parameters are exchanged for API access token, authenticated email address is requested from OAuth2 provider APIs.</p>
 <p>If authenticated email returned by API matches a user email address, and user has key for specified service, a user token is produced and the user is redirected to <code>$service_url?access_token=$token&amp;refresh_token=$token</code>.</p>
 <p>Service receives access token and refresh token via query parameters. Service can verify access token to authenticate requests.</p>
@@ -799,14 +810,26 @@ sso start-server</code></pre>
   --data &#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39; \
   $server_url/v1/auth/key/revoke</code></pre>
 <h2 id="csrf">CSRF</h2>
-<p>TODO(docs): Write CSRF guide.</p>
+<p>Create service with key and start server.</p>
+<pre class="shell"><code>sso create-service-with-key $service_name $service_url
+sso start-server</code></pre>
+<p>Service creates a CSRF token.</p>
+<pre class="shell"><code>curl --header &quot;Authorization: $service_key&quot; \
+  $server_url/v1/auth/csrf</code></pre>
+<p>Service verifies CSRF token.</p>
+<pre class="shell"><code>curl --header &quot;Content-Type: application/json&quot; \
+  --header &quot;Authorization: $service_key&quot; \
+  --request POST \
+  --data &#39;{&quot;key&quot;:&quot;$csrf_key&quot;}&#39; \
+  $server_url/v1/auth/csrf</code></pre>
 <h1 id="api">API</h1>
 <p>The <a href="https://www.getpostman.com/">Postman</a> collection JSON file can be found in <code>docs/sso.postman_collection.json</code>.</p>
 <p>TODO(docs): <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> definition file?</p>
 <h1 id="cli">CLI</h1>
 <p>TODO(docs): CLI documentation.</p>
 <h1 id="changelog">Changelog</h1>
-<h2 id="section">0.7.0 (?)</h2>
+<h2 id="section">0.8.0 (?)</h2>
+<h2 id="section-1">0.7.0 (2019-10-19)</h2>
 <h3 id="added">Added</h3>
 <ul>
 <li>Added <code>Debug</code> trait implementations for public types.</li>
@@ -835,7 +858,7 @@ sso start-server</code></pre>
 <li>Fixed <code>ClientActor</code> GET request ignores query string.</li>
 <li>Fixed 500 status code returned trying to create key with invalid service or user ID.</li>
 </ul>
-<h2 id="section-1">0.6.0 (2019-10-07)</h2>
+<h2 id="section-2">0.6.0 (2019-10-07)</h2>
 <h3 id="changed-1">Changed</h3>
 <ul>
 <li>Replaced key flags with type: <code>Key</code>, <code>Token</code> or <code>Totp</code>.</li>
@@ -847,7 +870,7 @@ sso start-server</code></pre>
 <ul>
 <li>Fixed read user by ID route <code>/v1/user/{id}</code> attempts to read key.</li>
 </ul>
-<h2 id="section-2">0.5.0 (2019-10-05)</h2>
+<h2 id="section-3">0.5.0 (2019-10-05)</h2>
 <h3 id="added-1">Added</h3>
 <ul>
 <li>Added TOTP validation route.</li>
@@ -863,7 +886,7 @@ sso start-server</code></pre>
 <li>Improved audit metric collection efficiency.</li>
 <li>Changed authentication provider interface so callbacks always go to service.</li>
 </ul>
-<h2 id="section-3">0.4.0 (2019-09-09)</h2>
+<h2 id="section-4">0.4.0 (2019-09-09)</h2>
 <h3 id="added-2">Added</h3>
 <ul>
 <li>Added some process metrics to Prometheus integration.</li>
@@ -882,7 +905,7 @@ sso start-server</code></pre>
 <ul>
 <li>Fixed missing <code>dyn</code> keyword warnings.</li>
 </ul>
-<h2 id="section-4">0.3.0 (2019-08-03)</h2>
+<h2 id="section-5">0.3.0 (2019-08-03)</h2>
 <h3 id="added-3">Added</h3>
 <ul>
 <li>Improved email templates, removed template parameters from routes.</li>
@@ -909,7 +932,7 @@ sso start-server</code></pre>
 <li>Fixed audit log errors were created for root key authentication when authenticating a service key.</li>
 <li>Fixed internal server errors returned to client when OAuth2 provider is disabled.</li>
 </ul>
-<h2 id="section-5">0.2.0 (2019-07-07)</h2>
+<h2 id="section-6">0.2.0 (2019-07-07)</h2>
 <h3 id="added-4">Added</h3>
 <ul>
 <li>Added audit logging to authentication routes.</li>
@@ -938,7 +961,7 @@ sso start-server</code></pre>
 <li>Fixed duplicate user email address returned internal server error code.</li>
 <li>Fixed Lettre email error type handling.</li>
 </ul>
-<h2 id="section-6">0.1.0 (2019-05-16)</h2>
+<h2 id="section-7">0.1.0 (2019-05-16)</h2>
 <h3 id="added-5">Added</h3>
 <ul>
 <li>First version.</li>
@@ -986,17 +1009,17 @@ sso start-server</code></pre>
 <h2 id="owasp-asvs">OWASP: ASVS</h2>
 <p><a href="https://www.owasp.org/index.php/Category:OWASP_Application_Security_Verification_Standard_Project">OWASP ASVS</a></p>
 <p>The OWASP Application Security Verification Standard is being used as a reference to improve this application. These are some development and design notes based on requirements from the 4.0 version of the ASVS standard.</p>
-<h3 id="section-7">1.2.1</h3>
+<h3 id="section-8">1.2.1</h3>
 <ul>
 <li>Binary sso and postgres must be run as unique or special low privelege operating system accounts.</li>
 <li>Systemd unit file examples, sso, postgres, nginx, etc. users.</li>
 </ul>
-<h3 id="section-8">1.2.2</h3>
+<h3 id="section-9">1.2.2</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
 <li>Mutual TLS using rustls configuration and PKI.</li>
 </ul>
-<h3 id="section-9">1.2.3</h3>
+<h3 id="section-10">1.2.3</h3>
 <ul>
 <li>Binary sso is designed to provide multiple authentication mechanisms (none vetted yet).</li>
 <li>Relies on libraries which may be unvetted, e.g. libreauth, jsonwebtoken, rustls, etc.</li>
@@ -1004,32 +1027,32 @@ sso start-server</code></pre>
 <li>Primary use case for application is providing email/password login, which is probably not considered strong authentication.</li>
 <li>Audit logging and monitoring via prometheus are supported, need improvement for detecting account abuse or breaches.</li>
 </ul>
-<h3 id="section-10">1.2.4</h3>
+<h3 id="section-11">1.2.4</h3>
 <ul>
 <li>All authentication pathways are designed to be as strong as that pathway can be.</li>
 <li>For example, email password resets are supported which are probably not considered strong (can be disabled per user).</li>
 </ul>
-<h3 id="section-11">1.4.1</h3>
+<h3 id="section-12">1.4.1</h3>
 <ul>
 <li>All access controls are enforced at a trusted enforcement point (the server).</li>
 <li>Registered services must implement their own access controls for their own data.</li>
 </ul>
-<h3 id="section-12">1.4.2</h3>
+<h3 id="section-13">1.4.2</h3>
 <ul>
 <li>Access controls are designed for many services and many users, where users have access to one or more services.</li>
 <li>All registered services can see all users, but other services and keys belonging to them are hidden.</li>
 <li>Registered services may implement more fine grained access controls for their own data.</li>
 </ul>
-<h3 id="section-13">1.4.3</h3>
+<h3 id="section-14">1.4.3</h3>
 <ul>
 <li>Verify enforcement of principle of least privelege, requires more integration tests.</li>
 </ul>
-<h3 id="section-14">1.4.4</h3>
+<h3 id="section-15">1.4.4</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
 <li>Service key authentication mechanism code is split into a few functions, possible refactoring?</li>
 </ul>
-<h3 id="section-15">1.4.5</h3>
+<h3 id="section-16">1.4.5</h3>
 <ul>
 <li>Binary sso is designed to provide user authentication, is this out of scope?</li>
 </ul>

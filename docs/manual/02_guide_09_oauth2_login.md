@@ -17,7 +17,7 @@ Service creates a user with email address matching OAuth2 provider.
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"is_enabled":true,"name":"$user_name","email":"$user_email"}' \
+  --data '{"is_enabled":true,"name":"$user_name","email":"$user_email","locale":"en","timezone":"Etc/UTC"}' \
   $server_url/v1/user
 ```
 
@@ -27,7 +27,7 @@ Service creates a key for user.
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"is_enabled":true,"name":"$key_name","user_id":"$user_id"}' \
+  --data '{"is_enabled":true,"type":"Token","name":"$key_name","user_id":"$user_id"}' \
   $server_url/v1/key
 ```
 
@@ -37,13 +37,20 @@ Service requests a redirect URL for OAuth2 provider, supported providers are `gi
 
 ```shell
 curl --header "Authorization: $service_key" \
-  --request POST \
   $server_url/v1/auth/provider/$oauth2_provider/oauth2
 ```
 
 Service redirects user to returned URL, OAuth2 provider authentication occurs.
 
-If successful, OAuth2 provider redirects user to `$server_url/v1/auth/provider/$oauth2_provider/oauth2` with required query parameters.
+If successful, OAuth2 provider redirects user to `$service_provider_local_url?code=$code&state=$state`. Service uses query parameters for callback.
+
+```shell
+curl --header "Content-Type: application/json" \
+  --header "Authorization: $service_key" \
+  --request POST \
+  --data '{"code":"$code","state":"$state"}' \
+  $server_url/v1/auth/provider/$oauth2_provider/oauth2
+```
 
 Query parameters are exchanged for API access token, authenticated email address is requested from OAuth2 provider APIs.
 

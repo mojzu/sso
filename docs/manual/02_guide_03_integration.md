@@ -12,6 +12,8 @@ The following diagram illustrates how services and sso integrate to authenticate
 
 **Callbacks**
 
+TODO(docs): This is out of date with changes to service urls.
+
 A service integrating with sso can provide the following HTTPS endpoints as callbacks.
 
 ```shell
