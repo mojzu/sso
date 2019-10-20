@@ -213,5 +213,49 @@ macro_rules! user_integration_test {
             let res = client.user_read(user.id).unwrap();
             assert_eq!(res.data.id, user.id);
         }
+
+        #[test]
+        #[ignore]
+        fn api_user_update_unauthorised() {
+            let client = client_create(Some(INVALID_KEY));
+            let res = client
+                .user_update(Uuid::nil(), UserUpdateRequest::default())
+                .unwrap_err();
+            assert_eq!(res, ClientError::Unauthorised);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_user_update_ok() {
+            let client = client_create(None);
+            let (service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            let user1 = user_create(&client, true, USER_NAME, &user_email);
+
+            let user2 = client
+                .user_update(user1.id, UserUpdateRequest::default().is_enabled(false))
+                .unwrap()
+                .data;
+            assert_eq!(user1.id, user2.id);
+            assert_ne!(user1.updated_at, user2.updated_at);
+
+            let update_type = AuditType::UserUpdate.to_string().unwrap();
+            let audit_list = client
+                .audit_list(
+                    AuditListRequestBuilder::default()
+                        .type_(Some(vec![update_type]))
+                        .subject(Some(vec![user2.id.to_string()]))
+                        .build()
+                        .unwrap(),
+                )
+                .unwrap()
+                .data;
+            assert_eq!(audit_list.len(), 1);
+            let audit = &audit_list[0];
+            println!("{:?}", audit);
+            assert_eq!(audit.service_id.unwrap(), service.id);
+        }
     };
 }

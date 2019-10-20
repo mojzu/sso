@@ -1,8 +1,8 @@
 use crate::{
     notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
     AuditBuilder, AuditMeta, CoreError, CoreResult, Csrf, Driver, Jwt, JwtClaimsType, Key, KeyType,
-    KeyWithValue, NotifyActor, Service, User, UserRead, UserToken, USER_PASSWORD_HASH_VERSION,
-    USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
+    KeyWithValue, NotifyActor, Service, ServiceRead, User, UserRead, UserToken,
+    USER_PASSWORD_HASH_VERSION, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
 };
 use actix::Addr;
 use libreauth::oath::TOTPBuilder;
@@ -296,7 +296,7 @@ impl Auth {
         service_id: Uuid,
     ) -> CoreResult<Service> {
         let service = driver
-            .service_read_opt(&service_id)?
+            .service_read_opt(&ServiceRead::new(service_id))?
             .ok_or_else(|| CoreError::ServiceNotFound)?
             .check()?;
         audit.service(Some(&service));

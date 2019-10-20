@@ -16,13 +16,14 @@ use sso::{
 };
 pub use sso::{
     api::{
-        AuditCreateRequestBuilder, AuditListRequestBuilder, AuthCsrfCreateRequest,
-        AuthCsrfVerifyRequest, AuthKeyRequest, AuthLoginRequest, AuthResetPasswordConfirmRequest,
-        AuthResetPasswordRequest, AuthTokenRequest, AuthTotpRequest, KeyCreateRequest,
-        KeyListRequestBuilder, ServiceCreateRequest, ServiceListRequestBuilder, UserCreateRequest,
-        UserListRequestBuilder,
+        AuditCreateRequestBuilder, AuditListRequestBuilder, AuditUpdateRequest,
+        AuthCsrfCreateRequest, AuthCsrfVerifyRequest, AuthKeyRequest, AuthLoginRequest,
+        AuthResetPasswordConfirmRequest, AuthResetPasswordRequest, AuthTokenRequest,
+        AuthTotpRequest, AuthUpdateEmailRequest, KeyCreateRequest, KeyListRequestBuilder,
+        ServiceCreateRequest, ServiceListRequestBuilder, ServiceUpdateRequest, UserCreateRequest,
+        UserListRequestBuilder, UserUpdateRequest,
     },
-    Client, ClientActorOptions, ClientError, ClientOptions, ClientSync, KeyType,
+    AuditType, Client, ClientActorOptions, ClientError, ClientOptions, ClientSync, KeyType,
 };
 pub use uuid::Uuid;
 

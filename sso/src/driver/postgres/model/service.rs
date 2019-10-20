@@ -1,6 +1,6 @@
 use crate::{
     driver::postgres::schema::sso_service, DriverResult, Service, ServiceCreate, ServiceList,
-    ServiceListQuery, ServiceUpdate,
+    ServiceListQuery, ServiceRead, ServiceUpdate,
 };
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
@@ -152,13 +152,22 @@ impl ModelService {
             .map(Into::into)
     }
 
-    pub fn read_opt(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<Service>> {
-        sso_service::table
-            .filter(sso_service::dsl::id.eq(id))
-            .get_result::<ModelService>(conn)
-            .optional()
-            .map_err(Into::into)
-            .map(|x| x.map(Into::into))
+    pub fn read_opt(conn: &PgConnection, read: &ServiceRead) -> DriverResult<Option<Service>> {
+        match read.service_id_mask {
+            Some(service_id_mask) => sso_service::table
+                .filter(
+                    sso_service::dsl::id
+                        .eq(read.id)
+                        .and(sso_service::dsl::id.eq(service_id_mask)),
+                )
+                .get_result::<ModelService>(conn),
+            None => sso_service::table
+                .filter(sso_service::dsl::id.eq(read.id))
+                .get_result::<ModelService>(conn),
+        }
+        .optional()
+        .map_err(Into::into)
+        .map(|x| x.map(Into::into))
     }
 
     pub fn update(conn: &PgConnection, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service> {

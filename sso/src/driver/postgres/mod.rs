@@ -4,10 +4,10 @@ mod schema;
 
 use crate::{
     driver::postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
-    Audit, AuditCreate, AuditList, AuditUpdate, Csrf, CsrfCreate, CsrfDelete, Driver, DriverError,
-    DriverIf, DriverLock, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead,
-    KeyUpdate, KeyWithValue, Service, ServiceCreate, ServiceList, ServiceUpdate, User, UserCreate,
-    UserList, UserRead, UserUpdate, UserUpdate2,
+    Audit, AuditCreate, AuditList, AuditRead, AuditUpdate, Csrf, CsrfCreate, CsrfDelete, Driver,
+    DriverError, DriverIf, DriverLock, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate,
+    KeyList, KeyRead, KeyUpdate, KeyWithValue, Service, ServiceCreate, ServiceList, ServiceRead,
+    ServiceUpdate, User, UserCreate, UserList, UserRead, UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
@@ -95,13 +95,9 @@ impl DriverIf for DriverPostgres {
         ModelAudit::create(&conn, create)
     }
 
-    fn audit_read_opt(
-        &self,
-        id: &Uuid,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Option<Audit>> {
+    fn audit_read_opt(&self, read: &AuditRead) -> DriverResult<Option<Audit>> {
         let conn = self.conn()?;
-        ModelAudit::read_opt(&conn, id, service_id_mask)
+        ModelAudit::read_opt(&conn, read)
     }
 
     fn audit_read_metrics(
@@ -188,9 +184,9 @@ impl DriverIf for DriverPostgres {
         ModelService::create(&conn, create)
     }
 
-    fn service_read_opt(&self, id: &Uuid) -> DriverResult<Option<Service>> {
+    fn service_read_opt(&self, read: &ServiceRead) -> DriverResult<Option<Service>> {
         let conn = self.conn()?;
-        ModelService::read_opt(&conn, id)
+        ModelService::read_opt(&conn, read)
     }
 
     fn service_update(&self, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service> {
@@ -298,12 +294,8 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelAudit::create(self.conn(), create)
     }
 
-    fn audit_read_opt(
-        &self,
-        id: &Uuid,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Option<Audit>> {
-        ModelAudit::read_opt(self.conn(), id, service_id_mask)
+    fn audit_read_opt(&self, read: &AuditRead) -> DriverResult<Option<Audit>> {
+        ModelAudit::read_opt(self.conn(), read)
     }
 
     fn audit_read_metrics(
@@ -375,8 +367,8 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelService::create(self.conn(), create)
     }
 
-    fn service_read_opt(&self, id: &Uuid) -> DriverResult<Option<Service>> {
-        ModelService::read_opt(self.conn(), id)
+    fn service_read_opt(&self, read: &ServiceRead) -> DriverResult<Option<Service>> {
+        ModelService::read_opt(self.conn(), read)
     }
 
     fn service_update(&self, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service> {

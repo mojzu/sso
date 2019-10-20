@@ -4,7 +4,7 @@ use crate::{
         ValidateRequest, ValidateRequestQuery,
     },
     AuditBuilder, AuditMeta, AuditType, Core, Driver, Service, ServiceCreate, ServiceListFilter,
-    ServiceListQuery, ServiceUpdate,
+    ServiceListQuery, ServiceRead, ServiceUpdate,
 };
 use uuid::Uuid;
 use validator::Validate;
@@ -172,6 +172,26 @@ pub struct ServiceUpdateRequest {
 }
 
 impl ValidateRequest<ServiceUpdateRequest> for ServiceUpdateRequest {}
+
+impl Default for ServiceUpdateRequest {
+    fn default() -> Self {
+        Self {
+            is_enabled: None,
+            name: None,
+            url: None,
+            provider_local_url: None,
+            provider_github_oauth2_url: None,
+            provider_microsoft_oauth2_url: None,
+        }
+    }
+}
+
+impl ServiceUpdateRequest {
+    pub fn is_enabled(mut self, is_enabled: bool) -> Self {
+        self.is_enabled = Some(is_enabled);
+        self
+    }
+}
 
 impl From<ServiceUpdateRequest> for ServiceUpdate {
     fn from(request: ServiceUpdateRequest) -> Self {
@@ -343,11 +363,11 @@ mod server_service {
 
     fn read_inner(
         driver: &dyn Driver,
-        _service: Option<&Service>,
+        service: Option<&Service>,
         service_id: Uuid,
     ) -> ApiResult<Service> {
         driver
-            .service_read_opt(&service_id)
+            .service_read_opt(&ServiceRead::new(service_id).service_id_mask(service.map(|x| x.id)))
             .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?
             .ok_or_else(|| CoreError::ServiceNotFound)

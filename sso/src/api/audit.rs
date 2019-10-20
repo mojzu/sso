@@ -1,7 +1,7 @@
 use crate::{
     api::{result_audit_err, validate, ApiResult, ValidateRequest, ValidateRequestQuery},
-    Audit, AuditBuilder, AuditCreate2, AuditListFilter, AuditListQuery, AuditMeta, AuditType,
-    AuditUpdate, Core, Driver,
+    Audit, AuditBuilder, AuditCreate2, AuditListFilter, AuditListQuery, AuditMeta, AuditRead,
+    AuditType, AuditUpdate, Core, Driver,
 };
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
@@ -309,7 +309,7 @@ mod server_audit {
             Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         driver
-            .audit_read_opt(&audit_id, service.map(|x| x.id))
+            .audit_read_opt(&AuditRead::new(audit_id).service_id_mask(service.map(|x| x.id)))
             .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?
             .ok_or_else(|| ApiError::NotFound(CoreError::AuditNotFound))

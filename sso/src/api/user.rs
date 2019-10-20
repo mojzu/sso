@@ -182,6 +182,26 @@ pub struct UserUpdateRequest {
 
 impl ValidateRequest<UserUpdateRequest> for UserUpdateRequest {}
 
+impl Default for UserUpdateRequest {
+    fn default() -> Self {
+        Self {
+            is_enabled: None,
+            name: None,
+            locale: None,
+            timezone: None,
+            password_allow_reset: None,
+            password_require_update: None,
+        }
+    }
+}
+
+impl UserUpdateRequest {
+    pub fn is_enabled(mut self, is_enabled: bool) -> Self {
+        self.is_enabled = Some(is_enabled);
+        self
+    }
+}
+
 pub fn user_list(
     driver: &dyn Driver,
     audit_meta: AuditMeta,

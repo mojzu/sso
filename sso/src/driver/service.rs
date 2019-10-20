@@ -179,6 +179,27 @@ pub struct ServiceCreate {
     pub provider_microsoft_oauth2_url: Option<String>,
 }
 
+/// Service read.
+#[derive(Debug)]
+pub struct ServiceRead {
+    pub id: Uuid,
+    pub service_id_mask: Option<Uuid>,
+}
+
+impl ServiceRead {
+    pub fn new(id: Uuid) -> Self {
+        Self {
+            id,
+            service_id_mask: None,
+        }
+    }
+
+    pub fn service_id_mask(mut self, service_id_mask: Option<Uuid>) -> Self {
+        self.service_id_mask = service_id_mask;
+        self
+    }
+}
+
 /// Service update.
 #[derive(Debug)]
 pub struct ServiceUpdate {

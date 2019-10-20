@@ -199,11 +199,35 @@ macro_rules! key_integration_test {
 
         #[test]
         #[ignore]
+        fn api_key_read_not_found_service_mask() {
+            let client = client_create(None);
+            let (_service1, service1_key) = service_key_create(&client);
+            let (_service2, service2_key) = service_key_create(&client);
+
+            let client = client_create(Some(&service1_key.value));
+            let res = client.key_read(service2_key.id).unwrap_err();
+            assert_eq!(res, ClientError::NotFound);
+        }
+
+        #[test]
+        #[ignore]
         fn api_key_read_ok() {
             let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
-            let res = client.key_read(service_key.id).unwrap();
-            assert_eq!(res.data.id, service_key.id);
+            let key = client.key_read(service_key.id).unwrap().data;
+            assert_eq!(key.id, service_key.id);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_key_delete_not_found_service_mask() {
+            let client = client_create(None);
+            let (_service1, service1_key) = service_key_create(&client);
+            let (_service2, service2_key) = service_key_create(&client);
+
+            let client = client_create(Some(&service1_key.value));
+            let res = client.key_delete(service2_key.id).unwrap_err();
+            assert_eq!(res, ClientError::NotFound);
         }
     };
 }

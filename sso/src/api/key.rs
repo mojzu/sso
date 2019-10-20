@@ -251,7 +251,7 @@ mod server_key {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        AuditBuilder, Auth, CoreError, Driver, Key, KeyList, KeyListFilter, KeyListQuery,
+        AuditBuilder, Auth, CoreError, Driver, Key, KeyList, KeyListFilter, KeyListQuery, Service,
     };
 
     pub fn list(
@@ -337,10 +337,10 @@ mod server_key {
         key_value: Option<String>,
         key_id: Uuid,
     ) -> ApiResult<Key> {
-        let _service =
+        let service =
             Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        read_inner(driver, key_id).map(Into::into)
+        read_inner(driver, service.as_ref(), key_id)
     }
 
     pub fn update(
@@ -353,7 +353,7 @@ mod server_key {
         let service =
             Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        let previous_key = read_inner(driver, key_id)?;
+        let previous_key = read_inner(driver, service.as_ref(), key_id)?;
         let key = Key::update(
             driver,
             service.as_ref(),
@@ -372,10 +372,10 @@ mod server_key {
         key_value: Option<String>,
         key_id: Uuid,
     ) -> ApiResult<Key> {
-        let _service =
+        let service =
             Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        let key = read_inner(driver, key_id)?;
+        let key = read_inner(driver, service.as_ref(), key_id)?;
         driver
             .key_delete(&key_id)
             .map_err(CoreError::Driver)
@@ -383,8 +383,8 @@ mod server_key {
             .map(|_| key)
     }
 
-    fn read_inner(driver: &dyn Driver, key_id: Uuid) -> ApiResult<Key> {
-        let read = KeyRead::Id(key_id);
+    fn read_inner(driver: &dyn Driver, service: Option<&Service>, key_id: Uuid) -> ApiResult<Key> {
+        let read = KeyRead::Id(key_id, service.map(|x| x.id));
         driver
             .key_read_opt(&read)
             .map_err(CoreError::Driver)

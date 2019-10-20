@@ -208,7 +208,7 @@ impl ModelKey {
 
     pub fn read_opt(conn: &PgConnection, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
         match read {
-            KeyRead::Id(id) => Self::read_by_id(conn, id),
+            KeyRead::Id(id, service_id_mask) => Self::read_by_id(conn, id, service_id_mask),
             KeyRead::RootValue(value) => Self::read_by_root_value(conn, value),
             KeyRead::ServiceValue(value) => Self::read_by_service_value(conn, value),
             KeyRead::UserId(r) => Self::read_by_user_id(conn, r),
@@ -252,13 +252,26 @@ impl ModelKey {
             })
     }
 
-    fn read_by_id(conn: &PgConnection, id: &Uuid) -> DriverResult<Option<KeyWithValue>> {
-        sso_key::table
-            .filter(sso_key::dsl::id.eq(id))
-            .get_result::<ModelKey>(conn)
-            .optional()
-            .map_err(Into::into)
-            .map(|x| x.map(Into::into))
+    fn read_by_id(
+        conn: &PgConnection,
+        id: &Uuid,
+        service_id_mask: &Option<Uuid>,
+    ) -> DriverResult<Option<KeyWithValue>> {
+        match service_id_mask {
+            Some(service_id_mask) => sso_key::table
+                .filter(
+                    sso_key::dsl::id
+                        .eq(id)
+                        .and(sso_key::dsl::service_id.eq(service_id_mask)),
+                )
+                .get_result::<ModelKey>(conn),
+            None => sso_key::table
+                .filter(sso_key::dsl::id.eq(id))
+                .get_result::<ModelKey>(conn),
+        }
+        .optional()
+        .map_err(Into::into)
+        .map(|x| x.map(Into::into))
     }
 
     fn read_by_root_value(conn: &PgConnection, value: &str) -> DriverResult<Option<KeyWithValue>> {

@@ -256,6 +256,29 @@ macro_rules! audit_integration_test {
 
         #[test]
         #[ignore]
+        fn api_audit_read_not_found_service_mask() {
+            let client = client_create(None);
+            let (_service1, service1_key) = service_key_create(&client);
+            let (_service2, service2_key) = service_key_create(&client);
+
+            let client = client_create(Some(&service1_key.value));
+            let audit = client
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_("read_test".to_owned())
+                        .build()
+                        .unwrap(),
+                )
+                .unwrap()
+                .data;
+
+            let client = client_create(Some(&service2_key.value));
+            let res = client.audit_read(audit.id).unwrap_err();
+            assert_eq!(res, ClientError::NotFound);
+        }
+
+        #[test]
+        #[ignore]
         fn api_audit_read_ok() {
             let client = client_create(None);
             let audit = client
@@ -269,6 +292,58 @@ macro_rules! audit_integration_test {
                 .data;
             let res = client.audit_read(audit.id).unwrap();
             assert_eq!(res.data.id, audit.id);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_audit_update_bad_request_service_mask() {
+            let client = client_create(None);
+            let (_service1, service1_key) = service_key_create(&client);
+            let (_service2, service2_key) = service_key_create(&client);
+
+            let client = client_create(Some(&service1_key.value));
+            let audit = client
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_("update_test".to_owned())
+                        .build()
+                        .unwrap(),
+                )
+                .unwrap()
+                .data;
+
+            let client = client_create(Some(&service2_key.value));
+            let res = client
+                .audit_update(audit.id, AuditUpdateRequest::default().subject("example"))
+                .unwrap_err();
+            assert_eq!(res, ClientError::BadRequest);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_audit_update_ok() {
+            let client = client_create(None);
+            let (service1, service1_key) = service_key_create(&client);
+
+            let client = client_create(Some(&service1_key.value));
+            let audit1 = client
+                .audit_create(
+                    AuditCreateRequestBuilder::default()
+                        .type_("update_test".to_owned())
+                        .build()
+                        .unwrap(),
+                )
+                .unwrap()
+                .data;
+
+            let audit2 = client
+                .audit_update(audit1.id, AuditUpdateRequest::default().subject("example"))
+                .unwrap()
+                .data;
+            assert_eq!(audit1.id, audit2.id);
+            assert_eq!(audit1.service_id, Some(service1.id));
+            assert_eq!(audit1.subject, None);
+            assert_eq!(audit2.subject, Some("example".to_owned()));
         }
     };
 }

@@ -208,6 +208,27 @@ pub struct AuditList<'a> {
     pub service_id_mask: Option<Uuid>,
 }
 
+/// Audit read.
+#[derive(Debug)]
+pub struct AuditRead {
+    pub id: Uuid,
+    pub service_id_mask: Option<Uuid>,
+}
+
+impl AuditRead {
+    pub fn new(id: Uuid) -> Self {
+        Self {
+            id,
+            service_id_mask: None,
+        }
+    }
+
+    pub fn service_id_mask(mut self, service_id_mask: Option<Uuid>) -> Self {
+        self.service_id_mask = service_id_mask;
+        self
+    }
+}
+
 /// Audit update.
 #[derive(Debug)]
 pub struct AuditUpdate {

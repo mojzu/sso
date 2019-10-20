@@ -1,6 +1,6 @@
 use crate::{
     driver::postgres::schema::sso_audit, Audit, AuditCreate, AuditList, AuditListFilter,
-    AuditListQuery, AuditUpdate, DriverResult,
+    AuditListQuery, AuditRead, AuditUpdate, DriverResult,
 };
 use chrono::{DateTime, Utc};
 use diesel::{dsl::sql, pg::Pg, prelude::*, sql_types::BigInt};
@@ -135,21 +135,17 @@ impl ModelAudit {
             .map(Into::into)
     }
 
-    pub fn read_opt(
-        conn: &PgConnection,
-        id: &Uuid,
-        service_id_mask: Option<Uuid>,
-    ) -> DriverResult<Option<Audit>> {
-        match service_id_mask {
+    pub fn read_opt(conn: &PgConnection, read: &AuditRead) -> DriverResult<Option<Audit>> {
+        match read.service_id_mask {
             Some(service_id_mask) => sso_audit::table
                 .filter(
                     sso_audit::dsl::service_id
                         .eq(service_id_mask)
-                        .and(sso_audit::dsl::id.eq(id)),
+                        .and(sso_audit::dsl::id.eq(read.id)),
                 )
                 .get_result::<ModelAudit>(conn),
             None => sso_audit::table
-                .filter(sso_audit::dsl::id.eq(id))
+                .filter(sso_audit::dsl::id.eq(read.id))
                 .get_result::<ModelAudit>(conn),
         }
         .optional()
@@ -184,7 +180,7 @@ impl ModelAudit {
         conn: &PgConnection,
         id: &Uuid,
         update: &AuditUpdate,
-        _service_id_mask: Option<Uuid>,
+        service_id_mask: Option<Uuid>,
     ) -> DriverResult<Audit> {
         use diesel::sql_types;
 
@@ -195,6 +191,7 @@ impl ModelAudit {
             .bind::<sql_types::Timestamptz, _>(now)
             .bind::<sql_types::Nullable<sql_types::Text>, _>(&update.subject)
             .bind::<sql_types::Jsonb, _>(data)
+            .bind::<sql_types::Nullable<sql_types::Uuid>, _>(service_id_mask)
             .get_result::<ModelAudit>(conn)
             .map_err(Into::into)
             .map(Into::into)
