@@ -4,6 +4,8 @@ body {
   max-width: 100%;
   color: #444;
   background: #fefefe;
+  margin: 0;
+  padding: 0;
 }
 
 div#container {
@@ -11,20 +13,20 @@ div#container {
   grid-template-columns: 325px 1fr;
   grid-template-rows: 1fr;
   max-height: 100vh;
-  overflow-y: scroll;
+  overflow: hidden;
 }
 
 div#container div#toc {
   grid-column-start: 1;
   max-height: 100%;
-  overflow-y: scroll;
+  overflow-y: auto;
   background-color: #f4f4f4;
 }
 
 div#container div#content {
   grid-column-start: 2;
   max-height: 100%;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .toc {
@@ -34,8 +36,13 @@ div#container div#content {
 
 .content {
   max-width: 54em;
-  padding: 0 1em;
-  margin: auto;
+  padding: 0 2em;
+}
+
+pre {
+  white-space: pre;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 /* Credit: https://gist.github.com/killercup/5917178 */
@@ -156,12 +163,6 @@ samp {
   _font-family: "courier new", monospace;
   font-size: 0.98em;
   background-color: #f4f4f4;
-}
-
-pre {
-  white-space: pre;
-  white-space: pre-wrap;
-  word-wrap: break-word;
 }
 
 b,
@@ -288,83 +289,15 @@ table td {
   body {
     font-size: 14px;
   }
+  /* div#container {
+    grid-template-columns: 175px 1fr;
+  } */
 }
 @media only screen and (min-width: 768px) {
   body {
     font-size: 16px;
   }
-}
-@media print {
-  * {
-    background: transparent !important;
-    color: black !important;
-    filter: none !important;
-    -ms-filter: none !important;
-  }
-
-  body {
-    font-size: 12pt;
-    max-width: 100%;
-  }
-
-  a,
-  a:visited {
-    text-decoration: underline;
-  }
-
-  hr {
-    height: 1px;
-    border: 0;
-    border-bottom: 1px solid black;
-  }
-
-  a[href]:after {
-    content: " (" attr(href) ")";
-  }
-
-  abbr[title]:after {
-    content: " (" attr(title) ")";
-  }
-
-  .ir a:after,
-  a[href^="javascript:"]:after,
-  a[href^="#"]:after {
-    content: "";
-  }
-
-  pre,
-  blockquote {
-    border: 1px solid #999;
-    padding-right: 1em;
-    page-break-inside: avoid;
-  }
-
-  tr,
-  img {
-    page-break-inside: avoid;
-  }
-
-  img {
-    max-width: 100% !important;
-  }
-
-  @page :left {
-    margin: 15mm 20mm 15mm 10mm;
-  }
-
-  @page :right {
-    margin: 15mm 10mm 15mm 20mm;
-  }
-
-  p,
-  h2,
-  h3 {
-    orphans: 3;
-    widows: 3;
-  }
-
-  h2,
-  h3 {
-    page-break-after: avoid;
-  }
+  /* div#container {
+    grid-template-columns: 250px 1fr;
+  } */
 }

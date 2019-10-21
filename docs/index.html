@@ -86,24 +86,26 @@ body {
 max-width: 100%;
 color: #444;
 background: #fefefe;
+margin: 0;
+padding: 0;
 }
 div#container {
 display: grid;
 grid-template-columns: 325px 1fr;
 grid-template-rows: 1fr;
 max-height: 100vh;
-overflow-y: scroll;
+overflow: hidden;
 }
 div#container div#toc {
 grid-column-start: 1;
 max-height: 100%;
-overflow-y: scroll;
+overflow-y: auto;
 background-color: #f4f4f4;
 }
 div#container div#content {
 grid-column-start: 2;
 max-height: 100%;
-overflow-y: scroll;
+overflow-y: auto;
 }
 .toc {
 padding: 0 1em;
@@ -111,8 +113,12 @@ margin: auto;
 }
 .content {
 max-width: 54em;
-padding: 0 1em;
-margin: auto;
+padding: 0 2em;
+}
+pre {
+white-space: pre;
+white-space: pre-wrap;
+word-wrap: break-word;
 }
 
 a {
@@ -211,11 +217,6 @@ font-family: monospace, monospace;
 _font-family: "courier new", monospace;
 font-size: 0.98em;
 background-color: #f4f4f4;
-}
-pre {
-white-space: pre;
-white-space: pre-wrap;
-word-wrap: break-word;
 }
 b,
 strong {
@@ -319,72 +320,13 @@ text-align: center;
 body {
 font-size: 14px;
 }
+
 }
 @media only screen and (min-width: 768px) {
 body {
 font-size: 16px;
 }
-}
-@media print {
-* {
-background: transparent !important;
-color: black !important;
-filter: none !important;
--ms-filter: none !important;
-}
-body {
-font-size: 12pt;
-max-width: 100%;
-}
-a,
-a:visited {
-text-decoration: underline;
-}
-hr {
-height: 1px;
-border: 0;
-border-bottom: 1px solid black;
-}
-a[href]:after {
-content: " (" attr(href) ")";
-}
-abbr[title]:after {
-content: " (" attr(title) ")";
-}
-.ir a:after,
-a[href^="javascript:"]:after,
-a[href^="#"]:after {
-content: "";
-}
-pre,
-blockquote {
-border: 1px solid #999;
-padding-right: 1em;
-page-break-inside: avoid;
-}
-tr,
-img {
-page-break-inside: avoid;
-}
-img {
-max-width: 100% !important;
-}
-@page :left {
-margin: 15mm 20mm 15mm 10mm;
-}
-@page :right {
-margin: 15mm 10mm 15mm 20mm;
-}
-p,
-h2,
-h3 {
-orphans: 3;
-widows: 3;
-}
-h2,
-h3 {
-page-break-after: avoid;
-}
+
 }
 </style>
   <!--[if lt IE 9]>
@@ -401,46 +343,46 @@ page-break-after: avoid;
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
-<li><a href="#manual">Manual</a><ul>
-<li><a href="#introduction">Introduction</a></li>
-<li><a href="#definitions">Definitions</a></li>
+<li><a href="#manual"><span class="toc-section-number">1</span> Manual</a><ul>
+<li><a href="#introduction"><span class="toc-section-number">1.1</span> Introduction</a></li>
+<li><a href="#definitions"><span class="toc-section-number">1.2</span> Definitions</a></li>
 </ul></li>
-<li><a href="#guides">Guides</a><ul>
-<li><a href="#quickstart">Quickstart</a></li>
-<li><a href="#deployment">Deployment</a></li>
-<li><a href="#integration">Integration</a></li>
-<li><a href="#login">Login</a></li>
-<li><a href="#reset-password">Reset Password</a></li>
-<li><a href="#update-email">Update Email</a></li>
-<li><a href="#update-password">Update Password</a></li>
-<li><a href="#api-key">API Key</a></li>
-<li><a href="#oauth2-login">OAuth2 Login</a></li>
-<li><a href="#totp">TOTP</a></li>
-<li><a href="#csrf">CSRF</a></li>
+<li><a href="#guides"><span class="toc-section-number">2</span> Guides</a><ul>
+<li><a href="#quickstart"><span class="toc-section-number">2.1</span> Quickstart</a></li>
+<li><a href="#deployment"><span class="toc-section-number">2.2</span> Deployment</a></li>
+<li><a href="#integration"><span class="toc-section-number">2.3</span> Integration</a></li>
+<li><a href="#login"><span class="toc-section-number">2.4</span> Login</a></li>
+<li><a href="#reset-password"><span class="toc-section-number">2.5</span> Reset Password</a></li>
+<li><a href="#update-email"><span class="toc-section-number">2.6</span> Update Email</a></li>
+<li><a href="#update-password"><span class="toc-section-number">2.7</span> Update Password</a></li>
+<li><a href="#api-key"><span class="toc-section-number">2.8</span> API Key</a></li>
+<li><a href="#oauth2-login"><span class="toc-section-number">2.9</span> OAuth2 Login</a></li>
+<li><a href="#totp"><span class="toc-section-number">2.10</span> TOTP</a></li>
+<li><a href="#csrf"><span class="toc-section-number">2.11</span> CSRF</a></li>
 </ul></li>
-<li><a href="#api">API</a></li>
-<li><a href="#cli">CLI</a></li>
-<li><a href="#changelog">Changelog</a><ul>
-<li><a href="#section">0.8.0 (?)</a></li>
-<li><a href="#section-1">0.7.0 (2019-10-19)</a></li>
-<li><a href="#section-2">0.6.0 (2019-10-07)</a></li>
-<li><a href="#section-3">0.5.0 (2019-10-05)</a></li>
-<li><a href="#section-4">0.4.0 (2019-09-09)</a></li>
-<li><a href="#section-5">0.3.0 (2019-08-03)</a></li>
-<li><a href="#section-6">0.2.0 (2019-07-07)</a></li>
-<li><a href="#section-7">0.1.0 (2019-05-16)</a></li>
+<li><a href="#api"><span class="toc-section-number">3</span> API</a></li>
+<li><a href="#cli"><span class="toc-section-number">4</span> CLI</a></li>
+<li><a href="#changelog"><span class="toc-section-number">5</span> Changelog</a><ul>
+<li><a href="#section"><span class="toc-section-number">5.1</span> 0.8.0 (?)</a></li>
+<li><a href="#section-1"><span class="toc-section-number">5.2</span> 0.7.0 (2019-10-19)</a></li>
+<li><a href="#section-2"><span class="toc-section-number">5.3</span> 0.6.0 (2019-10-07)</a></li>
+<li><a href="#section-3"><span class="toc-section-number">5.4</span> 0.5.0 (2019-10-05)</a></li>
+<li><a href="#section-4"><span class="toc-section-number">5.5</span> 0.4.0 (2019-09-09)</a></li>
+<li><a href="#section-5"><span class="toc-section-number">5.6</span> 0.3.0 (2019-08-03)</a></li>
+<li><a href="#section-6"><span class="toc-section-number">5.7</span> 0.2.0 (2019-07-07)</a></li>
+<li><a href="#section-7"><span class="toc-section-number">5.8</span> 0.1.0 (2019-05-16)</a></li>
 </ul></li>
-<li><a href="#design">Design</a><ul>
-<li><a href="#architecture">Architecture</a></li>
-<li><a href="#owasp-asvs">OWASP: ASVS</a></li>
+<li><a href="#design"><span class="toc-section-number">6</span> Design</a><ul>
+<li><a href="#architecture"><span class="toc-section-number">6.1</span> Architecture</a></li>
+<li><a href="#owasp-asvs"><span class="toc-section-number">6.2</span> OWASP: ASVS</a></li>
 </ul></li>
-<li><a href="#developer">Developer</a><ul>
-<li><a href="#tools">Tools</a></li>
-<li><a href="#manual-1">Manual</a></li>
-<li><a href="#environment">Environment</a></li>
-<li><a href="#database">Database</a></li>
-<li><a href="#build">Build</a></li>
-<li><a href="#test">Test</a></li>
+<li><a href="#developer"><span class="toc-section-number">7</span> Developer</a><ul>
+<li><a href="#tools"><span class="toc-section-number">7.1</span> Tools</a></li>
+<li><a href="#manual-1"><span class="toc-section-number">7.2</span> Manual</a></li>
+<li><a href="#environment"><span class="toc-section-number">7.3</span> Environment</a></li>
+<li><a href="#database"><span class="toc-section-number">7.4</span> Database</a></li>
+<li><a href="#build"><span class="toc-section-number">7.5</span> Build</a></li>
+<li><a href="#test"><span class="toc-section-number">7.6</span> Test</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -448,12 +390,12 @@ page-break-after: avoid;
 </div>
 <div id="content">
 <div class="content">
-<h1 id="manual">Manual</h1>
-<h2 id="introduction">Introduction</h2>
+<h1 id="manual"><span class="header-section-number">1</span> Manual</h1>
+<h2 id="introduction"><span class="header-section-number">1.1</span> Introduction</h2>
 <p><strong>Warning: The author of this application is not a security expert, and the code has not undergone any kind of review or verification. Use it at your own risk!</strong></p>
 <p>The crate <code>sso</code> is an authentication server binary. It is intended to be used as a backend for other services, such as API servers, which must authenticate user requests.</p>
 <p>Authentication methods are organised into provider groups, The following provider groups are currently supported: <code>local</code>, <code>github</code>, <code>microsoft</code>. Depending on the provider, the following user authentication methods are supported.</p>
-<h3 id="password-login-local">Password Login (local)</h3>
+<h3 id="password-login-local"><span class="header-section-number">1.1.1</span> Password Login (local)</h3>
 <ul>
 <li>Users can authenticate to a service using a unique email address and password.</li>
 <li>Successful login returns time-limited, revokable access and refresh <a href="https://jwt.io/">JSON web tokens</a>.</li>
@@ -468,43 +410,43 @@ page-break-after: avoid;
 <li>Password leaks are checked by <a href="https://haveibeenpwned.com/Passwords">Pwned Passwords</a>.</li>
 <li>Users can be created without passwords to disable password login.</li>
 </ul>
-<h3 id="api-key-local">API Key (local)</h3>
+<h3 id="api-key-local"><span class="header-section-number">1.1.2</span> API Key (local)</h3>
 <ul>
 <li>Users can authenticate requests to a service using a unique, random key.</li>
 <li>Keys are not time-limited, but are revokable.</li>
 </ul>
-<h3 id="totp-local">TOTP (local)</h3>
+<h3 id="totp-local"><span class="header-section-number">1.1.3</span> TOTP (local)</h3>
 <ul>
 <li>Services can authenticate user requests that contain a <a href="https://en.wikipedia.org/wiki/Time-based_One-time_Password_algorithm">TOTP</a> code.</li>
 </ul>
-<h3 id="oauth2-github-microsoft">OAuth2 (github, microsoft)</h3>
+<h3 id="oauth2-github-microsoft"><span class="header-section-number">1.1.4</span> OAuth2 (github, microsoft)</h3>
 <ul>
 <li>Users can authenticate to a service via supported OAuth2 providers.</li>
 <li>Successful login returns time-limited, revokable access and refresh <a href="https://jwt.io/">JSON web tokens</a>.</li>
 <li>Access tokens are used to authenticate user requests.</li>
 <li>Refresh tokens are used to produce new access and refresh tokens.</li>
 </ul>
-<h2 id="definitions">Definitions</h2>
+<h2 id="definitions"><span class="header-section-number">1.2</span> Definitions</h2>
 <p>The following terms are used throughout this manual.</p>
-<h3 id="service">Service</h3>
+<h3 id="service"><span class="header-section-number">1.2.1</span> Service</h3>
 <p>An application that must authenticate user requests, registered as a service with <code>sso</code> using a name and callback URLs for supported authentication providers.</p>
-<h3 id="user">User</h3>
+<h3 id="user"><span class="header-section-number">1.2.2</span> User</h3>
 <p>A person or other external API consumer identified by a unique email address who wants to interact with one or more services registered with <code>sso</code>.</p>
-<h3 id="key">Key</h3>
+<h3 id="key"><span class="header-section-number">1.2.3</span> Key</h3>
 <p>Random, unique keys produced by <code>sso</code> with a specified type (<code>Key</code>, <code>Token</code> or <code>Totp</code>). Keys may be revoked to prevent use.</p>
-<h3 id="root-key">Root Key</h3>
+<h3 id="root-key"><span class="header-section-number">1.2.4</span> Root Key</h3>
 <p>Keys linked to no services or users, produced by command line and can be used to manage <code>sso</code> via HTTP requests. <code>Key</code> type.</p>
-<h3 id="service-key">Service Key</h3>
+<h3 id="service-key"><span class="header-section-number">1.2.5</span> Service Key</h3>
 <p>Keys linked to one service, used by <code>sso</code> to authenticate HTTP requests from services. <code>Key</code> type.</p>
-<h3 id="user-key">User Key</h3>
+<h3 id="user-key"><span class="header-section-number">1.2.6</span> User Key</h3>
 <p>Keys linked to one user and one service, allows user to authenticate with the linked service. Any type, type determines what the key may be used for (e.g. <code>Token</code> keys are used for email and password login).</p>
-<h3 id="token">Token</h3>
+<h3 id="token"><span class="header-section-number">1.2.7</span> Token</h3>
 <p><a href="https://jwt.io/">JSON web tokens</a> used for time-limited authentication, produced for users from a user key. Revoking the key used to produce a token also revokes the token. Tokens have a type which determines what the token may be used for (e.g. single use reset password token).</p>
-<h1 id="guides">Guides</h1>
-<h2 id="quickstart">Quickstart</h2>
+<h1 id="guides"><span class="header-section-number">2</span> Guides</h1>
+<h2 id="quickstart"><span class="header-section-number">2.1</span> Quickstart</h2>
 <p>TODO(docs): Write quickstart guide.</p>
 <pre class="shell"><code>cargo install sso</code></pre>
-<h2 id="deployment">Deployment</h2>
+<h2 id="deployment"><span class="header-section-number">2.2</span> Deployment</h2>
 <p>TODO(docs): How to deploy sso server.</p>
 <p><strong>Nginx</strong></p>
 <p>Example <a href="https://www.nginx.com/">nginx</a> configuration.</p>
@@ -538,7 +480,7 @@ page-break-after: avoid;
 <span id="cb3-7"><a href="#cb3-7"></a><span class="at">      </span><span class="fu">static_configs</span><span class="kw">:</span></span>
 <span id="cb3-8"><a href="#cb3-8"></a><span class="at">          </span><span class="kw">-</span><span class="at"> </span><span class="fu">targets</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="st">&quot;$server_url&quot;</span><span class="kw">]</span></span></code></pre></div>
 <pre class="shell"><code>curl --header &quot;Authorization: $root_or_service_key&quot; $server_url/v1/metrics</code></pre>
-<h2 id="integration">Integration</h2>
+<h2 id="integration"><span class="header-section-number">2.3</span> Integration</h2>
 <p>The following diagram illustrates how services and sso integrate to authenticate user requests.</p>
 <figure>
 <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiIHN0YW5kYWxvbmU9Im5vIj8+PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAyMDAxMDkwNC8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MzIiIGhlaWdodD0iNTMzIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PHNvdXJjZT48IVtDREFUQVtOb3RlIG92ZXIgVXNlcjogMS4gVXNlciBUb2tlbiBvciBLZXkKVXNlci0+PlNlcnZpY2U6IEhUVFAgUmVxdWVzdApOb3RlIG92ZXIgU2VydmljZTogMi4gU2VydmljZSBLZXkKU2VydmljZS0+PnNzbzogSFRUUCBSZXF1ZXN0Ck5vdGUgb3ZlciBzc286IDMuIFZlcmlmeQpzc28tPj5TZXJ2aWNlOiBIVFRQIFJlc3BvbnNlCk5vdGUgb3ZlciBTZXJ2aWNlOiA0LiBSZXF1ZXN0IEhhbmRsZXIKU2VydmljZS0+PlVzZXI6IEhUVFAgUmVzcG9uc2UKTm90ZSBvdmVyIFVzZXI6IDUuIFJlc3BvbnNlIEhhbmRsZXJdXT48L3NvdXJjZT48ZGVzYz48L2Rlc2M+PGRlZnM+PG1hcmtlciB2aWV3Qm94PSIwIDAgNSA1IiBtYXJrZXJXaWR0aD0iNSIgbWFya2VySGVpZ2h0PSI1IiBvcmllbnQ9ImF1dG8iIHJlZlg9IjUiIHJlZlk9IjIuNSIgaWQ9Im1hcmtlckFycm93QmxvY2siPjxwYXRoIGQ9Ik0gMCAwIEwgNSAyLjUgTCAwIDUgeiI+PC9wYXRoPjwvbWFya2VyPjxtYXJrZXIgdmlld0JveD0iMCAwIDkuNiAxNiIgbWFya2VyV2lkdGg9IjQiIG1hcmtlckhlaWdodD0iMTYiIG9yaWVudD0iYXV0byIgcmVmWD0iOS42IiByZWZZPSI4IiBpZD0ibWFya2VyQXJyb3dPcGVuIj48cGF0aCBkPSJNIDkuNiw4IDEuOTIsMTYgMCwxMy43IDUuNzYsOCAwLDIuMjg2IDEuOTIsMCA5LjYsOCB6Ij48L3BhdGg+PC9tYXJrZXI+PC9kZWZzPjxnIGNsYXNzPSJ0aXRsZSI+PC9nPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iODEiIHk9IjIwIiB3aWR0aD0iNTgiIGhlaWdodD0iMzguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjkxIiB5PSI0NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iOTEiPlVzZXI8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9ImFjdG9yIj48cmVjdCB4PSI4MSIgeT0iNDc1IiB3aWR0aD0iNTgiIGhlaWdodD0iMzguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjkxIiB5PSI1MDAiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjkxIj5Vc2VyPC90c3Bhbj48L3RleHQ+PC9nPjxsaW5lIHgxPSIxMTAiIHgyPSIxMTAiIHkxPSI1OC41IiB5Mj0iNDc1IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIj48L2xpbmU+PGcgY2xhc3M9ImFjdG9yIj48cmVjdCB4PSIyMTAuMjUiIHk9IjIwIiB3aWR0aD0iODYuNSIgaGVpZ2h0PSIzOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMjIwLjI1IiB5PSI0NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjIwLjI1Ij5TZXJ2aWNlPC90c3Bhbj48L3RleHQ+PC9nPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iMjEwLjI1IiB5PSI0NzUiIHdpZHRoPSI4Ni41IiBoZWlnaHQ9IjM4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIyMjAuMjUiIHk9IjUwMCIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjIwLjI1Ij5TZXJ2aWNlPC90c3Bhbj48L3RleHQ+PC9nPjxsaW5lIHgxPSIyNTMuNSIgeDI9IjI1My41IiB5MT0iNTguNSIgeTI9IjQ3NSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjxnIGNsYXNzPSJhY3RvciI+PHJlY3QgeD0iMzQ5IiB5PSIyMCIgd2lkdGg9Ijk2IiBoZWlnaHQ9IjM4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIzNTkiIHk9IjQ1IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIzNTkiPnNzbzwvdHNwYW4+PC90ZXh0PjwvZz48ZyBjbGFzcz0iYWN0b3IiPjxyZWN0IHg9IjM0OSIgeT0iNDc1IiB3aWR0aD0iOTYiIGhlaWdodD0iMzguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjM1OSIgeT0iNTAwIiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIzNTkiPnNzbzwvdHNwYW4+PC90ZXh0PjwvZz48bGluZSB4MT0iMzk3IiB4Mj0iMzk3IiB5MT0iNTguNSIgeTI9IjQ3NSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0ibm9uZSI+PC9saW5lPjxnIGNsYXNzPSJub3RlIj48cmVjdCB4PSIxMCIgeT0iNzguNSIgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMTUiIHk9Ijk4LjUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjE1Ij4xLiBVc2VyIFRva2VuIG9yIEtleTwvdHNwYW4+PC90ZXh0PjwvZz48ZyBjbGFzcz0ic2lnbmFsIj48dGV4dCB4PSIxMjQuNzUiIHk9IjEzNy43NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMTI0Ljc1Ij5IVFRQIFJlcXVlc3Q8L3RzcGFuPjwvdGV4dD48bGluZSB4MT0iMTEwIiB4Mj0iMjUzLjUiIHkxPSIxNDUuNSIgeTI9IjE0NS41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBtYXJrZXItZW5kOiB1cmwoJnF1b3Q7I21hcmtlckFycm93T3BlbiZxdW90Oyk7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9Im5vbmUiPjwvbGluZT48L2c+PGcgY2xhc3M9Im5vdGUiPjxyZWN0IHg9IjE4MiIgeT0iMTY1LjUiIHdpZHRoPSIxNDMiIGhlaWdodD0iMjguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjE4NyIgeT0iMTg1LjUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjE4NyI+Mi4gU2VydmljZSBLZXk8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9InNpZ25hbCI+PHRleHQgeD0iMjY4LjI1IiB5PSIyMjQuNzUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjI2OC4yNSI+SFRUUCBSZXF1ZXN0PC90c3Bhbj48L3RleHQ+PGxpbmUgeDE9IjI1My41IiB4Mj0iMzk3IiB5MT0iMjMyLjUiIHkyPSIyMzIuNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsgbWFya2VyLWVuZDogdXJsKCZxdW90OyNtYXJrZXJBcnJvd09wZW4mcXVvdDspOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIj48L2xpbmU+PC9nPjxnIGNsYXNzPSJub3RlIj48cmVjdCB4PSIzNDkuMjUiIHk9IjI1Mi41IiB3aWR0aD0iOTUuNSIgaGVpZ2h0PSIyOC41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PHRleHQgeD0iMzU0LjI1IiB5PSIyNzIuNSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMzU0LjI1Ij4zLiBWZXJpZnk8L3RzcGFuPjwvdGV4dD48L2c+PGcgY2xhc3M9InNpZ25hbCI+PHRleHQgeD0iMjYzLjUiIHk9IjMxMS43NSIgc3R5bGU9ImZvbnQtc2l6ZTogMTZweDsgZm9udC1mYW1pbHk6IEFuZGFsZSBNb25vLCBtb25vc3BhY2U7Ij48dHNwYW4geD0iMjYzLjUiPkhUVFAgUmVzcG9uc2U8L3RzcGFuPjwvdGV4dD48bGluZSB4MT0iMzk3IiB4Mj0iMjUzLjUiIHkxPSIzMTkuNSIgeTI9IjMxOS41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBtYXJrZXItZW5kOiB1cmwoJnF1b3Q7I21hcmtlckFycm93T3BlbiZxdW90Oyk7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9Im5vbmUiPjwvbGluZT48L2c+PGcgY2xhc3M9Im5vdGUiPjxyZWN0IHg9IjE2MyIgeT0iMzM5LjUiIHdpZHRoPSIxODEiIGhlaWdodD0iMjguNSIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsiIHN0cm9rZT0iIzAwMDAwMCIgZmlsbD0iI2ZmZmZmZiI+PC9yZWN0Pjx0ZXh0IHg9IjE2OCIgeT0iMzU5LjUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjE2OCI+NC4gUmVxdWVzdCBIYW5kbGVyPC90c3Bhbj48L3RleHQ+PC9nPjxnIGNsYXNzPSJzaWduYWwiPjx0ZXh0IHg9IjEyMCIgeT0iMzk4Ljc1IiBzdHlsZT0iZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQW5kYWxlIE1vbm8sIG1vbm9zcGFjZTsiPjx0c3BhbiB4PSIxMjAiPkhUVFAgUmVzcG9uc2U8L3RzcGFuPjwvdGV4dD48bGluZSB4MT0iMjUzLjUiIHgyPSIxMTAiIHkxPSI0MDYuNSIgeTI9IjQwNi41IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyOyBtYXJrZXItZW5kOiB1cmwoJnF1b3Q7I21hcmtlckFycm93T3BlbiZxdW90Oyk7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9Im5vbmUiPjwvbGluZT48L2c+PGcgY2xhc3M9Im5vdGUiPjxyZWN0IHg9IjE0Ljc1IiB5PSI0MjYuNSIgd2lkdGg9IjE5MC41IiBoZWlnaHQ9IjI4LjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IiBzdHJva2U9IiMwMDAwMDAiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48dGV4dCB4PSIxOS43NSIgeT0iNDQ2LjUiIHN0eWxlPSJmb250LXNpemU6IDE2cHg7IGZvbnQtZmFtaWx5OiBBbmRhbGUgTW9ubywgbW9ub3NwYWNlOyI+PHRzcGFuIHg9IjE5Ljc1Ij41LiBSZXNwb25zZSBIYW5kbGVyPC90c3Bhbj48L3RleHQ+PC9nPjwvc3ZnPgo=" alt /><figcaption>User request verification</figcaption>
@@ -561,7 +503,7 @@ page-break-after: avoid;
 <p>User requests this URL by clicking update email revoke link. The service can present the user information on securing their account, and then make an update email revoke request with the <code>token</code> query parameter. This will disable the user and all user keys.</p>
 <pre class="shell"><code>GET $service_url?type=update_password&amp;email=$email&amp;token=$token</code></pre>
 <p>User requests this URL by clicking update password revoke link. The service can present the user information on securing their account, and then make an update password revoke request with the <code>token</code> query parameter. This will disable the user and all user keys.</p>
-<h2 id="login">Login</h2>
+<h2 id="login"><span class="header-section-number">2.4</span> Login</h2>
 <p>Create service with key and start server.</p>
 <pre class="shell"><code>sso create-service-with-key $service_name $service_url \
     [--local-url $service_local_url]
@@ -602,7 +544,7 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
   $server_url/v1/auth/token/revoke</code></pre>
-<h2 id="reset-password">Reset Password</h2>
+<h2 id="reset-password"><span class="header-section-number">2.5</span> Reset Password</h2>
 <p>Create service with key and start server.</p>
 <pre class="shell"><code>sso create-service-with-key $service_name $service_url \
     [--local-url $service_local_url]
@@ -638,7 +580,7 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39; \
   $server_url/v1/auth/provider/local/login</code></pre>
-<h2 id="update-email">Update Email</h2>
+<h2 id="update-email"><span class="header-section-number">2.6</span> Update Email</h2>
 <p>Create service with key and start server.</p>
 <pre class="shell"><code>sso create-service-with-key $service_name $service_url \
     [--local-url $service_local_url]
@@ -674,7 +616,7 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
   $server_url/v1/auth/provider/local/update-email/revoke</code></pre>
-<h2 id="update-password">Update Password</h2>
+<h2 id="update-password"><span class="header-section-number">2.7</span> Update Password</h2>
 <p>Create service with key and start server.</p>
 <pre class="shell"><code>sso create-service-with-key $service_name $service_url \
     [--local-url $service_local_url]
@@ -710,7 +652,7 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
   $server_url/v1/auth/provider/local/update-password/revoke</code></pre>
-<h2 id="api-key">API Key</h2>
+<h2 id="api-key"><span class="header-section-number">2.8</span> API Key</h2>
 <p>Create service with key and start server.</p>
 <pre class="shell"><code>sso create-service-with-key $service_name $service_url \
     [--local-url $service_local_url]
@@ -739,7 +681,7 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39; \
   $server_url/v1/auth/key/revoke</code></pre>
-<h2 id="oauth2-login">OAuth2 Login</h2>
+<h2 id="oauth2-login"><span class="header-section-number">2.9</span> OAuth2 Login</h2>
 <p><code>$server_url/v1/auth/provider/github/oauth2</code></p>
 <p>Create service with OAuth2 provider URL and key, and start server.</p>
 <pre class="shell"><code>sso create-service-with-key $service_name $service_url \
@@ -789,7 +731,7 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;token&quot;:&quot;$token&quot;}&#39; \
   $server_url/v1/auth/token/revoke</code></pre>
-<h2 id="totp">TOTP</h2>
+<h2 id="totp"><span class="header-section-number">2.10</span> TOTP</h2>
 <p>Create service with key and start server.</p>
 <pre class="shell"><code>sso create-service-with-key $service_name $service_url
 sso start-server</code></pre>
@@ -828,7 +770,7 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39; \
   $server_url/v1/auth/key/revoke</code></pre>
-<h2 id="csrf">CSRF</h2>
+<h2 id="csrf"><span class="header-section-number">2.11</span> CSRF</h2>
 <p>Create service with key and start server.</p>
 <pre class="shell"><code>sso create-service-with-key $service_name $service_url
 sso start-server</code></pre>
@@ -841,15 +783,15 @@ sso start-server</code></pre>
   --request POST \
   --data &#39;{&quot;key&quot;:&quot;$csrf_key&quot;}&#39; \
   $server_url/v1/auth/csrf</code></pre>
-<h1 id="api">API</h1>
+<h1 id="api"><span class="header-section-number">3</span> API</h1>
 <p>The <a href="https://www.getpostman.com/">Postman</a> collection JSON file can be found in <code>docs/sso.postman_collection.json</code>.</p>
 <p>TODO(docs): <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> definition file?</p>
-<h1 id="cli">CLI</h1>
+<h1 id="cli"><span class="header-section-number">4</span> CLI</h1>
 <p>TODO(docs): CLI documentation.</p>
-<h1 id="changelog">Changelog</h1>
-<h2 id="section">0.8.0 (?)</h2>
-<h2 id="section-1">0.7.0 (2019-10-19)</h2>
-<h3 id="added">Added</h3>
+<h1 id="changelog"><span class="header-section-number">5</span> Changelog</h1>
+<h2 id="section"><span class="header-section-number">5.1</span> 0.8.0 (?)</h2>
+<h2 id="section-1"><span class="header-section-number">5.2</span> 0.7.0 (2019-10-19)</h2>
+<h3 id="added"><span class="header-section-number">5.2.1</span> Added</h3>
 <ul>
 <li>Added <code>Debug</code> trait implementations for public types.</li>
 <li>Added filters to key list endpoint with <code>KeyFilter</code> options.</li>
@@ -861,7 +803,7 @@ sso start-server</code></pre>
 <li>Added optional <code>subject</code> column to audit log table, added support for filtering.</li>
 <li>Use TimescaleDB hypertable for audit log table.</li>
 </ul>
-<h3 id="changed">Changed</h3>
+<h3 id="changed"><span class="header-section-number">5.2.2</span> Changed</h3>
 <ul>
 <li>Changed table column names to remove prefixes for <code>DriverPostgres</code>.</li>
 <li>Key value is only returned via created endpoint.</li>
@@ -871,32 +813,32 @@ sso start-server</code></pre>
 <li>Added prefix <code>Sso</code> to internal audit log types.</li>
 <li>Refactoring, move <code>api</code> module to crate root.</li>
 </ul>
-<h3 id="fixed">Fixed</h3>
+<h3 id="fixed"><span class="header-section-number">5.2.3</span> Fixed</h3>
 <ul>
 <li>Fixed <code>clippy</code> too many arguments warnings.</li>
 <li>Fixed <code>ClientActor</code> GET request ignores query string.</li>
 <li>Fixed 500 status code returned trying to create key with invalid service or user ID.</li>
 </ul>
-<h2 id="section-2">0.6.0 (2019-10-07)</h2>
-<h3 id="changed-1">Changed</h3>
+<h2 id="section-2"><span class="header-section-number">5.3</span> 0.6.0 (2019-10-07)</h2>
+<h3 id="changed-1"><span class="header-section-number">5.3.1</span> Changed</h3>
 <ul>
 <li>Replaced key flags with type: <code>Key</code>, <code>Token</code> or <code>Totp</code>.</li>
 <li>Added user flags: <code>password_allow_reset</code> and <code>password_require_update</code>.</li>
 <li>Return <code>Unauthorised</code> instead of <code>Forbidden</code> for missing authentication.</li>
 <li>User update email and password endpoints accept <code>user_id</code> instead of <code>key</code> or <code>token</code>.</li>
 </ul>
-<h3 id="fixed-1">Fixed</h3>
+<h3 id="fixed-1"><span class="header-section-number">5.3.2</span> Fixed</h3>
 <ul>
 <li>Fixed read user by ID route <code>/v1/user/{id}</code> attempts to read key.</li>
 </ul>
-<h2 id="section-3">0.5.0 (2019-10-05)</h2>
-<h3 id="added-1">Added</h3>
+<h2 id="section-3"><span class="header-section-number">5.4</span> 0.5.0 (2019-10-05)</h2>
+<h3 id="added-1"><span class="header-section-number">5.4.1</span> Added</h3>
 <ul>
 <li>Added TOTP validation route.</li>
 <li>Added key flags: <code>allow_key</code>, <code>allow_token</code>, <code>allow_totp</code>.</li>
 <li>Added user fields: <code>locale</code>, <code>timezone</code>.</li>
 </ul>
-<h3 id="changed-2">Changed</h3>
+<h3 id="changed-2"><span class="header-section-number">5.4.2</span> Changed</h3>
 <ul>
 <li>Renamed project <code>sso</code>, ark was taken by various products and crates.</li>
 <li>Code consistency improvements.</li>
@@ -905,14 +847,14 @@ sso start-server</code></pre>
 <li>Improved audit metric collection efficiency.</li>
 <li>Changed authentication provider interface so callbacks always go to service.</li>
 </ul>
-<h2 id="section-4">0.4.0 (2019-09-09)</h2>
-<h3 id="added-2">Added</h3>
+<h2 id="section-4"><span class="header-section-number">5.5</span> 0.4.0 (2019-09-09)</h2>
+<h3 id="added-2"><span class="header-section-number">5.5.1</span> Added</h3>
 <ul>
 <li>Added some process metrics to Prometheus integration.</li>
 <li>Created asynchronous client actor to handle outgoing HTTP requests.</li>
 <li>Added environment variable <code>PASSWORD_PWNED_ENABLED</code> to enable pwned passwords integration.</li>
 </ul>
-<h3 id="changed-3">Changed</h3>
+<h3 id="changed-3"><span class="header-section-number">5.5.2</span> Changed</h3>
 <ul>
 <li>Replaced <code>bcrypt</code> with <code>libreauth</code> crate for password hashing.</li>
 <li>Use <code>libreauth</code> key generation for CSRF keys and <code>Key</code> values.</li>
@@ -920,12 +862,12 @@ sso start-server</code></pre>
 <li>Changed driver interface to use <code>Uuid</code> types instead of strings.</li>
 <li>Renamed configuration structures to options to improve consistency.</li>
 </ul>
-<h3 id="fixed-2">Fixed</h3>
+<h3 id="fixed-2"><span class="header-section-number">5.5.3</span> Fixed</h3>
 <ul>
 <li>Fixed missing <code>dyn</code> keyword warnings.</li>
 </ul>
-<h2 id="section-5">0.3.0 (2019-08-03)</h2>
-<h3 id="added-3">Added</h3>
+<h2 id="section-5"><span class="header-section-number">5.6</span> 0.3.0 (2019-08-03)</h2>
+<h3 id="added-3"><span class="header-section-number">5.6.1</span> Added</h3>
 <ul>
 <li>Improved email templates, removed template parameters from routes.</li>
 <li>Defined server routes and other constants in <code>server::api</code> module.</li>
@@ -936,7 +878,7 @@ sso start-server</code></pre>
 <li>Added TLS configuration support to server and clients.</li>
 <li>Added hostname configuration to server.</li>
 </ul>
-<h3 id="changed-4">Changed</h3>
+<h3 id="changed-4"><span class="header-section-number">5.6.2</span> Changed</h3>
 <ul>
 <li>Changed audit list query parameters when using <code>created_gte</code> or <code>created_lte</code> options, added optional <code>offset_id</code> parameter to exclude previous results.</li>
 <li>Moved email handling from <code>server::smtp</code> module to <code>notify</code> module.</li>
@@ -945,14 +887,14 @@ sso start-server</code></pre>
 <li>Renamed local authentication provider reset, update routes.</li>
 <li>Improved configuration interfaces using <code>derive_builder</code> crate.</li>
 </ul>
-<h3 id="fixed-3">Fixed</h3>
+<h3 id="fixed-3"><span class="header-section-number">5.6.3</span> Fixed</h3>
 <ul>
 <li>Reset password route now returns OK in cases where user email address does not exist.</li>
 <li>Fixed audit log errors were created for root key authentication when authenticating a service key.</li>
 <li>Fixed internal server errors returned to client when OAuth2 provider is disabled.</li>
 </ul>
-<h2 id="section-6">0.2.0 (2019-07-07)</h2>
-<h3 id="added-4">Added</h3>
+<h2 id="section-6"><span class="header-section-number">5.7</span> 0.2.0 (2019-07-07)</h2>
+<h3 id="added-4"><span class="header-section-number">5.7.1</span> Added</h3>
 <ul>
 <li>Added audit logging to authentication routes.</li>
 <li>Added is enabled flag to services, users and keys, added is revoked flag to keys.</li>
@@ -961,7 +903,7 @@ sso start-server</code></pre>
 <li>Added local provider update user email, password routes.</li>
 <li>Added type parameter to service URL callback queries.</li>
 </ul>
-<h3 id="changed-5">Changed</h3>
+<h3 id="changed-5"><span class="header-section-number">5.7.2</span> Changed</h3>
 <ul>
 <li>Changed database schema to use strings as IDs.</li>
 <li>Changed list route endpoints to return data ID arrays.</li>
@@ -973,20 +915,20 @@ sso start-server</code></pre>
 <li>Removed <code>skeptic</code> from tests, use Cargo test runner.</li>
 <li>Moved route types to public api module.</li>
 </ul>
-<h3 id="fixed-4">Fixed</h3>
+<h3 id="fixed-4"><span class="header-section-number">5.7.3</span> Fixed</h3>
 <ul>
 <li>Fixed not validating service URLs before save using URL parse, improved URL error handling.</li>
 <li>Fixed inconsistent core error display strings.</li>
 <li>Fixed duplicate user email address returned internal server error code.</li>
 <li>Fixed Lettre email error type handling.</li>
 </ul>
-<h2 id="section-7">0.1.0 (2019-05-16)</h2>
-<h3 id="added-5">Added</h3>
+<h2 id="section-7"><span class="header-section-number">5.8</span> 0.1.0 (2019-05-16)</h2>
+<h3 id="added-5"><span class="header-section-number">5.8.1</span> Added</h3>
 <ul>
 <li>First version.</li>
 </ul>
-<h1 id="design">Design</h1>
-<h2 id="architecture">Architecture</h2>
+<h1 id="design"><span class="header-section-number">6</span> Design</h1>
+<h2 id="architecture"><span class="header-section-number">6.1</span> Architecture</h2>
 <table>
 <colgroup>
 <col style="width: 8%"></col>
@@ -1025,20 +967,20 @@ sso start-server</code></pre>
 </tr>
 </tbody>
 </table>
-<h2 id="owasp-asvs">OWASP: ASVS</h2>
+<h2 id="owasp-asvs"><span class="header-section-number">6.2</span> OWASP: ASVS</h2>
 <p><a href="https://www.owasp.org/index.php/Category:OWASP_Application_Security_Verification_Standard_Project">OWASP ASVS</a></p>
 <p>The OWASP Application Security Verification Standard is being used as a reference to improve this application. These are some development and design notes based on requirements from the 4.0 version of the ASVS standard.</p>
-<h3 id="section-8">1.2.1</h3>
+<h3 id="section-8"><span class="header-section-number">6.2.1</span> 1.2.1</h3>
 <ul>
 <li>Binary sso and postgres must be run as unique or special low privelege operating system accounts.</li>
 <li>Systemd unit file examples, sso, postgres, nginx, etc. users.</li>
 </ul>
-<h3 id="section-9">1.2.2</h3>
+<h3 id="section-9"><span class="header-section-number">6.2.2</span> 1.2.2</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
 <li>Mutual TLS using rustls configuration and PKI.</li>
 </ul>
-<h3 id="section-10">1.2.3</h3>
+<h3 id="section-10"><span class="header-section-number">6.2.3</span> 1.2.3</h3>
 <ul>
 <li>Binary sso is designed to provide multiple authentication mechanisms (none vetted yet).</li>
 <li>Relies on libraries which may be unvetted, e.g. libreauth, jsonwebtoken, rustls, etc.</li>
@@ -1046,37 +988,37 @@ sso start-server</code></pre>
 <li>Primary use case for application is providing email/password login, which is probably not considered strong authentication.</li>
 <li>Audit logging and monitoring via prometheus are supported, need improvement for detecting account abuse or breaches.</li>
 </ul>
-<h3 id="section-11">1.2.4</h3>
+<h3 id="section-11"><span class="header-section-number">6.2.4</span> 1.2.4</h3>
 <ul>
 <li>All authentication pathways are designed to be as strong as that pathway can be.</li>
 <li>For example, email password resets are supported which are probably not considered strong (can be disabled per user).</li>
 </ul>
-<h3 id="section-12">1.4.1</h3>
+<h3 id="section-12"><span class="header-section-number">6.2.5</span> 1.4.1</h3>
 <ul>
 <li>All access controls are enforced at a trusted enforcement point (the server).</li>
 <li>Registered services must implement their own access controls for their own data.</li>
 </ul>
-<h3 id="section-13">1.4.2</h3>
+<h3 id="section-13"><span class="header-section-number">6.2.6</span> 1.4.2</h3>
 <ul>
 <li>Access controls are designed for many services and many users, where users have access to one or more services.</li>
 <li>All registered services can see all users, but other services and keys belonging to them are hidden.</li>
 <li>Registered services may implement more fine grained access controls for their own data.</li>
 </ul>
-<h3 id="section-14">1.4.3</h3>
+<h3 id="section-14"><span class="header-section-number">6.2.7</span> 1.4.3</h3>
 <ul>
 <li>Verify enforcement of principle of least privelege, requires more integration tests.</li>
 </ul>
-<h3 id="section-15">1.4.4</h3>
+<h3 id="section-15"><span class="header-section-number">6.2.8</span> 1.4.4</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
 <li>Service key authentication mechanism code is split into a few functions, possible refactoring?</li>
 </ul>
-<h3 id="section-16">1.4.5</h3>
+<h3 id="section-16"><span class="header-section-number">6.2.9</span> 1.4.5</h3>
 <ul>
 <li>Binary sso is designed to provide user authentication, is this out of scope?</li>
 </ul>
-<h1 id="developer">Developer</h1>
-<h2 id="tools">Tools</h2>
+<h1 id="developer"><span class="header-section-number">7</span> Developer</h1>
+<h2 id="tools"><span class="header-section-number">7.1</span> Tools</h2>
 <p>The <code>sso</code> crate depends on <a href="https://www.postgresql.org/">PostgreSQL</a> and <a href="https://www.sqlite.org/index.html">SQLite</a> libraries.</p>
 <pre class="shell"><code># Install on Ubuntu.
 sudo apt install libpq-dev libsqlite3-dev libssl-dev libfuse-dev pkg-config</code></pre>
@@ -1099,11 +1041,11 @@ cargo make docker-pg-restore</code></pre>
 <p>To stop and destroy containers.</p>
 <pre class="shell"><code>cargo make docker-stop
 cargo make docker-down</code></pre>
-<h2 id="manual-1">Manual</h2>
+<h2 id="manual-1"><span class="header-section-number">7.2</span> Manual</h2>
 <p>This manual is written in <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Markdown</a> and converted into other formats using <a href="https://pandoc.org/">Pandoc</a>.</p>
 <p>To build the HTML manual.</p>
 <pre class="shell"><code>cargo make manual</code></pre>
-<h2 id="environment">Environment</h2>
+<h2 id="environment"><span class="header-section-number">7.3</span> Environment</h2>
 <table>
 <colgroup>
 <col style="width: 29%"></col>
@@ -1186,16 +1128,16 @@ cargo make docker-down</code></pre>
 </tr>
 </tbody>
 </table>
-<h3 id="ubuntu">Ubuntu</h3>
+<h3 id="ubuntu"><span class="header-section-number">7.3.1</span> Ubuntu</h3>
 <p>Write <code>export $NAME=&quot;$VALUE&quot;</code> statements to file <code>.env</code> and run <code>source .env</code> to export variables in open terminal. See <code>sso/.env</code> for example.</p>
-<h2 id="database">Database</h2>
+<h2 id="database"><span class="header-section-number">7.4</span> Database</h2>
 <p>To reset and create new <a href="https://www.postgresql.org/">PostgreSQL</a> database migrations for <a href="http://diesel.rs/">Diesel</a>. These commands assume docker container is running.</p>
 <pre class="shell"><code>cargo make postgres-reset
 cargo make postgres-migration $migration_name</code></pre>
 <p>To reset and create new <a href="https://www.sqlite.org/index.html">SQLite</a> database migrations for <a href="http://diesel.rs/">Diesel</a>.</p>
 <pre class="shell"><code>cargo make sqlite-reset
 cargo make sqlite-migration $migration_name</code></pre>
-<h2 id="build">Build</h2>
+<h2 id="build"><span class="header-section-number">7.5</span> Build</h2>
 <p>To build libraries and binaries.</p>
 <pre class="shell"><code>cargo make build
 cargo make release
@@ -1210,7 +1152,7 @@ cargo make install</code></pre>
 <p>To audit crate dependencies.</p>
 <pre class="shell"><code>cargo make audit</code></pre>
 <p><a href="https://doc.rust-lang.org/cargo/reference/publishing.html">To publish crate(s)</a>.</p>
-<h2 id="test">Test</h2>
+<h2 id="test"><span class="header-section-number">7.6</span> Test</h2>
 <p>To run unit tests.</p>
 <pre class="shell"><code>cargo make test</code></pre>
 <p>For integration tests, the following environment variables are required. A server hosting the API to be tested must be available at <code>SERVER_URL</code> address.</p>

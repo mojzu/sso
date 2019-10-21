@@ -69,7 +69,7 @@ script = [
 [tasks.manual]
 workspace = false
 script = [
-    "pandoc docs/manual/*.md -f markdown --to=html5 --template=docs/template.html --self-contained --toc --toc-depth=2 --css=docs/pandoc.css --output=docs/index.html",
+    "pandoc docs/manual/*.md -f markdown --to=html5 --template=docs/template.html --self-contained --toc --toc-depth=2 --number-sections --css=docs/pandoc.css --output=docs/index.html",
 ]
 
 [tasks.audit]
