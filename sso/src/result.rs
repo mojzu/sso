@@ -1,4 +1,4 @@
-use crate::{CoreError, ServerError};
+use crate::{CoreError, DriverError};
 use std::env::VarError;
 
 /// Library errors.
@@ -7,8 +7,8 @@ pub enum SsoError {
     #[fail(display = "SsoError:Core {}", _0)]
     Core(#[fail(cause)] CoreError),
 
-    #[fail(display = "SsoError:Server {}", _0)]
-    Server(#[fail(cause)] ServerError),
+    #[fail(display = "SsoError:Driver {}", _0)]
+    Driver(#[fail(cause)] DriverError),
 
     #[fail(display = "SsoError:EnvParse {}", _0)]
     EnvParse(String),
@@ -26,8 +26,8 @@ impl From<CoreError> for SsoError {
     }
 }
 
-impl From<ServerError> for SsoError {
-    fn from(e: ServerError) -> Self {
-        Self::Server(e)
+impl From<DriverError> for SsoError {
+    fn from(e: DriverError) -> Self {
+        Self::Driver(e)
     }
 }

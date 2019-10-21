@@ -1,6 +1,6 @@
 use crate::{
-    AuditBuilder, ClientActor, ClientActorOptions, CoreError, Driver, Key, KeyWithValue,
-    NotifyActor, NotifyActorOptions, Server, ServerError, ServerOptions, Service, ServiceCreate,
+    AuditBuilder, ClientActor, ClientActorOptions, CoreError, Driver, DriverError, Key,
+    KeyWithValue, NotifyActor, NotifyActorOptions, Server, ServerOptions, Service, ServiceCreate,
     SsoError, SsoResult,
 };
 use actix_rt::System;
@@ -123,8 +123,8 @@ impl Cli {
             server_notify_addr,
             server_client_addr,
         )
-        .map_err(SsoError::Server)?;
+        .map_err(SsoError::Driver)?;
 
-        system.run().map_err(ServerError::StdIo).map_err(Into::into)
+        system.run().map_err(DriverError::StdIo).map_err(Into::into)
     }
 }

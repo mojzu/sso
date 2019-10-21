@@ -13,7 +13,7 @@ pub use crate::driver::sqlite::DriverSqlite;
 pub use crate::driver::{audit::*, service::*};
 
 use crate::core::{
-    CoreError, Csrf, CsrfCreate, CsrfDelete, Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate,
+    Csrf, CsrfCreate, CsrfDelete, Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate,
     KeyWithValue, User, UserCreate, UserList, UserRead, UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
@@ -39,12 +39,15 @@ pub enum DriverError {
 
     #[fail(display = "DriverError:R2d2 {}", _0)]
     R2d2(#[fail(cause)] r2d2::Error),
-}
 
-impl From<CoreError> for DriverError {
-    fn from(e: CoreError) -> Self {
-        Self::LockFn(format!("{}", e))
-    }
+    #[fail(display = "DriverError:Rustls")]
+    Rustls,
+
+    #[fail(display = "DriverError:StdIo {}", _0)]
+    StdIo(#[fail(cause)] std::io::Error),
+
+    #[fail(display = "DriverError:Prometheus {}", _0)]
+    Prometheus(#[fail(cause)] prometheus::Error),
 }
 
 impl From<diesel::result::Error> for DriverError {

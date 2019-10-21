@@ -2,26 +2,18 @@ pub mod actix_web_middleware;
 mod route;
 
 use crate::{
-    api::{ApiError, AuthProviderOauth2, AuthProviderOauth2Args},
-    ClientActor, ClientError, CoreError, Driver, Metrics, NotifyActor,
+    api::{AuthProviderOauth2, AuthProviderOauth2Args},
+    ClientActor, Driver, DriverError, DriverResult, Metrics, NotifyActor,
 };
-use actix::{Addr, MailboxError as ActixMailboxError};
-use actix_web::{
-    error::BlockingError as ActixWebBlockingError, middleware::Logger, web, App, HttpResponse,
-    HttpServer, ResponseError,
-};
-use prometheus::{
-    Error as PrometheusError, HistogramOpts, HistogramVec, IntCounterVec, Opts, Registry,
-};
+use actix::Addr;
+use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer};
+use prometheus::{HistogramOpts, HistogramVec, IntCounterVec, Opts, Registry};
 use rustls::{
     internal::pemfile::{certs, rsa_private_keys},
     AllowAnyAuthenticatedClient, NoClientAuth, RootCertStore, ServerConfig,
 };
 use serde::Serialize;
-use std::{
-    fs::File,
-    io::{BufReader, Error as StdIoError},
-};
+use std::{fs::File, io::BufReader};
 
 // TODO(feature): User sessions route for active tokens/keys.
 // TODO(feature): Support more OAuth2 providers.
@@ -34,57 +26,6 @@ use std::{
 // TODO(feature): Handle changes to password hash version.
 // TODO(feature): Option to enforce provider URLs HTTPS.
 // TODO(feature): User last login, key last use information (calculate in SQL).
-
-/// Server errors.
-#[derive(Debug, Fail)]
-pub enum ServerError {
-    #[fail(display = "ServerError:Client {}", _0)]
-    Client(#[fail(cause)] ClientError),
-
-    #[fail(display = "ServerError:Rustls")]
-    Rustls,
-
-    #[fail(display = "ServerError:ActixWebBlockingCancelled")]
-    ActixWebBlockingCancelled,
-
-    #[fail(display = "ServerError:ActixMailbox {}", _0)]
-    ActixMailbox(#[fail(cause)] ActixMailboxError),
-
-    #[fail(display = "ServerError:StdIo {}", _0)]
-    StdIo(#[fail(cause)] StdIoError),
-
-    #[fail(display = "ServerError:Prometheus {}", _0)]
-    Prometheus(#[fail(cause)] PrometheusError),
-}
-
-/// Server result wrapper type.
-pub type ServerResult<T> = Result<T, ServerError>;
-
-impl From<ActixWebBlockingError<ApiError>> for ApiError {
-    fn from(e: ActixWebBlockingError<ApiError>) -> Self {
-        match e {
-            ActixWebBlockingError::Error(e) => e,
-            ActixWebBlockingError::Canceled => {
-                Self::InternalServerError(CoreError::ActixWebBlockingCancelled)
-            }
-        }
-    }
-}
-
-impl ResponseError for ApiError {
-    fn error_response(&self) -> HttpResponse {
-        match self {
-            Self::BadRequest(_e) => HttpResponse::BadRequest().finish(),
-            Self::Unauthorised(_e) => HttpResponse::Unauthorized().finish(),
-            Self::Forbidden(_e) => HttpResponse::Forbidden().finish(),
-            Self::NotFound(_e) => HttpResponse::NotFound().finish(),
-            _ => {
-                error!("{}", self);
-                HttpResponse::InternalServerError().finish()
-            }
-        }
-    }
-}
 
 /// Server options provider options.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -221,24 +162,24 @@ impl ServerOptions {
     /// Returns rustls server configuration built from options.
     pub fn rustls_server_config(
         options: Option<&ServerOptionsRustls>,
-    ) -> ServerResult<Option<ServerConfig>> {
+    ) -> DriverResult<Option<ServerConfig>> {
         if let Some(rustls_options) = options {
-            let crt_file = File::open(&rustls_options.crt_pem).map_err(ServerError::StdIo)?;
-            let key_file = File::open(&rustls_options.key_pem).map_err(ServerError::StdIo)?;
+            let crt_file = File::open(&rustls_options.crt_pem).map_err(DriverError::StdIo)?;
+            let key_file = File::open(&rustls_options.key_pem).map_err(DriverError::StdIo)?;
             let crt_file_reader = &mut BufReader::new(crt_file);
             let key_file_reader = &mut BufReader::new(key_file);
 
-            let cert_chain = certs(crt_file_reader).map_err(|_err| ServerError::Rustls)?;
-            let mut keys = rsa_private_keys(key_file_reader).map_err(|_err| ServerError::Rustls)?;
+            let cert_chain = certs(crt_file_reader).map_err(|_err| DriverError::Rustls)?;
+            let mut keys = rsa_private_keys(key_file_reader).map_err(|_err| DriverError::Rustls)?;
 
             let mut config = if let Some(client_pem) = &rustls_options.client_pem {
-                let client_file = File::open(client_pem).map_err(ServerError::StdIo)?;
+                let client_file = File::open(client_pem).map_err(DriverError::StdIo)?;
                 let client_file_reader = &mut BufReader::new(client_file);
 
                 let mut roots = RootCertStore::empty();
                 roots
                     .add_pem_file(client_file_reader)
-                    .map_err(|_err| ServerError::Rustls)?;
+                    .map_err(|_err| DriverError::Rustls)?;
                 ServerConfig::new(AllowAnyAuthenticatedClient::new(roots))
             } else {
                 ServerConfig::new(NoClientAuth::new())
@@ -323,7 +264,7 @@ impl Server {
         options: ServerOptions,
         notify_addr: Addr<NotifyActor>,
         client_addr: Addr<ClientActor>,
-    ) -> ServerResult<()> {
+    ) -> DriverResult<()> {
         let options_clone = options.clone();
         let (registry, counter, histogram) = Server::metrics_registry()?;
         let default_json_limit: usize = 1024;
@@ -363,34 +304,34 @@ impl Server {
         } else {
             server.bind(options.bind())
         }
-        .map_err(ServerError::StdIo)?;
+        .map_err(DriverError::StdIo)?;
 
         server.start();
         Ok(())
     }
 
-    fn metrics_registry() -> ServerResult<(Registry, IntCounterVec, HistogramVec)> {
+    fn metrics_registry() -> DriverResult<(Registry, IntCounterVec, HistogramVec)> {
         let registry = Registry::new();
         let count_opts = Opts::new(
             Metrics::name("http_count"),
             "HTTP request counter".to_owned(),
         );
         let count =
-            IntCounterVec::new(count_opts, &["path", "status"]).map_err(ServerError::Prometheus)?;
+            IntCounterVec::new(count_opts, &["path", "status"]).map_err(DriverError::Prometheus)?;
 
         let latency_opts = HistogramOpts::new(
             Metrics::name("http_latency"),
             "HTTP request latency".to_owned(),
         );
         let latency =
-            HistogramVec::new(latency_opts, &["path"]).map_err(ServerError::Prometheus)?;
+            HistogramVec::new(latency_opts, &["path"]).map_err(DriverError::Prometheus)?;
 
         registry
             .register(Box::new(count.clone()))
-            .map_err(ServerError::Prometheus)?;
+            .map_err(DriverError::Prometheus)?;
         registry
             .register(Box::new(latency.clone()))
-            .map_err(ServerError::Prometheus)?;
+            .map_err(DriverError::Prometheus)?;
         Ok((registry, count, latency))
     }
 }

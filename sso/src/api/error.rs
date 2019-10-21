@@ -1,4 +1,5 @@
 use crate::CoreError;
+use actix_web::{error::BlockingError, HttpResponse, ResponseError};
 use serde::ser::{Serialize, Serializer};
 
 /// API errors.
@@ -30,5 +31,31 @@ impl Serialize for ApiError {
     {
         let v = format!("{}", self);
         serializer.serialize_str(&v)
+    }
+}
+
+impl From<BlockingError<ApiError>> for ApiError {
+    fn from(e: BlockingError<ApiError>) -> Self {
+        match e {
+            BlockingError::Error(e) => e,
+            BlockingError::Canceled => {
+                Self::InternalServerError(CoreError::ActixWebBlockingCancelled)
+            }
+        }
+    }
+}
+
+impl ResponseError for ApiError {
+    fn error_response(&self) -> HttpResponse {
+        match self {
+            Self::BadRequest(_e) => HttpResponse::BadRequest().finish(),
+            Self::Unauthorised(_e) => HttpResponse::Unauthorized().finish(),
+            Self::Forbidden(_e) => HttpResponse::Forbidden().finish(),
+            Self::NotFound(_e) => HttpResponse::NotFound().finish(),
+            _ => {
+                error!("{}", self);
+                HttpResponse::InternalServerError().finish()
+            }
+        }
     }
 }
