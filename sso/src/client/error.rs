@@ -1,4 +1,4 @@
-use crate::CoreError;
+use crate::{CoreError, DriverError};
 use http::StatusCode;
 use std::{error::Error, io::Error as IoError};
 
@@ -23,6 +23,9 @@ pub enum ClientError {
     #[fail(display = "ClientError:Core {}", _0)]
     Core(String),
 
+    #[fail(display = "ClientError:Driver {}", _0)]
+    Driver(String),
+
     #[fail(display = "ClientError:SerdeJson {}", _0)]
     SerdeJson(String),
 
@@ -42,6 +45,10 @@ pub type ClientResult<T> = Result<T, ClientError>;
 impl ClientError {
     pub fn core(e: CoreError) -> Self {
         Self::Core(format!("{}", e))
+    }
+
+    pub fn driver(e: DriverError) -> Self {
+        Self::Driver(format!("{}", e))
     }
 
     pub fn url(e: &dyn Error) -> Self {

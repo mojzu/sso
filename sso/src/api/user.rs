@@ -3,8 +3,8 @@ use crate::{
         result_audit_diff, result_audit_err, result_audit_subject, validate, ApiResult,
         ValidateRequest, ValidateRequestQuery,
     },
-    AuditBuilder, AuditMeta, AuditType, Core, Driver, User, UserCreate, UserListFilter,
-    UserListQuery, UserPasswordMeta, UserRead, UserUpdate,
+    AuditBuilder, AuditMeta, AuditType, Driver, User, UserCreate, UserListFilter, UserListQuery,
+    UserPasswordMeta, UserRead, UserUpdate, DEFAULT_LIMIT,
 };
 use uuid::Uuid;
 use validator::Validate;
@@ -31,7 +31,7 @@ impl ValidateRequestQuery<UserListRequest> for UserListRequest {}
 
 impl UserListRequest {
     pub fn into_query_filter(self) -> (UserListQuery, UserListFilter) {
-        let limit = self.limit.unwrap_or_else(Core::default_limit);
+        let limit = self.limit.unwrap_or(DEFAULT_LIMIT);
         let query = match (self.gt, self.lt) {
             (Some(gt), Some(_lt)) => UserListQuery::IdGt(gt, limit),
             (Some(gt), None) => UserListQuery::IdGt(gt, limit),

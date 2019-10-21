@@ -69,7 +69,7 @@ impl NotifyActor {
                     token: data.token.to_owned(),
                 },
             )
-            .map_err(NotifyError::Core)?;
+            .map_err(NotifyError::Driver)?;
 
         let parameters = json!({
             "user_old_email": &data.old_email,

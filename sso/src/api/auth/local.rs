@@ -471,6 +471,7 @@ mod provider_local {
         if let Some(x) = request.audit {
             let audit = audit
                 .create(driver, x.into())
+                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
             Ok(Some(audit))
         } else {
@@ -568,6 +569,7 @@ mod provider_local {
         if let Some(x) = request.audit {
             let audit = audit
                 .create(driver, x.into())
+                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
             Ok(Some(audit))
         } else {

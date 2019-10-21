@@ -8,7 +8,7 @@ use crate::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
     },
-    Core,
+    DEFAULT_CSRF_EXPIRES_S,
 };
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
@@ -64,7 +64,7 @@ fn csrf_create_handler(
                     audit_meta,
                     id,
                     request,
-                    Core::default_csrf_expires_s(),
+                    DEFAULT_CSRF_EXPIRES_S,
                 )
             })
             .map_err(Into::into)

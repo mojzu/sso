@@ -3,8 +3,8 @@ use crate::{
         result_audit_diff, result_audit_err, result_audit_subject, validate, ApiResult,
         ValidateRequest, ValidateRequestQuery,
     },
-    AuditBuilder, AuditMeta, AuditType, Core, Driver, Service, ServiceCreate, ServiceListFilter,
-    ServiceListQuery, ServiceRead, ServiceUpdate,
+    AuditBuilder, AuditMeta, AuditType, Driver, Service, ServiceCreate, ServiceListFilter,
+    ServiceListQuery, ServiceRead, ServiceUpdate, DEFAULT_LIMIT,
 };
 use uuid::Uuid;
 use validator::Validate;
@@ -30,7 +30,7 @@ impl ValidateRequestQuery<ServiceListRequest> for ServiceListRequest {}
 
 impl ServiceListRequest {
     pub fn into_query_filter(self) -> (ServiceListQuery, ServiceListFilter) {
-        let limit = self.limit.unwrap_or_else(Core::default_limit);
+        let limit = self.limit.unwrap_or(DEFAULT_LIMIT);
         let query = match (self.gt, self.lt) {
             (Some(gt), Some(_lt)) => ServiceListQuery::IdGt(gt, limit),
             (Some(gt), None) => ServiceListQuery::IdGt(gt, limit),

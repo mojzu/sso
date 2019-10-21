@@ -5,9 +5,9 @@ mod schema;
 use crate::{
     driver::postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
     Audit, AuditCreate, AuditList, AuditRead, AuditUpdate, Csrf, CsrfCreate, CsrfDelete, Driver,
-    DriverError, DriverIf, DriverLock, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate,
-    KeyList, KeyRead, KeyUpdate, KeyWithValue, Service, ServiceCreate, ServiceList, ServiceRead,
-    ServiceUpdate, User, UserCreate, UserList, UserRead, UserUpdate, UserUpdate2,
+    DriverError, DriverIf, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead,
+    KeyUpdate, KeyWithValue, Service, ServiceCreate, ServiceList, ServiceRead, ServiceUpdate, User,
+    UserCreate, UserList, UserRead, UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
@@ -55,7 +55,7 @@ impl DriverPostgres {
 }
 
 impl DriverIf for DriverPostgres {
-    fn exclusive_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<bool> {
+    fn exclusive_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<bool> {
         use diesel_admin::*;
 
         let conn = self.conn()?;
@@ -69,7 +69,7 @@ impl DriverIf for DriverPostgres {
         })
     }
 
-    fn shared_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<bool> {
+    fn shared_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<bool> {
         use diesel_admin::*;
 
         let conn = self.conn()?;
@@ -256,7 +256,7 @@ impl<'a> DriverPostgresConnRef<'a> {
 }
 
 impl<'a> DriverIf for DriverPostgresConnRef<'a> {
-    fn exclusive_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<bool> {
+    fn exclusive_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<bool> {
         use diesel_admin::*;
 
         let conn = self.conn();
@@ -270,7 +270,7 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         })
     }
 
-    fn shared_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<bool> {
+    fn shared_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<bool> {
         use diesel_admin::*;
 
         let conn = self.conn();

@@ -1,4 +1,4 @@
-use crate::{impl_enum_to_from_string, CoreError, CoreResult, Driver, KeyWithValue, Service, User};
+use crate::{impl_enum_to_from_string, Driver, KeyWithValue, Service, User};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -336,13 +336,13 @@ impl AuditBuilder {
     }
 
     /// Create audit log from parameters.
-    pub fn create(&self, driver: &dyn Driver, create: AuditCreate2) -> CoreResult<Audit> {
+    pub fn create(&self, driver: &dyn Driver, create: AuditCreate2) -> DriverResult<Audit> {
         let data = AuditCreate::new(self.meta.clone(), create.type_, create.subject, create.data)
             .key_id(self.key)
             .service_id(self.service)
             .user_id(self.user)
             .user_key_id(self.user_key);
-        driver.audit_create(&data).map_err(CoreError::Driver)
+        driver.audit_create(&data)
     }
 
     /// Create audit log with data.
@@ -351,7 +351,7 @@ impl AuditBuilder {
         driver: &dyn Driver,
         subject: Option<String>,
         data: Option<S>,
-    ) -> CoreResult<Audit> {
+    ) -> DriverResult<Audit> {
         let data = data.map(|x| serde_json::to_value(x).unwrap());
         let audit_data = AuditCreate::new(
             self.meta.clone(),
@@ -363,7 +363,7 @@ impl AuditBuilder {
         .service_id(self.service)
         .user_id(self.user)
         .user_key_id(self.user_key);
-        driver.audit_create(&audit_data).map_err(CoreError::Driver)
+        driver.audit_create(&audit_data)
     }
 }
 

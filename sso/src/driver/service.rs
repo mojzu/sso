@@ -1,4 +1,4 @@
-use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, Core, CoreError, CoreResult};
+use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, DriverError, DriverResult};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -22,9 +22,9 @@ pub struct Service {
 
 impl Service {
     /// Check service is enabled.
-    pub fn check(self) -> CoreResult<Self> {
+    pub fn check(self) -> DriverResult<Self> {
         if !self.is_enabled {
-            Err(CoreError::ServiceDisabled)
+            Err(DriverError::ServiceDisabled)
         } else {
             Ok(self)
         }
@@ -35,7 +35,7 @@ impl Service {
         &self,
         type_: T,
         data: D,
-    ) -> CoreResult<Url> {
+    ) -> DriverResult<Url> {
         #[derive(Serialize, Deserialize)]
         struct ServiceCallbackQuery<S: Serialize> {
             #[serde(rename = "type")]
@@ -47,13 +47,13 @@ impl Service {
         let provider_local_url = self
             .provider_local_url
             .as_ref()
-            .ok_or_else(|| CoreError::ServiceProviderLocalDisabled)?;
+            .ok_or_else(|| DriverError::ServiceProviderLocalDisabled)?;
         let mut url = Url::parse(provider_local_url).unwrap();
         let query = ServiceCallbackQuery {
             type_: type_.into(),
             data,
         };
-        let query = Core::qs_ser(&query)?;
+        let query = serde_qs::to_string(&query).map_err(DriverError::serde_qs)?;
         url.set_query(Some(&query));
         Ok(url)
     }

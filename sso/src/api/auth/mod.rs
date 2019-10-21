@@ -349,6 +349,7 @@ mod server_auth {
         if let Some(x) = request.audit {
             let audit = audit
                 .create(driver, x.into())
+                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
             Ok((user_key, Some(audit)))
         } else {
@@ -391,6 +392,7 @@ mod server_auth {
         if let Some(x) = request.audit {
             let audit = audit
                 .create(driver, x.into())
+                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
             Ok(Some(audit))
         } else {
@@ -432,6 +434,7 @@ mod server_auth {
         if let Some(x) = request.audit {
             let audit = audit
                 .create(driver, x.into())
+                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
             Ok((user_token, Some(audit)))
         } else {
@@ -482,6 +485,7 @@ mod server_auth {
         if let Some(x) = request.audit {
             let audit = audit
                 .create(driver, x.into())
+                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
             Ok((user_token, Some(audit)))
         } else {
@@ -531,6 +535,7 @@ mod server_auth {
         if let Some(x) = request.audit {
             let audit = audit
                 .create(driver, x.into())
+                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
             Ok(Some(audit))
         } else {

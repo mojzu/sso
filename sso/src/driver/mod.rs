@@ -1,4 +1,5 @@
 mod audit;
+mod error;
 mod service;
 
 #[cfg(feature = "postgres")]
@@ -10,7 +11,7 @@ mod sqlite;
 pub use crate::driver::postgres::DriverPostgres;
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::DriverSqlite;
-pub use crate::driver::{audit::*, service::*};
+pub use crate::driver::{audit::*, error::*, service::*};
 
 use crate::core::{
     Csrf, CsrfCreate, CsrfDelete, Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate,
@@ -19,63 +20,11 @@ use crate::core::{
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-/// Driver errors.
-#[derive(Debug, Fail)]
-pub enum DriverError {
-    #[fail(display = "DriverError:Locked {:?}", _0)]
-    Locked(DriverLock),
+/// Default limit.
+pub const DEFAULT_LIMIT: i64 = 50;
 
-    #[fail(display = "DriverError:LockFn {}", _0)]
-    LockFn(String),
-
-    #[fail(display = "DriverError:Delete")]
-    Delete,
-
-    #[fail(display = "DriverError:DieselResult {}", _0)]
-    DieselResult(#[fail(cause)] diesel::result::Error),
-
-    #[fail(display = "DriverError:DieselMigrations {}", _0)]
-    DieselMigrations(#[fail(cause)] diesel_migrations::RunMigrationsError),
-
-    #[fail(display = "DriverError:R2d2 {}", _0)]
-    R2d2(#[fail(cause)] r2d2::Error),
-
-    #[fail(display = "DriverError:Rustls")]
-    Rustls,
-
-    #[fail(display = "DriverError:StdIo {}", _0)]
-    StdIo(#[fail(cause)] std::io::Error),
-
-    #[fail(display = "DriverError:Prometheus {}", _0)]
-    Prometheus(#[fail(cause)] prometheus::Error),
-}
-
-impl From<diesel::result::Error> for DriverError {
-    fn from(e: diesel::result::Error) -> Self {
-        Self::DieselResult(e)
-    }
-}
-
-impl From<diesel_migrations::RunMigrationsError> for DriverError {
-    fn from(e: diesel_migrations::RunMigrationsError) -> Self {
-        Self::DieselMigrations(e)
-    }
-}
-
-impl From<r2d2::Error> for DriverError {
-    fn from(e: r2d2::Error) -> Self {
-        Self::R2d2(e)
-    }
-}
-
-/// Driver result wrapper type.
-pub type DriverResult<T> = Result<T, DriverError>;
-
-/// Driver lock keys.
-#[derive(Debug, Clone, Copy)]
-pub enum DriverLock {
-    Transaction = 1,
-}
+/// Default CSRF expires seconds.
+pub const DEFAULT_CSRF_EXPIRES_S: i64 = 1000;
 
 /// Driver closure function type.
 pub type DriverLockFn = Box<dyn FnOnce(&dyn DriverIf) -> DriverResult<bool>>;
@@ -83,10 +32,10 @@ pub type DriverLockFn = Box<dyn FnOnce(&dyn DriverIf) -> DriverResult<bool>>;
 /// Driver interface trait.
 pub trait DriverIf {
     /// Run closure with an exclusive lock.
-    fn exclusive_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<bool>;
+    fn exclusive_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<bool>;
 
     /// Run closure with a shared lock.
-    fn shared_lock(&self, key: DriverLock, func: DriverLockFn) -> DriverResult<bool>;
+    fn shared_lock(&self, key: i32, func: DriverLockFn) -> DriverResult<bool>;
 
     // ---------------
     // Audit Functions

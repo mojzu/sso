@@ -3,8 +3,8 @@ use crate::{
         result_audit_diff, result_audit_err, result_audit_subject, validate, ApiResult,
         ValidateRequest, ValidateRequestQuery,
     },
-    AuditBuilder, AuditMeta, AuditType, Core, Driver, Key, KeyListFilter, KeyListQuery, KeyRead,
-    KeyType, KeyWithValue,
+    AuditBuilder, AuditMeta, AuditType, Driver, Key, KeyListFilter, KeyListQuery, KeyRead, KeyType,
+    KeyWithValue, DEFAULT_LIMIT,
 };
 use uuid::Uuid;
 use validator::Validate;
@@ -39,7 +39,7 @@ impl ValidateRequestQuery<KeyListRequest> for KeyListRequest {}
 
 impl KeyListRequest {
     pub fn into_query_filter(self) -> (KeyListQuery, KeyListFilter) {
-        let limit = self.limit.unwrap_or_else(Core::default_limit);
+        let limit = self.limit.unwrap_or(DEFAULT_LIMIT);
         let query = match (self.gt, self.lt) {
             (Some(gt), Some(_lt)) => KeyListQuery::IdGt(gt, limit),
             (Some(gt), None) => KeyListQuery::IdGt(gt, limit),

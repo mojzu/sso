@@ -1,9 +1,9 @@
 //! # API Validation
 use crate::{
     api::{ApiError, ApiResult},
-    Core, CoreError, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES,
-    USER_LOCALE_MAX_LEN, USER_NAME_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
-    USER_TIMEZONE_MAX_LEN,
+    CoreError, DriverError, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN,
+    KEY_VALUE_BYTES, USER_LOCALE_MAX_LEN, USER_NAME_MAX_LEN, USER_PASSWORD_MAX_LEN,
+    USER_PASSWORD_MIN_LEN, USER_TIMEZONE_MAX_LEN,
 };
 use chrono_tz::Tz;
 use futures::future;
@@ -28,7 +28,10 @@ pub trait ValidateRequest<T: Validate> {
 /// API deserialise from request query string trait.
 pub trait ValidateRequestQuery<T: DeserializeOwned> {
     fn from_str(s: &str) -> ApiResult<T> {
-        Core::qs_de::<T>(s).map_err(ApiError::BadRequest)
+        serde_qs::from_str(s)
+            .map_err(DriverError::serde_qs)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)
     }
 
     fn from_str_fut(s: &str) -> future::FutureResult<T, ApiError> {

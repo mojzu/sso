@@ -31,12 +31,6 @@ pub enum CoreError {
     #[fail(display = "ServiceNotFound")]
     ServiceNotFound,
 
-    #[fail(display = "ServiceDisabled")]
-    ServiceDisabled,
-
-    #[fail(display = "ServiceProviderLocalDisabled")]
-    ServiceProviderLocalDisabled,
-
     #[fail(display = "ServiceProviderMicrosoftOauth2Disabled")]
     ServiceProviderMicrosoftOauth2Disabled,
 
@@ -124,12 +118,6 @@ pub enum CoreError {
     #[fail(display = "ActixMailbox {}", _0)]
     ActixMailbox(#[fail(cause)] actix::MailboxError),
 
-    #[fail(display = "SerdeJson {}", _0)]
-    SerdeJson(#[fail(cause)] serde_json::Error),
-
-    #[fail(display = "SerdeQs {}", _0)]
-    SerdeQs(String),
-
     #[fail(display = "Zxcvbn {}", _0)]
     Zxcvbn(#[fail(cause)] zxcvbn::ZxcvbnError),
 
@@ -157,10 +145,6 @@ impl CoreError {
 
     pub fn libreauth_oath(e: libreauth::oath::ErrorCode) -> Self {
         Self::LibreauthOath(e as usize)
-    }
-
-    pub fn serde_qs(e: serde_qs::Error) -> Self {
-        Self::SerdeQs(e.description().to_owned())
     }
 }
 

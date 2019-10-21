@@ -1,7 +1,7 @@
 use crate::{
     api::{result_audit_err, validate, ApiResult, ValidateRequest, ValidateRequestQuery},
     Audit, AuditBuilder, AuditCreate2, AuditListFilter, AuditListQuery, AuditMeta, AuditRead,
-    AuditType, AuditUpdate, Core, Driver,
+    AuditType, AuditUpdate, Driver, DEFAULT_LIMIT,
 };
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
@@ -41,7 +41,7 @@ impl ValidateRequestQuery<AuditListRequest> for AuditListRequest {}
 
 impl AuditListRequest {
     pub fn into_query_filter(self) -> (AuditListQuery, AuditListFilter) {
-        let limit = self.limit.unwrap_or_else(Core::default_limit);
+        let limit = self.limit.unwrap_or(DEFAULT_LIMIT);
         let query = match (self.ge, self.le) {
             (Some(ge), Some(le)) => AuditListQuery::CreatedLeAndGe(le, ge, limit, self.offset_id),
             (Some(ge), None) => AuditListQuery::CreatedGe(ge, limit, self.offset_id),
@@ -296,6 +296,7 @@ mod server_audit {
             .user_id(user_id)
             .user_key_id(user_key_id)
             .create(driver, audit_create)
+            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)
     }
 

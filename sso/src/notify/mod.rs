@@ -1,7 +1,7 @@
 pub mod notify_msg;
 mod smtp;
 
-use crate::{AuditMeta, CoreError};
+use crate::{AuditMeta, CoreError, DriverError};
 use actix::{Actor, Addr, SyncArbiter, SyncContext};
 use chrono::Utc;
 use handlebars::Handlebars;
@@ -36,6 +36,9 @@ pub enum NotifyError {
 
     #[fail(display = "SmtpError:Core {}", _0)]
     Core(#[fail(cause)] CoreError),
+
+    #[fail(display = "SmtpError:Driver {}", _0)]
+    Driver(#[fail(cause)] DriverError),
 
     #[fail(display = "NotifyError:HandlebarsTemplate {}", _0)]
     HandlebarsTemplate(#[fail(cause)] handlebars::TemplateError),

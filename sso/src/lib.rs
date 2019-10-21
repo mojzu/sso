@@ -36,3 +36,27 @@ mod result;
 mod server;
 
 pub use crate::{cli::*, client::*, core::*, driver::*, env::*, notify::*, result::*, server::*};
+
+/// Implement `to_string` and `from_string` on simple enums.
+///
+/// Enums must implement serde `Serialize` and `Deserialize` traits.
+/// Prefix can be used or provided empty reference `""` for none.
+#[macro_export]
+macro_rules! impl_enum_to_from_string {
+    ($x:ident, $prefix:expr) => {
+        use $crate::{DriverError, DriverResult};
+        impl $x {
+            pub fn to_string(self) -> DriverResult<String> {
+                let s = serde_json::to_string(&self).map_err(DriverError::SerdeJson)?;
+                let trim = s.trim_matches('"');
+                Ok(format!("{}{}", $prefix, trim))
+            }
+
+            pub fn from_string<S: Into<String>>(s: S) -> DriverResult<Self> {
+                let mut s: String = s.into();
+                let s = format!("\"{}\"", s.split_off($prefix.len()));
+                serde_json::from_str(&s).map_err(DriverError::SerdeJson)
+            }
+        }
+    };
+}
