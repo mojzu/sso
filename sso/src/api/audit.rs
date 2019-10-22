@@ -14,24 +14,32 @@ use validator::Validate;
 pub struct AuditListRequest {
     #[builder(default = "None")]
     ge: Option<DateTime<Utc>>,
+
     #[builder(default = "None")]
     le: Option<DateTime<Utc>>,
+
     #[builder(default = "None")]
     #[validate(custom = "validate::limit")]
     limit: Option<i64>,
+
     #[builder(default = "None")]
     offset_id: Option<Uuid>,
+
     #[builder(default = "None")]
     id: Option<Vec<Uuid>>,
+
     #[builder(default = "None")]
     #[serde(rename = "type")]
     #[validate(custom = "validate::audit_type_vec")]
     type_: Option<Vec<String>>,
+
     #[builder(default = "None")]
     #[validate(custom = "validate::audit_subject_vec")]
     subject: Option<Vec<String>>,
+
     #[builder(default = "None")]
     service_id: Option<Vec<Uuid>>,
+
     #[builder(default = "None")]
     user_id: Option<Vec<Uuid>>,
 }
@@ -112,13 +120,17 @@ pub struct AuditCreateRequest {
     #[serde(rename = "type")]
     #[validate(custom = "validate::audit_type")]
     pub type_: String,
+
     #[builder(default = "None")]
     #[validate(custom = "validate::audit_subject")]
     pub subject: Option<String>,
+
     #[builder(default = "None")]
     pub data: Option<Value>,
+
     #[builder(default = "None")]
     pub user_id: Option<Uuid>,
+
     #[builder(default = "None")]
     pub user_key_id: Option<Uuid>,
 }
@@ -131,9 +143,11 @@ pub struct AuditCreate2Request {
     #[serde(rename = "type")]
     #[validate(custom = "validate::audit_type")]
     pub type_: String,
+
     #[builder(default = "None")]
     #[validate(custom = "validate::audit_subject")]
     pub subject: Option<String>,
+
     #[builder(default = "None")]
     pub data: Option<Value>,
 }
@@ -164,6 +178,7 @@ pub struct AuditUpdateRequest {
     #[validate(custom = "validate::audit_subject")]
     pub subject: Option<String>,
     pub data: Option<Value>,
+    // TODO(refactor): Support other append-only fields, set user/user key.
 }
 
 impl Default for AuditUpdateRequest {

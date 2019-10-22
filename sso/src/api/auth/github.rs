@@ -38,8 +38,7 @@ mod provider_github {
             auth::server_auth::oauth2_login, ApiError, ApiResult, AuthOauth2CallbackRequest,
             AuthProviderOauth2, AuthProviderOauth2Args,
         },
-        AuditBuilder, Auth, Client, CoreError, CoreResult, CsrfCreate, Driver, Service,
-        UserToken,
+        AuditBuilder, Auth, Client, CoreError, CoreResult, CsrfCreate, Driver, Service, UserToken,
     };
     use http::header;
     use oauth2::{

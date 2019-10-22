@@ -14,22 +14,30 @@ use validator::Validate;
 pub struct KeyListRequest {
     #[builder(default = "None")]
     gt: Option<Uuid>,
+
     #[builder(default = "None")]
     lt: Option<Uuid>,
+
     #[validate(custom = "validate::limit")]
     #[builder(default = "None")]
     limit: Option<i64>,
+
     #[builder(default = "None")]
     id: Option<Vec<Uuid>>,
+
     #[builder(default = "None")]
     is_enabled: Option<bool>,
+
     #[builder(default = "None")]
     is_revoked: Option<bool>,
+
     #[serde(rename = "type")]
     #[builder(default = "None")]
     type_: Option<Vec<KeyType>>,
+
     #[builder(default = "None")]
     service_id: Option<Vec<Uuid>>,
+
     #[builder(default = "None")]
     user_id: Option<Vec<Uuid>>,
 }

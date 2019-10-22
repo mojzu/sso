@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "3663a940-46ac-404a-9b6d-3280f45ba3c2",
+		"_postman_id": "4876250c-5199-4ae1-814a-de333fefc35f",
 		"name": "sso",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -738,7 +738,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{server_url}}/v1/audit",
+							"raw": "{{server_url}}/v1/audit?",
 							"host": [
 								"{{server_url}}"
 							],
@@ -1245,7 +1245,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{server_url}}/v1/user?",
+							"raw": "{{server_url}}/v1/user",
 							"host": [
 								"{{server_url}}"
 							],
@@ -1267,9 +1267,27 @@
 									"disabled": true
 								},
 								{
+									"key": "name_ge",
+									"value": "",
+									"description": "Name greater than or equal (optional).",
+									"disabled": true
+								},
+								{
+									"key": "name_le",
+									"value": "",
+									"description": "Name less than or equal (optional).",
+									"disabled": true
+								},
+								{
 									"key": "limit",
 									"value": "10",
 									"description": "Limit number of returned users (optional).",
+									"disabled": true
+								},
+								{
+									"key": "offset_id",
+									"value": "",
+									"description": "Offset user ID for paging (optional).",
 									"disabled": true
 								},
 								{
@@ -1279,9 +1297,9 @@
 									"disabled": true
 								},
 								{
-									"key": "email_eq",
+									"key": "email[0]",
 									"value": "{{user_email}}",
-									"description": "Filter users by email address (optional).",
+									"description": "Email filter (optional).",
 									"disabled": true
 								}
 							]

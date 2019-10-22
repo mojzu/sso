@@ -123,7 +123,7 @@ macro_rules! user_integration_test {
             let res = client
                 .user_list(
                     UserListRequestBuilder::default()
-                        .email_eq(Some(user.email))
+                        .email(Some(vec![user.email]))
                         .build()
                         .unwrap(),
                 )

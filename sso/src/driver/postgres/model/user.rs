@@ -129,8 +129,9 @@ impl ModelUser {
             let id: Vec<Uuid> = id.iter().copied().collect();
             query = query.filter(sso_user::dsl::id.eq(any(id)));
         }
-        if let Some(email_eq) = &list.filter.email_eq {
-            query = query.filter(sso_user::dsl::email.eq(email_eq));
+        if let Some(email) = &list.filter.email {
+            let email: Vec<String> = email.to_vec();
+            query = query.filter(sso_user::dsl::email.eq(any(email)));
         }
 
         match list.query {
@@ -158,6 +159,9 @@ impl ModelUser {
                     x.reverse();
                     x.into_iter().map(|x| x.into()).collect()
                 }),
+            // TODO(refactor): Implement this.
+            UserListQuery::NameGe(_name_ge, _limit, _offset_id) => unimplemented!(),
+            UserListQuery::NameLe(_name_le, _limit, _offset_id) => unimplemented!(),
         }
     }
 

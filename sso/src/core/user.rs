@@ -114,15 +114,21 @@ impl Default for UserPasswordMeta {
 #[derive(Debug)]
 pub enum UserListQuery {
     Limit(i64),
+    /// Where ID greater than.
     IdGt(Uuid, i64),
+    /// Where ID less than.
     IdLt(Uuid, i64),
+    /// Where name greater than or equal.
+    NameGe(String, i64, Option<Uuid>),
+    /// Where name less than or equal.
+    NameLe(String, i64, Option<Uuid>),
 }
 
 /// User list filter.
 #[derive(Debug)]
 pub struct UserListFilter {
     pub id: Option<Vec<Uuid>>,
-    pub email_eq: Option<String>,
+    pub email: Option<Vec<String>>,
 }
 
 /// User list.

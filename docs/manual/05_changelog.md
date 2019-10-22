@@ -2,6 +2,10 @@
 
 ## 0.8.0 (?)
 
+### Added
+
+- Added `name_ge`, `name_le`, `offset_id` query parameters to user list route.
+
 ## 0.7.0 (2019-10-19)
 
 ### Added

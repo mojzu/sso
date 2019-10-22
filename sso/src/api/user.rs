@@ -14,16 +14,31 @@ use validator::Validate;
 pub struct UserListRequest {
     #[builder(default = "None")]
     gt: Option<Uuid>,
+
     #[builder(default = "None")]
     lt: Option<Uuid>,
+
+    #[builder(default = "None")]
+    #[validate(custom = "validate::name")]
+    name_ge: Option<String>,
+
+    #[builder(default = "None")]
+    #[validate(custom = "validate::name")]
+    name_le: Option<String>,
+
     #[builder(default = "None")]
     #[validate(custom = "validate::limit")]
     limit: Option<i64>,
+
+    #[builder(default = "None")]
+    offset_id: Option<Uuid>,
+
     #[builder(default = "None")]
     id: Option<Vec<Uuid>>,
+
     #[builder(default = "None")]
-    #[validate(email)]
-    email_eq: Option<String>,
+    #[validate(custom = "validate::email_vec")]
+    email: Option<Vec<String>>,
 }
 
 impl ValidateRequest<UserListRequest> for UserListRequest {}
@@ -38,38 +53,40 @@ impl UserListRequest {
             (None, Some(lt)) => UserListQuery::IdLt(lt, limit),
             (None, None) => UserListQuery::Limit(limit),
         };
+        // TODO(refactor): Support user name sorting.
 
         let filter = UserListFilter {
             id: self.id,
-            email_eq: self.email_eq,
+            email: self.email,
         };
 
         (query, filter)
     }
 
     pub fn from_query_filter(query: UserListQuery, filter: UserListFilter) -> Self {
+        let mut builder = UserListRequestBuilder::default();
+        builder.id(filter.id);
+        builder.email(filter.email);
         match query {
-            UserListQuery::Limit(limit) => Self {
-                gt: None,
-                lt: None,
-                limit: Some(limit),
-                id: filter.id,
-                email_eq: filter.email_eq,
-            },
-            UserListQuery::IdGt(gt, limit) => Self {
-                gt: Some(gt),
-                lt: None,
-                limit: Some(limit),
-                id: filter.id,
-                email_eq: filter.email_eq,
-            },
-            UserListQuery::IdLt(lt, limit) => Self {
-                gt: None,
-                lt: Some(lt),
-                limit: Some(limit),
-                id: filter.id,
-                email_eq: filter.email_eq,
-            },
+            UserListQuery::Limit(limit) => builder.limit(Some(limit)).build().unwrap(),
+            UserListQuery::IdGt(gt, limit) => {
+                builder.gt(Some(gt)).limit(Some(limit)).build().unwrap()
+            }
+            UserListQuery::IdLt(lt, limit) => {
+                builder.lt(Some(lt)).limit(Some(limit)).build().unwrap()
+            }
+            UserListQuery::NameGe(name_ge, limit, offset_id) => builder
+                .name_ge(Some(name_ge))
+                .limit(Some(limit))
+                .offset_id(offset_id)
+                .build()
+                .unwrap(),
+            UserListQuery::NameLe(name_le, limit, offset_id) => builder
+                .name_le(Some(name_le))
+                .limit(Some(limit))
+                .offset_id(offset_id)
+                .build()
+                .unwrap(),
         }
     }
 }

@@ -10,7 +10,7 @@ use futures::future;
 use serde::de::DeserializeOwned;
 use std::str::FromStr;
 use unic_langid::LanguageIdentifier;
-use validator::{Validate, ValidationError};
+use validator::{validate_email, Validate, ValidationError};
 
 /// API validate request trait.
 pub trait ValidateRequest<T: Validate> {
@@ -53,6 +53,21 @@ pub fn name(name: &str) -> Result<(), ValidationError> {
     } else {
         Ok(())
     }
+}
+
+pub fn email(value: &str) -> Result<(), ValidationError> {
+    if value.is_empty() || !validate_email(value) {
+        Err(ValidationError::new("invalid_email"))
+    } else {
+        Ok(())
+    }
+}
+
+pub fn email_vec(value: &[String]) -> Result<(), ValidationError> {
+    for v in value {
+        email(v)?;
+    }
+    Ok(())
 }
 
 pub fn locale(locale: &str) -> Result<(), ValidationError> {

@@ -14,13 +14,17 @@ use validator::Validate;
 pub struct ServiceListRequest {
     #[builder(default = "None")]
     gt: Option<Uuid>,
+
     #[builder(default = "None")]
     lt: Option<Uuid>,
+
     #[builder(default = "None")]
     #[validate(custom = "validate::limit")]
     limit: Option<i64>,
+
     #[builder(default = "None")]
     id: Option<Vec<Uuid>>,
+
     #[builder(default = "None")]
     is_enabled: Option<bool>,
 }
@@ -84,14 +88,19 @@ pub struct ServiceListResponse {
 #[serde(deny_unknown_fields)]
 pub struct ServiceCreateRequest {
     pub is_enabled: bool,
+
     #[validate(custom = "validate::name")]
     pub name: String,
+
     #[validate(url)]
     pub url: String,
+
     #[validate(url)]
     pub provider_local_url: Option<String>,
+
     #[validate(url)]
     pub provider_github_oauth2_url: Option<String>,
+
     #[validate(url)]
     pub provider_microsoft_oauth2_url: Option<String>,
 }
@@ -159,14 +168,19 @@ pub struct ServiceReadResponse {
 #[serde(deny_unknown_fields)]
 pub struct ServiceUpdateRequest {
     pub is_enabled: Option<bool>,
+
     #[validate(custom = "validate::name")]
     pub name: Option<String>,
+
     #[validate(url)]
     pub url: Option<String>,
+
     #[validate(url)]
     pub provider_local_url: Option<String>,
+
     #[validate(url)]
     pub provider_github_oauth2_url: Option<String>,
+
     #[validate(url)]
     pub provider_microsoft_oauth2_url: Option<String>,
 }
