@@ -1,4 +1,5 @@
 mod audit;
+mod csrf;
 mod error;
 mod service;
 
@@ -11,11 +12,11 @@ mod sqlite;
 pub use crate::driver::postgres::DriverPostgres;
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::DriverSqlite;
-pub use crate::driver::{audit::*, error::*, service::*};
+pub use crate::driver::{audit::*, csrf::*, error::*, service::*};
 
 use crate::core::{
-    Csrf, CsrfCreate, CsrfDelete, Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate,
-    KeyWithValue, User, UserCreate, UserList, UserRead, UserUpdate, UserUpdate2,
+    Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate, KeyWithValue, User, UserCreate,
+    UserList, UserRead, UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
@@ -72,14 +73,11 @@ pub trait DriverIf {
     // CSRF Functions
     // --------------
 
-    /// Create CSRF key, value pair with time to live in seconds. Key must be unique.
+    /// Create CSRF token.
     fn csrf_create(&self, create: &CsrfCreate) -> DriverResult<Csrf>;
 
-    /// Read CSRF key, value pair (optional).
+    /// Read CSRF token (optional). CSRF token is deleted after one read.
     fn csrf_read_opt(&self, key: &str) -> DriverResult<Option<Csrf>>;
-
-    /// Delete CSRF key, value pair(s).
-    fn csrf_delete(&self, delete: &CsrfDelete) -> DriverResult<usize>;
 
     // -------------
     // Key Functions

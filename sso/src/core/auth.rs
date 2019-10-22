@@ -1,7 +1,7 @@
 use crate::{
     notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
-    AuditBuilder, AuditMeta, CoreError, CoreResult, Csrf, Driver, Jwt, JwtClaimsType, Key, KeyType,
-    KeyWithValue, NotifyActor, Service, ServiceRead, User, UserRead, UserToken,
+    AuditBuilder, AuditMeta, CoreError, CoreResult, Csrf, CsrfCreate, Driver, Jwt, JwtClaimsType,
+    Key, KeyType, KeyWithValue, NotifyActor, Service, ServiceRead, User, UserRead, UserToken,
     USER_PASSWORD_HASH_VERSION, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
 };
 use actix::Addr;
@@ -494,16 +494,20 @@ impl Auth {
     pub fn csrf_create(
         driver: &dyn Driver,
         service: &Service,
-        token_expires: i64,
+        token_expires_s: i64,
     ) -> CoreResult<Csrf> {
         let csrf_key = Key::value_generate();
-        Csrf::create(driver, service, csrf_key.clone(), csrf_key, token_expires)
+        let create = CsrfCreate::new(&csrf_key, &csrf_key, token_expires_s, service.id);
+        driver.csrf_create(&create).map_err(CoreError::Driver)
     }
 
     /// Verify a CSRF key is valid by reading it, this will also delete the key.
     /// Also checks service verifying CSRF is same service that created it.
     pub fn csrf_verify(driver: &dyn Driver, service: &Service, csrf_key: String) -> CoreResult<()> {
-        let res = Csrf::read_opt(driver, csrf_key)?.ok_or_else(|| CoreError::CsrfNotFoundOrUsed);
+        let res = driver
+            .csrf_read_opt(&csrf_key)
+            .map_err(CoreError::Driver)?
+            .ok_or_else(|| CoreError::CsrfNotFoundOrUsed);
 
         match res {
             Ok(csrf) => {

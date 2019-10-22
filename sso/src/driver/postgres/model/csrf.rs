@@ -1,4 +1,4 @@
-use crate::{driver::postgres::schema::sso_csrf, Csrf, CsrfCreate, CsrfDelete, DriverResult};
+use crate::{driver::postgres::schema::sso_csrf, Csrf, CsrfCreate, DriverResult};
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, PgConnection};
 use uuid::Uuid;
@@ -60,6 +60,16 @@ impl ModelCsrf {
     }
 
     pub fn read_opt(conn: &PgConnection, key: &str) -> DriverResult<Option<Csrf>> {
+        Self::delete_by_ttl(conn)?;
+
+        let csrf = Self::read_opt_inner(conn, key)?;
+        if csrf.is_some() {
+            Self::delete_by_key(conn, key)?;
+        }
+        Ok(csrf)
+    }
+
+    fn read_opt_inner(conn: &PgConnection, key: &str) -> DriverResult<Option<Csrf>> {
         sso_csrf::table
             .filter(sso_csrf::dsl::key.eq(key))
             .get_result::<ModelCsrf>(conn)
@@ -68,20 +78,14 @@ impl ModelCsrf {
             .map(|x| x.map(Into::into))
     }
 
-    pub fn delete(conn: &PgConnection, delete: &CsrfDelete) -> DriverResult<usize> {
-        match delete {
-            CsrfDelete::Key(key) => Self::delete_by_key(conn, key),
-            CsrfDelete::Ttl(now) => Self::delete_by_ttl(conn, now),
-        }
-    }
-
     fn delete_by_key(conn: &PgConnection, key: &str) -> DriverResult<usize> {
         diesel::delete(sso_csrf::table.filter(sso_csrf::dsl::key.eq(key)))
             .execute(conn)
             .map_err(Into::into)
     }
 
-    fn delete_by_ttl(conn: &PgConnection, now: &DateTime<Utc>) -> DriverResult<usize> {
+    fn delete_by_ttl(conn: &PgConnection) -> DriverResult<usize> {
+        let now = Utc::now();
         diesel::delete(sso_csrf::table.filter(sso_csrf::dsl::ttl.le(now)))
             .execute(conn)
             .map_err(Into::into)

@@ -517,7 +517,10 @@ mod server_auth {
         let csrf_key = Auth::decode_csrf_key(&service, &user, &key, token_type, &request.token)
             .map_err(ApiError::BadRequest)?;
         if let Some(csrf_key) = csrf_key {
-            Csrf::read_opt(driver, csrf_key).map_err(ApiError::BadRequest)?;
+            driver
+                .csrf_read_opt(&csrf_key)
+                .map_err(CoreError::Driver)
+                .map_err(ApiError::BadRequest)?;
         }
 
         // Token revoked, disable and revoked linked key.

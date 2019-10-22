@@ -38,7 +38,8 @@ mod provider_github {
             auth::server_auth::oauth2_login, ApiError, ApiResult, AuthOauth2CallbackRequest,
             AuthProviderOauth2, AuthProviderOauth2Args,
         },
-        AuditBuilder, Auth, Client, CoreError, CoreResult, Csrf, Driver, Service, UserToken,
+        AuditBuilder, Auth, Client, CoreError, CoreResult, CsrfCreate, Driver, Service,
+        UserToken,
     };
     use http::header;
     use oauth2::{
@@ -66,14 +67,12 @@ mod provider_github {
 
         // Save the state and code verifier secrets as a CSRF key, value.
         let csrf_key = csrf_state.secret();
-        Csrf::create(
-            driver,
-            &service,
-            String::from(csrf_key),
-            String::from(csrf_key),
-            args.access_token_expires,
-        )
-        .map_err(ApiError::BadRequest)?;
+        let csrf_create =
+            CsrfCreate::new(csrf_key, csrf_key, args.access_token_expires, service.id);
+        driver
+            .csrf_create(&csrf_create)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?;
 
         Ok(authorise_url.to_string())
     }
@@ -89,7 +88,9 @@ mod provider_github {
             Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         // Read the CSRF key using state value, rebuild code verifier from value.
-        let csrf = Csrf::read_opt(driver, request.state)
+        let csrf = driver
+            .csrf_read_opt(&request.state)
+            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?
             .ok_or_else(|| CoreError::CsrfNotFoundOrUsed)
             .map_err(ApiError::BadRequest)?;

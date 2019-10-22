@@ -4,9 +4,9 @@ mod schema;
 
 use crate::{
     driver::postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
-    Audit, AuditCreate, AuditList, AuditRead, AuditUpdate, Csrf, CsrfCreate, CsrfDelete, Driver,
-    DriverError, DriverIf, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead,
-    KeyUpdate, KeyWithValue, Service, ServiceCreate, ServiceList, ServiceRead, ServiceUpdate, User,
+    Audit, AuditCreate, AuditList, AuditRead, AuditUpdate, Csrf, CsrfCreate, Driver, DriverError,
+    DriverIf, DriverLockFn, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate,
+    KeyWithValue, Service, ServiceCreate, ServiceList, ServiceRead, ServiceUpdate, User,
     UserCreate, UserList, UserRead, UserUpdate, UserUpdate2,
 };
 use chrono::{DateTime, Utc};
@@ -132,11 +132,6 @@ impl DriverIf for DriverPostgres {
     fn csrf_read_opt(&self, key: &str) -> DriverResult<Option<Csrf>> {
         let conn = self.conn()?;
         ModelCsrf::read_opt(&conn, key)
-    }
-
-    fn csrf_delete(&self, delete: &CsrfDelete) -> DriverResult<usize> {
-        let conn = self.conn()?;
-        ModelCsrf::delete(&conn, delete)
     }
 
     fn key_list(&self, list: &KeyList) -> DriverResult<Vec<Key>> {
@@ -325,10 +320,6 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
 
     fn csrf_read_opt(&self, key: &str) -> DriverResult<Option<Csrf>> {
         ModelCsrf::read_opt(self.conn(), key)
-    }
-
-    fn csrf_delete(&self, delete: &CsrfDelete) -> DriverResult<usize> {
-        ModelCsrf::delete(self.conn(), delete)
     }
 
     fn key_list(&self, list: &KeyList) -> DriverResult<Vec<Key>> {
