@@ -47,14 +47,14 @@ impl ValidateRequestQuery<UserListRequest> for UserListRequest {}
 impl UserListRequest {
     pub fn into_query_filter(self) -> (UserListQuery, UserListFilter) {
         let limit = self.limit.unwrap_or(DEFAULT_LIMIT);
-        let query = match (self.gt, self.lt) {
-            (Some(gt), Some(_lt)) => UserListQuery::IdGt(gt, limit),
-            (Some(gt), None) => UserListQuery::IdGt(gt, limit),
-            (None, Some(lt)) => UserListQuery::IdLt(lt, limit),
-            (None, None) => UserListQuery::Limit(limit),
-        };
-        // TODO(refactor): Support user name sorting.
 
+        let query = match (self.gt, self.lt, self.name_ge, self.name_le) {
+            (Some(gt), _, _, _) => UserListQuery::IdGt(gt, limit),
+            (_, Some(lt), _, _) => UserListQuery::IdLt(lt, limit),
+            (_, _, Some(name_ge), _) => UserListQuery::NameGe(name_ge, limit, self.offset_id),
+            (_, _, _, Some(name_le)) => UserListQuery::NameLe(name_le, limit, self.offset_id),
+            (_, _, _, _) => UserListQuery::IdGt(Uuid::nil(), limit),
+        };
         let filter = UserListFilter {
             id: self.id,
             email: self.email,
@@ -68,7 +68,6 @@ impl UserListRequest {
         builder.id(filter.id);
         builder.email(filter.email);
         match query {
-            UserListQuery::Limit(limit) => builder.limit(Some(limit)).build().unwrap(),
             UserListQuery::IdGt(gt, limit) => {
                 builder.gt(Some(gt)).limit(Some(limit)).build().unwrap()
             }

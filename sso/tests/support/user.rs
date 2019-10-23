@@ -13,7 +13,7 @@ macro_rules! user_integration_test {
 
         #[test]
         #[ignore]
-        fn api_user_list_ok() {
+        fn api_user_list_id_ok() {
             let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
             let user1_email = email_create();
@@ -112,7 +112,153 @@ macro_rules! user_integration_test {
 
         #[test]
         #[ignore]
-        fn api_user_list_email_eq_ok() {
+        fn api_user_list_name_ok() {
+            let client = client_create(None);
+            let (_service, service_key) = service_key_create(&client);
+            let user1_email = email_create();
+            let user2_email = email_create();
+            let user3_email = email_create();
+            let user4_email = email_create();
+            let user5_email = email_create();
+            let limit = 3;
+
+            let client = client_create(Some(&service_key.value));
+            user_create(&client, true, "eee", &user1_email);
+            user_create(&client, true, "ddd", &user2_email);
+            user_create(&client, true, "ccc", &user3_email);
+            user_create(&client, true, "bbb", &user4_email);
+            user_create(&client, true, "aaa", &user5_email);
+
+            let res1 = client
+                .user_list(
+                    UserListRequestBuilder::default()
+                        .name_ge(Some("".to_owned()))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
+                .unwrap();
+            println!("res1 {:?}", res1); // TODO(refactor): Fix this test, request to query?
+            assert_eq!(res1.data.len(), 3);
+            let r1_1 = &res1.data[0];
+            let r1_2 = &res1.data[1];
+            let r1_3 = &res1.data[2];
+            assert_eq!(r1_1.name, "aaa");
+            assert_eq!(r1_2.name, "bbb");
+            assert_eq!(r1_3.name, "ccc");
+
+            let res2 = client
+                .user_list(
+                    UserListRequestBuilder::default()
+                        .name_ge(Some(r1_1.name.to_owned()))
+                        .offset_id(Some(r1_1.id))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
+                .unwrap();
+            println!("res2 {:?}", res2); // TODO(refactor): Fix this test, request to query?
+            assert_eq!(res2.data.len(), 3);
+            let r2_2 = &res2.data[0];
+            let r2_3 = &res2.data[1];
+            let r2_4 = &res2.data[2];
+            assert_eq!(r2_2.id, r1_2.id);
+            assert_eq!(r2_3.id, r1_3.id);
+            assert_eq!(r2_2.name, "bbb");
+            assert_eq!(r2_3.name, "ccc");
+            assert_eq!(r2_4.name, "ddd");
+
+            let res3 = client
+                .user_list(
+                    UserListRequestBuilder::default()
+                        .name_ge(Some(r1_2.name.to_owned()))
+                        .offset_id(Some(r1_2.id))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
+                .unwrap();
+            println!("res3 {:?}", res3); // TODO(refactor): Fix this test, request to query?
+            assert_eq!(res3.data.len(), 3);
+            let r3_3 = &res3.data[0];
+            let r3_4 = &res3.data[1];
+            let r3_5 = &res3.data[2];
+            assert_eq!(r3_3.id, r2_3.id);
+            assert_eq!(r3_4.id, r2_4.id);
+            assert_eq!(r3_3.name, "ccc");
+            assert_eq!(r3_4.name, "ddd");
+            assert_eq!(r3_5.name, "eee");
+
+            let res4 = client
+                .user_list(
+                    UserListRequestBuilder::default()
+                        .name_le(Some(r3_5.name.to_owned()))
+                        .offset_id(Some(r3_5.id))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
+                .unwrap();
+            println!("res4 {:?}", res4); // TODO(refactor): Fix this test, request to query?
+            assert_eq!(res4.data.len(), 3);
+            let r4_2 = &res4.data[0];
+            let r4_3 = &res4.data[1];
+            let r4_4 = &res4.data[2];
+            assert_eq!(r4_2.id, r2_2.id);
+            assert_eq!(r4_3.id, r3_3.id);
+            assert_eq!(r4_4.id, r3_4.id);
+            assert_eq!(r4_2.name, "bbb");
+            assert_eq!(r4_3.name, "ccc");
+            assert_eq!(r4_4.name, "ddd");
+
+            let res5 = client
+                .user_list(
+                    UserListRequestBuilder::default()
+                        .name_le(Some(r4_4.name.to_owned()))
+                        .offset_id(Some(r4_4.id))
+                        .limit(Some(limit))
+                        .build()
+                        .unwrap(),
+                )
+                .unwrap();
+            println!("res5 {:?}", res5); // TODO(refactor): Fix this test, request to query?
+            assert_eq!(res5.data.len(), 3);
+            let r5_1 = &res5.data[0];
+            let r5_2 = &res5.data[1];
+            let r5_3 = &res5.data[2];
+            assert_eq!(r5_1.id, r1_1.id);
+            assert_eq!(r5_2.id, r4_2.id);
+            assert_eq!(r5_3.id, r4_3.id);
+            assert_eq!(r5_1.name, "aaa");
+            assert_eq!(r5_2.name, "bbb");
+            assert_eq!(r5_3.name, "ccc");
+        }
+
+        #[test]
+        #[ignore]
+        fn api_user_list_filter_id_ok() {
+            let client = client_create(None);
+            let (_service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            let user = user_create(&client, true, USER_NAME, &user_email);
+
+            let res = client
+                .user_list(
+                    UserListRequestBuilder::default()
+                        .id(Some(vec![user.id]))
+                        .build()
+                        .unwrap(),
+                )
+                .unwrap();
+            assert_eq!(res.data.len(), 1);
+            assert_eq!(res.data[0].id, user.id);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_user_list_filter_email_ok() {
             let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
             let user_email = email_create();
@@ -254,7 +400,7 @@ macro_rules! user_integration_test {
                 .data;
             assert_eq!(audit_list.len(), 1);
             let audit = &audit_list[0];
-            println!("{:?}", audit);
+            println!("{:?}", audit); // TODO(refactor): Clean this up.
             assert_eq!(audit.service_id.unwrap(), service.id);
         }
     };

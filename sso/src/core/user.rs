@@ -113,7 +113,6 @@ impl Default for UserPasswordMeta {
 /// User list query.
 #[derive(Debug)]
 pub enum UserListQuery {
-    Limit(i64),
     /// Where ID greater than.
     IdGt(Uuid, i64),
     /// Where ID less than.
@@ -242,7 +241,7 @@ impl User {
         _service_mask: Option<&Service>,
         read: &UserRead,
     ) -> CoreResult<Option<User>> {
-        driver.user_read_opt(read).map_err(CoreError::Driver)
+        driver.user_read(read).map_err(CoreError::Driver)
     }
 
     /// Update user.
@@ -323,6 +322,7 @@ impl User {
     fn password_meta_strength(
         password: &str,
     ) -> impl Future<Item = zxcvbn::Entropy, Error = CoreError> {
+        // TODO(fix): Fix "Zxcvbn cannot evaluate a blank password" warning.
         future::result(zxcvbn::zxcvbn(password, &[]).map_err(CoreError::Zxcvbn))
     }
 
