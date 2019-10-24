@@ -1,10 +1,10 @@
 use crate::{
     api::{
-        result_audit_diff, result_audit_err, result_audit_subject, validate, ApiResult,
+        result_audit_diff, result_audit_err, result_audit_subject, validate, ApiError, ApiResult,
         ValidateRequest, ValidateRequestQuery,
     },
-    AuditBuilder, AuditMeta, AuditType, Driver, User, UserCreate, UserListFilter, UserListQuery,
-    UserPasswordMeta, UserRead, UserUpdate, DEFAULT_LIMIT,
+    AuditBuilder, AuditMeta, AuditType, CoreError, Driver, User, UserCreate, UserListFilter,
+    UserListQuery, UserPasswordMeta, UserRead, UserUpdate, DEFAULT_LIMIT,
 };
 use uuid::Uuid;
 use validator::Validate;
@@ -100,17 +100,24 @@ pub struct UserListResponse {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct UserCreateRequest {
-    pub is_enabled: bool,
+    pub is_enabled: Option<bool>,
+
     #[validate(custom = "validate::name")]
     pub name: String,
+
     #[validate(email)]
     pub email: String,
+
     #[validate(custom = "validate::locale")]
-    pub locale: String,
+    pub locale: Option<String>,
+
     #[validate(custom = "validate::timezone")]
-    pub timezone: String,
+    pub timezone: Option<String>,
+
     pub password_allow_reset: Option<bool>,
+
     pub password_require_update: Option<bool>,
+
     #[validate(custom = "validate::password")]
     pub password: Option<String>,
 }
@@ -118,56 +125,73 @@ pub struct UserCreateRequest {
 impl ValidateRequest<UserCreateRequest> for UserCreateRequest {}
 
 impl UserCreateRequest {
-    pub fn new<S1, S2, S3, S4>(
-        is_enabled: bool,
-        name: S1,
-        email: S2,
-        locale: S3,
-        timezone: S4,
-    ) -> Self
+    pub fn new<N, E>(is_enabled: bool, name: N, email: E) -> Self
     where
-        S1: Into<String>,
-        S2: Into<String>,
-        S3: Into<String>,
-        S4: Into<String>,
+        N: Into<String>,
+        E: Into<String>,
     {
         Self {
-            is_enabled,
+            is_enabled: Some(is_enabled),
             name: name.into(),
             email: email.into(),
-            locale: locale.into(),
-            timezone: timezone.into(),
+            locale: None,
+            timezone: None,
             password_allow_reset: None,
             password_require_update: None,
             password: None,
         }
     }
 
-    pub fn with_password<S1: Into<String>>(
+    pub fn locale<L>(mut self, locale: L) -> Self
+    where
+        L: Into<String>,
+    {
+        self.locale = Some(locale.into());
+        self
+    }
+
+    pub fn timezone<T>(mut self, timezone: T) -> Self
+    where
+        T: Into<String>,
+    {
+        self.timezone = Some(timezone.into());
+        self
+    }
+
+    pub fn with_password<P>(
         mut self,
         password_allow_reset: bool,
         password_require_update: bool,
-        password: S1,
-    ) -> Self {
+        password: P,
+    ) -> Self
+    where
+        P: Into<String>,
+    {
         self.password_allow_reset = Some(password_allow_reset);
         self.password_require_update = Some(password_require_update);
         self.password = Some(password.into());
         self
     }
-}
 
-impl From<UserCreateRequest> for UserCreate {
-    fn from(request: UserCreateRequest) -> Self {
-        Self {
-            is_enabled: request.is_enabled,
-            name: request.name,
-            email: request.email,
-            locale: request.locale,
-            timezone: request.timezone,
-            password_allow_reset: request.password_allow_reset.unwrap_or(false),
-            password_require_update: request.password_require_update.unwrap_or(false),
-            password_hash: request.password,
+    pub fn into_create(self) -> ApiResult<UserCreate> {
+        let mut create = UserCreate::new(self.is_enabled.unwrap_or(true), self.name, self.email);
+        if let Some(locale) = self.locale {
+            create = create.locale(locale);
         }
+        if let Some(timezone) = self.timezone {
+            create = create.timezone(timezone);
+        }
+        if let Some(password) = self.password {
+            create = create
+                .with_password(
+                    self.password_allow_reset.unwrap_or(false),
+                    self.password_require_update.unwrap_or(false),
+                    password,
+                )
+                .map_err(CoreError::Driver)
+                .map_err(ApiError::BadRequest)?;
+        }
+        Ok(create)
     }
 }
 
@@ -244,8 +268,8 @@ pub fn user_create(
 ) -> ApiResult<UserCreateResponse> {
     UserCreateRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::UserCreate);
-    let create: UserCreate = request.into();
 
+    let create = request.into_create()?;
     let res = server_user::create(driver, &mut audit, key_value, create);
     result_audit_subject(driver, &audit, res).map(|data| UserCreateResponse {
         meta: password_meta,
@@ -329,12 +353,15 @@ mod server_user {
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<String>,
-        mut create: UserCreate,
+        create: UserCreate,
     ) -> ApiResult<User> {
-        let service =
+        let _service =
             Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        User::create(driver, service.as_ref(), &mut create).map_err(ApiError::BadRequest)
+        driver
+            .user_create(&create)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)
     }
 
     pub fn read(
@@ -361,7 +388,10 @@ mod server_user {
 
         let read = UserRead::Id(user_id);
         let previous_user = read_inner(driver, service.as_ref(), &read)?;
-        let user = User::update(driver, service.as_ref(), user_id, &update)
+
+        let user = driver
+            .user_update(&user_id, &update)
+            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
         Ok((previous_user, user))
     }

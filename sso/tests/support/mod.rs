@@ -31,8 +31,6 @@ pub const INVALID_EMAIL: &str = "invalid-email";
 pub const INVALID_PASSWORD: &str = "guests";
 pub const INVALID_KEY: &str = "af8731c10c739d8cce50ea556d0b1d77d3614fdc39";
 pub const USER_NAME: &str = "user-name";
-pub const USER_LOCALE: &str = "en_GB";
-pub const USER_TIMEZONE: &str = "Etc/UTC";
 pub const USER_PASSWORD: &str = "user-name";
 pub const KEY_NAME: &str = "key-name";
 
@@ -82,7 +80,7 @@ pub fn service_key_create(client: &ClientSync) -> (Service, KeyWithValue) {
 
 pub fn user_create(client: &ClientSync, is_enabled: bool, name: &str, email: &str) -> User {
     let before = Utc::now();
-    let body = UserCreateRequest::new(is_enabled, name, email, USER_LOCALE, USER_TIMEZONE);
+    let body = UserCreateRequest::new(is_enabled, name, email);
     let create = client.user_create(body).unwrap();
     let user = create.data;
     assert!(user.created_at.gt(&before));
@@ -105,7 +103,7 @@ pub fn user_create_with_password(
     password: &str,
 ) -> User {
     let before = Utc::now();
-    let body = UserCreateRequest::new(is_enabled, name, email, USER_LOCALE, USER_TIMEZONE)
+    let body = UserCreateRequest::new(is_enabled, name, email)
         .with_password(password_allow_reset, password_require_update, password);
     let create = client.user_create(body).unwrap();
     let user = create.data;

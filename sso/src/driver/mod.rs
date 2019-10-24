@@ -131,6 +131,8 @@ pub trait DriverIf {
     fn user_list(&self, list: &UserList) -> DriverResult<Vec<User>>;
 
     /// Create user.
+    ///
+    /// Returns error if email address is not unique.
     fn user_create(&self, create: &UserCreate) -> DriverResult<User>;
 
     /// Read user.

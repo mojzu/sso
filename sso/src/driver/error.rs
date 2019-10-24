@@ -7,6 +7,15 @@ pub enum DriverError {
     #[fail(display = "ServiceProviderLocalDisabled")]
     ServiceProviderLocalDisabled,
 
+    #[fail(display = "UserEmailConstraint")]
+    UserEmailConstraint,
+
+    #[fail(display = "UserPasswordIncorrect")]
+    UserPasswordIncorrect,
+
+    #[fail(display = "UserPasswordUndefined")]
+    UserPasswordUndefined,
+
     #[fail(display = "Locked {:?}", _0)]
     Locked(i32),
 
@@ -21,6 +30,9 @@ pub enum DriverError {
 
     #[fail(display = "DieselMigrations {}", _0)]
     DieselMigrations(#[fail(cause)] diesel_migrations::RunMigrationsError),
+
+    #[fail(display = "LibreauthPass {}", _0)]
+    LibreauthPass(usize),
 
     #[fail(display = "R2d2 {}", _0)]
     R2d2(#[fail(cause)] r2d2::Error),
@@ -42,6 +54,10 @@ pub enum DriverError {
 }
 
 impl DriverError {
+    pub fn libreauth_pass(e: libreauth::pass::ErrorCode) -> Self {
+        Self::LibreauthPass(e as usize)
+    }
+
     pub fn serde_qs(e: serde_qs::Error) -> Self {
         Self::SerdeQs(e.description().to_owned())
     }

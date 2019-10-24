@@ -123,22 +123,23 @@ macro_rules! user_integration_test {
             let limit = 3;
 
             let client = client_create(Some(&service_key.value));
-            user_create(&client, true, "eee", &user1_email);
-            user_create(&client, true, "ddd", &user2_email);
-            user_create(&client, true, "ccc", &user3_email);
-            user_create(&client, true, "bbb", &user4_email);
-            user_create(&client, true, "aaa", &user5_email);
+            let u1 = user_create(&client, true, "eee", &user1_email).id;
+            let u2 = user_create(&client, true, "ddd", &user2_email).id;
+            let u3 = user_create(&client, true, "ccc", &user3_email).id;
+            let u4 = user_create(&client, true, "bbb", &user4_email).id;
+            let u5 = user_create(&client, true, "aaa", &user5_email).id;
+            let id = vec![u1, u2, u3, u4, u5];
 
             let res1 = client
                 .user_list(
                     UserListRequestBuilder::default()
-                        .name_ge(Some("".to_owned()))
+                        .name_ge(Some("_".to_owned()))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
                 .unwrap();
-            println!("res1 {:?}", res1); // TODO(refactor): Fix this test, request to query?
             assert_eq!(res1.data.len(), 3);
             let r1_1 = &res1.data[0];
             let r1_2 = &res1.data[1];
@@ -153,11 +154,11 @@ macro_rules! user_integration_test {
                         .name_ge(Some(r1_1.name.to_owned()))
                         .offset_id(Some(r1_1.id))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
                 .unwrap();
-            println!("res2 {:?}", res2); // TODO(refactor): Fix this test, request to query?
             assert_eq!(res2.data.len(), 3);
             let r2_2 = &res2.data[0];
             let r2_3 = &res2.data[1];
@@ -174,11 +175,11 @@ macro_rules! user_integration_test {
                         .name_ge(Some(r1_2.name.to_owned()))
                         .offset_id(Some(r1_2.id))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
                 .unwrap();
-            println!("res3 {:?}", res3); // TODO(refactor): Fix this test, request to query?
             assert_eq!(res3.data.len(), 3);
             let r3_3 = &res3.data[0];
             let r3_4 = &res3.data[1];
@@ -195,11 +196,11 @@ macro_rules! user_integration_test {
                         .name_le(Some(r3_5.name.to_owned()))
                         .offset_id(Some(r3_5.id))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
                 .unwrap();
-            println!("res4 {:?}", res4); // TODO(refactor): Fix this test, request to query?
             assert_eq!(res4.data.len(), 3);
             let r4_2 = &res4.data[0];
             let r4_3 = &res4.data[1];
@@ -217,11 +218,11 @@ macro_rules! user_integration_test {
                         .name_le(Some(r4_4.name.to_owned()))
                         .offset_id(Some(r4_4.id))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
                 .unwrap();
-            println!("res5 {:?}", res5); // TODO(refactor): Fix this test, request to query?
             assert_eq!(res5.data.len(), 3);
             let r5_1 = &res5.data[0];
             let r5_2 = &res5.data[1];
@@ -295,7 +296,7 @@ macro_rules! user_integration_test {
             let client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
             let body =
-                UserCreateRequest::new(true, USER_NAME, &user_email, USER_LOCALE, USER_TIMEZONE);
+                UserCreateRequest::new(true, USER_NAME, &user_email);
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::Unauthorised);
         }
@@ -311,7 +312,7 @@ macro_rules! user_integration_test {
             user_create(&client, true, USER_NAME, &user_email);
 
             let body =
-                UserCreateRequest::new(true, USER_NAME, &user_email, USER_LOCALE, USER_TIMEZONE);
+                UserCreateRequest::new(true, USER_NAME, &user_email);
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -324,7 +325,7 @@ macro_rules! user_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let body = UserCreateRequest::new(true, USER_NAME, &user_email, "", USER_TIMEZONE);
+            let body = UserCreateRequest::new(true, USER_NAME, &user_email).locale("");
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }
@@ -337,7 +338,7 @@ macro_rules! user_integration_test {
             let user_email = email_create();
 
             let client = client_create(Some(&service_key.value));
-            let body = UserCreateRequest::new(true, USER_NAME, &user_email, USER_LOCALE, "invalid");
+            let body = UserCreateRequest::new(true, USER_NAME, &user_email).timezone("invalid");
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }

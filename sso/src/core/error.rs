@@ -43,17 +43,8 @@ pub enum CoreError {
     #[fail(display = "UserNotFound")]
     UserNotFound,
 
-    #[fail(display = "UserEmailConstraint")]
-    UserEmailConstraint,
-
     #[fail(display = "UserDisabled")]
     UserDisabled,
-
-    #[fail(display = "UserPasswordIncorrect")]
-    UserPasswordIncorrect,
-
-    #[fail(display = "UserPasswordUndefined")]
-    UserPasswordUndefined,
 
     #[fail(display = "UserPasswordUpdateRequired")]
     UserPasswordUpdateRequired,
@@ -103,9 +94,6 @@ pub enum CoreError {
     #[fail(display = "UrlParse {}", _0)]
     UrlParse(#[fail(cause)] url::ParseError),
 
-    #[fail(display = "LibreauthPass {}", _0)]
-    LibreauthPass(usize),
-
     #[fail(display = "LibreauthOath {}", _0)]
     LibreauthOath(usize),
 
@@ -137,10 +125,6 @@ pub type CoreResult<T> = Result<T, CoreError>;
 impl CoreError {
     pub fn validate(e: validator::ValidationErrors) -> Self {
         Self::Validate(serde_json::to_value(e).unwrap())
-    }
-
-    pub fn libreauth_pass(e: libreauth::pass::ErrorCode) -> Self {
-        Self::LibreauthPass(e as usize)
     }
 
     pub fn libreauth_oath(e: libreauth::oath::ErrorCode) -> Self {

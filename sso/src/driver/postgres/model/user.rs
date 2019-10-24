@@ -88,6 +88,11 @@ impl ModelUser {
     }
 
     pub fn create(conn: &PgConnection, create: &UserCreate) -> DriverResult<User> {
+        let user = Self::read_email(conn, &create.email)?;
+        if user.is_some() {
+            return Err(DriverError::UserEmailConstraint);
+        }
+
         let now = Utc::now();
         let id = Uuid::new_v4();
         let value = ModelUserInsert {

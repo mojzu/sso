@@ -258,8 +258,8 @@ mod provider_local {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        Audit, AuditBuilder, Auth, CoreError, Driver, Jwt, Key, KeyType, NotifyActor, User,
-        UserToken, UserUpdate,
+        Audit, AuditBuilder, Auth, CoreError, Driver, Jwt, Key, KeyType, NotifyActor, UserToken,
+        UserUpdate, UserUpdate2,
     };
     use actix::Addr;
 
@@ -286,7 +286,8 @@ mod provider_local {
         }
 
         // Check user password.
-        Auth::password_check(user.password_hash(), &request.password)
+        user.password_check(&request.password)
+            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
 
         // Encode user token.
@@ -365,7 +366,12 @@ mod provider_local {
         Auth::csrf_verify(driver, &service, csrf_key).map_err(ApiError::BadRequest)?;
 
         // Update user password.
-        User::update_password(driver, Some(&service), user.id, request.password)
+        let user_update = UserUpdate2::password(request.password)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?;
+        driver
+            .user_update2(&user.id, &user_update)
+            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
         Ok(())
     }
@@ -393,7 +399,8 @@ mod provider_local {
         }
 
         // Check user password.
-        Auth::password_check(user.password_hash(), &request.password)
+        user.password_check(&request.password)
+            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
 
         // Encode revoke token.
@@ -403,7 +410,10 @@ mod provider_local {
 
         // Update user email.
         let old_email = user.email.to_owned();
-        User::update_email(driver, Some(&service), user.id, request.new_email)
+        let user_update = UserUpdate2::email(request.new_email);
+        driver
+            .user_update2(&user.id, &user_update)
+            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
         let user = Auth::user_read_by_id(driver, Some(&service), audit, request.user_id)
             .map_err(ApiError::BadRequest)?;
@@ -456,7 +466,10 @@ mod provider_local {
             password_allow_reset: None,
             password_require_update: None,
         };
-        User::update(driver, Some(&service), user.id, &update).map_err(ApiError::BadRequest)?;
+        driver
+            .user_update(&user.id, &update)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?;
         Key::update_many(
             driver,
             Some(&service),
@@ -499,7 +512,8 @@ mod provider_local {
         // User is allowed to update password if `password_require_update` is true.
 
         // Check user password.
-        Auth::password_check(user.password_hash(), &request.password)
+        user.password_check(&request.password)
+            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
 
         // Encode revoke token.
@@ -508,7 +522,12 @@ mod provider_local {
                 .map_err(ApiError::BadRequest)?;
 
         // Update user password.
-        User::update_password(driver, Some(&service), user.id, request.new_password)
+        let user_update = UserUpdate2::password(request.new_password)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?;
+        driver
+            .user_update2(&user.id, &user_update)
+            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
         let user = Auth::user_read_by_id(driver, Some(&service), audit, request.user_id)
             .map_err(ApiError::BadRequest)?;
@@ -554,7 +573,10 @@ mod provider_local {
             password_allow_reset: None,
             password_require_update: None,
         };
-        User::update(driver, Some(&service), user.id, &update).map_err(ApiError::BadRequest)?;
+        driver
+            .user_update(&user.id, &update)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?;
         Key::update_many(
             driver,
             Some(&service),

@@ -2,11 +2,9 @@ use crate::{
     notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
     AuditBuilder, AuditMeta, CoreError, CoreResult, Csrf, CsrfCreate, Driver, Jwt, JwtClaimsType,
     Key, KeyType, KeyWithValue, NotifyActor, Service, ServiceRead, User, UserRead, UserToken,
-    USER_PASSWORD_HASH_VERSION, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
 };
 use actix::Addr;
 use libreauth::oath::TOTPBuilder;
-use libreauth::pass::HashBuilder;
 use uuid::Uuid;
 
 /// Authentication functions.
@@ -301,43 +299,6 @@ impl Auth {
             .check()?;
         audit.service(Some(&service));
         Ok(service)
-    }
-
-    /// Hash password string, none is returned if none is given as the input.
-    /// <https://github.com/breard-r/libreauth>
-    pub fn password_hash(password: Option<&str>) -> CoreResult<Option<String>> {
-        match password {
-            Some(password) => {
-                let hasher = HashBuilder::new()
-                    .version(USER_PASSWORD_HASH_VERSION)
-                    .min_len(USER_PASSWORD_MIN_LEN)
-                    .max_len(USER_PASSWORD_MAX_LEN)
-                    .finalize()
-                    .map_err(CoreError::libreauth_pass)?;
-
-                let hashed = hasher.hash(password).map_err(CoreError::libreauth_pass)?;
-                Ok(Some(hashed))
-            }
-            None => Ok(None),
-        }
-    }
-
-    /// Check if password string and password hash match, an error is returned if they do not match or the hash is none.
-    /// Returns true if the hash version does not match the current hash version.
-    pub fn password_check(password_hash: Option<&str>, password: &str) -> CoreResult<bool> {
-        match password_hash {
-            Some(password_hash) => {
-                let checker =
-                    HashBuilder::from_phc(password_hash).map_err(CoreError::libreauth_pass)?;
-
-                if checker.is_valid(password) {
-                    Ok(checker.needs_update(Some(USER_PASSWORD_HASH_VERSION)))
-                } else {
-                    Err(CoreError::UserPasswordIncorrect)
-                }
-            }
-            None => Err(CoreError::UserPasswordUndefined),
-        }
     }
 
     /// Read user by ID.

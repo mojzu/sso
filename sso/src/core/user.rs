@@ -1,10 +1,11 @@
 use crate::{
-    client_msg::Get, AuditDiff, AuditDiffBuilder, AuditSubject, Auth, ClientActor, CoreError,
-    CoreResult, Driver, Service,
+    client_msg::Get, AuditDiff, AuditDiffBuilder, AuditSubject, ClientActor, CoreError, CoreResult,
+    Driver, DriverError, DriverResult, Service,
 };
 use actix::Addr;
 use chrono::{DateTime, Utc};
 use futures::{future, Future};
+use libreauth::pass::HashBuilder;
 use serde_json::Value;
 use sha1::{Digest, Sha1};
 use std::fmt;
@@ -16,8 +17,14 @@ pub const USER_NAME_MAX_LEN: usize = 100;
 /// User locale maximum length.
 pub const USER_LOCALE_MAX_LEN: usize = 10;
 
+/// User default locale.
+pub const USER_DEFAULT_LOCALE: &str = "en";
+
 /// User timezone maximum length.
 pub const USER_TIMEZONE_MAX_LEN: usize = 50;
+
+/// User default timezone.
+pub const USER_DEFAULT_TIMEZONE: &str = "Etc/UTC";
 
 /// User password hash version.
 ///
@@ -150,6 +157,56 @@ pub struct UserCreate {
     pub password_hash: Option<String>,
 }
 
+impl UserCreate {
+    pub fn new<N, E>(is_enabled: bool, name: N, email: E) -> Self
+    where
+        N: Into<String>,
+        E: Into<String>,
+    {
+        Self {
+            is_enabled,
+            name: name.into(),
+            email: email.into(),
+            locale: USER_DEFAULT_LOCALE.into(),
+            timezone: USER_DEFAULT_TIMEZONE.into(),
+            password_allow_reset: false,
+            password_require_update: false,
+            password_hash: None,
+        }
+    }
+
+    pub fn locale<L>(mut self, locale: L) -> Self
+    where
+        L: Into<String>,
+    {
+        self.locale = locale.into();
+        self
+    }
+
+    pub fn timezone<T>(mut self, timezone: T) -> Self
+    where
+        T: Into<String>,
+    {
+        self.timezone = timezone.into();
+        self
+    }
+
+    pub fn with_password<P>(
+        mut self,
+        allow_reset: bool,
+        require_update: bool,
+        password: P,
+    ) -> DriverResult<Self>
+    where
+        P: AsRef<str>,
+    {
+        self.password_allow_reset = allow_reset;
+        self.password_require_update = require_update;
+        self.password_hash = Some(hash_password(password.as_ref())?);
+        Ok(self)
+    }
+}
+
 /// User read.
 #[derive(Debug)]
 pub enum UserRead {
@@ -179,6 +236,30 @@ pub struct UserUpdate2 {
     pub password_hash: Option<String>,
 }
 
+impl UserUpdate2 {
+    /// Update user email.
+    pub fn email<E>(email: E) -> Self
+    where
+        E: Into<String>,
+    {
+        Self {
+            email: Some(email.into()),
+            password_hash: None,
+        }
+    }
+
+    /// Update user password.
+    pub fn password<P>(password: P) -> DriverResult<Self>
+    where
+        P: AsRef<str>,
+    {
+        Ok(Self {
+            email: None,
+            password_hash: Some(hash_password(password.as_ref())?),
+        })
+    }
+}
+
 /// User token.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserToken {
@@ -205,25 +286,30 @@ pub struct UserKey {
 }
 
 impl User {
+    /// Get nullable reference to user password hash.
     pub fn password_hash(&self) -> Option<&str> {
         self.password_hash.as_ref().map(|x| &**x)
     }
 
-    /// Create user.
-    /// Returns error if email address is not unique.
-    pub fn create(
-        driver: &dyn Driver,
-        service_mask: Option<&Service>,
-        create: &mut UserCreate,
-    ) -> CoreResult<User> {
-        let read = UserRead::Email(create.email.clone());
-        let user = User::read_opt(driver, service_mask, &read)?;
-        if user.is_some() {
-            return Err(CoreError::UserEmailConstraint);
-        }
+    /// Check if password string and password hash match, an error is returned if they do not match or the hash is none.
+    /// Returns true if the hash version does not match the current hash version.
+    pub fn password_check<P>(&self, password: P) -> DriverResult<bool>
+    where
+        P: AsRef<str>,
+    {
+        match self.password_hash() {
+            Some(password_hash) => {
+                let checker =
+                    HashBuilder::from_phc(password_hash).map_err(DriverError::libreauth_pass)?;
 
-        create.password_hash = Auth::password_hash(create.password_hash.as_ref().map(|x| &**x))?;
-        driver.user_create(create).map_err(CoreError::Driver)
+                if checker.is_valid(password.as_ref()) {
+                    Ok(checker.needs_update(Some(USER_PASSWORD_HASH_VERSION)))
+                } else {
+                    Err(DriverError::UserPasswordIncorrect)
+                }
+            }
+            None => Err(DriverError::UserPasswordUndefined),
+        }
     }
 
     /// Read user.
@@ -242,45 +328,6 @@ impl User {
         read: &UserRead,
     ) -> CoreResult<Option<User>> {
         driver.user_read(read).map_err(CoreError::Driver)
-    }
-
-    /// Update user.
-    pub fn update(
-        driver: &dyn Driver,
-        _service_mask: Option<&Service>,
-        id: Uuid,
-        update: &UserUpdate,
-    ) -> CoreResult<User> {
-        driver.user_update(&id, update).map_err(CoreError::Driver)
-    }
-
-    /// Update user email by ID.
-    pub fn update_email(
-        driver: &dyn Driver,
-        _service_mask: Option<&Service>,
-        id: Uuid,
-        email: String,
-    ) -> CoreResult<User> {
-        let update = UserUpdate2 {
-            email: Some(email),
-            password_hash: None,
-        };
-        driver.user_update2(&id, &update).map_err(CoreError::Driver)
-    }
-
-    /// Update user password by ID.
-    pub fn update_password(
-        driver: &dyn Driver,
-        _service_mask: Option<&Service>,
-        id: Uuid,
-        password: String,
-    ) -> CoreResult<User> {
-        let password_hash = Auth::password_hash(Some(&password))?.unwrap();
-        let update = UserUpdate2 {
-            email: None,
-            password_hash: Some(password_hash),
-        };
-        driver.user_update2(&id, &update).map_err(CoreError::Driver)
     }
 
     /// Returns password strength and pwned checks.
@@ -360,4 +407,16 @@ impl User {
             future::Either::B(future::err(CoreError::PwnedPasswordsDisabled))
         }
     }
+}
+
+/// Hash password string.
+/// <https://github.com/breard-r/libreauth>
+fn hash_password(password: &str) -> DriverResult<String> {
+    let hasher = HashBuilder::new()
+        .version(USER_PASSWORD_HASH_VERSION)
+        .min_len(USER_PASSWORD_MIN_LEN)
+        .max_len(USER_PASSWORD_MAX_LEN)
+        .finalize()
+        .map_err(DriverError::libreauth_pass)?;
+    hasher.hash(password).map_err(DriverError::libreauth_pass)
 }

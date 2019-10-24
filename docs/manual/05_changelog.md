@@ -4,7 +4,7 @@
 
 ### Added
 
-- Added `name_ge`, `name_le`, `offset_id` query parameters to user list route.
+- Added `name_ge`, `name_le`, `offset_id` query parameters to user list route for sorting by name.
 
 ## 0.7.0 (2019-10-19)
 
