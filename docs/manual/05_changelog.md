@@ -6,6 +6,10 @@
 
 - Added `name_ge`, `name_le`, `offset_id` query parameters to user list route for sorting by name.
 
+### Fixed
+
+- Fixed list tests can fail because concurrent tests create rows within order being tested.
+
 ## 0.7.0 (2019-10-19)
 
 ### Added

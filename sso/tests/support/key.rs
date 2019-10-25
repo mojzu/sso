@@ -41,16 +41,18 @@ macro_rules! key_integration_test {
             let limit = 3;
 
             let body = KeyCreateRequest::with_user_id(true, KeyType::Key, KEY_NAME, user.id);
-            client.key_create(body.clone()).unwrap();
-            client.key_create(body.clone()).unwrap();
-            client.key_create(body.clone()).unwrap();
-            client.key_create(body.clone()).unwrap();
-            client.key_create(body.clone()).unwrap();
+            let k1 = client.key_create(body.clone()).unwrap().data.id;
+            let k2 = client.key_create(body.clone()).unwrap().data.id;
+            let k3 = client.key_create(body.clone()).unwrap().data.id;
+            let k4 = client.key_create(body.clone()).unwrap().data.id;
+            let k5 = client.key_create(body.clone()).unwrap().data.id;
+            let id = vec![k1, k2, k3, k4, k5];
 
             let res1 = client
                 .key_list(
                     KeyListRequestBuilder::default()
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
@@ -65,6 +67,7 @@ macro_rules! key_integration_test {
                     KeyListRequestBuilder::default()
                         .gt(Some(r1_1.to_owned()))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
@@ -81,6 +84,7 @@ macro_rules! key_integration_test {
                     KeyListRequestBuilder::default()
                         .gt(Some(r1_2.to_owned()))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
@@ -97,6 +101,7 @@ macro_rules! key_integration_test {
                     KeyListRequestBuilder::default()
                         .lt(Some(r3_5.to_owned()))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
@@ -114,6 +119,7 @@ macro_rules! key_integration_test {
                     KeyListRequestBuilder::default()
                         .lt(Some(r4_4.to_owned()))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )

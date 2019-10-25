@@ -295,8 +295,7 @@ macro_rules! user_integration_test {
         fn api_user_create_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
-            let body =
-                UserCreateRequest::new(true, USER_NAME, &user_email);
+            let body = UserCreateRequest::new(true, USER_NAME, &user_email);
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::Unauthorised);
         }
@@ -311,8 +310,7 @@ macro_rules! user_integration_test {
             let client = client_create(Some(&service_key.value));
             user_create(&client, true, USER_NAME, &user_email);
 
-            let body =
-                UserCreateRequest::new(true, USER_NAME, &user_email);
+            let body = UserCreateRequest::new(true, USER_NAME, &user_email);
             let res = client.user_create(body).unwrap_err();
             assert_eq!(res, ClientError::BadRequest);
         }

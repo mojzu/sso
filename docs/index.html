@@ -794,6 +794,10 @@ sso start-server</code></pre>
 <ul>
 <li>Added <code>name_ge</code>, <code>name_le</code>, <code>offset_id</code> query parameters to user list route for sorting by name.</li>
 </ul>
+<h3 id="fixed"><span class="header-section-number">5.1.2</span> Fixed</h3>
+<ul>
+<li>Fixed list tests can fail because concurrent tests create rows within order being tested.</li>
+</ul>
 <h2 id="section-1"><span class="header-section-number">5.2</span> 0.7.0 (2019-10-19)</h2>
 <h3 id="added-1"><span class="header-section-number">5.2.1</span> Added</h3>
 <ul>
@@ -817,7 +821,7 @@ sso start-server</code></pre>
 <li>Added prefix <code>Sso</code> to internal audit log types.</li>
 <li>Refactoring, move <code>api</code> module to crate root.</li>
 </ul>
-<h3 id="fixed"><span class="header-section-number">5.2.3</span> Fixed</h3>
+<h3 id="fixed-1"><span class="header-section-number">5.2.3</span> Fixed</h3>
 <ul>
 <li>Fixed <code>clippy</code> too many arguments warnings.</li>
 <li>Fixed <code>ClientActor</code> GET request ignores query string.</li>
@@ -831,7 +835,7 @@ sso start-server</code></pre>
 <li>Return <code>Unauthorised</code> instead of <code>Forbidden</code> for missing authentication.</li>
 <li>User update email and password endpoints accept <code>user_id</code> instead of <code>key</code> or <code>token</code>.</li>
 </ul>
-<h3 id="fixed-1"><span class="header-section-number">5.3.2</span> Fixed</h3>
+<h3 id="fixed-2"><span class="header-section-number">5.3.2</span> Fixed</h3>
 <ul>
 <li>Fixed read user by ID route <code>/v1/user/{id}</code> attempts to read key.</li>
 </ul>
@@ -866,7 +870,7 @@ sso start-server</code></pre>
 <li>Changed driver interface to use <code>Uuid</code> types instead of strings.</li>
 <li>Renamed configuration structures to options to improve consistency.</li>
 </ul>
-<h3 id="fixed-2"><span class="header-section-number">5.5.3</span> Fixed</h3>
+<h3 id="fixed-3"><span class="header-section-number">5.5.3</span> Fixed</h3>
 <ul>
 <li>Fixed missing <code>dyn</code> keyword warnings.</li>
 </ul>
@@ -891,7 +895,7 @@ sso start-server</code></pre>
 <li>Renamed local authentication provider reset, update routes.</li>
 <li>Improved configuration interfaces using <code>derive_builder</code> crate.</li>
 </ul>
-<h3 id="fixed-3"><span class="header-section-number">5.6.3</span> Fixed</h3>
+<h3 id="fixed-4"><span class="header-section-number">5.6.3</span> Fixed</h3>
 <ul>
 <li>Reset password route now returns OK in cases where user email address does not exist.</li>
 <li>Fixed audit log errors were created for root key authentication when authenticating a service key.</li>
@@ -919,7 +923,7 @@ sso start-server</code></pre>
 <li>Removed <code>skeptic</code> from tests, use Cargo test runner.</li>
 <li>Moved route types to public api module.</li>
 </ul>
-<h3 id="fixed-4"><span class="header-section-number">5.7.3</span> Fixed</h3>
+<h3 id="fixed-5"><span class="header-section-number">5.7.3</span> Fixed</h3>
 <ul>
 <li>Fixed not validating service URLs before save using URL parse, improved URL error handling.</li>
 <li>Fixed inconsistent core error display strings.</li>

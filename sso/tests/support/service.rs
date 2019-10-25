@@ -5,17 +5,19 @@ macro_rules! service_integration_test {
         #[ignore]
         fn api_service_list_ok() {
             let client = client_create(None);
-            service_key_create(&client);
-            service_key_create(&client);
-            service_key_create(&client);
-            service_key_create(&client);
-            service_key_create(&client);
+            let (s1, _) = service_key_create(&client);
+            let (s2, _) = service_key_create(&client);
+            let (s3, _) = service_key_create(&client);
+            let (s4, _) = service_key_create(&client);
+            let (s5, _) = service_key_create(&client);
+            let id = vec![s1.id, s2.id, s3.id, s4.id, s5.id];
             let limit = 3;
 
             let res1 = client
                 .service_list(
                     ServiceListRequestBuilder::default()
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
@@ -30,6 +32,7 @@ macro_rules! service_integration_test {
                     ServiceListRequestBuilder::default()
                         .gt(Some(r1_1.to_owned()))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
@@ -46,6 +49,7 @@ macro_rules! service_integration_test {
                     ServiceListRequestBuilder::default()
                         .gt(Some(r1_2.to_owned()))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
@@ -62,6 +66,7 @@ macro_rules! service_integration_test {
                     ServiceListRequestBuilder::default()
                         .lt(Some(r3_5.to_owned()))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
@@ -79,6 +84,7 @@ macro_rules! service_integration_test {
                     ServiceListRequestBuilder::default()
                         .lt(Some(r4_4.to_owned()))
                         .limit(Some(limit))
+                        .id(Some(id.clone()))
                         .build()
                         .unwrap(),
                 )
