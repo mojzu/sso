@@ -328,8 +328,8 @@ mod server_user {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        AuditBuilder, Auth, CoreError, Driver, Service, User, UserList, UserListFilter,
-        UserListQuery, UserRead,
+        AuditBuilder, Auth, CoreError, Driver, User, UserList, UserListFilter, UserListQuery,
+        UserRead,
     };
 
     pub fn list(
@@ -370,10 +370,10 @@ mod server_user {
         key_value: Option<String>,
         read: &UserRead,
     ) -> ApiResult<User> {
-        let service =
+        let _service =
             Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        read_inner(driver, service.as_ref(), read)
+        read_inner(driver, read)
     }
 
     pub fn update(
@@ -383,11 +383,11 @@ mod server_user {
         user_id: Uuid,
         update: UserUpdate,
     ) -> ApiResult<(User, User)> {
-        let service =
+        let _service =
             Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let read = UserRead::Id(user_id);
-        let previous_user = read_inner(driver, service.as_ref(), &read)?;
+        let previous_user = read_inner(driver, &read)?;
 
         let user = driver
             .user_update(&user_id, &update)
@@ -402,11 +402,11 @@ mod server_user {
         key_value: Option<String>,
         user_id: Uuid,
     ) -> ApiResult<User> {
-        let service =
+        let _service =
             Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let read = UserRead::Id(user_id);
-        let user = read_inner(driver, service.as_ref(), &read)?;
+        let user = read_inner(driver, &read)?;
         driver
             .user_delete(&user_id)
             .map_err(CoreError::Driver)
@@ -414,11 +414,12 @@ mod server_user {
             .map(|_| user)
     }
 
-    fn read_inner(
-        driver: &dyn Driver,
-        service: Option<&Service>,
-        read: &UserRead,
-    ) -> ApiResult<User> {
-        User::read(driver, service, read).map_err(ApiError::NotFound)
+    fn read_inner(driver: &dyn Driver, read: &UserRead) -> ApiResult<User> {
+        driver
+            .user_read(read)
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?
+            .ok_or_else(|| CoreError::UserNotFound)
+            .map_err(ApiError::NotFound)
     }
 }

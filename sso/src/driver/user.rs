@@ -1,13 +1,7 @@
-use crate::{
-    client_msg::Get, AuditDiff, AuditDiffBuilder, AuditSubject, ClientActor, CoreError, CoreResult,
-    Driver, DriverError, DriverResult, Service,
-};
-use actix::Addr;
+use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, DriverError, DriverResult};
 use chrono::{DateTime, Utc};
-use futures::{future, Future};
 use libreauth::pass::HashBuilder;
 use serde_json::Value;
-use sha1::{Digest, Sha1};
 use std::fmt;
 use uuid::Uuid;
 
@@ -286,13 +280,13 @@ pub struct UserKey {
 }
 
 impl User {
-    /// Get nullable reference to user password hash.
+    /// Returns nullable reference to user password hash.
     pub fn password_hash(&self) -> Option<&str> {
         self.password_hash.as_ref().map(|x| &**x)
     }
 
-    /// Check if password string and password hash match, an error is returned if they do not match or the hash is none.
-    /// Returns true if the hash version does not match the current hash version.
+    /// Checks if password input and password hash match, an error is returned if they do not match
+    /// or the hash is none. Returns true if the hash version does not match the current hash version.
     pub fn password_check<P>(&self, password: P) -> DriverResult<bool>
     where
         P: AsRef<str>,
@@ -309,102 +303,6 @@ impl User {
                 }
             }
             None => Err(DriverError::UserPasswordUndefined),
-        }
-    }
-
-    /// Read user.
-    pub fn read(
-        driver: &dyn Driver,
-        service_mask: Option<&Service>,
-        read: &UserRead,
-    ) -> CoreResult<User> {
-        Self::read_opt(driver, service_mask, read)?.ok_or_else(|| CoreError::UserNotFound)
-    }
-
-    /// Read user (optional).
-    pub fn read_opt(
-        driver: &dyn Driver,
-        _service_mask: Option<&Service>,
-        read: &UserRead,
-    ) -> CoreResult<Option<User>> {
-        driver.user_read(read).map_err(CoreError::Driver)
-    }
-
-    /// Returns password strength and pwned checks.
-    pub fn password_meta(
-        enabled: bool,
-        client: &Addr<ClientActor>,
-        password: Option<&str>,
-    ) -> impl Future<Item = UserPasswordMeta, Error = CoreError> {
-        match password {
-            Some(password) => {
-                let password_strength = User::password_meta_strength(password).then(|r| match r {
-                    Ok(entropy) => future::ok(Some(entropy.score)),
-                    Err(err) => {
-                        warn!("{}", err);
-                        future::ok(None)
-                    }
-                });
-                let password_pwned =
-                    User::password_meta_pwned(enabled, client, password).then(|r| match r {
-                        Ok(password_pwned) => future::ok(Some(password_pwned)),
-                        Err(err) => {
-                            warn!("{}", err);
-                            future::ok(None)
-                        }
-                    });
-                future::Either::A(password_strength.join(password_pwned).map(
-                    |(password_strength, password_pwned)| UserPasswordMeta {
-                        password_strength,
-                        password_pwned,
-                    },
-                ))
-            }
-            None => future::Either::B(future::ok(UserPasswordMeta::default())),
-        }
-    }
-
-    /// Returns password strength test performed by `zxcvbn`.
-    /// <https://github.com/shssoichiro/zxcvbn-rs>
-    fn password_meta_strength(
-        password: &str,
-    ) -> impl Future<Item = zxcvbn::Entropy, Error = CoreError> {
-        // TODO(fix): Fix "Zxcvbn cannot evaluate a blank password" warning.
-        future::result(zxcvbn::zxcvbn(password, &[]).map_err(CoreError::Zxcvbn))
-    }
-
-    /// Returns true if password is present in `Pwned Passwords` index, else false.
-    /// <https://haveibeenpwned.com/Passwords>
-    fn password_meta_pwned(
-        enabled: bool,
-        client: &Addr<ClientActor>,
-        password: &str,
-    ) -> impl Future<Item = bool, Error = CoreError> {
-        if enabled {
-            // Make request to API using first 5 characters of SHA1 password hash.
-            let mut hash = Sha1::new();
-            hash.input(password);
-            let hash = format!("{:X}", hash.result());
-            let route = format!("/range/{:.5}", hash);
-
-            future::Either::A(
-                // Make API request.
-                client
-                    .send(Get::new("https://api.pwnedpasswords.com", route))
-                    .map_err(CoreError::ActixMailbox)
-                    .and_then(|res| res.map_err(CoreError::Client))
-                    // Compare suffix of hash to lines to determine if password is pwned.
-                    .and_then(move |text| {
-                        for line in text.lines() {
-                            if hash[5..] == line[..35] {
-                                return Ok(true);
-                            }
-                        }
-                        Ok(false)
-                    }),
-            )
-        } else {
-            future::Either::B(future::err(CoreError::PwnedPasswordsDisabled))
         }
     }
 }

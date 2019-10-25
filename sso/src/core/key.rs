@@ -291,7 +291,10 @@ impl Key {
             .service_read_opt(&ServiceRead::new(*service_id))?
             .ok_or_else(|| CoreError::ServiceNotFound)?;
         let user_read = UserRead::Id(*user_id);
-        let user = User::read(driver, None, &user_read)?;
+        let user = driver
+            .user_read(&user_read)
+            .map_err(CoreError::Driver)?
+            .ok_or_else(|| CoreError::UserNotFound)?;
 
         let value = Key::value_generate();
         let create = KeyCreate {

@@ -1,10 +1,14 @@
 use crate::{
+    client_msg::Get,
     notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
-    AuditBuilder, AuditMeta, CoreError, CoreResult, Csrf, CsrfCreate, Driver, Jwt, JwtClaimsType,
-    Key, KeyType, KeyWithValue, NotifyActor, Service, ServiceRead, User, UserRead, UserToken,
+    AuditBuilder, AuditMeta, ClientActor, CoreError, CoreResult, Csrf, CsrfCreate, Driver, Jwt,
+    JwtClaimsType, Key, KeyType, KeyWithValue, NotifyActor, Service, ServiceRead, User,
+    UserPasswordMeta, UserRead, UserToken,
 };
 use actix::Addr;
+use futures::{future, Future};
 use libreauth::oath::TOTPBuilder;
+use sha1::{Digest, Sha1};
 use uuid::Uuid;
 
 /// Authentication functions.
@@ -14,6 +18,84 @@ pub struct Auth;
 // TODO(refactor): Move this logic, other core methods into api/driver?
 
 impl Auth {
+    /// Returns password strength and pwned checks.
+    pub fn password_meta(
+        enabled: bool,
+        client: &Addr<ClientActor>,
+        password: Option<&str>,
+    ) -> impl Future<Item = UserPasswordMeta, Error = CoreError> {
+        match password {
+            Some(password) => {
+                let password_strength = Self::password_meta_strength(password).then(|r| match r {
+                    Ok(entropy) => future::ok(Some(entropy.score)),
+                    Err(err) => {
+                        warn!("{}", err);
+                        future::ok(None)
+                    }
+                });
+                let password_pwned =
+                    Self::password_meta_pwned(enabled, client, password).then(|r| match r {
+                        Ok(password_pwned) => future::ok(Some(password_pwned)),
+                        Err(err) => {
+                            warn!("{}", err);
+                            future::ok(None)
+                        }
+                    });
+                future::Either::A(password_strength.join(password_pwned).map(
+                    |(password_strength, password_pwned)| UserPasswordMeta {
+                        password_strength,
+                        password_pwned,
+                    },
+                ))
+            }
+            None => future::Either::B(future::ok(UserPasswordMeta::default())),
+        }
+    }
+
+    /// Returns password strength test performed by `zxcvbn`.
+    /// <https://github.com/shssoichiro/zxcvbn-rs>
+    fn password_meta_strength(
+        password: &str,
+    ) -> impl Future<Item = zxcvbn::Entropy, Error = CoreError> {
+        // TODO(fix): Fix "Zxcvbn cannot evaluate a blank password" warning.
+        future::result(zxcvbn::zxcvbn(password, &[]).map_err(CoreError::Zxcvbn))
+    }
+
+    /// Returns true if password is present in `Pwned Passwords` index, else false.
+    /// <https://haveibeenpwned.com/Passwords>
+    fn password_meta_pwned(
+        enabled: bool,
+        client: &Addr<ClientActor>,
+        password: &str,
+    ) -> impl Future<Item = bool, Error = CoreError> {
+        if enabled {
+            // Make request to API using first 5 characters of SHA1 password hash.
+            let mut hash = Sha1::new();
+            hash.input(password);
+            let hash = format!("{:X}", hash.result());
+            let route = format!("/range/{:.5}", hash);
+
+            future::Either::A(
+                // Make API request.
+                client
+                    .send(Get::new("https://api.pwnedpasswords.com", route))
+                    .map_err(CoreError::ActixMailbox)
+                    .and_then(|res| res.map_err(CoreError::Client))
+                    // Compare suffix of hash to lines to determine if password is pwned.
+                    .and_then(move |text| {
+                        for line in text.lines() {
+                            if hash[5..] == line[..35] {
+                                return Ok(true);
+                            }
+                        }
+                        Ok(false)
+                    }),
+            )
+        } else {
+            future::Either::B(future::err(CoreError::PwnedPasswordsDisabled))
+        }
+    }
+
     pub fn notify_email_reset_password(
         notify: &Addr<NotifyActor>,
         service: Service,
@@ -305,12 +387,15 @@ impl Auth {
     /// Checks user is enabled, returns bad request if disabled.
     pub fn user_read_by_id(
         driver: &dyn Driver,
-        service_mask: Option<&Service>,
+        _service_mask: Option<&Service>,
         audit: &mut AuditBuilder,
         id: Uuid,
     ) -> CoreResult<User> {
         let read = UserRead::Id(id);
-        let user = User::read(driver, service_mask, &read)?;
+        let user = driver
+            .user_read(&read)
+            .map_err(CoreError::Driver)?
+            .ok_or_else(|| CoreError::UserNotFound)?;
         audit.user(Some(&user));
         if !user.is_enabled {
             return Err(CoreError::UserDisabled);
@@ -322,12 +407,15 @@ impl Auth {
     /// Does not check user is enabled.
     pub fn user_read_by_id_unchecked(
         driver: &dyn Driver,
-        service_mask: Option<&Service>,
+        _service_mask: Option<&Service>,
         audit: &mut AuditBuilder,
         id: Uuid,
     ) -> CoreResult<User> {
         let read = UserRead::Id(id);
-        let user = User::read(driver, service_mask, &read)?;
+        let user = driver
+            .user_read(&read)
+            .map_err(CoreError::Driver)?
+            .ok_or_else(|| CoreError::UserNotFound)?;
         audit.user(Some(&user));
         Ok(user)
     }
@@ -336,12 +424,15 @@ impl Auth {
     /// Also checks user is enabled, returns bad request if disabled.
     pub fn user_read_by_email(
         driver: &dyn Driver,
-        service_mask: Option<&Service>,
+        _service_mask: Option<&Service>,
         audit: &mut AuditBuilder,
         email: String,
     ) -> CoreResult<User> {
         let read = UserRead::Email(email);
-        let user = User::read(driver, service_mask, &read)?;
+        let user = driver
+            .user_read(&read)
+            .map_err(CoreError::Driver)?
+            .ok_or_else(|| CoreError::UserNotFound)?;
         audit.user(Some(&user));
         if !user.is_enabled {
             return Err(CoreError::UserDisabled);
