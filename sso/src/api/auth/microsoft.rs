@@ -97,7 +97,7 @@ mod provider_microsoft {
 
         // Read the CSRF key using state value, rebuild code verifier from value.
         let csrf = driver
-            .csrf_read_opt(&request.state)
+            .csrf_read(&request.state)
             .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?
             .ok_or_else(|| CoreError::CsrfNotFoundOrUsed)

@@ -1,11 +1,23 @@
 /// Driver errors.
 #[derive(Debug, Fail)]
 pub enum DriverError {
+    #[fail(display = "KeyUserTokenConstraint")]
+    KeyUserTokenConstraint,
+
+    #[fail(display = "KeyUserTotpConstraint")]
+    KeyUserTotpConstraint,
+
+    #[fail(display = "ServiceNotFound")]
+    ServiceNotFound,
+
     #[fail(display = "ServiceDisabled")]
     ServiceDisabled,
 
     #[fail(display = "ServiceProviderLocalDisabled")]
     ServiceProviderLocalDisabled,
+
+    #[fail(display = "UserNotFound")]
+    UserNotFound,
 
     #[fail(display = "UserEmailConstraint")]
     UserEmailConstraint,
@@ -15,6 +27,9 @@ pub enum DriverError {
 
     #[fail(display = "UserPasswordUndefined")]
     UserPasswordUndefined,
+
+    #[fail(display = "CsrfServiceMismatch")]
+    CsrfServiceMismatch,
 
     #[fail(display = "Locked {:?}", _0)]
     Locked(i32),
@@ -51,6 +66,9 @@ pub enum DriverError {
 
     #[fail(display = "SerdeQs {}", _0)]
     SerdeQs(String),
+
+    #[fail(display = "Metrics")]
+    Metrics,
 }
 
 impl DriverError {

@@ -1,7 +1,10 @@
 use crate::{
-    driver::postgres::schema::sso_key, DriverError, DriverResult, Key, KeyCount, KeyCreate,
-    KeyList, KeyListQuery, KeyRead, KeyReadUserId, KeyReadUserValue, KeyType, KeyUpdate,
-    KeyWithValue,
+    driver::postgres::{
+        model::{ModelService, ModelUser},
+        schema::sso_key,
+    },
+    DriverError, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyListQuery, KeyRead,
+    KeyReadUserId, KeyReadUserValue, KeyType, KeyUpdate, KeyWithValue, ServiceRead, UserRead,
 };
 use chrono::{DateTime, Utc};
 use diesel::{dsl::sql, prelude::*, sql_types::BigInt, PgConnection};
@@ -69,23 +72,6 @@ struct ModelKeyInsert<'a> {
     value: &'a str,
     service_id: Option<&'a Uuid>,
     user_id: Option<&'a Uuid>,
-}
-
-impl<'a> ModelKeyInsert<'a> {
-    fn from_create(now: &'a DateTime<Utc>, id: &'a Uuid, create: &'a KeyCreate) -> Self {
-        Self {
-            created_at: now,
-            updated_at: now,
-            id,
-            is_enabled: create.is_enabled,
-            is_revoked: create.is_revoked,
-            type_: create.type_.to_string().unwrap(),
-            name: &create.name,
-            value: &create.value,
-            service_id: create.service_id.as_ref(),
-            user_id: create.user_id.as_ref(),
-        }
-    }
 }
 
 #[derive(AsChangeset)]
@@ -170,35 +156,58 @@ impl ModelKey {
 
     pub fn count(conn: &PgConnection, count: &KeyCount) -> DriverResult<usize> {
         match count {
-            KeyCount::Token(count_service_id, count_user_id) => sso_key::table
-                .select(sql::<BigInt>("count(*)"))
-                .filter(
-                    sso_key::dsl::is_enabled
-                        .eq(true)
-                        .and(sso_key::dsl::type_.eq("Token"))
-                        .and(sso_key::dsl::service_id.eq(count_service_id))
-                        .and(sso_key::dsl::user_id.eq(count_user_id)),
-                )
-                .get_result::<i64>(conn),
-            KeyCount::Totp(count_service_id, count_user_id) => sso_key::table
-                .select(sql::<BigInt>("count(*)"))
-                .filter(
-                    sso_key::dsl::is_enabled
-                        .eq(true)
-                        .and(sso_key::dsl::type_.eq("Totp"))
-                        .and(sso_key::dsl::service_id.eq(count_service_id))
-                        .and(sso_key::dsl::user_id.eq(count_user_id)),
-                )
-                .get_result::<i64>(conn),
+            KeyCount::Token(service_id, user_id) => Self::count_token(conn, service_id, user_id),
+            KeyCount::Totp(service_id, user_id) => Self::count_totp(conn, service_id, user_id),
         }
-        .map_err(Into::into)
         .map(|x| x as usize)
     }
 
     pub fn create(conn: &PgConnection, create: &KeyCreate) -> DriverResult<KeyWithValue> {
+        if create.is_enabled {
+            if create.type_ == KeyType::Token {
+                let count = Self::count_token(
+                    conn,
+                    create.service_id.as_ref().unwrap(),
+                    create.user_id.as_ref().unwrap(),
+                )?;
+                if count != 0 {
+                    return Err(DriverError::KeyUserTokenConstraint);
+                }
+            }
+            if create.type_ == KeyType::Totp {
+                let count = Self::count_totp(
+                    conn,
+                    create.service_id.as_ref().unwrap(),
+                    create.user_id.as_ref().unwrap(),
+                )?;
+                if count != 0 {
+                    return Err(DriverError::KeyUserTotpConstraint);
+                }
+            }
+        }
+        if let Some(service_id) = &create.service_id {
+            ModelService::read(conn, &ServiceRead::new(*service_id))?
+                .ok_or_else(|| DriverError::ServiceNotFound)?;
+        }
+        if let Some(user_id) = &create.user_id {
+            ModelUser::read(conn, &UserRead::Id(*user_id))?
+                .ok_or_else(|| DriverError::UserNotFound)?;
+        }
+
         let now = Utc::now();
         let id = Uuid::new_v4();
-        let value = ModelKeyInsert::from_create(&now, &id, create);
+        let value = ModelKeyInsert {
+            created_at: &now,
+            updated_at: &now,
+            id: &id,
+            is_enabled: create.is_enabled,
+            is_revoked: create.is_revoked,
+            type_: create.type_.to_string().unwrap(),
+            name: &create.name,
+            value: &create.value,
+            service_id: create.service_id.as_ref(),
+            user_id: create.user_id.as_ref(),
+        };
         diesel::insert_into(sso_key::table)
             .values(&value)
             .get_result::<ModelKey>(conn)
@@ -206,7 +215,7 @@ impl ModelKey {
             .map(Into::into)
     }
 
-    pub fn read_opt(conn: &PgConnection, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
+    pub fn read(conn: &PgConnection, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
         match read {
             KeyRead::Id(id, service_id_mask) => Self::read_by_id(conn, id, service_id_mask),
             KeyRead::RootValue(value) => Self::read_by_root_value(conn, value),
@@ -250,6 +259,34 @@ impl ModelKey {
                     Ok(())
                 }
             })
+    }
+
+    fn count_token(conn: &PgConnection, service_id: &Uuid, user_id: &Uuid) -> DriverResult<i64> {
+        sso_key::table
+            .select(sql::<BigInt>("count(*)"))
+            .filter(
+                sso_key::dsl::is_enabled
+                    .eq(true)
+                    .and(sso_key::dsl::type_.eq("Token"))
+                    .and(sso_key::dsl::service_id.eq(service_id))
+                    .and(sso_key::dsl::user_id.eq(user_id)),
+            )
+            .get_result::<i64>(conn)
+            .map_err(Into::into)
+    }
+
+    fn count_totp(conn: &PgConnection, service_id: &Uuid, user_id: &Uuid) -> DriverResult<i64> {
+        sso_key::table
+            .select(sql::<BigInt>("count(*)"))
+            .filter(
+                sso_key::dsl::is_enabled
+                    .eq(true)
+                    .and(sso_key::dsl::type_.eq("Totp"))
+                    .and(sso_key::dsl::service_id.eq(service_id))
+                    .and(sso_key::dsl::user_id.eq(user_id)),
+            )
+            .get_result::<i64>(conn)
+            .map_err(Into::into)
     }
 
     fn read_by_id(

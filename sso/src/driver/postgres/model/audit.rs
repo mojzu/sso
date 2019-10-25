@@ -135,7 +135,7 @@ impl ModelAudit {
             .map(Into::into)
     }
 
-    pub fn read_opt(conn: &PgConnection, read: &AuditRead) -> DriverResult<Option<Audit>> {
+    pub fn read(conn: &PgConnection, read: &AuditRead) -> DriverResult<Option<Audit>> {
         match read.service_id_mask {
             Some(service_id_mask) => sso_audit::table
                 .filter(

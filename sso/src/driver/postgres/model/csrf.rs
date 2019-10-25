@@ -59,17 +59,17 @@ impl ModelCsrf {
             .map(Into::into)
     }
 
-    pub fn read_opt(conn: &PgConnection, key: &str) -> DriverResult<Option<Csrf>> {
+    pub fn read(conn: &PgConnection, key: &str) -> DriverResult<Option<Csrf>> {
         Self::delete_by_ttl(conn)?;
 
-        let csrf = Self::read_opt_inner(conn, key)?;
+        let csrf = Self::read_inner(conn, key)?;
         if csrf.is_some() {
             Self::delete_by_key(conn, key)?;
         }
         Ok(csrf)
     }
 
-    fn read_opt_inner(conn: &PgConnection, key: &str) -> DriverResult<Option<Csrf>> {
+    fn read_inner(conn: &PgConnection, key: &str) -> DriverResult<Option<Csrf>> {
         sso_csrf::table
             .filter(sso_csrf::dsl::key.eq(key))
             .get_result::<ModelCsrf>(conn)

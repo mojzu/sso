@@ -9,7 +9,8 @@ use crate::{
         result_audit, result_audit_err, validate, ApiResult, AuditCreate2Request,
         AuditIdOptResponse, ValidateRequest, ValidateRequestQuery,
     },
-    AuditBuilder, AuditMeta, AuditType, Csrf, Driver, UserKey, UserToken, UserTokenAccess,
+    AuditBuilder, AuditMeta, AuditType, Csrf, Driver, KeyUpdate, UserKey, UserToken,
+    UserTokenAccess,
 };
 use uuid::Uuid;
 use validator::Validate;
@@ -319,9 +320,9 @@ pub fn auth_csrf_verify(
 mod server_auth {
     use super::*;
     use crate::{
-        api::{ApiError, ApiResult},
-        Audit, AuditBuilder, Auth, CoreError, Csrf, Driver, Jwt, Key, KeyType, Service, UserToken,
-        UserTokenAccess,
+        api::{csrf_verify as api_csrf_verify, ApiError, ApiResult},
+        Audit, AuditBuilder, Auth, CoreError, Csrf, CsrfCreate, Driver, Jwt, KeyType, Service,
+        UserToken, UserTokenAccess,
     };
 
     pub fn key_verify(
@@ -378,15 +379,17 @@ mod server_auth {
         .map_err(ApiError::BadRequest)?;
 
         // Disable and revoke key.
-        Key::update(
-            driver,
-            Some(&service),
-            key.id,
-            Some(false),
-            Some(true),
-            None,
-        )
-        .map_err(ApiError::BadRequest)?;
+        driver
+            .key_update(
+                &key.id,
+                &KeyUpdate {
+                    is_enabled: Some(false),
+                    is_revoked: Some(true),
+                    name: None,
+                },
+            )
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?;
 
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
@@ -468,7 +471,7 @@ mod server_auth {
             .map_err(ApiError::BadRequest)?;
 
         // Verify CSRF to prevent reuse.
-        Auth::csrf_verify(driver, &service, csrf_key).map_err(ApiError::BadRequest)?;
+        api_csrf_verify(driver, &service, &csrf_key)?;
 
         // Encode user token.
         let user_token = Auth::encode_user_token(
@@ -518,21 +521,23 @@ mod server_auth {
             .map_err(ApiError::BadRequest)?;
         if let Some(csrf_key) = csrf_key {
             driver
-                .csrf_read_opt(&csrf_key)
+                .csrf_read(&csrf_key)
                 .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
         }
 
         // Token revoked, disable and revoked linked key.
-        Key::update(
-            driver,
-            Some(&service),
-            key.id,
-            Some(false),
-            Some(true),
-            None,
-        )
-        .map_err(ApiError::BadRequest)?;
+        driver
+            .key_update(
+                &key.id,
+                &KeyUpdate {
+                    is_enabled: Some(false),
+                    is_revoked: Some(true),
+                    name: None,
+                },
+            )
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?;
 
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
@@ -576,7 +581,10 @@ mod server_auth {
             Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let expires_s = request.expires_s.unwrap_or(csrf_token_expires);
-        Auth::csrf_create(driver, &service, expires_s).map_err(ApiError::BadRequest)
+        driver
+            .csrf_create(&CsrfCreate::generate(expires_s, service.id))
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)
     }
 
     pub fn csrf_verify(
@@ -588,7 +596,7 @@ mod server_auth {
         let service =
             Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        Auth::csrf_verify(driver, &service, request.key).map_err(ApiError::BadRequest)
+        api_csrf_verify(driver, &service, &request.key)
     }
 
     pub fn oauth2_login(

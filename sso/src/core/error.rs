@@ -16,12 +16,6 @@ pub enum CoreError {
     #[fail(display = "KeyServiceUndefined")]
     KeyServiceUndefined,
 
-    #[fail(display = "KeyUserTokenConstraint")]
-    KeyUserTokenConstraint,
-
-    #[fail(display = "KeyUserTotpConstraint")]
-    KeyUserTotpConstraint,
-
     #[fail(display = "KeyDisabled")]
     KeyDisabled,
 
@@ -108,9 +102,6 @@ pub enum CoreError {
 
     #[fail(display = "Zxcvbn {}", _0)]
     Zxcvbn(#[fail(cause)] zxcvbn::ZxcvbnError),
-
-    #[fail(display = "Metrics")]
-    Metrics,
 
     #[fail(display = "HttpHeader")]
     HttpHeader,

@@ -152,7 +152,7 @@ impl ModelService {
             .map(Into::into)
     }
 
-    pub fn read_opt(conn: &PgConnection, read: &ServiceRead) -> DriverResult<Option<Service>> {
+    pub fn read(conn: &PgConnection, read: &ServiceRead) -> DriverResult<Option<Service>> {
         match read.service_id_mask {
             Some(service_id_mask) => sso_service::table
                 .filter(

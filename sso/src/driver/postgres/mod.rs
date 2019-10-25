@@ -95,9 +95,9 @@ impl DriverIf for DriverPostgres {
         ModelAudit::create(&conn, create)
     }
 
-    fn audit_read_opt(&self, read: &AuditRead) -> DriverResult<Option<Audit>> {
+    fn audit_read(&self, read: &AuditRead) -> DriverResult<Option<Audit>> {
         let conn = self.conn()?;
-        ModelAudit::read_opt(&conn, read)
+        ModelAudit::read(&conn, read)
     }
 
     fn audit_read_metrics(
@@ -129,9 +129,9 @@ impl DriverIf for DriverPostgres {
         ModelCsrf::create(&conn, create)
     }
 
-    fn csrf_read_opt(&self, key: &str) -> DriverResult<Option<Csrf>> {
+    fn csrf_read(&self, key: &str) -> DriverResult<Option<Csrf>> {
         let conn = self.conn()?;
-        ModelCsrf::read_opt(&conn, key)
+        ModelCsrf::read(&conn, key)
     }
 
     fn key_list(&self, list: &KeyList) -> DriverResult<Vec<Key>> {
@@ -149,9 +149,9 @@ impl DriverIf for DriverPostgres {
         ModelKey::create(&conn, create)
     }
 
-    fn key_read_opt(&self, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
+    fn key_read(&self, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
         let conn = self.conn()?;
-        ModelKey::read_opt(&conn, read)
+        ModelKey::read(&conn, read)
     }
 
     fn key_update(&self, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key> {
@@ -179,9 +179,9 @@ impl DriverIf for DriverPostgres {
         ModelService::create(&conn, create)
     }
 
-    fn service_read_opt(&self, read: &ServiceRead) -> DriverResult<Option<Service>> {
+    fn service_read(&self, read: &ServiceRead) -> DriverResult<Option<Service>> {
         let conn = self.conn()?;
-        ModelService::read_opt(&conn, read)
+        ModelService::read(&conn, read)
     }
 
     fn service_update(&self, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service> {
@@ -289,8 +289,8 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelAudit::create(self.conn(), create)
     }
 
-    fn audit_read_opt(&self, read: &AuditRead) -> DriverResult<Option<Audit>> {
-        ModelAudit::read_opt(self.conn(), read)
+    fn audit_read(&self, read: &AuditRead) -> DriverResult<Option<Audit>> {
+        ModelAudit::read(self.conn(), read)
     }
 
     fn audit_read_metrics(
@@ -318,8 +318,8 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelCsrf::create(self.conn(), create)
     }
 
-    fn csrf_read_opt(&self, key: &str) -> DriverResult<Option<Csrf>> {
-        ModelCsrf::read_opt(self.conn(), key)
+    fn csrf_read(&self, key: &str) -> DriverResult<Option<Csrf>> {
+        ModelCsrf::read(self.conn(), key)
     }
 
     fn key_list(&self, list: &KeyList) -> DriverResult<Vec<Key>> {
@@ -334,8 +334,8 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelKey::create(self.conn(), create)
     }
 
-    fn key_read_opt(&self, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
-        ModelKey::read_opt(self.conn(), read)
+    fn key_read(&self, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
+        ModelKey::read(self.conn(), read)
     }
 
     fn key_update(&self, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key> {
@@ -358,8 +358,8 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelService::create(self.conn(), create)
     }
 
-    fn service_read_opt(&self, read: &ServiceRead) -> DriverResult<Option<Service>> {
-        ModelService::read_opt(self.conn(), read)
+    fn service_read(&self, read: &ServiceRead) -> DriverResult<Option<Service>> {
+        ModelService::read(self.conn(), read)
     }
 
     fn service_update(&self, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service> {

@@ -259,7 +259,8 @@ mod server_key {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        AuditBuilder, Auth, CoreError, Driver, Key, KeyList, KeyListFilter, KeyListQuery, Service,
+        AuditBuilder, Auth, CoreError, Driver, Key, KeyCreate, KeyList, KeyListFilter,
+        KeyListQuery, KeyUpdate, Service,
     };
 
     pub fn list(
@@ -297,21 +298,23 @@ mod server_key {
                     .and_then(|_| {
                         match request.user_id {
                             // User ID is defined, creating user key for service.
-                            Some(user_id) => Key::create_user(
-                                driver,
-                                request.is_enabled,
-                                request.type_,
-                                request.name,
-                                &service_id,
-                                &user_id,
-                            ),
+                            Some(user_id) => driver
+                                .key_create(&KeyCreate::user(
+                                    request.is_enabled,
+                                    request.type_,
+                                    request.name,
+                                    service_id,
+                                    user_id,
+                                ))
+                                .map_err(CoreError::Driver),
                             // Creating service key.
-                            None => Key::create_service(
-                                driver,
-                                request.is_enabled,
-                                request.name,
-                                &service_id,
-                            ),
+                            None => driver
+                                .key_create(&KeyCreate::service(
+                                    request.is_enabled,
+                                    request.name,
+                                    service_id,
+                                ))
+                                .map_err(CoreError::Driver),
                         }
                         .map_err(ApiError::BadRequest)
                     })
@@ -322,14 +325,15 @@ mod server_key {
                     .and_then(|service| {
                         match request.user_id {
                             // User ID is defined, creating user key for service.
-                            Some(user_id) => Key::create_user(
-                                driver,
-                                request.is_enabled,
-                                request.type_,
-                                request.name,
-                                &service.id,
-                                &user_id,
-                            ),
+                            Some(user_id) => driver
+                                .key_create(&KeyCreate::user(
+                                    request.is_enabled,
+                                    request.type_,
+                                    request.name,
+                                    service.id,
+                                    user_id,
+                                ))
+                                .map_err(CoreError::Driver),
                             // Service cannot create service keys.
                             None => Err(CoreError::ServiceCannotCreateServiceKey),
                         }
@@ -362,15 +366,17 @@ mod server_key {
             Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let previous_key = read_inner(driver, service.as_ref(), key_id)?;
-        let key = Key::update(
-            driver,
-            service.as_ref(),
-            key_id,
-            request.is_enabled,
-            None,
-            request.name,
-        )
-        .map_err(ApiError::BadRequest)?;
+        let key = driver
+            .key_update(
+                &key_id,
+                &KeyUpdate {
+                    is_enabled: request.is_enabled,
+                    is_revoked: None,
+                    name: request.name,
+                },
+            )
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?;
         Ok((previous_key, key))
     }
 
@@ -394,7 +400,7 @@ mod server_key {
     fn read_inner(driver: &dyn Driver, service: Option<&Service>, key_id: Uuid) -> ApiResult<Key> {
         let read = KeyRead::Id(key_id, service.map(|x| x.id));
         driver
-            .key_read_opt(&read)
+            .key_read(&read)
             .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?
             .ok_or_else(|| ApiError::NotFound(CoreError::KeyNotFound))

@@ -1,5 +1,5 @@
 use crate::{
-    AuditBuilder, ClientActor, ClientActorOptions, CoreError, Driver, DriverError, Key,
+    AuditBuilder, ClientActor, ClientActorOptions, CoreError, Driver, DriverError, KeyCreate,
     KeyWithValue, NotifyActor, NotifyActorOptions, Server, ServerOptions, Service, ServiceCreate,
     SsoError, SsoResult,
 };
@@ -73,7 +73,11 @@ impl Cli {
 
     /// Create a root key.
     pub fn create_root_key(driver: Box<dyn Driver>, name: &str) -> SsoResult<KeyWithValue> {
-        Key::create_root(driver.as_ref(), true, String::from(name)).map_err(Into::into)
+        let create = KeyCreate::root(true, name);
+        driver
+            .key_create(&create)
+            .map_err(CoreError::Driver)
+            .map_err(Into::into)
     }
 
     /// Create a service with service key.
@@ -97,7 +101,10 @@ impl Cli {
             .service_create(&service_create)
             .map_err(CoreError::Driver)
             .map_err(SsoError::Core)?;
-        let key = Key::create_service(driver.as_ref(), true, name.to_owned(), &service.id)
+        let key_create = KeyCreate::service(true, name, service.id);
+        let key = driver
+            .key_create(&key_create)
+            .map_err(CoreError::Driver)
             .map_err(SsoError::Core)?;
         Ok((service, key))
     }

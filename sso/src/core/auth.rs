@@ -1,8 +1,8 @@
 use crate::{
     client_msg::Get,
     notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
-    AuditBuilder, AuditMeta, ClientActor, CoreError, CoreResult, Csrf, CsrfCreate, Driver, Jwt,
-    JwtClaimsType, Key, KeyType, KeyWithValue, NotifyActor, Service, ServiceRead, User,
+    AuditBuilder, AuditMeta, ClientActor, CoreError, CoreResult, CsrfCreate, Driver, Jwt,
+    JwtClaimsType, KeyRead, KeyType, KeyWithValue, NotifyActor, Service, ServiceRead, User,
     UserPasswordMeta, UserRead, UserToken,
 };
 use actix::Addr;
@@ -15,7 +15,7 @@ use uuid::Uuid;
 #[derive(Debug)]
 pub struct Auth;
 
-// TODO(refactor): Move this logic, other core methods into api/driver?
+// TODO(refactor): Move this logic, other core methods into api/driver.
 
 impl Auth {
     /// Returns password strength and pwned checks.
@@ -115,7 +115,9 @@ impl Auth {
         key: &KeyWithValue,
         token_expires: i64,
     ) -> CoreResult<String> {
-        let csrf = Auth::csrf_create(driver, service, token_expires)?;
+        let csrf = driver
+            .csrf_create(&CsrfCreate::generate(token_expires, service.id))
+            .map_err(CoreError::Driver)?;
         let (token, _) = Jwt::encode_token_csrf(
             service.id,
             user.id,
@@ -153,7 +155,9 @@ impl Auth {
         key: &KeyWithValue,
         token_expires: i64,
     ) -> CoreResult<String> {
-        let csrf = Auth::csrf_create(driver, service, token_expires)?;
+        let csrf = driver
+            .csrf_create(&CsrfCreate::generate(token_expires, service.id))
+            .map_err(CoreError::Driver)?;
         let (revoke_token, _) = Jwt::encode_token_csrf(
             service.id,
             user.id,
@@ -210,7 +214,9 @@ impl Auth {
         key: &KeyWithValue,
         token_expires: i64,
     ) -> CoreResult<String> {
-        let csrf = Auth::csrf_create(driver, service, token_expires)?;
+        let csrf = driver
+            .csrf_create(&CsrfCreate::generate(token_expires, service.id))
+            .map_err(CoreError::Driver)?;
         let (revoke_token, _) = Jwt::encode_token_csrf(
             service.id,
             user.id,
@@ -325,12 +331,18 @@ impl Auth {
         key_value: Option<String>,
     ) -> CoreResult<()> {
         match key_value {
-            Some(key_value) => Key::read_by_root_value(driver, key_value)
-                .map(|key| {
-                    audit.key(Some(&key));
-                    key
-                })
-                .map(|_key| ()),
+            Some(key_value) => {
+                let read = KeyRead::RootValue(key_value);
+                driver
+                    .key_read(&read)
+                    .map_err(CoreError::Driver)?
+                    .ok_or_else(|| CoreError::KeyNotFound)
+                    .map(|key| {
+                        audit.key(Some(&key));
+                        key
+                    })
+                    .map(|_key| ())
+            }
             None => Err(CoreError::KeyUndefined),
         }
     }
@@ -363,7 +375,10 @@ impl Auth {
         key_value: Option<String>,
     ) -> CoreResult<Service> {
         match key_value {
-            Some(key_value) => Key::read_by_service_value(driver, key_value)
+            Some(key_value) => driver
+                .key_read(&KeyRead::ServiceValue(key_value))
+                .map_err(CoreError::Driver)?
+                .ok_or_else(|| CoreError::KeyNotFound)
                 .and_then(|key| key.service_id.ok_or_else(|| CoreError::KeyServiceUndefined))
                 .and_then(|service_id| Auth::authenticate_service_inner(driver, audit, service_id)),
             None => Err(CoreError::KeyUndefined),
@@ -376,7 +391,7 @@ impl Auth {
         service_id: Uuid,
     ) -> CoreResult<Service> {
         let service = driver
-            .service_read_opt(&ServiceRead::new(service_id))?
+            .service_read(&ServiceRead::new(service_id))?
             .ok_or_else(|| CoreError::ServiceNotFound)?
             .check()?;
         audit.service(Some(&service));
@@ -449,7 +464,12 @@ impl Auth {
         user: &User,
         key_type: KeyType,
     ) -> CoreResult<KeyWithValue> {
-        let key = Key::read_by_user(driver, &service, &user, key_type)?;
+        let key = driver
+            .key_read(&KeyRead::user_id(
+                service.id, user.id, true, false, key_type,
+            ))
+            .map_err(CoreError::Driver)?
+            .ok_or_else(|| CoreError::KeyNotFound)?;
         audit.user_key(Some(&key));
         if !key.is_enabled {
             Err(CoreError::KeyDisabled)
@@ -469,7 +489,12 @@ impl Auth {
         user: &User,
         key_type: KeyType,
     ) -> CoreResult<KeyWithValue> {
-        let key = Key::read_by_user(driver, &service, &user, key_type)?;
+        let key = driver
+            .key_read(&KeyRead::user_id(
+                service.id, user.id, true, false, key_type,
+            ))
+            .map_err(CoreError::Driver)?
+            .ok_or_else(|| CoreError::KeyNotFound)?;
         audit.user_key(Some(&key));
         Ok(key)
     }
@@ -483,7 +508,10 @@ impl Auth {
         key: String,
         key_type: KeyType,
     ) -> CoreResult<KeyWithValue> {
-        let key = Key::read_by_user_value(driver, service, key, key_type)?;
+        let key = driver
+            .key_read(&KeyRead::user_value(service.id, key, true, false, key_type))
+            .map_err(CoreError::Driver)?
+            .ok_or_else(|| CoreError::KeyNotFound)?;
         audit.user_key(Some(&key));
         if !key.is_enabled {
             Err(CoreError::KeyDisabled)
@@ -503,7 +531,10 @@ impl Auth {
         key: String,
         key_type: KeyType,
     ) -> CoreResult<KeyWithValue> {
-        let key = Key::read_by_user_value(driver, service, key, key_type)?;
+        let key = driver
+            .key_read(&KeyRead::user_value(service.id, key, true, false, key_type))
+            .map_err(CoreError::Driver)?
+            .ok_or_else(|| CoreError::KeyNotFound)?;
         audit.user_key(Some(&key));
         Ok(key)
     }
@@ -517,7 +548,9 @@ impl Auth {
         access_token_expires: i64,
         refresh_token_expires: i64,
     ) -> CoreResult<UserToken> {
-        let csrf = Auth::csrf_create(driver, service, refresh_token_expires)?;
+        let csrf = driver
+            .csrf_create(&CsrfCreate::generate(refresh_token_expires, service.id))
+            .map_err(CoreError::Driver)?;
         let (access_token, access_token_expires) = Jwt::encode_token(
             service.id,
             user.id,
@@ -540,35 +573,5 @@ impl Auth {
             refresh_token,
             refresh_token_expires,
         })
-    }
-
-    /// Create a new CSRF key, value pair using random key.
-    pub fn csrf_create(
-        driver: &dyn Driver,
-        service: &Service,
-        token_expires_s: i64,
-    ) -> CoreResult<Csrf> {
-        let csrf_key = Key::value_generate();
-        let create = CsrfCreate::new(&csrf_key, &csrf_key, token_expires_s, service.id);
-        driver.csrf_create(&create).map_err(CoreError::Driver)
-    }
-
-    /// Verify a CSRF key is valid by reading it, this will also delete the key.
-    /// Also checks service verifying CSRF is same service that created it.
-    pub fn csrf_verify(driver: &dyn Driver, service: &Service, csrf_key: String) -> CoreResult<()> {
-        let res = driver
-            .csrf_read_opt(&csrf_key)
-            .map_err(CoreError::Driver)?
-            .ok_or_else(|| CoreError::CsrfNotFoundOrUsed);
-
-        match res {
-            Ok(csrf) => {
-                if csrf.service_id != service.id {
-                    return Err(CoreError::CsrfNotFoundOrUsed);
-                }
-                Ok(())
-            }
-            Err(_err) => Err(CoreError::CsrfNotFoundOrUsed),
-        }
     }
 }

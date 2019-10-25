@@ -381,7 +381,7 @@ mod server_service {
         service_id: Uuid,
     ) -> ApiResult<Service> {
         driver
-            .service_read_opt(&ServiceRead::new(service_id).service_id_mask(service.map(|x| x.id)))
+            .service_read(&ServiceRead::new(service_id).service_id_mask(service.map(|x| x.id)))
             .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?
             .ok_or_else(|| CoreError::ServiceNotFound)

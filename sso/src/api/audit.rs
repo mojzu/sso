@@ -325,7 +325,7 @@ mod server_audit {
             Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         driver
-            .audit_read_opt(&AuditRead::new(audit_id).service_id_mask(service.map(|x| x.id)))
+            .audit_read(&AuditRead::new(audit_id).service_id_mask(service.map(|x| x.id)))
             .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?
             .ok_or_else(|| ApiError::NotFound(CoreError::AuditNotFound))

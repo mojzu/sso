@@ -1,6 +1,8 @@
 mod audit;
 mod csrf;
 mod error;
+mod key;
+mod metrics;
 mod service;
 mod user;
 
@@ -13,9 +15,8 @@ mod sqlite;
 pub use crate::driver::postgres::DriverPostgres;
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::DriverSqlite;
-pub use crate::driver::{audit::*, csrf::*, error::*, service::*, user::*};
+pub use crate::driver::{audit::*, csrf::*, error::*, key::*, metrics::*, service::*, user::*};
 
-use crate::core::{Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate, KeyWithValue};
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
@@ -46,8 +47,8 @@ pub trait DriverIf {
     /// Create audit log.
     fn audit_create(&self, data: &AuditCreate) -> DriverResult<Audit>;
 
-    /// Read audit log (optional).
-    fn audit_read_opt(&self, read: &AuditRead) -> DriverResult<Option<Audit>>;
+    /// Read audit log.
+    fn audit_read(&self, read: &AuditRead) -> DriverResult<Option<Audit>>;
 
     /// Read audit metrics, returns array of counts for distinct audit types.
     fn audit_read_metrics(
@@ -74,8 +75,8 @@ pub trait DriverIf {
     /// Create CSRF token.
     fn csrf_create(&self, create: &CsrfCreate) -> DriverResult<Csrf>;
 
-    /// Read CSRF token (optional). CSRF token is deleted after one read.
-    fn csrf_read_opt(&self, key: &str) -> DriverResult<Option<Csrf>>;
+    /// Read CSRF token. CSRF token is deleted after one read.
+    fn csrf_read(&self, key: &str) -> DriverResult<Option<Csrf>>;
 
     // -------------
     // Key Functions
@@ -88,10 +89,13 @@ pub trait DriverIf {
     fn key_count(&self, count: &KeyCount) -> DriverResult<usize>;
 
     /// Create key.
+    ///
+    /// Returns error if more than one `Token` or `Totp` type would be enabled for user keys.
+    /// Returns error if related service or user does not exist.
     fn key_create(&self, create: &KeyCreate) -> DriverResult<KeyWithValue>;
 
-    /// Read key (optional).
-    fn key_read_opt(&self, read: &KeyRead) -> DriverResult<Option<KeyWithValue>>;
+    /// Read key.
+    fn key_read(&self, read: &KeyRead) -> DriverResult<Option<KeyWithValue>>;
 
     /// Update key.
     fn key_update(&self, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key>;
@@ -112,8 +116,8 @@ pub trait DriverIf {
     /// Create service.
     fn service_create(&self, create: &ServiceCreate) -> DriverResult<Service>;
 
-    /// Read service (optional).
-    fn service_read_opt(&self, read: &ServiceRead) -> DriverResult<Option<Service>>;
+    /// Read service.
+    fn service_read(&self, read: &ServiceRead) -> DriverResult<Option<Service>>;
 
     /// Update service.
     fn service_update(&self, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service>;

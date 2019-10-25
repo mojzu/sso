@@ -44,10 +44,8 @@ fn metrics_handler(
 
     audit_meta
         .and_then(|audit_meta| {
-            web::block(move || {
-                api::server_metrics(data.driver(), audit_meta, key_value, data.registry())
-            })
-            .map_err(Into::into)
+            web::block(move || api::server_metrics(data.driver(), audit_meta, key_value))
+                .map_err(Into::into)
         })
         .map_err(Into::into)
         .then(route_response_text)

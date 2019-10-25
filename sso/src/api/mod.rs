@@ -18,9 +18,9 @@ pub use crate::api::{
 };
 
 use crate::{
-    AuditBuilder, AuditDiff, AuditDiffBuilder, AuditMeta, AuditSubject, AuditType, Driver,
+    AuditBuilder, AuditDiff, AuditDiffBuilder, AuditMeta, AuditSubject, AuditType, CoreError,
+    Driver, Service,
 };
-use prometheus::Registry;
 use serde_json::Value;
 
 /// API Paths
@@ -107,31 +107,30 @@ pub fn server_metrics(
     driver: &dyn Driver,
     audit_meta: AuditMeta,
     key_value: Option<String>,
-    registry: &Registry,
 ) -> ApiResult<String> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::Metrics);
 
-    let res = server::metrics(driver, &mut audit, key_value, registry);
+    let res = server::metrics(driver, &mut audit, key_value);
     result_audit_err(driver, &audit, res)
 }
 
 mod server {
     use crate::{
         api::{ApiError, ApiResult},
-        AuditBuilder, Auth, Driver, Metrics,
+        AuditBuilder, Auth, CoreError, Driver, Metrics,
     };
-    use prometheus::Registry;
 
     pub fn metrics(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<String>,
-        registry: &Registry,
     ) -> ApiResult<String> {
         let service =
             Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        Metrics::read(driver, service.as_ref(), registry).map_err(ApiError::BadRequest)
+        Metrics::read(driver, service.as_ref())
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)
     }
 }
 
@@ -194,4 +193,14 @@ fn result_audit_diff<T: AuditSubject + AuditDiff>(
             .unwrap();
         Ok(n)
     })
+}
+
+fn csrf_verify(driver: &dyn Driver, service: &Service, csrf_key: &str) -> ApiResult<()> {
+    driver
+        .csrf_read(&csrf_key)
+        .map_err(CoreError::Driver)
+        .map_err(ApiError::BadRequest)?
+        .ok_or_else(|| CoreError::CsrfNotFoundOrUsed)
+        .and_then(|csrf| csrf.check_service(service.id).map_err(CoreError::Driver))
+        .map_err(ApiError::BadRequest)
 }

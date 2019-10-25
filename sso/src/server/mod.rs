@@ -7,7 +7,6 @@ use crate::{
 };
 use actix::Addr;
 use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer};
-use prometheus::{HistogramOpts, HistogramVec, IntCounterVec, Opts, Registry};
 use rustls::{
     internal::pemfile::{certs, rsa_private_keys},
     AllowAnyAuthenticatedClient, NoClientAuth, RootCertStore, ServerConfig,
@@ -205,7 +204,6 @@ struct Data {
     options: ServerOptions,
     notify_addr: Addr<NotifyActor>,
     client_addr: Addr<ClientActor>,
-    registry: Registry,
 }
 
 impl Data {
@@ -215,14 +213,12 @@ impl Data {
         options: ServerOptions,
         notify_addr: Addr<NotifyActor>,
         client_addr: Addr<ClientActor>,
-        registry: Registry,
     ) -> Self {
         Data {
             driver,
             options,
             notify_addr,
             client_addr,
-            registry,
         }
     }
 
@@ -245,11 +241,6 @@ impl Data {
     pub fn client(&self) -> &Addr<ClientActor> {
         &self.client_addr
     }
-
-    /// Get reference to prometheus registry.
-    pub fn registry(&self) -> &prometheus::Registry {
-        &self.registry
-    }
 }
 
 /// Server functions.
@@ -266,7 +257,7 @@ impl Server {
         client_addr: Addr<ClientActor>,
     ) -> DriverResult<()> {
         let options_clone = options.clone();
-        let (registry, counter, histogram) = Server::metrics_registry()?;
+        let (http_count, http_latency) = Metrics::http_metrics();
         let default_json_limit: usize = 1024;
 
         let server = HttpServer::new(move || {
@@ -277,7 +268,6 @@ impl Server {
                     options_clone.clone(),
                     notify_addr.clone(),
                     client_addr.clone(),
-                    registry.clone(),
                 ))
                 // Global JSON configuration.
                 .data(web::JsonConfig::default().limit(default_json_limit))
@@ -285,8 +275,8 @@ impl Server {
                 .wrap(actix_web_middleware::AuthorisationIdentityPolicy::identity_service())
                 // Metrics middleware.
                 .wrap(actix_web_middleware::Metrics::new(
-                    counter.clone(),
-                    histogram.clone(),
+                    http_count.clone(),
+                    http_latency.clone(),
                 ))
                 // Logger middleware.
                 .wrap(Logger::default())
@@ -308,30 +298,5 @@ impl Server {
 
         server.start();
         Ok(())
-    }
-
-    fn metrics_registry() -> DriverResult<(Registry, IntCounterVec, HistogramVec)> {
-        let registry = Registry::new();
-        let count_opts = Opts::new(
-            Metrics::name("http_count"),
-            "HTTP request counter".to_owned(),
-        );
-        let count =
-            IntCounterVec::new(count_opts, &["path", "status"]).map_err(DriverError::Prometheus)?;
-
-        let latency_opts = HistogramOpts::new(
-            Metrics::name("http_latency"),
-            "HTTP request latency".to_owned(),
-        );
-        let latency =
-            HistogramVec::new(latency_opts, &["path"]).map_err(DriverError::Prometheus)?;
-
-        registry
-            .register(Box::new(count.clone()))
-            .map_err(DriverError::Prometheus)?;
-        registry
-            .register(Box::new(latency.clone()))
-            .map_err(DriverError::Prometheus)?;
-        Ok((registry, count, latency))
     }
 }

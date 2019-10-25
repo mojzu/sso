@@ -1,8 +1,10 @@
 use crate::{
     api::{
-        result_audit, validate, ApiResult, AuditIdOptResponse, AuthTokenRequest, ValidateRequest,
+        csrf_verify, result_audit, validate, ApiResult, AuditIdOptResponse, AuthTokenRequest,
+        ValidateRequest,
     },
-    AuditBuilder, AuditMeta, AuditType, Driver, NotifyActor, UserPasswordMeta, UserToken,
+    AuditBuilder, AuditMeta, AuditType, Driver, KeyUpdate, NotifyActor, UserPasswordMeta,
+    UserToken,
 };
 use actix::Addr;
 use uuid::Uuid;
@@ -258,7 +260,7 @@ mod provider_local {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        Audit, AuditBuilder, Auth, CoreError, Driver, Jwt, Key, KeyType, NotifyActor, UserToken,
+        Audit, AuditBuilder, Auth, CoreError, Driver, Jwt, KeyType, NotifyActor, UserToken,
         UserUpdate, UserUpdate2,
     };
     use actix::Addr;
@@ -363,7 +365,7 @@ mod provider_local {
             .map_err(ApiError::BadRequest)?;
 
         // Verify CSRF to prevent reuse.
-        Auth::csrf_verify(driver, &service, csrf_key).map_err(ApiError::BadRequest)?;
+        csrf_verify(driver, &service, &csrf_key)?;
 
         // Update user password.
         let user_update = UserUpdate2::password(request.password)
@@ -455,7 +457,7 @@ mod provider_local {
             .map_err(ApiError::BadRequest)?;
 
         // Verify CSRF to prevent reuse.
-        Auth::csrf_verify(driver, &service, csrf_key).map_err(ApiError::BadRequest)?;
+        csrf_verify(driver, &service, &csrf_key)?;
 
         // Disable user and disable and revoke all keys associated with user.
         let update = UserUpdate {
@@ -470,15 +472,17 @@ mod provider_local {
             .user_update(&user.id, &update)
             .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
-        Key::update_many(
-            driver,
-            Some(&service),
-            user.id,
-            Some(false),
-            Some(true),
-            None,
-        )
-        .map_err(ApiError::BadRequest)?;
+        driver
+            .key_update_many(
+                &user.id,
+                &KeyUpdate {
+                    is_enabled: Some(false),
+                    is_revoked: Some(true),
+                    name: None,
+                },
+            )
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?;
 
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
@@ -562,7 +566,7 @@ mod provider_local {
             .map_err(ApiError::BadRequest)?;
 
         // Verify CSRF to prevent reuse.
-        Auth::csrf_verify(driver, &service, csrf_key).map_err(ApiError::BadRequest)?;
+        csrf_verify(driver, &service, &csrf_key)?;
 
         // Successful update password revoke, disable user and disable and revoke all keys associated with user.
         let update = UserUpdate {
@@ -577,15 +581,17 @@ mod provider_local {
             .user_update(&user.id, &update)
             .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
-        Key::update_many(
-            driver,
-            Some(&service),
-            user.id,
-            Some(false),
-            Some(true),
-            None,
-        )
-        .map_err(ApiError::BadRequest)?;
+        driver
+            .key_update_many(
+                &user.id,
+                &KeyUpdate {
+                    is_enabled: Some(false),
+                    is_revoked: Some(true),
+                    name: None,
+                },
+            )
+            .map_err(CoreError::Driver)
+            .map_err(ApiError::BadRequest)?;
 
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
