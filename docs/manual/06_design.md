@@ -102,3 +102,47 @@ TODO(test): More input tests including unicode passwords, bad strings, etc.
 ### 1.5.4
 
 - All output encoding is [UTF-8][utf-8].
+
+### 1.6.1
+
+- Key values are used for [JWT][jwt] cryptographic encoding and decoding.
+- Key values are only returned to service or user on creation.
+- Keys can be disabled and/or revoked to prevent use.
+
+TODO(docs): Check this meets key management standard NIST SP 800-57.
+
+### 1.6.2
+
+- Cannot verify that services protect created key values.
+
+### 1.6.3
+
+- No hard-coded keys or passwords, all keys and passwords can be replaced.
+
+### 1.6.4
+
+- API key support is clear-text equivalent.
+- Authentication via API key is probably not considered low risk secret.
+- Keys can be disabled/revoked to mitigate breaches, but this is not a solution.
+
+### 1.7.1, 1.7.2
+
+- Audit log format is common and used when making calls via API.
+- Stdout/stderr logging is not consistent.
+- Audit logs are saved to table, not transmitted to a remote system.
+- Stdout/stderr logging is not transmitted to a remote system,
+
+TODO(feature): Option to transmit audit logs, stdout/stderr to external service(s).
+
+### 1.8.1, 1.8.2
+
+- Sensitive data is not identified or classified into protection levels.
+
+TODO(docs): Evaluate data and identify/classify sensitive data.
+TODO(refactor): Audit log retention configuration.
+
+### 1.9.1, 1.9.2
+
+- Connection to database, other services must be encrypted.
+
+TODO(docs): Mutual TLS encryption/authentication for postgres connection.

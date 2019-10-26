@@ -1074,6 +1074,45 @@ sso start-server</code></pre>
 <ul>
 <li>All output encoding is <a href="https://en.wikipedia.org/wiki/UTF-8">UTF-8</a>.</li>
 </ul>
+<h3 id="section-21"><span class="header-section-number">6.2.14</span> 1.6.1</h3>
+<ul>
+<li>Key values are used for <a href="https://jwt.io/">JWT</a> cryptographic encoding and decoding.</li>
+<li>Key values are only returned to service or user on creation.</li>
+<li>Keys can be disabled and/or revoked to prevent use.</li>
+</ul>
+<p>TODO(docs): Check this meets key management standard NIST SP 800-57.</p>
+<h3 id="section-22"><span class="header-section-number">6.2.15</span> 1.6.2</h3>
+<ul>
+<li>Cannot verify that services protect created key values.</li>
+</ul>
+<h3 id="section-23"><span class="header-section-number">6.2.16</span> 1.6.3</h3>
+<ul>
+<li>No hard-coded keys or passwords, all keys and passwords can be replaced.</li>
+</ul>
+<h3 id="section-24"><span class="header-section-number">6.2.17</span> 1.6.4</h3>
+<ul>
+<li>API key support is clear-text equivalent.</li>
+<li>Authentication via API key is probably not considered low risk secret.</li>
+<li>Keys can be disabled/revoked to mitigate breaches, but this is not a solution.</li>
+</ul>
+<h3 id="section-25"><span class="header-section-number">6.2.18</span> 1.7.1, 1.7.2</h3>
+<ul>
+<li>Audit log format is common and used when making calls via API.</li>
+<li>Stdout/stderr logging is not consistent.</li>
+<li>Audit logs are saved to table, not transmitted to a remote system.</li>
+<li>Stdout/stderr logging is not transmitted to a remote system,</li>
+</ul>
+<p>TODO(feature): Option to transmit audit logs, stdout/stderr to external service(s).</p>
+<h3 id="section-26"><span class="header-section-number">6.2.19</span> 1.8.1, 1.8.2</h3>
+<ul>
+<li>Sensitive data is not identified or classified into protection levels.</li>
+</ul>
+<p>TODO(docs): Evaluate data and identify/classify sensitive data. TODO(refactor): Audit log retention configuration.</p>
+<h3 id="section-27"><span class="header-section-number">6.2.20</span> 1.9.1, 1.9.2</h3>
+<ul>
+<li>Connection to database, other services must be encrypted.</li>
+</ul>
+<p>TODO(docs): Mutual TLS encryption/authentication for postgres connection.</p>
 <h1 id="developer"><span class="header-section-number">7</span> Developer</h1>
 <h2 id="tools"><span class="header-section-number">7.1</span> Tools</h2>
 <p>The <code>sso</code> crate depends on <a href="https://www.postgresql.org/">PostgreSQL</a> and <a href="https://www.sqlite.org/index.html">SQLite</a> libraries.</p>
