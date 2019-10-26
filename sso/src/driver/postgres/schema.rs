@@ -6,6 +6,7 @@ table! {
         user_agent -> Varchar,
         remote -> Varchar,
         forwarded -> Nullable<Varchar>,
+        status_code -> Nullable<Int2>,
         #[sql_name = "type"]
         type_ -> Varchar,
         subject -> Nullable<Varchar>,

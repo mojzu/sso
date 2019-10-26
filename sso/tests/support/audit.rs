@@ -337,11 +337,18 @@ macro_rules! audit_integration_test {
                 .data;
 
             let audit2 = client
-                .audit_update(audit1.id, AuditUpdateRequest::default().subject("example"))
+                .audit_update(
+                    audit1.id,
+                    AuditUpdateRequest::default()
+                        .status_code(200)
+                        .subject("example"),
+                )
                 .unwrap()
                 .data;
             assert_eq!(audit1.id, audit2.id);
             assert_eq!(audit1.service_id, Some(service1.id));
+            assert_eq!(audit1.status_code, None);
+            assert_eq!(audit2.status_code, Some(200));
             assert_eq!(audit1.subject, None);
             assert_eq!(audit2.subject, Some("example".to_owned()));
         }

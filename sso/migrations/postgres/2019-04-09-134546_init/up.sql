@@ -74,6 +74,7 @@ CREATE TABLE sso_audit (
     "user_agent"  VARCHAR     NOT NULL,
     "remote"      VARCHAR     NOT NULL,
     "forwarded"   VARCHAR,
+    "status_code" SMALLINT,
     "type"        VARCHAR     NOT NULL,
     "subject"     VARCHAR,
     "data"        JSONB       NOT NULL,

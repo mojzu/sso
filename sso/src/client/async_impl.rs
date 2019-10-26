@@ -1,9 +1,9 @@
 use crate::{
     api::{
-        route as api_route, AuditCreate2Request, AuditCreateRequest, AuditListRequest,
-        AuditListResponse, AuditReadResponse, AuditUpdateRequest, AuthCsrfCreateRequest,
-        AuthCsrfCreateResponse, AuthCsrfVerifyRequest, AuthKeyRequest, AuthKeyResponse,
-        AuthLoginRequest, AuthLoginResponse, AuthOauth2CallbackRequest, AuthOauth2UrlResponse,
+        route as api_route, AuditCreateRequest, AuditListRequest, AuditListResponse,
+        AuditReadResponse, AuditUpdateRequest, AuthCsrfCreateRequest, AuthCsrfCreateResponse,
+        AuthCsrfVerifyRequest, AuthKeyRequest, AuthKeyResponse, AuthLoginRequest,
+        AuthLoginResponse, AuthOauth2CallbackRequest, AuthOauth2UrlResponse,
         AuthPasswordMetaResponse, AuthResetPasswordConfirmRequest, AuthResetPasswordRequest,
         AuthTokenAccessResponse, AuthTokenRequest, AuthTokenResponse, AuthTotpRequest,
         AuthUpdateEmailRequest, AuthUpdatePasswordRequest, KeyCreateRequest, KeyCreateResponse,
@@ -672,7 +672,7 @@ impl ClientAsync {
     pub fn authenticate(
         &self,
         key_or_token: Option<String>,
-        audit: Option<AuditCreate2Request>,
+        audit: Option<String>,
     ) -> impl Future<Item = (User, Option<Uuid>), Error = ClientError> {
         match key_or_token {
             Some(key_or_token) => match Client::authorisation_type(key_or_token) {
@@ -689,7 +689,7 @@ impl ClientAsync {
         &self,
         type_: String,
         value: String,
-        audit: Option<AuditCreate2Request>,
+        audit: Option<String>,
     ) -> impl Future<Item = (User, Option<Uuid>), Error = ClientError> {
         match type_.as_ref() {
             "key" => {

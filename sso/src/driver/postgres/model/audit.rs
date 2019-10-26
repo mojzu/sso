@@ -18,6 +18,7 @@ pub struct ModelAudit {
     user_agent: String,
     remote: String,
     forwarded: Option<String>,
+    status_code: Option<i16>,
     type_: String,
     subject: Option<String>,
     data: Value,
@@ -36,6 +37,7 @@ impl From<ModelAudit> for Audit {
             user_agent: audit.user_agent,
             remote: audit.remote,
             forwarded: audit.forwarded,
+            status_code: audit.status_code.map(|x| x as u16),
             type_: audit.type_,
             subject: audit.subject,
             data: audit.data,
@@ -56,6 +58,7 @@ struct ModelAuditInsert<'a> {
     user_agent: &'a str,
     remote: &'a str,
     forwarded: Option<&'a str>,
+    status_code: Option<i16>,
     type_: &'a str,
     subject: Option<&'a str>,
     data: &'a Value,
@@ -63,31 +66,6 @@ struct ModelAuditInsert<'a> {
     service_id: Option<&'a Uuid>,
     user_id: Option<&'a Uuid>,
     user_key_id: Option<&'a Uuid>,
-}
-
-impl<'a> ModelAuditInsert<'a> {
-    fn from_create(
-        now: &'a DateTime<Utc>,
-        id: &'a Uuid,
-        create: &'a AuditCreate,
-        data: &'a Value,
-    ) -> Self {
-        Self {
-            created_at: now,
-            updated_at: now,
-            id,
-            user_agent: create.meta.user_agent(),
-            remote: create.meta.remote(),
-            forwarded: create.meta.forwarded(),
-            type_: &create.type_,
-            subject: create.subject.as_ref().map(|x| &**x),
-            data,
-            key_id: create.key_id.as_ref(),
-            service_id: create.service_id.as_ref(),
-            user_id: create.user_id.as_ref(),
-            user_key_id: create.user_key_id.as_ref(),
-        }
-    }
 }
 
 impl ModelAudit {
@@ -127,7 +105,22 @@ impl ModelAudit {
         let now = Utc::now();
         let id = Uuid::new_v4();
         let data = Self::wrap_data(create.data.as_ref());
-        let value = ModelAuditInsert::from_create(&now, &id, create, &data);
+        let value = ModelAuditInsert {
+            created_at: &now,
+            updated_at: &now,
+            id: &id,
+            user_agent: create.meta.user_agent(),
+            remote: create.meta.remote(),
+            forwarded: create.meta.forwarded(),
+            status_code: create.status_code.map(|x| x as i16),
+            type_: &create.type_,
+            subject: create.subject.as_ref().map(|x| &**x),
+            data: &data,
+            key_id: create.key_id.as_ref(),
+            service_id: create.service_id.as_ref(),
+            user_id: create.user_id.as_ref(),
+            user_key_id: create.user_key_id.as_ref(),
+        };
         diesel::insert_into(sso_audit::table)
             .values(&value)
             .get_result::<ModelAudit>(conn)
@@ -185,10 +178,12 @@ impl ModelAudit {
         use diesel::sql_types;
 
         let now = Utc::now();
+        let status_code = update.status_code.map(|x| x as i16);
         let data = Self::wrap_data(update.data.as_ref());
         diesel::sql_query(include_str!("audit_update.sql"))
             .bind::<sql_types::Uuid, _>(id)
             .bind::<sql_types::Timestamptz, _>(now)
+            .bind::<sql_types::Nullable<sql_types::Int2>, _>(status_code)
             .bind::<sql_types::Nullable<sql_types::Text>, _>(&update.subject)
             .bind::<sql_types::Jsonb, _>(data)
             .bind::<sql_types::Nullable<sql_types::Uuid>, _>(service_id_mask)

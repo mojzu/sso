@@ -1,5 +1,6 @@
 use crate::DriverError;
 use actix_web::{error::BlockingError, HttpResponse, ResponseError};
+use http::StatusCode;
 use serde::ser::{Serialize, Serializer};
 
 /// API errors.
@@ -21,8 +22,17 @@ pub enum ApiError {
     InternalServerError(#[fail(cause)] DriverError),
 }
 
-/// API result wrapper type.
-pub type ApiResult<T> = Result<T, ApiError>;
+impl ApiError {
+    pub fn status_code(&self) -> u16 {
+        match self {
+            ApiError::BadRequest(_e) => StatusCode::BAD_REQUEST.as_u16(),
+            ApiError::Unauthorised(_e) => StatusCode::UNAUTHORIZED.as_u16(),
+            ApiError::Forbidden(_e) => StatusCode::FORBIDDEN.as_u16(),
+            ApiError::NotFound(_e) => StatusCode::NOT_FOUND.as_u16(),
+            ApiError::InternalServerError(_e) => StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+        }
+    }
+}
 
 impl Serialize for ApiError {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -59,3 +69,6 @@ impl ResponseError for ApiError {
         }
     }
 }
+
+/// API result wrapper type.
+pub type ApiResult<T> = Result<T, ApiError>;

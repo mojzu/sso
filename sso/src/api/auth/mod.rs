@@ -6,8 +6,8 @@ pub use crate::api::auth::{github::*, local::*, microsoft::*};
 
 use crate::{
     api::{
-        result_audit, result_audit_err, validate, ApiResult, AuditCreate2Request,
-        AuditIdOptResponse, ValidateRequest, ValidateRequestQuery,
+        result_audit, result_audit_err, validate, ApiResult, AuditIdOptResponse, ValidateRequest,
+        ValidateRequestQuery,
     },
     AuditBuilder, AuditMeta, AuditType, Csrf, Driver, KeyUpdate, UserKey, UserToken,
     UserTokenAccess,
@@ -20,13 +20,16 @@ use validator::Validate;
 pub struct AuthTokenRequest {
     #[validate(custom = "validate::token")]
     pub token: String,
-    pub audit: Option<AuditCreate2Request>,
+    pub audit: Option<String>,
 }
 
 impl ValidateRequest<AuthTokenRequest> for AuthTokenRequest {}
 
 impl AuthTokenRequest {
-    pub fn new<S1: Into<String>>(token: S1, audit: Option<AuditCreate2Request>) -> Self {
+    pub fn new<T>(token: T, audit: Option<String>) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
             token: token.into(),
             audit,
@@ -53,13 +56,16 @@ pub struct AuthTokenAccessResponse {
 pub struct AuthKeyRequest {
     #[validate(custom = "validate::key")]
     pub key: String,
-    pub audit: Option<AuditCreate2Request>,
+    pub audit: Option<String>,
 }
 
 impl ValidateRequest<AuthKeyRequest> for AuthKeyRequest {}
 
 impl AuthKeyRequest {
-    pub fn new<S: Into<String>>(key: S, audit: Option<AuditCreate2Request>) -> Self {
+    pub fn new<K>(key: K, audit: Option<String>) -> Self
+    where
+        K: Into<String>,
+    {
         Self {
             key: key.into(),
             audit,
@@ -350,7 +356,7 @@ mod server_auth {
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
             let audit = audit
-                .create(driver, x.into())
+                .create(driver, x, None, None)
                 .map_err(ApiError::BadRequest)?;
             Ok((user_key, Some(audit)))
         } else {
@@ -387,7 +393,7 @@ mod server_auth {
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
             let audit = audit
-                .create(driver, x.into())
+                .create(driver, x, None, None)
                 .map_err(ApiError::BadRequest)?;
             Ok(Some(audit))
         } else {
@@ -428,7 +434,7 @@ mod server_auth {
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
             let audit = audit
-                .create(driver, x.into())
+                .create(driver, x, None, None)
                 .map_err(ApiError::BadRequest)?;
             Ok((user_token, Some(audit)))
         } else {
@@ -478,7 +484,7 @@ mod server_auth {
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
             let audit = audit
-                .create(driver, x.into())
+                .create(driver, x, None, None)
                 .map_err(ApiError::BadRequest)?;
             Ok((user_token, Some(audit)))
         } else {
@@ -528,7 +534,7 @@ mod server_auth {
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
             let audit = audit
-                .create(driver, x.into())
+                .create(driver, x, None, None)
                 .map_err(ApiError::BadRequest)?;
             Ok(Some(audit))
         } else {

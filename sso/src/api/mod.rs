@@ -23,6 +23,7 @@ use crate::{
     AuditBuilder, AuditDiff, AuditDiffBuilder, AuditMeta, AuditSubject, AuditType, Driver,
     DriverError, Service,
 };
+use http::StatusCode;
 use serde_json::Value;
 
 /// API Paths
@@ -134,14 +135,20 @@ mod server {
     }
 }
 
+// TODO(refactor): Unwrap, unimplemented check and cleanup.
+
 fn result_audit<T>(driver: &dyn Driver, audit: &AuditBuilder, res: ApiResult<T>) -> ApiResult<T> {
     res.or_else(|e| {
         let data = AuditDiffBuilder::typed_data("error", &e);
-        audit.create_data(driver, None, Some(data)).unwrap();
+        audit
+            .create_data(driver, e.status_code(), None, Some(data))
+            .unwrap();
         Err(e)
     })
     .and_then(|res| {
-        audit.create_data::<bool>(driver, None, None).unwrap();
+        audit
+            .create_data::<bool>(driver, StatusCode::OK.as_u16(), None, None)
+            .unwrap();
         Ok(res)
     })
 }
@@ -153,7 +160,9 @@ fn result_audit_err<T>(
 ) -> ApiResult<T> {
     res.or_else(|e| {
         let data = AuditDiffBuilder::typed_data("error", &e);
-        audit.create_data(driver, None, Some(data)).unwrap();
+        audit
+            .create_data(driver, e.status_code(), None, Some(data))
+            .unwrap();
         Err(e)
     })
 }
@@ -165,12 +174,14 @@ fn result_audit_subject<T: AuditSubject>(
 ) -> ApiResult<T> {
     res.or_else(|e| {
         let data = AuditDiffBuilder::typed_data("error", &e);
-        audit.create_data(driver, None, Some(data)).unwrap();
+        audit
+            .create_data(driver, e.status_code(), None, Some(data))
+            .unwrap();
         Err(e)
     })
     .and_then(|res| {
         audit
-            .create_data::<bool>(driver, Some(res.subject()), None)
+            .create_data::<bool>(driver, StatusCode::OK.as_u16(), Some(res.subject()), None)
             .unwrap();
         Ok(res)
     })
@@ -183,13 +194,20 @@ fn result_audit_diff<T: AuditSubject + AuditDiff>(
 ) -> ApiResult<T> {
     res.or_else(|e| {
         let data = AuditDiffBuilder::typed_data("error", &e);
-        audit.create_data(driver, None, Some(data)).unwrap();
+        audit
+            .create_data(driver, e.status_code(), None, Some(data))
+            .unwrap();
         Err(e)
     })
     .and_then(|(p, n)| {
         let diff = n.diff(&p);
         audit
-            .create_data(driver, Some(n.subject()), Some(diff))
+            .create_data(
+                driver,
+                StatusCode::OK.as_u16(),
+                Some(n.subject()),
+                Some(diff),
+            )
             .unwrap();
         Ok(n)
     })

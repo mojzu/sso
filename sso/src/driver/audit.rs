@@ -67,6 +67,7 @@ pub struct Audit {
     pub user_agent: String,
     pub remote: String,
     pub forwarded: Option<String>,
+    pub status_code: Option<u16>,
     #[serde(rename = "type")]
     pub type_: String,
     pub subject: Option<String>,
@@ -111,6 +112,7 @@ impl fmt::Display for Audit {
 #[derive(Debug)]
 pub struct AuditCreate {
     pub meta: AuditMeta,
+    pub status_code: Option<u16>,
     pub type_: String,
     pub subject: Option<String>,
     pub data: Option<Value>,
@@ -121,22 +123,33 @@ pub struct AuditCreate {
 }
 
 impl AuditCreate {
-    pub fn new(
-        meta: AuditMeta,
-        type_: String,
-        subject: Option<String>,
-        data: Option<Value>,
-    ) -> Self {
+    pub fn new(meta: AuditMeta, type_: String) -> Self {
         Self {
             meta,
+            status_code: None,
             type_,
-            subject,
-            data,
+            subject: None,
+            data: None,
             key_id: None,
             service_id: None,
             user_id: None,
             user_key_id: None,
         }
+    }
+
+    pub fn status_code(mut self, status_code: Option<u16>) -> Self {
+        self.status_code = status_code;
+        self
+    }
+
+    pub fn subject(mut self, subject: Option<String>) -> Self {
+        self.subject = subject;
+        self
+    }
+
+    pub fn data(mut self, data: Option<Value>) -> Self {
+        self.data = data;
+        self
     }
 
     pub fn key_id(mut self, key_id: Option<Uuid>) -> Self {
@@ -157,25 +170,6 @@ impl AuditCreate {
     pub fn user_key_id(mut self, user_key_id: Option<Uuid>) -> Self {
         self.user_key_id = user_key_id;
         self
-    }
-}
-
-/// Audit create 2.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AuditCreate2 {
-    #[serde(rename = "type")]
-    type_: String,
-    subject: Option<String>,
-    data: Option<Value>,
-}
-
-impl AuditCreate2 {
-    pub fn new(type_: String, subject: Option<String>, data: Option<Value>) -> Self {
-        Self {
-            type_,
-            subject,
-            data,
-        }
     }
 }
 
@@ -232,6 +226,7 @@ impl AuditRead {
 /// Audit update.
 #[derive(Debug)]
 pub struct AuditUpdate {
+    pub status_code: Option<u16>,
     pub subject: Option<String>,
     pub data: Option<Value>,
 }
@@ -336,8 +331,19 @@ impl AuditBuilder {
     }
 
     /// Create audit log from parameters.
-    pub fn create(&self, driver: &dyn Driver, create: AuditCreate2) -> DriverResult<Audit> {
-        let data = AuditCreate::new(self.meta.clone(), create.type_, create.subject, create.data)
+    pub fn create<T>(
+        &self,
+        driver: &dyn Driver,
+        type_: T,
+        subject: Option<String>,
+        data: Option<Value>,
+    ) -> DriverResult<Audit>
+    where
+        T: Into<String>,
+    {
+        let data = AuditCreate::new(self.meta.clone(), type_.into())
+            .subject(subject.map(|x| x.into()))
+            .data(data.map(|x| x.into()))
             .key_id(self.key)
             .service_id(self.service)
             .user_id(self.user)
@@ -349,20 +355,19 @@ impl AuditBuilder {
     pub fn create_data<S: Serialize>(
         &self,
         driver: &dyn Driver,
+        status_code: u16,
         subject: Option<String>,
         data: Option<S>,
     ) -> DriverResult<Audit> {
         let data = data.map(|x| serde_json::to_value(x).unwrap());
-        let audit_data = AuditCreate::new(
-            self.meta.clone(),
-            self.type_.to_string().unwrap(),
-            subject,
-            data,
-        )
-        .key_id(self.key)
-        .service_id(self.service)
-        .user_id(self.user)
-        .user_key_id(self.user_key);
+        let audit_data = AuditCreate::new(self.meta.clone(), self.type_.to_string().unwrap())
+            .status_code(Some(status_code))
+            .subject(subject)
+            .data(data)
+            .key_id(self.key)
+            .service_id(self.service)
+            .user_id(self.user)
+            .user_key_id(self.user_key);
         driver.audit_create(&audit_data)
     }
 }

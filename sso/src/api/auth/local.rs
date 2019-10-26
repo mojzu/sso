@@ -489,7 +489,7 @@ mod provider_local {
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
             let audit = audit
-                .create(driver, x.into())
+                .create(driver, x, None, None)
                 .map_err(ApiError::BadRequest)?;
             Ok(Some(audit))
         } else {
@@ -599,7 +599,7 @@ mod provider_local {
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
             let audit = audit
-                .create(driver, x.into())
+                .create(driver, x, None, None)
                 .map_err(ApiError::BadRequest)?;
             Ok(Some(audit))
         } else {

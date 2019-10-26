@@ -1,7 +1,7 @@
 use crate::{
     api::{result_audit_err, validate, ApiResult, ValidateRequest, ValidateRequestQuery},
-    Audit, AuditBuilder, AuditCreate2, AuditListFilter, AuditListQuery, AuditMeta, AuditRead,
-    AuditType, AuditUpdate, Driver, DEFAULT_LIMIT,
+    Audit, AuditBuilder, AuditListFilter, AuditListQuery, AuditMeta, AuditRead, AuditType,
+    AuditUpdate, Driver, DEFAULT_LIMIT,
 };
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
@@ -137,29 +137,6 @@ pub struct AuditCreateRequest {
 
 impl ValidateRequest<AuditCreateRequest> for AuditCreateRequest {}
 
-#[derive(Debug, Serialize, Deserialize, Validate, Builder)]
-#[serde(deny_unknown_fields)]
-pub struct AuditCreate2Request {
-    #[serde(rename = "type")]
-    #[validate(custom = "validate::audit_type")]
-    pub type_: String,
-
-    #[builder(default = "None")]
-    #[validate(custom = "validate::audit_subject")]
-    pub subject: Option<String>,
-
-    #[builder(default = "None")]
-    pub data: Option<Value>,
-}
-
-impl ValidateRequest<AuditCreate2Request> for AuditCreate2Request {}
-
-impl From<AuditCreate2Request> for AuditCreate2 {
-    fn from(data: AuditCreate2Request) -> Self {
-        Self::new(data.type_, data.subject, data.data)
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuditReadResponse {
@@ -175,15 +152,18 @@ pub struct AuditIdOptResponse {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuditUpdateRequest {
+    pub status_code: Option<u16>,
+
     #[validate(custom = "validate::audit_subject")]
     pub subject: Option<String>,
+
     pub data: Option<Value>,
-    // TODO(refactor): Support other append-only fields, set user/user key.
 }
 
 impl Default for AuditUpdateRequest {
     fn default() -> Self {
         Self {
+            status_code: None,
             subject: None,
             data: None,
         }
@@ -191,7 +171,12 @@ impl Default for AuditUpdateRequest {
 }
 
 impl AuditUpdateRequest {
-    pub fn data<S: Serialize>(mut self, data: S) -> Self {
+    pub fn status_code(mut self, status_code: u16) -> Self {
+        self.status_code = Some(status_code);
+        self
+    }
+
+    pub fn data<D: Serialize>(mut self, data: D) -> Self {
         self.data = Some(serde_json::to_value(data).unwrap());
         self
     }
@@ -205,6 +190,7 @@ impl AuditUpdateRequest {
 impl From<AuditUpdateRequest> for AuditUpdate {
     fn from(request: AuditUpdateRequest) -> Self {
         Self {
+            status_code: request.status_code,
             subject: request.subject,
             data: request.data,
         }
@@ -300,14 +286,11 @@ mod server_audit {
     ) -> ApiResult<Audit> {
         let _service =
             key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
-        let audit_create = AuditCreate2::new(request.type_, request.subject, request.data);
-        let user_id = request.user_id;
-        let user_key_id = request.user_key_id;
 
         audit
-            .user_id(user_id)
-            .user_key_id(user_key_id)
-            .create(driver, audit_create)
+            .user_id(request.user_id)
+            .user_key_id(request.user_key_id)
+            .create(driver, request.type_, request.subject, request.data)
             .map_err(ApiError::BadRequest)
     }
 

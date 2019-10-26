@@ -5,6 +5,7 @@
 ### Added
 
 - Added `name_ge`, `name_le`, `offset_id` query parameters to user list route for sorting by name.
+- Added `status_code` to audit logs. Endpoints which accepted custom audit objects now accept custom audit type string. Status code, subject and data can be added later via update endpoint.
 
 ### Changed
 

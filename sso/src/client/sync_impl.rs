@@ -1,9 +1,9 @@
 use crate::{
     api::{
-        route as api_route, AuditCreate2Request, AuditCreateRequest, AuditListRequest,
-        AuditListResponse, AuditReadResponse, AuditUpdateRequest, AuthCsrfCreateRequest,
-        AuthCsrfCreateResponse, AuthCsrfVerifyRequest, AuthKeyRequest, AuthKeyResponse,
-        AuthLoginRequest, AuthLoginResponse, AuthOauth2CallbackRequest, AuthOauth2UrlResponse,
+        route as api_route, AuditCreateRequest, AuditListRequest, AuditListResponse,
+        AuditReadResponse, AuditUpdateRequest, AuthCsrfCreateRequest, AuthCsrfCreateResponse,
+        AuthCsrfVerifyRequest, AuthKeyRequest, AuthKeyResponse, AuthLoginRequest,
+        AuthLoginResponse, AuthOauth2CallbackRequest, AuthOauth2UrlResponse,
         AuthPasswordMetaResponse, AuthResetPasswordConfirmRequest, AuthResetPasswordRequest,
         AuthTokenAccessResponse, AuthTokenRequest, AuthTokenResponse, AuthTotpRequest,
         AuthUpdateEmailRequest, AuthUpdatePasswordRequest, KeyCreateRequest, KeyCreateResponse,
@@ -423,7 +423,7 @@ impl ClientSync {
     pub fn authenticate(
         &self,
         key_or_token: Option<String>,
-        audit: Option<AuditCreate2Request>,
+        audit: Option<String>,
     ) -> ClientResult<(User, Option<Uuid>)> {
         match key_or_token {
             Some(key_or_token) => {

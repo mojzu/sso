@@ -137,6 +137,12 @@ pub enum DriverError {
     #[fail(display = "StdIo {}", _0)]
     StdIo(#[fail(cause)] std::io::Error),
 
+    #[fail(display = "EnvParse {}", _0)]
+    EnvParse(String),
+
+    #[fail(display = "StdEnvVar {}", _0)]
+    StdEnvVar(#[fail(cause)] std::env::VarError),
+
     #[fail(display = "Prometheus {}", _0)]
     Prometheus(#[fail(cause)] prometheus::Error),
 

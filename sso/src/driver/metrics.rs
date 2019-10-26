@@ -118,6 +118,7 @@ impl Metrics {
         let audit_metrics =
             driver.audit_read_metrics(&metrics.audit_from, service.map(|s| &s.id))?;
 
+        // TODO(refactor): Group by status codes for audit types.
         metrics.audit_from = Utc::now();
         for (path, count) in audit_metrics.iter() {
             metrics

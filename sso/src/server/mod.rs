@@ -25,6 +25,7 @@ use std::{fs::File, io::BufReader};
 // TODO(feature): Handle changes to password hash version.
 // TODO(feature): Option to enforce provider URLs HTTPS.
 // TODO(feature): User last login, key last use information (calculate in SQL).
+// TODO(feature): User sign up support, notify actor refactoring?
 
 /// Server options provider options.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
