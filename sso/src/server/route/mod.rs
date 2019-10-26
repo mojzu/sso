@@ -7,7 +7,8 @@ mod user;
 use crate::{
     api::{self, ApiError, ApiResult},
     server::Data,
-    AuditMeta, DriverError,
+    util::HeaderAuth,
+    AuditMeta, DriverError, HEADER_USER_AUTHORISATION_NAME,
 };
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, ResponseError, Result, Scope};
@@ -77,10 +78,20 @@ fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, ApiE
         Ok(None)
     };
 
+    let user = req.headers().get(HEADER_USER_AUTHORISATION_NAME);
+    let user = if let Some(user) = user {
+        user.to_str()
+            .map_err(|_err| ApiError::BadRequest(DriverError::HttpHeader))
+            .map(|x| HeaderAuth::parse(x))
+    } else {
+        Ok(None)
+    };
+
     future::result(remote.and_then(|remote| {
         let user_agent = user_agent?;
         let forwarded = forwarded?;
-        Ok(AuditMeta::new(user_agent, remote, forwarded))
+        let user = user?;
+        Ok(AuditMeta::new(user_agent, remote, forwarded, user))
     }))
 }
 

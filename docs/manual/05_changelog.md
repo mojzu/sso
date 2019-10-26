@@ -6,6 +6,7 @@
 
 - Added `name_ge`, `name_le`, `offset_id` query parameters to user list route for sorting by name.
 - Added `status_code` to audit logs. Endpoints which accepted custom audit objects now accept custom audit type string. Status code, subject and data can be added later via update endpoint.
+- Added `User-Authorization` header handling, value is user key or token. Service may include this header to add user and key information in created audit logs.
 
 ### Changed
 
@@ -17,6 +18,7 @@
 
 - Fixed list tests can fail because concurrent tests create rows within order being tested.
 - Fixed `zxcvbn` warning caused by passing empty strings, also stops passing empty strings to pwned passwords API.
+- Fixed `key_id` not set on audit log when authenticating service keys.
 
 ## 0.7.0 (2019-10-19)
 

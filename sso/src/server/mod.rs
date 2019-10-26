@@ -272,8 +272,8 @@ impl Server {
                 ))
                 // Global JSON configuration.
                 .data(web::JsonConfig::default().limit(default_json_limit))
-                // Authorisation header identity middleware.
-                .wrap(actix_web_middleware::AuthorisationIdentityPolicy::identity_service())
+                // Header identity middleware.
+                .wrap(actix_web_middleware::HeaderIdentityPolicy::identity_service())
                 // Metrics middleware.
                 .wrap(actix_web_middleware::Metrics::new(
                     http_count.clone(),

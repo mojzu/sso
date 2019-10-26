@@ -30,6 +30,12 @@ pub const DEFAULT_LIMIT: i64 = 50;
 /// Default CSRF expires seconds.
 pub const DEFAULT_CSRF_EXPIRES_S: i64 = 1000;
 
+/// Authorisation header name.
+pub const HEADER_AUTHORISATION_NAME: &str = "Authorization";
+
+/// User authorisation header name.
+pub const HEADER_USER_AUTHORISATION_NAME: &str = "User-Authorization";
+
 /// Driver closure function type.
 pub type DriverLockFn = Box<dyn FnOnce(&dyn DriverIf) -> DriverResult<bool>>;
 
@@ -108,7 +114,7 @@ pub trait DriverIf {
     fn key_update_many(&self, user_id: &Uuid, update: &KeyUpdate) -> DriverResult<usize>;
 
     /// Delete key.
-    fn key_delete(&self, id: &Uuid) -> DriverResult<()>;
+    fn key_delete(&self, id: &Uuid) -> DriverResult<usize>;
 
     // -----------------
     // Service Functions

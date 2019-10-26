@@ -248,17 +248,10 @@ impl ModelKey {
             .map_err(Into::into)
     }
 
-    pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<()> {
+    pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<usize> {
         diesel::delete(sso_key::table.filter(sso_key::dsl::id.eq(id)))
             .execute(conn)
             .map_err(Into::into)
-            .and_then(|count| {
-                if count != 1 {
-                    Err(DriverError::Delete)
-                } else {
-                    Ok(())
-                }
-            })
     }
 
     fn count_token(conn: &PgConnection, service_id: &Uuid, user_id: &Uuid) -> DriverResult<i64> {

@@ -139,6 +139,22 @@ pub fn user_key_create(
     }
 }
 
+pub fn user_key_create2(
+    client: &ClientSync,
+    name: &str,
+    type_: KeyType,
+    service_id: Uuid,
+    user: User,
+) -> (User, KeyWithValue) {
+    let body = KeyCreateRequest::with_user_id(true, type_, name, user.id);
+    let create = client.key_create(body).unwrap();
+    let key = create.data;
+    assert_eq!(key.name, name);
+    assert_eq!(key.service_id.unwrap(), service_id);
+    assert_eq!(key.user_id.unwrap(), user.id);
+    (user, key)
+}
+
 pub fn user_key_verify(client: &ClientSync, key: &UserKey) -> UserKey {
     let body = AuthKeyRequest::new(&key.key, None);
     let verify = client.auth_key_verify(body).unwrap();

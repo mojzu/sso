@@ -4,7 +4,7 @@ use crate::{
 use actix::{Handler, Message};
 
 /// Reset password email message.
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 pub struct EmailResetPassword {
     service: Service,
     user: User,

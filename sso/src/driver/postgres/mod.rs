@@ -164,7 +164,7 @@ impl DriverIf for DriverPostgres {
         ModelKey::update_many(&conn, user_id, update)
     }
 
-    fn key_delete(&self, id: &Uuid) -> DriverResult<()> {
+    fn key_delete(&self, id: &Uuid) -> DriverResult<usize> {
         let conn = self.conn()?;
         ModelKey::delete(&conn, id)
     }
@@ -346,7 +346,7 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelKey::update_many(self.conn(), user_id, update)
     }
 
-    fn key_delete(&self, id: &Uuid) -> DriverResult<()> {
+    fn key_delete(&self, id: &Uuid) -> DriverResult<usize> {
         ModelKey::delete(self.conn(), id)
     }
 

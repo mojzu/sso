@@ -4,7 +4,7 @@ use crate::{
 use actix::{Handler, Message};
 
 /// Update email email message.
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 pub struct EmailUpdateEmail {
     service: Service,
     user: User,

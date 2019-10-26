@@ -399,8 +399,80 @@ macro_rules! user_integration_test {
                 .data;
             assert_eq!(audit_list.len(), 1);
             let audit = &audit_list[0];
-            println!("{:?}", audit); // TODO(refactor): Clean this up.
+            assert_eq!(audit.key_id.unwrap(), service_key.id);
             assert_eq!(audit.service_id.unwrap(), service.id);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_user_update_user_authorisation_forbidden_user_disabled() {
+            let client = client_create(None);
+            let (service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            let user1 = user_create(&client, true, USER_NAME, &user_email);
+            let (user1, user1_key) =
+                user_key_create2(&client, KEY_NAME, KeyType::Key, service.id, user1);
+
+            let client = client.with_user_authorisation(user1_key.value);
+            let user2 = client
+                .user_update(user1.id, UserUpdateRequest::default().is_enabled(false))
+                .unwrap()
+                .data;
+            assert_eq!(user1.id, user2.id);
+            assert_ne!(user1.updated_at, user2.updated_at);
+
+            let update_type = AuditType::UserUpdate.to_string().unwrap();
+            let res = client
+                .audit_list(
+                    AuditListRequestBuilder::default()
+                        .type_(Some(vec![update_type]))
+                        .subject(Some(vec![user2.id.to_string()]))
+                        .build()
+                        .unwrap(),
+                )
+                .unwrap_err();
+            assert_eq!(res, ClientError::Unauthorised);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_user_update_user_authorisation_ok() {
+            let client = client_create(None);
+            let (service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            let user1 = user_create(&client, true, USER_NAME, &user_email);
+            let (user1, user1_key) =
+                user_key_create2(&client, KEY_NAME, KeyType::Key, service.id, user1);
+
+            let client = client.with_user_authorisation(user1_key.value);
+            let user2 = client
+                .user_update(user1.id, UserUpdateRequest::default().name("123"))
+                .unwrap()
+                .data;
+            assert_eq!(user1.id, user2.id);
+            assert_ne!(user1.updated_at, user2.updated_at);
+
+            let update_type = AuditType::UserUpdate.to_string().unwrap();
+            let audit_list = client
+                .audit_list(
+                    AuditListRequestBuilder::default()
+                        .type_(Some(vec![update_type]))
+                        .subject(Some(vec![user2.id.to_string()]))
+                        .build()
+                        .unwrap(),
+                )
+                .unwrap()
+                .data;
+            assert_eq!(audit_list.len(), 1);
+            let audit = &audit_list[0];
+            assert_eq!(audit.key_id.unwrap(), service_key.id);
+            assert_eq!(audit.service_id.unwrap(), service.id);
+            assert_eq!(audit.user_id.unwrap(), user1.id);
+            assert_eq!(audit.user_key_id.unwrap(), user1_key.id);
         }
     };
 }

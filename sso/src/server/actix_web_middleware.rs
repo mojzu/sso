@@ -1,5 +1,5 @@
 //! # Actix Web Middleware
-use crate::{api::ApiError, DriverError};
+use crate::{api::ApiError, util::*, DriverError, HEADER_AUTHORISATION_NAME};
 use actix_identity::{IdentityPolicy, IdentityService};
 use actix_service::{Service, Transform};
 use actix_web::{
@@ -13,58 +13,42 @@ use futures::{
 use prometheus::{HistogramTimer, HistogramVec, IntCounterVec};
 use std::fmt;
 
-/// Authorisation identity policy middleware.
+/// Header identity policy middleware.
 #[derive(Debug)]
-pub struct AuthorisationIdentityPolicy {
+pub struct HeaderIdentityPolicy {
     header: String,
 }
 
-impl AuthorisationIdentityPolicy {
+impl HeaderIdentityPolicy {
     /// Create new identity service.
     pub fn identity_service() -> IdentityService<Self> {
-        IdentityService::new(AuthorisationIdentityPolicy::default())
-    }
-
-    /// Returns key value from formats: `$KEY`, `Bearer $KEY`.
-    fn trim_authorisation(value: &str) -> Option<String> {
-        let value = value.to_owned();
-        if value.starts_with("Bearer ") {
-            let parts: Vec<&str> = value.split(' ').collect();
-            if parts.len() > 1 {
-                let value = parts[1].trim().to_owned();
-                Some(value)
-            } else {
-                None
-            }
-        } else {
-            Some(value)
-        }
+        IdentityService::new(HeaderIdentityPolicy::default())
     }
 }
 
-impl Default for AuthorisationIdentityPolicy {
+impl Default for HeaderIdentityPolicy {
     fn default() -> Self {
-        AuthorisationIdentityPolicy {
-            header: "Authorization".to_owned(),
+        Self {
+            header: HEADER_AUTHORISATION_NAME.to_owned(),
         }
     }
 }
 
-impl IdentityPolicy for AuthorisationIdentityPolicy {
+impl IdentityPolicy for HeaderIdentityPolicy {
     type Future = ActixWebResult<Option<String>, Error>;
     type ResponseFuture = ActixWebResult<(), Error>;
 
     fn from_request(&self, request: &mut ServiceRequest) -> Self::Future {
-        let key = match request.headers().get(&self.header) {
+        let service_key = match request.headers().get(&self.header) {
             Some(value) => {
                 let value = value
                     .to_str()
                     .map_err(|_err| ApiError::Unauthorised(DriverError::HttpHeader))?;
-                AuthorisationIdentityPolicy::trim_authorisation(value)
+                HeaderAuth::parse_key(value)
             }
             None => None,
         };
-        Ok(key)
+        Ok(service_key)
     }
 
     fn to_response<B>(

@@ -96,10 +96,23 @@ impl ClientSync {
         }
     }
 
-    /// Clone client with forwarded (keeps options.authorisation).
-    pub fn with_forwarded<T1: Into<String>>(&self, forwarded: T1) -> Self {
+    /// Clone client with forwarded.
+    pub fn with_forwarded<F>(&self, forwarded: F) -> Self
+    where
+        F: Into<String>,
+    {
         let mut options = self.options.clone();
         options.forwarded = forwarded.into();
+        self.with_options(options)
+    }
+
+    /// Clone client with user authorisation.
+    pub fn with_user_authorisation<U>(&self, user_authorisation: U) -> Self
+    where
+        U: Into<String>,
+    {
+        let mut options = self.options.clone();
+        options.user_authorisation = Some(user_authorisation.into());
         self.with_options(options)
     }
 }

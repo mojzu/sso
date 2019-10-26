@@ -1,4 +1,4 @@
-use crate::{impl_enum_to_from_string, Driver, KeyWithValue, Service, User};
+use crate::{impl_enum_to_from_string, util::HeaderAuth, Driver, KeyWithValue, Service, User};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
@@ -234,24 +234,31 @@ pub struct AuditUpdate {
 /// Audit metadata.
 ///
 /// HTTP request information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct AuditMeta {
     user_agent: String,
     remote: String,
     forwarded: Option<String>,
+    user: Option<HeaderAuth>,
 }
 
 impl AuditMeta {
     /// Create audit metadata from parameters.
-    pub fn new<T1: Into<String>, T2: Into<Option<String>>>(
-        user_agent: T1,
-        remote: T1,
-        forwarded: T2,
-    ) -> Self {
+    pub fn new<U, R>(
+        user_agent: U,
+        remote: R,
+        forwarded: Option<String>,
+        user: Option<HeaderAuth>,
+    ) -> Self
+    where
+        U: Into<String>,
+        R: Into<String>,
+    {
         AuditMeta {
             user_agent: user_agent.into(),
             remote: remote.into(),
-            forwarded: forwarded.into(),
+            forwarded,
+            user,
         }
     }
 
@@ -268,6 +275,11 @@ impl AuditMeta {
     /// Forwarded for header optional string reference.
     pub fn forwarded(&self) -> Option<&str> {
         self.forwarded.as_ref().map(|x| &**x)
+    }
+
+    /// User authorisation optional reference.
+    pub fn user(&self) -> Option<&HeaderAuth> {
+        self.user.as_ref()
     }
 }
 

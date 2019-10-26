@@ -239,6 +239,14 @@ impl UserUpdateRequest {
         self.is_enabled = Some(is_enabled);
         self
     }
+
+    pub fn name<N>(mut self, name: N) -> Self
+    where
+        N: Into<String>,
+    {
+        self.name = Some(name.into());
+        self
+    }
 }
 
 pub fn user_list(

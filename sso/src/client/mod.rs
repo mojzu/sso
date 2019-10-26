@@ -12,7 +12,7 @@ pub use crate::client::async_impl::*;
 pub use crate::client::sync_impl::*;
 pub use crate::client::{actor::*, error::*};
 
-use crate::DriverError;
+use crate::{DriverError, HEADER_USER_AUTHORISATION_NAME};
 use http::header;
 use reqwest::{r#async::RequestBuilder as AsyncRequestBuilder, RequestBuilder, Response};
 use serde::{de::DeserializeOwned, ser::Serialize};
@@ -23,14 +23,19 @@ use url::Url;
 pub struct ClientOptions {
     authorisation: String,
     forwarded: String,
+    user_authorisation: Option<String>,
 }
 
 impl ClientOptions {
     /// Create new client options.
-    pub fn new<T1: Into<String>>(authorisation: T1) -> Self {
+    pub fn new<A>(authorisation: A) -> Self
+    where
+        A: Into<String>,
+    {
         Self {
             authorisation: authorisation.into(),
             forwarded: "unknown".to_owned(),
+            user_authorisation: None,
         }
     }
 
@@ -46,8 +51,14 @@ impl ClientOptions {
 
     /// Set headers on synchronous request builder.
     pub fn request_headers(&self, req: RequestBuilder) -> RequestBuilder {
-        req.header(header::AUTHORIZATION, &self.authorisation)
-            .header(header::FORWARDED, &self.forwarded)
+        let req = req
+            .header(header::AUTHORIZATION, &self.authorisation)
+            .header(header::FORWARDED, &self.forwarded);
+        if let Some(user_authorisation) = &self.user_authorisation {
+            req.header(HEADER_USER_AUTHORISATION_NAME, user_authorisation)
+        } else {
+            req
+        }
     }
 }
 

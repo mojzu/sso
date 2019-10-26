@@ -103,10 +103,6 @@ pub enum DriverError {
     #[fail(display = "LockFn {}", _0)]
     LockFn(String),
 
-    // TODO(refactor): Remove this error?
-    #[fail(display = "Delete")]
-    Delete,
-
     #[fail(display = "Client {}", _0)]
     Client(#[fail(cause)] ClientError),
 

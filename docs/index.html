@@ -805,6 +805,7 @@ sso start-server</code></pre>
 <ul>
 <li>Added <code>name_ge</code>, <code>name_le</code>, <code>offset_id</code> query parameters to user list route for sorting by name.</li>
 <li>Added <code>status_code</code> to audit logs. Endpoints which accepted custom audit objects now accept custom audit type string. Status code, subject and data can be added later via update endpoint.</li>
+<li>Added <code>User-Authorization</code> header handling, value is user key or token. Service may include this header to add user and key information in created audit logs.</li>
 </ul>
 <h3 id="changed"><span class="header-section-number">5.1.2</span> Changed</h3>
 <ul>
@@ -816,6 +817,7 @@ sso start-server</code></pre>
 <ul>
 <li>Fixed list tests can fail because concurrent tests create rows within order being tested.</li>
 <li>Fixed <code>zxcvbn</code> warning caused by passing empty strings, also stops passing empty strings to pwned passwords API.</li>
+<li>Fixed <code>key_id</code> not set on audit log when authenticating service keys.</li>
 </ul>
 <h2 id="section-1"><span class="header-section-number">5.2</span> 0.7.0 (2019-10-19)</h2>
 <h3 id="added-1"><span class="header-section-number">5.2.1</span> Added</h3>
