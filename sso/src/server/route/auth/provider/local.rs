@@ -59,7 +59,7 @@ fn login_handler(
     let password_meta = api::password_meta(
         data.options().password_pwned_enabled(),
         data.client(),
-        Some(&request.password),
+        Some(request.password.clone()),
     )
     .map_err(ApiError::BadRequest);
 
@@ -123,7 +123,7 @@ fn reset_password_confirm_handler(
     let password_meta = api::password_meta(
         data.options().password_pwned_enabled(),
         data.client(),
-        Some(&request.password),
+        Some(request.password.clone()),
     )
     .map_err(ApiError::BadRequest);
 
@@ -206,7 +206,7 @@ fn update_password_handler(
     let password_meta = api::password_meta(
         data.options().password_pwned_enabled(),
         data.client(),
-        Some(&request.password),
+        Some(request.password.clone()),
     )
     .map_err(ApiError::BadRequest);
 

@@ -15,6 +15,7 @@
 ### Fixed
 
 - Fixed list tests can fail because concurrent tests create rows within order being tested.
+- Fixed `zxcvbn` warning caused by passing empty strings, also stops passing empty strings to pwned passwords API.
 
 ## 0.7.0 (2019-10-19)
 

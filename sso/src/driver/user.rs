@@ -104,9 +104,18 @@ pub struct UserPasswordMeta {
 
 impl Default for UserPasswordMeta {
     fn default() -> Self {
-        UserPasswordMeta {
+        Self {
             password_strength: None,
             password_pwned: None,
+        }
+    }
+}
+
+impl UserPasswordMeta {
+    pub fn invalid() -> Self {
+        Self {
+            password_strength: Some(0),
+            password_pwned: Some(true),
         }
     }
 }

@@ -56,7 +56,7 @@ fn create_handler(
     let password_meta = api::password_meta(
         data.options().password_pwned_enabled(),
         data.client(),
-        request.password.as_ref().map(|x| &**x),
+        request.password.clone(),
     )
     .map_err(ApiError::BadRequest);
 

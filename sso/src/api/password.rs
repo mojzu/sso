@@ -4,12 +4,15 @@ use futures::{future, Future};
 use sha1::{Digest, Sha1};
 
 /// Returns password strength and pwned checks.
+/// If password is empty, returns 0 for strength and true for pwned.
+/// If password is none, returns none for strength and pwned.
 pub fn password_meta(
     enabled: bool,
     client: &Addr<ClientActor>,
-    password: Option<&str>,
+    password: Option<String>,
 ) -> impl Future<Item = UserPasswordMeta, Error = DriverError> {
-    match password {
+    match password.as_ref().map(|x| &**x) {
+        Some("") => future::Either::B(future::ok(UserPasswordMeta::invalid())),
         Some(password) => {
             let password_strength = password_meta_strength(password).then(|r| match r {
                 Ok(entropy) => future::ok(Some(entropy.score)),
@@ -41,7 +44,6 @@ pub fn password_meta(
 fn password_meta_strength(
     password: &str,
 ) -> impl Future<Item = zxcvbn::Entropy, Error = DriverError> {
-    // TODO(fix): Fix "Zxcvbn cannot evaluate a blank password" warning.
     future::result(zxcvbn::zxcvbn(password, &[]).map_err(DriverError::Zxcvbn))
 }
 
