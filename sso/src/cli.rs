@@ -1,7 +1,7 @@
 use crate::{
-    AuditBuilder, ClientActor, ClientActorOptions, CoreError, Driver, DriverError, KeyCreate,
-    KeyWithValue, NotifyActor, NotifyActorOptions, Server, ServerOptions, Service, ServiceCreate,
-    SsoError, SsoResult,
+    AuditBuilder, ClientActor, ClientActorOptions, Driver, DriverError, KeyCreate, KeyWithValue,
+    NotifyActor, NotifyActorOptions, Server, ServerOptions, Service, ServiceCreate, SsoError,
+    SsoResult,
 };
 use actix_rt::System;
 
@@ -74,10 +74,7 @@ impl Cli {
     /// Create a root key.
     pub fn create_root_key(driver: Box<dyn Driver>, name: &str) -> SsoResult<KeyWithValue> {
         let create = KeyCreate::root(true, name);
-        driver
-            .key_create(&create)
-            .map_err(CoreError::Driver)
-            .map_err(Into::into)
+        driver.key_create(&create).map_err(Into::into)
     }
 
     /// Create a service with service key.
@@ -99,13 +96,9 @@ impl Cli {
         };
         let service = driver
             .service_create(&service_create)
-            .map_err(CoreError::Driver)
-            .map_err(SsoError::Core)?;
+            .map_err(SsoError::Driver)?;
         let key_create = KeyCreate::service(true, name, service.id);
-        let key = driver
-            .key_create(&key_create)
-            .map_err(CoreError::Driver)
-            .map_err(SsoError::Core)?;
+        let key = driver.key_create(&key_create).map_err(SsoError::Driver)?;
         Ok((service, key))
     }
 

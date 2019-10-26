@@ -7,7 +7,7 @@ mod user;
 use crate::{
     api::{self, ApiError, ApiResult},
     server::Data,
-    AuditMeta, CoreError,
+    AuditMeta, DriverError,
 };
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, ResponseError, Result, Scope};
@@ -56,22 +56,22 @@ fn request_audit_meta(req: &HttpRequest) -> future::FutureResult<AuditMeta, ApiE
     let connection_info = req.connection_info();
     let remote = connection_info
         .remote()
-        .ok_or_else(|| ApiError::BadRequest(CoreError::HttpHeader));
+        .ok_or_else(|| ApiError::BadRequest(DriverError::HttpHeader));
 
     let user_agent = req
         .headers()
         .get(http::header::USER_AGENT)
-        .ok_or_else(|| ApiError::BadRequest(CoreError::HttpHeader))
+        .ok_or_else(|| ApiError::BadRequest(DriverError::HttpHeader))
         .and_then(|x| {
             x.to_str()
-                .map_err(|_err| ApiError::BadRequest(CoreError::HttpHeader))
+                .map_err(|_err| ApiError::BadRequest(DriverError::HttpHeader))
         });
 
     let forwarded = req.headers().get(http::header::FORWARDED);
     let forwarded = if let Some(forwarded) = forwarded {
         forwarded
             .to_str()
-            .map_err(|_err| ApiError::BadRequest(CoreError::HttpHeader))
+            .map_err(|_err| ApiError::BadRequest(DriverError::HttpHeader))
             .map(|x| Some(x.to_owned()))
     } else {
         Ok(None)

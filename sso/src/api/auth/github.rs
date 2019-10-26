@@ -38,7 +38,8 @@ mod provider_github {
             auth::server_auth::oauth2_login, ApiError, ApiResult, AuthOauth2CallbackRequest,
             AuthProviderOauth2, AuthProviderOauth2Args,
         },
-        AuditBuilder, Auth, Client, CoreError, CoreResult, CsrfCreate, Driver, Service, UserToken,
+        util::*,
+        AuditBuilder, Client, CsrfCreate, Driver, DriverError, DriverResult, Service, UserToken,
     };
     use http::header;
     use oauth2::{
@@ -55,7 +56,7 @@ mod provider_github {
         args: &AuthProviderOauth2Args,
     ) -> ApiResult<String> {
         let service =
-            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         // Generate the authorisation URL to which we'll redirect the user.
         let client = new_client(&service, args.provider).map_err(ApiError::BadRequest)?;
@@ -70,7 +71,6 @@ mod provider_github {
             CsrfCreate::new(csrf_key, csrf_key, args.access_token_expires, service.id);
         driver
             .csrf_create(&csrf_create)
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
 
         Ok(authorise_url.to_string())
@@ -84,14 +84,13 @@ mod provider_github {
         request: AuthOauth2CallbackRequest,
     ) -> ApiResult<UserToken> {
         let service =
-            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         // Read the CSRF key using state value, rebuild code verifier from value.
         let csrf = driver
             .csrf_read(&request.state)
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?
-            .ok_or_else(|| CoreError::CsrfNotFoundOrUsed)
+            .ok_or_else(|| DriverError::CsrfNotFoundOrUsed)
             .map_err(ApiError::BadRequest)?;
 
         // Exchange the code with a token.
@@ -100,7 +99,7 @@ mod provider_github {
         let token = client
             .exchange_code(code)
             .request(http_client)
-            .map_err(|err| CoreError::Oauth2Request(err.into()))
+            .map_err(|err| DriverError::Oauth2Request(err.into()))
             .map_err(ApiError::BadRequest)?;
 
         // Return access token value.
@@ -120,7 +119,7 @@ mod provider_github {
         )
     }
 
-    fn api_user_email(user_agent: String, access_token: String) -> CoreResult<String> {
+    fn api_user_email(user_agent: String, access_token: String) -> DriverResult<String> {
         #[derive(Debug, Serialize, Deserialize)]
         struct GithubUser {
             email: String,
@@ -143,26 +142,27 @@ mod provider_github {
     fn new_client(
         service: &Service,
         provider: Option<&AuthProviderOauth2>,
-    ) -> CoreResult<BasicClient> {
+    ) -> DriverResult<BasicClient> {
         let (provider_github_oauth2_url, provider) =
             match (&service.provider_github_oauth2_url, provider) {
                 (Some(provider_github_oauth2_url), Some(provider)) => {
                     Ok((provider_github_oauth2_url, provider))
                 }
-                _ => Err(CoreError::ServiceProviderGithubOauth2Disabled),
+                _ => Err(DriverError::ServiceProviderGithubOauth2Disabled),
             }?;
 
         let new_client_id = ClientId::new(provider.client_id.to_owned());
         let new_client_secret = ClientSecret::new(provider.client_secret.to_owned());
 
-        let auth_url =
-            Url::parse("https://github.com/login/oauth/authorize").map_err(CoreError::UrlParse)?;
+        let auth_url = Url::parse("https://github.com/login/oauth/authorize")
+            .map_err(DriverError::UrlParse)?;
         let auth_url = AuthUrl::new(auth_url);
         let token_url = Url::parse("https://github.com/login/oauth/access_token")
-            .map_err(CoreError::UrlParse)?;
+            .map_err(DriverError::UrlParse)?;
         let token_url = TokenUrl::new(token_url);
 
-        let redirect_url = Url::parse(&provider_github_oauth2_url).map_err(CoreError::UrlParse)?;
+        let redirect_url =
+            Url::parse(&provider_github_oauth2_url).map_err(DriverError::UrlParse)?;
         Ok(BasicClient::new(
             new_client_id,
             Some(new_client_secret),

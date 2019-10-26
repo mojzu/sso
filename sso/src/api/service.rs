@@ -294,7 +294,8 @@ mod server_service {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        AuditBuilder, Auth, CoreError, Driver, Service, ServiceList, ServiceListFilter,
+        util::*,
+        AuditBuilder, Driver, DriverError, Service, ServiceList, ServiceListFilter,
         ServiceListQuery,
     };
 
@@ -305,13 +306,10 @@ mod server_service {
         query: &ServiceListQuery,
         filter: &ServiceListFilter,
     ) -> ApiResult<Vec<Service>> {
-        Auth::authenticate_root(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        key_root_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let list = ServiceList { query, filter };
-        driver
-            .service_list(&list)
-            .map_err(CoreError::Driver)
-            .map_err(ApiError::BadRequest)
+        driver.service_list(&list).map_err(ApiError::BadRequest)
     }
 
     pub fn create(
@@ -320,12 +318,9 @@ mod server_service {
         key_value: Option<String>,
         create: ServiceCreate,
     ) -> ApiResult<Service> {
-        Auth::authenticate_root(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        key_root_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        driver
-            .service_create(&create)
-            .map_err(CoreError::Driver)
-            .map_err(ApiError::BadRequest)
+        driver.service_create(&create).map_err(ApiError::BadRequest)
     }
 
     pub fn read(
@@ -334,8 +329,7 @@ mod server_service {
         key_value: Option<String>,
         service_id: Uuid,
     ) -> ApiResult<Service> {
-        let service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         read_inner(driver, service.as_ref(), service_id)
     }
@@ -347,13 +341,11 @@ mod server_service {
         service_id: Uuid,
         update: ServiceUpdate,
     ) -> ApiResult<(Service, Service)> {
-        let service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let previous_service = read_inner(driver, service.as_ref(), service_id)?;
         let service = driver
             .service_update(&service_id, &update)
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
         Ok((previous_service, service))
     }
@@ -364,13 +356,11 @@ mod server_service {
         key_value: Option<String>,
         service_id: Uuid,
     ) -> ApiResult<Service> {
-        let service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let service = read_inner(driver, service.as_ref(), service_id)?;
         driver
             .service_delete(&service_id)
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)
             .map(|_| service)
     }
@@ -382,9 +372,8 @@ mod server_service {
     ) -> ApiResult<Service> {
         driver
             .service_read(&ServiceRead::new(service_id).service_id_mask(service.map(|x| x.id)))
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?
-            .ok_or_else(|| CoreError::ServiceNotFound)
+            .ok_or_else(|| DriverError::ServiceNotFound)
             .map_err(ApiError::NotFound)
     }
 }

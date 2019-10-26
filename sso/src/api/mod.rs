@@ -3,6 +3,7 @@ mod audit;
 mod auth;
 mod error;
 mod key;
+mod password;
 mod service;
 mod user;
 pub mod validate;
@@ -12,14 +13,15 @@ pub use crate::api::{
     auth::*,
     error::*,
     key::*,
+    password::*,
     service::*,
     user::*,
     validate::{ValidateRequest, ValidateRequestQuery},
 };
 
 use crate::{
-    AuditBuilder, AuditDiff, AuditDiffBuilder, AuditMeta, AuditSubject, AuditType, CoreError,
-    Driver, Service,
+    AuditBuilder, AuditDiff, AuditDiffBuilder, AuditMeta, AuditSubject, AuditType, Driver,
+    DriverError, Service,
 };
 use serde_json::Value;
 
@@ -117,7 +119,8 @@ pub fn server_metrics(
 mod server {
     use crate::{
         api::{ApiError, ApiResult},
-        AuditBuilder, Auth, CoreError, Driver, Metrics,
+        util::*,
+        AuditBuilder, Driver, Metrics,
     };
 
     pub fn metrics(
@@ -125,12 +128,9 @@ mod server {
         audit: &mut AuditBuilder,
         key_value: Option<String>,
     ) -> ApiResult<String> {
-        let service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        Metrics::read(driver, service.as_ref())
-            .map_err(CoreError::Driver)
-            .map_err(ApiError::BadRequest)
+        Metrics::read(driver, service.as_ref()).map_err(ApiError::BadRequest)
     }
 }
 
@@ -198,9 +198,8 @@ fn result_audit_diff<T: AuditSubject + AuditDiff>(
 fn csrf_verify(driver: &dyn Driver, service: &Service, csrf_key: &str) -> ApiResult<()> {
     driver
         .csrf_read(&csrf_key)
-        .map_err(CoreError::Driver)
         .map_err(ApiError::BadRequest)?
-        .ok_or_else(|| CoreError::CsrfNotFoundOrUsed)
-        .and_then(|csrf| csrf.check_service(service.id).map_err(CoreError::Driver))
+        .ok_or_else(|| DriverError::CsrfNotFoundOrUsed)
+        .and_then(|csrf| csrf.check_service(service.id))
         .map_err(ApiError::BadRequest)
 }

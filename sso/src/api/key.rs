@@ -259,8 +259,9 @@ mod server_key {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        AuditBuilder, Auth, CoreError, Driver, Key, KeyCreate, KeyList, KeyListFilter,
-        KeyListQuery, KeyUpdate, Service,
+        util::*,
+        AuditBuilder, Driver, DriverError, Key, KeyCreate, KeyList, KeyListFilter, KeyListQuery,
+        KeyUpdate, Service,
     };
 
     pub fn list(
@@ -270,18 +271,14 @@ mod server_key {
         query: &KeyListQuery,
         filter: &KeyListFilter,
     ) -> ApiResult<Vec<Key>> {
-        let service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let list = KeyList {
             query,
             filter,
             service_id_mask: service.map(|s| s.id),
         };
-        driver
-            .key_list(&list)
-            .map_err(CoreError::Driver)
-            .map_err(ApiError::BadRequest)
+        driver.key_list(&list).map_err(ApiError::BadRequest)
     }
 
     pub fn create(
@@ -293,49 +290,43 @@ mod server_key {
         // If service ID is some, root key is required to create service keys.
         match request.service_id {
             Some(service_id) => {
-                Auth::authenticate_root(driver, audit, key_value)
+                key_root_authenticate(driver, audit, key_value)
                     .map_err(ApiError::Unauthorised)
                     .and_then(|_| {
                         match request.user_id {
                             // User ID is defined, creating user key for service.
-                            Some(user_id) => driver
-                                .key_create(&KeyCreate::user(
-                                    request.is_enabled,
-                                    request.type_,
-                                    request.name,
-                                    service_id,
-                                    user_id,
-                                ))
-                                .map_err(CoreError::Driver),
+                            Some(user_id) => driver.key_create(&KeyCreate::user(
+                                request.is_enabled,
+                                request.type_,
+                                request.name,
+                                service_id,
+                                user_id,
+                            )),
                             // Creating service key.
-                            None => driver
-                                .key_create(&KeyCreate::service(
-                                    request.is_enabled,
-                                    request.name,
-                                    service_id,
-                                ))
-                                .map_err(CoreError::Driver),
+                            None => driver.key_create(&KeyCreate::service(
+                                request.is_enabled,
+                                request.name,
+                                service_id,
+                            )),
                         }
                         .map_err(ApiError::BadRequest)
                     })
             }
             None => {
-                Auth::authenticate_service(driver, audit, key_value)
+                key_service_authenticate(driver, audit, key_value)
                     .map_err(ApiError::Unauthorised)
                     .and_then(|service| {
                         match request.user_id {
                             // User ID is defined, creating user key for service.
-                            Some(user_id) => driver
-                                .key_create(&KeyCreate::user(
-                                    request.is_enabled,
-                                    request.type_,
-                                    request.name,
-                                    service.id,
-                                    user_id,
-                                ))
-                                .map_err(CoreError::Driver),
+                            Some(user_id) => driver.key_create(&KeyCreate::user(
+                                request.is_enabled,
+                                request.type_,
+                                request.name,
+                                service.id,
+                                user_id,
+                            )),
                             // Service cannot create service keys.
-                            None => Err(CoreError::ServiceCannotCreateServiceKey),
+                            None => Err(DriverError::ServiceCannotCreateServiceKey),
                         }
                         .map_err(ApiError::BadRequest)
                     })
@@ -349,8 +340,7 @@ mod server_key {
         key_value: Option<String>,
         key_id: Uuid,
     ) -> ApiResult<Key> {
-        let service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         read_inner(driver, service.as_ref(), key_id)
     }
@@ -362,8 +352,7 @@ mod server_key {
         key_id: Uuid,
         request: KeyUpdateRequest,
     ) -> ApiResult<(Key, Key)> {
-        let service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let previous_key = read_inner(driver, service.as_ref(), key_id)?;
         let key = driver
@@ -375,7 +364,6 @@ mod server_key {
                     name: request.name,
                 },
             )
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
         Ok((previous_key, key))
     }
@@ -386,13 +374,11 @@ mod server_key {
         key_value: Option<String>,
         key_id: Uuid,
     ) -> ApiResult<Key> {
-        let service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let key = read_inner(driver, service.as_ref(), key_id)?;
         driver
             .key_delete(&key_id)
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)
             .map(|_| key)
     }
@@ -401,9 +387,8 @@ mod server_key {
         let read = KeyRead::Id(key_id, service.map(|x| x.id));
         driver
             .key_read(&read)
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?
-            .ok_or_else(|| ApiError::NotFound(CoreError::KeyNotFound))
+            .ok_or_else(|| ApiError::NotFound(DriverError::KeyNotFound))
             .map(|x| x.into())
     }
 }

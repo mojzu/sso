@@ -99,5 +99,4 @@ CREATE TABLE sso_audit (
         REFERENCES sso_key("id")
         ON DELETE RESTRICT
 );
-SELECT create_hypertable('sso_audit', 'created_at');
 CREATE INDEX idx_sso_audit_created_at ON sso_audit("created_at" DESC, "type");

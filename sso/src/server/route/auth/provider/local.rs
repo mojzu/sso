@@ -4,7 +4,6 @@ use crate::{
         route::{request_audit_meta, route_response_empty, route_response_json},
         Data,
     },
-    Auth,
 };
 use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
@@ -57,7 +56,7 @@ fn login_handler(
     let audit_meta = request_audit_meta(&req);
     let id = id.identity();
     let request = body.into_inner();
-    let password_meta = Auth::password_meta(
+    let password_meta = api::password_meta(
         data.options().password_pwned_enabled(),
         data.client(),
         Some(&request.password),
@@ -121,7 +120,7 @@ fn reset_password_confirm_handler(
     let audit_meta = request_audit_meta(&req);
     let id = id.identity();
     let request = body.into_inner();
-    let password_meta = Auth::password_meta(
+    let password_meta = api::password_meta(
         data.options().password_pwned_enabled(),
         data.client(),
         Some(&request.password),
@@ -204,7 +203,7 @@ fn update_password_handler(
     let audit_meta = request_audit_meta(&req);
     let id = id.identity();
     let request = body.into_inner();
-    let password_meta = Auth::password_meta(
+    let password_meta = api::password_meta(
         data.options().password_pwned_enabled(),
         data.client(),
         Some(&request.password),

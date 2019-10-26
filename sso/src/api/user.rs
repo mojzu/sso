@@ -3,8 +3,8 @@ use crate::{
         result_audit_diff, result_audit_err, result_audit_subject, validate, ApiError, ApiResult,
         ValidateRequest, ValidateRequestQuery,
     },
-    AuditBuilder, AuditMeta, AuditType, CoreError, Driver, User, UserCreate, UserListFilter,
-    UserListQuery, UserPasswordMeta, UserRead, UserUpdate, DEFAULT_LIMIT,
+    AuditBuilder, AuditMeta, AuditType, Driver, User, UserCreate, UserListFilter, UserListQuery,
+    UserPasswordMeta, UserRead, UserUpdate, DEFAULT_LIMIT,
 };
 use uuid::Uuid;
 use validator::Validate;
@@ -188,7 +188,6 @@ impl UserCreateRequest {
                     self.password_require_update.unwrap_or(false),
                     password,
                 )
-                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
         }
         Ok(create)
@@ -328,8 +327,8 @@ mod server_user {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        AuditBuilder, Auth, CoreError, Driver, User, UserList, UserListFilter, UserListQuery,
-        UserRead,
+        util::*,
+        AuditBuilder, Driver, DriverError, User, UserList, UserListFilter, UserListQuery, UserRead,
     };
 
     pub fn list(
@@ -340,13 +339,10 @@ mod server_user {
         filter: &UserListFilter,
     ) -> ApiResult<Vec<User>> {
         let _service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let list = UserList { query, filter };
-        driver
-            .user_list(&list)
-            .map_err(CoreError::Driver)
-            .map_err(ApiError::BadRequest)
+        driver.user_list(&list).map_err(ApiError::BadRequest)
     }
 
     pub fn create(
@@ -356,12 +352,9 @@ mod server_user {
         create: UserCreate,
     ) -> ApiResult<User> {
         let _service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        driver
-            .user_create(&create)
-            .map_err(CoreError::Driver)
-            .map_err(ApiError::BadRequest)
+        driver.user_create(&create).map_err(ApiError::BadRequest)
     }
 
     pub fn read(
@@ -371,7 +364,7 @@ mod server_user {
         read: &UserRead,
     ) -> ApiResult<User> {
         let _service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         read_inner(driver, read)
     }
@@ -384,14 +377,13 @@ mod server_user {
         update: UserUpdate,
     ) -> ApiResult<(User, User)> {
         let _service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let read = UserRead::Id(user_id);
         let previous_user = read_inner(driver, &read)?;
 
         let user = driver
             .user_update(&user_id, &update)
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
         Ok((previous_user, user))
     }
@@ -403,13 +395,12 @@ mod server_user {
         user_id: Uuid,
     ) -> ApiResult<User> {
         let _service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let read = UserRead::Id(user_id);
         let user = read_inner(driver, &read)?;
         driver
             .user_delete(&user_id)
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)
             .map(|_| user)
     }
@@ -417,9 +408,8 @@ mod server_user {
     fn read_inner(driver: &dyn Driver, read: &UserRead) -> ApiResult<User> {
         driver
             .user_read(read)
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?
-            .ok_or_else(|| CoreError::UserNotFound)
+            .ok_or_else(|| DriverError::UserNotFound)
             .map_err(ApiError::NotFound)
     }
 }

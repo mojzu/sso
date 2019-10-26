@@ -1,4 +1,4 @@
-use crate::CoreError;
+use crate::DriverError;
 use actix_web::{error::BlockingError, HttpResponse, ResponseError};
 use serde::ser::{Serialize, Serializer};
 
@@ -6,19 +6,19 @@ use serde::ser::{Serialize, Serializer};
 #[derive(Debug, Fail)]
 pub enum ApiError {
     #[fail(display = "BadRequest {}", _0)]
-    BadRequest(#[fail(cause)] CoreError),
+    BadRequest(#[fail(cause)] DriverError),
 
     #[fail(display = "Unauthorised {}", _0)]
-    Unauthorised(#[fail(cause)] CoreError),
+    Unauthorised(#[fail(cause)] DriverError),
 
     #[fail(display = "Forbidden {}", _0)]
-    Forbidden(#[fail(cause)] CoreError),
+    Forbidden(#[fail(cause)] DriverError),
 
     #[fail(display = "NotFound {}", _0)]
-    NotFound(#[fail(cause)] CoreError),
+    NotFound(#[fail(cause)] DriverError),
 
     #[fail(display = "InternalServerError {}", _0)]
-    InternalServerError(#[fail(cause)] CoreError),
+    InternalServerError(#[fail(cause)] DriverError),
 }
 
 /// API result wrapper type.
@@ -39,7 +39,7 @@ impl From<BlockingError<ApiError>> for ApiError {
         match e {
             BlockingError::Error(e) => e,
             BlockingError::Canceled => {
-                Self::InternalServerError(CoreError::ActixWebBlockingCancelled)
+                Self::InternalServerError(DriverError::ActixWebBlockingCancelled)
             }
         }
     }

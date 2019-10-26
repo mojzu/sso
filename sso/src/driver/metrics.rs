@@ -37,7 +37,7 @@ pub const METRICS_HTTP_LATENCY_NAME: &str = "http_latency";
 /// Metrics HTTP latency help.
 pub const METRICS_HTTP_LATENCY_HELP: &str = "HTTP request latency";
 
-/// Metrics functions.
+/// Metrics.
 pub struct Metrics {
     pub registry: Registry,
     pub process_cpu_usage: Counter,

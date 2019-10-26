@@ -1,10 +1,12 @@
 mod audit;
 mod csrf;
 mod error;
+mod jwt;
 mod key;
 mod metrics;
 mod service;
 mod user;
+pub mod util;
 
 #[cfg(feature = "postgres")]
 mod postgres;
@@ -15,7 +17,9 @@ mod sqlite;
 pub use crate::driver::postgres::DriverPostgres;
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::DriverSqlite;
-pub use crate::driver::{audit::*, csrf::*, error::*, key::*, metrics::*, service::*, user::*};
+pub use crate::driver::{
+    audit::*, csrf::*, error::*, jwt::*, key::*, metrics::*, service::*, user::*,
+};
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;

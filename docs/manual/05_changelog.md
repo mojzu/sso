@@ -9,6 +9,7 @@
 ### Changed
 
 - Removed TimescaleDB hypertable for audit log, don't make use of any features.
+- Finish removing `core` module by refactoring code in `api` and `driver` modules.
 
 ### Fixed
 

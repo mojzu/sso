@@ -321,7 +321,8 @@ mod server_auth {
     use super::*;
     use crate::{
         api::{csrf_verify as api_csrf_verify, ApiError, ApiResult},
-        Audit, AuditBuilder, Auth, CoreError, Csrf, CsrfCreate, Driver, Jwt, KeyType, Service,
+        util::*,
+        Audit, AuditBuilder, Csrf, CsrfCreate, Driver, DriverError, Jwt, KeyType, Service,
         UserToken, UserTokenAccess,
     };
 
@@ -332,12 +333,12 @@ mod server_auth {
         request: AuthKeyRequest,
     ) -> ApiResult<(UserKey, Option<Audit>)> {
         let service =
-            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         // Key verify requires key key type.
-        let key = Auth::key_read_by_user_value(driver, &service, audit, request.key, KeyType::Key)
+        let key = key_read_user_value_checked(driver, &service, audit, request.key, KeyType::Key)
             .map_err(ApiError::BadRequest)?;
-        let user = Auth::user_read_by_id(driver, Some(&service), audit, key.user_id.unwrap())
+        let user = user_read_id_checked(driver, Some(&service), audit, key.user_id.unwrap())
             .map_err(ApiError::BadRequest)?;
 
         // Key verified.
@@ -350,7 +351,6 @@ mod server_auth {
         if let Some(x) = request.audit {
             let audit = audit
                 .create(driver, x.into())
-                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
             Ok((user_key, Some(audit)))
         } else {
@@ -365,18 +365,12 @@ mod server_auth {
         request: AuthKeyRequest,
     ) -> ApiResult<Option<Audit>> {
         let service =
-            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         // Key revoke requires key key type.
         // Do not check key is enabled or not revoked.
-        let key = Auth::key_read_by_user_value_unchecked(
-            driver,
-            &service,
-            audit,
-            request.key,
-            KeyType::Key,
-        )
-        .map_err(ApiError::BadRequest)?;
+        let key = key_read_user_value_unchecked(driver, &service, audit, request.key, KeyType::Key)
+            .map_err(ApiError::BadRequest)?;
 
         // Disable and revoke key.
         driver
@@ -388,14 +382,12 @@ mod server_auth {
                     name: None,
                 },
             )
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
 
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
             let audit = audit
                 .create(driver, x.into())
-                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
             Ok(Some(audit))
         } else {
@@ -410,20 +402,20 @@ mod server_auth {
         request: AuthTokenRequest,
     ) -> ApiResult<(UserTokenAccess, Option<Audit>)> {
         let service =
-            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) =
             Jwt::decode_unsafe(&request.token, service.id).map_err(ApiError::BadRequest)?;
 
         // Token verify requires token key type.
-        let user = Auth::user_read_by_id(driver, Some(&service), audit, user_id)
+        let user = user_read_id_checked(driver, Some(&service), audit, user_id)
             .map_err(ApiError::BadRequest)?;
-        let key = Auth::key_read_by_user(driver, &service, audit, &user, KeyType::Token)
+        let key = key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
             .map_err(ApiError::BadRequest)?;
 
         // Safely decode token with user key.
-        let access_token_expires = Auth::decode_access_token(&service, &user, &key, &request.token)
+        let access_token_expires = Jwt::decode_access_token(&service, &user, &key, &request.token)
             .map_err(ApiError::BadRequest)?;
 
         // Token verified.
@@ -437,7 +429,6 @@ mod server_auth {
         if let Some(x) = request.audit {
             let audit = audit
                 .create(driver, x.into())
-                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
             Ok((user_token, Some(audit)))
         } else {
@@ -454,27 +445,27 @@ mod server_auth {
         refresh_token_expires: i64,
     ) -> ApiResult<(UserToken, Option<Audit>)> {
         let service =
-            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) =
             Jwt::decode_unsafe(&request.token, service.id).map_err(ApiError::BadRequest)?;
 
         // Token refresh requires token key type.
-        let user = Auth::user_read_by_id(driver, Some(&service), audit, user_id)
+        let user = user_read_id_checked(driver, Some(&service), audit, user_id)
             .map_err(ApiError::BadRequest)?;
-        let key = Auth::key_read_by_user(driver, &service, audit, &user, KeyType::Token)
+        let key = key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
             .map_err(ApiError::BadRequest)?;
 
         // Safely decode token with user key.
-        let csrf_key = Auth::decode_refresh_token(&service, &user, &key, &request.token)
+        let csrf_key = Jwt::decode_refresh_token(&service, &user, &key, &request.token)
             .map_err(ApiError::BadRequest)?;
 
         // Verify CSRF to prevent reuse.
         api_csrf_verify(driver, &service, &csrf_key)?;
 
         // Encode user token.
-        let user_token = Auth::encode_user_token(
+        let user_token = Jwt::encode_user_token(
             driver,
             &service,
             user,
@@ -488,7 +479,6 @@ mod server_auth {
         if let Some(x) = request.audit {
             let audit = audit
                 .create(driver, x.into())
-                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
             Ok((user_token, Some(audit)))
         } else {
@@ -503,7 +493,7 @@ mod server_auth {
         request: AuthTokenRequest,
     ) -> ApiResult<Option<Audit>> {
         let service =
-            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, token_type) =
@@ -511,19 +501,16 @@ mod server_auth {
 
         // Token revoke requires token key type.
         // Do not check user, key is enabled or not revoked.
-        let user = Auth::user_read_by_id_unchecked(driver, Some(&service), audit, user_id)
+        let user = user_read_id_unchecked(driver, Some(&service), audit, user_id)
             .map_err(ApiError::BadRequest)?;
-        let key = Auth::key_read_by_user_unchecked(driver, &service, audit, &user, KeyType::Token)
+        let key = key_read_user_unchecked(driver, &service, audit, &user, KeyType::Token)
             .map_err(ApiError::BadRequest)?;
 
         // Safely decode token with user key.
-        let csrf_key = Auth::decode_csrf_key(&service, &user, &key, token_type, &request.token)
+        let csrf_key = Jwt::decode_csrf_key(&service, &user, &key, token_type, &request.token)
             .map_err(ApiError::BadRequest)?;
         if let Some(csrf_key) = csrf_key {
-            driver
-                .csrf_read(&csrf_key)
-                .map_err(CoreError::Driver)
-                .map_err(ApiError::BadRequest)?;
+            driver.csrf_read(&csrf_key).map_err(ApiError::BadRequest)?;
         }
 
         // Token revoked, disable and revoked linked key.
@@ -536,14 +523,12 @@ mod server_auth {
                     name: None,
                 },
             )
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?;
 
         // Optionally create custom audit log.
         if let Some(x) = request.audit {
             let audit = audit
                 .create(driver, x.into())
-                .map_err(CoreError::Driver)
                 .map_err(ApiError::BadRequest)?;
             Ok(Some(audit))
         } else {
@@ -558,16 +543,16 @@ mod server_auth {
         request: AuthTotpRequest,
     ) -> ApiResult<()> {
         let service =
-            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         // TOTP requires token key type.
-        let user = Auth::user_read_by_id(driver, Some(&service), audit, request.user_id)
+        let user = user_read_id_checked(driver, Some(&service), audit, request.user_id)
             .map_err(ApiError::BadRequest)?;
-        let key = Auth::key_read_by_user(driver, &service, audit, &user, KeyType::Totp)
+        let key = key_read_user_checked(driver, &service, audit, &user, KeyType::Totp)
             .map_err(ApiError::BadRequest)?;
 
         // Verify TOTP code.
-        Auth::totp(&key.value, &request.totp).map_err(ApiError::BadRequest)
+        totp_verify(&key.value, &request.totp).map_err(ApiError::BadRequest)
     }
 
     pub fn csrf_create(
@@ -578,12 +563,11 @@ mod server_auth {
         csrf_token_expires: i64,
     ) -> ApiResult<Csrf> {
         let service =
-            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let expires_s = request.expires_s.unwrap_or(csrf_token_expires);
         driver
             .csrf_create(&CsrfCreate::generate(expires_s, service.id))
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)
     }
 
@@ -594,7 +578,7 @@ mod server_auth {
         request: AuthCsrfVerifyRequest,
     ) -> ApiResult<()> {
         let service =
-            Auth::authenticate_service(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         api_csrf_verify(driver, &service, &request.key)
     }
@@ -610,17 +594,17 @@ mod server_auth {
     ) -> ApiResult<UserToken> {
         // Check service making url and callback requests match.
         if service.id != service_id {
-            return Err(ApiError::BadRequest(CoreError::CsrfServiceMismatch));
+            return Err(ApiError::BadRequest(DriverError::CsrfServiceMismatch));
         }
 
         // OAuth2 login requires token key type.
-        let user = Auth::user_read_by_email(driver, Some(&service), audit, email)
+        let user = user_read_email_checked(driver, Some(&service), audit, email)
             .map_err(ApiError::BadRequest)?;
-        let key = Auth::key_read_by_user(driver, &service, audit, &user, KeyType::Token)
+        let key = key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
             .map_err(ApiError::BadRequest)?;
 
         // Encode user token.
-        Auth::encode_user_token(
+        Jwt::encode_user_token(
             driver,
             &service,
             user,

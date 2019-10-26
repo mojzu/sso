@@ -271,7 +271,8 @@ mod server_audit {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        Audit, AuditBuilder, AuditList, AuditListFilter, AuditListQuery, Auth, CoreError, Driver,
+        util::*,
+        Audit, AuditBuilder, AuditList, AuditListFilter, AuditListQuery, Driver, DriverError,
     };
 
     pub fn list(
@@ -281,18 +282,14 @@ mod server_audit {
         query: &AuditListQuery,
         filter: &AuditListFilter,
     ) -> ApiResult<Vec<Audit>> {
-        let service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let list = AuditList {
             query,
             filter,
             service_id_mask: service.map(|s| s.id),
         };
-        driver
-            .audit_list(&list)
-            .map_err(CoreError::Driver)
-            .map_err(ApiError::BadRequest)
+        driver.audit_list(&list).map_err(ApiError::BadRequest)
     }
 
     pub fn create(
@@ -302,7 +299,7 @@ mod server_audit {
         request: AuditCreateRequest,
     ) -> ApiResult<Audit> {
         let _service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+            key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
         let audit_create = AuditCreate2::new(request.type_, request.subject, request.data);
         let user_id = request.user_id;
         let user_key_id = request.user_key_id;
@@ -311,7 +308,6 @@ mod server_audit {
             .user_id(user_id)
             .user_key_id(user_key_id)
             .create(driver, audit_create)
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)
     }
 
@@ -321,14 +317,12 @@ mod server_audit {
         key_value: Option<String>,
         audit_id: Uuid,
     ) -> ApiResult<Audit> {
-        let service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         driver
             .audit_read(&AuditRead::new(audit_id).service_id_mask(service.map(|x| x.id)))
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)?
-            .ok_or_else(|| ApiError::NotFound(CoreError::AuditNotFound))
+            .ok_or_else(|| ApiError::NotFound(DriverError::AuditNotFound))
     }
 
     pub fn update(
@@ -338,12 +332,10 @@ mod server_audit {
         audit_id: Uuid,
         update: AuditUpdate,
     ) -> ApiResult<Audit> {
-        let service =
-            Auth::authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         driver
             .audit_update(&audit_id, &update, service.map(|x| x.id))
-            .map_err(CoreError::Driver)
             .map_err(ApiError::BadRequest)
     }
 }
