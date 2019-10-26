@@ -6,6 +6,10 @@
 
 - Added `name_ge`, `name_le`, `offset_id` query parameters to user list route for sorting by name.
 
+### Changed
+
+- Removed TimescaleDB hypertable for audit log, don't make use of any features.
+
 ### Fixed
 
 - Fixed list tests can fail because concurrent tests create rows within order being tested.
