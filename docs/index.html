@@ -804,15 +804,18 @@ sso start-server</code></pre>
 <h3 id="added"><span class="header-section-number">5.1.1</span> Added</h3>
 <ul>
 <li>Added <code>name_ge</code>, <code>name_le</code>, <code>offset_id</code> query parameters to user list route for sorting by name.</li>
+<li>Added <code>status_code</code> to audit logs. Endpoints which accepted custom audit objects now accept custom audit type string. Status code, subject and data can be added later via update endpoint.</li>
 </ul>
 <h3 id="changed"><span class="header-section-number">5.1.2</span> Changed</h3>
 <ul>
 <li>Removed TimescaleDB hypertable for audit log, don’t make use of any features.</li>
 <li>Finish removing <code>core</code> module by refactoring code in <code>api</code> and <code>driver</code> modules.</li>
+<li>Removed <code>SsoError</code> and <code>SsoResult</code> in favour of driver types.</li>
 </ul>
 <h3 id="fixed"><span class="header-section-number">5.1.3</span> Fixed</h3>
 <ul>
 <li>Fixed list tests can fail because concurrent tests create rows within order being tested.</li>
+<li>Fixed <code>zxcvbn</code> warning caused by passing empty strings, also stops passing empty strings to pwned passwords API.</li>
 </ul>
 <h2 id="section-1"><span class="header-section-number">5.2</span> 0.7.0 (2019-10-19)</h2>
 <h3 id="added-1"><span class="header-section-number">5.2.1</span> Added</h3>

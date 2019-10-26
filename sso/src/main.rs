@@ -7,9 +7,9 @@ extern crate log;
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 use sso::{
-    Cli, CliOptions, Client, ClientActorOptions, Driver, DriverPostgres, Env,
+    Cli, CliOptions, Client, ClientActorOptions, Driver, DriverPostgres, DriverResult, Env,
     NotifyActorOptionsBuilder, ServerOptionsBuilder, ServerOptionsProvider,
-    ServerOptionsProviderGroup, SsoResult,
+    ServerOptionsProviderGroup,
 };
 
 const CRATE_NAME: &str = crate_name!();
@@ -169,7 +169,7 @@ fn main() {
     }
 }
 
-fn configure() -> SsoResult<(Box<dyn Driver>, CliOptions)> {
+fn configure() -> DriverResult<(Box<dyn Driver>, CliOptions)> {
     let database_url = Env::string(ENV_DATABASE_URL)?;
     let database_connections = Env::value_opt::<u32>(ENV_DATABASE_CONNECTIONS)?;
     let server_hostname = Env::string_opt(ENV_SERVER_HOSTNAME).unwrap_or_else(|| "sso".to_owned());
