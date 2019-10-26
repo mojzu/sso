@@ -22,3 +22,10 @@
 [nginx]: https://www.nginx.com/
 [prometheus]: https://prometheus.io/
 [owasp-asvs]: https://www.owasp.org/index.php/Category:OWASP_Application_Security_Verification_Standard_Project
+[reqwest]: https://github.com/seanmonstar/reqwest
+[github-oauth2]: https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps/
+[microsoft-oauth2]: https://docs.microsoft.com/en-us/azure/active-directory/develop/v1-protocols-oauth-code
+[validator]: https://github.com/Keats/validator
+[serde]: https://github.com/serde-rs/serde
+[serde_qs]: https://github.com/samscott89/serde_qs
+[utf-8]: https://en.wikipedia.org/wiki/UTF-8

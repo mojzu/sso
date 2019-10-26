@@ -5,7 +5,6 @@ mod support;
 
 use support::*;
 
-// TODO(test): More tests.
 // TODO(test): Test TLS functionality.
 // TODO(test): Password reset tests, SMTP testing using mailin_embedded or replace notify actor?
 // Service 2 cannot confirm reset password.

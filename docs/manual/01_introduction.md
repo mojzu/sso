@@ -8,18 +8,24 @@
 
 **Warning: The author of this application is not a security expert, and the code has not undergone any kind of review or verification. Use it at your own risk!**
 
-The crate `sso` is an authentication server binary. It is intended to be used as a backend for other services, such as API servers, which must authenticate user requests.
+This crate **sso** is an authentication server. It is designed for use as a backend for other applications which must authenticate user requests, such as an API server.
 
-Authentication methods are organised into provider groups, The following provider groups are currently supported: `local`, `github`, `microsoft`. Depending on the provider, the following user authentication methods are supported.
+Applications are registered as a **Service** with sso, a **Service Key** authenticates requests from the service to sso.
 
-### Password Login (local)
+Users are registered as a **User** with sso, a **User Key** allows a user to authenticate with a service.
 
-- Users can authenticate to a service using a unique email address and password.
-- Successful login returns time-limited, revokable access and refresh [JSON web tokens][jwt].
-- Access tokens are used to authenticate user requests.
+Authentication methods are organised into **Provider** groups.
+
+### Local Provider
+
+#### Password Login
+
+- User can authenticate to a service using a unique email address and password.
+- Login returns time-limited, revokable access and refresh [JSON web tokens][jwt].
+- Access tokens are used to authenticate user requests to a service.
 - Refresh tokens are used to produce new access and refresh tokens.
-- User passwords can be reset via email, this feature can also be disabled for a user.
-- Users can be required to update their passwords.
+- User password can be reset via email, this feature can be disabled for a user.
+- User can be required to update their passwords.
 - User email address and password updates cause notification emails to be sent to the user.
 - Notification emails contain revokation links in case a login is compromised.
 - Passwords are stored as [argon2][argon2] hashes using [libreauth][libreauth].
@@ -27,20 +33,31 @@ Authentication methods are organised into provider groups, The following provide
 - Password leaks are checked by [Pwned Passwords][pwned-passwords].
 - Users can be created without passwords to disable password login.
 
-### API Key (local)
+#### API Key
 
 - Users can authenticate requests to a service using a unique, random key.
 - Keys are not time-limited, but are revokable.
 
-### TOTP (local)
+#### TOTP
 
 - Services can authenticate user requests that contain a [TOTP][totp] code.
 
-### OAuth2 (github, microsoft)
+### GitHub Provider
 
-- Users can authenticate to a service via supported OAuth2 providers.
-- Successful login returns time-limited, revokable access and refresh [JSON web tokens][jwt].
-- Access tokens are used to authenticate user requests.
+#### OAuth2
+
+- User can authenticate to a service using [GitHub OAuth2][github-oauth2].
+- Login returns time-limited, revokable access and refresh [JSON web tokens][jwt].
+- Access tokens are used to authenticate user requests to a service.
+- Refresh tokens are used to produce new access and refresh tokens.
+
+### Microsoft Provider
+
+#### OAuth2
+
+- User can authenticate to a service using [Microsoft OAuth2][microsoft-oauth2].
+- Login returns time-limited, revokable access and refresh [JSON web tokens][jwt].
+- Access tokens are used to authenticate user requests to a service.
 - Refresh tokens are used to produce new access and refresh tokens.
 
 ## Definitions
