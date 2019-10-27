@@ -12,24 +12,24 @@ groups:
           description: "Instance unreachable for >1 minute."
 
       # Alert if process cpu usage greater than 10%.
-      - alert: sso_high_cpu_usage
+      - alert: sso_high_process_cpu_usage
         expr: process_cpu_usage{job="sso"} > 10
         for: 1m
         labels:
           severity: warning
         annotations:
-          summary: "high_cpu_usage: {{ $labels.job }} {{ $labels.instance }}"
-          description: "CPU usage greater than 10% (value: {{ $value }}%)."
+          summary: "high_process_cpu_usage: {{ $labels.job }} {{ $labels.instance }}"
+          description: "Process CPU usage greater than 10%.\nvalue: {{ $value }}%"
 
       # Alert if process memory usage greater than 500MB.
-      - alert: sso_high_memory_usage
+      - alert: sso_high_process_memory_usage
         expr: process_resident_memory{job="sso"} / 1024 / 1024 > 500
         for: 1m
         labels:
           severity: warning
         annotations:
-          summary: "high_cpu_usage: {{ $labels.job }} {{ $labels.instance }}"
-          description: "Memory usage greater than 500MB (value: {{ $value }}MB)."
+          summary: "high_process_memory_usage: {{ $labels.job }} {{ $labels.instance }}"
+          description: "Process memory usage greater than 500MB.\nvalue: {{ $value }}MB"
 
       # Alert if rate of audit status errors greater than 0.01/s.
       - alert: sso_high_audit_status_error
@@ -41,12 +41,32 @@ groups:
           summary: "high_audit_status_error: {{ $labels.job }} {{ $labels.instance }}"
           description: "Audit status error rate greater than 0.01/s (value: {{ $value }}/s, {{ $labels.type }}, {{ $labels.status }})."
 
-      # Alert if mean request latency is greater than 100ms.
-      - alert: sso_high_request_latency
+      # Alert if HTTP response errors with 4xx status code greater than 5%.
+      - alert: sso_high_http_4xx_error
+        expr: sum(rate(http_count{status=~"^4.."}[5m])) / sum(rate(http_count[5m])) * 100 > 5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "high_high_http_4xx_error: {{ $labels.job }} {{ $labels.instance }}"
+          description: "HTTP 4xx errors greater than 5%.\nvalue: {{ $value }}%\nlabels: {{ $labels }}"
+
+      # Alert if HTTP response errors with 5xx status code greater than 5%.
+      - alert: sso_high_http_5xx_error
+        expr: sum(rate(http_count{status=~"^5.."}[5m])) / sum(rate(http_count[5m])) * 100 > 5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "high_high_http_5xx_error: {{ $labels.job }} {{ $labels.instance }}"
+          description: "HTTP 5xx errors greater than 5%.\nvalue: {{ $value }}%\nlabels: {{ $labels }}"
+
+      # Alert if mean HTTP response latency is greater than 100ms.
+      - alert: sso_high_http_latency
         expr: (rate(http_latency_sum{job="sso"}[5m]) / rate(http_latency_count{job="sso"}[5m])) * 1000 > 100
         for: 1m
         labels:
           severity: warning
         annotations:
-          summary: "high_request_latency: {{ $labels.job }} {{ $labels.instance }}"
-          description: "Mean request latency greater than 100ms (value: {{ $value }}ms)."
+          summary: "high_http_latency: {{ $labels.job }} {{ $labels.instance }}"
+          description: "Mean HTTP response latency greater than 100ms (value: {{ $value }}ms)."
