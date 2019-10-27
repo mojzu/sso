@@ -21,6 +21,7 @@
 - Fixed list tests can fail because concurrent tests create rows within order being tested.
 - Fixed `zxcvbn` warning caused by passing empty strings, also stops passing empty strings to pwned passwords API.
 - Fixed `key_id` not set on audit log when authenticating service keys.
+- Fixed process metrics add to previous value, use gauges instead of counters.
 
 ## 0.7.0 (2019-10-19)
 

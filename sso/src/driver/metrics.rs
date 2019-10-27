@@ -1,8 +1,8 @@
 use crate::{Driver, DriverError, DriverResult, Service};
 use chrono::{DateTime, Utc};
 use prometheus::{
-    Counter, Encoder, HistogramOpts, HistogramVec, IntCounter, IntCounterVec, Opts, Registry,
-    TextEncoder,
+    Encoder, Gauge, HistogramOpts, HistogramVec, IntCounterVec, IntGauge,
+    Opts, Registry, TextEncoder,
 };
 use std::{convert::TryInto, fmt, sync::Mutex};
 use sysinfo::{ProcessExt, System, SystemExt};
@@ -40,8 +40,8 @@ pub const METRICS_HTTP_LATENCY_HELP: &str = "HTTP request latency";
 /// Metrics.
 pub struct Metrics {
     pub registry: Registry,
-    pub process_cpu_usage: Counter,
-    pub process_resident_memory: IntCounter,
+    pub process_cpu_usage: Gauge,
+    pub process_resident_memory: IntGauge,
     pub audit_from: DateTime<Utc>,
     pub audit_count: IntCounterVec,
     pub http_count: IntCounterVec,
@@ -62,13 +62,13 @@ lazy_static! {
     static ref METRICS: Mutex<Metrics> = {
         let registry = Registry::new();
 
-        let process_cpu_usage = Counter::new(
+        let process_cpu_usage = Gauge::new(
             METRICS_PROCESS_CPU_USAGE_NAME,
             METRICS_PROCESS_CPU_USAGE_HELP,
         )
         .unwrap();
 
-        let process_resident_memory = IntCounter::new(
+        let process_resident_memory = IntGauge::new(
             METRICS_PROCESS_RESIDENT_MEMORY_NAME,
             METRICS_PROCESS_RESIDENT_MEMORY_HELP,
         )
@@ -132,8 +132,8 @@ impl Metrics {
     }
 
     pub fn sysinfo(
-        process_cpu_usage: &Counter,
-        process_resident_memory: &IntCounter,
+        process_cpu_usage: &Gauge,
+        process_resident_memory: &IntGauge,
     ) -> DriverResult<()> {
         // TODO(feature): Support more process/other metrics, check units.
         // <https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors>
@@ -142,11 +142,11 @@ impl Metrics {
         system.refresh_process(pid);
         let p = system.get_process(pid).unwrap();
 
-        process_cpu_usage.inc_by(f64::from(p.cpu_usage()));
+        process_cpu_usage.set(f64::from(p.cpu_usage()));
         let memory_bytes: i64 = (p.memory() * 1024)
             .try_into()
             .map_err(|_e| DriverError::Metrics)?;
-        process_resident_memory.inc_by(memory_bytes);
+        process_resident_memory.set(memory_bytes);
 
         Ok(())
     }
