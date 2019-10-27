@@ -14,7 +14,16 @@ services:
     ports:
       - "5432:5432"
 
-  # # Authentication service.
+  # # Prometheus service.
+  # # <https://prometheus.io/>
+  # prometheus:
+  #   build: prometheus
+  #   restart: always
+  #   network_mode: "host"
+  #   ports:
+  #     - "9090:9090"
+
+  # # Single sign=on service.
   # sso:
   #   build: sso
   #   depends_on:

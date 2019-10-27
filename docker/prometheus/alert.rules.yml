@@ -1,0 +1,52 @@
+groups:
+  - name: sso
+    rules:
+      # Alert if sso instance is unreachable for >1 minute.
+      - alert: sso_instance_down
+        expr: up{job="sso"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "instance_down: {{ $labels.job }} {{ $labels.instance }}"
+          description: "Instance unreachable for >1 minute."
+
+      # Alert if process cpu usage greater than 10%.
+      - alert: sso_high_cpu_usage
+        expr: process_cpu_usage{job="sso"} > 10
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "high_cpu_usage: {{ $labels.job }} {{ $labels.instance }}"
+          description: "CPU usage greater than 10% (value: {{ $value }}%)."
+
+      # Alert if process memory usage greater than 500MB.
+      - alert: sso_high_memory_usage
+        expr: process_resident_memory{job="sso"} / 1024 / 1024 > 500
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "high_cpu_usage: {{ $labels.job }} {{ $labels.instance }}"
+          description: "Memory usage greater than 500MB (value: {{ $value }}MB)."
+
+      # Alert if rate of audit status errors greater than 0.01/s.
+      - alert: sso_high_audit_status_error
+        expr: rate(audit_count{job="sso",status!="200",status!="0"}[5m]) > 0.01
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "high_audit_status_error: {{ $labels.job }} {{ $labels.instance }}"
+          description: "Audit status error rate greater than 0.01/s (value: {{ $value }}/s, {{ $labels.type }}, {{ $labels.status }})."
+
+      # Alert if mean request latency is greater than 100ms.
+      - alert: sso_high_request_latency
+        expr: (rate(http_latency_sum{job="sso"}[5m]) / rate(http_latency_count{job="sso"}[5m])) * 1000 > 100
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "high_request_latency: {{ $labels.job }} {{ $labels.instance }}"
+          description: "Mean request latency greater than 100ms (value: {{ $value }}ms)."

@@ -1322,6 +1322,7 @@
 							{
 								"key": "User-Authorization",
 								"value": "key {{user_key}}",
+								"description": "Authenticate user key or token (optional).",
 								"type": "text"
 							}
 						],
@@ -1583,103 +1584,103 @@
 	],
 	"variable": [
 		{
-			"id": "fa36360a-5305-460a-9663-7eb9562063d6",
+			"id": "2ba644c8-2576-4cc1-891e-5b47e538577a",
 			"key": "server_url",
 			"value": "localhost:9000",
 			"type": "string"
 		},
 		{
-			"id": "3305712d-878e-4073-a0bb-4ed2e3dee137",
+			"id": "a6e63082-6a17-4bad-bae5-ed256c1d9481",
 			"key": "key",
 			"value": "{{root_key}}",
 			"type": "string"
 		},
 		{
-			"id": "a69206cd-0aae-4841-b938-7a4938316205",
+			"id": "36e48f84-f5b6-4c69-809c-4ce08c878f11",
 			"key": "root_key",
-			"value": "GMQVVL7RHKZVGIXQNITZHP5OIMKUTUTMKA",
+			"value": "4KYG4LFV2UGWKC3FYWXNRQMX4FBBBJM6CI",
 			"type": "string"
 		},
 		{
-			"id": "78c5f4c1-c2b8-4c04-aaf2-a405aa070a1f",
+			"id": "7185ff78-cd64-4236-80a4-ab33c76b2315",
 			"key": "service_key",
 			"value": "AN3SRWT2TG2KP2NOSCJ2TPYN2FYHSOE6MU",
 			"type": "string"
 		},
 		{
-			"id": "213ebf65-6845-4d17-a260-7f2a77ee2d2e",
+			"id": "cb077fe4-343c-468c-8086-32a0bd43cb7c",
 			"key": "service_id",
 			"value": "2107d8d6-c9ec-4fa4-9c4d-d0d095d6ec62",
 			"type": "string"
 		},
 		{
-			"id": "52bf2cb1-3073-4322-a710-7921099fc6aa",
+			"id": "035ebba8-c6fa-4172-a23a-edfb27de2393",
 			"key": "key_id",
 			"value": "7fe29d76-1af8-4364-bf2f-a24e1ac6717c",
 			"type": "string"
 		},
 		{
-			"id": "6aa352ee-e125-4ae8-a7d6-3352f6bba425",
+			"id": "792249af-e6f6-4b18-83a5-4942fa976f25",
 			"key": "user_id",
 			"value": "0039002d-6806-4d04-88d9-bafeaf35a123",
 			"type": "string"
 		},
 		{
-			"id": "645a9ba0-df21-4ce8-aed7-5783e5e2d1e0",
+			"id": "b2199b12-c105-49e1-852f-2b05acbeeb38",
 			"key": "user_email",
 			"value": "user@example.com",
 			"type": "string"
 		},
 		{
-			"id": "7386e44d-0298-4d06-a6f0-631f6f27f40f",
+			"id": "6ba8331d-a7f5-4a2a-b45f-c58eeec1262b",
 			"key": "audit_id",
 			"value": "5da68099-3d48-4c92-b71e-9d8c0ef1714e",
 			"type": "string"
 		},
 		{
-			"id": "b98730dc-a1cb-4bb4-a10d-9e485cba9ec8",
+			"id": "e2dd50c0-0a69-48d7-88fc-ffb9c3c13ca8",
 			"key": "user_access_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyMTA3ZDhkNi1jOWVjLTRmYTQtOWM0ZC1kMGQwOTVkNmVjNjIiLCJzdWIiOiJmMDEzYmFhNi04OWNjLTQ4NzMtYTQ5ZS0xZTc2YmJiODI5M2EiLCJleHAiOjE1NzA5NzgyOTEsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.4NRPIQMZRJP-Su_EoHWSeJClYIwhKjwE_1bRxAQeTqU",
 			"type": "string"
 		},
 		{
-			"id": "e404b522-9ebf-449c-97f5-8af4fb3f158e",
+			"id": "d3979026-6c6f-4d72-8ede-58974a066a32",
 			"key": "user_refresh_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyMTA3ZDhkNi1jOWVjLTRmYTQtOWM0ZC1kMGQwOTVkNmVjNjIiLCJzdWIiOiJmMDEzYmFhNi04OWNjLTQ4NzMtYTQ5ZS0xZTc2YmJiODI5M2EiLCJleHAiOjE1NzEwNjEwOTEsInhfdHlwZSI6MSwieF9jc3JmIjoiU1ZaQjZSM0RIVloyUksyUDcySUs2WFpINTZQVlROQ0FEUSJ9.7p6ou_c9GjptwQsOeSpxby8hRyZFUgGu6lummCvlhQE",
 			"type": "string"
 		},
 		{
-			"id": "c3dc7918-8f5c-4738-875f-dc47c36b6514",
+			"id": "90afcceb-ca54-4b94-8513-58025794eccf",
 			"key": "user_key",
 			"value": "PVYBXVXJATJHIVMNCZORHE3GDUXDJCJCIE",
 			"type": "string"
 		},
 		{
-			"id": "611a92a0-1aea-4128-a72e-839e0f40b04c",
+			"id": "7eb34d27-a626-4ea4-b26f-3372d6b94f95",
 			"key": "totp_code",
 			"value": "123456",
 			"type": "string"
 		},
 		{
-			"id": "92517525-6b70-4ab8-aff0-aabb816d090c",
+			"id": "2b20751b-09ff-4b6c-a74e-0c4121068abd",
 			"key": "user_reset_password_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTAzMzcsInhfdHlwZSI6MiwieF9jc3JmIjoiNUxBT0xHQjI0N1pGWEYzM1pVMkZOVTZMM0hZSDJSQ1JSNCJ9.0rK1R-AswHV19POJEFKlv3yai9YAR8eK5e_6CbfXEPU",
 			"type": "string"
 		},
 		{
-			"id": "6fe68133-aca7-4474-82d1-33706e46c440",
+			"id": "d3b1cae9-acb9-4868-9797-4c3440f176c8",
 			"key": "user_update_password_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIyOTQsInhfdHlwZSI6NCwieF9jc3JmIjoiRlRINERLUUU1S1M3RjVVUExYUkFCNkJPWEJDRUdIRlUyRSJ9.BG3cBT5s3GdCjJ3Wlc4F88P4oBfybzTvi6xgs0rQ_Cc",
 			"type": "string"
 		},
 		{
-			"id": "bc5a0ea2-57a3-4563-a464-f14d61499cee",
+			"id": "3fa0384e-e8d9-4059-b540-51f8f6d9cacb",
 			"key": "user_update_email_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIxNTUsInhfdHlwZSI6MywieF9jc3JmIjoiSEk1VEpaMzdBRUpJTU9UUUNEVlgyVUlLNVZRUTZSTUYyNCJ9.4Me_J7HUmLZQ4-OJTq5xyV5JNmaO-ZdvfD2UbiJ_kBY",
 			"type": "string"
 		},
 		{
-			"id": "258aaad3-be1f-4850-855c-57854b2967e8",
+			"id": "667fac86-5a6e-429a-97a9-10ec5aca4907",
 			"key": "csrf_key",
 			"value": "V6FKGIP3OFG4AARS4QMG6PWFNHQP6FNQFM",
 			"type": "string"

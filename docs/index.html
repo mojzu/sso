@@ -459,7 +459,7 @@ font-size: 16px;
 <pre class="shell"><code>cargo install sso</code></pre>
 <h2 id="deployment"><span class="header-section-number">2.2</span> Deployment</h2>
 <p>TODO(docs): How to deploy sso server.</p>
-<p><strong>Nginx</strong></p>
+<h3 id="nginx"><span class="header-section-number">2.2.1</span> Nginx</h3>
 <p>Example <a href="https://www.nginx.com/">nginx</a> configuration.</p>
 <pre class="nginx"><code>http {
     # HTTPS and headers configuration.
@@ -480,8 +480,8 @@ font-size: 16px;
         proxy_pass http://127.0.0.1:4000;
     }
 }</code></pre>
-<p><strong>Prometheus</strong></p>
-<p>Example <a href="https://prometheus.io/">Prometheus</a> configuration.</p>
+<h3 id="prometheus"><span class="header-section-number">2.2.2</span> Prometheus</h3>
+<p>Example <a href="https://prometheus.io/">Prometheus</a> configuration and alerting rules can be found in <code>docker/prometheus</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">scrape_configs</span><span class="kw">:</span></span>
 <span id="cb3-2"><a href="#cb3-2"></a><span class="co">    # ...</span></span>
 <span id="cb3-3"><a href="#cb3-3"></a></span>
@@ -812,12 +812,15 @@ sso start-server</code></pre>
 <li>Removed TimescaleDB hypertable for audit log, don’t make use of any features.</li>
 <li>Finish removing <code>core</code> module by refactoring code in <code>api</code> and <code>driver</code> modules.</li>
 <li>Removed <code>SsoError</code> and <code>SsoResult</code> in favour of driver types.</li>
+<li>Changed internal audit log type format, use <code>:</code> character to separate applications.</li>
+<li>Include status code in prometheus audit log counter metrics, defaults to 0 if NULL.</li>
 </ul>
 <h3 id="fixed"><span class="header-section-number">5.1.3</span> Fixed</h3>
 <ul>
 <li>Fixed list tests can fail because concurrent tests create rows within order being tested.</li>
 <li>Fixed <code>zxcvbn</code> warning caused by passing empty strings, also stops passing empty strings to pwned passwords API.</li>
 <li>Fixed <code>key_id</code> not set on audit log when authenticating service keys.</li>
+<li>Fixed process metrics add to previous value, use gauges instead of counters.</li>
 </ul>
 <h2 id="section-1"><span class="header-section-number">5.2</span> 0.7.0 (2019-10-19)</h2>
 <h3 id="added-1"><span class="header-section-number">5.2.1</span> Added</h3>
@@ -1021,7 +1024,7 @@ sso start-server</code></pre>
 <li>One feature of sso is providing email/password login, which is probably not considered strong authentication.</li>
 <li>Audit logging and monitoring via prometheus.</li>
 </ul>
-<p>TODO(refactor): Audit logging and prometheus metrics improvements for detecting account abuse and breaches.</p>
+<p>TODO(feature): Audit logging and prometheus metrics improvements for detecting account abuse and breaches.</p>
 <h3 id="section-11"><span class="header-section-number">6.2.4</span> 1.2.4</h3>
 <ul>
 <li>All authentication pathways are designed to be as strong as that pathway can be.</li>

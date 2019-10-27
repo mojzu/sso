@@ -2,7 +2,7 @@
 
 TODO(docs): How to deploy sso server.
 
-**Nginx**
+### Nginx
 
 Example [nginx][nginx] configuration.
 
@@ -28,9 +28,9 @@ http {
 }
 ```
 
-**Prometheus**
+### Prometheus
 
-Example [Prometheus][prometheus] configuration.
+Example [Prometheus][prometheus] configuration and alerting rules can be found in `docker/prometheus`.
 
 ```yml
 scrape_configs:

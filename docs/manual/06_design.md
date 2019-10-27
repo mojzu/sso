@@ -38,7 +38,7 @@ TODO(docs): Mutual TLS using rustls configuration and PKI for communication betw
 - One feature of sso is providing email/password login, which is probably not considered strong authentication.
 - Audit logging and monitoring via prometheus.
 
-TODO(refactor): Audit logging and prometheus metrics improvements for detecting account abuse and breaches.
+TODO(feature): Audit logging and prometheus metrics improvements for detecting account abuse and breaches.
 
 ### 1.2.4
 
