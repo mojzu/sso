@@ -4,7 +4,7 @@
 
 The `sso` crate depends on [PostgreSQL][postgresql] and [SQLite][sqlite] libraries.
 
-```shell
+```bash
 # Install on Ubuntu.
 sudo apt install libpq-dev libsqlite3-dev libssl-dev libfuse-dev pkg-config
 ```
@@ -13,14 +13,14 @@ Install [Rust][rust] using [rustup][rustup].
 
 To update the toolchain.
 
-```shell
+```bash
 rustup self update
 rustup update
 ```
 
 The `sso` crate depends on [cargo make][cargo-make], [Diesel][diesel] and [cargo audit][cargo-audit], install them with Cargo.
 
-```shell
+```bash
 cargo install --force cargo-make
 cargo install --force diesel_cli --no-default-features --features "postgres sqlite"
 cargo install --force cargo-audit
@@ -28,7 +28,7 @@ cargo install --force cargo-audit
 
 To update crate dependencies.
 
-```shell
+```bash
 cargo update
 ```
 
@@ -36,20 +36,20 @@ cargo update
 
 To start containers defined in `docker/docker-compose.yml`.
 
-```shell
+```bash
 cargo make docker-up
 ```
 
 To backup and restore `sso` database in `postgres` container.
 
-```shell
+```bash
 cargo make docker-pg-dump
 cargo make docker-pg-restore
 ```
 
 To stop and destroy containers.
 
-```shell
+```bash
 cargo make docker-stop
 cargo make docker-down
 ```
@@ -60,7 +60,7 @@ This manual is written in [Markdown][pandoc-markdown] and converted into other f
 
 To build the HTML manual.
 
-```shell
+```bash
 cargo make manual
 ```
 
@@ -94,14 +94,14 @@ Write `export $NAME="$VALUE"` statements to file `.env` and run `source .env` to
 
 To reset and create new [PostgreSQL][postgresql] database migrations for [Diesel][diesel]. These commands assume docker container is running.
 
-```shell
+```bash
 cargo make postgres-reset
 cargo make postgres-migration $migration_name
 ```
 
 To reset and create new [SQLite][sqlite] database migrations for [Diesel][diesel].
 
-```shell
+```bash
 cargo make sqlite-reset
 cargo make sqlite-migration $migration_name
 ```
@@ -110,7 +110,7 @@ cargo make sqlite-migration $migration_name
 
 To build libraries and binaries.
 
-```shell
+```bash
 cargo make build
 cargo make release
 cargo make release-flow
@@ -119,25 +119,25 @@ cargo make install
 
 To lint source code using [clippy][clippy].
 
-```shell
+```bash
 cargo make clippy
 ```
 
 To build and open documentation.
 
-```shell
+```bash
 cargo make doc
 ```
 
 To build docker image.
 
-```Shell
+```bash
 cargo make docker-build
 ```
 
 To audit crate dependencies.
 
-```Shell
+```bash
 cargo make audit
 ```
 
@@ -147,7 +147,7 @@ cargo make audit
 
 To run unit tests.
 
-```shell
+```bash
 cargo make test
 ```
 
@@ -160,6 +160,6 @@ For integration tests, the following environment variables are required. A serve
 
 To run integration tests.
 
-```shell
+```bash
 cargo make test-integration
 ```

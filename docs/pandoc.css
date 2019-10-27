@@ -32,16 +32,26 @@ div#container div#content {
   padding: 0 1em;
   margin: auto;
 }
+.toc-section-number::before,
+.header-section-number::before {
+  content: "[";
+}
+.toc-section-number::after,
+.header-section-number::after {
+  content: "]";
+}
 
 .content {
   max-width: 54em;
   padding: 0 2em;
 }
 
-pre {
-  white-space: pre;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+pre,
+code,
+div.sourceCode {
+  font-family: Consolas, monaco, monospace;
+  font-size: 0.95em;
+  background-color: #f4f4f4;
 }
 
 /* Credit: https://gist.github.com/killercup/5917178 */
@@ -151,17 +161,6 @@ hr {
   border-bottom: 1px solid #eee;
   margin: 1em 0;
   padding: 0;
-}
-
-pre,
-code,
-kbd,
-samp {
-  color: #000;
-  font-family: monospace, monospace;
-  _font-family: "courier new", monospace;
-  font-size: 0.98em;
-  background-color: #f4f4f4;
 }
 
 b,

@@ -4,7 +4,7 @@
 
 Create service with OAuth2 provider URL and key, and start server.
 
-```shell
+```bash
 sso create-service-with-key $service_name $service_url \
     [--github-oauth2-url $service_github_oauth2_url] \
     [--microsoft-oauth2-url $service_microsoft_oauth2_url]
@@ -13,7 +13,7 @@ sso start-server
 
 Service creates a user with email address matching OAuth2 provider.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -23,7 +23,7 @@ curl --header "Content-Type: application/json" \
 
 Service creates a key for user.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -35,7 +35,7 @@ User makes OAuth2 login request to service.
 
 Service requests a redirect URL for OAuth2 provider, supported providers are `github`, `microsoft`.
 
-```shell
+```bash
 curl --header "Authorization: $service_key" \
   $server_url/v1/auth/provider/$oauth2_provider/oauth2
 ```
@@ -44,7 +44,7 @@ Service redirects user to returned URL, OAuth2 provider authentication occurs.
 
 If successful, OAuth2 provider redirects user to `$service_provider_local_url?code=$code&state=$state`. Service uses query parameters for callback.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -58,7 +58,7 @@ If authenticated email returned by API matches a user email address, and user ha
 
 Service receives access token and refresh token via query parameters. Service can verify access token to authenticate requests.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -68,7 +68,7 @@ curl --header "Content-Type: application/json" \
 
 Refresh token can be used to refresh token.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -78,7 +78,7 @@ curl --header "Content-Type: application/json" \
 
 Access or refresh token can be revoked, this will disable the key created earlier and prevent verify and refresh.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \

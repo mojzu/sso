@@ -5,6 +5,6 @@
 TODO(docs): Write quickstart guide.
 TODO(docs): Style improvements, PDF output.
 
-```shell
+```bash
 cargo install sso
 ```

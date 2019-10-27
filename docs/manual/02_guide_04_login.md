@@ -2,7 +2,7 @@
 
 Create service with key and start server.
 
-```shell
+```bash
 sso create-service-with-key $service_name $service_url \
     [--local-url $service_local_url]
 sso start-server
@@ -10,7 +10,7 @@ sso start-server
 
 Service creates a user with password.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -20,7 +20,7 @@ curl --header "Content-Type: application/json" \
 
 Service creates a key for user.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -30,7 +30,7 @@ curl --header "Content-Type: application/json" \
 
 User makes login request to service, services makes a login request.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -40,7 +40,7 @@ curl --header "Content-Type: application/json" \
 
 Service receives token response, access token can be verified to authenticate requests.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -50,7 +50,7 @@ curl --header "Content-Type: application/json" \
 
 Refresh token can be used to refresh token.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -60,7 +60,7 @@ curl --header "Content-Type: application/json" \
 
 Access or refresh token can be revoked, this will disable the key created earlier and prevent verify and refresh.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \

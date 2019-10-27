@@ -2,7 +2,7 @@
 
 Create service with key and start server.
 
-```shell
+```bash
 sso create-service-with-key $service_name $service_url \
     [--local-url $service_local_url]
 sso start-server
@@ -10,7 +10,7 @@ sso start-server
 
 Service creates a user with password.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -20,7 +20,7 @@ curl --header "Content-Type: application/json" \
 
 Service creates a key for user.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -30,7 +30,7 @@ curl --header "Content-Type: application/json" \
 
 User makes update email request to service, service makes an update email request.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -40,7 +40,7 @@ curl --header "Content-Type: application/json" \
 
 User makes login request to service, service makes a login request.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -52,7 +52,7 @@ After successful update, an email containing URL is sent to the old user email a
 
 If user opens URL, service receives token via query parameter and makes update email revoke request, this will disable user and all linked keys and prevent login.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \

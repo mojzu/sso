@@ -16,25 +16,25 @@ TODO(docs): This is out of date with changes to service urls.
 
 A service integrating with sso can provide the following HTTPS endpoints as callbacks.
 
-```shell
+```bash
 GET $service_url?type=oauth2&user_id=$id&access_token=$token&access_token_expires=$token_expires&refresh_token=$token&refresh_token_expires=$token_expires
 ```
 
 User is redirected to this URL after successful authentication by an OAuth2 provider. The service can verify the `access_token` query parameter to authenticate the user and their requests.
 
-```shell
+```bash
 GET $service_url?type=reset_password&email=$email&token=$token
 ```
 
 User requests this URL by clicking reset password email link. The service can take password input from the user, and then make a reset password confirm request with the `token` query parameter.
 
-```shell
+```bash
 GET $service_url?type=update_email&email=$email&old_email=$email&token=$token
 ```
 
 User requests this URL by clicking update email revoke link. The service can present the user information on securing their account, and then make an update email revoke request with the `token` query parameter. This will disable the user and all user keys.
 
-```shell
+```bash
 GET $service_url?type=update_password&email=$email&token=$token
 ```
 

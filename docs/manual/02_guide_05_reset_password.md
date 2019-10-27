@@ -2,7 +2,7 @@
 
 Create service with key and start server.
 
-```shell
+```bash
 sso create-service-with-key $service_name $service_url \
     [--local-url $service_local_url]
 sso start-server
@@ -10,7 +10,7 @@ sso start-server
 
 Service creates a user with password.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -20,7 +20,7 @@ curl --header "Content-Type: application/json" \
 
 Service creates a key for user.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -30,7 +30,7 @@ curl --header "Content-Type: application/json" \
 
 User makes reset password request to service, service makes a reset password request.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -42,7 +42,7 @@ Email containing URL is sent to user email address, URL in format `$service_prov
 
 Service receives token via query parameter and makes reset password confirm request.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -52,7 +52,7 @@ curl --header "Content-Type: application/json" \
 
 User makes login request to service, service makes a login request.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \

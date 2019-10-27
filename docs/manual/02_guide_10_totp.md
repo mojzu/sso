@@ -2,14 +2,14 @@
 
 Create service with key and start server.
 
-```shell
+```bash
 sso create-service-with-key $service_name $service_url
 sso start-server
 ```
 
 Service creates a user (password optional).
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -19,7 +19,7 @@ curl --header "Content-Type: application/json" \
 
 Service creates a TOTP key for user.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -41,7 +41,7 @@ Import the QR code into the application: <https://freeotp.github.io/>
 
 User makes request to service with TOTP code, service verifies TOTP code.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -51,7 +51,7 @@ curl --header "Content-Type: application/json" \
 
 Key can be revoked, this will disable the key created earlier and prevent TOTP verification.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \

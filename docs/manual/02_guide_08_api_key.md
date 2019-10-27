@@ -2,7 +2,7 @@
 
 Create service with key and start server.
 
-```shell
+```bash
 sso create-service-with-key $service_name $service_url \
     [--local-url $service_local_url]
 sso start-server
@@ -10,7 +10,7 @@ sso start-server
 
 Service creates a user without password.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -20,7 +20,7 @@ curl --header "Content-Type: application/json" \
 
 Service creates a key for user.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -30,7 +30,7 @@ curl --header "Content-Type: application/json" \
 
 User makes requests to service with key value, key can be verified to authenticate requests.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
@@ -40,7 +40,7 @@ curl --header "Content-Type: application/json" \
 
 Key can be revoked, this will disable and revoke the key created earlier and prevent verification.
 
-```shell
+```bash
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \

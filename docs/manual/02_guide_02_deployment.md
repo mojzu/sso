@@ -43,6 +43,6 @@ scrape_configs:
           - targets: ["$server_url"]
 ```
 
-```shell
+```bash
 curl --header "Authorization: $root_or_service_key" $server_url/v1/metrics
 ```
