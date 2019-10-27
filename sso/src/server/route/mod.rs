@@ -6,8 +6,8 @@ mod user;
 
 use crate::{
     api::{self, ApiError, ApiResult},
+    pattern::HeaderAuth,
     server::Data,
-    util::HeaderAuth,
     AuditMeta, DriverError, HEADER_USER_AUTHORISATION_NAME,
 };
 use actix_identity::Identity;

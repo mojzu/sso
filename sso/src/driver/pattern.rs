@@ -1,3 +1,4 @@
+//! # Pattern Functions
 use crate::{
     AuditBuilder, Driver, DriverError, DriverResult, Jwt, KeyRead, KeyType, KeyWithValue, Service,
     ServiceRead, User, UserRead,
@@ -5,7 +6,7 @@ use crate::{
 use libreauth::oath::TOTPBuilder;
 use uuid::Uuid;
 
-// TODO(refactor): Improve usability, composability of utility functions.
+// TODO(refactor): Improve usability, composability of pattern functions.
 // Should be reusable units of code commonly called into from api module.
 
 /// User header.

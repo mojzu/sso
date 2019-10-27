@@ -261,7 +261,7 @@ mod provider_local {
     use crate::{
         api::{ApiError, ApiResult},
         notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
-        util::*,
+        pattern::*,
         Audit, AuditBuilder, Driver, DriverError, Jwt, KeyType, NotifyActor, UserToken, UserUpdate,
         UserUpdate2,
     };

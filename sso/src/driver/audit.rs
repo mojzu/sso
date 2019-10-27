@@ -1,4 +1,4 @@
-use crate::{impl_enum_to_from_string, util::HeaderAuth, Driver, KeyWithValue, Service, User};
+use crate::{impl_enum_to_from_string, pattern::HeaderAuth, Driver, KeyWithValue, Service, User};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;

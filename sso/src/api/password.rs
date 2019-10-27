@@ -3,7 +3,8 @@ use actix::Addr;
 use futures::{future, Future};
 use sha1::{Digest, Sha1};
 
-/// Returns password strength and pwned checks.
+/// Password strength and pwned checks.
+///
 /// If password is empty, returns 0 for strength and true for pwned.
 /// If password is none, returns none for strength and pwned.
 pub fn password_meta(

@@ -327,7 +327,7 @@ mod server_auth {
     use super::*;
     use crate::{
         api::{csrf_verify as api_csrf_verify, ApiError, ApiResult},
-        util::*,
+        pattern::*,
         Audit, AuditBuilder, Csrf, CsrfCreate, Driver, DriverError, Jwt, KeyType, Service,
         UserToken, UserTokenAccess,
     };

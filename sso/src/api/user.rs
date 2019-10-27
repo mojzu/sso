@@ -335,7 +335,7 @@ mod server_user {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        util::*,
+        pattern::*,
         AuditBuilder, Driver, DriverError, User, UserList, UserListFilter, UserListQuery, UserRead,
     };
 

@@ -1,5 +1,5 @@
 //! # Actix Web Middleware
-use crate::{api::ApiError, util::*, DriverError, HEADER_AUTHORISATION_NAME};
+use crate::{api::ApiError, pattern::*, DriverError, HEADER_AUTHORISATION_NAME};
 use actix_identity::{IdentityPolicy, IdentityService};
 use actix_service::{Service, Transform};
 use actix_web::{

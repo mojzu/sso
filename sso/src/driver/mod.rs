@@ -1,12 +1,13 @@
 mod audit;
 mod csrf;
+pub mod env;
 mod error;
 mod jwt;
 mod key;
 mod metrics;
+pub mod pattern;
 mod service;
 mod user;
-pub mod util;
 
 #[cfg(feature = "postgres")]
 mod postgres;

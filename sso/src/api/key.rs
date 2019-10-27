@@ -259,7 +259,7 @@ mod server_key {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        util::*,
+        pattern::*,
         AuditBuilder, Driver, DriverError, Key, KeyCreate, KeyList, KeyListFilter, KeyListQuery,
         KeyUpdate, Service,
     };

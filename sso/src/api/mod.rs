@@ -1,4 +1,4 @@
-//! # API Module
+//! # API Functions
 mod audit;
 mod auth;
 mod error;
@@ -120,7 +120,7 @@ pub fn server_metrics(
 mod server {
     use crate::{
         api::{ApiError, ApiResult},
-        util::*,
+        pattern::*,
         AuditBuilder, Driver, Metrics,
     };
 

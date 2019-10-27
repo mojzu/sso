@@ -294,7 +294,7 @@ mod server_service {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        util::*,
+        pattern::*,
         AuditBuilder, Driver, DriverError, Service, ServiceList, ServiceListFilter,
         ServiceListQuery,
     };

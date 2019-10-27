@@ -7,7 +7,7 @@ extern crate log;
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 use sso::{
-    Cli, CliOptions, Client, ClientActorOptions, Driver, DriverPostgres, DriverResult, Env,
+    env, Cli, CliOptions, Client, ClientActorOptions, Driver, DriverPostgres, DriverResult,
     NotifyActorOptionsBuilder, ServerOptionsBuilder, ServerOptionsProvider,
     ServerOptionsProviderGroup,
 };
@@ -170,25 +170,25 @@ fn main() {
 }
 
 fn configure() -> DriverResult<(Box<dyn Driver>, CliOptions)> {
-    let database_url = Env::string(ENV_DATABASE_URL)?;
-    let database_connections = Env::value_opt::<u32>(ENV_DATABASE_CONNECTIONS)?;
-    let server_hostname = Env::string_opt(ENV_SERVER_HOSTNAME).unwrap_or_else(|| "sso".to_owned());
-    let server_bind = Env::string(ENV_SERVER_BIND)?;
-    let smtp = Env::smtp(
+    let database_url = env::string(ENV_DATABASE_URL)?;
+    let database_connections = env::value_opt::<u32>(ENV_DATABASE_CONNECTIONS)?;
+    let server_hostname = env::string_opt(ENV_SERVER_HOSTNAME).unwrap_or_else(|| "sso".to_owned());
+    let server_bind = env::string(ENV_SERVER_BIND)?;
+    let smtp = env::smtp(
         ENV_SMTP_HOST,
         ENV_SMTP_PORT,
         ENV_SMTP_USER,
         ENV_SMTP_PASSWORD,
     )?;
     let password_pwned_enabled =
-        Env::value_opt::<bool>(ENV_PASSWORD_PWNED_ENABLED)?.unwrap_or(false);
+        env::value_opt::<bool>(ENV_PASSWORD_PWNED_ENABLED)?.unwrap_or(false);
     let github =
-        ServerOptionsProvider::new(Env::oauth2(ENV_GITHUB_CLIENT_ID, ENV_GITHUB_CLIENT_SECRET)?);
-    let microsoft = ServerOptionsProvider::new(Env::oauth2(
+        ServerOptionsProvider::new(env::oauth2(ENV_GITHUB_CLIENT_ID, ENV_GITHUB_CLIENT_SECRET)?);
+    let microsoft = ServerOptionsProvider::new(env::oauth2(
         ENV_MICROSOFT_CLIENT_ID,
         ENV_MICROSOFT_CLIENT_SECRET,
     )?);
-    let rustls = Env::rustls(
+    let rustls = env::rustls(
         ENV_SERVER_TLS_CRT_PEM,
         ENV_SERVER_TLS_KEY_PEM,
         ENV_SERVER_TLS_CLIENT_PEM,

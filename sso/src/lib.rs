@@ -29,11 +29,10 @@ pub mod api;
 mod cli;
 mod client;
 mod driver;
-mod env;
 mod notify;
 mod server;
 
-pub use crate::{cli::*, client::*, driver::*, env::*, notify::*, server::*};
+pub use crate::{cli::*, client::*, driver::*, notify::*, server::*};
 
 /// Implement `to_string` and `from_string` on simple enums.
 ///

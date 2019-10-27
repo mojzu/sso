@@ -257,7 +257,7 @@ mod server_audit {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        util::*,
+        pattern::*,
         Audit, AuditBuilder, AuditList, AuditListFilter, AuditListQuery, Driver, DriverError,
     };
 

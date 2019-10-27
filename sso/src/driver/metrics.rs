@@ -1,8 +1,8 @@
 use crate::{Driver, DriverError, DriverResult, Service};
 use chrono::{DateTime, Utc};
 use prometheus::{
-    Encoder, Gauge, HistogramOpts, HistogramVec, IntCounterVec, IntGauge,
-    Opts, Registry, TextEncoder,
+    Encoder, Gauge, HistogramOpts, HistogramVec, IntCounterVec, IntGauge, Opts, Registry,
+    TextEncoder,
 };
 use std::{convert::TryInto, fmt, sync::Mutex};
 use sysinfo::{ProcessExt, System, SystemExt};

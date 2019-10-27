@@ -38,7 +38,7 @@ mod provider_microsoft {
             auth::server_auth::oauth2_login, ApiError, ApiResult, AuthOauth2CallbackRequest,
             AuthProviderOauth2, AuthProviderOauth2Args,
         },
-        util::*,
+        pattern::*,
         AuditBuilder, Client, CsrfCreate, Driver, DriverError, DriverResult, Service, UserToken,
     };
     use http::header;
