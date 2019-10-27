@@ -56,7 +56,7 @@ pub enum AuditType {
     AuthCsrfVerify,
 }
 
-impl_enum_to_from_string!(AuditType, "Sso");
+impl_enum_to_from_string!(AuditType, "sso:");
 
 /// Audit.
 #[derive(Debug, Clone, Serialize, Deserialize)]

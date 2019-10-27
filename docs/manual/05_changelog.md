@@ -13,6 +13,8 @@
 - Removed TimescaleDB hypertable for audit log, don't make use of any features.
 - Finish removing `core` module by refactoring code in `api` and `driver` modules.
 - Removed `SsoError` and `SsoResult` in favour of driver types.
+- Changed internal audit log type format, use `:` character to separate applications.
+- Include status code in prometheus audit log counter metrics, defaults to 0 if NULL.
 
 ### Fixed
 

@@ -75,7 +75,7 @@ lazy_static! {
         .unwrap();
 
         let audit_count_opts = Opts::new(METRICS_AUDIT_COUNT_NAME, METRICS_AUDIT_COUNT_HELP);
-        let audit_count = IntCounterVec::new(audit_count_opts, &["path"]).unwrap();
+        let audit_count = IntCounterVec::new(audit_count_opts, &["type", "status"]).unwrap();
 
         let http_count_opts = Opts::new(METRICS_HTTP_COUNT_NAME, METRICS_HTTP_COUNT_HELP);
         let http_count = IntCounterVec::new(http_count_opts, &["path", "status"]).unwrap();
@@ -118,12 +118,12 @@ impl Metrics {
         let audit_metrics =
             driver.audit_read_metrics(&metrics.audit_from, service.map(|s| &s.id))?;
 
-        // TODO(refactor): Group by status codes for audit types.
         metrics.audit_from = Utc::now();
-        for (path, count) in audit_metrics.iter() {
+        for (type_, status_code, count) in audit_metrics.iter() {
+            let status_code = format!("{}", status_code);
             metrics
                 .audit_count
-                .with_label_values(&[path])
+                .with_label_values(&[type_, &status_code])
                 .inc_by(*count);
         }
 

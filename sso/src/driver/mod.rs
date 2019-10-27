@@ -65,7 +65,7 @@ pub trait DriverIf {
         &self,
         from: &DateTime<Utc>,
         service_id_mask: Option<&Uuid>,
-    ) -> DriverResult<Vec<(String, i64)>>;
+    ) -> DriverResult<Vec<(String, u16, i64)>>;
 
     /// Update audit log, append data to data array.
     fn audit_update(

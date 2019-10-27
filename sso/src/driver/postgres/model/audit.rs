@@ -1,9 +1,9 @@
 use crate::{
     driver::postgres::schema::sso_audit, Audit, AuditCreate, AuditList, AuditListFilter,
-    AuditListQuery, AuditRead, AuditUpdate, DriverResult,
+    AuditListQuery, AuditRead, AuditUpdate, DriverError, DriverResult,
 };
 use chrono::{DateTime, Utc};
-use diesel::{dsl::sql, pg::Pg, prelude::*, sql_types::BigInt};
+use diesel::{pg::Pg, prelude::*, sql_types};
 use serde_json::Value;
 use std::convert::TryInto;
 use uuid::Uuid;
@@ -47,6 +47,16 @@ impl From<ModelAudit> for Audit {
             user_key_id: audit.user_key_id,
         }
     }
+}
+
+#[derive(Debug, QueryableByName)]
+#[table_name = "sso_audit"]
+struct ModelAuditMetric {
+    type_: String,
+    #[sql_type = "sql_types::Int2"]
+    status_code: i16,
+    #[sql_type = "sql_types::BigInt"]
+    count: i64,
 }
 
 #[derive(Debug, Insertable)]
@@ -150,23 +160,17 @@ impl ModelAudit {
         conn: &PgConnection,
         from: &DateTime<Utc>,
         service_id_mask: Option<&Uuid>,
-    ) -> DriverResult<Vec<(String, i64)>> {
-        match service_id_mask {
-            Some(service_id_mask) => sso_audit::table
-                .select((sso_audit::dsl::type_, sql::<BigInt>("count(*)")))
-                .filter(sso_audit::dsl::created_at.gt(from))
-                .group_by(sso_audit::dsl::type_)
-                .filter(sso_audit::dsl::service_id.eq(service_id_mask))
-                .order(sso_audit::dsl::type_.asc())
-                .load(conn),
-            None => sso_audit::table
-                .select((sso_audit::dsl::type_, sql::<BigInt>("count(*)")))
-                .filter(sso_audit::dsl::created_at.gt(from))
-                .group_by(sso_audit::dsl::type_)
-                .order(sso_audit::dsl::type_.asc())
-                .load(conn),
-        }
-        .map_err(Into::into)
+    ) -> DriverResult<Vec<(String, u16, i64)>> {
+        diesel::sql_query(include_str!("audit_read_metrics.sql"))
+            .bind::<sql_types::Timestamptz, _>(from)
+            .bind::<sql_types::Nullable<sql_types::Uuid>, _>(service_id_mask)
+            .load::<ModelAuditMetric>(conn)
+            .map_err(DriverError::DieselResult)
+            .map(|x| {
+                x.into_iter()
+                    .map(|x| (x.type_, x.status_code as u16, x.count))
+                    .collect()
+            })
     }
 
     pub fn update(
@@ -175,8 +179,6 @@ impl ModelAudit {
         update: &AuditUpdate,
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Audit> {
-        use diesel::sql_types;
-
         let now = Utc::now();
         let status_code = update.status_code.map(|x| x as i16);
         let data = Self::wrap_data(update.data.as_ref());

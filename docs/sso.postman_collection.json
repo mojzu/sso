@@ -1245,7 +1245,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{server_url}}/v1/user",
+							"raw": "{{server_url}}/v1/user?",
 							"host": [
 								"{{server_url}}"
 							],
@@ -1268,7 +1268,7 @@
 								},
 								{
 									"key": "name_ge",
-									"value": "",
+									"value": "_",
 									"description": "Name greater than or equal (optional).",
 									"disabled": true
 								},
@@ -1318,6 +1318,11 @@
 								"name": "Content-Type",
 								"type": "text",
 								"value": "application/json"
+							},
+							{
+								"key": "User-Authorization",
+								"value": "key {{user_key}}",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -1578,103 +1583,103 @@
 	],
 	"variable": [
 		{
-			"id": "1e20c3aa-6f95-40c4-bada-7597413a385c",
+			"id": "fa36360a-5305-460a-9663-7eb9562063d6",
 			"key": "server_url",
 			"value": "localhost:9000",
 			"type": "string"
 		},
 		{
-			"id": "c49bab67-5574-4906-8cf1-944da4d43485",
+			"id": "3305712d-878e-4073-a0bb-4ed2e3dee137",
 			"key": "key",
 			"value": "{{root_key}}",
 			"type": "string"
 		},
 		{
-			"id": "d1ee6bc7-cce3-4e41-87c1-4bbc5a86d318",
+			"id": "a69206cd-0aae-4841-b938-7a4938316205",
 			"key": "root_key",
-			"value": "42JWOJ7AJUHXZLMYN3STWDYXDIS4BTU4P4",
+			"value": "GMQVVL7RHKZVGIXQNITZHP5OIMKUTUTMKA",
 			"type": "string"
 		},
 		{
-			"id": "813ca5c7-f637-42f9-9db5-776614f92e43",
+			"id": "78c5f4c1-c2b8-4c04-aaf2-a405aa070a1f",
 			"key": "service_key",
 			"value": "AN3SRWT2TG2KP2NOSCJ2TPYN2FYHSOE6MU",
 			"type": "string"
 		},
 		{
-			"id": "c9e4a2ab-f9ab-46c3-aafe-1d33ce17d0f8",
+			"id": "213ebf65-6845-4d17-a260-7f2a77ee2d2e",
 			"key": "service_id",
 			"value": "2107d8d6-c9ec-4fa4-9c4d-d0d095d6ec62",
 			"type": "string"
 		},
 		{
-			"id": "728de49e-5f73-4027-9c7e-7a17228668cd",
+			"id": "52bf2cb1-3073-4322-a710-7921099fc6aa",
 			"key": "key_id",
 			"value": "7fe29d76-1af8-4364-bf2f-a24e1ac6717c",
 			"type": "string"
 		},
 		{
-			"id": "7a53f1a1-0dc9-4dd6-b544-7a67f49fefc7",
+			"id": "6aa352ee-e125-4ae8-a7d6-3352f6bba425",
 			"key": "user_id",
 			"value": "0039002d-6806-4d04-88d9-bafeaf35a123",
 			"type": "string"
 		},
 		{
-			"id": "f1f55522-669d-48fc-8f3f-f03d9a81ec88",
+			"id": "645a9ba0-df21-4ce8-aed7-5783e5e2d1e0",
 			"key": "user_email",
 			"value": "user@example.com",
 			"type": "string"
 		},
 		{
-			"id": "d8a74ba8-b31c-4b5d-abed-e5da216dddf0",
+			"id": "7386e44d-0298-4d06-a6f0-631f6f27f40f",
 			"key": "audit_id",
 			"value": "5da68099-3d48-4c92-b71e-9d8c0ef1714e",
 			"type": "string"
 		},
 		{
-			"id": "dfb3cdd3-75e9-4661-b0e9-f55f71136105",
+			"id": "b98730dc-a1cb-4bb4-a10d-9e485cba9ec8",
 			"key": "user_access_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyMTA3ZDhkNi1jOWVjLTRmYTQtOWM0ZC1kMGQwOTVkNmVjNjIiLCJzdWIiOiJmMDEzYmFhNi04OWNjLTQ4NzMtYTQ5ZS0xZTc2YmJiODI5M2EiLCJleHAiOjE1NzA5NzgyOTEsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.4NRPIQMZRJP-Su_EoHWSeJClYIwhKjwE_1bRxAQeTqU",
 			"type": "string"
 		},
 		{
-			"id": "6a7b8348-2f1b-487a-b561-627938482fb4",
+			"id": "e404b522-9ebf-449c-97f5-8af4fb3f158e",
 			"key": "user_refresh_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyMTA3ZDhkNi1jOWVjLTRmYTQtOWM0ZC1kMGQwOTVkNmVjNjIiLCJzdWIiOiJmMDEzYmFhNi04OWNjLTQ4NzMtYTQ5ZS0xZTc2YmJiODI5M2EiLCJleHAiOjE1NzEwNjEwOTEsInhfdHlwZSI6MSwieF9jc3JmIjoiU1ZaQjZSM0RIVloyUksyUDcySUs2WFpINTZQVlROQ0FEUSJ9.7p6ou_c9GjptwQsOeSpxby8hRyZFUgGu6lummCvlhQE",
 			"type": "string"
 		},
 		{
-			"id": "3448080a-33a5-4fd5-be78-cc3152e8fe16",
+			"id": "c3dc7918-8f5c-4738-875f-dc47c36b6514",
 			"key": "user_key",
 			"value": "PVYBXVXJATJHIVMNCZORHE3GDUXDJCJCIE",
 			"type": "string"
 		},
 		{
-			"id": "b20ad54c-d391-4e7c-bc8b-3ad3db522c0f",
+			"id": "611a92a0-1aea-4128-a72e-839e0f40b04c",
 			"key": "totp_code",
 			"value": "123456",
 			"type": "string"
 		},
 		{
-			"id": "59bcab07-bf40-4aa6-881d-bcac84a38628",
+			"id": "92517525-6b70-4ab8-aff0-aabb816d090c",
 			"key": "user_reset_password_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTAzMzcsInhfdHlwZSI6MiwieF9jc3JmIjoiNUxBT0xHQjI0N1pGWEYzM1pVMkZOVTZMM0hZSDJSQ1JSNCJ9.0rK1R-AswHV19POJEFKlv3yai9YAR8eK5e_6CbfXEPU",
 			"type": "string"
 		},
 		{
-			"id": "60c06ace-fee9-4f71-af9d-f014b510de4d",
+			"id": "6fe68133-aca7-4474-82d1-33706e46c440",
 			"key": "user_update_password_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIyOTQsInhfdHlwZSI6NCwieF9jc3JmIjoiRlRINERLUUU1S1M3RjVVUExYUkFCNkJPWEJDRUdIRlUyRSJ9.BG3cBT5s3GdCjJ3Wlc4F88P4oBfybzTvi6xgs0rQ_Cc",
 			"type": "string"
 		},
 		{
-			"id": "030903c2-4ffd-4664-b67a-d930f29750b5",
+			"id": "bc5a0ea2-57a3-4563-a464-f14d61499cee",
 			"key": "user_update_email_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIxNTUsInhfdHlwZSI6MywieF9jc3JmIjoiSEk1VEpaMzdBRUpJTU9UUUNEVlgyVUlLNVZRUTZSTUYyNCJ9.4Me_J7HUmLZQ4-OJTq5xyV5JNmaO-ZdvfD2UbiJ_kBY",
 			"type": "string"
 		},
 		{
-			"id": "6e91d63c-1ab5-42fe-adb4-5b5a0ad25d09",
+			"id": "258aaad3-be1f-4850-855c-57854b2967e8",
 			"key": "csrf_key",
 			"value": "V6FKGIP3OFG4AARS4QMG6PWFNHQP6FNQFM",
 			"type": "string"

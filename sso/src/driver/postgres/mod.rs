@@ -104,7 +104,7 @@ impl DriverIf for DriverPostgres {
         &self,
         from: &DateTime<Utc>,
         service_id_mask: Option<&Uuid>,
-    ) -> DriverResult<Vec<(String, i64)>> {
+    ) -> DriverResult<Vec<(String, u16, i64)>> {
         let conn = self.conn()?;
         ModelAudit::read_metrics(&conn, from, service_id_mask)
     }
@@ -297,7 +297,7 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         &self,
         from: &DateTime<Utc>,
         service_id_mask: Option<&Uuid>,
-    ) -> DriverResult<Vec<(String, i64)>> {
+    ) -> DriverResult<Vec<(String, u16, i64)>> {
         ModelAudit::read_metrics(self.conn(), from, service_id_mask)
     }
 
