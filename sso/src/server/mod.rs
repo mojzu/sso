@@ -3,10 +3,11 @@ mod route;
 
 use crate::{
     api::{AuthProviderOauth2, AuthProviderOauth2Args},
-    ClientActor, Driver, DriverError, DriverResult, Metrics, NotifyActor,
+    Client, Driver, DriverError, DriverResult, Metrics, NotifyActor,
 };
 use actix::Addr;
 use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer};
+use reqwest::r#async::Client as ReqwestClient;
 use rustls::{
     internal::pemfile::{certs, rsa_private_keys},
     AllowAnyAuthenticatedClient, NoClientAuth, RootCertStore, ServerConfig,
@@ -204,7 +205,7 @@ struct Data {
     driver: Box<dyn Driver>,
     options: ServerOptions,
     notify_addr: Addr<NotifyActor>,
-    client_addr: Addr<ClientActor>,
+    client: ReqwestClient,
 }
 
 impl Data {
@@ -213,13 +214,13 @@ impl Data {
         driver: Box<dyn Driver>,
         options: ServerOptions,
         notify_addr: Addr<NotifyActor>,
-        client_addr: Addr<ClientActor>,
+        client: ReqwestClient,
     ) -> Self {
         Data {
             driver,
             options,
             notify_addr,
-            client_addr,
+            client,
         }
     }
 
@@ -238,9 +239,9 @@ impl Data {
         &self.notify_addr
     }
 
-    /// Get reference to client actor address.
-    pub fn client(&self) -> &Addr<ClientActor> {
-        &self.client_addr
+    /// Get reference to asynchronous client.
+    pub fn client(&self) -> &ReqwestClient {
+        &self.client
     }
 }
 
@@ -255,11 +256,11 @@ impl Server {
         driver: Box<dyn Driver>,
         options: ServerOptions,
         notify_addr: Addr<NotifyActor>,
-        client_addr: Addr<ClientActor>,
     ) -> DriverResult<()> {
         let options_clone = options.clone();
-        let (http_count, http_latency) = Metrics::http_metrics();
+        let client = Client::build_client(options.user_agent())?;
         let default_json_limit: usize = 1024;
+        let (http_count, http_latency) = Metrics::http_metrics();
 
         let server = HttpServer::new(move || {
             App::new()
@@ -268,7 +269,7 @@ impl Server {
                     driver.clone(),
                     options_clone.clone(),
                     notify_addr.clone(),
-                    client_addr.clone(),
+                    client.clone(),
                 ))
                 // Global JSON configuration.
                 .data(web::JsonConfig::default().limit(default_json_limit))

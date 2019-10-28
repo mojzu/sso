@@ -54,8 +54,8 @@ fn create_handler(
     let audit_meta = request_audit_meta(&req);
     let request = body.into_inner();
     let password_meta = api::password_meta(
-        data.options().password_pwned_enabled(),
         data.client(),
+        data.options().password_pwned_enabled(),
         request.password.clone(),
     )
     .map_err(ApiError::BadRequest);

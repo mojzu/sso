@@ -1,13 +1,12 @@
 use crate::{
-    AuditBuilder, ClientActor, ClientActorOptions, Driver, DriverError, DriverResult, KeyCreate,
-    KeyWithValue, NotifyActor, NotifyActorOptions, Server, ServerOptions, Service, ServiceCreate,
+    AuditBuilder, Driver, DriverError, DriverResult, KeyCreate, KeyWithValue, NotifyActor,
+    NotifyActorOptions, Server, ServerOptions, Service, ServiceCreate,
 };
 use actix_rt::System;
 
 /// CLI options.
 #[derive(Debug, Clone)]
 pub struct CliOptions {
-    client: ClientActorOptions,
     notify_threads: usize,
     notify: NotifyActorOptions,
     server_threads: usize,
@@ -17,24 +16,17 @@ pub struct CliOptions {
 impl CliOptions {
     /// Create new options.
     pub fn new(
-        client: ClientActorOptions,
         notify_threads: usize,
         notify: NotifyActorOptions,
         server_threads: usize,
         server: ServerOptions,
     ) -> Self {
         Self {
-            client,
             notify_threads,
             notify,
             server_threads,
             server,
         }
-    }
-
-    /// Returns client options reference.
-    pub fn client(&self) -> &ClientActorOptions {
-        &self.client
     }
 
     /// Returns number of notify threads.
@@ -100,25 +92,20 @@ impl Cli {
     }
 
     /// Start server.
-    /// Starts notify and client actors, and HTTP server.
+    /// Starts notify actor and HTTP server.
     pub fn start_server(driver: Box<dyn Driver>, options: CliOptions) -> DriverResult<()> {
         let system = System::new(crate_name!());
-
-        let client_options = options.client().clone();
-        let client_addr = ClientActor::start(client_options);
 
         let notify_options = options.notify().clone();
         let notify_addr = NotifyActor::start(options.notify_threads(), notify_options);
 
         let server_options = options.server().clone();
         let server_notify_addr = notify_addr.clone();
-        let server_client_addr = client_addr.clone();
         Server::start(
             options.server_threads(),
             driver,
             server_options,
             server_notify_addr,
-            server_client_addr,
         )?;
 
         system.run().map_err(DriverError::StdIo).map_err(Into::into)

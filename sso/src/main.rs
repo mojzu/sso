@@ -7,9 +7,8 @@ extern crate log;
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 use sso::{
-    env, Cli, CliOptions, Client, ClientActorOptions, Driver, DriverPostgres, DriverResult,
-    NotifyActorOptionsBuilder, ServerOptionsBuilder, ServerOptionsProvider,
-    ServerOptionsProviderGroup,
+    env, Cli, CliOptions, Client, Driver, DriverPostgres, DriverResult, NotifyActorOptionsBuilder,
+    ServerOptionsBuilder, ServerOptionsProvider, ServerOptionsProviderGroup,
 };
 
 const CRATE_NAME: &str = crate_name!();
@@ -205,7 +204,6 @@ fn configure() -> DriverResult<(Box<dyn Driver>, CliOptions)> {
         unimplemented!();
     };
 
-    let client = ClientActorOptions::new(Client::default_user_agent(), None, None).unwrap();
     let notify = NotifyActorOptionsBuilder::default()
         .smtp(smtp)
         .build()
@@ -219,7 +217,7 @@ fn configure() -> DriverResult<(Box<dyn Driver>, CliOptions)> {
         .user_agent(Client::default_user_agent())
         .build()
         .unwrap();
-    let options = CliOptions::new(client, 2, notify, 4, server);
+    let options = CliOptions::new(2, notify, 4, server);
 
     Ok((driver, options))
 }

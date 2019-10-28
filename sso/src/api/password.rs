@@ -1,15 +1,19 @@
-use crate::{client_msg::Get, ClientActor, DriverError, UserPasswordMeta};
-use actix::Addr;
-use futures::{future, Future};
+use crate::{DriverError, UserPasswordMeta};
+use futures::{
+    future::{self, Either},
+    Future,
+};
+use reqwest::r#async::Client;
 use sha1::{Digest, Sha1};
+use url::Url;
 
 /// Password strength and pwned checks.
 ///
 /// If password is empty, returns 0 for strength and true for pwned.
 /// If password is none, returns none for strength and pwned.
 pub fn password_meta(
+    client: &Client,
     enabled: bool,
-    client: &Addr<ClientActor>,
     password: Option<String>,
 ) -> impl Future<Item = UserPasswordMeta, Error = DriverError> {
     match password.as_ref().map(|x| &**x) {
@@ -22,7 +26,7 @@ pub fn password_meta(
                     future::ok(None)
                 }
             });
-            let password_pwned = password_meta_pwned(enabled, client, password).then(|r| match r {
+            let password_pwned = password_meta_pwned(client, enabled, password).then(|r| match r {
                 Ok(password_pwned) => future::ok(Some(password_pwned)),
                 Err(err) => {
                     warn!("{}", err);
@@ -51,8 +55,8 @@ fn password_meta_strength(
 /// Returns true if password is present in `Pwned Passwords` index, else false.
 /// <https://haveibeenpwned.com/Passwords>
 fn password_meta_pwned(
+    client: &Client,
     enabled: bool,
-    client: &Addr<ClientActor>,
     password: &str,
 ) -> impl Future<Item = bool, Error = DriverError> {
     if enabled {
@@ -60,25 +64,31 @@ fn password_meta_pwned(
         let mut hash = Sha1::new();
         hash.input(password);
         let hash = format!("{:X}", hash.result());
-        let route = format!("/range/{:.5}", hash);
+        let url = format!("https://api.pwnedpasswords.com/range/{:.5}", hash);
 
-        future::Either::A(
-            // Make API request.
-            client
-                .send(Get::new("https://api.pwnedpasswords.com", route))
-                .map_err(DriverError::ActixMailbox)
-                .and_then(|res| res.map_err(DriverError::Client))
-                // Compare suffix of hash to lines to determine if password is pwned.
-                .and_then(move |text| {
-                    for line in text.lines() {
-                        if hash[5..] == line[..35] {
-                            return Ok(true);
-                        }
-                    }
-                    Ok(false)
-                }),
-        )
+        match Url::parse(&url).map_err(DriverError::UrlParse) {
+            Ok(url) => {
+                Either::A(
+                    client
+                        .get(url)
+                        .send()
+                        .map_err(DriverError::Reqwest)
+                        .and_then(|res| res.error_for_status().map_err(DriverError::Reqwest))
+                        .and_then(|mut res| res.text().map_err(DriverError::Reqwest))
+                        .and_then(move |text| {
+                            // Compare suffix of hash to lines to determine if password is pwned.
+                            for line in text.lines() {
+                                if hash[5..] == line[..35] {
+                                    return Ok(true);
+                                }
+                            }
+                            Ok(false)
+                        }),
+                )
+            }
+            Err(e) => Either::B(future::err(e)),
+        }
     } else {
-        future::Either::B(future::err(DriverError::PwnedPasswordsDisabled))
+        Either::B(future::err(DriverError::PwnedPasswordsDisabled))
     }
 }

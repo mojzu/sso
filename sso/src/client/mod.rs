@@ -12,9 +12,12 @@ pub use crate::client::async_impl::*;
 pub use crate::client::sync_impl::*;
 pub use crate::client::{actor::*, error::*};
 
-use crate::{DriverError, HEADER_USER_AUTHORISATION_NAME};
-use http::header;
-use reqwest::{r#async::RequestBuilder as AsyncRequestBuilder, RequestBuilder, Response};
+use crate::{DriverError, DriverResult, HEADER_USER_AUTHORISATION_NAME};
+use http::{header, HeaderMap};
+use reqwest::{
+    r#async::{Client as AsyncClient, RequestBuilder as AsyncRequestBuilder},
+    RequestBuilder, Response,
+};
 use serde::{de::DeserializeOwned, ser::Serialize};
 use url::Url;
 
@@ -67,6 +70,16 @@ impl ClientOptions {
 pub struct Client;
 
 impl Client {
+    pub fn build_client(user_agent: &str) -> DriverResult<AsyncClient> {
+        let mut headers = HeaderMap::new();
+        headers.insert(header::USER_AGENT, user_agent.parse().unwrap());
+        AsyncClient::builder()
+            .use_rustls_tls()
+            .default_headers(headers)
+            .build()
+            .map_err(DriverError::Reqwest)
+    }
+
     /// Default user agent constructed from crate name and version.
     pub fn default_user_agent() -> String {
         format!("{}/{}", crate_name!(), crate_version!())

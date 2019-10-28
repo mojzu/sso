@@ -136,6 +136,7 @@ mod provider_microsoft {
             mail: String,
         }
 
+        // TODO(refactor): Client reference argument refactoring.
         let authorisation = format!("Bearer {}", access_token);
         let client = ReqwestClient::builder().use_rustls_tls().build().unwrap();
 

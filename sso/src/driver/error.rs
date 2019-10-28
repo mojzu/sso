@@ -151,6 +151,9 @@ pub enum DriverError {
     #[fail(display = "UuidParse {}", _0)]
     UuidParse(#[fail(cause)] uuid::parser::ParseError),
 
+    #[fail(display = "Reqwest {}", _0)]
+    Reqwest(#[fail(cause)] reqwest::Error),
+
     #[fail(display = "UrlParse {}", _0)]
     UrlParse(#[fail(cause)] url::ParseError),
 
