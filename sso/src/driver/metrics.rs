@@ -35,7 +35,7 @@ pub const METRICS_HTTP_COUNT_HELP: &str = "HTTP request counter";
 pub const METRICS_HTTP_LATENCY_NAME: &str = "http_latency";
 
 /// Metrics HTTP latency help.
-pub const METRICS_HTTP_LATENCY_HELP: &str = "HTTP request latency";
+pub const METRICS_HTTP_LATENCY_HELP: &str = "HTTP request latency (ms)";
 
 /// Metrics.
 pub struct Metrics {
@@ -50,10 +50,7 @@ pub struct Metrics {
 
 impl fmt::Debug for Metrics {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Metrics {{ registry, process_cpu_usage, process_resident_memory, audit_from, audit_count, http_count, http_latency }}"
-        )
+        write!(f, "Metrics {{ registry, ... }}")
     }
 }
 
@@ -98,7 +95,6 @@ lazy_static! {
             registry,
             process_cpu_usage,
             process_resident_memory,
-
             audit_from: Utc::now(),
             audit_count,
             http_count,
