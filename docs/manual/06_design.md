@@ -2,15 +2,15 @@
 
 ## Architecture
 
-| Directory     | Description                                                                                                                                 |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `migrations`  | SQL migration files for [Postgres][postgresql] driver. [SQLite][sqlite] driver is planned.                                                  |
-| `/src/api`    | API request and response types and synchronous handlers.                                                                                    |
-| `/src/client` | Synchronous and asynchronous clients using [reqwest][reqwest] crate and `api` module types.                                                 |
-| `/src/driver` | Database types and driver for Postgres, SQLite support is planned.                                                                          |
-| `/src/notify` | Email notifications actor.                                                                                                                  |
-| `/src/server` | Actix-web frontend for API, asynchronous route handlers deserialise data for synchronous `api` calls.                                       |
-| `/tests`      | Integration tests which use `ClientSync` to run tests against an instance of `sso`.                                                         |
+| Directory     | Description                                                                                           |
+| ------------- | ----------------------------------------------------------------------------------------------------- |
+| `migrations`  | SQL migration files for [Postgres][postgresql] driver. [SQLite][sqlite] driver is planned.            |
+| `/src/api`    | API request and response types and synchronous handlers.                                              |
+| `/src/client` | Synchronous and asynchronous clients using [reqwest][reqwest] crate and `api` module types.           |
+| `/src/driver` | Database types and driver for Postgres, SQLite support is planned.                                    |
+| `/src/notify` | Email notifications actor.                                                                            |
+| `/src/server` | Actix-web frontend for API, asynchronous route handlers deserialise data for synchronous `api` calls. |
+| `/tests`      | Integration tests which use `ClientSync` to run tests against an instance of `sso`.                   |
 
 ## OWASP: ASVS
 
@@ -80,7 +80,6 @@ TODO(feature): Structured data for users, may require access controls.
 
 ### 1.5.1
 
-
 TODO(docs): GDPR and other data protection compliance research.
 
 ### 1.5.2
@@ -139,6 +138,7 @@ TODO(feature): Option to transmit audit logs, stdout/stderr to external service(
 - Sensitive data is not identified or classified into protection levels.
 
 TODO(docs): Evaluate data and identify/classify sensitive data.
+
 TODO(refactor): Audit log retention configuration.
 
 ### 1.9.1, 1.9.2
@@ -146,3 +146,28 @@ TODO(refactor): Audit log retention configuration.
 - Connection to database, other services must be encrypted.
 
 TODO(docs): Mutual TLS encryption/authentication for postgres connection.
+
+### 1.10.1
+
+- Git and GitHub used for source code control, no formal commit procedure.
+
+TODO(docs): Some kind of formalised procedures around source code changes.
+
+### 1.11.1
+
+- Little documentation and definitions of application components, out of date.
+
+TODO(docs): Up to date documentation and definitions of application components, diagrams.
+
+### 1.11.2, 1.11.3
+
+- No unsynchronised state shared between high-value business logic flows.
+- All code should be threadsafe (no use of unsafe).
+- I don't think there is any but probably needs more thorough check, including dependencies.
+
+TODO(feature): Constant time responses for authentication endpoints to resist timing attacks.
+
+### 1.12.1, 1.12.2
+
+- No user uploaded files, if feature added in future files will be stored as binary blobs in database.
+- Serve files as octet stream downloads if added.
