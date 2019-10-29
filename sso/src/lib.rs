@@ -41,18 +41,18 @@ pub use crate::{cli::*, client::*, driver::*, notify::*, server::*};
 #[macro_export]
 macro_rules! impl_enum_to_from_string {
     ($x:ident, $prefix:expr) => {
-        use $crate::{DriverError, DriverResult};
+        use $crate::{DriverError as SsoDriverError, DriverResult as SsoDriverResult};
         impl $x {
-            pub fn to_string(self) -> DriverResult<String> {
-                let s = serde_json::to_string(&self).map_err(DriverError::SerdeJson)?;
+            pub fn to_string(self) -> SsoDriverResult<String> {
+                let s = serde_json::to_string(&self).map_err(SsoDriverError::SerdeJson)?;
                 let trim = s.trim_matches('"');
                 Ok(format!("{}{}", $prefix, trim))
             }
 
-            pub fn from_string<S: Into<String>>(s: S) -> DriverResult<Self> {
+            pub fn from_string<S: Into<String>>(s: S) -> SsoDriverResult<Self> {
                 let mut s: String = s.into();
                 let s = format!("\"{}\"", s.split_off($prefix.len()));
-                serde_json::from_str(&s).map_err(DriverError::SerdeJson)
+                serde_json::from_str(&s).map_err(SsoDriverError::SerdeJson)
             }
         }
     };
