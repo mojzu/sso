@@ -32,7 +32,7 @@ impl Get {
     /// Set query string on GET request URL.
     pub fn query<S: Serialize>(mut self, query: S) -> ClientResult<Self> {
         let query = serde_qs::to_string(&query)
-            .map_err(DriverError::serde_qs)
+            .map_err::<DriverError, _>(Into::into)
             .map_err(ClientError::driver)?;
         self.query = Some(query);
         Ok(self)

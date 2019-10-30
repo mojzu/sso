@@ -173,20 +173,26 @@ pub enum DriverError {
     ActixWebBlockingCancelled,
 }
 
-impl DriverError {
-    pub fn validate(e: validator::ValidationErrors) -> Self {
+impl From<validator::ValidationErrors> for DriverError {
+    fn from(e: validator::ValidationErrors) -> Self {
         Self::Validate(serde_json::to_value(e).unwrap())
     }
+}
 
-    pub fn libreauth_pass(e: libreauth::pass::ErrorCode) -> Self {
+impl From<libreauth::pass::ErrorCode> for DriverError {
+    fn from(e: libreauth::pass::ErrorCode) -> Self {
         Self::LibreauthPass(e as usize)
     }
+}
 
-    pub fn libreauth_oath(e: libreauth::oath::ErrorCode) -> Self {
+impl From<libreauth::oath::ErrorCode> for DriverError {
+    fn from(e: libreauth::oath::ErrorCode) -> Self {
         Self::LibreauthOath(e as usize)
     }
+}
 
-    pub fn serde_qs(e: serde_qs::Error) -> Self {
+impl From<serde_qs::Error> for DriverError {
+    fn from(e: serde_qs::Error) -> Self {
         Self::SerdeQs(e.description().to_owned())
     }
 }

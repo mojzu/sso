@@ -303,7 +303,7 @@ impl User {
         match self.password_hash() {
             Some(password_hash) => {
                 let checker =
-                    HashBuilder::from_phc(password_hash).map_err(DriverError::libreauth_pass)?;
+                    HashBuilder::from_phc(password_hash).map_err::<DriverError, _>(Into::into)?;
 
                 if checker.is_valid(password.as_ref()) {
                     Ok(checker.needs_update(Some(USER_PASSWORD_HASH_VERSION)))
@@ -324,6 +324,6 @@ fn hash_password(password: &str) -> DriverResult<String> {
         .min_len(USER_PASSWORD_MIN_LEN)
         .max_len(USER_PASSWORD_MAX_LEN)
         .finalize()
-        .map_err(DriverError::libreauth_pass)?;
-    hasher.hash(password).map_err(DriverError::libreauth_pass)
+        .map_err::<DriverError, _>(Into::into)?;
+    hasher.hash(password).map_err::<DriverError, _>(Into::into)
 }

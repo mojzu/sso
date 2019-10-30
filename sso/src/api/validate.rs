@@ -16,7 +16,7 @@ use validator::{validate_email, Validate, ValidationError};
 pub trait ValidateRequest<T: Validate> {
     fn api_validate(t: &T) -> ApiResult<()> {
         t.validate()
-            .map_err(DriverError::validate)
+            .map_err::<DriverError, _>(Into::into)
             .map_err(ApiError::BadRequest)
     }
 
@@ -29,7 +29,7 @@ pub trait ValidateRequest<T: Validate> {
 pub trait ValidateRequestQuery<T: DeserializeOwned> {
     fn from_str(s: &str) -> ApiResult<T> {
         serde_qs::from_str(s)
-            .map_err(DriverError::serde_qs)
+            .map_err::<DriverError, _>(Into::into)
             .map_err(ApiError::BadRequest)
     }
 

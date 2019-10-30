@@ -95,7 +95,7 @@ impl Client {
     pub fn url_query<T: Serialize>(url: &str, route: &str, query: T) -> ClientResult<Url> {
         let mut url = Client::url(url, route)?;
         let query = serde_qs::to_string(&query)
-            .map_err(DriverError::serde_qs)
+            .map_err::<DriverError, _>(Into::into)
             .map_err(ClientError::driver)?;
         url.set_query(Some(&query));
         Ok(url)

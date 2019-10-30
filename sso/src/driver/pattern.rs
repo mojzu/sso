@@ -59,7 +59,7 @@ pub fn totp_verify(key: &str, code: &str) -> DriverResult<()> {
     let totp = TOTPBuilder::new()
         .base32_key(key)
         .finalize()
-        .map_err(DriverError::libreauth_oath)?;
+        .map_err::<DriverError, _>(Into::into)?;
 
     if !totp.is_valid(&code) {
         Err(DriverError::TotpInvalid)
