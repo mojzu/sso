@@ -357,8 +357,8 @@ impl AuditBuilder {
         T: Into<String>,
     {
         let data = AuditCreate::new(self.meta.clone(), type_.into())
-            .subject(subject.map(|x| x.into()))
-            .data(data.map(|x| x.into()))
+            .subject(subject)
+            .data(data)
             .key_id(self.key)
             .service_id(self.service)
             .user_id(self.user)

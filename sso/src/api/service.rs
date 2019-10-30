@@ -201,6 +201,7 @@ impl Default for ServiceUpdateRequest {
 }
 
 impl ServiceUpdateRequest {
+    #[allow(clippy::wrong_self_convention)]
     pub fn is_enabled(mut self, is_enabled: bool) -> Self {
         self.is_enabled = Some(is_enabled);
         self

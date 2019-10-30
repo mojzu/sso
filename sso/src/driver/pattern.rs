@@ -162,7 +162,7 @@ fn check_audit_user(
     audit: &mut AuditBuilder,
     service: &Service,
 ) -> DriverResult<()> {
-    let user = audit.meta().user().map(|x| x.clone());
+    let user = audit.meta().user().cloned();
     match user {
         // TODO(refactor): Duplicate authentication code with api module, refactor.
         Some(user) => match user {
