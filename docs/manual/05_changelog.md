@@ -7,6 +7,7 @@
 - Added `name_ge`, `name_le`, `offset_id` query parameters to user list route for sorting by name.
 - Added `status_code` to audit logs. Endpoints which accepted custom audit objects now accept custom audit type string. Status code, subject and data can be added later via update endpoint.
 - Added `User-Authorization` header handling, value is user key or token. Service may include this header to add user and key information in created audit logs.
+- Added optional `user_id` query parameter to key read endpoint to mask by user ID.
 
 ### Changed
 

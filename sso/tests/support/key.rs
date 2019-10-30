@@ -199,7 +199,9 @@ macro_rules! key_integration_test {
         #[ignore]
         fn api_key_read_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
-            let res = client.key_read(Uuid::nil()).unwrap_err();
+            let res = client
+                .key_read(Uuid::nil(), KeyReadRequest::new(None))
+                .unwrap_err();
             assert_eq!(res, ClientError::Unauthorised);
         }
 
@@ -211,7 +213,9 @@ macro_rules! key_integration_test {
             let (_service2, service2_key) = service_key_create(&client);
 
             let client = client_create(Some(&service1_key.value));
-            let res = client.key_read(service2_key.id).unwrap_err();
+            let res = client
+                .key_read(service2_key.id, KeyReadRequest::new(None))
+                .unwrap_err();
             assert_eq!(res, ClientError::NotFound);
         }
 
@@ -220,7 +224,10 @@ macro_rules! key_integration_test {
         fn api_key_read_ok() {
             let client = client_create(None);
             let (_service, service_key) = service_key_create(&client);
-            let key = client.key_read(service_key.id).unwrap().data;
+            let key = client
+                .key_read(service_key.id, KeyReadRequest::new(None))
+                .unwrap()
+                .data;
             assert_eq!(key.id, service_key.id);
         }
 

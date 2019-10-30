@@ -20,8 +20,8 @@ pub use sso::{
         AuthCsrfCreateRequest, AuthCsrfVerifyRequest, AuthKeyRequest, AuthLoginRequest,
         AuthResetPasswordConfirmRequest, AuthResetPasswordRequest, AuthTokenRequest,
         AuthTotpRequest, AuthUpdateEmailRequest, KeyCreateRequest, KeyListRequestBuilder,
-        ServiceCreateRequest, ServiceListRequestBuilder, ServiceUpdateRequest, UserCreateRequest,
-        UserListRequestBuilder, UserUpdateRequest,
+        KeyReadRequest, ServiceCreateRequest, ServiceListRequestBuilder, ServiceUpdateRequest,
+        UserCreateRequest, UserListRequestBuilder, UserUpdateRequest,
     },
     AuditType, Client, ClientActorOptions, ClientError, ClientOptions, ClientSync, KeyType,
 };

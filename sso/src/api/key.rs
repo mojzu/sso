@@ -171,6 +171,21 @@ pub struct KeyCreateResponse {
     pub data: KeyWithValue,
 }
 
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct KeyReadRequest {
+    pub user_id: Option<Uuid>,
+}
+
+impl ValidateRequest<KeyReadRequest> for KeyReadRequest {}
+impl ValidateRequestQuery<KeyReadRequest> for KeyReadRequest {}
+
+impl KeyReadRequest {
+    pub fn new(user_id: Option<Uuid>) -> Self {
+        Self { user_id }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct KeyReadResponse {
@@ -222,10 +237,11 @@ pub fn key_read(
     audit_meta: AuditMeta,
     key_value: Option<String>,
     key_id: Uuid,
+    request: KeyReadRequest,
 ) -> ApiResult<KeyReadResponse> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyRead);
 
-    let res = server_key::read(driver, &mut audit, key_value, key_id);
+    let res = server_key::read(driver, &mut audit, key_value, key_id, request);
     result_audit_err(driver, &audit, res).map(|data| KeyReadResponse { data })
 }
 
@@ -339,10 +355,11 @@ mod server_key {
         audit: &mut AuditBuilder,
         key_value: Option<String>,
         key_id: Uuid,
+        request: KeyReadRequest,
     ) -> ApiResult<Key> {
         let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        read_inner(driver, service.as_ref(), key_id)
+        read_inner(driver, key_id, service.as_ref(), request.user_id)
     }
 
     pub fn update(
@@ -354,7 +371,7 @@ mod server_key {
     ) -> ApiResult<(Key, Key)> {
         let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        let previous_key = read_inner(driver, service.as_ref(), key_id)?;
+        let previous_key = read_inner(driver, key_id, service.as_ref(), None)?;
         let key = driver
             .key_update(
                 &key_id,
@@ -376,15 +393,20 @@ mod server_key {
     ) -> ApiResult<Key> {
         let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        let key = read_inner(driver, service.as_ref(), key_id)?;
+        let key = read_inner(driver, key_id, service.as_ref(), None)?;
         driver
             .key_delete(&key_id)
             .map_err(ApiError::BadRequest)
             .map(|_| key)
     }
 
-    fn read_inner(driver: &dyn Driver, service: Option<&Service>, key_id: Uuid) -> ApiResult<Key> {
-        let read = KeyRead::Id(key_id, service.map(|x| x.id));
+    fn read_inner(
+        driver: &dyn Driver,
+        key_id: Uuid,
+        service: Option<&Service>,
+        user_id: Option<Uuid>,
+    ) -> ApiResult<Key> {
+        let read = KeyRead::IdServiceUser(key_id, service.map(|x| x.id), user_id);
         driver
             .key_read(&read)
             .map_err(ApiError::BadRequest)?

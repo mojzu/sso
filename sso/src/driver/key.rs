@@ -257,7 +257,7 @@ pub struct KeyReadUserValue {
 /// Key read.
 #[derive(Debug)]
 pub enum KeyRead {
-    Id(Uuid, Option<Uuid>),
+    IdServiceUser(Uuid, Option<Uuid>, Option<Uuid>),
     RootValue(String),
     ServiceValue(String),
     UserId(KeyReadUserId),

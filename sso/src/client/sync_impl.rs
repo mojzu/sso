@@ -7,10 +7,10 @@ use crate::{
         AuthPasswordMetaResponse, AuthResetPasswordConfirmRequest, AuthResetPasswordRequest,
         AuthTokenAccessResponse, AuthTokenRequest, AuthTokenResponse, AuthTotpRequest,
         AuthUpdateEmailRequest, AuthUpdatePasswordRequest, KeyCreateRequest, KeyCreateResponse,
-        KeyListRequest, KeyListResponse, KeyReadResponse, KeyUpdateRequest, ServiceCreateRequest,
-        ServiceListRequest, ServiceListResponse, ServiceReadResponse, ServiceUpdateRequest,
-        UserCreateRequest, UserCreateResponse, UserListRequest, UserListResponse, UserReadResponse,
-        UserUpdateRequest,
+        KeyListRequest, KeyListResponse, KeyReadRequest, KeyReadResponse, KeyUpdateRequest,
+        ServiceCreateRequest, ServiceListRequest, ServiceListResponse, ServiceReadResponse,
+        ServiceUpdateRequest, UserCreateRequest, UserCreateResponse, UserListRequest,
+        UserListResponse, UserReadResponse, UserUpdateRequest,
     },
     Client, ClientActorOptions, ClientError, ClientOptions, ClientResult, User,
 };
@@ -301,9 +301,9 @@ impl ClientSync {
     }
 
     /// Key read request.
-    pub fn key_read(&self, id: Uuid) -> ClientResult<KeyReadResponse> {
+    pub fn key_read(&self, id: Uuid, query: KeyReadRequest) -> ClientResult<KeyReadResponse> {
         let route = api_route::key_id(id);
-        self.get(&route)
+        self.get_query(&route, &query)
             .and_then(Client::response_json::<KeyReadResponse>)
     }
 

@@ -806,6 +806,7 @@ font-size: 16px;
 <li>Added <code>name_ge</code>, <code>name_le</code>, <code>offset_id</code> query parameters to user list route for sorting by name.</li>
 <li>Added <code>status_code</code> to audit logs. Endpoints which accepted custom audit objects now accept custom audit type string. Status code, subject and data can be added later via update endpoint.</li>
 <li>Added <code>User-Authorization</code> header handling, value is user key or token. Service may include this header to add user and key information in created audit logs.</li>
+<li>Added optional <code>user_id</code> query parameter to key read endpoint to mask by user ID.</li>
 </ul>
 <h3 id="changed"><span class="header-section-number">5.1.2</span> Changed</h3>
 <ul>

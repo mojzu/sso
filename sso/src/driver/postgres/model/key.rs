@@ -217,7 +217,9 @@ impl ModelKey {
 
     pub fn read(conn: &PgConnection, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
         match read {
-            KeyRead::Id(id, service_id_mask) => Self::read_by_id(conn, id, service_id_mask),
+            KeyRead::IdServiceUser(id, service_id, user_id) => {
+                Self::read_by_id(conn, id, service_id, user_id)
+            }
             KeyRead::RootValue(value) => Self::read_by_root_value(conn, value),
             KeyRead::ServiceValue(value) => Self::read_by_service_value(conn, value),
             KeyRead::UserId(r) => Self::read_by_user_id(conn, r),
@@ -286,22 +288,23 @@ impl ModelKey {
         conn: &PgConnection,
         id: &Uuid,
         service_id_mask: &Option<Uuid>,
+        user_id_mask: &Option<Uuid>,
     ) -> DriverResult<Option<KeyWithValue>> {
-        match service_id_mask {
-            Some(service_id_mask) => sso_key::table
-                .filter(
-                    sso_key::dsl::id
-                        .eq(id)
-                        .and(sso_key::dsl::service_id.eq(service_id_mask)),
-                )
-                .get_result::<ModelKey>(conn),
-            None => sso_key::table
-                .filter(sso_key::dsl::id.eq(id))
-                .get_result::<ModelKey>(conn),
+        let mut query = sso_key::table.into_boxed();
+
+        if let Some(service_id) = service_id_mask {
+            query = query.filter(sso_key::dsl::service_id.eq(service_id));
         }
-        .optional()
-        .map_err(Into::into)
-        .map(|x| x.map(Into::into))
+        if let Some(user_id) = user_id_mask {
+            query = query.filter(sso_key::dsl::user_id.eq(user_id));
+        }
+
+        query
+            .filter(sso_key::dsl::id.eq(id))
+            .get_result::<ModelKey>(conn)
+            .optional()
+            .map_err(Into::into)
+            .map(|x| x.map(Into::into))
     }
 
     fn read_by_root_value(conn: &PgConnection, value: &str) -> DriverResult<Option<KeyWithValue>> {
