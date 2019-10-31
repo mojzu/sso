@@ -22,10 +22,10 @@ pub struct AuthLoginRequest {
 impl ValidateRequest<AuthLoginRequest> for AuthLoginRequest {}
 
 impl AuthLoginRequest {
-    pub fn new<S1, S2>(email: S1, password: S2) -> Self
+    pub fn new<E, P>(email: E, password: P) -> Self
     where
-        S1: Into<String>,
-        S2: Into<String>,
+        E: Into<String>,
+        P: Into<String>,
     {
         Self {
             email: email.into(),
@@ -33,6 +33,38 @@ impl AuthLoginRequest {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthRegisterRequest {
+    #[validate(custom = "validate::name")]
+    pub name: String,
+
+    #[validate(email)]
+    pub email: String,
+
+    #[validate(custom = "validate::locale")]
+    pub locale: Option<String>,
+
+    #[validate(custom = "validate::timezone")]
+    pub timezone: Option<String>,
+}
+
+impl ValidateRequest<AuthRegisterRequest> for AuthRegisterRequest {}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuthRegisterConfirmRequest {
+    #[validate(custom = "validate::token")]
+    pub token: String,
+
+    #[validate(custom = "validate::password")]
+    pub password: Option<String>,
+
+    pub password_allow_reset: Option<bool>,
+}
+
+impl ValidateRequest<AuthRegisterConfirmRequest> for AuthRegisterConfirmRequest {}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -63,6 +95,7 @@ impl AuthResetPasswordRequest {
 pub struct AuthResetPasswordConfirmRequest {
     #[validate(custom = "validate::token")]
     pub token: String,
+
     #[validate(custom = "validate::password")]
     pub password: String,
 }
@@ -135,6 +168,44 @@ pub fn auth_provider_local_login(
     result_audit(driver, &audit, res).map(|data| AuthLoginResponse {
         meta: password_meta,
         data,
+    })
+}
+
+pub fn auth_provider_local_register(
+    driver: &dyn Driver,
+    audit_meta: AuditMeta,
+    key_value: Option<String>,
+    request: AuthRegisterRequest,
+    notify: &Addr<NotifyActor>,
+    access_token_expires: i64,
+) -> ApiResult<()> {
+    AuthRegisterRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalLogin);
+
+    let res = provider_local::register(
+        driver,
+        &mut audit,
+        key_value,
+        notify,
+        request,
+        access_token_expires,
+    );
+    result_audit(driver, &audit, res)
+}
+
+pub fn auth_provider_local_register_confirm(
+    driver: &dyn Driver,
+    audit_meta: AuditMeta,
+    key_value: Option<String>,
+    password_meta: UserPasswordMeta,
+    request: AuthRegisterConfirmRequest,
+) -> ApiResult<AuthPasswordMetaResponse> {
+    AuthRegisterConfirmRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalLogin);
+
+    let res = provider_local::register_confirm(driver, &mut audit, key_value, request);
+    result_audit(driver, &audit, res).map(|_| AuthPasswordMetaResponse {
+        meta: password_meta,
     })
 }
 
@@ -262,8 +333,8 @@ mod provider_local {
         api::{ApiError, ApiResult},
         notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
         pattern::*,
-        Audit, AuditBuilder, Driver, DriverError, Jwt, KeyType, NotifyActor, UserToken, UserUpdate,
-        UserUpdate2,
+        Audit, AuditBuilder, Driver, DriverError, Jwt, KeyCreate, KeyType, NotifyActor, UserCreate,
+        UserToken, UserUpdate, UserUpdate2,
     };
     use actix::Addr;
 
@@ -303,6 +374,77 @@ mod provider_local {
             refresh_token_expires,
         )
         .map_err(ApiError::BadRequest)
+    }
+
+    pub fn register(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        _notify: &Addr<NotifyActor>,
+        request: AuthRegisterRequest,
+        access_token_expires: i64,
+    ) -> ApiResult<()> {
+        let service =
+            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        // Create user.
+        let mut user_create = UserCreate::new(true, &request.name, request.email);
+        if let Some(locale) = request.locale {
+            user_create = user_create.locale(locale);
+        }
+        if let Some(timezone) = request.timezone {
+            user_create = user_create.timezone(timezone);
+        }
+        let user = driver
+            .user_create(&user_create)
+            .map_err(ApiError::BadRequest)?;
+        // Create token key for user.
+        let key_create = KeyCreate::user(true, KeyType::Token, &request.name, service.id, user.id);
+        let key = driver
+            .key_create(&key_create)
+            .map_err(ApiError::BadRequest)?;
+
+        // Encode register token.
+        let _token =
+            Jwt::encode_register_token(driver, &service, &user, &key, access_token_expires)
+                .map_err(ApiError::BadRequest)?;
+
+        // Send register email.
+        // TODO(feature): Implement this.
+        unimplemented!();
+    }
+
+    pub fn register_confirm(
+        driver: &dyn Driver,
+        audit: &mut AuditBuilder,
+        key_value: Option<String>,
+        request: AuthRegisterConfirmRequest,
+    ) -> ApiResult<()> {
+        let service =
+            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        // Unsafely decode token to get user identifier, used to read key for safe token decode.
+        let (user_id, _) =
+            Jwt::decode_unsafe(&request.token, service.id).map_err(ApiError::BadRequest)?;
+
+        // Register confirm requires token key type.
+        let user = user_read_id_checked(driver, Some(&service), audit, user_id)
+            .map_err(ApiError::BadRequest)?;
+        let key = key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
+            .map_err(ApiError::BadRequest)?;
+
+        // Safely decode token with user key.
+        let csrf_key = Jwt::decode_register_token(&service, &user, &key, &request.token)
+            .map_err(ApiError::BadRequest)?;
+
+        // Verify CSRF to prevent reuse.
+        csrf_verify(driver, &service, &csrf_key)?;
+
+        // TODO(feature): Implement this.
+        // password, password_allow_reset
+        // driver.user_update(id: &Uuid, update: &UserUpdate)
+
+        unimplemented!();
     }
 
     pub fn reset_password(

@@ -13,6 +13,16 @@ pub fn route_v1_scope() -> Scope {
     web::scope(api::path::LOCAL)
         .service(web::resource(api::path::LOGIN).route(web::post().to_async(login_handler)))
         .service(
+            web::scope(api::path::REGISTER)
+                .service(
+                    web::resource(api::path::NONE).route(web::post().to_async(register_handler)),
+                )
+                .service(
+                    web::resource(api::path::CONFIRM)
+                        .route(web::post().to_async(register_confirm_handler)),
+                ),
+        )
+        .service(
             web::scope(api::path::RESET_PASSWORD)
                 .service(
                     web::resource(api::path::NONE)
@@ -79,7 +89,66 @@ fn login_handler(
             })
             .map_err(Into::into)
         })
-        .map_err(Into::into)
+        .then(route_response_json)
+}
+
+fn register_handler(
+    data: web::Data<Data>,
+    req: HttpRequest,
+    id: Identity,
+    body: web::Json<api::AuthRegisterRequest>,
+) -> impl Future<Item = HttpResponse, Error = Error> {
+    let audit_meta = request_audit_meta(&req);
+    let id = id.identity();
+    let request = body.into_inner();
+
+    audit_meta
+        .and_then(move |audit_meta| {
+            web::block(move || {
+                api::auth_provider_local_register(
+                    data.driver(),
+                    audit_meta,
+                    id,
+                    request,
+                    data.notify(),
+                    data.options().access_token_expires(),
+                )
+            })
+            .map_err(Into::into)
+        })
+        .then(route_response_empty)
+}
+
+fn register_confirm_handler(
+    data: web::Data<Data>,
+    req: HttpRequest,
+    id: Identity,
+    body: web::Json<api::AuthRegisterConfirmRequest>,
+) -> impl Future<Item = HttpResponse, Error = Error> {
+    let audit_meta = request_audit_meta(&req);
+    let id = id.identity();
+    let request = body.into_inner();
+    let password_meta = api::password_meta(
+        data.client(),
+        data.options().password_pwned_enabled(),
+        request.password.clone(),
+    )
+    .map_err(ApiError::BadRequest);
+
+    audit_meta
+        .join(password_meta)
+        .and_then(move |(audit_meta, password_meta)| {
+            web::block(move || {
+                api::auth_provider_local_register_confirm(
+                    data.driver(),
+                    audit_meta,
+                    id,
+                    password_meta,
+                    request,
+                )
+            })
+            .map_err(Into::into)
+        })
         .then(route_response_json)
 }
 
@@ -102,12 +171,11 @@ fn reset_password_handler(
                     id,
                     request,
                     data.notify(),
-                    data.options().refresh_token_expires(),
+                    data.options().access_token_expires(),
                 )
             })
             .map_err(Into::into)
         })
-        .map_err(Into::into)
         .then(route_response_empty)
 }
 
@@ -141,7 +209,6 @@ fn reset_password_confirm_handler(
             })
             .map_err(Into::into)
         })
-        .map_err(Into::into)
         .then(route_response_json)
 }
 
@@ -169,7 +236,6 @@ fn update_email_handler(
             })
             .map_err(Into::into)
         })
-        .map_err(Into::into)
         .then(route_response_empty)
 }
 
@@ -190,7 +256,6 @@ fn update_email_revoke_handler(
             })
             .map_err(Into::into)
         })
-        .map_err(Into::into)
         .then(route_response_empty)
 }
 
@@ -226,7 +291,6 @@ fn update_password_handler(
             })
             .map_err(Into::into)
         })
-        .map_err(Into::into)
         .then(route_response_json)
 }
 
@@ -252,6 +316,5 @@ fn update_password_revoke_handler(
             })
             .map_err(Into::into)
         })
-        .map_err(Into::into)
         .then(route_response_empty)
 }

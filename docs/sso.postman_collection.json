@@ -53,6 +53,95 @@
 									"response": []
 								},
 								{
+									"name": "Register",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											},
+											{
+												"description": "Audited header.",
+												"key": "Forwarded",
+												"type": "text",
+												"value": "by=id;"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"name\": \"username\",\n    \"email\": \"{{user_email}}\",\n    \"locale\": \"en_GB\",\n    \"timezone\": \"Europe/London\",\n    \"password_allow_reset\": true\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{server_url}}/v1/auth/provider/local/register",
+											"host": [
+												"{{server_url}}"
+											],
+											"path": [
+												"v1",
+												"auth",
+												"provider",
+												"local",
+												"register"
+											]
+										},
+										"description": "Reset password request for email address.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User email address is invalid or unknown.\n- User is not assigned key for service.\n- User password is null.\n- Unable to send password reset email.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
+									},
+									"response": []
+								},
+								{
+									"name": "Register Confirm",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											},
+											{
+												"description": "Audited header.",
+												"key": "Forwarded",
+												"type": "text",
+												"value": "by=id;"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"token\": \"{{register_token}}\",\n    \"password\": \"guestguest\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{server_url}}/v1/auth/provider/local/register/confirm",
+											"host": [
+												"{{server_url}}"
+											],
+											"path": [
+												"v1",
+												"auth",
+												"provider",
+												"local",
+												"register",
+												"confirm"
+											]
+										},
+										"description": "Reset password request for email address.\n\n**400, Bad Request**\n\n- Request body is invalid.\n- User email address is invalid or unknown.\n- User is not assigned key for service.\n- User password is null.\n- Unable to send password reset email.\n\n**401, Unauthorised**\n\n- Authorisation header is invalid."
+									},
+									"response": []
+								},
+								{
 									"name": "Reset Password",
 									"request": {
 										"method": "POST",
@@ -1584,103 +1673,103 @@
 	],
 	"variable": [
 		{
-			"id": "2ba644c8-2576-4cc1-891e-5b47e538577a",
+			"id": "8e484413-ffd7-49ba-98d8-2a51765161f7",
 			"key": "server_url",
 			"value": "localhost:9000",
 			"type": "string"
 		},
 		{
-			"id": "a6e63082-6a17-4bad-bae5-ed256c1d9481",
+			"id": "0cbe6480-ca2a-427a-9e66-31b763cd46c0",
 			"key": "key",
 			"value": "{{root_key}}",
 			"type": "string"
 		},
 		{
-			"id": "36e48f84-f5b6-4c69-809c-4ce08c878f11",
+			"id": "930dbcc7-7aee-44b6-bcc2-35da92a01ad0",
 			"key": "root_key",
 			"value": "4KYG4LFV2UGWKC3FYWXNRQMX4FBBBJM6CI",
 			"type": "string"
 		},
 		{
-			"id": "7185ff78-cd64-4236-80a4-ab33c76b2315",
+			"id": "477638f9-1f2c-46dc-8998-6e25151595f7",
 			"key": "service_key",
 			"value": "AN3SRWT2TG2KP2NOSCJ2TPYN2FYHSOE6MU",
 			"type": "string"
 		},
 		{
-			"id": "cb077fe4-343c-468c-8086-32a0bd43cb7c",
+			"id": "77761c8a-2a3a-463d-b83e-1e21a1b30808",
 			"key": "service_id",
 			"value": "2107d8d6-c9ec-4fa4-9c4d-d0d095d6ec62",
 			"type": "string"
 		},
 		{
-			"id": "035ebba8-c6fa-4172-a23a-edfb27de2393",
+			"id": "c2458ecb-c45b-4f26-a8e5-45b0d61f559d",
 			"key": "key_id",
 			"value": "7fe29d76-1af8-4364-bf2f-a24e1ac6717c",
 			"type": "string"
 		},
 		{
-			"id": "792249af-e6f6-4b18-83a5-4942fa976f25",
+			"id": "bed23e1c-23e2-4a70-b764-8b62fcd67175",
 			"key": "user_id",
 			"value": "0039002d-6806-4d04-88d9-bafeaf35a123",
 			"type": "string"
 		},
 		{
-			"id": "b2199b12-c105-49e1-852f-2b05acbeeb38",
+			"id": "88a54cdb-2a5c-4dcf-b2c4-81ddb10521c1",
 			"key": "user_email",
 			"value": "user@example.com",
 			"type": "string"
 		},
 		{
-			"id": "6ba8331d-a7f5-4a2a-b45f-c58eeec1262b",
+			"id": "4c97c06d-b51e-41b2-be73-c4b34521f0f8",
 			"key": "audit_id",
 			"value": "5da68099-3d48-4c92-b71e-9d8c0ef1714e",
 			"type": "string"
 		},
 		{
-			"id": "e2dd50c0-0a69-48d7-88fc-ffb9c3c13ca8",
+			"id": "d31b20c8-f4ff-4349-b5b9-2f5c6aae2f16",
 			"key": "user_access_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyMTA3ZDhkNi1jOWVjLTRmYTQtOWM0ZC1kMGQwOTVkNmVjNjIiLCJzdWIiOiJmMDEzYmFhNi04OWNjLTQ4NzMtYTQ5ZS0xZTc2YmJiODI5M2EiLCJleHAiOjE1NzA5NzgyOTEsInhfdHlwZSI6MCwieF9jc3JmIjpudWxsfQ.4NRPIQMZRJP-Su_EoHWSeJClYIwhKjwE_1bRxAQeTqU",
 			"type": "string"
 		},
 		{
-			"id": "d3979026-6c6f-4d72-8ede-58974a066a32",
+			"id": "2828a19e-7d72-4275-84ca-9cbe8bc7912e",
 			"key": "user_refresh_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyMTA3ZDhkNi1jOWVjLTRmYTQtOWM0ZC1kMGQwOTVkNmVjNjIiLCJzdWIiOiJmMDEzYmFhNi04OWNjLTQ4NzMtYTQ5ZS0xZTc2YmJiODI5M2EiLCJleHAiOjE1NzEwNjEwOTEsInhfdHlwZSI6MSwieF9jc3JmIjoiU1ZaQjZSM0RIVloyUksyUDcySUs2WFpINTZQVlROQ0FEUSJ9.7p6ou_c9GjptwQsOeSpxby8hRyZFUgGu6lummCvlhQE",
 			"type": "string"
 		},
 		{
-			"id": "90afcceb-ca54-4b94-8513-58025794eccf",
+			"id": "3fd19d8e-e6fa-4336-8a65-12fb0c019f92",
 			"key": "user_key",
 			"value": "PVYBXVXJATJHIVMNCZORHE3GDUXDJCJCIE",
 			"type": "string"
 		},
 		{
-			"id": "7eb34d27-a626-4ea4-b26f-3372d6b94f95",
+			"id": "ba768e94-bcd4-4cd4-9743-27b172d7c7ee",
 			"key": "totp_code",
 			"value": "123456",
 			"type": "string"
 		},
 		{
-			"id": "2b20751b-09ff-4b6c-a74e-0c4121068abd",
+			"id": "7527ee55-a3ab-4925-b688-0ad8481eaff8",
 			"key": "user_reset_password_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzAwNTAzMzcsInhfdHlwZSI6MiwieF9jc3JmIjoiNUxBT0xHQjI0N1pGWEYzM1pVMkZOVTZMM0hZSDJSQ1JSNCJ9.0rK1R-AswHV19POJEFKlv3yai9YAR8eK5e_6CbfXEPU",
 			"type": "string"
 		},
 		{
-			"id": "d3b1cae9-acb9-4868-9797-4c3440f176c8",
+			"id": "042269c8-85e0-4b4f-b6e4-254d86b3836c",
 			"key": "user_update_password_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIyOTQsInhfdHlwZSI6NCwieF9jc3JmIjoiRlRINERLUUU1S1M3RjVVUExYUkFCNkJPWEJDRUdIRlUyRSJ9.BG3cBT5s3GdCjJ3Wlc4F88P4oBfybzTvi6xgs0rQ_Cc",
 			"type": "string"
 		},
 		{
-			"id": "3fa0384e-e8d9-4059-b540-51f8f6d9cacb",
+			"id": "b109181f-622f-4144-ac98-e88ab58c906f",
 			"key": "user_update_email_revoke_token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI0MzhlZjA0Yi1lYzNhLTRlMWQtYWU5My0zYTc5NjVhMjYzMzEiLCJzdWIiOiI4ZDdiM2Q0NC05NGY2LTQ5OTUtOTU0Yi0yMGNlMTlmNjkyM2YiLCJleHAiOjE1NzA2NTIxNTUsInhfdHlwZSI6MywieF9jc3JmIjoiSEk1VEpaMzdBRUpJTU9UUUNEVlgyVUlLNVZRUTZSTUYyNCJ9.4Me_J7HUmLZQ4-OJTq5xyV5JNmaO-ZdvfD2UbiJ_kBY",
 			"type": "string"
 		},
 		{
-			"id": "667fac86-5a6e-429a-97a9-10ec5aca4907",
+			"id": "2494b8ef-18e7-4bf4-9c6d-798edec0b690",
 			"key": "csrf_key",
 			"value": "V6FKGIP3OFG4AARS4QMG6PWFNHQP6FNQFM",
 			"type": "string"

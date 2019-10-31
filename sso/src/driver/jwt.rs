@@ -12,6 +12,7 @@ pub const JWT_MAX_LEN: usize = 1000;
 pub enum JwtClaimsType {
     AccessToken,
     RefreshToken,
+    RegisterToken,
     ResetPasswordToken,
     UpdateEmailRevokeToken,
     UpdatePasswordRevokeToken,
@@ -22,9 +23,10 @@ impl JwtClaimsType {
         match self {
             JwtClaimsType::AccessToken => 0,
             JwtClaimsType::RefreshToken => 1,
-            JwtClaimsType::ResetPasswordToken => 2,
-            JwtClaimsType::UpdateEmailRevokeToken => 3,
-            JwtClaimsType::UpdatePasswordRevokeToken => 4,
+            JwtClaimsType::RegisterToken => 2,
+            JwtClaimsType::ResetPasswordToken => 3,
+            JwtClaimsType::UpdateEmailRevokeToken => 4,
+            JwtClaimsType::UpdatePasswordRevokeToken => 5,
         }
     }
 
@@ -32,9 +34,10 @@ impl JwtClaimsType {
         match value {
             0 => Ok(JwtClaimsType::AccessToken),
             1 => Ok(JwtClaimsType::RefreshToken),
-            2 => Ok(JwtClaimsType::ResetPasswordToken),
-            3 => Ok(JwtClaimsType::UpdateEmailRevokeToken),
-            4 => Ok(JwtClaimsType::UpdatePasswordRevokeToken),
+            2 => Ok(JwtClaimsType::RegisterToken),
+            3 => Ok(JwtClaimsType::ResetPasswordToken),
+            4 => Ok(JwtClaimsType::UpdateEmailRevokeToken),
+            5 => Ok(JwtClaimsType::UpdatePasswordRevokeToken),
             _ => Err(DriverError::JwtClaimsTypeInvalid),
         }
     }
@@ -199,6 +202,45 @@ impl Jwt {
             refresh_token_expires,
         })
     }
+
+    pub fn encode_register_token(
+        driver: &dyn Driver,
+        service: &Service,
+        user: &User,
+        key: &KeyWithValue,
+        token_expires: i64,
+    ) -> DriverResult<String> {
+        let csrf = driver.csrf_create(&CsrfCreate::generate(token_expires, service.id))?;
+        let (token, _) = Jwt::encode_token_csrf(
+            service.id,
+            user.id,
+            JwtClaimsType::RegisterToken,
+            &csrf.key,
+            &key.value,
+            token_expires,
+        )?;
+        Ok(token)
+    }
+
+    pub fn decode_register_token(
+        service: &Service,
+        user: &User,
+        key: &KeyWithValue,
+        token: &str,
+    ) -> DriverResult<String> {
+        let decoded = Jwt::decode_token(
+            service.id,
+            user.id,
+            JwtClaimsType::RegisterToken,
+            &key.value,
+            &token,
+        );
+        match decoded {
+            Ok((_, csrf_key)) => csrf_key.ok_or_else(|| DriverError::CsrfNotFoundOrUsed),
+            Err(_err) => Err(DriverError::JwtInvalidOrExpired),
+        }
+    }
+
     pub fn encode_reset_password_token(
         driver: &dyn Driver,
         service: &Service,

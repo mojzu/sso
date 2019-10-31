@@ -37,6 +37,7 @@ pub mod path {
     pub const PROVIDER: &str = "/provider";
     pub const LOCAL: &str = "/local";
     pub const LOGIN: &str = "/login";
+    pub const REGISTER: &str = "/register";
     pub const RESET_PASSWORD: &str = "/reset-password";
     pub const UPDATE_EMAIL: &str = "/update-email";
     pub const UPDATE_PASSWORD: &str = "/update-password";
@@ -63,6 +64,8 @@ pub mod route {
     pub const PING: &str = "/v1/ping";
     pub const METRICS: &str = "/v1/metrics";
     pub const AUTH_LOCAL_LOGIN: &str = "/v1/auth/provider/local/login";
+    pub const AUTH_LOCAL_REGISTER: &str = "/v1/auth/provider/local/register";
+    pub const AUTH_LOCAL_REGISTER_CONFIRM: &str = "/v1/auth/provider/local/register/confirm";
     pub const AUTH_LOCAL_RESET_PASSWORD: &str = "/v1/auth/provider/local/reset-password";
     pub const AUTH_LOCAL_RESET_PASSWORD_CONFIRM: &str =
         "/v1/auth/provider/local/reset-password/confirm";
