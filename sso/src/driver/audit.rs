@@ -432,6 +432,23 @@ impl AuditDiffBuilder {
         self
     }
 
+    /// Compare 2 versions of a vector, if different push a row to diff data.
+    pub fn compare_vec<T: PartialEq + fmt::Display>(
+        mut self,
+        key: &str,
+        current: &[T],
+        previous: &[T],
+    ) -> Self {
+        if current != previous {
+            let previous: Vec<String> = previous.iter().map(|x| format!("{}", x)).collect();
+            let previous: String = previous.join(", ");
+            let current: Vec<String> = current.iter().map(|x| format!("{}", x)).collect();
+            let current: String = current.join(", ");
+            self.data.push((String::from(key), previous, current))
+        }
+        self
+    }
+
     /// Serialise diff data into Value.
     pub fn into_value(self) -> Value {
         Self::typed_data("diff", self.data)
