@@ -138,7 +138,7 @@ mod server {
     }
 }
 
-// TODO(refactor): Unwrap, unimplemented check and cleanup.
+// TODO(refactor): Unwrap check and cleanup.
 
 fn result_audit<T>(driver: &dyn Driver, audit: &AuditBuilder, res: ApiResult<T>) -> ApiResult<T> {
     res.or_else(|e| {

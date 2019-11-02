@@ -32,6 +32,8 @@ use std::{fs::File, io::BufReader};
 // TODO(feature): Option to enforce provider URLs HTTPS.
 // TODO(feature): User last login, key last use information (calculate in SQL).
 // TODO(feature): Login from unknown IP address warnings, SMS support?
+// TODO(feature): Jsonwebtoken handling improvements.
+// <https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html>
 
 /// Server options provider options.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]

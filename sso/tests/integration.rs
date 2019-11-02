@@ -6,11 +6,12 @@ mod support;
 use support::*;
 
 // TODO(test): Test TLS functionality.
-// TODO(test): Password reset tests, SMTP testing using mailin_embedded or replace notify actor?
+// TODO(test): Password reset tests, use lettre file transport.
 // Service 2 cannot confirm reset password.
 // Confirm reset password success.
 // User password is updated.
 // Cannot reuse token.
+// Register tests, multiple services, etc.
 
 audit_integration_test!();
 auth_csrf_integration_test!();
