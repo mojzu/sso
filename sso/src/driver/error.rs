@@ -178,6 +178,9 @@ pub enum DriverError {
     #[fail(display = "LettreEmail {}", _0)]
     LettreEmail(#[fail(cause)] lettre_email::error::Error),
 
+    #[fail(display = "Lettre {}", _0)]
+    LettreFile(#[fail(cause)] lettre::file::error::Error),
+
     #[fail(display = "Metrics")]
     Metrics,
 

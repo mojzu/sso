@@ -7,6 +7,7 @@ use crate::{
 };
 use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer};
 use lettre::{
+    file::FileTransport,
     smtp::authentication::{Credentials, Mechanism},
     ClientSecurity, ClientTlsParameters, SmtpClient, Transport,
 };
@@ -18,22 +19,7 @@ use rustls::{
     AllowAnyAuthenticatedClient, NoClientAuth, RootCertStore, ServerConfig,
 };
 use serde::Serialize;
-use std::{fs::File, io::BufReader};
-
-// TODO(feature): User sessions route for active tokens/keys.
-// TODO(feature): Support more OAuth2 providers.
-// TODO(feature): Webauthn support.
-// <https://webauthn.guide/>
-// <https://webauthn.org/>
-// TODO(feature): Configurable canary routes.
-// TODO(feature): Improved public library API interface (gui service as example?).
-// TODO(feature): Email translation/formatting using user locale and timezone.
-// TODO(feature): Handle changes to password hash version.
-// TODO(feature): Option to enforce provider URLs HTTPS.
-// TODO(feature): User last login, key last use information (calculate in SQL).
-// TODO(feature): Login from unknown IP address warnings, SMS support?
-// TODO(feature): Jsonwebtoken handling improvements.
-// <https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html>
+use std::{fs::File, io::BufReader, path::PathBuf};
 
 /// Server options provider options.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -42,6 +28,7 @@ pub struct ServerOptionsProvider {
 }
 
 impl ServerOptionsProvider {
+    /// New server options provider.
     pub fn new(oauth2: Option<AuthProviderOauth2>) -> Self {
         Self { oauth2 }
     }
@@ -55,6 +42,7 @@ pub struct ServerOptionsProviderGroup {
 }
 
 impl ServerOptionsProviderGroup {
+    /// New server provider group options.
     pub fn new(github: ServerOptionsProvider, microsoft: ServerOptionsProvider) -> Self {
         Self { github, microsoft }
     }
@@ -69,6 +57,7 @@ pub struct ServerOptionsRustls {
 }
 
 impl ServerOptionsRustls {
+    /// New server Rustls options.
     pub fn new(crt_pem: String, key_pem: String, client_pem: Option<String>) -> Self {
         Self {
             crt_pem,
@@ -128,6 +117,8 @@ pub struct ServerOptions {
     user_agent: String,
     /// SMTP options.
     smtp: Option<ServerOptionsSmtp>,
+    /// SMTP file transport.
+    smtp_file: Option<String>,
 }
 
 impl ServerOptions {
@@ -230,24 +221,24 @@ impl ServerOptions {
     }
 
     /// Returns SMTP client built from options.
-    pub fn smtp_client(options: Option<&ServerOptionsSmtp>) -> DriverResult<Option<SmtpClient>> {
-        if let Some(smtp_options) = options {
+    pub fn smtp_client(smtp: Option<&ServerOptionsSmtp>) -> DriverResult<Option<SmtpClient>> {
+        if let Some(smtp) = smtp {
             let mut tls_builder = TlsConnector::builder();
             tls_builder.min_protocol_version(Some(Protocol::Tlsv10));
             let tls_parameters = ClientTlsParameters::new(
-                smtp_options.host.to_owned(),
+                smtp.host.to_owned(),
                 tls_builder.build().map_err(DriverError::NativeTls)?,
             );
 
             let client = SmtpClient::new(
-                (smtp_options.host.as_ref(), smtp_options.port),
+                (smtp.host.as_ref(), smtp.port),
                 ClientSecurity::Required(tls_parameters),
             )
             .map_err(DriverError::Lettre)?
             .authentication_mechanism(Mechanism::Login)
             .credentials(Credentials::new(
-                smtp_options.user.to_owned(),
-                smtp_options.password.to_owned(),
+                smtp.user.to_owned(),
+                smtp.password.to_owned(),
             ));
             Ok(Some(client))
         } else {
@@ -297,24 +288,44 @@ impl Data {
     }
 
     /// Build email callback function.
+    /// If client is None and file directory path is provided, file transport is used.
     pub fn smtp_email(&self) -> Box<dyn FnOnce(TemplateEmail) -> DriverResult<()>> {
         let client = self.smtp_client.clone();
         let from_email = self.options().smtp.as_ref().map(|x| x.user.to_owned());
-        Box::new(move |email| match client {
-            Some(client) => {
-                let email = Email::builder()
-                    .to((email.to_email, email.to_name))
-                    .from((from_email.unwrap(), email.from_name))
-                    .subject(email.subject)
-                    .text(email.text)
-                    .build()
-                    .map_err(DriverError::LettreEmail)?;
-                let mut transport = client.transport();
+        let smtp_file = self.options().smtp_file.as_ref().map(|x| x.to_owned());
 
-                transport.send(email.into()).map_err(DriverError::Lettre)?;
-                Ok(())
+        Box::new(move |email| {
+            let email_builder = Email::builder()
+                .to((email.to_email, email.to_name))
+                .subject(email.subject)
+                .text(email.text);
+
+            match (client, smtp_file) {
+                (Some(client), _) => {
+                    let email = email_builder
+                        .from((from_email.unwrap(), email.from_name))
+                        .build()
+                        .map_err(DriverError::LettreEmail)?;
+
+                    let mut transport = client.transport();
+                    transport.send(email.into()).map_err(DriverError::Lettre)?;
+                    Ok(())
+                }
+                (_, Some(smtp_file)) => {
+                    let email = email_builder
+                        .from(("file@localhost", email.from_name))
+                        .build()
+                        .map_err(DriverError::LettreEmail)?;
+
+                    let path = PathBuf::from(smtp_file);
+                    let mut transport = FileTransport::new(path);
+                    transport
+                        .send(email.into())
+                        .map_err(DriverError::LettreFile)?;
+                    Ok(())
+                }
+                (None, None) => Err(DriverError::SmtpDisabled),
             }
-            None => Err(DriverError::SmtpDisabled),
         })
     }
 }

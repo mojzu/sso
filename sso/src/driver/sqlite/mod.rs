@@ -17,8 +17,6 @@ pub struct DriverSqlite {
 
 type PooledConnection = r2d2::PooledConnection<ConnectionManager<SqliteConnection>>;
 
-// TODO(feature): Implement SQLite driver.
-
 impl DriverSqlite {
     /// Initialise driver with connection URL and number of pooled connections.
     pub fn initialise(database_url: &str, max_connections: u32) -> Result<Self, DriverError> {

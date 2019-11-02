@@ -74,6 +74,7 @@ impl fmt::Debug for Metrics {
 }
 
 impl Metrics {
+    // New metrics middleware constructor.
     pub fn new(count: IntCounterVec, latency: HistogramVec) -> Self {
         Self { count, latency }
     }

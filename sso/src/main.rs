@@ -28,6 +28,7 @@ const ENV_SMTP_HOST: &str = "SMTP_HOST";
 const ENV_SMTP_PORT: &str = "SMTP_PORT";
 const ENV_SMTP_USER: &str = "SMTP_USER";
 const ENV_SMTP_PASSWORD: &str = "SMTP_PASSWORD";
+const ENV_SMTP_FILE: &str = "SMTP_FILE";
 const ENV_PASSWORD_PWNED_ENABLED: &str = "PASSWORD_PWNED_ENABLED";
 const ENV_GITHUB_CLIENT_ID: &str = "GITHUB_CLIENT_ID";
 const ENV_GITHUB_CLIENT_SECRET: &str = "GITHUB_CLIENT_SECRET";
@@ -195,6 +196,7 @@ fn configure() -> DriverResult<(Box<dyn Driver>, CliOptions)> {
         ENV_SMTP_USER,
         ENV_SMTP_PASSWORD,
     )?;
+    let smtp_file = env::string_opt(ENV_SMTP_FILE);
     let password_pwned_enabled =
         env::value_opt::<bool>(ENV_PASSWORD_PWNED_ENABLED)?.unwrap_or(false);
     let github =
@@ -228,6 +230,7 @@ fn configure() -> DriverResult<(Box<dyn Driver>, CliOptions)> {
         .rustls(rustls)
         .user_agent(Client::default_user_agent())
         .smtp(smtp)
+        .smtp_file(smtp_file)
         .build()
         .unwrap();
     let options = CliOptions::new(4, server);

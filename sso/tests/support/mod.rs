@@ -18,10 +18,10 @@ pub use sso::{
     api::{
         AuditCreateRequestBuilder, AuditListRequestBuilder, AuditUpdateRequest,
         AuthCsrfCreateRequest, AuthCsrfVerifyRequest, AuthKeyRequest, AuthLoginRequest,
-        AuthResetPasswordConfirmRequest, AuthResetPasswordRequest, AuthTokenRequest,
-        AuthTotpRequest, AuthUpdateEmailRequest, KeyCreateRequest, KeyListRequestBuilder,
-        KeyReadRequest, ServiceCreateRequest, ServiceListRequestBuilder, ServiceUpdateRequest,
-        UserCreateRequest, UserListRequestBuilder, UserUpdateRequest,
+        AuthRegisterRequest, AuthResetPasswordConfirmRequest, AuthResetPasswordRequest,
+        AuthTokenRequest, AuthTotpRequest, AuthUpdateEmailRequest, KeyCreateRequest,
+        KeyListRequestBuilder, KeyReadRequest, ServiceCreateRequest, ServiceListRequestBuilder,
+        ServiceUpdateRequest, UserCreateRequest, UserListRequestBuilder, UserUpdateRequest,
     },
     AuditType, Client, ClientActorOptions, ClientError, ClientOptions, ClientSync, KeyType,
 };

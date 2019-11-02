@@ -20,6 +20,26 @@ Crate dependencies for cryptography, authentication.
 - [jsonwebtoken][jsonwebtoken]
 - [oauth2-rs][oauth2-rs]
 
+## Possible Features
+
+TODO(feature): User sessions route for active tokens/keys.
+TODO(feature): Support more OAuth2 providers.
+TODO(feature): Webauthn support.
+<https://webauthn.guide/>
+<https://webauthn.org/>
+TODO(feature): Configurable canary routes.
+TODO(feature): Improved public library API interface (gui service as example?).
+TODO(feature): Email translation/formatting using user locale and timezone.
+TODO(feature): Handle changes to password hash version.
+TODO(feature): Option to enforce provider URLs HTTPS.
+TODO(feature): User last login, key last use information (calculate in SQL).
+TODO(feature): Login from unknown IP address warnings, SMS support?
+TODO(feature): Jsonwebtoken handling improvements.
+<https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html>
+TODO(feature): Implement SQLite driver.
+TODO(feature): Support more process/other metrics, check units.
+<https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors>
+
 ## OWASP: ASVS
 
 [OWASP ASVS][owasp-asvs]

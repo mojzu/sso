@@ -169,7 +169,7 @@ impl From<ServiceCreateRequest> for ServiceCreate {
             name: request.name,
             url: request.url,
             user_allow_register: request.user_allow_register.unwrap_or(false),
-            user_email_text: request.user_email_text.unwrap_or("".to_owned()),
+            user_email_text: request.user_email_text.unwrap_or_else(|| "".to_owned()),
             provider_local_url: request.provider_local_url,
             provider_github_oauth2_url: request.provider_github_oauth2_url,
             provider_microsoft_oauth2_url: request.provider_microsoft_oauth2_url,
@@ -230,6 +230,11 @@ impl ServiceUpdateRequest {
     #[allow(clippy::wrong_self_convention)]
     pub fn is_enabled(mut self, is_enabled: bool) -> Self {
         self.is_enabled = Some(is_enabled);
+        self
+    }
+
+    pub fn user_allow_register(mut self, user_allow_register: bool) -> Self {
+        self.user_allow_register = Some(user_allow_register);
         self
     }
 }

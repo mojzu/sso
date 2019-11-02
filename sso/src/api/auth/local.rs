@@ -33,6 +33,13 @@ impl AuthLoginRequest {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthLoginResponse {
+    pub meta: UserPasswordMeta,
+    pub data: UserToken,
+}
+
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuthRegisterRequest {
@@ -51,6 +58,21 @@ pub struct AuthRegisterRequest {
 
 impl ValidateRequest<AuthRegisterRequest> for AuthRegisterRequest {}
 
+impl AuthRegisterRequest {
+    pub fn new<N, E>(name: N, email: E) -> Self
+    where
+        N: Into<String>,
+        E: Into<String>,
+    {
+        Self {
+            name: name.into(),
+            email: email.into(),
+            locale: None,
+            timezone: None,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct AuthRegisterConfirmRequest {
@@ -64,13 +86,6 @@ pub struct AuthRegisterConfirmRequest {
 }
 
 impl ValidateRequest<AuthRegisterConfirmRequest> for AuthRegisterConfirmRequest {}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct AuthLoginResponse {
-    pub meta: UserPasswordMeta,
-    pub data: UserToken,
-}
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
@@ -183,7 +198,7 @@ where
     E: Into<DriverError>,
 {
     AuthRegisterRequest::api_validate(&request)?;
-    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalLogin);
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalRegister);
 
     let res = provider_local::register(
         driver,
@@ -194,6 +209,9 @@ where
         email,
     );
     result_audit(driver, &audit, res)
+        // Catch Err result so this function returns Ok to prevent the caller
+        // from inferring a users existence.
+        .or_else(|_e| Ok(()))
 }
 
 pub fn auth_provider_local_register_confirm(
@@ -204,7 +222,7 @@ pub fn auth_provider_local_register_confirm(
     request: AuthRegisterConfirmRequest,
 ) -> ApiResult<AuthPasswordMetaResponse> {
     AuthRegisterConfirmRequest::api_validate(&request)?;
-    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalLogin);
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalRegisterConfirm);
 
     let res = provider_local::register_confirm(driver, &mut audit, key_value, request);
     result_audit(driver, &audit, res).map(|_| AuthPasswordMetaResponse {
@@ -412,7 +430,7 @@ mod provider_local {
         }
 
         // Create user, is allowed to request password reset in case register token expires.
-        // TODO(refactor): Support user for email already exists.
+        // TODO(refactor): Support user for email already exists, add test for this.
         let mut user_create =
             UserCreate::new(true, &request.name, request.email).password_allow_reset(true);
         if let Some(locale) = request.locale {

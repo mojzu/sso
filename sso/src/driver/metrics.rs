@@ -131,8 +131,6 @@ impl Metrics {
         process_cpu_usage: &Gauge,
         process_resident_memory: &IntGauge,
     ) -> DriverResult<()> {
-        // TODO(feature): Support more process/other metrics, check units.
-        // <https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors>
         let mut system = SYSTEM.lock().unwrap();
         let pid = sysinfo::get_current_pid().unwrap();
         system.refresh_process(pid);

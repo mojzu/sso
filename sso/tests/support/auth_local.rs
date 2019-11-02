@@ -247,6 +247,94 @@ macro_rules! auth_local_integration_test {
 
         #[test]
         #[ignore]
+        fn api_auth_local_register_ok_unauthorised() {
+            let client = client_create(Some(INVALID_KEY));
+            let user_email = email_create();
+
+            let body = AuthRegisterRequest::new(USER_NAME, &user_email);
+            client.auth_local_register(body).unwrap();
+        }
+
+        #[test]
+        #[ignore]
+        fn api_auth_local_register_ok_unauthorised_service_disabled() {
+            let client = client_create(None);
+            let (service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            client
+                .service_update(
+                    service.id,
+                    ServiceUpdateRequest::default().is_enabled(false),
+                )
+                .unwrap();
+
+            let body = AuthRegisterRequest::new(USER_NAME, &user_email);
+            client.auth_local_register(body).unwrap();
+        }
+
+        #[test]
+        #[ignore]
+        fn api_auth_local_register_bad_request_invalid_name() {
+            let client = client_create(None);
+            let user_email = email_create();
+
+            let body = AuthRegisterRequest::new("", &user_email);
+            let res = client.auth_local_register(body).unwrap_err();
+            assert_eq!(res, ClientError::BadRequest);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_auth_local_register_bad_request_invalid_email() {
+            let client = client_create(None);
+
+            let body = AuthRegisterRequest::new(USER_NAME, INVALID_EMAIL);
+            let res = client.auth_local_register(body).unwrap_err();
+            assert_eq!(res, ClientError::BadRequest);
+        }
+
+        #[test]
+        #[ignore]
+        fn api_auth_local_register_ok_unauthorised_service_register_disabled() {
+            let client = client_create(None);
+            let (service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            client
+                .service_update(
+                    service.id,
+                    ServiceUpdateRequest::default().user_allow_register(false),
+                )
+                .unwrap();
+
+            let body = AuthRegisterRequest::new(USER_NAME, &user_email);
+            client.auth_local_register(body).unwrap();
+        }
+
+        #[test]
+        #[ignore]
+        fn api_auth_local_register_ok() {
+            let client = client_create(None);
+            let (service, service_key) = service_key_create(&client);
+            let user_email = email_create();
+
+            let client = client_create(Some(&service_key.value));
+            client
+                .service_update(
+                    service.id,
+                    ServiceUpdateRequest::default().user_allow_register(true),
+                )
+                .unwrap();
+
+            let body = AuthRegisterRequest::new(USER_NAME, &user_email);
+            client.auth_local_register(body).unwrap();
+        }
+
+        #[test]
+        #[ignore]
         fn api_auth_local_reset_password_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let user_email = email_create();

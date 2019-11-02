@@ -38,6 +38,8 @@ pub enum AuditType {
     UserUpdate,
     UserDelete,
     AuthLocalLogin,
+    AuthLocalRegister,
+    AuthLocalRegisterConfirm,
     AuthLocalResetPassword,
     AuthLocalResetPasswordConfirm,
     AuthLocalUpdateEmail,
