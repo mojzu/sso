@@ -88,8 +88,8 @@ pub enum DriverError {
     #[fail(display = "TotpInvalid")]
     TotpInvalid,
 
-    #[fail(display = "NotifySendError")]
-    NotifySendError,
+    #[fail(display = "SmtpDisabled")]
+    SmtpDisabled,
 
     #[fail(display = "PwnedPasswordsDisabled")]
     PwnedPasswordsDisabled,
@@ -162,6 +162,18 @@ pub enum DriverError {
 
     #[fail(display = "Oauth2Request {}", _0)]
     Oauth2Request(failure::Error),
+
+    #[fail(display = "HandlebarsRender {}", _0)]
+    HandlebarsRender(#[fail(cause)] handlebars::RenderError),
+
+    #[fail(display = "NativeTls {}", _0)]
+    NativeTls(#[fail(cause)] native_tls::Error),
+
+    #[fail(display = "Lettre {}", _0)]
+    Lettre(#[fail(cause)] lettre::smtp::error::Error),
+
+    #[fail(display = "LettreEmail {}", _0)]
+    LettreEmail(#[fail(cause)] lettre_email::error::Error),
 
     #[fail(display = "Metrics")]
     Metrics,

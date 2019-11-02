@@ -17,6 +17,7 @@
 - Changed internal audit log type format, use `:` character to separate applications.
 - Include status code in prometheus audit log counter metrics, defaults to 0 if NULL.
 - Add `compare_vec` function to AuditDiffBuilder.
+- Removed `NotifyActor`, moved templating into driver module and SMTP client into server module.
 
 ### Fixed
 

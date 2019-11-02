@@ -3,10 +3,9 @@ use crate::{
         csrf_verify, result_audit, validate, ApiResult, AuditIdOptResponse, AuthTokenRequest,
         ValidateRequest,
     },
-    AuditBuilder, AuditMeta, AuditType, Driver, KeyUpdate, NotifyActor, UserPasswordMeta,
-    UserToken,
+    AuditBuilder, AuditMeta, AuditType, Driver, DriverError, KeyUpdate, TemplateEmail,
+    UserPasswordMeta, UserToken,
 };
-use actix::Addr;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -171,14 +170,18 @@ pub fn auth_provider_local_login(
     })
 }
 
-pub fn auth_provider_local_register(
+pub fn auth_provider_local_register<F, E>(
     driver: &dyn Driver,
     audit_meta: AuditMeta,
     key_value: Option<String>,
     request: AuthRegisterRequest,
-    notify: &Addr<NotifyActor>,
     access_token_expires: i64,
-) -> ApiResult<()> {
+    email: F,
+) -> ApiResult<()>
+where
+    F: FnOnce(TemplateEmail) -> Result<(), E>,
+    E: Into<DriverError>,
+{
     AuthRegisterRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalLogin);
 
@@ -186,9 +189,9 @@ pub fn auth_provider_local_register(
         driver,
         &mut audit,
         key_value,
-        notify,
         request,
         access_token_expires,
+        email,
     );
     result_audit(driver, &audit, res)
 }
@@ -209,14 +212,18 @@ pub fn auth_provider_local_register_confirm(
     })
 }
 
-pub fn auth_provider_local_reset_password(
+pub fn auth_provider_local_reset_password<F, E>(
     driver: &dyn Driver,
     audit_meta: AuditMeta,
     key_value: Option<String>,
     request: AuthResetPasswordRequest,
-    notify: &Addr<NotifyActor>,
     access_token_expires: i64,
-) -> ApiResult<()> {
+    email: F,
+) -> ApiResult<()>
+where
+    F: FnOnce(TemplateEmail) -> Result<(), E>,
+    E: Into<DriverError>,
+{
     AuthResetPasswordRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPassword);
 
@@ -224,9 +231,9 @@ pub fn auth_provider_local_reset_password(
         driver,
         &mut audit,
         key_value,
-        notify,
         request,
         access_token_expires,
+        email,
     );
     result_audit(driver, &audit, res)
         // Catch Err result so this function returns Ok to prevent the caller
@@ -250,14 +257,18 @@ pub fn auth_provider_local_reset_password_confirm(
     })
 }
 
-pub fn auth_provider_local_update_email(
+pub fn auth_provider_local_update_email<F, E>(
     driver: &dyn Driver,
     audit_meta: AuditMeta,
     key_value: Option<String>,
     request: AuthUpdateEmailRequest,
-    notify: &Addr<NotifyActor>,
     revoke_token_expires: i64,
-) -> ApiResult<()> {
+    email: F,
+) -> ApiResult<()>
+where
+    F: FnOnce(TemplateEmail) -> Result<(), E>,
+    E: Into<DriverError>,
+{
     AuthUpdateEmailRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdateEmail);
 
@@ -265,9 +276,9 @@ pub fn auth_provider_local_update_email(
         driver,
         &mut audit,
         key_value,
-        notify,
         request,
         revoke_token_expires,
+        email,
     );
     result_audit(driver, &audit, res)
 }
@@ -287,15 +298,19 @@ pub fn auth_provider_local_update_email_revoke(
     })
 }
 
-pub fn auth_provider_local_update_password(
+pub fn auth_provider_local_update_password<F, E>(
     driver: &dyn Driver,
     audit_meta: AuditMeta,
     key_value: Option<String>,
     password_meta: UserPasswordMeta,
     request: AuthUpdatePasswordRequest,
-    notify: &Addr<NotifyActor>,
     revoke_token_expires: i64,
-) -> ApiResult<AuthPasswordMetaResponse> {
+    email: F,
+) -> ApiResult<AuthPasswordMetaResponse>
+where
+    F: FnOnce(TemplateEmail) -> Result<(), E>,
+    E: Into<DriverError>,
+{
     AuthUpdatePasswordRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdatePassword);
 
@@ -303,9 +318,9 @@ pub fn auth_provider_local_update_password(
         driver,
         &mut audit,
         key_value,
-        notify,
         request,
         revoke_token_expires,
+        email,
     );
     result_audit(driver, &audit, res).map(|_| AuthPasswordMetaResponse {
         meta: password_meta,
@@ -331,12 +346,10 @@ mod provider_local {
     use super::*;
     use crate::{
         api::{ApiError, ApiResult},
-        notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
         pattern::*,
-        Audit, AuditBuilder, Driver, DriverError, Jwt, KeyCreate, KeyType, NotifyActor, UserCreate,
-        UserToken, UserUpdate,
+        Audit, AuditBuilder, Driver, DriverError, Jwt, KeyCreate, KeyType, TemplateEmail,
+        UserCreate, UserToken, UserUpdate,
     };
-    use actix::Addr;
 
     pub fn login(
         driver: &dyn Driver,
@@ -376,14 +389,18 @@ mod provider_local {
         .map_err(ApiError::BadRequest)
     }
 
-    pub fn register(
+    pub fn register<F, E>(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<String>,
-        _notify: &Addr<NotifyActor>,
         request: AuthRegisterRequest,
         access_token_expires: i64,
-    ) -> ApiResult<()> {
+        email: F,
+    ) -> ApiResult<()>
+    where
+        F: FnOnce(TemplateEmail) -> Result<(), E>,
+        E: Into<DriverError>,
+    {
         let service =
             key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
@@ -406,13 +423,16 @@ mod provider_local {
             .map_err(ApiError::BadRequest)?;
 
         // Encode register token.
-        let _token =
-            Jwt::encode_register_token(driver, &service, &user, &key, access_token_expires)
-                .map_err(ApiError::BadRequest)?;
+        let token = Jwt::encode_register_token(driver, &service, &user, &key, access_token_expires)
+            .map_err(ApiError::BadRequest)?;
 
         // Send register email.
-        // TODO(feature): Implement this.
-        unimplemented!();
+        let e = TemplateEmail::email_register(&service, &user, &token, audit.meta())
+            .map_err(ApiError::BadRequest)?;
+        email(e)
+            .map_err::<DriverError, _>(Into::into)
+            .map_err(ApiError::BadRequest)?;
+        Ok(())
     }
 
     pub fn register_confirm(
@@ -455,14 +475,18 @@ mod provider_local {
         Ok(())
     }
 
-    pub fn reset_password(
+    pub fn reset_password<F, E>(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<String>,
-        notify: &Addr<NotifyActor>,
         request: AuthResetPasswordRequest,
         access_token_expires: i64,
-    ) -> ApiResult<()> {
+        email: F,
+    ) -> ApiResult<()>
+    where
+        F: FnOnce(TemplateEmail) -> Result<(), E>,
+        E: Into<DriverError>,
+    {
         let service =
             key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
@@ -483,15 +507,12 @@ mod provider_local {
                 .map_err(ApiError::BadRequest)?;
 
         // Send reset password email.
-        notify
-            .try_send(EmailResetPassword::new(
-                service,
-                user,
-                token,
-                audit.meta().clone(),
-            ))
-            .map_err(|_err| DriverError::NotifySendError)
-            .map_err(ApiError::BadRequest)
+        let e = TemplateEmail::email_reset_password(&service, &user, &token, audit.meta())
+            .map_err(ApiError::BadRequest)?;
+        email(e)
+            .map_err::<DriverError, _>(Into::into)
+            .map_err(ApiError::BadRequest)?;
+        Ok(())
     }
 
     pub fn reset_password_confirm(
@@ -534,14 +555,18 @@ mod provider_local {
         Ok(())
     }
 
-    pub fn update_email(
+    pub fn update_email<F, E>(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<String>,
-        notify: &Addr<NotifyActor>,
         request: AuthUpdateEmailRequest,
         revoke_token_expires: i64,
-    ) -> ApiResult<()> {
+        email: F,
+    ) -> ApiResult<()>
+    where
+        F: FnOnce(TemplateEmail) -> Result<(), E>,
+        E: Into<DriverError>,
+    {
         let service =
             key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
@@ -574,16 +599,13 @@ mod provider_local {
             .map_err(ApiError::BadRequest)?;
 
         // Send update email email.
-        notify
-            .try_send(EmailUpdateEmail::new(
-                service,
-                user,
-                old_email,
-                token,
-                audit.meta().clone(),
-            ))
-            .map_err(|_err| DriverError::NotifySendError)
-            .map_err(ApiError::BadRequest)
+        let e =
+            TemplateEmail::email_update_email(&service, &user, &old_email, &token, audit.meta())
+                .map_err(ApiError::BadRequest)?;
+        email(e)
+            .map_err::<DriverError, _>(Into::into)
+            .map_err(ApiError::BadRequest)?;
+        Ok(())
     }
 
     pub fn update_email_revoke(
@@ -639,14 +661,18 @@ mod provider_local {
         }
     }
 
-    pub fn update_password(
+    pub fn update_password<F, E>(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<String>,
-        notify: &Addr<NotifyActor>,
         request: AuthUpdatePasswordRequest,
         revoke_token_expires: i64,
-    ) -> ApiResult<()> {
+        email: F,
+    ) -> ApiResult<()>
+    where
+        F: FnOnce(TemplateEmail) -> Result<(), E>,
+        E: Into<DriverError>,
+    {
         let service =
             key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
@@ -677,15 +703,12 @@ mod provider_local {
             .map_err(ApiError::BadRequest)?;
 
         // Send update password email.
-        notify
-            .try_send(EmailUpdatePassword::new(
-                service,
-                user,
-                token,
-                audit.meta().clone(),
-            ))
-            .map_err(|_err| DriverError::NotifySendError)
-            .map_err(ApiError::BadRequest)
+        let e = TemplateEmail::email_update_password(&service, &user, &token, audit.meta())
+            .map_err(ApiError::BadRequest)?;
+        email(e)
+            .map_err::<DriverError, _>(Into::into)
+            .map_err(ApiError::BadRequest)?;
+        Ok(())
     }
 
     pub fn update_password_revoke(

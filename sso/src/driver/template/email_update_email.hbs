@@ -1,0 +1,25 @@
+Email Address Updated
+
+You are receiving this email because this users email address was updated. The email address was updated from.
+
+{{user_old_email}}
+
+The email address was updated to.
+
+{{user_email}}
+
+If you did not make this request, click the following link.
+
+{{{url}}}
+
+Information about this request.
+
+Time: {{audit.datetime}}
+User Agent: {{audit.user_agent}}
+Remote IP: {{audit.remote}}
+{{#if audit.forwarded}}Forwarded For: {{audit.forwarded}}{{/if}}
+
+{{service.text}}
+
+{{service.name}}
+{{service.url}}

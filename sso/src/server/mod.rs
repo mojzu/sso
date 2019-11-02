@@ -3,10 +3,15 @@ mod route;
 
 use crate::{
     api::{AuthProviderOauth2, AuthProviderOauth2Args},
-    Client, Driver, DriverError, DriverResult, Metrics, NotifyActor,
+    Client, Driver, DriverError, DriverResult, Metrics, TemplateEmail,
 };
-use actix::Addr;
 use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer};
+use lettre::{
+    smtp::authentication::{Credentials, Mechanism},
+    ClientSecurity, ClientTlsParameters, SmtpClient, Transport,
+};
+use lettre_email::Email;
+use native_tls::{Protocol, TlsConnector};
 use reqwest::r#async::Client as ReqwestClient;
 use rustls::{
     internal::pemfile::{certs, rsa_private_keys},
@@ -26,7 +31,6 @@ use std::{fs::File, io::BufReader};
 // TODO(feature): Handle changes to password hash version.
 // TODO(feature): Option to enforce provider URLs HTTPS.
 // TODO(feature): User last login, key last use information (calculate in SQL).
-// TODO(feature): User sign up support, notify actor refactoring?
 // TODO(feature): Login from unknown IP address warnings, SMS support?
 
 /// Server options provider options.
@@ -72,6 +76,27 @@ impl ServerOptionsRustls {
     }
 }
 
+/// Server SMTP options.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServerOptionsSmtp {
+    host: String,
+    port: u16,
+    user: String,
+    password: String,
+}
+
+impl ServerOptionsSmtp {
+    /// Create new SMTP options.
+    pub fn new(host: String, port: u16, user: String, password: String) -> Self {
+        Self {
+            host,
+            port,
+            user,
+            password,
+        }
+    }
+}
+
 /// Server options.
 #[derive(Debug, Clone, Serialize, Deserialize, Builder)]
 pub struct ServerOptions {
@@ -97,7 +122,10 @@ pub struct ServerOptions {
     /// Rustls options for TLS support.
     rustls: Option<ServerOptionsRustls>,
     /// User agent for outgoing HTTP requests.
+    #[builder(default = "crate_name!().to_string()")]
     user_agent: String,
+    /// SMTP options.
+    smtp: Option<ServerOptionsSmtp>,
 }
 
 impl ServerOptions {
@@ -198,6 +226,32 @@ impl ServerOptions {
     pub fn user_agent(&self) -> &str {
         &self.user_agent
     }
+
+    /// Returns SMTP client built from options.
+    pub fn smtp_client(options: Option<&ServerOptionsSmtp>) -> DriverResult<Option<SmtpClient>> {
+        if let Some(smtp_options) = options {
+            let mut tls_builder = TlsConnector::builder();
+            tls_builder.min_protocol_version(Some(Protocol::Tlsv10));
+            let tls_parameters = ClientTlsParameters::new(
+                smtp_options.host.to_owned(),
+                tls_builder.build().map_err(DriverError::NativeTls)?,
+            );
+
+            let client = SmtpClient::new(
+                (smtp_options.host.as_ref(), smtp_options.port),
+                ClientSecurity::Required(tls_parameters),
+            )
+            .map_err(DriverError::Lettre)?
+            .authentication_mechanism(Mechanism::Login)
+            .credentials(Credentials::new(
+                smtp_options.user.to_owned(),
+                smtp_options.password.to_owned(),
+            ));
+            Ok(Some(client))
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 /// Server data.
@@ -205,8 +259,8 @@ impl ServerOptions {
 struct Data {
     driver: Box<dyn Driver>,
     options: ServerOptions,
-    notify_addr: Addr<NotifyActor>,
     client: ReqwestClient,
+    smtp_client: Option<SmtpClient>,
 }
 
 impl Data {
@@ -214,14 +268,14 @@ impl Data {
     pub fn new(
         driver: Box<dyn Driver>,
         options: ServerOptions,
-        notify_addr: Addr<NotifyActor>,
         client: ReqwestClient,
+        smtp_client: Option<SmtpClient>,
     ) -> Self {
         Data {
             driver,
             options,
-            notify_addr,
             client,
+            smtp_client,
         }
     }
 
@@ -235,14 +289,31 @@ impl Data {
         &self.options
     }
 
-    /// Get reference to notify actor address.
-    pub fn notify(&self) -> &Addr<NotifyActor> {
-        &self.notify_addr
-    }
-
     /// Get reference to asynchronous client.
     pub fn client(&self) -> &ReqwestClient {
         &self.client
+    }
+
+    /// Build email callback function.
+    pub fn smtp_email(&self) -> Box<dyn FnOnce(TemplateEmail) -> DriverResult<()>> {
+        let client = self.smtp_client.clone();
+        let from_email = self.options().smtp.as_ref().map(|x| x.user.to_owned());
+        Box::new(move |email| match client {
+            Some(client) => {
+                let email = Email::builder()
+                    .to((email.to_email, email.to_name))
+                    .from((from_email.unwrap(), email.from_name))
+                    .subject(email.subject)
+                    .text(email.text)
+                    .build()
+                    .map_err(DriverError::LettreEmail)?;
+                let mut transport = client.transport();
+
+                transport.send(email.into()).map_err(DriverError::Lettre)?;
+                Ok(())
+            }
+            None => Err(DriverError::SmtpDisabled),
+        })
     }
 }
 
@@ -256,10 +327,10 @@ impl Server {
         workers: usize,
         driver: Box<dyn Driver>,
         options: ServerOptions,
-        notify_addr: Addr<NotifyActor>,
     ) -> DriverResult<()> {
         let options_clone = options.clone();
         let client = Client::build_client(options.user_agent())?;
+        let smtp_client = ServerOptions::smtp_client(options.smtp.as_ref())?;
         let default_json_limit: usize = 1024;
         let (http_count, http_latency) = Metrics::http_metrics();
 
@@ -269,8 +340,8 @@ impl Server {
                 .data(Data::new(
                     driver.clone(),
                     options_clone.clone(),
-                    notify_addr.clone(),
                     client.clone(),
+                    smtp_client.clone(),
                 ))
                 // Global JSON configuration.
                 .data(web::JsonConfig::default().limit(default_json_limit))

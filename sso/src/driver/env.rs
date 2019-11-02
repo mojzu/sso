@@ -1,6 +1,6 @@
 //! # Environment Functions
 use crate::{
-    api::AuthProviderOauth2, DriverError, DriverResult, NotifyActorOptionsSmtp, ServerOptionsRustls,
+    api::AuthProviderOauth2, DriverError, DriverResult, ServerOptionsRustls, ServerOptionsSmtp,
 };
 use std::str::FromStr;
 
@@ -80,7 +80,7 @@ pub fn smtp(
     smtp_port_name: &str,
     smtp_user_name: &str,
     smtp_password_name: &str,
-) -> DriverResult<Option<NotifyActorOptionsSmtp>> {
+) -> DriverResult<Option<ServerOptionsSmtp>> {
     if has_any_name(&[
         smtp_host_name,
         smtp_port_name,
@@ -92,7 +92,7 @@ pub fn smtp(
         let smtp_user = string(smtp_user_name)?;
         let smtp_password = string(smtp_password_name)?;
 
-        Ok(Some(NotifyActorOptionsSmtp::new(
+        Ok(Some(ServerOptionsSmtp::new(
             smtp_host,
             smtp_port,
             smtp_user,

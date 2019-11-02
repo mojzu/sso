@@ -29,3 +29,5 @@
 [serde]: https://github.com/serde-rs/serde
 [serde_qs]: https://github.com/samscott89/serde_qs
 [utf-8]: https://en.wikipedia.org/wiki/UTF-8
+[oauth2-rs]: https://github.com/ramosbugs/oauth2-rs
+[jsonwebtoken]: https://github.com/Keats/jsonwebtoken

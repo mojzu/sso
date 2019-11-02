@@ -12,6 +12,14 @@
 | `/src/server` | Actix-web frontend for API, asynchronous route handlers deserialise data for synchronous `api` calls. |
 | `/tests`      | Integration tests which use `ClientSync` to run tests against an instance of `sso`.                   |
 
+## Dependencies
+
+Crate dependencies for cryptography, authentication.
+
+- [libreauth][libreauth]
+- [jsonwebtoken][jsonwebtoken]
+- [oauth2-rs][oauth2-rs]
+
 ## OWASP: ASVS
 
 [OWASP ASVS][owasp-asvs]

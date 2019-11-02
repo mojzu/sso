@@ -110,8 +110,8 @@ fn register_handler(
                     audit_meta,
                     id,
                     request,
-                    data.notify(),
                     data.options().access_token_expires(),
+                    data.smtp_email(),
                 )
             })
             .map_err(Into::into)
@@ -170,8 +170,8 @@ fn reset_password_handler(
                     audit_meta,
                     id,
                     request,
-                    data.notify(),
                     data.options().access_token_expires(),
+                    data.smtp_email(),
                 )
             })
             .map_err(Into::into)
@@ -230,8 +230,8 @@ fn update_email_handler(
                     audit_meta,
                     id,
                     request,
-                    data.notify(),
                     data.options().revoke_token_expires(),
+                    data.smtp_email(),
                 )
             })
             .map_err(Into::into)
@@ -285,8 +285,8 @@ fn update_password_handler(
                     id,
                     password_meta,
                     request,
-                    data.notify(),
                     data.options().revoke_token_expires(),
+                    data.smtp_email(),
                 )
             })
             .map_err(Into::into)

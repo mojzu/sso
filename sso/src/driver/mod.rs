@@ -7,6 +7,7 @@ mod key;
 mod metrics;
 pub mod pattern;
 mod service;
+mod template;
 mod user;
 
 #[cfg(feature = "postgres")]
@@ -19,7 +20,7 @@ pub use crate::driver::postgres::DriverPostgres;
 #[cfg(feature = "sqlite")]
 pub use crate::driver::sqlite::DriverSqlite;
 pub use crate::driver::{
-    audit::*, csrf::*, error::*, jwt::*, key::*, metrics::*, service::*, user::*,
+    audit::*, csrf::*, error::*, jwt::*, key::*, metrics::*, service::*, template::*, user::*,
 };
 
 use chrono::{DateTime, Utc};
