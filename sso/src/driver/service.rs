@@ -15,6 +15,8 @@ pub struct Service {
     pub is_enabled: bool,
     pub name: String,
     pub url: String,
+    pub user_allow_register: bool,
+    pub user_email_text: String,
     pub provider_local_url: Option<String>,
     pub provider_github_oauth2_url: Option<String>,
     pub provider_microsoft_oauth2_url: Option<String>,
@@ -67,6 +69,8 @@ impl fmt::Display for Service {
         write!(f, "\n\tis_enabled {}", self.is_enabled)?;
         write!(f, "\n\tname {}", self.name)?;
         write!(f, "\n\turl {}", self.url)?;
+        write!(f, "\n\tuser_allow_register {}", self.user_allow_register)?;
+        write!(f, "\n\tuser_email_text {}", self.user_email_text)?;
         if let Some(provider_local_url) = &self.provider_local_url {
             write!(f, "\n\tprovider_local_url {}", provider_local_url)?;
         }
@@ -128,6 +132,16 @@ impl AuditDiff for Service {
             .compare("name", &self.name, &previous.name)
             .compare("url", &self.url, &previous.url)
             .compare(
+                "user_allow_register",
+                &self.user_allow_register,
+                &previous.user_allow_register,
+            )
+            .compare(
+                "user_email_text",
+                &self.user_email_text,
+                &previous.user_email_text,
+            )
+            .compare(
                 "provider_local_url",
                 &c_provider_local_url,
                 &p_provider_local_url,
@@ -174,6 +188,8 @@ pub struct ServiceCreate {
     pub is_enabled: bool,
     pub name: String,
     pub url: String,
+    pub user_allow_register: bool,
+    pub user_email_text: String,
     pub provider_local_url: Option<String>,
     pub provider_github_oauth2_url: Option<String>,
     pub provider_microsoft_oauth2_url: Option<String>,
@@ -206,6 +222,8 @@ pub struct ServiceUpdate {
     pub is_enabled: Option<bool>,
     pub name: Option<String>,
     pub url: Option<String>,
+    pub user_allow_register: Option<bool>,
+    pub user_email_text: Option<String>,
     pub provider_local_url: Option<String>,
     pub provider_github_oauth2_url: Option<String>,
     pub provider_microsoft_oauth2_url: Option<String>,
@@ -233,6 +251,8 @@ mod tests {
             is_enabled: true,
             name: "Service Name".to_owned(),
             url: "http://localhost:9000".to_owned(),
+            user_allow_register: true,
+            user_email_text: "".to_owned(),
             provider_local_url: Some("http://localhost:9000".to_owned()),
             provider_github_oauth2_url: None,
             provider_microsoft_oauth2_url: None,

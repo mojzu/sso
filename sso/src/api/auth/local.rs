@@ -404,7 +404,15 @@ mod provider_local {
         let service =
             key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
+        // Bad request if service not allowed to register users.
+        if !service.user_allow_register {
+            return Err(ApiError::BadRequest(
+                DriverError::ServiceUserRegisterDisabled,
+            ));
+        }
+
         // Create user, is allowed to request password reset in case register token expires.
+        // TODO(refactor): Support user for email already exists.
         let mut user_create =
             UserCreate::new(true, &request.name, request.email).password_allow_reset(true);
         if let Some(locale) = request.locale {
@@ -443,6 +451,13 @@ mod provider_local {
     ) -> ApiResult<()> {
         let service =
             key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+
+        // Bad request if service not allowed to register users.
+        if !service.user_allow_register {
+            return Err(ApiError::BadRequest(
+                DriverError::ServiceUserRegisterDisabled,
+            ));
+        }
 
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
         let (user_id, _) =

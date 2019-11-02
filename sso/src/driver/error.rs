@@ -34,6 +34,9 @@ pub enum DriverError {
     #[fail(display = "ServiceDisabled")]
     ServiceDisabled,
 
+    #[fail(display = "ServiceUserRegisterDisabled")]
+    ServiceUserRegisterDisabled,
+
     #[fail(display = "ServiceProviderLocalDisabled")]
     ServiceProviderLocalDisabled,
 

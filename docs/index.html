@@ -562,6 +562,7 @@ font-size: 16px;
 <div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1"></a><span class="ex">sso</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span> \</span>
 <span id="cb16-2"><a href="#cb16-2"></a>    [--local-url <span class="va">$service_local_url</span>]</span>
 <span id="cb16-3"><a href="#cb16-3"></a><span class="ex">sso</span> start-server</span></code></pre></div>
+<p>TODO(docs): Write user register guide.</p>
 <h2 id="reset-password"><span class="header-section-number">2.6</span> Reset Password</h2>
 <p>Create service with key and start server.</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1"></a><span class="ex">sso</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span> \</span>
@@ -814,6 +815,7 @@ font-size: 16px;
 <li>Added <code>status_code</code> to audit logs. Endpoints which accepted custom audit objects now accept custom audit type string. Status code, subject and data can be added later via update endpoint.</li>
 <li>Added <code>User-Authorization</code> header handling, value is user key or token. Service may include this header to add user and key information in created audit logs.</li>
 <li>Added optional <code>user_id</code> query parameter to key read endpoint to mask by user ID.</li>
+<li>Added <code>user_allow_register</code> and <code>user_email_text</code> columns to services, used to allow user registration endpoint functionality and append text to outgoing emails for services.</li>
 </ul>
 <h3 id="changed"><span class="header-section-number">5.1.2</span> Changed</h3>
 <ul>
@@ -1078,6 +1080,7 @@ font-size: 16px;
 <p>TODO(feature): Structured data for users, may require access controls.</p>
 <h3 id="section-17"><span class="header-section-number">6.3.10</span> 1.5.1</h3>
 <p>TODO(docs): GDPR and other data protection compliance research.</p>
+<p>Terms of service columns and user accepted columns, handle changes to terms.</p>
 <h3 id="section-18"><span class="header-section-number">6.3.11</span> 1.5.2</h3>
 <ul>
 <li>API for sso is JSON requests over HTTP so serialisation is required.</li>

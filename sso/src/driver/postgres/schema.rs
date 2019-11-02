@@ -52,6 +52,8 @@ table! {
         is_enabled -> Bool,
         name -> Varchar,
         url -> Varchar,
+        user_allow_register -> Bool,
+        user_email_text -> Varchar,
         provider_local_url -> Nullable<Varchar>,
         provider_github_oauth2_url -> Nullable<Varchar>,
         provider_microsoft_oauth2_url -> Nullable<Varchar>,

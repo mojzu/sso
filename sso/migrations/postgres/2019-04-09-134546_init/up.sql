@@ -5,6 +5,8 @@ CREATE TABLE sso_service (
     "is_enabled"                    BOOLEAN     NOT NULL,
     "name"                          VARCHAR     NOT NULL,
     "url"                           VARCHAR     NOT NULL,
+    "user_allow_register"           BOOLEAN     NOT NULL,
+    "user_email_text"               VARCHAR     NOT NULL,
     "provider_local_url"            VARCHAR,
     "provider_github_oauth2_url"    VARCHAR,
     "provider_microsoft_oauth2_url" VARCHAR,

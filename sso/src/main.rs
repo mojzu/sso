@@ -40,6 +40,8 @@ const CMD_START_SERVER: &str = "start-server";
 
 const ARG_NAME: &str = "NAME";
 const ARG_URL: &str = "URL";
+const ARG_ALLOW_REGISTER: &str = "ALLOW_REGISTER";
+const ARG_EMAIL_TEXT: &str = "EMAIL_TEXT";
 const ARG_LOCAL_URL: &str = "LOCAL_URL";
 const ARG_GITHUB_OAUTH2_URL: &str = "GITHUB_OAUTH2_URL";
 const ARG_MICROSOFT_OAUTH2_URL: &str = "MICROSOFT_OAUTH2_URL";
@@ -96,6 +98,16 @@ fn main() {
                         .help("Service URL")
                         .required(true)
                         .index(2),
+                    Arg::with_name(ARG_ALLOW_REGISTER)
+                        .long("allow-register")
+                        .help("Allow user registration")
+                        .takes_value(true)
+                        .required(false),
+                    Arg::with_name(ARG_EMAIL_TEXT)
+                        .long("email-text")
+                        .help("Text append to user emails")
+                        .takes_value(true)
+                        .required(false),
                     Arg::with_name(ARG_LOCAL_URL)
                         .long("local-url")
                         .help("Local provider callback URL")
@@ -133,6 +145,8 @@ fn main() {
             (CMD_CREATE_SERVICE_WITH_KEY, Some(submatches)) => {
                 let name = submatches.value_of(ARG_NAME).unwrap();
                 let url = submatches.value_of(ARG_URL).unwrap();
+                let user_allow_register = submatches.value_of(ARG_ALLOW_REGISTER);
+                let user_email_text = submatches.value_of(ARG_EMAIL_TEXT);
                 let provider_local_url = submatches.value_of(ARG_LOCAL_URL);
                 let provider_github_oauth2_url = submatches.value_of(ARG_GITHUB_OAUTH2_URL);
                 let provider_microsoft_oauth2_url = submatches.value_of(ARG_MICROSOFT_OAUTH2_URL);
@@ -140,6 +154,8 @@ fn main() {
                     driver,
                     name,
                     url,
+                    user_allow_register,
+                    user_email_text,
                     provider_local_url,
                     provider_github_oauth2_url,
                     provider_microsoft_oauth2_url,

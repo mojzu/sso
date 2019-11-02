@@ -90,6 +90,8 @@ TODO(feature): Structured data for users, may require access controls.
 
 TODO(docs): GDPR and other data protection compliance research.
 
+Terms of service columns and user accepted columns, handle changes to terms.
+
 ### 1.5.2
 
 - API for sso is JSON requests over HTTP so serialisation is required.

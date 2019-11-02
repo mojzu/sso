@@ -67,8 +67,7 @@ impl TemplateEmailService {
         Self {
             name: service.name.to_owned(),
             url: service.url.to_owned(),
-            // TODO(refactor): Support service email text.
-            text: "".to_owned(),
+            text: service.user_email_text.to_owned(),
         }
     }
 }

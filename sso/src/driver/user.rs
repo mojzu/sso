@@ -5,8 +5,11 @@ use serde_json::Value;
 use std::fmt;
 use uuid::Uuid;
 
-/// User name maximum length.
-pub const USER_NAME_MAX_LEN: usize = 100;
+/// Name maximum length.
+pub const NAME_MAX_LEN: usize = 100;
+
+/// Text maximum length.
+pub const TEXT_MAX_LEN: usize = 1000;
 
 /// User locale maximum length.
 pub const USER_LOCALE_MAX_LEN: usize = 10;

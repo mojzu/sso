@@ -54,14 +54,22 @@ impl Cli {
         driver: Box<dyn Driver>,
         name: &str,
         url: &str,
+        user_allow_register: Option<&str>,
+        user_email_text: Option<&str>,
         provider_local_url: Option<&str>,
         provider_github_oauth2_url: Option<&str>,
         provider_microsoft_oauth2_url: Option<&str>,
     ) -> DriverResult<(Service, KeyWithValue)> {
+        let user_allow_register = user_allow_register
+            .unwrap_or("false")
+            .parse::<bool>()
+            .unwrap();
         let service_create = ServiceCreate {
             is_enabled: true,
             name: name.to_owned(),
             url: url.to_owned(),
+            user_allow_register,
+            user_email_text: user_email_text.unwrap_or("").to_owned(),
             provider_local_url: provider_local_url.map(|x| x.to_owned()),
             provider_github_oauth2_url: provider_github_oauth2_url.map(|x| x.to_owned()),
             provider_microsoft_oauth2_url: provider_microsoft_oauth2_url.map(|x| x.to_owned()),

@@ -95,6 +95,11 @@ pub struct ServiceCreateRequest {
     #[validate(url)]
     pub url: String,
 
+    pub user_allow_register: Option<bool>,
+
+    #[validate(custom = "validate::text")]
+    pub user_email_text: Option<String>,
+
     #[validate(url)]
     pub provider_local_url: Option<String>,
 
@@ -117,10 +122,22 @@ impl ServiceCreateRequest {
             is_enabled,
             name: name.into(),
             url: url.into(),
+            user_allow_register: None,
+            user_email_text: None,
             provider_local_url: None,
             provider_github_oauth2_url: None,
             provider_microsoft_oauth2_url: None,
         }
+    }
+
+    pub fn user_allow_register(mut self, user_allow_register: bool) -> Self {
+        self.user_allow_register = Some(user_allow_register);
+        self
+    }
+
+    pub fn user_email_text<S: Into<String>>(mut self, user_email_text: S) -> Self {
+        self.user_email_text = Some(user_email_text.into());
+        self
     }
 
     pub fn provider_local_url<S: Into<String>>(mut self, provider_local_url: S) -> Self {
@@ -151,6 +168,8 @@ impl From<ServiceCreateRequest> for ServiceCreate {
             is_enabled: request.is_enabled,
             name: request.name,
             url: request.url,
+            user_allow_register: request.user_allow_register.unwrap_or(false),
+            user_email_text: request.user_email_text.unwrap_or("".to_owned()),
             provider_local_url: request.provider_local_url,
             provider_github_oauth2_url: request.provider_github_oauth2_url,
             provider_microsoft_oauth2_url: request.provider_microsoft_oauth2_url,
@@ -175,6 +194,11 @@ pub struct ServiceUpdateRequest {
     #[validate(url)]
     pub url: Option<String>,
 
+    pub user_allow_register: Option<bool>,
+
+    #[validate(custom = "validate::text")]
+    pub user_email_text: Option<String>,
+
     #[validate(url)]
     pub provider_local_url: Option<String>,
 
@@ -193,6 +217,8 @@ impl Default for ServiceUpdateRequest {
             is_enabled: None,
             name: None,
             url: None,
+            user_allow_register: None,
+            user_email_text: None,
             provider_local_url: None,
             provider_github_oauth2_url: None,
             provider_microsoft_oauth2_url: None,
@@ -214,6 +240,8 @@ impl From<ServiceUpdateRequest> for ServiceUpdate {
             is_enabled: request.is_enabled,
             name: request.name,
             url: request.url,
+            user_allow_register: request.user_allow_register,
+            user_email_text: request.user_email_text,
             provider_local_url: request.provider_local_url,
             provider_github_oauth2_url: request.provider_github_oauth2_url,
             provider_microsoft_oauth2_url: request.provider_microsoft_oauth2_url,

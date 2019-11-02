@@ -2,7 +2,7 @@
 use crate::{
     api::{ApiError, ApiResult},
     DriverError, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES,
-    USER_LOCALE_MAX_LEN, USER_NAME_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
+    NAME_MAX_LEN, TEXT_MAX_LEN, USER_LOCALE_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
     USER_TIMEZONE_MAX_LEN,
 };
 use chrono_tz::Tz;
@@ -47,8 +47,16 @@ pub fn limit(limit: i64) -> Result<(), ValidationError> {
 }
 
 pub fn name(name: &str) -> Result<(), ValidationError> {
-    if name.is_empty() || name.len() > USER_NAME_MAX_LEN {
+    if name.is_empty() || name.len() > NAME_MAX_LEN {
         Err(ValidationError::new("invalid_name"))
+    } else {
+        Ok(())
+    }
+}
+
+pub fn text(text: &str) -> Result<(), ValidationError> {
+    if text.is_empty() || text.len() > TEXT_MAX_LEN {
+        Err(ValidationError::new("invalid_text"))
     } else {
         Ok(())
     }
