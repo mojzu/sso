@@ -27,6 +27,7 @@ use std::{fs::File, io::BufReader};
 // TODO(feature): Option to enforce provider URLs HTTPS.
 // TODO(feature): User last login, key last use information (calculate in SQL).
 // TODO(feature): User sign up support, notify actor refactoring?
+// TODO(feature): Login from unknown IP address warnings, SMS support?
 
 /// Server options provider options.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]

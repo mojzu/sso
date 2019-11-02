@@ -1,6 +1,6 @@
 use crate::{
     driver::postgres::schema::sso_user, DriverError, DriverResult, User, UserCreate, UserList,
-    UserListFilter, UserListQuery, UserRead, UserUpdate, UserUpdate2,
+    UserListFilter, UserListQuery, UserRead, UserUpdate,
 };
 use chrono::{DateTime, Utc};
 use diesel::{pg::Pg, prelude::*};
@@ -129,30 +129,18 @@ impl ModelUser {
             updated_at: &now,
             is_enabled: update.is_enabled,
             name: update.name.as_ref().map(|x| &**x),
-            email: None,
+            email: update.email.as_ref().map(|x| &**x),
             locale: update.locale.as_ref().map(|x| &**x),
             timezone: update.timezone.as_ref().map(|x| &**x),
             password_allow_reset: update.password_allow_reset,
             password_require_update: update.password_require_update,
-            password_hash: None,
-        };
-        Self::update_inner(conn, id, &value)
-    }
-
-    pub fn update2(conn: &PgConnection, id: &Uuid, update: &UserUpdate2) -> DriverResult<User> {
-        let now = Utc::now();
-        let value = ModelUserUpdate {
-            updated_at: &now,
-            is_enabled: None,
-            name: None,
-            email: update.email.as_ref().map(|x| &**x),
-            locale: None,
-            timezone: None,
-            password_allow_reset: None,
-            password_require_update: None,
             password_hash: update.password_hash.as_ref().map(|x| &**x),
         };
-        Self::update_inner(conn, id, &value)
+        diesel::update(sso_user::table.filter(sso_user::dsl::id.eq(id)))
+            .set(&value)
+            .get_result::<ModelUser>(conn)
+            .map_err(Into::into)
+            .map(Into::into)
     }
 
     pub fn delete(conn: &PgConnection, id: &Uuid) -> DriverResult<usize> {
@@ -298,14 +286,6 @@ impl ModelUser {
             .get_result::<ModelUser>(conn)
             .optional()
             .map_err(DriverError::DieselResult)
-    }
-
-    fn update_inner(conn: &PgConnection, id: &Uuid, value: &ModelUserUpdate) -> DriverResult<User> {
-        diesel::update(sso_user::table.filter(sso_user::dsl::id.eq(id)))
-            .set(value)
-            .get_result::<ModelUser>(conn)
-            .map_err(Into::into)
-            .map(Into::into)
     }
 
     fn boxed_query_filter<'a>(

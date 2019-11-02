@@ -334,7 +334,7 @@ mod provider_local {
         notify_msg::{EmailResetPassword, EmailUpdateEmail, EmailUpdatePassword},
         pattern::*,
         Audit, AuditBuilder, Driver, DriverError, Jwt, KeyCreate, KeyType, NotifyActor, UserCreate,
-        UserToken, UserUpdate, UserUpdate2,
+        UserToken, UserUpdate,
     };
     use actix::Addr;
 
@@ -387,8 +387,9 @@ mod provider_local {
         let service =
             key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        // Create user.
-        let mut user_create = UserCreate::new(true, &request.name, request.email);
+        // Create user, is allowed to request password reset in case register token expires.
+        let mut user_create =
+            UserCreate::new(true, &request.name, request.email).password_allow_reset(true);
         if let Some(locale) = request.locale {
             user_create = user_create.locale(locale);
         }
@@ -440,11 +441,18 @@ mod provider_local {
         // Verify CSRF to prevent reuse.
         csrf_verify(driver, &service, &csrf_key)?;
 
-        // TODO(feature): Implement this.
-        // password, password_allow_reset
-        // driver.user_update(id: &Uuid, update: &UserUpdate)
-
-        unimplemented!();
+        // Update user password and allow reset flag if provided.
+        if let Some(password) = request.password {
+            let mut user_update =
+                UserUpdate::new_password(password).map_err(ApiError::BadRequest)?;
+            if let Some(password_allow_reset) = request.password_allow_reset {
+                user_update = user_update.set_password_allow_reset(password_allow_reset);
+            }
+            driver
+                .user_update(&user.id, &user_update)
+                .map_err(ApiError::BadRequest)?;
+        }
+        Ok(())
     }
 
     pub fn reset_password(
@@ -518,9 +526,10 @@ mod provider_local {
         csrf_verify(driver, &service, &csrf_key)?;
 
         // Update user password.
-        let user_update = UserUpdate2::password(request.password).map_err(ApiError::BadRequest)?;
+        let user_update =
+            UserUpdate::new_password(request.password).map_err(ApiError::BadRequest)?;
         driver
-            .user_update2(&user.id, &user_update)
+            .user_update(&user.id, &user_update)
             .map_err(ApiError::BadRequest)?;
         Ok(())
     }
@@ -558,9 +567,8 @@ mod provider_local {
 
         // Update user email.
         let old_email = user.email.to_owned();
-        let user_update = UserUpdate2::email(request.new_email);
         driver
-            .user_update2(&user.id, &user_update)
+            .user_update(&user.id, &UserUpdate::new_email(request.new_email))
             .map_err(ApiError::BadRequest)?;
         let user = user_read_id_checked(driver, Some(&service), audit, request.user_id)
             .map_err(ApiError::BadRequest)?;
@@ -606,16 +614,8 @@ mod provider_local {
         csrf_verify(driver, &service, &csrf_key)?;
 
         // Disable user and disable and revoke all keys associated with user.
-        let update = UserUpdate {
-            is_enabled: Some(false),
-            name: None,
-            locale: None,
-            timezone: None,
-            password_allow_reset: None,
-            password_require_update: None,
-        };
         driver
-            .user_update(&user.id, &update)
+            .user_update(&user.id, &UserUpdate::default().set_is_enabled(false))
             .map_err(ApiError::BadRequest)?;
         driver
             .key_update_many(
@@ -669,9 +669,9 @@ mod provider_local {
 
         // Update user password.
         let user_update =
-            UserUpdate2::password(request.new_password).map_err(ApiError::BadRequest)?;
+            UserUpdate::new_password(request.new_password).map_err(ApiError::BadRequest)?;
         driver
-            .user_update2(&user.id, &user_update)
+            .user_update(&user.id, &user_update)
             .map_err(ApiError::BadRequest)?;
         let user = user_read_id_checked(driver, Some(&service), audit, request.user_id)
             .map_err(ApiError::BadRequest)?;
@@ -716,16 +716,8 @@ mod provider_local {
         csrf_verify(driver, &service, &csrf_key)?;
 
         // Successful update password revoke, disable user and disable and revoke all keys associated with user.
-        let update = UserUpdate {
-            is_enabled: Some(false),
-            name: None,
-            locale: None,
-            timezone: None,
-            password_allow_reset: None,
-            password_require_update: None,
-        };
         driver
-            .user_update(&user.id, &update)
+            .user_update(&user.id, &UserUpdate::default().set_is_enabled(false))
             .map_err(ApiError::BadRequest)?;
         driver
             .key_update_many(

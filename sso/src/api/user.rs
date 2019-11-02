@@ -307,14 +307,14 @@ pub fn user_update(
 ) -> ApiResult<UserReadResponse> {
     UserUpdateRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::UserUpdate);
-    let update = UserUpdate {
-        is_enabled: request.is_enabled,
-        name: request.name,
-        locale: request.locale,
-        timezone: request.timezone,
-        password_allow_reset: request.password_allow_reset,
-        password_require_update: request.password_require_update,
-    };
+    let update = UserUpdate::new(
+        request.is_enabled,
+        request.name,
+        request.locale,
+        request.timezone,
+        request.password_allow_reset,
+        request.password_require_update,
+    );;
 
     let res = server_user::update(driver, &mut audit, key_value, user_id, update);
     result_audit_diff(driver, &audit, res).map(|data| UserReadResponse { data })

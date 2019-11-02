@@ -194,6 +194,11 @@ impl UserCreate {
         self
     }
 
+    pub fn password_allow_reset(mut self, password_allow_reset: bool) -> Self {
+        self.password_allow_reset = password_allow_reset;
+        self
+    }
+
     pub fn with_password<P>(
         mut self,
         allow_reset: bool,
@@ -222,44 +227,92 @@ pub enum UserRead {
 pub struct UserUpdate {
     pub is_enabled: Option<bool>,
     pub name: Option<String>,
+    pub email: Option<String>,
     pub locale: Option<String>,
     pub timezone: Option<String>,
     pub password_allow_reset: Option<bool>,
     pub password_require_update: Option<bool>,
-}
-
-/// User update 2.
-///
-/// This is split from `UserUpdate` to prevent `User::update_email` or
-/// `User::update_password` functions being bypassed which could
-/// allow an unhashed password to be saved to the database.
-#[derive(Debug)]
-pub struct UserUpdate2 {
-    pub email: Option<String>,
     pub password_hash: Option<String>,
 }
 
-impl UserUpdate2 {
+impl Default for UserUpdate {
+    fn default() -> Self {
+        Self {
+            is_enabled: None,
+            name: None,
+            email: None,
+            locale: None,
+            timezone: None,
+            password_allow_reset: None,
+            password_require_update: None,
+            password_hash: None,
+        }
+    }
+}
+
+impl UserUpdate {
+    pub fn new(
+        is_enabled: Option<bool>,
+        name: Option<String>,
+        locale: Option<String>,
+        timezone: Option<String>,
+        password_allow_reset: Option<bool>,
+        password_require_update: Option<bool>,
+    ) -> Self {
+        Self {
+            is_enabled,
+            name,
+            email: None,
+            locale,
+            timezone,
+            password_allow_reset,
+            password_require_update,
+            password_hash: None,
+        }
+    }
+
     /// Update user email.
-    pub fn email<E>(email: E) -> Self
+    pub fn new_email<E>(email: E) -> Self
     where
         E: Into<String>,
     {
         Self {
+            is_enabled: None,
+            name: None,
             email: Some(email.into()),
+            locale: None,
+            timezone: None,
+            password_allow_reset: None,
+            password_require_update: None,
             password_hash: None,
         }
     }
 
     /// Update user password.
-    pub fn password<P>(password: P) -> DriverResult<Self>
+    pub fn new_password<P>(password: P) -> DriverResult<Self>
     where
         P: AsRef<str>,
     {
         Ok(Self {
+            is_enabled: None,
+            name: None,
             email: None,
+            locale: None,
+            timezone: None,
+            password_allow_reset: None,
+            password_require_update: None,
             password_hash: Some(hash_password(password.as_ref())?),
         })
+    }
+
+    pub fn set_is_enabled(mut self, is_enabled: bool) -> Self {
+        self.is_enabled = Some(is_enabled);
+        self
+    }
+
+    pub fn set_password_allow_reset(mut self, password_allow_reset: bool) -> Self {
+        self.password_allow_reset = Some(password_allow_reset);
+        self
     }
 }
 

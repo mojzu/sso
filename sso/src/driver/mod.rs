@@ -154,9 +154,6 @@ pub trait DriverIf {
     /// Update user.
     fn user_update(&self, id: &Uuid, update: &UserUpdate) -> DriverResult<User>;
 
-    /// Update user.
-    fn user_update2(&self, id: &Uuid, update: &UserUpdate2) -> DriverResult<User>;
-
     /// Delete user.
     fn user_delete(&self, id: &Uuid) -> DriverResult<usize>;
 }
