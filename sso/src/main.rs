@@ -229,8 +229,8 @@ fn configure() -> DriverResult<(Box<dyn Driver>, CliOptions)> {
         .provider(ServerOptionsProviderGroup::new(github, microsoft))
         .rustls(rustls)
         .user_agent(Client::default_user_agent())
-        .smtp(smtp)
-        .smtp_file(smtp_file)
+        .smtp_transport(smtp)
+        .smtp_file_transport(smtp_file)
         .build()
         .unwrap();
     let options = CliOptions::new(4, server);

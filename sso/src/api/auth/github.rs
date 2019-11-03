@@ -5,6 +5,7 @@ use crate::{
     },
     AuditBuilder, AuditMeta, AuditType, Driver,
 };
+use reqwest::Client as SyncClient;
 
 pub fn auth_provider_github_oauth2_url(
     driver: &dyn Driver,
@@ -22,13 +23,21 @@ pub fn auth_provider_github_oauth2_callback(
     driver: &dyn Driver,
     audit_meta: AuditMeta,
     key_value: Option<String>,
-    args: AuthProviderOauth2Args,
     request: AuthOauth2CallbackRequest,
+    args: AuthProviderOauth2Args,
+    client_sync: &SyncClient,
 ) -> ApiResult<AuthTokenResponse> {
     AuthOauth2CallbackRequest::api_validate(&request)?;
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Callback);
 
-    let res = provider_github::oauth2_callback(driver, &mut audit, key_value, &args, request);
+    let res = provider_github::oauth2_callback(
+        driver,
+        &mut audit,
+        key_value,
+        &args,
+        request,
+        client_sync,
+    );
     result_audit(driver, &audit, res).map(|data| AuthTokenResponse { data, audit: None })
 }
 
@@ -46,7 +55,7 @@ mod provider_github {
         basic::BasicClient, reqwest::http_client, AuthUrl, AuthorizationCode, ClientId,
         ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
     };
-    use reqwest::Client as ReqwestClient;
+    use reqwest::Client as SyncClient;
     use url::Url;
 
     pub fn oauth2_url(
@@ -82,6 +91,7 @@ mod provider_github {
         key_value: Option<String>,
         args: &AuthProviderOauth2Args,
         request: AuthOauth2CallbackRequest,
+        client_sync: &SyncClient,
     ) -> ApiResult<UserToken> {
         let service =
             key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
@@ -106,8 +116,7 @@ mod provider_github {
         let (service_id, access_token) =
             (csrf.service_id, token.access_token().secret().to_owned());
 
-        let user_email = api_user_email(args.user_agent.to_owned(), access_token)
-            .map_err(ApiError::BadRequest)?;
+        let user_email = api_user_email(client_sync, access_token).map_err(ApiError::BadRequest)?;
         oauth2_login(
             driver,
             audit,
@@ -119,18 +128,15 @@ mod provider_github {
         )
     }
 
-    fn api_user_email(user_agent: String, access_token: String) -> DriverResult<String> {
+    fn api_user_email(client: &SyncClient, access_token: String) -> DriverResult<String> {
         #[derive(Debug, Serialize, Deserialize)]
         struct GithubUser {
             email: String,
         }
 
         let authorisation = format!("token {}", access_token);
-        let client = ReqwestClient::builder().use_rustls_tls().build().unwrap();
-
         client
             .get("https://api.github.com/user")
-            .header(header::USER_AGENT, user_agent)
             .header(header::AUTHORIZATION, authorisation)
             .send()
             .map_err(Into::into)

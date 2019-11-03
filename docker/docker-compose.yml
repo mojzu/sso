@@ -23,7 +23,7 @@ services:
   #   ports:
   #     - "9090:9090"
 
-  # # Single sign=on service.
+  # # Single sign-on service.
   # sso:
   #   build: sso
   #   depends_on:

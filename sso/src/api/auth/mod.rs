@@ -158,21 +158,18 @@ impl AuthProviderOauth2 {
 #[derive(Debug)]
 pub struct AuthProviderOauth2Args<'a> {
     provider: Option<&'a AuthProviderOauth2>,
-    user_agent: String,
     access_token_expires: i64,
     refresh_token_expires: i64,
 }
 
 impl<'a> AuthProviderOauth2Args<'a> {
-    pub fn new<S1: Into<String>>(
+    pub fn new(
         provider: Option<&'a AuthProviderOauth2>,
-        user_agent: S1,
         access_token_expires: i64,
         refresh_token_expires: i64,
     ) -> Self {
         Self {
             provider,
-            user_agent: user_agent.into(),
             access_token_expires,
             refresh_token_expires,
         }

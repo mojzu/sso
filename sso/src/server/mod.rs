@@ -3,9 +3,10 @@ mod route;
 
 use crate::{
     api::{AuthProviderOauth2, AuthProviderOauth2Args},
-    Client, Driver, DriverError, DriverResult, Metrics, TemplateEmail,
+    Driver, DriverError, DriverResult, Metrics, TemplateEmail,
 };
 use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer};
+use http::{header, HeaderMap};
 use lettre::{
     file::FileTransport,
     smtp::authentication::{Credentials, Mechanism},
@@ -13,7 +14,7 @@ use lettre::{
 };
 use lettre_email::Email;
 use native_tls::{Protocol, TlsConnector};
-use reqwest::r#async::Client as ReqwestClient;
+use reqwest::{r#async::Client as AsyncClient, Client as SyncClient};
 use rustls::{
     internal::pemfile::{certs, rsa_private_keys},
     AllowAnyAuthenticatedClient, NoClientAuth, RootCertStore, ServerConfig,
@@ -115,10 +116,10 @@ pub struct ServerOptions {
     /// User agent for outgoing HTTP requests.
     #[builder(default = "crate_name!().to_string()")]
     user_agent: String,
-    /// SMTP options.
-    smtp: Option<ServerOptionsSmtp>,
-    /// SMTP file transport.
-    smtp_file: Option<String>,
+    /// SMTP transport options.
+    smtp_transport: Option<ServerOptionsSmtp>,
+    /// SMTP file transport path.
+    smtp_file_transport: Option<String>,
 }
 
 impl ServerOptions {
@@ -161,7 +162,6 @@ impl ServerOptions {
     pub fn provider_github_oauth2_args(&self) -> AuthProviderOauth2Args {
         AuthProviderOauth2Args::new(
             self.provider_github_oauth2(),
-            self.user_agent(),
             self.access_token_expires(),
             self.refresh_token_expires(),
         )
@@ -176,7 +176,6 @@ impl ServerOptions {
     pub fn provider_microsoft_oauth2_args(&self) -> AuthProviderOauth2Args {
         AuthProviderOauth2Args::new(
             self.provider_microsoft_oauth2(),
-            self.user_agent(),
             self.access_token_expires(),
             self.refresh_token_expires(),
         )
@@ -252,7 +251,8 @@ impl ServerOptions {
 struct Data {
     driver: Box<dyn Driver>,
     options: ServerOptions,
-    client: ReqwestClient,
+    client: AsyncClient,
+    client_sync: SyncClient,
     smtp_client: Option<SmtpClient>,
 }
 
@@ -261,13 +261,15 @@ impl Data {
     pub fn new(
         driver: Box<dyn Driver>,
         options: ServerOptions,
-        client: ReqwestClient,
+        client: AsyncClient,
+        client_sync: SyncClient,
         smtp_client: Option<SmtpClient>,
     ) -> Self {
         Data {
             driver,
             options,
             client,
+            client_sync,
             smtp_client,
         }
     }
@@ -283,16 +285,29 @@ impl Data {
     }
 
     /// Get reference to asynchronous client.
-    pub fn client(&self) -> &ReqwestClient {
+    pub fn client(&self) -> &AsyncClient {
         &self.client
+    }
+
+    /// Get reference to synchronous client.
+    pub fn client_sync(&self) -> &SyncClient {
+        &self.client_sync
     }
 
     /// Build email callback function.
     /// If client is None and file directory path is provided, file transport is used.
     pub fn smtp_email(&self) -> Box<dyn FnOnce(TemplateEmail) -> DriverResult<()>> {
         let client = self.smtp_client.clone();
-        let from_email = self.options().smtp.as_ref().map(|x| x.user.to_owned());
-        let smtp_file = self.options().smtp_file.as_ref().map(|x| x.to_owned());
+        let from_email = self
+            .options()
+            .smtp_transport
+            .as_ref()
+            .map(|x| x.user.to_owned());
+        let smtp_file = self
+            .options()
+            .smtp_file_transport
+            .as_ref()
+            .map(|x| x.to_owned());
 
         Box::new(move |email| {
             let email_builder = Email::builder()
@@ -342,8 +357,9 @@ impl Server {
         options: ServerOptions,
     ) -> DriverResult<()> {
         let options_clone = options.clone();
-        let client = Client::build_client(options.user_agent())?;
-        let smtp_client = ServerOptions::smtp_client(options.smtp.as_ref())?;
+        let client = Self::client_build(options.user_agent())?;
+        let client_sync = Self::client_sync_build(options.user_agent())?;
+        let smtp_client = ServerOptions::smtp_client(options.smtp_transport.as_ref())?;
         let default_json_limit: usize = 1024;
         let (http_count, http_latency) = Metrics::http_metrics();
 
@@ -354,6 +370,7 @@ impl Server {
                     driver.clone(),
                     options_clone.clone(),
                     client.clone(),
+                    client_sync.clone(),
                     smtp_client.clone(),
                 ))
                 // Global JSON configuration.
@@ -385,5 +402,25 @@ impl Server {
 
         server.start();
         Ok(())
+    }
+
+    fn client_build(user_agent: &str) -> DriverResult<AsyncClient> {
+        let mut headers = HeaderMap::new();
+        headers.insert(header::USER_AGENT, user_agent.parse().unwrap());
+        AsyncClient::builder()
+            .use_rustls_tls()
+            .default_headers(headers)
+            .build()
+            .map_err(DriverError::Reqwest)
+    }
+
+    fn client_sync_build(user_agent: &str) -> DriverResult<SyncClient> {
+        let mut headers = HeaderMap::new();
+        headers.insert(header::USER_AGENT, user_agent.parse().unwrap());
+        SyncClient::builder()
+            .use_rustls_tls()
+            .default_headers(headers)
+            .build()
+            .map_err(DriverError::Reqwest)
     }
 }

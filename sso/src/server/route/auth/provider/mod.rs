@@ -69,8 +69,9 @@ fn github_oauth2_callback_handler(
                     data.driver(),
                     audit_meta,
                     id,
-                    data.options().provider_github_oauth2_args(),
                     request,
+                    data.options().provider_github_oauth2_args(),
+                    data.client_sync(),
                 )
             })
             .map_err(Into::into)
@@ -118,8 +119,9 @@ fn microsoft_oauth2_callback_handler(
                     data.driver(),
                     audit_meta,
                     id,
-                    data.options().provider_microsoft_oauth2_args(),
                     request,
+                    data.options().provider_microsoft_oauth2_args(),
+                    data.client_sync(),
                 )
             })
             .map_err(Into::into)
