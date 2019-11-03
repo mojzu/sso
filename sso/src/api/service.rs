@@ -227,13 +227,12 @@ impl Default for ServiceUpdateRequest {
 }
 
 impl ServiceUpdateRequest {
-    #[allow(clippy::wrong_self_convention)]
-    pub fn is_enabled(mut self, is_enabled: bool) -> Self {
+    pub fn set_is_enabled(mut self, is_enabled: bool) -> Self {
         self.is_enabled = Some(is_enabled);
         self
     }
 
-    pub fn user_allow_register(mut self, user_allow_register: bool) -> Self {
+    pub fn set_user_allow_register(mut self, user_allow_register: bool) -> Self {
         self.user_allow_register = Some(user_allow_register);
         self
     }

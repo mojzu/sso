@@ -7,7 +7,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(INVALID_KEY));
             let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -19,7 +19,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -47,7 +47,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthTokenRequest::new(&user_token.access_token, None);
             let res = client.auth_token_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -81,7 +81,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(INVALID_KEY));
             let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_refresh(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -93,7 +93,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_refresh(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -121,7 +121,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthTokenRequest::new(&user_token.refresh_token, None);
             let res = client.auth_token_refresh(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -152,7 +152,7 @@ macro_rules! auth_token_integration_test {
 
             let body = AuthTokenRequest::new(&user_token.refresh_token, None);
             let res = client.auth_token_refresh(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -188,7 +188,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(INVALID_KEY));
             let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -200,7 +200,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -228,7 +228,7 @@ macro_rules! auth_token_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthTokenRequest::new(&user_token.refresh_token, None);
             let res = client.auth_token_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -258,7 +258,7 @@ macro_rules! auth_token_integration_test {
             client.auth_token_revoke(body).unwrap();
             let body = AuthTokenRequest::new(&user_token.access_token, None);
             let res = client.auth_token_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
     };
 }

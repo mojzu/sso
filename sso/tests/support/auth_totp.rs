@@ -7,7 +7,7 @@ macro_rules! auth_totp_integration_test {
             let client = client_create(Some(INVALID_KEY));
             let body = AuthTotpRequest::new(Uuid::nil(), "123456");
             let res = client.auth_totp(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -19,7 +19,7 @@ macro_rules! auth_totp_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthTotpRequest::new(Uuid::nil(), "");
             let res = client.auth_totp(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -47,7 +47,7 @@ macro_rules! auth_totp_integration_test {
                 .unwrap();
             let body = AuthTotpRequest::new(user_key.user.id, totp.generate());
             let res = client.auth_totp(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]

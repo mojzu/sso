@@ -9,21 +9,21 @@ mod key;
 mod service;
 mod user;
 
-use chrono::Utc;
+pub use chrono::Utc;
+pub use http::StatusCode;
 pub use serde_json::Value;
-use sso::{
-    api::AuthOauth2UrlResponse, KeyWithValue, Service, User, UserKey, UserToken, UserTokenAccess,
-};
 pub use sso::{
     api::{
         AuditCreateRequestBuilder, AuditListRequestBuilder, AuditUpdateRequest,
         AuthCsrfCreateRequest, AuthCsrfVerifyRequest, AuthKeyRequest, AuthLoginRequest,
-        AuthRegisterRequest, AuthResetPasswordConfirmRequest, AuthResetPasswordRequest,
-        AuthTokenRequest, AuthTotpRequest, AuthUpdateEmailRequest, KeyCreateRequest,
-        KeyListRequestBuilder, KeyReadRequest, ServiceCreateRequest, ServiceListRequestBuilder,
-        ServiceUpdateRequest, UserCreateRequest, UserListRequestBuilder, UserUpdateRequest,
+        AuthOauth2UrlResponse, AuthRegisterRequest, AuthResetPasswordConfirmRequest,
+        AuthResetPasswordRequest, AuthTokenRequest, AuthTotpRequest, AuthUpdateEmailRequest,
+        KeyCreateRequest, KeyListRequestBuilder, KeyReadRequest, ServiceCreateRequest,
+        ServiceListRequestBuilder, ServiceUpdateRequest, UserCreateRequest, UserListRequestBuilder,
+        UserUpdateRequest,
     },
-    AuditType, Client, ClientActorOptions, ClientError, ClientOptions, ClientSync, KeyType,
+    AuditType, ClientOptions, ClientRequestOptions, ClientSync, KeyType, KeyWithValue, Service,
+    User, UserKey, UserToken, UserTokenAccess,
 };
 pub use uuid::Uuid;
 
@@ -36,12 +36,12 @@ pub const KEY_NAME: &str = "key-name";
 
 lazy_static! {
     static ref CLIENT: ClientSync = {
-        let executor_options =
-            ClientActorOptions::new(Client::default_user_agent(), None, None).unwrap();
         let authorisation = env_test_sso_key();
-        let options = ClientOptions::new(authorisation);
+        let options =
+            ClientOptions::new("test", None, None, ClientRequestOptions::new(authorisation))
+                .unwrap();
         let url = env_test_sso_url();
-        ClientSync::new(url, executor_options, options).unwrap()
+        ClientSync::new(url, options).unwrap()
     };
 }
 
@@ -55,7 +55,7 @@ fn env_test_sso_key() -> String {
 
 pub fn client_create(key: Option<&str>) -> ClientSync {
     match key {
-        Some(key) => CLIENT.with_options(ClientOptions::new(key.to_owned())),
+        Some(key) => CLIENT.with_options(ClientRequestOptions::new(key.to_owned())),
         None => CLIENT.clone(),
     }
 }
@@ -167,7 +167,7 @@ pub fn user_key_verify(client: &ClientSync, key: &UserKey) -> UserKey {
 pub fn user_key_verify_bad_request(client: &ClientSync, key: &str) {
     let body = AuthKeyRequest::new(key, None);
     let err = client.auth_key_verify(body).unwrap_err();
-    assert_eq!(err, ClientError::BadRequest);
+    assert_eq!(err.status_code(), StatusCode::BAD_REQUEST.as_u16());
 }
 
 pub fn user_token_verify(client: &ClientSync, token: &UserToken) -> UserTokenAccess {

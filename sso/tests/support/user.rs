@@ -8,7 +8,7 @@ macro_rules! user_integration_test {
             let res = client
                 .user_list(UserListRequestBuilder::default().build().unwrap())
                 .unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -297,7 +297,7 @@ macro_rules! user_integration_test {
             let user_email = email_create();
             let body = UserCreateRequest::new(true, USER_NAME, &user_email);
             let res = client.user_create(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -312,7 +312,7 @@ macro_rules! user_integration_test {
 
             let body = UserCreateRequest::new(true, USER_NAME, &user_email);
             let res = client.user_create(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -325,7 +325,7 @@ macro_rules! user_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = UserCreateRequest::new(true, USER_NAME, &user_email).locale("");
             let res = client.user_create(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -338,7 +338,7 @@ macro_rules! user_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = UserCreateRequest::new(true, USER_NAME, &user_email).timezone("invalid");
             let res = client.user_create(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -346,7 +346,7 @@ macro_rules! user_integration_test {
         fn api_user_read_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let res = client.user_read(Uuid::nil()).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -366,7 +366,7 @@ macro_rules! user_integration_test {
             let res = client
                 .user_update(Uuid::nil(), UserUpdateRequest::default())
                 .unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -380,7 +380,7 @@ macro_rules! user_integration_test {
             let user1 = user_create(&client, true, USER_NAME, &user_email);
 
             let user2 = client
-                .user_update(user1.id, UserUpdateRequest::default().is_enabled(false))
+                .user_update(user1.id, UserUpdateRequest::default().set_is_enabled(false))
                 .unwrap()
                 .data;
             assert_eq!(user1.id, user2.id);
@@ -417,7 +417,7 @@ macro_rules! user_integration_test {
 
             let client = client.with_user_authorisation(user1_key.value);
             let user2 = client
-                .user_update(user1.id, UserUpdateRequest::default().is_enabled(false))
+                .user_update(user1.id, UserUpdateRequest::default().set_is_enabled(false))
                 .unwrap()
                 .data;
             assert_eq!(user1.id, user2.id);
@@ -433,7 +433,7 @@ macro_rules! user_integration_test {
                         .unwrap(),
                 )
                 .unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -450,7 +450,7 @@ macro_rules! user_integration_test {
 
             let client = client.with_user_authorisation(user1_key.value);
             let user2 = client
-                .user_update(user1.id, UserUpdateRequest::default().name("123"))
+                .user_update(user1.id, UserUpdateRequest::default().set_name("123"))
                 .unwrap()
                 .data;
             assert_eq!(user1.id, user2.id);

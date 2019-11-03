@@ -8,7 +8,7 @@ macro_rules! key_integration_test {
             let res = client
                 .key_list(KeyListRequestBuilder::default().build().unwrap())
                 .unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -26,7 +26,7 @@ macro_rules! key_integration_test {
                         .unwrap(),
                 )
                 .unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -139,7 +139,7 @@ macro_rules! key_integration_test {
             let client = client_create(Some(INVALID_KEY));
             let body = KeyCreateRequest::new(true, KeyType::Key, KEY_NAME);
             let res = client.key_create(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -155,7 +155,7 @@ macro_rules! key_integration_test {
             let body = KeyCreateRequest::with_user_id(true, KeyType::Token, KEY_NAME, user.id);
             client.key_create(body.clone()).unwrap();
             let res = client.key_create(body.clone()).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -171,7 +171,7 @@ macro_rules! key_integration_test {
             let body = KeyCreateRequest::with_user_id(true, KeyType::Totp, KEY_NAME, user.id);
             client.key_create(body.clone()).unwrap();
             let res = client.key_create(body.clone()).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -180,7 +180,7 @@ macro_rules! key_integration_test {
             let client = client_create(None);
             let body = KeyCreateRequest::with_service_id(true, KeyType::Key, KEY_NAME, Uuid::nil());
             let res = client.key_create(body.clone()).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -192,7 +192,7 @@ macro_rules! key_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = KeyCreateRequest::with_user_id(true, KeyType::Key, KEY_NAME, Uuid::nil());
             let res = client.key_create(body.clone()).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -202,7 +202,7 @@ macro_rules! key_integration_test {
             let res = client
                 .key_read(Uuid::nil(), KeyReadRequest::new(None))
                 .unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -216,7 +216,7 @@ macro_rules! key_integration_test {
             let res = client
                 .key_read(service2_key.id, KeyReadRequest::new(None))
                 .unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res.status_code(), StatusCode::NOT_FOUND.as_u16());
         }
 
         #[test]
@@ -240,7 +240,7 @@ macro_rules! key_integration_test {
 
             let client = client_create(Some(&service1_key.value));
             let res = client.key_delete(service2_key.id).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res.status_code(), StatusCode::NOT_FOUND.as_u16());
         }
     };
 }

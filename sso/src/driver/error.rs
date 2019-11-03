@@ -1,4 +1,3 @@
-use crate::ClientError;
 use serde_json::Value;
 
 /// Driver errors.
@@ -97,6 +96,15 @@ pub enum DriverError {
     #[fail(display = "PwnedPasswordsDisabled")]
     PwnedPasswordsDisabled,
 
+    #[fail(display = "AuthenticateKeyOrTokenUndefined")]
+    AuthenticateKeyOrTokenUndefined,
+
+    #[fail(display = "AuthenticateTypeNotFound")]
+    AuthenticateTypeNotFound,
+
+    #[fail(display = "AuthenticateTypeUnknown")]
+    AuthenticateTypeUnknown,
+
     #[fail(display = "Validate {}", _0)]
     Validate(Value),
 
@@ -105,9 +113,6 @@ pub enum DriverError {
 
     #[fail(display = "LockFn {}", _0)]
     LockFn(String),
-
-    #[fail(display = "Client {}", _0)]
-    Client(#[fail(cause)] ClientError),
 
     #[fail(display = "DieselResult {}", _0)]
     DieselResult(#[fail(cause)] diesel::result::Error),
@@ -212,12 +217,6 @@ impl From<libreauth::oath::ErrorCode> for DriverError {
 impl From<serde_qs::Error> for DriverError {
     fn from(e: serde_qs::Error) -> Self {
         Self::SerdeQs(e.description().to_owned())
-    }
-}
-
-impl From<ClientError> for DriverError {
-    fn from(e: ClientError) -> Self {
-        Self::Client(e)
     }
 }
 

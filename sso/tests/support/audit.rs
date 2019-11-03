@@ -220,7 +220,7 @@ macro_rules! audit_integration_test {
             let client = client_create(Some(&service_key.value));
 
             let res = client.audit_read(Uuid::nil()).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res.status_code(), StatusCode::NOT_FOUND.as_u16());
         }
 
         #[test]
@@ -243,7 +243,7 @@ macro_rules! audit_integration_test {
 
             let client = client_create(Some(&service_key2.value));
             let res = client.audit_read(a1.id).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res.status_code(), StatusCode::NOT_FOUND.as_u16());
         }
 
         #[test]
@@ -251,7 +251,7 @@ macro_rules! audit_integration_test {
         fn api_audit_read_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let res = client.audit_read(Uuid::nil()).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -274,7 +274,7 @@ macro_rules! audit_integration_test {
 
             let client = client_create(Some(&service2_key.value));
             let res = client.audit_read(audit.id).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res.status_code(), StatusCode::NOT_FOUND.as_u16());
         }
 
         #[test]
@@ -316,7 +316,7 @@ macro_rules! audit_integration_test {
             let res = client
                 .audit_update(audit.id, AuditUpdateRequest::default().subject("example"))
                 .unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]

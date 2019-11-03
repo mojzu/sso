@@ -70,5 +70,21 @@ impl ResponseError for ApiError {
     }
 }
 
+impl From<reqwest::Error> for ApiError {
+    fn from(e: reqwest::Error) -> Self {
+        if let Some(status) = e.status() {
+            match status {
+                StatusCode::BAD_REQUEST => Self::BadRequest(DriverError::Reqwest(e)),
+                StatusCode::UNAUTHORIZED => Self::Unauthorised(DriverError::Reqwest(e)),
+                StatusCode::FORBIDDEN => Self::Forbidden(DriverError::Reqwest(e)),
+                StatusCode::NOT_FOUND => Self::NotFound(DriverError::Reqwest(e)),
+                _ => Self::InternalServerError(DriverError::Reqwest(e)),
+            }
+        } else {
+            Self::InternalServerError(DriverError::Reqwest(e))
+        }
+    }
+}
+
 /// API result wrapper type.
 pub type ApiResult<T> = Result<T, ApiError>;

@@ -7,7 +7,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(INVALID_KEY));
             let body = AuthKeyRequest::new(INVALID_KEY, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -19,7 +19,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthKeyRequest::new(INVALID_KEY, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -45,7 +45,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthKeyRequest::new(&user_key.key, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -57,7 +57,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthKeyRequest::new(&service_key.value, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -73,7 +73,7 @@ macro_rules! auth_key_integration_test {
 
             let body = AuthKeyRequest::new(&user_key.key, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -97,7 +97,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(INVALID_KEY));
             let body = AuthKeyRequest::new(INVALID_KEY, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -109,7 +109,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthKeyRequest::new(INVALID_KEY, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -135,7 +135,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthKeyRequest::new(&user_key.key, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -147,7 +147,7 @@ macro_rules! auth_key_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthKeyRequest::new(&service_key.value, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -163,7 +163,7 @@ macro_rules! auth_key_integration_test {
 
             let body = AuthKeyRequest::new(&user_key.key, None);
             let res = client.auth_key_revoke(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -181,7 +181,7 @@ macro_rules! auth_key_integration_test {
             client.auth_key_revoke(body).unwrap();
             let body = AuthKeyRequest::new(&user_key.key, None);
             let res = client.auth_key_verify(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
     };
 }

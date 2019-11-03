@@ -235,13 +235,12 @@ impl Default for UserUpdateRequest {
 }
 
 impl UserUpdateRequest {
-    #[allow(clippy::wrong_self_convention)]
-    pub fn is_enabled(mut self, is_enabled: bool) -> Self {
+    pub fn set_is_enabled(mut self, is_enabled: bool) -> Self {
         self.is_enabled = Some(is_enabled);
         self
     }
 
-    pub fn name<N>(mut self, name: N) -> Self
+    pub fn set_name<N>(mut self, name: N) -> Self
     where
         N: Into<String>,
     {

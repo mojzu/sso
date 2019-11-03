@@ -7,7 +7,7 @@ extern crate log;
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
 use sso::{
-    env, Cli, CliOptions, Client, Driver, DriverPostgres, DriverResult, ServerOptions,
+    env, Cli, CliOptions, Driver, DriverPostgres, DriverResult, ServerOptions,
     ServerOptionsProvider, ServerOptionsProviderGroup,
 };
 
@@ -223,11 +223,11 @@ fn configure() -> DriverResult<(Box<dyn Driver>, CliOptions)> {
     };
 
     let server = ServerOptions::new(server_bind)
-        .set_hostname(server_hostname)
+        .set_hostname(&server_hostname)
         .set_password_pwned_enabled(password_pwned_enabled)
         .set_provider(ServerOptionsProviderGroup::new(github, microsoft))
         .set_rustls(rustls)
-        .set_user_agent(Client::default_user_agent())
+        .set_user_agent(&server_hostname)
         .set_smtp_transport(smtp)
         .set_smtp_file_transport(smtp_file);
     let options = CliOptions::new(4, server);

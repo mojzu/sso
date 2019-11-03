@@ -103,7 +103,7 @@ macro_rules! service_integration_test {
         fn api_service_read_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
             let res = client.service_read(Uuid::nil()).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -115,7 +115,7 @@ macro_rules! service_integration_test {
 
             let client = client_create(Some(&service1_key.value));
             let res = client.service_read(service2.id).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res.status_code(), StatusCode::NOT_FOUND.as_u16());
         }
 
         #[test]
@@ -136,7 +136,7 @@ macro_rules! service_integration_test {
 
             let client = client_create(Some(&service1_key.value));
             let res = client.service_delete(service2.id).unwrap_err();
-            assert_eq!(res, ClientError::NotFound);
+            assert_eq!(res.status_code(), StatusCode::NOT_FOUND.as_u16());
         }
     };
 }

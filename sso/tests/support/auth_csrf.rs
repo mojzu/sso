@@ -7,7 +7,7 @@ macro_rules! auth_csrf_integration_test {
             let client = client_create(Some(INVALID_KEY));
             let body = AuthCsrfCreateRequest::new(500);
             let res = client.auth_csrf_create(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]

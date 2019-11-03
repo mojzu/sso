@@ -37,7 +37,7 @@ fn api_ping_ok() {
 fn api_metrics_unauthorised() {
     let client = client_create(Some(INVALID_KEY));
     let res = client.metrics().unwrap_err();
-    assert_eq!(res, ClientError::Unauthorised);
+    assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
 }
 
 #[test]

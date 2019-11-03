@@ -48,7 +48,7 @@ mod provider_github {
             AuthProviderOauth2, AuthProviderOauth2Args,
         },
         pattern::*,
-        AuditBuilder, Client, CsrfCreate, Driver, DriverError, DriverResult, Service, UserToken,
+        AuditBuilder, CsrfCreate, Driver, DriverError, DriverResult, Service, UserToken,
     };
     use http::header;
     use oauth2::{
@@ -139,9 +139,9 @@ mod provider_github {
             .get("https://api.github.com/user")
             .header(header::AUTHORIZATION, authorisation)
             .send()
-            .map_err(Into::into)
-            .and_then(Client::response_json::<GithubUser>)
-            .map_err(Into::into)
+            .and_then(|res| res.error_for_status())
+            .and_then(|mut res| res.json::<GithubUser>())
+            .map_err(DriverError::Reqwest)
             .map(|res| res.email)
     }
 

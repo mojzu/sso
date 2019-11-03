@@ -9,7 +9,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -34,13 +34,13 @@ macro_rules! auth_local_integration_test {
             client
                 .service_update(
                     service.id,
-                    ServiceUpdateRequest::default().is_enabled(false),
+                    ServiceUpdateRequest::default().set_is_enabled(false),
                 )
                 .unwrap();
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -50,7 +50,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginRequest::new(INVALID_EMAIL, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -61,7 +61,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginRequest::new(&user_email, "");
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -74,7 +74,7 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -97,7 +97,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -120,7 +120,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -144,7 +144,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginRequest::new(&user_email, INVALID_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -170,7 +170,7 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(&service2_key.value));
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -194,7 +194,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -218,7 +218,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res, ClientError::Forbidden);
+            assert_eq!(res.status_code(), StatusCode::FORBIDDEN.as_u16());
         }
 
         #[test]
@@ -266,7 +266,7 @@ macro_rules! auth_local_integration_test {
             client
                 .service_update(
                     service.id,
-                    ServiceUpdateRequest::default().is_enabled(false),
+                    ServiceUpdateRequest::default().set_is_enabled(false),
                 )
                 .unwrap();
 
@@ -282,7 +282,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthRegisterRequest::new("", &user_email);
             let res = client.auth_local_register(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -292,7 +292,7 @@ macro_rules! auth_local_integration_test {
 
             let body = AuthRegisterRequest::new(USER_NAME, INVALID_EMAIL);
             let res = client.auth_local_register(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -306,7 +306,7 @@ macro_rules! auth_local_integration_test {
             client
                 .service_update(
                     service.id,
-                    ServiceUpdateRequest::default().user_allow_register(false),
+                    ServiceUpdateRequest::default().set_user_allow_register(false),
                 )
                 .unwrap();
 
@@ -325,7 +325,7 @@ macro_rules! auth_local_integration_test {
             client
                 .service_update(
                     service.id,
-                    ServiceUpdateRequest::default().user_allow_register(true),
+                    ServiceUpdateRequest::default().set_user_allow_register(true),
                 )
                 .unwrap();
 
@@ -352,7 +352,7 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthResetPasswordRequest::new(INVALID_EMAIL);
             let res = client.auth_local_reset_password(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -471,7 +471,7 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(INVALID_KEY));
             let body = AuthResetPasswordConfirmRequest::new(INVALID_KEY, USER_PASSWORD);
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
-            assert_eq!(res, ClientError::Unauthorised);
+            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
         #[test]
@@ -483,7 +483,7 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthResetPasswordConfirmRequest::new("", USER_PASSWORD);
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -495,7 +495,7 @@ macro_rules! auth_local_integration_test {
             let client = client_create(Some(&service_key.value));
             let body = AuthResetPasswordConfirmRequest::new(INVALID_KEY, "");
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
-            assert_eq!(res, ClientError::BadRequest);
+            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
         }
 
         #[test]
@@ -523,7 +523,7 @@ macro_rules! auth_local_integration_test {
                 new_email: email_create(),
             };
             let res = client.auth_local_update_email(body).unwrap_err();
-            assert_eq!(res, ClientError::Forbidden);
+            assert_eq!(res.status_code(), StatusCode::FORBIDDEN.as_u16());
         }
     };
 }
