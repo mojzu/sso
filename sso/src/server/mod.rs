@@ -90,31 +90,24 @@ impl ServerOptionsSmtp {
 }
 
 /// Server options.
-#[derive(Debug, Clone, Serialize, Deserialize, Builder)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerOptions {
-    #[builder(default = "crate_name!().to_string()")]
     hostname: String,
     bind: String,
     /// Enable Pwned Passwords API to check passwords.
     /// API keys may be required in the future to use this API.
-    #[builder(default = "false")]
     password_pwned_enabled: bool,
     /// Access token expiry time in seconds.
-    #[builder(default = "3_600")]
     access_token_expires: i64,
     /// Refresh token expiry time in seconds.
-    #[builder(default = "86_400")]
     refresh_token_expires: i64,
     /// Revoke token expiry time in seconds.
-    #[builder(default = "604_800")]
     revoke_token_expires: i64,
     /// Authentication provider groups.
-    #[builder(default)]
     provider: ServerOptionsProviderGroup,
     /// Rustls options for TLS support.
     rustls: Option<ServerOptionsRustls>,
     /// User agent for outgoing HTTP requests.
-    #[builder(default = "crate_name!().to_string()")]
     user_agent: String,
     /// SMTP transport options.
     smtp_transport: Option<ServerOptionsSmtp>,
@@ -123,6 +116,74 @@ pub struct ServerOptions {
 }
 
 impl ServerOptions {
+    /// Create default options with bind address.
+    pub fn new<B>(bind: B) -> Self
+    where
+        B: Into<String>,
+    {
+        Self {
+            hostname: crate_name!().to_string(),
+            bind: bind.into(),
+            password_pwned_enabled: false,
+            access_token_expires: 3_600,
+            refresh_token_expires: 86_400,
+            revoke_token_expires: 604_800,
+            provider: ServerOptionsProviderGroup::default(),
+            rustls: None,
+            user_agent: crate_name!().to_string(),
+            smtp_transport: None,
+            smtp_file_transport: None,
+        }
+    }
+
+    /// Set hostname.
+    pub fn set_hostname<H>(mut self, hostname: H) -> Self
+    where
+        H: Into<String>,
+    {
+        self.hostname = hostname.into();
+        self
+    }
+
+    /// Set password pwned enabled.
+    pub fn set_password_pwned_enabled(mut self, password_pwned_enabled: bool) -> Self {
+        self.password_pwned_enabled = password_pwned_enabled;
+        self
+    }
+
+    /// Set provider.
+    pub fn set_provider(mut self, provider: ServerOptionsProviderGroup) -> Self {
+        self.provider = provider;
+        self
+    }
+
+    /// Set Rustls options.
+    pub fn set_rustls(mut self, rustls: Option<ServerOptionsRustls>) -> Self {
+        self.rustls = rustls;
+        self
+    }
+
+    /// Set user_agent.
+    pub fn set_user_agent<UA>(mut self, user_agent: UA) -> Self
+    where
+        UA: Into<String>,
+    {
+        self.user_agent = user_agent.into();
+        self
+    }
+
+    /// Set SMTP transport options.
+    pub fn set_smtp_transport(mut self, smtp_transport: Option<ServerOptionsSmtp>) -> Self {
+        self.smtp_transport = smtp_transport;
+        self
+    }
+
+    /// Set SMTP file transport.
+    pub fn set_smtp_file_transport(mut self, smtp_file_transport: Option<String>) -> Self {
+        self.smtp_file_transport = smtp_file_transport;
+        self
+    }
+
     /// Returns hostname reference.
     pub fn hostname(&self) -> &str {
         &self.hostname
