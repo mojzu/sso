@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="Sam Ward" />
-  <title>sso 0.7.0</title>
+  <title>sso 0.8.0</title>
   <style>
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
@@ -337,7 +337,7 @@ font-size: 16px;
 <div id="toc">
 <div class="toc">
 <header id="title-block-header">
-<h1 class="title">sso 0.7.0</h1>
+<h1 class="title">sso 0.8.0</h1>
 <p class="author">Sam Ward</p>
 </header>
 <nav id="TOC" role="doc-toc">
@@ -363,14 +363,15 @@ font-size: 16px;
 <li><a href="#api"><span class="toc-section-number">3</span> API</a></li>
 <li><a href="#cli"><span class="toc-section-number">4</span> CLI</a></li>
 <li><a href="#changelog"><span class="toc-section-number">5</span> Changelog</a><ul>
-<li><a href="#section"><span class="toc-section-number">5.1</span> 0.8.0 (?)</a></li>
-<li><a href="#section-1"><span class="toc-section-number">5.2</span> 0.7.0 (2019-10-19)</a></li>
-<li><a href="#section-2"><span class="toc-section-number">5.3</span> 0.6.0 (2019-10-07)</a></li>
-<li><a href="#section-3"><span class="toc-section-number">5.4</span> 0.5.0 (2019-10-05)</a></li>
-<li><a href="#section-4"><span class="toc-section-number">5.5</span> 0.4.0 (2019-09-09)</a></li>
-<li><a href="#section-5"><span class="toc-section-number">5.6</span> 0.3.0 (2019-08-03)</a></li>
-<li><a href="#section-6"><span class="toc-section-number">5.7</span> 0.2.0 (2019-07-07)</a></li>
-<li><a href="#section-7"><span class="toc-section-number">5.8</span> 0.1.0 (2019-05-16)</a></li>
+<li><a href="#section"><span class="toc-section-number">5.1</span> 0.9.0 (?)</a></li>
+<li><a href="#section-1"><span class="toc-section-number">5.2</span> 0.8.0 (2019-11-03)</a></li>
+<li><a href="#section-2"><span class="toc-section-number">5.3</span> 0.7.0 (2019-10-19)</a></li>
+<li><a href="#section-3"><span class="toc-section-number">5.4</span> 0.6.0 (2019-10-07)</a></li>
+<li><a href="#section-4"><span class="toc-section-number">5.5</span> 0.5.0 (2019-10-05)</a></li>
+<li><a href="#section-5"><span class="toc-section-number">5.6</span> 0.4.0 (2019-09-09)</a></li>
+<li><a href="#section-6"><span class="toc-section-number">5.7</span> 0.3.0 (2019-08-03)</a></li>
+<li><a href="#section-7"><span class="toc-section-number">5.8</span> 0.2.0 (2019-07-07)</a></li>
+<li><a href="#section-8"><span class="toc-section-number">5.9</span> 0.1.0 (2019-05-16)</a></li>
 </ul></li>
 <li><a href="#design"><span class="toc-section-number">6</span> Design</a><ul>
 <li><a href="#architecture"><span class="toc-section-number">6.1</span> Architecture</a></li>
@@ -828,8 +829,9 @@ font-size: 16px;
 <h1 id="cli"><span class="header-section-number">4</span> CLI</h1>
 <p>TODO(docs): CLI documentation.</p>
 <h1 id="changelog"><span class="header-section-number">5</span> Changelog</h1>
-<h2 id="section"><span class="header-section-number">5.1</span> 0.8.0 (?)</h2>
-<h3 id="added"><span class="header-section-number">5.1.1</span> Added</h3>
+<h2 id="section"><span class="header-section-number">5.1</span> 0.9.0 (?)</h2>
+<h2 id="section-1"><span class="header-section-number">5.2</span> 0.8.0 (2019-11-03)</h2>
+<h3 id="added"><span class="header-section-number">5.2.1</span> Added</h3>
 <ul>
 <li>Added <code>name_ge</code>, <code>name_le</code>, <code>offset_id</code> query parameters to user list route for sorting by name.</li>
 <li>Added <code>status_code</code> to audit logs. Endpoints which accepted custom audit objects now accept custom audit type string. Status code, subject and data can be added later via update endpoint.</li>
@@ -837,7 +839,7 @@ font-size: 16px;
 <li>Added optional <code>user_id</code> query parameter to key read endpoint to mask by user ID.</li>
 <li>Added <code>user_allow_register</code> and <code>user_email_text</code> columns to services, used to allow user registration endpoint functionality and append text to outgoing emails for services.</li>
 </ul>
-<h3 id="changed"><span class="header-section-number">5.1.2</span> Changed</h3>
+<h3 id="changed"><span class="header-section-number">5.2.2</span> Changed</h3>
 <ul>
 <li>Removed TimescaleDB hypertable for audit log, don’t make use of any features.</li>
 <li>Finish removing <code>core</code> module by refactoring code in <code>api</code> and <code>driver</code> modules.</li>
@@ -848,7 +850,7 @@ font-size: 16px;
 <li>Removed <code>NotifyActor</code>, moved templating into driver module and SMTP client into server module.</li>
 <li>Removed <code>ClientActor</code>, refactored sync and async clients to be more consistent.</li>
 </ul>
-<h3 id="fixed"><span class="header-section-number">5.1.3</span> Fixed</h3>
+<h3 id="fixed"><span class="header-section-number">5.2.3</span> Fixed</h3>
 <ul>
 <li>Fixed list tests can fail because concurrent tests create rows within order being tested.</li>
 <li>Fixed <code>zxcvbn</code> warning caused by passing empty strings, also stops passing empty strings to pwned passwords API.</li>
@@ -856,8 +858,8 @@ font-size: 16px;
 <li>Fixed process metrics add to previous value, use gauges instead of counters.</li>
 <li>Fixed <code>impl_enum_to_from_string</code> use statements to not conflict with library types.</li>
 </ul>
-<h2 id="section-1"><span class="header-section-number">5.2</span> 0.7.0 (2019-10-19)</h2>
-<h3 id="added-1"><span class="header-section-number">5.2.1</span> Added</h3>
+<h2 id="section-2"><span class="header-section-number">5.3</span> 0.7.0 (2019-10-19)</h2>
+<h3 id="added-1"><span class="header-section-number">5.3.1</span> Added</h3>
 <ul>
 <li>Added <code>Debug</code> trait implementations for public types.</li>
 <li>Added filters to key list endpoint with <code>KeyFilter</code> options.</li>
@@ -869,7 +871,7 @@ font-size: 16px;
 <li>Added optional <code>subject</code> column to audit log table, added support for filtering.</li>
 <li>Use TimescaleDB hypertable for audit log table.</li>
 </ul>
-<h3 id="changed-1"><span class="header-section-number">5.2.2</span> Changed</h3>
+<h3 id="changed-1"><span class="header-section-number">5.3.2</span> Changed</h3>
 <ul>
 <li>Changed table column names to remove prefixes for <code>DriverPostgres</code>.</li>
 <li>Key value is only returned via created endpoint.</li>
@@ -879,32 +881,32 @@ font-size: 16px;
 <li>Added prefix <code>Sso</code> to internal audit log types.</li>
 <li>Refactoring, move <code>api</code> module to crate root.</li>
 </ul>
-<h3 id="fixed-1"><span class="header-section-number">5.2.3</span> Fixed</h3>
+<h3 id="fixed-1"><span class="header-section-number">5.3.3</span> Fixed</h3>
 <ul>
 <li>Fixed <code>clippy</code> too many arguments warnings.</li>
 <li>Fixed <code>ClientActor</code> GET request ignores query string.</li>
 <li>Fixed 500 status code returned trying to create key with invalid service or user ID.</li>
 </ul>
-<h2 id="section-2"><span class="header-section-number">5.3</span> 0.6.0 (2019-10-07)</h2>
-<h3 id="changed-2"><span class="header-section-number">5.3.1</span> Changed</h3>
+<h2 id="section-3"><span class="header-section-number">5.4</span> 0.6.0 (2019-10-07)</h2>
+<h3 id="changed-2"><span class="header-section-number">5.4.1</span> Changed</h3>
 <ul>
 <li>Replaced key flags with type: <code>Key</code>, <code>Token</code> or <code>Totp</code>.</li>
 <li>Added user flags: <code>password_allow_reset</code> and <code>password_require_update</code>.</li>
 <li>Return <code>Unauthorised</code> instead of <code>Forbidden</code> for missing authentication.</li>
 <li>User update email and password endpoints accept <code>user_id</code> instead of <code>key</code> or <code>token</code>.</li>
 </ul>
-<h3 id="fixed-2"><span class="header-section-number">5.3.2</span> Fixed</h3>
+<h3 id="fixed-2"><span class="header-section-number">5.4.2</span> Fixed</h3>
 <ul>
 <li>Fixed read user by ID route <code>/v1/user/{id}</code> attempts to read key.</li>
 </ul>
-<h2 id="section-3"><span class="header-section-number">5.4</span> 0.5.0 (2019-10-05)</h2>
-<h3 id="added-2"><span class="header-section-number">5.4.1</span> Added</h3>
+<h2 id="section-4"><span class="header-section-number">5.5</span> 0.5.0 (2019-10-05)</h2>
+<h3 id="added-2"><span class="header-section-number">5.5.1</span> Added</h3>
 <ul>
 <li>Added TOTP validation route.</li>
 <li>Added key flags: <code>allow_key</code>, <code>allow_token</code>, <code>allow_totp</code>.</li>
 <li>Added user fields: <code>locale</code>, <code>timezone</code>.</li>
 </ul>
-<h3 id="changed-3"><span class="header-section-number">5.4.2</span> Changed</h3>
+<h3 id="changed-3"><span class="header-section-number">5.5.2</span> Changed</h3>
 <ul>
 <li>Renamed project <code>sso</code>, ark was taken by various products and crates.</li>
 <li>Code consistency improvements.</li>
@@ -913,14 +915,14 @@ font-size: 16px;
 <li>Improved audit metric collection efficiency.</li>
 <li>Changed authentication provider interface so callbacks always go to service.</li>
 </ul>
-<h2 id="section-4"><span class="header-section-number">5.5</span> 0.4.0 (2019-09-09)</h2>
-<h3 id="added-3"><span class="header-section-number">5.5.1</span> Added</h3>
+<h2 id="section-5"><span class="header-section-number">5.6</span> 0.4.0 (2019-09-09)</h2>
+<h3 id="added-3"><span class="header-section-number">5.6.1</span> Added</h3>
 <ul>
 <li>Added some process metrics to Prometheus integration.</li>
 <li>Created asynchronous client actor to handle outgoing HTTP requests.</li>
 <li>Added environment variable <code>PASSWORD_PWNED_ENABLED</code> to enable pwned passwords integration.</li>
 </ul>
-<h3 id="changed-4"><span class="header-section-number">5.5.2</span> Changed</h3>
+<h3 id="changed-4"><span class="header-section-number">5.6.2</span> Changed</h3>
 <ul>
 <li>Replaced <code>bcrypt</code> with <code>libreauth</code> crate for password hashing.</li>
 <li>Use <code>libreauth</code> key generation for CSRF keys and <code>Key</code> values.</li>
@@ -928,12 +930,12 @@ font-size: 16px;
 <li>Changed driver interface to use <code>Uuid</code> types instead of strings.</li>
 <li>Renamed configuration structures to options to improve consistency.</li>
 </ul>
-<h3 id="fixed-3"><span class="header-section-number">5.5.3</span> Fixed</h3>
+<h3 id="fixed-3"><span class="header-section-number">5.6.3</span> Fixed</h3>
 <ul>
 <li>Fixed missing <code>dyn</code> keyword warnings.</li>
 </ul>
-<h2 id="section-5"><span class="header-section-number">5.6</span> 0.3.0 (2019-08-03)</h2>
-<h3 id="added-4"><span class="header-section-number">5.6.1</span> Added</h3>
+<h2 id="section-6"><span class="header-section-number">5.7</span> 0.3.0 (2019-08-03)</h2>
+<h3 id="added-4"><span class="header-section-number">5.7.1</span> Added</h3>
 <ul>
 <li>Improved email templates, removed template parameters from routes.</li>
 <li>Defined server routes and other constants in <code>server::api</code> module.</li>
@@ -944,7 +946,7 @@ font-size: 16px;
 <li>Added TLS configuration support to server and clients.</li>
 <li>Added hostname configuration to server.</li>
 </ul>
-<h3 id="changed-5"><span class="header-section-number">5.6.2</span> Changed</h3>
+<h3 id="changed-5"><span class="header-section-number">5.7.2</span> Changed</h3>
 <ul>
 <li>Changed audit list query parameters when using <code>created_gte</code> or <code>created_lte</code> options, added optional <code>offset_id</code> parameter to exclude previous results.</li>
 <li>Moved email handling from <code>server::smtp</code> module to <code>notify</code> module.</li>
@@ -953,14 +955,14 @@ font-size: 16px;
 <li>Renamed local authentication provider reset, update routes.</li>
 <li>Improved configuration interfaces using <code>derive_builder</code> crate.</li>
 </ul>
-<h3 id="fixed-4"><span class="header-section-number">5.6.3</span> Fixed</h3>
+<h3 id="fixed-4"><span class="header-section-number">5.7.3</span> Fixed</h3>
 <ul>
 <li>Reset password route now returns OK in cases where user email address does not exist.</li>
 <li>Fixed audit log errors were created for root key authentication when authenticating a service key.</li>
 <li>Fixed internal server errors returned to client when OAuth2 provider is disabled.</li>
 </ul>
-<h2 id="section-6"><span class="header-section-number">5.7</span> 0.2.0 (2019-07-07)</h2>
-<h3 id="added-5"><span class="header-section-number">5.7.1</span> Added</h3>
+<h2 id="section-7"><span class="header-section-number">5.8</span> 0.2.0 (2019-07-07)</h2>
+<h3 id="added-5"><span class="header-section-number">5.8.1</span> Added</h3>
 <ul>
 <li>Added audit logging to authentication routes.</li>
 <li>Added is enabled flag to services, users and keys, added is revoked flag to keys.</li>
@@ -969,7 +971,7 @@ font-size: 16px;
 <li>Added local provider update user email, password routes.</li>
 <li>Added type parameter to service URL callback queries.</li>
 </ul>
-<h3 id="changed-6"><span class="header-section-number">5.7.2</span> Changed</h3>
+<h3 id="changed-6"><span class="header-section-number">5.8.2</span> Changed</h3>
 <ul>
 <li>Changed database schema to use strings as IDs.</li>
 <li>Changed list route endpoints to return data ID arrays.</li>
@@ -981,15 +983,15 @@ font-size: 16px;
 <li>Removed <code>skeptic</code> from tests, use Cargo test runner.</li>
 <li>Moved route types to public api module.</li>
 </ul>
-<h3 id="fixed-5"><span class="header-section-number">5.7.3</span> Fixed</h3>
+<h3 id="fixed-5"><span class="header-section-number">5.8.3</span> Fixed</h3>
 <ul>
 <li>Fixed not validating service URLs before save using URL parse, improved URL error handling.</li>
 <li>Fixed inconsistent core error display strings.</li>
 <li>Fixed duplicate user email address returned internal server error code.</li>
 <li>Fixed Lettre email error type handling.</li>
 </ul>
-<h2 id="section-7"><span class="header-section-number">5.8</span> 0.1.0 (2019-05-16)</h2>
-<h3 id="added-6"><span class="header-section-number">5.8.1</span> Added</h3>
+<h2 id="section-8"><span class="header-section-number">5.9</span> 0.1.0 (2019-05-16)</h2>
+<h3 id="added-6"><span class="header-section-number">5.9.1</span> Added</h3>
 <ul>
 <li>First version.</li>
 </ul>
@@ -1049,17 +1051,17 @@ font-size: 16px;
 <h2 id="owasp-asvs"><span class="header-section-number">6.4</span> OWASP: ASVS</h2>
 <p><a href="https://www.owasp.org/index.php/Category:OWASP_Application_Security_Verification_Standard_Project">OWASP ASVS</a></p>
 <p>The OWASP Application Security Verification Standard is being used as a reference to improve this application. These are some development and design notes based on requirements from the 4.0 version of the ASVS standard. This is a self-evaluation and should be viewed skeptically.</p>
-<h3 id="section-8"><span class="header-section-number">6.4.1</span> 1.2.1</h3>
+<h3 id="section-9"><span class="header-section-number">6.4.1</span> 1.2.1</h3>
 <ul>
 <li>Binary sso and postgres/sqlite must be run as unique or special low privelege operating system accounts.</li>
 </ul>
 <p>TODO(docs): Systemd unit file examples, sso, postgres, nginx, etc.</p>
-<h3 id="section-9"><span class="header-section-number">6.4.2</span> 1.2.2</h3>
+<h3 id="section-10"><span class="header-section-number">6.4.2</span> 1.2.2</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
 </ul>
 <p>TODO(docs): Mutual TLS using rustls configuration and PKI for communication between sso and services.</p>
-<h3 id="section-10"><span class="header-section-number">6.4.3</span> 1.2.3</h3>
+<h3 id="section-11"><span class="header-section-number">6.4.3</span> 1.2.3</h3>
 <ul>
 <li>Binary sso is designed to provide multiple authentication mechanisms, none of which have been vetted.</li>
 <li>Relies on libraries which may be unvetted, e.g. libreauth, jsonwebtoken, rustls, etc.</li>
@@ -1068,81 +1070,81 @@ font-size: 16px;
 <li>Audit logging and monitoring via prometheus.</li>
 </ul>
 <p>TODO(feature): Audit logging and prometheus metrics improvements for detecting account abuse and breaches.</p>
-<h3 id="section-11"><span class="header-section-number">6.4.4</span> 1.2.4</h3>
+<h3 id="section-12"><span class="header-section-number">6.4.4</span> 1.2.4</h3>
 <ul>
 <li>All authentication pathways are designed to be as strong as that pathway can be.</li>
 <li>For example, email password resets are supported which are probably not considered strong.</li>
 </ul>
 <p>TODO(feature): More opt-ins for pathway branches that may be weak, for example ability to reset passwords by email.</p>
-<h3 id="section-12"><span class="header-section-number">6.4.5</span> 1.4.1</h3>
+<h3 id="section-13"><span class="header-section-number">6.4.5</span> 1.4.1</h3>
 <ul>
 <li>All access controls are enforced at a trusted enforcement point (the server).</li>
 <li>Registered services must implement their own access controls for their own data.</li>
 </ul>
-<h3 id="section-13"><span class="header-section-number">6.4.6</span> 1.4.2</h3>
+<h3 id="section-14"><span class="header-section-number">6.4.6</span> 1.4.2</h3>
 <ul>
 <li>Access controls are designed for many services and many users, where users have access to one or more services.</li>
 <li>All registered services can read all registered users, other services and keys belonging to them are hidden.</li>
 <li>Registered services may implement more complex access controls for their own data.</li>
 </ul>
 <p>TODO(test): More tests for data access, is service data masked correctly.</p>
-<h3 id="section-14"><span class="header-section-number">6.4.7</span> 1.4.3</h3>
+<h3 id="section-15"><span class="header-section-number">6.4.7</span> 1.4.3</h3>
 <ul>
 <li>Verify enforcement of principle of least privelege, requires more integration tests.</li>
 </ul>
 <p>TODO(test): More tests on preventing spoofing, elevation of privelege.</p>
-<h3 id="section-15"><span class="header-section-number">6.4.8</span> 1.4.4</h3>
+<h3 id="section-16"><span class="header-section-number">6.4.8</span> 1.4.4</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
 </ul>
 <p>TODO(refactor): Service key authentication mechanism code is split across files, cleaner code.</p>
-<h3 id="section-16"><span class="header-section-number">6.4.9</span> 1.4.5</h3>
+<h3 id="section-17"><span class="header-section-number">6.4.9</span> 1.4.5</h3>
 <ul>
 <li>This crate provides user authentication, not access control, is this out of scope?</li>
 </ul>
 <p>TODO(feature): Structured data for users, may require access controls.</p>
-<h3 id="section-17"><span class="header-section-number">6.4.10</span> 1.5.1</h3>
+<h3 id="section-18"><span class="header-section-number">6.4.10</span> 1.5.1</h3>
 <p>TODO(docs): GDPR and other data protection compliance research.</p>
 <p>Terms of service columns and user accepted columns, handle changes to terms.</p>
-<h3 id="section-18"><span class="header-section-number">6.4.11</span> 1.5.2</h3>
+<h3 id="section-19"><span class="header-section-number">6.4.11</span> 1.5.2</h3>
 <ul>
 <li>API for sso is JSON requests over HTTP so serialisation is required.</li>
 <li>Using <a href="https://github.com/serde-rs/serde">serde</a> and <a href="https://github.com/samscott89/serde_qs">serde_qs</a> for serialisation and deserialisation.</li>
 </ul>
 <p>TODO(test): Test requests with other/unknown content types are handled correctly.</p>
 <p>TODO(feature): Flag(s) to require HTTPS to ensure all requests/responses are encrypted in transmit.</p>
-<h3 id="section-19"><span class="header-section-number">6.4.12</span> 1.5.3</h3>
+<h3 id="section-20"><span class="header-section-number">6.4.12</span> 1.5.3</h3>
 <ul>
 <li>Input validation is enforced at a trusted enforcement point (the server).</li>
 <li>Using <a href="https://github.com/Keats/validator">validator</a> for input validation.</li>
 </ul>
 <p>TODO(test): More input tests including unicode passwords, bad strings, etc.</p>
-<h3 id="section-20"><span class="header-section-number">6.4.13</span> 1.5.4</h3>
+<h3 id="section-21"><span class="header-section-number">6.4.13</span> 1.5.4</h3>
 <ul>
 <li>All output encoding is <a href="https://en.wikipedia.org/wiki/UTF-8">UTF-8</a>.</li>
 </ul>
-<h3 id="section-21"><span class="header-section-number">6.4.14</span> 1.6.1</h3>
+<h3 id="section-22"><span class="header-section-number">6.4.14</span> 1.6.1</h3>
 <ul>
 <li>Key values are used for <a href="https://jwt.io/">JWT</a> cryptographic encoding and decoding.</li>
 <li>Key values are only returned to service or user on creation.</li>
 <li>Keys can be disabled and/or revoked to prevent use.</li>
 </ul>
 <p>TODO(docs): Check this meets key management standard NIST SP 800-57.</p>
-<h3 id="section-22"><span class="header-section-number">6.4.15</span> 1.6.2</h3>
+<h3 id="section-23"><span class="header-section-number">6.4.15</span> 1.6.2</h3>
 <ul>
 <li>Cannot verify that services protect created key values.</li>
 </ul>
-<h3 id="section-23"><span class="header-section-number">6.4.16</span> 1.6.3</h3>
+<h3 id="section-24"><span class="header-section-number">6.4.16</span> 1.6.3</h3>
 <ul>
 <li>No hard-coded keys or passwords, all keys and passwords can be replaced.</li>
 </ul>
-<h3 id="section-24"><span class="header-section-number">6.4.17</span> 1.6.4</h3>
+<h3 id="section-25"><span class="header-section-number">6.4.17</span> 1.6.4</h3>
 <ul>
 <li>API key support is clear-text equivalent.</li>
 <li>Authentication via API key is probably not considered low risk secret.</li>
 <li>Keys can be disabled/revoked to mitigate breaches, but this is not a solution.</li>
 </ul>
-<h3 id="section-25"><span class="header-section-number">6.4.18</span> 1.7.1, 1.7.2</h3>
+<h3 id="section-26"><span class="header-section-number">6.4.18</span> 1.7.1, 1.7.2</h3>
 <ul>
 <li>Audit log format is common and used when making calls via API.</li>
 <li>Stdout/stderr logging is not consistent.</li>
@@ -1150,35 +1152,35 @@ font-size: 16px;
 <li>Stdout/stderr logging is not transmitted to a remote system,</li>
 </ul>
 <p>TODO(feature): Option to transmit audit logs, stdout/stderr to external service(s).</p>
-<h3 id="section-26"><span class="header-section-number">6.4.19</span> 1.8.1, 1.8.2</h3>
+<h3 id="section-27"><span class="header-section-number">6.4.19</span> 1.8.1, 1.8.2</h3>
 <ul>
 <li>Sensitive data is not identified or classified into protection levels.</li>
 </ul>
 <p>TODO(docs): Evaluate data and identify/classify sensitive data.</p>
 <p>TODO(refactor): Audit log retention configuration.</p>
-<h3 id="section-27"><span class="header-section-number">6.4.20</span> 1.9.1, 1.9.2</h3>
+<h3 id="section-28"><span class="header-section-number">6.4.20</span> 1.9.1, 1.9.2</h3>
 <ul>
 <li>Connection to database, other services must be encrypted.</li>
 </ul>
 <p>TODO(docs): Mutual TLS encryption/authentication for postgres connection.</p>
-<h3 id="section-28"><span class="header-section-number">6.4.21</span> 1.10.1</h3>
+<h3 id="section-29"><span class="header-section-number">6.4.21</span> 1.10.1</h3>
 <ul>
 <li>Git and GitHub used for source code control, no formal commit procedure.</li>
 </ul>
 <p>TODO(docs): Some kind of formalised procedures around source code changes.</p>
-<h3 id="section-29"><span class="header-section-number">6.4.22</span> 1.11.1</h3>
+<h3 id="section-30"><span class="header-section-number">6.4.22</span> 1.11.1</h3>
 <ul>
 <li>Little documentation and definitions of application components, out of date.</li>
 </ul>
 <p>TODO(docs): Up to date documentation and definitions of application components, diagrams.</p>
-<h3 id="section-30"><span class="header-section-number">6.4.23</span> 1.11.2, 1.11.3</h3>
+<h3 id="section-31"><span class="header-section-number">6.4.23</span> 1.11.2, 1.11.3</h3>
 <ul>
 <li>No unsynchronised state shared between high-value business logic flows.</li>
 <li>All code should be threadsafe (no use of unsafe).</li>
 <li>I don’t think there is any but probably needs more thorough check, including dependencies.</li>
 </ul>
 <p>TODO(feature): Constant time responses for authentication endpoints to resist timing attacks.</p>
-<h3 id="section-31"><span class="header-section-number">6.4.24</span> 1.12.1, 1.12.2</h3>
+<h3 id="section-32"><span class="header-section-number">6.4.24</span> 1.12.1, 1.12.2</h3>
 <ul>
 <li>No user uploaded files, if feature added in future files will be stored as binary blobs in database.</li>
 <li>Serve files as octet stream downloads if added.</li>

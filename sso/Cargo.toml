@@ -1,6 +1,6 @@
 [package]
 name = "sso"
-version = "0.8.0"
+version = "0.9.0"
 description = "Single sign-on authentication server."
 authors = ["Sam Ward <git@mojzu.net>"]
 license = "Unlicense"

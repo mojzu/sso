@@ -1,4 +1,4 @@
-% sso 0.7.0
+% sso 0.8.0
 % Sam Ward
 %
 
