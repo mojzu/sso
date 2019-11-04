@@ -2,6 +2,10 @@
 
 ## 0.9.0 (?)
 
+### Changed
+
+- Add `compare_opt` function to AuditDiffBuilder.
+
 ## 0.8.0 (2019-11-03)
 
 ### Added

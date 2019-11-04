@@ -434,6 +434,36 @@ impl AuditDiffBuilder {
         self
     }
 
+    /// Compare 2 versions of an optional value, if different push a row to diff data.
+    pub fn compare_opt<T: PartialEq + fmt::Display>(
+        mut self,
+        key: &str,
+        current: Option<&T>,
+        previous: Option<&T>,
+    ) -> Self {
+        match (current, previous) {
+            (Some(current), Some(previous)) => {
+                if current != previous {
+                    self.data.push((
+                        String::from(key),
+                        format!("{}", previous),
+                        format!("{}", current),
+                    ))
+                }
+            }
+            (Some(current), _) => {
+                self.data
+                    .push((String::from(key), format!(""), format!("{}", current)))
+            }
+            (_, Some(previous)) => {
+                self.data
+                    .push((String::from(key), format!("{}", previous), format!("")))
+            }
+            _ => {}
+        };
+        self
+    }
+
     /// Compare 2 versions of a vector, if different push a row to diff data.
     pub fn compare_vec<T: PartialEq + fmt::Display>(
         mut self,
