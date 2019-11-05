@@ -282,9 +282,13 @@ impl ClientSync {
     }
 
     /// Audit read request.
-    pub fn audit_read(&self, id: Uuid) -> ApiResult<api::AuditReadResponse> {
+    pub fn audit_read(
+        &self,
+        id: Uuid,
+        query: api::AuditReadRequest,
+    ) -> ApiResult<api::AuditReadResponse> {
         let route = api::route::audit_id(id);
-        self.get(&route)
+        self.get_query(&route, &query)
             .and_then(Self::response_json::<api::AuditReadResponse>)
     }
 

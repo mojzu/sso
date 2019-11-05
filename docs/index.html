@@ -830,8 +830,13 @@ font-size: 16px;
 <p>TODO(docs): CLI documentation.</p>
 <h1 id="changelog"><span class="header-section-number">5</span> Changelog</h1>
 <h2 id="section"><span class="header-section-number">5.1</span> 0.9.0 (?)</h2>
+<h3 id="added"><span class="header-section-number">5.1.1</span> Added</h3>
+<ul>
+<li>Added <code>compare_opt</code> function to AuditDiffBuilder.</li>
+<li>Added optional <code>subject</code> query parameter to audit read endpoint to mask by subject.</li>
+</ul>
 <h2 id="section-1"><span class="header-section-number">5.2</span> 0.8.0 (2019-11-03)</h2>
-<h3 id="added"><span class="header-section-number">5.2.1</span> Added</h3>
+<h3 id="added-1"><span class="header-section-number">5.2.1</span> Added</h3>
 <ul>
 <li>Added <code>name_ge</code>, <code>name_le</code>, <code>offset_id</code> query parameters to user list route for sorting by name.</li>
 <li>Added <code>status_code</code> to audit logs. Endpoints which accepted custom audit objects now accept custom audit type string. Status code, subject and data can be added later via update endpoint.</li>
@@ -859,7 +864,7 @@ font-size: 16px;
 <li>Fixed <code>impl_enum_to_from_string</code> use statements to not conflict with library types.</li>
 </ul>
 <h2 id="section-2"><span class="header-section-number">5.3</span> 0.7.0 (2019-10-19)</h2>
-<h3 id="added-1"><span class="header-section-number">5.3.1</span> Added</h3>
+<h3 id="added-2"><span class="header-section-number">5.3.1</span> Added</h3>
 <ul>
 <li>Added <code>Debug</code> trait implementations for public types.</li>
 <li>Added filters to key list endpoint with <code>KeyFilter</code> options.</li>
@@ -900,7 +905,7 @@ font-size: 16px;
 <li>Fixed read user by ID route <code>/v1/user/{id}</code> attempts to read key.</li>
 </ul>
 <h2 id="section-4"><span class="header-section-number">5.5</span> 0.5.0 (2019-10-05)</h2>
-<h3 id="added-2"><span class="header-section-number">5.5.1</span> Added</h3>
+<h3 id="added-3"><span class="header-section-number">5.5.1</span> Added</h3>
 <ul>
 <li>Added TOTP validation route.</li>
 <li>Added key flags: <code>allow_key</code>, <code>allow_token</code>, <code>allow_totp</code>.</li>
@@ -916,7 +921,7 @@ font-size: 16px;
 <li>Changed authentication provider interface so callbacks always go to service.</li>
 </ul>
 <h2 id="section-5"><span class="header-section-number">5.6</span> 0.4.0 (2019-09-09)</h2>
-<h3 id="added-3"><span class="header-section-number">5.6.1</span> Added</h3>
+<h3 id="added-4"><span class="header-section-number">5.6.1</span> Added</h3>
 <ul>
 <li>Added some process metrics to Prometheus integration.</li>
 <li>Created asynchronous client actor to handle outgoing HTTP requests.</li>
@@ -935,7 +940,7 @@ font-size: 16px;
 <li>Fixed missing <code>dyn</code> keyword warnings.</li>
 </ul>
 <h2 id="section-6"><span class="header-section-number">5.7</span> 0.3.0 (2019-08-03)</h2>
-<h3 id="added-4"><span class="header-section-number">5.7.1</span> Added</h3>
+<h3 id="added-5"><span class="header-section-number">5.7.1</span> Added</h3>
 <ul>
 <li>Improved email templates, removed template parameters from routes.</li>
 <li>Defined server routes and other constants in <code>server::api</code> module.</li>
@@ -962,7 +967,7 @@ font-size: 16px;
 <li>Fixed internal server errors returned to client when OAuth2 provider is disabled.</li>
 </ul>
 <h2 id="section-7"><span class="header-section-number">5.8</span> 0.2.0 (2019-07-07)</h2>
-<h3 id="added-5"><span class="header-section-number">5.8.1</span> Added</h3>
+<h3 id="added-6"><span class="header-section-number">5.8.1</span> Added</h3>
 <ul>
 <li>Added audit logging to authentication routes.</li>
 <li>Added is enabled flag to services, users and keys, added is revoked flag to keys.</li>
@@ -991,7 +996,7 @@ font-size: 16px;
 <li>Fixed Lettre email error type handling.</li>
 </ul>
 <h2 id="section-8"><span class="header-section-number">5.9</span> 0.1.0 (2019-05-16)</h2>
-<h3 id="added-6"><span class="header-section-number">5.9.1</span> Added</h3>
+<h3 id="added-7"><span class="header-section-number">5.9.1</span> Added</h3>
 <ul>
 <li>First version.</li>
 </ul>

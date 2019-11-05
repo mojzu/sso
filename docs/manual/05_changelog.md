@@ -2,9 +2,10 @@
 
 ## 0.9.0 (?)
 
-### Changed
+### Added
 
-- Add `compare_opt` function to AuditDiffBuilder.
+- Added `compare_opt` function to AuditDiffBuilder.
+- Added optional `subject` query parameter to audit read endpoint to mask by subject.
 
 ## 0.8.0 (2019-11-03)
 

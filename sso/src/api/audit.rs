@@ -137,6 +137,22 @@ pub struct AuditCreateRequest {
 
 impl ValidateRequest<AuditCreateRequest> for AuditCreateRequest {}
 
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct AuditReadRequest {
+    #[validate(custom = "validate::audit_subject")]
+    pub subject: Option<String>,
+}
+
+impl ValidateRequest<AuditReadRequest> for AuditReadRequest {}
+impl ValidateRequestQuery<AuditReadRequest> for AuditReadRequest {}
+
+impl AuditReadRequest {
+    pub fn new(subject: Option<String>) -> Self {
+        Self { subject }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuditReadResponse {
@@ -232,10 +248,11 @@ pub fn audit_read(
     audit_meta: AuditMeta,
     key_value: Option<String>,
     audit_id: Uuid,
+    request: AuditReadRequest,
 ) -> ApiResult<AuditReadResponse> {
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditRead);
 
-    let res = server_audit::read(driver, &mut audit, key_value, audit_id);
+    let res = server_audit::read(driver, &mut audit, key_value, audit_id, request);
     result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
 }
 
@@ -273,7 +290,7 @@ mod server_audit {
         let list = AuditList {
             query,
             filter,
-            service_id_mask: service.map(|s| s.id),
+            service_id: service.map(|s| s.id),
         };
         driver.audit_list(&list).map_err(ApiError::BadRequest)
     }
@@ -299,11 +316,16 @@ mod server_audit {
         audit: &mut AuditBuilder,
         key_value: Option<String>,
         audit_id: Uuid,
+        request: AuditReadRequest,
     ) -> ApiResult<Audit> {
         let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         driver
-            .audit_read(&AuditRead::new(audit_id).service_id_mask(service.map(|x| x.id)))
+            .audit_read(
+                &AuditRead::new(audit_id)
+                    .subject(request.subject)
+                    .service_id(service.map(|x| x.id)),
+            )
             .map_err(ApiError::BadRequest)?
             .ok_or_else(|| ApiError::NotFound(DriverError::AuditNotFound))
     }

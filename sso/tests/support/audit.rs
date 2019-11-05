@@ -8,6 +8,7 @@ macro_rules! audit_integration_test {
             let (_service, service_key) = service_key_create(&client);
             let client = client_create(Some(&service_key.value));
             let type_ = "test_1".to_owned();
+            let read = AuditReadRequest::new(None);
             let limit = 3;
 
             let a1 = client
@@ -66,7 +67,7 @@ macro_rules! audit_integration_test {
             let r1_2 = res1.data[1].id;
             let r1_3 = res1.data[2].id;
             assert_eq!(r1_1, a1.id);
-            let a1 = client.audit_read(r1_1).unwrap().data;
+            let a1 = client.audit_read(r1_1, read.clone()).unwrap().data;
 
             let res2 = client
                 .audit_list(
@@ -84,7 +85,7 @@ macro_rules! audit_integration_test {
             let r2_4 = res2.data[2].id;
             assert_eq!(r2_2, r1_2);
             assert_eq!(r2_3, r1_3);
-            let a2 = client.audit_read(r2_2).unwrap().data;
+            let a2 = client.audit_read(r2_2, read.clone()).unwrap().data;
 
             let res3 = client
                 .audit_list(
@@ -102,7 +103,7 @@ macro_rules! audit_integration_test {
             let r3_5 = res3.data[2].id;
             assert_eq!(r3_3, r2_3);
             assert_eq!(r3_4, r2_4);
-            let a5 = client.audit_read(r3_5).unwrap().data;
+            let a5 = client.audit_read(r3_5, read.clone()).unwrap().data;
 
             let res4 = client
                 .audit_list(
@@ -121,7 +122,7 @@ macro_rules! audit_integration_test {
             assert_eq!(r4_2, r2_2);
             assert_eq!(r4_3, r3_3);
             assert_eq!(r4_4, r3_4);
-            let a4 = client.audit_read(r4_4).unwrap().data;
+            let a4 = client.audit_read(r4_4, read.clone()).unwrap().data;
 
             let res5 = client
                 .audit_list(
@@ -149,6 +150,7 @@ macro_rules! audit_integration_test {
             let (_service, service_key) = service_key_create(&client);
             let client = client_create(Some(&service_key.value));
             let type_ = "test_1".to_owned();
+            let read = AuditReadRequest::new(None);
             let limit = 3;
 
             let a1 = client
@@ -191,8 +193,8 @@ macro_rules! audit_integration_test {
             let r1_2 = res1.data[1].id;
             let r1_3 = res1.data[2].id;
             assert_eq!(r1_1, a1.id);
-            let a1 = client.audit_read(r1_1).unwrap().data;
-            let a3 = client.audit_read(r1_3).unwrap().data;
+            let a1 = client.audit_read(r1_1, read.clone()).unwrap().data;
+            let a3 = client.audit_read(r1_3, read.clone()).unwrap().data;
 
             let res2 = client
                 .audit_list(
@@ -219,7 +221,9 @@ macro_rules! audit_integration_test {
             let (_service, service_key) = service_key_create(&client);
             let client = client_create(Some(&service_key.value));
 
-            let res = client.audit_read(Uuid::nil()).unwrap_err();
+            let res = client
+                .audit_read(Uuid::nil(), AuditReadRequest::new(None))
+                .unwrap_err();
             assert_eq!(res.status_code(), StatusCode::NOT_FOUND.as_u16());
         }
 
@@ -242,7 +246,9 @@ macro_rules! audit_integration_test {
                 .data;
 
             let client = client_create(Some(&service_key2.value));
-            let res = client.audit_read(a1.id).unwrap_err();
+            let res = client
+                .audit_read(a1.id, AuditReadRequest::new(None))
+                .unwrap_err();
             assert_eq!(res.status_code(), StatusCode::NOT_FOUND.as_u16());
         }
 
@@ -250,7 +256,9 @@ macro_rules! audit_integration_test {
         #[ignore]
         fn api_audit_read_unauthorised() {
             let client = client_create(Some(INVALID_KEY));
-            let res = client.audit_read(Uuid::nil()).unwrap_err();
+            let res = client
+                .audit_read(Uuid::nil(), AuditReadRequest::new(None))
+                .unwrap_err();
             assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
         }
 
@@ -273,7 +281,9 @@ macro_rules! audit_integration_test {
                 .data;
 
             let client = client_create(Some(&service2_key.value));
-            let res = client.audit_read(audit.id).unwrap_err();
+            let res = client
+                .audit_read(audit.id, AuditReadRequest::new(None))
+                .unwrap_err();
             assert_eq!(res.status_code(), StatusCode::NOT_FOUND.as_u16());
         }
 
@@ -290,7 +300,9 @@ macro_rules! audit_integration_test {
                 )
                 .unwrap()
                 .data;
-            let res = client.audit_read(audit.id).unwrap();
+            let res = client
+                .audit_read(audit.id, AuditReadRequest::new(None))
+                .unwrap();
             assert_eq!(res.data.id, audit.id);
         }
 

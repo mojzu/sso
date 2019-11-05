@@ -204,26 +204,33 @@ pub struct AuditListFilter {
 pub struct AuditList<'a> {
     pub query: &'a AuditListQuery,
     pub filter: &'a AuditListFilter,
-    pub service_id_mask: Option<Uuid>,
+    pub service_id: Option<Uuid>,
 }
 
 /// Audit read.
 #[derive(Debug)]
 pub struct AuditRead {
     pub id: Uuid,
-    pub service_id_mask: Option<Uuid>,
+    pub subject: Option<String>,
+    pub service_id: Option<Uuid>,
 }
 
 impl AuditRead {
     pub fn new(id: Uuid) -> Self {
         Self {
             id,
-            service_id_mask: None,
+            subject: None,
+            service_id: None,
         }
     }
 
-    pub fn service_id_mask(mut self, service_id_mask: Option<Uuid>) -> Self {
-        self.service_id_mask = service_id_mask;
+    pub fn subject(mut self, subject: Option<String>) -> Self {
+        self.subject = subject;
+        self
+    }
+
+    pub fn service_id(mut self, service_id: Option<Uuid>) -> Self {
+        self.service_id = service_id;
         self
     }
 }

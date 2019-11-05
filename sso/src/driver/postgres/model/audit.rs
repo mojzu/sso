@@ -87,7 +87,7 @@ impl ModelAudit {
                 *limit,
                 offset_id,
                 list.filter,
-                list.service_id_mask.as_ref(),
+                list.service_id.as_ref(),
             ),
             AuditListQuery::CreatedGe(ge, limit, offset_id) => Self::list_where_created_ge(
                 conn,
@@ -95,7 +95,7 @@ impl ModelAudit {
                 *limit,
                 offset_id,
                 list.filter,
-                list.service_id_mask.as_ref(),
+                list.service_id.as_ref(),
             ),
             AuditListQuery::CreatedLeAndGe(le, ge, limit, offset_id) => {
                 Self::list_where_created_le_and_ge(
@@ -105,7 +105,7 @@ impl ModelAudit {
                     *limit,
                     offset_id,
                     list.filter,
-                    list.service_id_mask.as_ref(),
+                    list.service_id.as_ref(),
                 )
             }
         }
@@ -139,21 +139,21 @@ impl ModelAudit {
     }
 
     pub fn read(conn: &PgConnection, read: &AuditRead) -> DriverResult<Option<Audit>> {
-        match read.service_id_mask {
-            Some(service_id_mask) => sso_audit::table
-                .filter(
-                    sso_audit::dsl::service_id
-                        .eq(service_id_mask)
-                        .and(sso_audit::dsl::id.eq(read.id)),
-                )
-                .get_result::<ModelAudit>(conn),
-            None => sso_audit::table
-                .filter(sso_audit::dsl::id.eq(read.id))
-                .get_result::<ModelAudit>(conn),
+        let mut query = sso_audit::table.into_boxed();
+
+        if let Some(subject) = read.subject.as_ref() {
+            query = query.filter(sso_audit::dsl::subject.eq(subject));
         }
-        .optional()
-        .map_err(Into::into)
-        .map(|x| x.map(Into::into))
+        if let Some(service_id) = read.service_id.as_ref() {
+            query = query.filter(sso_audit::dsl::service_id.eq(service_id));
+        }
+
+        query
+            .filter(sso_audit::dsl::id.eq(read.id))
+            .get_result::<ModelAudit>(conn)
+            .optional()
+            .map_err(Into::into)
+            .map(|x| x.map(Into::into))
     }
 
     pub fn read_metrics(

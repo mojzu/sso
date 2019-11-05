@@ -14,7 +14,7 @@ pub use http::StatusCode;
 pub use serde_json::Value;
 pub use sso::{
     api::{
-        AuditCreateRequestBuilder, AuditListRequestBuilder, AuditUpdateRequest,
+        AuditCreateRequestBuilder, AuditListRequestBuilder, AuditReadRequest, AuditUpdateRequest,
         AuthCsrfCreateRequest, AuthCsrfVerifyRequest, AuthKeyRequest, AuthLoginRequest,
         AuthOauth2UrlResponse, AuthRegisterRequest, AuthResetPasswordConfirmRequest,
         AuthResetPasswordRequest, AuthTokenRequest, AuthTotpRequest, AuthUpdateEmailRequest,

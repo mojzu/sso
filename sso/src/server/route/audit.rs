@@ -71,10 +71,12 @@ fn read_handler(
     let audit_meta = request_audit_meta(&req);
     let id = id.identity();
     let (audit_id,) = path.into_inner();
+    let request = api::AuditReadRequest::from_str_fut(req.query_string());
 
     audit_meta
-        .and_then(move |audit_meta| {
-            web::block(move || api::audit_read(data.driver(), audit_meta, id, audit_id))
+        .join(request)
+        .and_then(move |(audit_meta, request)| {
+            web::block(move || api::audit_read(data.driver(), audit_meta, id, audit_id, request))
                 .map_err(Into::into)
         })
         .map_err(Into::into)
