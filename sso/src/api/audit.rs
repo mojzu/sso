@@ -1,7 +1,8 @@
 use crate::{
-    api::{result_audit_err, validate, ApiResult, ValidateRequest, ValidateRequestQuery},
-    Audit, AuditBuilder, AuditListFilter, AuditListQuery, AuditMeta, AuditRead, AuditType,
-    AuditUpdate, Driver, DEFAULT_LIMIT,
+    api::{result_audit_err, validate, ApiError, ApiResult, ValidateRequest, ValidateRequestQuery},
+    pattern::*,
+    Audit, AuditBuilder, AuditList, AuditListFilter, AuditListQuery, AuditMeta, AuditRead,
+    AuditType, AuditUpdate, Driver, DriverError, DEFAULT_LIMIT,
 };
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
@@ -223,62 +224,7 @@ pub fn audit_list(
     let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditList);
     let (query, filter) = request.into_query_filter();
 
-    let res = server_audit::list(driver, &mut audit, key_value, &query, &filter);
-    result_audit_err(driver, &audit, res).map(|data| AuditListResponse {
-        meta: AuditListRequest::from_query_filter(query, filter),
-        data,
-    })
-}
-
-pub fn audit_create(
-    driver: &dyn Driver,
-    audit_meta: AuditMeta,
-    key_value: Option<String>,
-    request: AuditCreateRequest,
-) -> ApiResult<AuditReadResponse> {
-    AuditCreateRequest::api_validate(&request)?;
-    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditCreate);
-
-    let res = server_audit::create(driver, &mut audit, key_value, request);
-    result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
-}
-
-pub fn audit_read(
-    driver: &dyn Driver,
-    audit_meta: AuditMeta,
-    key_value: Option<String>,
-    audit_id: Uuid,
-    request: AuditReadRequest,
-) -> ApiResult<AuditReadResponse> {
-    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditRead);
-
-    let res = server_audit::read(driver, &mut audit, key_value, audit_id, request);
-    result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
-}
-
-pub fn audit_update(
-    driver: &dyn Driver,
-    audit_meta: AuditMeta,
-    key_value: Option<String>,
-    audit_id: Uuid,
-    request: AuditUpdateRequest,
-) -> ApiResult<AuditReadResponse> {
-    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditUpdate);
-    let update: AuditUpdate = request.into();
-
-    let res = server_audit::update(driver, &mut audit, key_value, audit_id, update);
-    result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
-}
-
-mod server_audit {
-    use super::*;
-    use crate::{
-        api::{ApiError, ApiResult},
-        pattern::*,
-        Audit, AuditBuilder, AuditList, AuditListFilter, AuditListQuery, Driver, DriverError,
-    };
-
-    pub fn list(
+    fn list_inner(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<String>,
@@ -295,7 +241,23 @@ mod server_audit {
         driver.audit_list(&list).map_err(ApiError::BadRequest)
     }
 
-    pub fn create(
+    let res = list_inner(driver, &mut audit, key_value, &query, &filter);
+    result_audit_err(driver, &audit, res).map(|data| AuditListResponse {
+        meta: AuditListRequest::from_query_filter(query, filter),
+        data,
+    })
+}
+
+pub fn audit_create(
+    driver: &dyn Driver,
+    audit_meta: AuditMeta,
+    key_value: Option<String>,
+    request: AuditCreateRequest,
+) -> ApiResult<AuditReadResponse> {
+    AuditCreateRequest::api_validate(&request)?;
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditCreate);
+
+    fn create_inner(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<String>,
@@ -311,7 +273,20 @@ mod server_audit {
             .map_err(ApiError::BadRequest)
     }
 
-    pub fn read(
+    let res = create_inner(driver, &mut audit, key_value, request);
+    result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
+}
+
+pub fn audit_read(
+    driver: &dyn Driver,
+    audit_meta: AuditMeta,
+    key_value: Option<String>,
+    audit_id: Uuid,
+    request: AuditReadRequest,
+) -> ApiResult<AuditReadResponse> {
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditRead);
+
+    fn read_inner(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<String>,
@@ -330,7 +305,21 @@ mod server_audit {
             .ok_or_else(|| ApiError::NotFound(DriverError::AuditNotFound))
     }
 
-    pub fn update(
+    let res = read_inner(driver, &mut audit, key_value, audit_id, request);
+    result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
+}
+
+pub fn audit_update(
+    driver: &dyn Driver,
+    audit_meta: AuditMeta,
+    key_value: Option<String>,
+    audit_id: Uuid,
+    request: AuditUpdateRequest,
+) -> ApiResult<AuditReadResponse> {
+    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditUpdate);
+    let update: AuditUpdate = request.into();
+
+    fn update_inner(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<String>,
@@ -343,4 +332,7 @@ mod server_audit {
             .audit_update(&audit_id, &update, service.map(|x| x.id))
             .map_err(ApiError::BadRequest)
     }
+
+    let res = update_inner(driver, &mut audit, key_value, audit_id, update);
+    result_audit_err(driver, &audit, res).map(|data| AuditReadResponse { data })
 }
