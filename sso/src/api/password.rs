@@ -20,7 +20,7 @@ pub fn password_meta(
         Some("") => future::Either::B(future::ok(UserPasswordMeta::invalid())),
         Some(password) => {
             let password_strength = password_meta_strength(password).then(|r| match r {
-                Ok(entropy) => future::ok(Some(entropy.score)),
+                Ok(entropy) => future::ok(Some(entropy.score())),
                 Err(err) => {
                     warn!("{}", err);
                     future::ok(None)
