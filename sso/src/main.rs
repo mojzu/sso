@@ -19,6 +19,7 @@ const CRATE_AUTHORS: &str = "Sam Ward <git@mojzu.net>";
 const ENV_SENTRY_URL: &str = "SENTRY_URL";
 const ENV_DATABASE_URL: &str = "DATABASE_URL";
 const ENV_DATABASE_CONNECTIONS: &str = "DATABASE_CONNECTIONS";
+const ENV_SERVER_THREADS: &str = "SERVER_THREADS";
 const ENV_SERVER_HOSTNAME: &str = "SERVER_HOSTNAME";
 const ENV_SERVER_BIND: &str = "SERVER_BIND";
 const ENV_SERVER_TLS_CRT_PEM: &str = "SERVER_TLS_CRT_PEM";
@@ -188,6 +189,7 @@ fn main() {
 fn configure() -> DriverResult<(Box<dyn Driver>, CliOptions)> {
     let database_url = env::string(ENV_DATABASE_URL)?;
     let database_connections = env::value_opt::<u32>(ENV_DATABASE_CONNECTIONS)?;
+    let server_threads = env::value_opt::<usize>(ENV_SERVER_THREADS)?.unwrap_or(4);
     let server_hostname = env::string_opt(ENV_SERVER_HOSTNAME).unwrap_or_else(|| "sso".to_owned());
     let server_bind = env::string(ENV_SERVER_BIND)?;
     let smtp = env::smtp(
@@ -230,7 +232,7 @@ fn configure() -> DriverResult<(Box<dyn Driver>, CliOptions)> {
         .set_user_agent(&server_hostname)
         .set_smtp_transport(smtp)
         .set_smtp_file_transport(smtp_file);
-    let options = CliOptions::new(4, server);
+    let options = CliOptions::new(server_threads, server);
 
     Ok((driver, options))
 }

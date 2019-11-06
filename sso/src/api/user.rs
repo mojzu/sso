@@ -9,6 +9,8 @@ use crate::{
 use uuid::Uuid;
 use validator::Validate;
 
+// TODO(fix): This can produce URLs that are too long causing reqwest panics.
+
 #[derive(Debug, Serialize, Deserialize, Validate, Builder)]
 #[serde(deny_unknown_fields)]
 pub struct UserListRequest {
