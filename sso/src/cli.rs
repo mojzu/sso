@@ -1,6 +1,6 @@
 use crate::{
-    AuditBuilder, Driver, DriverError, DriverResult, KeyCreate, KeyWithValue, Server,
-    ServerOptions, Service, ServiceCreate,
+    pattern::task_thread_spawn, AuditBuilder, Driver, DriverError, DriverResult, KeyCreate,
+    KeyWithValue, Server, ServerOptions, Service, ServiceCreate,
 };
 use actix_rt::System;
 
@@ -9,6 +9,7 @@ use actix_rt::System;
 pub struct CliOptions {
     server_threads: usize,
     server: ServerOptions,
+    task_tick_ms: u64,
 }
 
 impl CliOptions {
@@ -17,6 +18,7 @@ impl CliOptions {
         Self {
             server_threads,
             server,
+            task_tick_ms: 1000,
         }
     }
 
@@ -28,6 +30,11 @@ impl CliOptions {
     /// Returns server options reference.
     pub fn server(&self) -> &ServerOptions {
         &self.server
+    }
+
+    /// Returns task tick interval in milliseconds.
+    pub fn task_tick_ms(&self) -> u64 {
+        self.task_tick_ms
     }
 }
 
@@ -80,13 +87,18 @@ impl Cli {
         Ok((service, key))
     }
 
-    /// Start server.
+    /// Start server and task thread.
     pub fn start_server(driver: Box<dyn Driver>, options: CliOptions) -> DriverResult<()> {
         let system = System::new(crate_name!());
 
         let server_options = options.server().clone();
-        Server::start(options.server_threads(), driver, server_options)?;
+        Server::start(options.server_threads(), driver.clone(), server_options)?;
 
-        system.run().map_err(DriverError::StdIo).map_err(Into::into)
+        let (task_thread, task_end) = task_thread_spawn(driver.clone(), options.task_tick_ms());
+
+        system.run().map_err(DriverError::StdIo).map(|_| {
+            task_end.send(()).unwrap();
+            task_thread.join().unwrap();
+        })
     }
 }

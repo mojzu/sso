@@ -3,7 +3,9 @@ use crate::{
     AuditBuilder, Driver, DriverError, DriverResult, Jwt, KeyRead, KeyType, KeyWithValue, Service,
     ServiceRead, User, UserRead,
 };
+use job_scheduler::{Job, JobScheduler};
 use libreauth::oath::TOTPBuilder;
+use std::{sync::mpsc, thread, time::Duration};
 use uuid::Uuid;
 
 // TODO(refactor): Improve usability, composability of pattern functions.
@@ -331,4 +333,35 @@ pub fn key_read_user_value_unchecked(
         .ok_or_else(|| DriverError::KeyNotFound)?;
     audit.user_key(Some(&key));
     Ok(key)
+}
+
+/// Spawn a thread for background tasks with scheduler tick interval in milliseconds.
+/// Returns a thread join handle and sender half of a channel.
+/// Sending a message to the channel ends the thread.
+pub fn task_thread_spawn(
+    driver: Box<dyn Driver>,
+    tick_ms: u64,
+) -> (thread::JoinHandle<()>, mpsc::Sender<()>) {
+    let (tx, rx) = mpsc::channel::<()>();
+
+    let thread_handle = thread::spawn(move || {
+        let mut sched = JobScheduler::new();
+
+        // TODO(refactor): Task job setup.
+        // TODO(refactor): Audit retention configuration.
+        // sched.add(Job::new("1/10 * * * * *".parse().unwrap(), || {
+        //     println!("I get executed every 10 seconds!");
+        // }));
+
+        loop {
+            sched.tick();
+
+            thread::sleep(Duration::from_millis(tick_ms));
+            if rx.try_recv().is_ok() {
+                return;
+            }
+        }
+    });
+
+    (thread_handle, tx)
 }
