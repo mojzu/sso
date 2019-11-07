@@ -315,7 +315,7 @@ pub fn user_update(
         request.timezone,
         request.password_allow_reset,
         request.password_require_update,
-    );;
+    );
 
     let res = server_user::update(driver, &mut audit, key_value, user_id, update);
     result_audit_diff(driver, &audit, res).map(|data| UserReadResponse { data })
