@@ -26,6 +26,9 @@ pub use crate::driver::{
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
+/// Default offset.
+pub const DEFAULT_OFFSET: i64 = 0;
+
 /// Default limit.
 pub const DEFAULT_LIMIT: i64 = 50;
 
