@@ -1,8 +1,10 @@
 use crate::{
-    pattern::task_thread_spawn, AuditBuilder, Driver, DriverError, DriverResult, KeyCreate,
-    KeyWithValue, Server, ServerOptions, Service, ServiceCreate,
+    pattern::{task_thread_start, task_thread_stop},
+    AuditBuilder, Driver, DriverError, DriverResult, KeyCreate, KeyWithValue, Server,
+    ServerOptions, Service, ServiceCreate,
 };
 use actix_rt::System;
+use chrono::Duration;
 
 /// CLI options.
 #[derive(Debug, Clone)]
@@ -10,6 +12,7 @@ pub struct CliOptions {
     server_threads: usize,
     server: ServerOptions,
     task_tick_ms: u64,
+    audit_retention: Duration,
 }
 
 impl CliOptions {
@@ -18,6 +21,7 @@ impl CliOptions {
         Self {
             server_threads,
             server,
+            audit_retention: Duration::weeks(12),
             task_tick_ms: 1000,
         }
     }
@@ -35,6 +39,11 @@ impl CliOptions {
     /// Returns task tick interval in milliseconds.
     pub fn task_tick_ms(&self) -> u64 {
         self.task_tick_ms
+    }
+
+    /// Returns audit log retention duration.
+    pub fn audit_retention(&self) -> &Duration {
+        &self.audit_retention
     }
 }
 
@@ -94,11 +103,14 @@ impl Cli {
         let server_options = options.server().clone();
         Server::start(options.server_threads(), driver.clone(), server_options)?;
 
-        let (task_thread, task_end) = task_thread_spawn(driver.clone(), options.task_tick_ms());
+        let (task_handle, task_tx) = task_thread_start(
+            driver.clone(),
+            options.task_tick_ms(),
+            options.audit_retention(),
+        );
 
         system.run().map_err(DriverError::StdIo).map(|_| {
-            task_end.send(()).unwrap();
-            task_thread.join().unwrap();
+            task_thread_stop(task_handle, task_tx);
         })
     }
 }

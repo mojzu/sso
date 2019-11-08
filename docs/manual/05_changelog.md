@@ -7,6 +7,7 @@
 - Added `compare_opt` function to AuditDiffBuilder.
 - Added optional `subject` query parameter to audit read endpoint to mask by subject.
 - Added `SERVER_THREADS` environment configuration option, defaults to 4.
+- Added scheduled tasks for audit log retention support.
 
 ## 0.8.0 (2019-11-03)
 

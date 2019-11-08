@@ -3,9 +3,10 @@ use crate::{
     AuditBuilder, Driver, DriverError, DriverResult, Jwt, KeyRead, KeyType, KeyWithValue, Service,
     ServiceRead, User, UserRead,
 };
+use chrono::{Duration, Utc};
 use job_scheduler::{Job, JobScheduler};
 use libreauth::oath::TOTPBuilder;
-use std::{sync::mpsc, thread, time::Duration};
+use std::{sync::mpsc, thread};
 use uuid::Uuid;
 
 // TODO(refactor): Improve usability, composability of pattern functions.
@@ -335,33 +336,56 @@ pub fn key_read_user_value_unchecked(
     Ok(key)
 }
 
+/// Audit log retention clean up task.
+pub fn task_audit_retention<'a>(driver: Box<dyn Driver>, audit_retention: Duration) -> Job<'a> {
+    Job::new("0 0 * * * *".parse().unwrap(), move || {
+        let created_at = Utc::now() - audit_retention;
+        if let Err(e) = driver.audit_delete(&created_at) {
+            warn!("{}", e);
+        }
+    })
+}
+
 /// Spawn a thread for background tasks with scheduler tick interval in milliseconds.
 /// Returns a thread join handle and sender half of a channel.
-/// Sending a message to the channel ends the thread.
-pub fn task_thread_spawn(
+/// Sending a message to the channel ends the thread, or thread ends if channel is disconnected.
+pub fn task_thread_start(
     driver: Box<dyn Driver>,
     tick_ms: u64,
+    audit_retention: &Duration,
 ) -> (thread::JoinHandle<()>, mpsc::Sender<()>) {
+    let audit_retention = *audit_retention;
     let (tx, rx) = mpsc::channel::<()>();
 
     let thread_handle = thread::spawn(move || {
         let mut sched = JobScheduler::new();
-
-        // TODO(refactor): Task job setup.
-        // TODO(refactor): Audit retention configuration.
-        // sched.add(Job::new("1/10 * * * * *".parse().unwrap(), || {
-        //     println!("I get executed every 10 seconds!");
-        // }));
+        sched.add(task_audit_retention(driver.clone(), audit_retention));
 
         loop {
             sched.tick();
 
-            thread::sleep(Duration::from_millis(tick_ms));
-            if rx.try_recv().is_ok() {
-                return;
+            thread::sleep(std::time::Duration::from_millis(tick_ms));
+            match rx.try_recv() {
+                Ok(_) => {
+                    return;
+                }
+                Err(e) => match e {
+                    mpsc::TryRecvError::Disconnected => {
+                        return;
+                    }
+                    mpsc::TryRecvError::Empty => {
+                        continue;
+                    }
+                },
             }
         }
     });
 
     (thread_handle, tx)
+}
+
+/// Stop task thread using sender half of a channel.
+pub fn task_thread_stop(handle: thread::JoinHandle<()>, tx: mpsc::Sender<()>) {
+    tx.send(()).unwrap();
+    handle.join().unwrap();
 }

@@ -1,8 +1,7 @@
 use crate::{DriverError, DriverResult};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use libreauth::key::KeyBuilder;
 use std::fmt;
-use time::Duration;
 use uuid::Uuid;
 
 /// CSRF key size in bytes.
