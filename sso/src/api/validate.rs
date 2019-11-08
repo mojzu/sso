@@ -38,14 +38,6 @@ pub trait ValidateRequestQuery<T: DeserializeOwned> {
     }
 }
 
-pub fn offset(offset: i64) -> Result<(), ValidationError> {
-    if offset < 0 {
-        Err(ValidationError::new("invalid_offset"))
-    } else {
-        Ok(())
-    }
-}
-
 pub fn limit(limit: i64) -> Result<(), ValidationError> {
     if limit < 0 {
         Err(ValidationError::new("invalid_limit"))
