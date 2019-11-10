@@ -1,13 +1,225 @@
-openapi: "3.0.0"
+openapi: "3.0.2"
 info:
-  title: sso
-  version: v1
+  title: "sso"
+  description: "Single sign-on authentication server API."
+  version: "v1"
+  contact:
+    name: "sso"
+    url: "https://github.com/mojzu/sso"
+    email: "git@mojzu.net"
+servers:
+- url: "http://localhost:9000"
+  description: "Local development server."
 paths:
   /v1/ping:
     get:
-      operationId: getV1Ping
-      summary: Server Ping
+      tags:
+      - "Server"
+      operationId: "v1_ping"
+      summary: "Ping the server"
   /v1/metrics:
     get:
-      operationId: getV1Metrics
-      summary: Server Metrics
+      tags:
+      - "Server"
+      operationId: "v1_metrics"
+      summary: "Metrics in Prometheus exposition format"
+
+  /v1/auth/provider/local/login:
+    post:
+      tags:
+      - "Authentication"
+      - "Local Provider"
+      operationId: "v1_auth_provider_local_login"
+      summary: "Login with email and password"
+
+  /v1/auth/provider/local/register:
+    post:
+      tags:
+      - "Authentication"
+      - "Local Provider"
+      operationId: "v1_auth_provider_local_register"
+      summary: "Register a user for service"
+  /v1/auth/provider/local/register/confirm:
+    post:
+      tags:
+      - "Authentication"
+      - "Local Provider"
+      operationId: "v1_auth_provider_local_register_confirm"
+      summary: "Confirm a user registration"
+  /v1/auth/provider/local/register/revoke:
+    post:
+      tags:
+      - "Authentication"
+      - "Local Provider"
+      operationId: "v1_auth_provider_local_register_revoke"
+      summary: "Revoke a user registration"
+
+  /v1/auth/provider/local/reset-password:
+    post:
+      tags:
+      - "Authentication"
+      - "Local Provider"
+      operationId: "v1_auth_provider_local_reset_password"
+      summary: "User reset password request"
+  /v1/auth/provider/local/reset-password/confirm:
+    post:
+      tags:
+      - "Authentication"
+      - "Local Provider"
+      operationId: "v1_auth_provider_local_reset_password_confirm"
+      summary: "Confirm user password reset request"
+  /v1/auth/provider/local/reset-password/revoke:
+    post:
+      tags:
+      - "Authentication"
+      - "Local Provider"
+      operationId: "v1_auth_provider_local_reset_password_revoke"
+      summary: "Revoke user password reset request"
+
+  /v1/auth/provider/local/update-email:
+    post:
+      tags:
+      - "Authentication"
+      - "Local Provider"
+      operationId: "v1_auth_provider_local_update_email"
+      summary: "Update user email"
+  /v1/auth/provider/local/update-email/revoke:
+    post:
+      tags:
+      - "Authentication"
+      - "Local Provider"
+      operationId: "v1_auth_provider_local_update_email_revoke"
+      summary: "Revoke user email update"
+
+  /v1/auth/provider/local/update-password:
+    post:
+      tags:
+      - "Authentication"
+      - "Local Provider"
+      operationId: "v1_auth_provider_local_update_password"
+      summary: "Update user password"
+  /v1/auth/provider/local/update-password/revoke:
+    post:
+      tags:
+      - "Authentication"
+      - "Local Provider"
+      operationId: "v1_auth_provider_local_update_password_revoke"
+      summary: "Revoke user password update"
+
+  /v1/auth/provider/github/oauth2:
+    get:
+      tags:
+      - "Authentication"
+      - "GitHub Provider"
+      operationId: "v1_auth_provider_github_oauth2_get"
+      summary: "Get OAuth2 authentication redirect URL"
+    post:
+      tags:
+      - "Authentication"
+      - "GitHub Provider"
+      operationId: "v1_auth_provider_github_oauth2_post"
+      summary: "OAuth2 callback request"
+
+  /v1/auth/provider/microsoft/oauth2:
+    get:
+      tags:
+      - "Authentication"
+      - "Microsoft Provider"
+      operationId: "v1_auth_provider_microsoft_oauth2_get"
+      summary: "Get OAuth2 authentication redirect URL"
+    post:
+      tags:
+      - "Authentication"
+      - "Microsoft Provider"
+      operationId: "v1_auth_provider_microsoft_oauth2_post"
+      summary: "OAuth2 callback request"
+
+  /v1/auth/key/verify:
+    post:
+      tags:
+      - "Authentication"
+      operationId: "v1_auth_key_verify"
+      summary: "Verify user key"
+  /v1/auth/key/revoke:
+    post:
+      tags:
+      - "Authentication"
+      operationId: "v1_auth_key_revoke"
+      summary: "Revoke user key"
+
+  /v1/auth/token/verify:
+    post:
+      tags:
+      - "Authentication"
+      operationId: "v1_auth_token_verify"
+      summary: "Verify user access token"
+  /v1/auth/token/refresh:
+    post:
+      tags:
+      - "Authentication"
+      operationId: "v1_auth_token_refresh"
+      summary: "Refresh user access and refresh tokens"
+  /v1/auth/token/revoke:
+    post:
+      tags:
+      - "Authentication"
+      operationId: "v1_auth_token_revoke"
+      summary: "Revoke user token"
+
+  /v1/auth/totp:
+    post:
+      tags:
+      - "Authentication"
+      operationId: "v1_auth_totp"
+      summary: "Verify TOTP code"
+
+  /v1/auth/csrf:
+    get:
+      tags:
+      - "Authentication"
+      operationId: "v1_auth_csrf_get"
+      summary: "Get new CSRF token"
+    post:
+      tags:
+      - "Authentication"
+      operationId: "v1_auth_csrf_post"
+      summary: "Verify CSRF token"
+
+  /v1/audit:
+    get:
+      tags:
+      - "Audit"
+      operationId: "v1_audit_get"
+      summary: "List audit logs"
+    post:
+      tags:
+      - "Audit"
+      operationId: "v1_audit_post"
+      summary: "Create audit log"
+  /v1/audit/{id}:
+    get:
+      tags:
+      - "Audit"
+      operationId: "v1_audit_id_get"
+      summary: "Read audit log"
+      parameters:
+        - name: id
+          in: path
+          description: Audit log ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+    patch:
+      tags:
+      - "Audit"
+      operationId: "v1_audit_id_patch"
+      summary: "Append to audit log"
+      parameters:
+        - name: id
+          in: path
+          description: Audit log ID
+          required: true
+          schema:
+            type: string
+            format: uuid
