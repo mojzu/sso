@@ -13,87 +13,87 @@
 ![Overview of Authentication System](docs/asset/introduction.svg)
 
 1. **sso** authentication server.
-2. Applications are registered as a **Service** with sso.
+2. Providers are registered as a **Service** with sso, for example API servers.
 3. A **Service Key** is used to authenticate requests from the service to sso.
-4. Users are registered as a **User** with sso.
-5. A **User Key** allows a user to authenticate with a service.
+4. Consumers are registered as a **User** with sso.
+5. A **User Key** is used to authenticate a user, and authenticate requests from the user to the service.
 
-In the diagram above, service A can authenticate requests from users 1 and 2. Service B can authenticate requests from users 2 and 3.
+In the diagram above, `Service A` can authenticate requests from `User 1` and `User 2`. `Service B` can authenticate requests from `User 2` and `User 3`.
 
-### Providers
+## Features
+
+### Authentication
 
 User authentication methods are organised into **Provider** groups. Services are registered with callback URLs for each supported provider.
 
 #### Local Provider
 
-##### Password Login
+User authentication using unique email address and password.
 
 ```
 POST /v1/auth/provider/local/login
 POST /v1/auth/provider/local/register
 POST /v1/auth/provider/local/register/confirm
+POST /v1/auth/provider/local/register/revoke
 POST /v1/auth/provider/local/reset-password
 POST /v1/auth/provider/local/reset-password/confirm
+POST /v1/auth/provider/local/reset-password/revoke
 POST /v1/auth/provider/local/update-email
 POST /v1/auth/provider/local/update-email/revoke
 POST /v1/auth/provider/local/update-password
 POST /v1/auth/provider/local/update-password/revoke
 ```
 
-- User authenticate with a service using a unique email address and password.
-- Login returns access and refresh tokens.
-- User registration is supported with email confirmation.
-- User password may be reset via email, this feature can be disabled for a user.
-- User can be required to update their passwords.
-- User email address and password updates require current password, an email is sent to the user to notify them of the change.
-- Emails to user contain revokation links in case a login is compromised.
-- Passwords are stored as [argon2][argon2] hashes using [libreauth][libreauth].
-- Password strength is checked by [zxcvbn][zxcvbn].
-- Password leaks are checked by [Pwned Passwords][pwned-passwords].
-- Users may be created without passwords to disable password login.
+- User login returns access and refresh tokens.
+- User registration with email confirmation.
+- User password reset via email.
+- User password update required.
+- User email address and password updates require current password.
+- Outgoing emails contain revokation links to disable user access in case of compromised access.
+- Password stored as [argon2][argon2] hash using [libreauth][libreauth].
+- Password strength checked by [zxcvbn][zxcvbn].
+- Password leaks checked by [Pwned Passwords][pwned-passwords].
+- Password not set disables password login.
 - User key for service of `Token` type is required.
 
 #### GitHub Provider
 
-##### OAuth2
+User authentication using [GitHub OAuth2][github-oauth2].
 
 ```
 GET,POST /v1/auth/provider/github/oauth2
 ```
 
-- User authenticates to a service using [GitHub OAuth2][github-oauth2].
-- Login returns access and refresh tokens.
+- User login returns access and refresh tokens.
 - User key for service of `Token` type is required.
 
 #### Microsoft Provider
 
-##### OAuth2
+User authentication using [Microsoft OAuth2][microsoft-oauth2].
 
 ```
 GET,POST /v1/auth/provider/microsoft/oauth2
 ```
 
-- User authenticates to a service using [Microsoft OAuth2][microsoft-oauth2].
-- Login returns access and refresh tokens.
+- User login returns access and refresh tokens.
 - User key for service of `Token` type is required.
 
-### Authentication
-
-After successful user authentication, further requests from the user are authenticated with the following methods.
-
 #### Key
+
+Request authentication using an API key distributed by the service.
 
 ```
 POST /v1/auth/key/verify
 POST /v1/auth/key/revoke
 ```
 
-- Service can distribute API keys to users.
-- Users authenticate requests to a service using a unique, random key.
-- Keys can be revoked, but are not time-limited.
+- User authenticates requests to a service using a unique, random key.
+- User key can be revoked, but is not time-limited.
 - User key for service of `Key` type is required.
 
 #### Token
+
+Request authentication using access token returned by user authentication provider, for example local login.
 
 ```
 POST /v1/auth/token/verify
@@ -101,19 +101,41 @@ POST /v1/auth/token/refresh
 POST /v1/auth/token/revoke
 ```
 
-- Tokens are returned by other authentication methods (e.g. login, OAuth2).
-- Users authenticate requests to a service using a [JWT][jwt] access token.
-- Users generate new access and refresh tokens using a [JWT][jwt] refresh token.
-- Tokens can be revoked, and are time-limited.
-- Revoking the key used to produce a token also revokes the token.
+- User authenticates requests to a service using a [JWT][jwt] access token.
+- User generates new access and refresh tokens using a [JWT][jwt] refresh token.
+- User token is time-limited.
+- User key can be revoked, which also revokes all tokens the key produced.
 - User key for service of `Token` type is required.
-- Tokens have an internal type which determines what the token is used for.
 
 #### TOTP
+
+Request authentication using [TOTP][totp] code generated from a key distributed by the service.
 
 ```
 POST /v1/auth/totp
 ```
 
-- Services authenticate user requests that contain a [TOTP][totp] code.
 - User key for service of `Totp` type is required.
+
+### CSRF Tokens
+
+Services can use **sso** to create and verify single-use [CSRF tokens][csrf]
+
+```
+GET,POST /v1/auth/csrf
+```
+
+- If service uses cookies for authentication, these tokens are used in form templates to prevent CSRF attacks.
+
+### Audit Logging
+
+All **sso** endpoint failures after input validation are audited. `POST`, `PATCH`, `DELETE` endpoint successes are also audited.
+
+```
+GET,POST /v1/audit
+GET,PATCH /v1/audit/$audit_id
+```
+
+- Services are able to read, create and update their own audit logs.
+- Audit logs are append only, logs can be created when requests are received and response data can be added when request handled.
+- Audit logs have retention time (default 3 months).

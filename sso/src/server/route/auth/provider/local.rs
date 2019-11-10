@@ -20,6 +20,10 @@ pub fn route_v1_scope() -> Scope {
                 .service(
                     web::resource(api::path::CONFIRM)
                         .route(web::post().to_async(register_confirm_handler)),
+                )
+                .service(
+                    web::resource(api::path::REVOKE)
+                        .route(web::post().to_async(register_revoke_handler)),
                 ),
         )
         .service(
@@ -31,6 +35,10 @@ pub fn route_v1_scope() -> Scope {
                 .service(
                     web::resource(api::path::CONFIRM)
                         .route(web::post().to_async(reset_password_confirm_handler)),
+                )
+                .service(
+                    web::resource(api::path::REVOKE)
+                        .route(web::post().to_async(reset_password_revoke_handler)),
                 ),
         )
         .service(
@@ -145,11 +153,33 @@ fn register_confirm_handler(
                     id,
                     password_meta,
                     request,
+                    data.options().revoke_token_expires(),
+                    data.smtp_email(),
                 )
             })
             .map_err(Into::into)
         })
         .then(route_response_json)
+}
+
+fn register_revoke_handler(
+    data: web::Data<Data>,
+    req: HttpRequest,
+    id: Identity,
+    body: web::Json<api::AuthTokenRequest>,
+) -> impl Future<Item = HttpResponse, Error = Error> {
+    let audit_meta = request_audit_meta(&req);
+    let id = id.identity();
+    let request = body.into_inner();
+
+    audit_meta
+        .and_then(move |audit_meta| {
+            web::block(move || {
+                api::auth_provider_local_register_revoke(data.driver(), audit_meta, id, request)
+            })
+            .map_err(Into::into)
+        })
+        .then(route_response_empty)
 }
 
 fn reset_password_handler(
@@ -205,11 +235,38 @@ fn reset_password_confirm_handler(
                     id,
                     password_meta,
                     request,
+                    data.options().revoke_token_expires(),
+                    data.smtp_email(),
                 )
             })
             .map_err(Into::into)
         })
         .then(route_response_json)
+}
+
+fn reset_password_revoke_handler(
+    data: web::Data<Data>,
+    req: HttpRequest,
+    id: Identity,
+    body: web::Json<api::AuthTokenRequest>,
+) -> impl Future<Item = HttpResponse, Error = Error> {
+    let audit_meta = request_audit_meta(&req);
+    let id = id.identity();
+    let request = body.into_inner();
+
+    audit_meta
+        .and_then(move |audit_meta| {
+            web::block(move || {
+                api::auth_provider_local_reset_password_revoke(
+                    data.driver(),
+                    audit_meta,
+                    id,
+                    request,
+                )
+            })
+            .map_err(Into::into)
+        })
+        .then(route_response_empty)
 }
 
 fn update_email_handler(

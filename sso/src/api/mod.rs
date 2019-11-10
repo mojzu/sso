@@ -66,9 +66,12 @@ pub mod route {
     pub const AUTH_LOCAL_LOGIN: &str = "/v1/auth/provider/local/login";
     pub const AUTH_LOCAL_REGISTER: &str = "/v1/auth/provider/local/register";
     pub const AUTH_LOCAL_REGISTER_CONFIRM: &str = "/v1/auth/provider/local/register/confirm";
+    pub const AUTH_LOCAL_REGISTER_REVOKE: &str = "/v1/auth/provider/local/register/revoke";
     pub const AUTH_LOCAL_RESET_PASSWORD: &str = "/v1/auth/provider/local/reset-password";
     pub const AUTH_LOCAL_RESET_PASSWORD_CONFIRM: &str =
         "/v1/auth/provider/local/reset-password/confirm";
+    pub const AUTH_LOCAL_RESET_PASSWORD_REVOKE: &str =
+        "/v1/auth/provider/local/reset-password/revoke";
     pub const AUTH_LOCAL_UPDATE_EMAIL: &str = "/v1/auth/provider/local/update-email";
     pub const AUTH_LOCAL_UPDATE_EMAIL_REVOKE: &str = "/v1/auth/provider/local/update-email/revoke";
     pub const AUTH_LOCAL_UPDATE_PASSWORD: &str = "/v1/auth/provider/local/update-password";

@@ -1,0 +1,13 @@
+openapi: "3.0.0"
+info:
+  title: sso
+  version: v1
+paths:
+  /v1/ping:
+    get:
+      operationId: getV1Ping
+      summary: Server Ping
+  /v1/metrics:
+    get:
+      operationId: getV1Metrics
+      summary: Server Metrics

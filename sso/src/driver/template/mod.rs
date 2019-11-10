@@ -3,7 +3,9 @@ use chrono::{DateTime, Utc};
 use handlebars::Handlebars;
 
 const EMAIL_REGISTER: &str = "email_register";
+const EMAIL_REGISTER_CONFIRM: &str = "email_register_confirm";
 const EMAIL_RESET_PASSWORD: &str = "email_reset_password";
+const EMAIL_RESET_PASSWORD_CONFIRM: &str = "email_reset_password_confirm";
 const EMAIL_UPDATE_EMAIL: &str = "email_update_email";
 const EMAIL_UPDATE_PASSWORD: &str = "email_update_password";
 
@@ -16,8 +18,20 @@ lazy_static! {
             .unwrap();
         handlebars
             .register_template_string(
+                EMAIL_REGISTER_CONFIRM,
+                include_str!("email_register_confirm.hbs"),
+            )
+            .unwrap();
+        handlebars
+            .register_template_string(
                 EMAIL_RESET_PASSWORD,
                 include_str!("email_reset_password.hbs"),
+            )
+            .unwrap();
+        handlebars
+            .register_template_string(
+                EMAIL_RESET_PASSWORD_CONFIRM,
+                include_str!("email_reset_password_confirm.hbs"),
             )
             .unwrap();
         handlebars
@@ -184,6 +198,36 @@ impl TemplateEmail {
         ))
     }
 
+    /// Render register confirm email template.
+    pub fn email_register_confirm(
+        service: &Service,
+        user: &User,
+        token: &str,
+        audit: &AuditMeta,
+    ) -> DriverResult<Self> {
+        let url = service.provider_local_callback_url(
+            "register_confirm",
+            json!({
+                "email": user.email,
+                "token": token,
+            }),
+        )?;
+
+        let text = HANDLEBARS
+            .render(
+                EMAIL_REGISTER_CONFIRM,
+                &TemplateEmailGeneric::new(&user.email, url.as_str(), audit, service),
+            )
+            .map_err(DriverError::HandlebarsRender)?;
+        Ok(Self::new(
+            &user.email,
+            &user.name,
+            &service.name,
+            "Registration Confirmed",
+            text,
+        ))
+    }
+
     /// Render reset password email template.
     pub fn email_reset_password(
         service: &Service,
@@ -210,6 +254,36 @@ impl TemplateEmail {
             &user.name,
             &service.name,
             "Password Reset Request",
+            text,
+        ))
+    }
+
+    /// Render reset password confirm email template.
+    pub fn email_reset_password_confirm(
+        service: &Service,
+        user: &User,
+        token: &str,
+        audit: &AuditMeta,
+    ) -> DriverResult<Self> {
+        let url = service.provider_local_callback_url(
+            "reset_password_confirm",
+            json!({
+                "email": user.email,
+                "token": token,
+            }),
+        )?;
+
+        let text = HANDLEBARS
+            .render(
+                EMAIL_RESET_PASSWORD_CONFIRM,
+                &TemplateEmailGeneric::new(&user.email, url.as_str(), audit, service),
+            )
+            .map_err(DriverError::HandlebarsRender)?;
+        Ok(Self::new(
+            &user.email,
+            &user.name,
+            &service.name,
+            "Password Reset Confirmed",
             text,
         ))
     }

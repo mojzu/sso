@@ -31,3 +31,4 @@
 [utf-8]: https://en.wikipedia.org/wiki/UTF-8
 [oauth2-rs]: https://github.com/ramosbugs/oauth2-rs
 [jsonwebtoken]: https://github.com/Keats/jsonwebtoken
+[csrf]: https://en.wikipedia.org/wiki/Cross-site_request_forgery

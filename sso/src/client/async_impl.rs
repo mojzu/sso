@@ -145,6 +145,15 @@ impl ClientAsync {
             .and_then(Self::response_json::<api::AuthPasswordMetaResponse>)
     }
 
+    /// Authentication local provider register revoke request.
+    pub fn auth_local_register_revoke(
+        &self,
+        body: api::AuthTokenRequest,
+    ) -> impl Future<Item = (), Error = ApiError> {
+        self.post(api::route::AUTH_LOCAL_REGISTER_REVOKE, &body)
+            .and_then(Self::response_empty)
+    }
+
     /// Authentication local provider reset password request.
     pub fn auth_local_reset_password(
         &self,
@@ -161,6 +170,15 @@ impl ClientAsync {
     ) -> impl Future<Item = api::AuthPasswordMetaResponse, Error = ApiError> {
         self.post(api::route::AUTH_LOCAL_RESET_PASSWORD_CONFIRM, &body)
             .and_then(Self::response_json::<api::AuthPasswordMetaResponse>)
+    }
+
+    /// Authentication local provider reset password revoke request.
+    pub fn auth_local_reset_password_revoke(
+        &self,
+        body: api::AuthTokenRequest,
+    ) -> impl Future<Item = (), Error = ApiError> {
+        self.post(api::route::AUTH_LOCAL_RESET_PASSWORD_REVOKE, &body)
+            .and_then(Self::response_empty)
     }
 
     /// Authentication local provider update email request.
