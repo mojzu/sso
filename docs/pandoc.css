@@ -46,6 +46,13 @@ div#container div#content {
   padding: 0 2em;
 }
 
+h3 .header-section-number,
+h4 .header-section-number,
+h5 .header-section-number,
+h6 .header-section-number {
+  display: none;
+}
+
 pre,
 code,
 div.sourceCode {

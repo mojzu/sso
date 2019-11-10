@@ -41,6 +41,7 @@ TODO(feature): Support more process/other metrics, check units.
 <https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors>
 <https://peteris.rocks/blog/htop/>
 TODO(feature): Service IP whitelist.
+TODO(feature): Service/user groups for segmentation.
 
 ## OWASP: ASVS
 
