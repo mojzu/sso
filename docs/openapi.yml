@@ -3,10 +3,6 @@ info:
   title: "sso"
   description: "Single sign-on authentication server API."
   version: "v1"
-  contact:
-    name: "sso"
-    url: "https://github.com/mojzu/sso"
-    email: "git@mojzu.net"
 servers:
 - url: "http://localhost:9000"
   description: "Local development server."
