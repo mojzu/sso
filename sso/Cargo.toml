@@ -21,9 +21,9 @@ sync_client = []
 [dependencies]
 actix = "0.8.3"
 actix-identity = "0.1.0"
-actix-rt = "0.2.5"
+actix-rt = "0.2.6"
 actix-service = "0.4.2"
-actix-web = { version = "1.0.8", features = ["rust-tls"] }
+actix-web = { version = "1.0.9", features = ["rust-tls"] }
 clap = "2.33.0"
 chrono = { version = "0.4.9", features = ["serde"] }
 chrono-tz = "0.5.1"
@@ -53,10 +53,10 @@ sentry-actix = "0.17.0"
 serde = "1.0.102"
 serde_derive = "1.0.102"
 serde_json = "1.0.41"
-serde_qs = "0.5.0"
+serde_qs = "0.5.1"
 sha-1 = "0.8.1"
 sysinfo = "0.9.6"
-unic-langid = "0.7.0"
+unic-langid = "0.7.1"
 url = "1.7.2"
 uuid = { version = "0.7.4", features = ["v4", "serde"] }
 validator = "0.10.0"
