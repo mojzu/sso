@@ -1,7 +1,7 @@
 use crate::{
     pattern::{task_thread_start, task_thread_stop},
-    AuditBuilder, Driver, DriverError, DriverResult, KeyCreate, KeyWithValue, Server,
-    ServerOptions, Service, ServiceCreate,
+    server2_start, AuditBuilder, Driver, DriverError, DriverResult, KeyCreate, KeyWithValue,
+    Server, ServerOptions, Service, ServiceCreate,
 };
 use actix_rt::System;
 use chrono::Duration;
@@ -112,5 +112,10 @@ impl Cli {
         system.run().map_err(DriverError::StdIo).map(|_| {
             task_thread_stop(task_handle, task_tx);
         })
+    }
+
+    // TODO(refactor): OpenAPI, frontend testing.
+    pub fn start_server2(_driver: Box<dyn Driver>, _options: CliOptions) -> DriverResult<()> {
+        server2_start()
     }
 }
