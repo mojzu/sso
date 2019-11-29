@@ -65,5 +65,7 @@ zxcvbn = "2.0.0"
 
 # TODO: OpenAPI, frontend testing.
 gotham = "0.4.0"
+gotham_derive = "0.4.0"
 hyper = "0.12.35"
 mime = "0.3.14"
+openapi = { git = "https://github.com/softprops/openapi.git" }

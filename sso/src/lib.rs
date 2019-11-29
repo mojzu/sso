@@ -24,6 +24,8 @@ extern crate serde_derive;
 extern crate serde_json;
 #[macro_use]
 extern crate validator_derive;
+#[macro_use]
+extern crate gotham_derive;
 
 pub mod api;
 mod cli;
