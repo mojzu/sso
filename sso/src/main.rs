@@ -39,7 +39,6 @@ const ENV_MICROSOFT_CLIENT_SECRET: &str = "MICROSOFT_CLIENT_SECRET";
 const CMD_CREATE_ROOT_KEY: &str = "create-root-key";
 const CMD_CREATE_SERVICE_WITH_KEY: &str = "create-service-with-key";
 const CMD_START_SERVER: &str = "start-server";
-const CMD_START_SERVER2: &str = "start-server2";
 
 const ARG_NAME: &str = "NAME";
 const ARG_URL: &str = "URL";
@@ -131,10 +130,6 @@ fn main() {
                 .version(CRATE_VERSION)
                 .about("Start server")
                 .author(CRATE_AUTHORS),
-            SubCommand::with_name(CMD_START_SERVER2)
-                .version(CRATE_VERSION)
-                .about("Start server")
-                .author(CRATE_AUTHORS),
         ])
         .get_matches();
 
@@ -174,9 +169,6 @@ fn main() {
                 })
             }
             (CMD_START_SERVER, Some(_submatches)) => Cli::start_server(driver, options).map(|_| 0),
-            (CMD_START_SERVER2, Some(_submatches)) => {
-                Cli::start_server2(driver, options).map(|_| 0)
-            }
             _ => {
                 println!("{}", matches.usage());
                 Ok(1)

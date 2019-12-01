@@ -24,17 +24,14 @@ extern crate serde_derive;
 extern crate serde_json;
 #[macro_use]
 extern crate validator_derive;
-#[macro_use]
-extern crate gotham_derive;
 
 pub mod api;
 mod cli;
 mod client;
 mod driver;
 mod server;
-mod server2;
 
-pub use crate::{cli::*, client::*, driver::*, server::*, server2::*};
+pub use crate::{cli::*, client::*, driver::*, server::*};
 
 /// Implement `to_string` and `from_string` on simple enums.
 ///

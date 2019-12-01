@@ -62,10 +62,3 @@ uuid = { version = "0.7.4", features = ["v4", "serde"] }
 validator = "0.10.0"
 validator_derive = "0.10.0"
 zxcvbn = "2.0.0"
-
-# TODO: OpenAPI, frontend testing.
-gotham = "0.4.0"
-gotham_derive = "0.4.0"
-hyper = "0.12.35"
-mime = "0.3.14"
-openapi = { git = "https://github.com/softprops/openapi.git" }
