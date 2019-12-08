@@ -1,0 +1,19 @@
+[package]
+name = "sso_openapi"
+version = "0.1.0"
+authors = ["Sam Ward <git@mojzu.net>"]
+edition = "2018"
+
+[dependencies]
+chrono = "0.4.10"
+futures-util = "0.3.1"
+hyper = "= 0.13.0-alpha.4"
+http = "= 0.1.21"
+mime = "0.3.14"
+serde = "1.0.103"
+serde_derive = "1.0.103"
+serde_json = "1.0.44"
+serde_urlencoded = "0.6.1"
+tokio = "= 0.2.0-alpha.6"
+tokio-executor = "= 0.2.0-alpha.6"
+tower-service = "= 0.3.0-alpha.2"
