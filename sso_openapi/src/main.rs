@@ -63,13 +63,20 @@ impl ApiOperation for Openapi {
             .expect("Unable to create `http::Response`");
         // create a response in a future.
         let fut = async {
-            let b = poll_fn(move |_| {
-                tokio_executor::threadpool::blocking(|| {
-                    println!("print from blocking");
-                })
-                .map_err(|_| panic!("the threadpool shut down"))
+            // let b = poll_fn(move |_| {
+            //     tokio_executor::threadpool::blocking(|| {
+            //         println!("print from blocking");
+            //     })
+            //     .map_err(|_| panic!("the threadpool shut down"))
+            // })
+            // .await;
+
+            let _a = Api::blocking::<(), (), _>(|| {
+                println!("print from blocking");
+                Ok(())
             })
             .await;
+
             Ok(resp)
         };
         Box::new(fut)

@@ -10,7 +10,7 @@ use futures_util::future::poll_fn;
 use http::Method;
 use hyper::server::conn::AddrStream;
 use hyper::service::make_service_fn;
-use hyper::{Body, Request, Response, Server, StatusCode};
+use hyper::{Body, Request, Response, Server};
 use std::collections::HashMap;
 use std::future::Future;
 use std::net::SocketAddr;
@@ -30,7 +30,7 @@ pub trait ApiOperation: Send + Sync {
 }
 
 /// Returns self as boxed `Operation` trait object.
-pub trait ApiOperationInto: 'static + ApiOperation + Sized {
+pub trait ApiOperationInto: 'static + Sized + ApiOperation {
     fn into_operation(self) -> Box<dyn ApiOperation> {
         Box::new(self)
     }
@@ -122,6 +122,33 @@ impl Api {
     {
         let i = req.uri().query().unwrap_or("");
         serde_urlencoded::from_str::<T>(i).map_err(|e| ApiErrors::new(e))
+    }
+
+    // /// Deserialise request body into type.
+    // pub fn body<T>(req: Request<Body>) -> Result<T, ApiErrors> {
+    // TODO(refactor): Implement this.
+    //     let body = req.into_body();
+    //     unimplemented!();
+    // }
+
+    /// Run a blocking closure on thread pool.
+    pub fn blocking<T, E, F>(f: F) -> Pin<Box<dyn Future<Output = Result<T, E>> + Send>>
+    where
+        F: Send + FnOnce() -> Result<T, E> + 'static,
+        T: Send,
+        E: Send,
+    {
+        // TODO(refactor): Improve error handling.
+        let mut f = Some(f);
+        let fut = async move {
+            poll_fn(|_| {
+                tokio_executor::threadpool::blocking(|| (f.take().unwrap())())
+                    .map_err(|_| panic!("the threadpool shut down"))
+            })
+            .await
+            .unwrap()
+        };
+        Box::pin(fut)
     }
 
     /// Call `ApiPath` for request URL path, or respond with not found error if no
