@@ -13,7 +13,11 @@ pub struct ApiError {
 impl ApiError {
     /// Returns new `ApiError`.
     pub fn new<T: Into<String>>(status: StatusCode, code: usize, title: T) -> Self {
-        Self { status: status.into(), code, title: title.into() }
+        Self {
+            status: status.into(),
+            code,
+            title: title.into(),
+        }
     }
 
     /// Returns new `ApiError` with not found status code.

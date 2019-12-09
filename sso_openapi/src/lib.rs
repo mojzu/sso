@@ -100,6 +100,21 @@ impl Api {
         Self { paths: h }
     }
 
+    /// Bind and serve API on new [Runtime], this blocks on [Server] future.
+    pub fn run(self, addr: &SocketAddr) -> Result<(), hyper::Error> {
+        let api = Arc::new(self);
+
+        let make_api = make_service_fn(move |socket: &AddrStream| {
+            let request = ApiRequest::new(api.clone(), socket.remote_addr());
+            async move { Ok::<_, http::Error>(request) }
+        });
+
+        let server = Server::bind(&addr).serve(make_api);
+
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(server)
+    }
+
     /// Deserialise request URL query parameters into type.
     pub fn query_parameters<'de, T>(req: &'de Request<Body>) -> Result<T, ApiErrors>
     where
@@ -158,6 +173,11 @@ impl ApiRequest {
             remote_addr,
         }
     }
+
+    /// Returns [SocketAddr].
+    pub fn remote_addr(&self) -> SocketAddr {
+        self.remote_addr
+    }
 }
 
 impl tower_service::Service<Request<Body>> for ApiRequest {
@@ -171,104 +191,5 @@ impl tower_service::Service<Request<Body>> for ApiRequest {
 
     fn call(&mut self, req: Request<Body>) -> Self::Future {
         self.api.call(self, req)
-    }
-}
-
-// Operations.
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PingQuery {
-    x: Option<i64>,
-}
-
-pub struct Ping;
-
-impl ApiOperation for Ping {
-    fn method(&self) -> Method {
-        Method::GET
-    }
-
-    fn call(&self, meta: &ApiRequest, req: Request<Body>) -> Box<ApiOperationFuture> {
-        let addr = meta.remote_addr;
-        let fut = async move {
-            let query = Api::query_parameters::<PingQuery>(&req);
-
-            if let Err(e) = query {
-                println!("{:?}", e);
-                return Err(e);
-            }
-            println!("{:?}", query);
-
-            // create the body
-            let body = Body::from(format!("Hello, {}!", addr));
-            // Create the HTTP response
-            let resp = Response::builder()
-                .status(StatusCode::OK)
-                .body(body)
-                .expect("Unable to create `http::Response`");
-            Ok(resp)
-        };
-        Box::new(fut)
-    }
-}
-
-impl ApiOperationInto for Ping {}
-
-pub struct Openapi {
-    i: i64,
-}
-
-impl ApiOperation for Openapi {
-    fn method(&self) -> Method {
-        Method::GET
-    }
-
-    fn call(&self, meta: &ApiRequest, req: Request<Body>) -> Box<ApiOperationFuture> {
-        // create the body
-        let body = Body::from(format!("Hello, {}! {}", meta.remote_addr, self.i));
-        // Create the HTTP response
-        let resp = Response::builder()
-            .status(StatusCode::OK)
-            .body(body)
-            .expect("Unable to create `http::Response`");
-        // create a response in a future.
-        let fut = async {
-            let b = poll_fn(move |_| {
-                tokio_executor::threadpool::blocking(|| {
-                    println!("print from blocking");
-                })
-                .map_err(|_| panic!("the threadpool shut down"))
-            })
-            .await;
-            Ok(resp)
-        };
-        Box::new(fut)
-    }
-}
-
-impl ApiOperationInto for Openapi {}
-
-pub fn run() {
-    let addr = "127.0.0.1:1337".parse().unwrap();
-
-    let svc = Api::new(vec![
-        ApiPath::new("/v1/ping").operation(Ping),
-        ApiPath::new("/openapi.json").operation(Openapi { i: 64 }),
-    ]);
-
-    let svc = Arc::new(svc);
-
-    let make_svc = make_service_fn(move |socket: &AddrStream| {
-        let request = ApiRequest::new(svc.clone(), socket.remote_addr());
-        async move { Ok::<_, http::Error>(request) }
-    });
-
-    let server = Server::bind(&addr).serve(make_svc);
-
-    println!("Listening on http://{}", addr);
-
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    if let Err(e) = rt.block_on(server) {
-        eprintln!("server error: {}", e);
     }
 }
