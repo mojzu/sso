@@ -47,6 +47,16 @@ impl From<serde::de::value::Error> for ApiError {
     }
 }
 
+impl From<serde_json::Error> for ApiError {
+    fn from(e: serde_json::Error) -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST.into(),
+            code: 1,
+            title: e.description().to_owned(),
+        }
+    }
+}
+
 /// API errors vector.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiErrors {

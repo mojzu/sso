@@ -124,12 +124,15 @@ impl Api {
         serde_urlencoded::from_str::<T>(i).map_err(|e| ApiErrors::new(e))
     }
 
-    // /// Deserialise request body into type.
-    // pub fn body<T>(req: Request<Body>) -> Result<T, ApiErrors> {
-    // TODO(refactor): Implement this.
-    //     let body = req.into_body();
-    //     unimplemented!();
-    // }
+    /// Deserialise JSON request body into type.
+    pub async fn body<T>(body: Body) -> Result<T, ApiErrors>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        use futures::stream::TryStreamExt;
+        let s = body.try_concat().await.unwrap().to_vec();
+        serde_json::from_slice::<T>(&s).map_err(|e| ApiErrors::new(e))
+    }
 
     /// Run a blocking closure on thread pool.
     pub fn blocking<T, E, F>(f: F) -> Pin<Box<dyn Future<Output = Result<T, E>> + Send>>
@@ -138,12 +141,11 @@ impl Api {
         T: Send,
         E: Send,
     {
-        // TODO(refactor): Improve error handling.
         let mut f = Some(f);
         let fut = async move {
             poll_fn(|_| {
                 tokio_executor::threadpool::blocking(|| (f.take().unwrap())())
-                    .map_err(|_| panic!("the threadpool shut down"))
+                    .map_err(|_| panic!("threadpool shut down"))
             })
             .await
             .unwrap()
