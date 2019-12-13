@@ -111,7 +111,7 @@ impl Api {
 
         let server = Server::bind(&addr).serve(make_api);
 
-        let rt = tokio::runtime::Runtime::new().unwrap();
+        let mut rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(server)
     }
 
@@ -129,8 +129,7 @@ impl Api {
     where
         T: serde::de::DeserializeOwned,
     {
-        use futures::stream::TryStreamExt;
-        let s = body.try_concat().await.unwrap().to_vec();
+        let s = hyper::body::to_bytes(body).await.unwrap().to_vec();
         serde_json::from_slice::<T>(&s).map_err(|e| ApiErrors::new(e))
     }
 

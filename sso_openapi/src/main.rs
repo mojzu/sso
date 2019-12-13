@@ -80,7 +80,11 @@ pub struct Ex {
 }
 
 impl Ex {
-    async fn call_inner(i: &i64, meta: &ApiRequest, req: Request<Body>) -> Result<Response<Body>, ApiErrors> {
+    async fn call_inner(
+        i: &i64,
+        meta: &ApiRequest,
+        req: Request<Body>,
+    ) -> Result<Response<Body>, ApiErrors> {
         let query = Api::query_parameters::<ExQuery>(&req)?;
         println!("{:?}", query);
 
@@ -113,9 +117,7 @@ impl ApiOperation for Ex {
     fn call(&self, meta: &ApiRequest, req: Request<Body>) -> Box<ApiOperationFuture> {
         let i = self.i;
         let meta = meta.clone();
-        let f = async move {
-            Self::call_inner(&i, &meta, req).await
-        };
+        let f = async move { Self::call_inner(&i, &meta, req).await };
         Box::new(f)
     }
 }
