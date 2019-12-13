@@ -1,0 +1,98 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "sso.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/metrics": {
+      "get": {
+        "summary": "Returns metrics in Prometheus exposition format.",
+        "operationId": "Metrics",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoEmpty"
+            }
+          }
+        },
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "summary": "Returns OpenAPI specification in JSON format.",
+        "operationId": "Openapi",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoEmpty"
+            }
+          }
+        },
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/ping": {
+      "get": {
+        "summary": "Returns pong response.",
+        "operationId": "Ping",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoPingReply"
+            }
+          }
+        },
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/audit": {
+      "get": {
+        "operationId": "AuditList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuditListReply"
+            }
+          }
+        },
+        "tags": [
+          "Sso"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ssoAuditListReply": {
+      "type": "object"
+    },
+    "ssoEmpty": {
+      "type": "object"
+    },
+    "ssoPingReply": {
+      "type": "object",
+      "properties": {
+        "pong": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

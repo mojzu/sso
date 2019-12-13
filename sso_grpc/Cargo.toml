@@ -1,0 +1,26 @@
+[package]
+name = "sso_grpc"
+version = "0.1.0"
+authors = ["Sam Ward <git@mojzu.net>"]
+edition = "2018"
+
+[lib]
+name = "sso_grpc"
+path = "src/lib.rs"
+
+[[bin]]
+name = "sso-grpc-server"
+path = "src/server.rs"
+
+[dependencies]
+bytes = "0.4.12"
+http = "0.1.21"
+prost = "0.5.0"
+prost-derive = "0.5.0"
+tokio = "=0.2.0-alpha.6"
+tonic = "0.1.0-alpha.6"
+tower = "=0.3.0-alpha.2"
+tower-service = "=0.3.0-alpha.2"
+
+[build-dependencies]
+tonic-build = "0.1.0-alpha.6"

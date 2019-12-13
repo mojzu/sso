@@ -1,0 +1,43 @@
+syntax = "proto3";
+package sso;
+
+import "annotations.proto";
+
+service Sso {
+    // Returns pong response.
+    rpc Ping (Empty) returns (PingReply) {
+        option (google.api.http) = {
+            get: "/ping"
+        };
+    }
+
+    // Returns metrics in Prometheus exposition format.
+    rpc Metrics (Empty) returns (Empty) {
+        option (google.api.http) = {
+            get: "/metrics"
+        };
+    }
+
+    // Returns OpenAPI specification in JSON format.
+    rpc Openapi (Empty) returns (Empty) {
+        option (google.api.http) = {
+            get: "/openapi.json"
+        };
+    }
+
+    rpc AuditList (AuditListRequest) returns (AuditListReply) {
+        option (google.api.http) = {
+            get: "/v1/audit"
+        };
+    }
+}
+
+message Empty {}
+
+message PingReply {
+    string pong = 1;
+}
+
+message AuditListRequest {}
+
+message AuditListReply {}

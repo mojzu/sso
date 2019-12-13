@@ -4,6 +4,22 @@
 # - format (fmt)
 # - check
 
+[tasks.grpc-protoc]
+workspace = false
+script = [
+    "(cd sso_grpc/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --go_out=plugins=grpc:../../sso_openapi sso.proto)",
+    "(cd sso_grpc/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --grpc-gateway_out=logtostderr=true:../../sso_openapi sso.proto)",
+    "(cd sso_grpc/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --swagger_out=logtostderr=true:../../sso_openapi sso.proto)",
+]
+
+[tasks.grpc-gateway]
+workspace = false
+script = [
+    "(cd sso_openapi && go build -o sso-openapi-server)",
+]
+
+# TODO(refactor): Update below for grpc.
+
 [tasks.postgres-reset]
 workspace = false
 script = [
@@ -14,18 +30,6 @@ script = [
 workspace = false
 script = [
     "(cd sso && DATABASE_URL=\"postgres://guest:guest@localhost:5432/sso\" diesel migration generate ${@} --migration-dir migrations/postgres)",
-]
-
-[tasks.sqlite-reset]
-workspace = false
-script = [
-    "(cd sso && DATABASE_URL=\"db.sqlite3\" diesel database reset --migration-dir migrations/sqlite)",
-]
-
-[tasks.sqlite-migration]
-workspace = false
-script = [
-    "(cd sso && DATABASE_URL=\"db.sqlite3\" diesel migration generate ${@} --migration-dir migrations/sqlite)",
 ]
 
 [tasks.docker-build]
