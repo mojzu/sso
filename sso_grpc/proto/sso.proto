@@ -5,23 +5,16 @@ import "annotations.proto";
 
 service Sso {
     // Returns pong response.
-    rpc Ping (Empty) returns (PingReply) {
+    rpc Ping (Empty) returns (Text) {
         option (google.api.http) = {
             get: "/ping"
         };
     }
 
     // Returns metrics in Prometheus exposition format.
-    rpc Metrics (Empty) returns (Empty) {
+    rpc Metrics (Empty) returns (Text) {
         option (google.api.http) = {
             get: "/metrics"
-        };
-    }
-
-    // Returns OpenAPI specification in JSON format.
-    rpc Openapi (Empty) returns (Empty) {
-        option (google.api.http) = {
-            get: "/openapi.json"
         };
     }
 
@@ -34,8 +27,8 @@ service Sso {
 
 message Empty {}
 
-message PingReply {
-    string pong = 1;
+message Text {
+    string text = 1;
 }
 
 message AuditListRequest {}

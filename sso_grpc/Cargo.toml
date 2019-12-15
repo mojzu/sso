@@ -15,12 +15,12 @@ path = "src/server.rs"
 [dependencies]
 bytes = "0.4.12"
 http = "0.1.21"
+http-body = "=0.2.0-alpha.3"
 prost = "0.5.0"
 prost-derive = "0.5.0"
-tokio = "=0.2.0-alpha.6"
-tonic = "0.1.0-alpha.6"
-tower = "=0.3.0-alpha.2"
-tower-service = "=0.3.0-alpha.2"
+tokio = { version = "0.2", features = ["rt-threaded", "time", "stream", "fs", "macros", "uds"] }
+tonic = { git = "https://github.com/hyperium/tonic.git" }
+tower = { git = "https://github.com/tower-rs/tower" }
 
 [build-dependencies]
-tonic-build = "0.1.0-alpha.6"
+tonic-build = { git = "https://github.com/hyperium/tonic.git" }

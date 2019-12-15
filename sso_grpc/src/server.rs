@@ -20,29 +20,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             //     false
             // };
 
-            let path_intercept = sso_ref.path_interceptor(req.uri().path());
+            // let path_intercept = sso_ref.path_interceptor(req.uri().path());
             let fut = svc.call(req);
 
             async move {
-                match path_intercept {
-                    Ok(Some(res)) => {
-                        drop(fut);
-                        Ok(res)
-                    }
-                    Ok(None) => fut.await,
-                    Err(e) => {
-                        drop(fut);
-                        Ok(http::Response::builder()
-                            .status(500)
-                            .header("grpc-status", format!("{}", e.code() as isize))
-                            .header("grpc-message", e.message())
-                            .body(BoxBody::empty())
-                            .unwrap())
-                    }
-                }
+                fut.await
+                // match path_intercept {
+                //     Ok(Some(res)) => {
+                //         drop(fut);
+                //         Ok(res)
+                //     }
+                //     Ok(None) => fut.await,
+                //     Err(e) => {
+                //         drop(fut);
+                //         Ok(http::Response::builder()
+                //             .status(500)
+                //             .header("grpc-status", format!("{}", e.code() as isize))
+                //             .header("grpc-message", e.message())
+                //             .body(BoxBody::empty())
+                //             .unwrap())
+                //     }
+                // }
             }
         })
-        .add_service(sso_grpc::pb::server::SsoServer::new(sso))
+        .add_service(sso_grpc::pb::sso_server::SsoServer::new(sso))
         .serve(addr)
         .await?;
 

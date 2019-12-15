@@ -1,18 +1,14 @@
-use tonic::{body::BoxBody, Request, Response, Status};
-// use bytes::IntoBuf;
-
 pub mod pb {
     //! Generated protobuf server and client items.
     tonic::include_proto!("sso");
 }
+pub mod client;
 
-use pb::{AuditListReply, AuditListRequest, Empty, PingReply};
-
-/// Metrics URL path.
-pub const URL_PATH_METRICS: &str = "/metrics";
-
-/// OpenAPI JSON URL path.
-pub const URL_PATH_OPENAPI_JSON: &str = "/openapi.json";
+use crate::pb::{AuditListReply, AuditListRequest, Empty, Text};
+use tonic::{
+    body::{Body, BoxBody},
+    Request, Response, Status,
+};
 
 /// gRPC server.
 #[derive(Clone)]
@@ -24,33 +20,41 @@ impl SsoGrpc {
         Self {}
     }
 
-    /// Returns some `http::Response` in case path matches a known route.
-    pub fn path_interceptor(&self, path: &str) -> Result<Option<http::Response<BoxBody>>, Status> {
-        match path {
-            // // TODO(refactor): Implement this.
-            // URL_PATH_METRICS => {
-            //     let b = "blah blah blah".to_owned().into_buf();
-            //     Ok(Some(http::Response::builder()
-            //     .status(200)
-            //     .header("grpc-status", "0")
-            //     .body(BoxBody::new(b))
-            //     .unwrap()))
-            // }
-            _ => Ok(None),
-        }
-    }
+    // /// Returns some `http::Response` in case path matches a known route.
+    // pub fn path_interceptor(&self, path: &str) -> Result<Option<http::Response<BoxBody>>, Status> {
+    //     match path {
+    //         // TODO(refactor): Implement this.
+    //         URL_PATH_METRICS => {
+    //             let b = bytes::Bytes::from("blah blah blah");
+    //             let bo = BoxBody::new(b);
+    //             let r = http::Response::builder()
+    //             .status(200)
+    //             .header("grpc-status", "0")
+    //             .body(bo)
+    //             .unwrap();
+    //             Ok(Some(r))
+    //         }
+    //         _ => Ok(None),
+    //     }
+    // }
 }
 
 #[tonic::async_trait]
-impl pb::server::Sso for SsoGrpc {
-    async fn ping(&self, request: Request<Empty>) -> Result<Response<PingReply>, Status> {
+impl pb::sso_server::Sso for SsoGrpc {
+    async fn ping(&self, request: Request<Empty>) -> Result<Response<Text>, Status> {
         println!("Got a request: {:?}", request);
 
-        let reply = PingReply {
-            pong: format!("Hello!"),
+        let reply = Text {
+            text: format!("Hello!"),
         };
 
         Ok(Response::new(reply))
+    }
+
+    async fn metrics(&self, request: Request<Empty>) -> Result<Response<Text>, Status> {
+        Ok(Response::new(Text {
+            text: "# prometheus".to_owned(),
+        }))
     }
 
     async fn audit_list(
