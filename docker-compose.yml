@@ -5,7 +5,7 @@ services:
   # <https://www.postgresql.org/>
   # <https://www.timescale.com/>
   postgres:
-    build: postgres
+    build: docker/postgres
     restart: always
     network_mode: "host"
     environment:

@@ -32,44 +32,6 @@ script = [
     "(cd sso && DATABASE_URL=\"postgres://guest:guest@localhost:5432/sso\" diesel migration generate ${@} --migration-dir migrations/postgres)",
 ]
 
-[tasks.docker-build]
-workspace = false
-script = [
-    "touch docker/postgres/sso.pgdump",
-    "(cd docker && docker-compose build)",
-]
-
-[tasks.docker-up]
-workspace = false
-script = [
-    "(cd docker && docker-compose up)",
-]
-dependencies = ["docker-build"]
-
-[tasks.docker-pg-dump]
-workspace = false
-script = [
-    "docker exec docker_postgres_1 pg_dump -U guest --format=custom sso > docker/postgres/sso.pgdump",
-]
-
-[tasks.docker-pg-restore]
-workspace = false
-script = [
-    "docker exec docker_postgres_1 bash /opt/pg_restore.sh",
-]
-
-[tasks.docker-stop]
-workspace = false
-script = [
-    "(cd docker && docker-compose stop)",
-]
-
-[tasks.docker-down]
-workspace = false
-script = [
-    "(cd docker && docker-compose down)",
-]
-
 [tasks.manual]
 workspace = false
 script = [

@@ -2,56 +2,42 @@
 
 ## Tools
 
-The `sso` crate depends on [PostgreSQL][postgresql] and [SQLite][sqlite] libraries.
+A [Docker][docker] image contains the development tools, build it with the command.
 
 ```bash
-# Install on Ubuntu.
-sudo apt install libpq-dev libsqlite3-dev libssl-dev libfuse-dev pkg-config
+docker build --tag "sso_build:latest" docker/build
 ```
 
-Install [Rust][rust] using [rustup][rustup].
-
-To update the toolchain.
+Development tools are run with the command.
 
 ```bash
-rustup self update
-rustup update
+docker run --rm -v "$(pwd):/sso" -t sso_build:latest $ARGS
 ```
 
-The `sso` crate depends on [cargo make][cargo-make], [Diesel][diesel] and [cargo audit][cargo-audit], install them with Cargo.
+Create an alias on Linux for the above with the command.
 
 ```bash
-cargo install --force cargo-make
-cargo install --force diesel_cli --no-default-features --features "postgres sqlite"
-cargo install --force cargo-audit
+alias sso_build='docker run --rm -v "$(pwd):/sso" -t sso_build:latest'
 ```
 
-To update crate dependencies.
+Services are run using [Docker Compose][docker-compose], start them with the command.
 
 ```bash
-cargo update
+docker-compose build
+docker-compose up postgres
 ```
 
-[Docker][docker] and [Docker Compose][docker-compose] are used for development, install them using the linked documentation.
-
-To start containers defined in `docker/docker-compose.yml`.
+Stop and destroy services with the commands.
 
 ```bash
-cargo make docker-up
+docker-compose stop
+docker-compose down
 ```
 
-To backup and restore `sso` database in `postgres` container.
+Create backup of `sso` database in `postgres` service. This backup will be restored automatically when the `postgres` service is rebuilt.
 
 ```bash
-cargo make docker-pg-dump
-cargo make docker-pg-restore
-```
-
-To stop and destroy containers.
-
-```bash
-cargo make docker-stop
-cargo make docker-down
+docker exec sso_postgres_1 pg_dump -U guest --format=custom sso > docker/postgres/pgdump/sso.pgdump
 ```
 
 ## Manual
