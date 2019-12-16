@@ -1,23 +1,21 @@
 # Developer
 
-## Tools
-
 A [Docker][docker] image contains the development tools, build it with the command.
 
 ```bash
-docker build --tag "sso_build:latest" docker/build
+docker build --tag "sso_build:latest" .
 ```
 
 Development tools are run with the command.
 
 ```bash
-docker run --rm -v "$(pwd):/sso" -t sso_build:latest $ARGS
+docker run --rm --network host -v "$(pwd):/sso" -t sso_build:latest $ARGS
 ```
 
 Create an alias on Linux for the above with the command.
 
 ```bash
-alias sso_build='docker run --rm -v "$(pwd):/sso" -t sso_build:latest'
+alias sso_build='docker run --rm --network host -v "$(pwd):/sso" -t sso_build:latest'
 ```
 
 Services are run using [Docker Compose][docker-compose], start them with the command.
@@ -40,112 +38,79 @@ Create backup of `sso` database in `postgres` service. This backup will be resto
 docker exec sso_postgres_1 pg_dump -U guest --format=custom sso > docker/postgres/pgdump/sso.pgdump
 ```
 
-## Manual
-
-This manual is written in [Markdown][pandoc-markdown] and converted into other formats using [Pandoc][pandoc].
-
-To build the HTML manual.
+Reset database and create new [PostgreSQL][postgresql] database migrations with [Diesel][diesel]. These commands expect `postgres` service is running.
 
 ```bash
-cargo make manual
+sso_build cargo make postgres-reset
+sso_build cargo make postgres-migration $migration_name
 ```
 
-## Environment
-
-| Variable                | Description                                            |
-| ----------------------- | ------------------------------------------------------ |
-| SENTRY_URL              | Sentry URL for logging integration, optional.          |
-| DATABASE_URL            | Database connection URL, required.                     |
-| DATABASE_CONNECTIONS    | Database connections, optional.                        |
-| SERVER_HOSTNAME         | Server hostname, optional.                             |
-| SERVER_BIND             | Server bind address, required.                         |
-| SERVER_TLS_CRT_PEM      | Server TLS certificate files, optional.                |
-| SERVER_TLS_KEY_PEM      |                                                        |
-| SERVER_TLS_CLIENT_PEM   | Server mutual TLS authentication, optional.            |
-| SMTP_HOST               | SMTP server, optional.                                 |
-| SMTP_PORT               | ...                                                    |
-| SMTP_USER               | ...                                                    |
-| SMTP_PASSWORD           | ...                                                    |
-| PASSWORD_PWNED_ENABLED  | Enable [Pwned Passwords][pwned-passwords] integration. |
-| GITHUB_CLIENT_ID        | GitHub OAuth2 provider, optional.                      |
-| GITHUB_CLIENT_SECRET    | ...                                                    |
-| MICROSOFT_CLIENT_ID     | Microsoft OAuth2 provider, optional.                   |
-| MICROSOFT_CLIENT_SECRET | ...                                                    |
-
-### Ubuntu
-
-Write `export $NAME="$VALUE"` statements to file `.env` and run `source .env` to export variables in open terminal. See `sso/.env` for example.
-
-## Database
-
-To reset and create new [PostgreSQL][postgresql] database migrations for [Diesel][diesel]. These commands assume docker container is running.
+Check source code using [clippy][clippy].
 
 ```bash
-cargo make postgres-reset
-cargo make postgres-migration $migration_name
+sso_build cargo make clippy
 ```
 
-To reset and create new [SQLite][sqlite] database migrations for [Diesel][diesel].
+Audit crate dependencies.
 
 ```bash
-cargo make sqlite-reset
-cargo make sqlite-migration $migration_name
+sso_build cargo make audit
 ```
 
-## Build
-
-To build libraries and binaries.
+Build libraries and binaries.
 
 ```bash
-cargo make build
-cargo make release
-cargo make release-flow
-cargo make install
+sso_build cargo make build
+sso_build cargo make release
 ```
 
-To lint source code using [clippy][clippy].
+Run unit tests.
 
 ```bash
-cargo make clippy
+sso_build cargo make test
 ```
 
-To build and open documentation.
+Run integration tests. This expects `sso_grpc` service is running.
 
 ```bash
-cargo make doc
+sso_build cargo make test-integration
 ```
 
-To build docker image.
+Compile [Protocol Buffers][protocol-buffers] for [OpenAPI][openapi] gateway server.
 
 ```bash
-cargo make docker-build
+sso_build cargo make openapi-protoc
 ```
 
-To audit crate dependencies.
+Build [OpenAPI][openapi] gateway server.
 
 ```bash
-cargo make audit
+sso_build cargo make openapi-bin
+```
+
+This manual is written in [Markdown][pandoc-markdown] and converted into other formats using [Pandoc][pandoc]. Build the HTML manual.
+
+```bash
+sso_build cargo make manual
+```
+
+Build crate documentation.
+
+```bash
+sso_build cargo make doc
+```
+
+Install crate locally.
+
+```bash
+sso_build cargo clean
+cargo install --force --path sso_grpc
 ```
 
 [To publish crate(s)][cargo-publishing].
 
-## Test
-
-To run unit tests.
+Export environment variables from file. See `sso/.env` for example.
 
 ```bash
-cargo make test
-```
-
-For integration tests, the following environment variables are required. A server hosting the API to be tested must be available at `SERVER_URL` address.
-
-| Variable     | Description     |
-| ------------ | --------------- |
-| TEST_SSO_URL | Server URL.     |
-| TEST_SSO_KEY | Root key value. |
-
-To run integration tests.
-
-```bash
-cargo make test-integration
+source .env
 ```

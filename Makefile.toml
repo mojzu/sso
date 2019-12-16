@@ -4,7 +4,7 @@
 # - format (fmt)
 # - check
 
-[tasks.grpc-protoc]
+[tasks.openapi-protoc]
 workspace = false
 script = [
     "(cd sso_grpc/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --go_out=plugins=grpc:../../sso_openapi sso.proto)",
@@ -12,24 +12,22 @@ script = [
     "(cd sso_grpc/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --swagger_out=logtostderr=true:../../sso_openapi sso.proto)",
 ]
 
-[tasks.grpc-gateway]
+[tasks.openapi-bin]
 workspace = false
 script = [
-    "(cd sso_openapi && go build -o sso-openapi-server)",
+    "(cd sso_openapi && gofmt -w . && go build -o sso-openapi-server)",
 ]
-
-# TODO(refactor): Update below for grpc.
 
 [tasks.postgres-reset]
 workspace = false
 script = [
-    "(cd sso && DATABASE_URL=\"postgres://guest:guest@localhost:5432/sso\" diesel database reset --migration-dir migrations/postgres)",
+    "(cd sso && DATABASE_URL=\"postgres://guest:guest@localhost:5432/sso\" diesel database reset)",
 ]
 
 [tasks.postgres-migration]
 workspace = false
 script = [
-    "(cd sso && DATABASE_URL=\"postgres://guest:guest@localhost:5432/sso\" diesel migration generate ${@} --migration-dir migrations/postgres)",
+    "(cd sso && DATABASE_URL=\"postgres://guest:guest@localhost:5432/sso\" diesel migration generate ${@})",
 ]
 
 [tasks.manual]
@@ -64,7 +62,7 @@ dependencies = ["format"]
 [tasks.doc]
 workspace = false
 command = "cargo"
-args = ["doc", "--no-deps", "--open"]
+args = ["doc", "--no-deps"]
 dependencies = ["format"]
 
 [tasks.release]
@@ -72,14 +70,3 @@ workspace = false
 command = "cargo"
 args = ["build", "--release"]
 dependencies = ["format"]
-
-[tasks.release-flow]
-workspace = false
-dependencies = ["manual", "doc", "test", "release"]
-# test-integration
-
-[tasks.install]
-workspace = false
-command = "cargo"
-args = ["install", "--force", "--path", "sso"]
-dependencies = ["release"]

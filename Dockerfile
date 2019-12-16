@@ -1,5 +1,4 @@
 FROM debian:10.2
-
 ENV DEBIAN_FRONTEND="noninteractive"
 
 # Install dependencies.
@@ -13,10 +12,11 @@ ENV RUSTUP_HOME="/usr/local/rustup" \
     CARGO_HOME="/usr/local/cargo" \
     PATH="/usr/local/cargo/bin:$PATH" \
     RUST_VERSION="1.39.0" \
-    RUSTUP_URL="https://static.rust-lang.org/rustup/archive/1.20.2/x86_64-unknown-linux-gnu/rustup-init"
+    RUSTUP_URL="https://static.rust-lang.org/rustup/archive/1.20.2/x86_64-unknown-linux-gnu/rustup-init" \
+    USER="root"
 
 # Go environment.
-ENV PATH="/usr/local/go/bin:$PATH" \
+ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH" \
     GOLANG_URL="https://golang.org/dl/go1.13.5.linux-amd64.tar.gz" \
     PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.11.1/protoc-3.11.1-linux-x86_64.zip"
 
@@ -47,9 +47,11 @@ RUN wget -O go.tgz -q "$GOLANG_URL"; \
     rm protoc.zip;
 
 # Install Go tools.
+# <https://github.com/grpc-ecosystem/grpc-gateway>
 RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway; \
     go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger; \
-    go get -u github.com/golang/protobuf/protoc-gen-go;
+    go get -u github.com/golang/protobuf/protoc-gen-go; \
+    go get -u google.golang.org/grpc;
 
 # Install Pandoc.
 # <https://pandoc.org/installing.html>
@@ -57,9 +59,12 @@ RUN wget -O pandoc.deb -q "$PANDOC_URL"; \
     dpkg -i pandoc.deb; \
     rm pandoc.deb;
 
-VOLUME ["/sso"]
+# Rust crate dependencies.
+# This prevents having to download crates for cargo commands.
+ADD . /sso
 WORKDIR /sso
+RUN cargo fetch;
 
-COPY ./versions.sh /versions.sh
+COPY ./docker/build/versions.sh /versions.sh
 RUN chmod +x /versions.sh
 CMD ["/versions.sh"]

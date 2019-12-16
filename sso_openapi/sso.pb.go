@@ -56,41 +56,41 @@ func (m *Empty) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Empty proto.InternalMessageInfo
 
-type PingReply struct {
-	Pong                 string   `protobuf:"bytes,1,opt,name=pong,proto3" json:"pong,omitempty"`
+type Text struct {
+	Text                 string   `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *PingReply) Reset()         { *m = PingReply{} }
-func (m *PingReply) String() string { return proto.CompactTextString(m) }
-func (*PingReply) ProtoMessage()    {}
-func (*PingReply) Descriptor() ([]byte, []int) {
+func (m *Text) Reset()         { *m = Text{} }
+func (m *Text) String() string { return proto.CompactTextString(m) }
+func (*Text) ProtoMessage()    {}
+func (*Text) Descriptor() ([]byte, []int) {
 	return fileDescriptor_37aabceb39ca51ce, []int{1}
 }
 
-func (m *PingReply) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_PingReply.Unmarshal(m, b)
+func (m *Text) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Text.Unmarshal(m, b)
 }
-func (m *PingReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_PingReply.Marshal(b, m, deterministic)
+func (m *Text) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Text.Marshal(b, m, deterministic)
 }
-func (m *PingReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PingReply.Merge(m, src)
+func (m *Text) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Text.Merge(m, src)
 }
-func (m *PingReply) XXX_Size() int {
-	return xxx_messageInfo_PingReply.Size(m)
+func (m *Text) XXX_Size() int {
+	return xxx_messageInfo_Text.Size(m)
 }
-func (m *PingReply) XXX_DiscardUnknown() {
-	xxx_messageInfo_PingReply.DiscardUnknown(m)
+func (m *Text) XXX_DiscardUnknown() {
+	xxx_messageInfo_Text.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_PingReply proto.InternalMessageInfo
+var xxx_messageInfo_Text proto.InternalMessageInfo
 
-func (m *PingReply) GetPong() string {
+func (m *Text) GetText() string {
 	if m != nil {
-		return m.Pong
+		return m.Text
 	}
 	return ""
 }
@@ -159,7 +159,7 @@ var xxx_messageInfo_AuditListReply proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*Empty)(nil), "sso.Empty")
-	proto.RegisterType((*PingReply)(nil), "sso.PingReply")
+	proto.RegisterType((*Text)(nil), "sso.Text")
 	proto.RegisterType((*AuditListRequest)(nil), "sso.AuditListRequest")
 	proto.RegisterType((*AuditListReply)(nil), "sso.AuditListReply")
 }
@@ -167,23 +167,21 @@ func init() {
 func init() { proto.RegisterFile("sso.proto", fileDescriptor_37aabceb39ca51ce) }
 
 var fileDescriptor_37aabceb39ca51ce = []byte{
-	// 254 bytes of a gzipped FileDescriptorProto
+	// 221 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2c, 0x2e, 0xce, 0xd7,
 	0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x2e, 0x2e, 0xce, 0x97, 0x12, 0x4c, 0xcc, 0xcb, 0xcb,
 	0x2f, 0x49, 0x2c, 0xc9, 0xcc, 0xcf, 0x2b, 0x86, 0x88, 0x2b, 0xb1, 0x73, 0xb1, 0xba, 0xe6, 0x16,
-	0x94, 0x54, 0x2a, 0xc9, 0x73, 0x71, 0x06, 0x64, 0xe6, 0xa5, 0x07, 0xa5, 0x16, 0xe4, 0x54, 0x0a,
-	0x09, 0x71, 0xb1, 0x14, 0xe4, 0xe7, 0xa5, 0x4b, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x06, 0x81, 0xd9,
-	0x4a, 0x42, 0x5c, 0x02, 0x8e, 0xa5, 0x29, 0x99, 0x25, 0x3e, 0x99, 0xc5, 0x25, 0x41, 0xa9, 0x85,
-	0xa5, 0xa9, 0xc5, 0x25, 0x4a, 0x02, 0x5c, 0x7c, 0x48, 0x62, 0x05, 0x39, 0x95, 0x46, 0x9f, 0x19,
-	0xb9, 0x98, 0x83, 0x8b, 0xf3, 0x85, 0x0c, 0xb9, 0x58, 0x40, 0xc6, 0x09, 0x71, 0xe9, 0x81, 0xdc,
-	0x00, 0xb6, 0x42, 0x8a, 0x0f, 0xcc, 0x86, 0xdb, 0xa2, 0xc4, 0xdb, 0x74, 0xf9, 0xc9, 0x64, 0x26,
-	0x76, 0x21, 0x56, 0xfd, 0x02, 0x90, 0x52, 0x63, 0x2e, 0x76, 0xdf, 0xd4, 0x92, 0xa2, 0xcc, 0xe4,
-	0x62, 0x14, 0x5d, 0x48, 0x6c, 0x25, 0x01, 0xb0, 0x0e, 0x2e, 0x21, 0x0e, 0xfd, 0x5c, 0xa8, 0x4a,
-	0x0b, 0x2e, 0x76, 0xff, 0x82, 0xd4, 0xbc, 0xc4, 0x82, 0x4c, 0x9c, 0x9a, 0x44, 0xc1, 0x9a, 0xf8,
-	0x85, 0x78, 0xf5, 0xf3, 0x21, 0x2a, 0xf5, 0xb2, 0x8a, 0xf3, 0xf3, 0x84, 0xbc, 0xb8, 0x38, 0xe1,
-	0x6e, 0x17, 0x12, 0x05, 0xab, 0x47, 0xf7, 0x9f, 0x94, 0x30, 0xba, 0x30, 0xc8, 0xd9, 0x82, 0x60,
-	0xf3, 0xb8, 0x85, 0x38, 0xf5, 0xcb, 0x0c, 0xf5, 0x13, 0x41, 0x72, 0x49, 0x6c, 0xe0, 0xc0, 0x34,
-	0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x6e, 0x29, 0x6a, 0x94, 0x71, 0x01, 0x00, 0x00,
+	0x94, 0x54, 0x2a, 0x49, 0x71, 0xb1, 0x84, 0xa4, 0x56, 0x94, 0x08, 0x09, 0x71, 0xb1, 0x94, 0xa4,
+	0x56, 0x94, 0x48, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x06, 0x81, 0xd9, 0x4a, 0x42, 0x5c, 0x02, 0x8e,
+	0xa5, 0x29, 0x99, 0x25, 0x3e, 0x99, 0xc5, 0x25, 0x41, 0xa9, 0x85, 0xa5, 0xa9, 0xc5, 0x25, 0x4a,
+	0x02, 0x5c, 0x7c, 0x48, 0x62, 0x05, 0x39, 0x95, 0x46, 0x9b, 0x19, 0xb9, 0x98, 0x83, 0x8b, 0xf3,
+	0x85, 0x74, 0xb8, 0x58, 0x02, 0x32, 0xf3, 0xd2, 0x85, 0xb8, 0xf4, 0x40, 0xd6, 0x83, 0x4d, 0x97,
+	0xe2, 0x04, 0xb3, 0x41, 0x16, 0x28, 0xf1, 0x36, 0x5d, 0x7e, 0x32, 0x99, 0x89, 0x5d, 0x88, 0x55,
+	0xbf, 0x00, 0xa4, 0xca, 0x88, 0x8b, 0xdd, 0x37, 0xb5, 0xa4, 0x28, 0x33, 0xb9, 0x18, 0x97, 0x06,
+	0x01, 0xb0, 0x06, 0x2e, 0x21, 0x0e, 0xfd, 0x5c, 0xa8, 0x42, 0x2f, 0x2e, 0x4e, 0xb8, 0xdd, 0x42,
+	0xa2, 0x60, 0x95, 0xe8, 0xee, 0x93, 0x12, 0x46, 0x17, 0x2e, 0xc8, 0xa9, 0x54, 0x12, 0x04, 0x1b,
+	0xc5, 0x2d, 0xc4, 0xa9, 0x5f, 0x66, 0xa8, 0x9f, 0x08, 0x92, 0x4b, 0x62, 0x03, 0x87, 0x83, 0x31,
+	0x20, 0x00, 0x00, 0xff, 0xff, 0x70, 0xef, 0x10, 0x50, 0x2c, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -199,11 +197,9 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SsoClient interface {
 	// Returns pong response.
-	Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PingReply, error)
+	Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Text, error)
 	// Returns metrics in Prometheus exposition format.
-	Metrics(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
-	// Returns OpenAPI specification in JSON format.
-	Openapi(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	Metrics(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Text, error)
 	AuditList(ctx context.Context, in *AuditListRequest, opts ...grpc.CallOption) (*AuditListReply, error)
 }
 
@@ -215,8 +211,8 @@ func NewSsoClient(cc *grpc.ClientConn) SsoClient {
 	return &ssoClient{cc}
 }
 
-func (c *ssoClient) Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PingReply, error) {
-	out := new(PingReply)
+func (c *ssoClient) Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Text, error) {
+	out := new(Text)
 	err := c.cc.Invoke(ctx, "/sso.Sso/Ping", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -224,18 +220,9 @@ func (c *ssoClient) Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption
 	return out, nil
 }
 
-func (c *ssoClient) Metrics(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
+func (c *ssoClient) Metrics(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Text, error) {
+	out := new(Text)
 	err := c.cc.Invoke(ctx, "/sso.Sso/Metrics", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *ssoClient) Openapi(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/sso.Sso/Openapi", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -254,11 +241,9 @@ func (c *ssoClient) AuditList(ctx context.Context, in *AuditListRequest, opts ..
 // SsoServer is the server API for Sso service.
 type SsoServer interface {
 	// Returns pong response.
-	Ping(context.Context, *Empty) (*PingReply, error)
+	Ping(context.Context, *Empty) (*Text, error)
 	// Returns metrics in Prometheus exposition format.
-	Metrics(context.Context, *Empty) (*Empty, error)
-	// Returns OpenAPI specification in JSON format.
-	Openapi(context.Context, *Empty) (*Empty, error)
+	Metrics(context.Context, *Empty) (*Text, error)
 	AuditList(context.Context, *AuditListRequest) (*AuditListReply, error)
 }
 
@@ -266,14 +251,11 @@ type SsoServer interface {
 type UnimplementedSsoServer struct {
 }
 
-func (*UnimplementedSsoServer) Ping(ctx context.Context, req *Empty) (*PingReply, error) {
+func (*UnimplementedSsoServer) Ping(ctx context.Context, req *Empty) (*Text, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
-func (*UnimplementedSsoServer) Metrics(ctx context.Context, req *Empty) (*Empty, error) {
+func (*UnimplementedSsoServer) Metrics(ctx context.Context, req *Empty) (*Text, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Metrics not implemented")
-}
-func (*UnimplementedSsoServer) Openapi(ctx context.Context, req *Empty) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Openapi not implemented")
 }
 func (*UnimplementedSsoServer) AuditList(ctx context.Context, req *AuditListRequest) (*AuditListReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuditList not implemented")
@@ -319,24 +301,6 @@ func _Sso_Metrics_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Sso_Openapi_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SsoServer).Openapi(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/sso.Sso/Openapi",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SsoServer).Openapi(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Sso_AuditList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AuditListRequest)
 	if err := dec(in); err != nil {
@@ -366,10 +330,6 @@ var _Sso_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Metrics",
 			Handler:    _Sso_Metrics_Handler,
-		},
-		{
-			MethodName: "Openapi",
-			Handler:    _Sso_Openapi_Handler,
 		},
 		{
 			MethodName: "AuditList",

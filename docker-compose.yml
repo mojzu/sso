@@ -17,11 +17,38 @@ services:
   # # Prometheus service.
   # # <https://prometheus.io/>
   # prometheus:
-  #   build: prometheus
+  #   build: docker/prometheus
   #   restart: always
   #   network_mode: "host"
   #   ports:
   #     - "9090:9090"
+
+  # gRPC service.
+  # <https://grpc.io/>
+  sso_grpc:
+    build: sso_grpc
+    depends_on:
+      - postgres
+    restart: always
+    network_mode: "host"
+    environment:
+      SSO_GRPC_BIND: "localhost:7000"
+    ports:
+      - "7000:7000"
+
+  # OpenAPI gateway service.
+  # <https://github.com/grpc-ecosystem/grpc-gateway>
+  sso_openapi:
+    build: sso_openapi
+    depends_on:
+      - sso_grpc
+    restart: always
+    network_mode: "host"
+    environment:
+      SSO_OPENAPI_SSO_GRPC: "localhost:7000"
+      SSO_OPENAPI_BIND: "localhost:8000"
+    ports:
+      - "8000:8000"
 
   # # Single sign-on service.
   # sso:

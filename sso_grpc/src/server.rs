@@ -4,7 +4,7 @@ use tower::Service;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "0.0.0.0:9090".parse()?;
+    let addr = "0.0.0.0:7000".parse()?;
     let sso = sso_grpc::SsoGrpc::new();
     let sso_ref = Arc::new(sso.clone());
 

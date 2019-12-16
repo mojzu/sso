@@ -19,24 +19,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/ssoEmpty"
-            }
-          }
-        },
-        "tags": [
-          "Sso"
-        ]
-      }
-    },
-    "/openapi.json": {
-      "get": {
-        "summary": "Returns OpenAPI specification in JSON format.",
-        "operationId": "Openapi",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/ssoEmpty"
+              "$ref": "#/definitions/ssoText"
             }
           }
         },
@@ -53,7 +36,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/ssoPingReply"
+              "$ref": "#/definitions/ssoText"
             }
           }
         },
@@ -83,13 +66,10 @@
     "ssoAuditListReply": {
       "type": "object"
     },
-    "ssoEmpty": {
-      "type": "object"
-    },
-    "ssoPingReply": {
+    "ssoText": {
       "type": "object",
       "properties": {
-        "pong": {
+        "text": {
           "type": "string"
         }
       }
