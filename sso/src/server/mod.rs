@@ -1,6 +1,8 @@
 pub mod actix_web_middleware;
 mod route;
 
+// TODO(refactor): Remove deprecated server code.
+
 use crate::{
     api::{AuthProviderOauth2, AuthProviderOauth2Args},
     Driver, DriverError, DriverResult, Metrics, TemplateEmail,

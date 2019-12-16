@@ -14,7 +14,7 @@ use diesel::{prelude::*, r2d2::ConnectionManager};
 use std::fmt;
 use uuid::Uuid;
 
-embed_migrations!("migrations/postgres");
+embed_migrations!("migrations");
 
 type PooledConnection = r2d2::PooledConnection<ConnectionManager<PgConnection>>;
 

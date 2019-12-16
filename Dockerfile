@@ -12,8 +12,7 @@ ENV RUSTUP_HOME="/usr/local/rustup" \
     CARGO_HOME="/usr/local/cargo" \
     PATH="/usr/local/cargo/bin:$PATH" \
     RUST_VERSION="1.39.0" \
-    RUSTUP_URL="https://static.rust-lang.org/rustup/archive/1.20.2/x86_64-unknown-linux-gnu/rustup-init" \
-    USER="root"
+    RUSTUP_URL="https://static.rust-lang.org/rustup/archive/1.20.2/x86_64-unknown-linux-gnu/rustup-init"
 
 # Go environment.
 ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH" \
@@ -44,6 +43,7 @@ RUN wget -O go.tgz -q "$GOLANG_URL"; \
     wget -O protoc.zip -q "$PROTOC_URL"; \
     unzip -o protoc.zip -d /usr/local bin/protoc; \
     unzip -o protoc.zip -d /usr/local 'include/*'; \
+    chmod +rx /usr/local/bin/protoc; \
     rm protoc.zip;
 
 # Install Go tools.
@@ -59,11 +59,29 @@ RUN wget -O pandoc.deb -q "$PANDOC_URL"; \
     dpkg -i pandoc.deb; \
     rm pandoc.deb;
 
+# Development environment variables.
+# This file is checked into Git and must not contain secrets!
+# sso-cli
+ENV SSO_CLI_SENTRY_URL="" \
+    SSO_CLI_DATABASE_URL="postgres://guest:guest@localhost:5432/sso"
+# sso-grpc-server
+ENV SSO_GRPC_SENTRY_URL="" \
+    SSO_GRPC_DATABASE_URL="postgres://guest:guest@localhost:5432/sso" \
+    SSO_GRPC_DATABASE_CONNECTIONS="10" \
+    SSO_GRPC_BIND="localhost:7000"
+
 # Rust crate dependencies.
 # This prevents having to download crates for cargo commands.
-ADD . /sso
+# Set 777 to allow any user to write to `/usr/local/cargo`.
+ADD ./docs /sso/docs
+ADD ./sso /sso/sso
+ADD ./sso_grpc /sso/sso_grpc
+ADD ./sso_openapi /sso/sso_openapi
+ADD ./Cargo.toml /sso/Cargo.toml
+ADD ./Makefile.toml /sso/Makefile.toml
 WORKDIR /sso
-RUN cargo fetch;
+RUN cargo fetch; \
+    chmod 777 -R /usr/local/cargo;
 
 COPY ./docker/build/versions.sh /versions.sh
 RUN chmod +x /versions.sh

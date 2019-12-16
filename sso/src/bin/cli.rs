@@ -6,39 +6,21 @@ extern crate log;
 
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
-use sso::{
-    env, Cli, CliOptions, Driver, DriverPostgres, DriverResult, ServerOptions,
-    ServerOptionsProvider, ServerOptionsProviderGroup,
-};
+use sso::{env, Cli, Driver, DriverPostgres, DriverResult};
 
 const CRATE_NAME: &str = crate_name!();
 const CRATE_VERSION: &str = crate_version!();
 const CRATE_DESCRIPTION: &str = crate_description!();
 const CRATE_AUTHORS: &str = "Sam Ward <git@mojzu.net>";
 
-const ENV_SENTRY_URL: &str = "SENTRY_URL";
-const ENV_DATABASE_URL: &str = "DATABASE_URL";
-const ENV_DATABASE_CONNECTIONS: &str = "DATABASE_CONNECTIONS";
-const ENV_SERVER_THREADS: &str = "SERVER_THREADS";
-const ENV_SERVER_HOSTNAME: &str = "SERVER_HOSTNAME";
-const ENV_SERVER_BIND: &str = "SERVER_BIND";
-const ENV_SERVER_TLS_CRT_PEM: &str = "SERVER_TLS_CRT_PEM";
-const ENV_SERVER_TLS_KEY_PEM: &str = "SERVER_TLS_KEY_PEM";
-const ENV_SERVER_TLS_CLIENT_PEM: &str = "SERVER_TLS_CLIENT_PEM";
-const ENV_SMTP_HOST: &str = "SMTP_HOST";
-const ENV_SMTP_PORT: &str = "SMTP_PORT";
-const ENV_SMTP_USER: &str = "SMTP_USER";
-const ENV_SMTP_PASSWORD: &str = "SMTP_PASSWORD";
-const ENV_SMTP_FILE: &str = "SMTP_FILE";
-const ENV_PASSWORD_PWNED_ENABLED: &str = "PASSWORD_PWNED_ENABLED";
-const ENV_GITHUB_CLIENT_ID: &str = "GITHUB_CLIENT_ID";
-const ENV_GITHUB_CLIENT_SECRET: &str = "GITHUB_CLIENT_SECRET";
-const ENV_MICROSOFT_CLIENT_ID: &str = "MICROSOFT_CLIENT_ID";
-const ENV_MICROSOFT_CLIENT_SECRET: &str = "MICROSOFT_CLIENT_SECRET";
+/// Sentry URL for logging integration.
+const ENV_SENTRY_URL: &str = "SSO_CLI_SENTRY_URL";
+
+/// Database connection URL.
+const ENV_DATABASE_URL: &str = "SSO_CLI_DATABASE_URL";
 
 const CMD_CREATE_ROOT_KEY: &str = "create-root-key";
 const CMD_CREATE_SERVICE_WITH_KEY: &str = "create-service-with-key";
-const CMD_START_SERVER: &str = "start-server";
 
 const ARG_NAME: &str = "NAME";
 const ARG_URL: &str = "URL";
@@ -126,15 +108,11 @@ fn main() {
                         .takes_value(true)
                         .required(false),
                 ]),
-            SubCommand::with_name(CMD_START_SERVER)
-                .version(CRATE_VERSION)
-                .about("Start server")
-                .author(CRATE_AUTHORS),
         ])
         .get_matches();
 
-    // Build options and driver from environment variables.
-    let result = configure().and_then(|(driver, options)| {
+    // Build driver from environment variables.
+    let result = configure().and_then(|driver| {
         // Call library functions with command line arguments.
         match matches.subcommand() {
             (CMD_CREATE_ROOT_KEY, Some(submatches)) => {
@@ -168,7 +146,6 @@ fn main() {
                     0
                 })
             }
-            (CMD_START_SERVER, Some(_submatches)) => Cli::start_server(driver, options).map(|_| 0),
             _ => {
                 println!("{}", matches.usage());
                 Ok(1)
@@ -186,53 +163,10 @@ fn main() {
     }
 }
 
-fn configure() -> DriverResult<(Box<dyn Driver>, CliOptions)> {
+fn configure() -> DriverResult<Box<dyn Driver>> {
     let database_url = env::string(ENV_DATABASE_URL)?;
-    let database_connections = env::value_opt::<u32>(ENV_DATABASE_CONNECTIONS)?;
-    let server_threads = env::value_opt::<usize>(ENV_SERVER_THREADS)?.unwrap_or(4);
-    let server_hostname = env::string_opt(ENV_SERVER_HOSTNAME).unwrap_or_else(|| "sso".to_owned());
-    let server_bind = env::string(ENV_SERVER_BIND)?;
-    let smtp = env::smtp(
-        ENV_SMTP_HOST,
-        ENV_SMTP_PORT,
-        ENV_SMTP_USER,
-        ENV_SMTP_PASSWORD,
-    )?;
-    let smtp_file = env::string_opt(ENV_SMTP_FILE);
-    let password_pwned_enabled =
-        env::value_opt::<bool>(ENV_PASSWORD_PWNED_ENABLED)?.unwrap_or(false);
-    let github =
-        ServerOptionsProvider::new(env::oauth2(ENV_GITHUB_CLIENT_ID, ENV_GITHUB_CLIENT_SECRET)?);
-    let microsoft = ServerOptionsProvider::new(env::oauth2(
-        ENV_MICROSOFT_CLIENT_ID,
-        ENV_MICROSOFT_CLIENT_SECRET,
-    )?);
-    let rustls = env::rustls(
-        ENV_SERVER_TLS_CRT_PEM,
-        ENV_SERVER_TLS_KEY_PEM,
-        ENV_SERVER_TLS_CLIENT_PEM,
-    )?;
-
-    let driver = if database_url.starts_with("postgres") {
-        DriverPostgres::initialise(&database_url, database_connections)
-            .unwrap()
-            .box_clone()
-    } else {
-        // DriverSqlite::initialise(&database_url, database_connections)
-        //     .unwrap()
-        //     .box_clone()
-        unimplemented!();
-    };
-
-    let server = ServerOptions::new(server_bind)
-        .set_hostname(&server_hostname)
-        .set_password_pwned_enabled(password_pwned_enabled)
-        .set_provider(ServerOptionsProviderGroup::new(github, microsoft))
-        .set_rustls(rustls)
-        .set_user_agent(&server_hostname)
-        .set_smtp_transport(smtp)
-        .set_smtp_file_transport(smtp_file);
-    let options = CliOptions::new(server_threads, server);
-
-    Ok((driver, options))
+    let driver = DriverPostgres::initialise(&database_url, Some(1))
+        .unwrap()
+        .box_clone();
+    Ok(driver)
 }

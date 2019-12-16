@@ -1,4 +1,4 @@
-FROM sso_build:latest as build
+FROM sso-build:latest as build
 
 # Copy files and build binary.
 ADD . /sso/sso_grpc

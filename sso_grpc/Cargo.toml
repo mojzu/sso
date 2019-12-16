@@ -1,7 +1,9 @@
 [package]
 name = "sso_grpc"
 version = "0.1.0"
+description = "Single sign-on authentication gRPC server."
 authors = ["Sam Ward <git@mojzu.net>"]
+license = "Unlicense"
 edition = "2018"
 
 [lib]
@@ -10,7 +12,7 @@ path = "src/lib.rs"
 
 [[bin]]
 name = "sso-grpc-server"
-path = "src/server.rs"
+path = "src/bin/server.rs"
 
 [dependencies]
 bytes = "0.4.12"

@@ -17,6 +17,8 @@ use serde::ser::Serialize;
 use std::{fs::File, io::Read};
 use url::Url;
 
+// TODO(refactor): Remove deprecated client code.
+
 /// Client request options.
 #[derive(Debug, Clone)]
 pub struct ClientRequestOptions {

@@ -129,9 +129,6 @@ pub enum DriverError {
     #[fail(display = "R2d2 {}", _0)]
     R2d2(#[fail(cause)] r2d2::Error),
 
-    #[fail(display = "ActixMailbox {}", _0)]
-    ActixMailbox(#[fail(cause)] actix::MailboxError),
-
     #[fail(display = "Rustls")]
     Rustls,
 

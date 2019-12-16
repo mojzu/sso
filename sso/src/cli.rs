@@ -1,39 +1,20 @@
-use crate::{
-    pattern::{task_thread_start, task_thread_stop},
-    AuditBuilder, Driver, DriverError, DriverResult, KeyCreate, KeyWithValue, Server,
-    ServerOptions, Service, ServiceCreate,
-};
-use actix_rt::System;
+use crate::{AuditBuilder, Driver, DriverResult, KeyCreate, KeyWithValue, Service, ServiceCreate};
 use chrono::Duration;
 
 /// CLI options.
 #[derive(Debug, Clone)]
 pub struct CliOptions {
-    server_threads: usize,
-    server: ServerOptions,
     task_tick_ms: u64,
     audit_retention: Duration,
 }
 
 impl CliOptions {
     /// Create new options.
-    pub fn new(server_threads: usize, server: ServerOptions) -> Self {
+    pub fn new() -> Self {
         Self {
-            server_threads,
-            server,
             audit_retention: Duration::weeks(12),
             task_tick_ms: 1000,
         }
-    }
-
-    /// Returns number of server threads.
-    pub fn server_threads(&self) -> usize {
-        self.server_threads
-    }
-
-    /// Returns server options reference.
-    pub fn server(&self) -> &ServerOptions {
-        &self.server
     }
 
     /// Returns task tick interval in milliseconds.
@@ -94,23 +75,5 @@ impl Cli {
         let key_create = KeyCreate::service(true, name, service.id);
         let key = driver.key_create(&key_create)?;
         Ok((service, key))
-    }
-
-    /// Start server and task thread.
-    pub fn start_server(driver: Box<dyn Driver>, options: CliOptions) -> DriverResult<()> {
-        let system = System::new(crate_name!());
-
-        let server_options = options.server().clone();
-        Server::start(options.server_threads(), driver.clone(), server_options)?;
-
-        let (task_handle, task_tx) = task_thread_start(
-            driver.clone(),
-            options.task_tick_ms(),
-            options.audit_retention(),
-        );
-
-        system.run().map_err(DriverError::StdIo).map(|_| {
-            task_thread_stop(task_handle, task_tx);
-        })
     }
 }

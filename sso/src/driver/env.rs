@@ -1,7 +1,5 @@
 //! # Environment Functions
-use crate::{
-    api::AuthProviderOauth2, DriverError, DriverResult, ServerOptionsRustls, ServerOptionsSmtp,
-};
+use crate::{api::AuthProviderOauth2, DriverError, DriverResult};
 use std::str::FromStr;
 
 /// Read required environment variable string value.
@@ -71,38 +69,6 @@ pub fn has_any_name(names: &[&str]) -> bool {
     false
 }
 
-/// Read SMTP environment variables into options.
-///
-/// If no variables are defined, returns None. Else all variables
-/// are required and an error message logged for each missing variable.
-pub fn smtp(
-    smtp_host_name: &str,
-    smtp_port_name: &str,
-    smtp_user_name: &str,
-    smtp_password_name: &str,
-) -> DriverResult<Option<ServerOptionsSmtp>> {
-    if has_any_name(&[
-        smtp_host_name,
-        smtp_port_name,
-        smtp_user_name,
-        smtp_password_name,
-    ]) {
-        let smtp_host = string(smtp_host_name)?;
-        let smtp_port = value::<u16>(smtp_port_name)?;
-        let smtp_user = string(smtp_user_name)?;
-        let smtp_password = string(smtp_password_name)?;
-
-        Ok(Some(ServerOptionsSmtp::new(
-            smtp_host,
-            smtp_port,
-            smtp_user,
-            smtp_password,
-        )))
-    } else {
-        Ok(None)
-    }
-}
-
 /// Read OAuth2 environment variables into options.
 ///
 /// If no variables are defined, returns None. Else all variables
@@ -116,26 +82,6 @@ pub fn oauth2(
         let client_secret = string(client_secret_name)?;
 
         Ok(Some(AuthProviderOauth2::new(client_id, client_secret)))
-    } else {
-        Ok(None)
-    }
-}
-
-/// Read Rustls environment variables into options.
-///
-/// If no variables are defined, returns None. Else all variables
-/// are required and an error message logged for each missing variable.
-pub fn rustls(
-    crt_pem_name: &str,
-    key_pem_name: &str,
-    client_pem_name: &str,
-) -> DriverResult<Option<ServerOptionsRustls>> {
-    if has_any_name(&[crt_pem_name, key_pem_name, client_pem_name]) {
-        let crt_pem = string(crt_pem_name)?;
-        let key_pem = string(key_pem_name)?;
-        let client_pem = string_opt(client_pem_name);
-
-        Ok(Some(ServerOptionsRustls::new(crt_pem, key_pem, client_pem)))
     } else {
         Ok(None)
     }
