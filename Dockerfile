@@ -68,7 +68,20 @@ ENV SSO_CLI_SENTRY_URL="" \
 ENV SSO_GRPC_SENTRY_URL="" \
     SSO_GRPC_DATABASE_URL="postgres://guest:guest@localhost:5432/sso" \
     SSO_GRPC_DATABASE_CONNECTIONS="10" \
-    SSO_GRPC_BIND="localhost:7000"
+    SSO_GRPC_BIND="0.0.0.0:7000" \
+    SSO_GRPC_TLS_CERT_PEM="" \
+    SSO_GRPC_TLS_KEY_PEM="" \
+    SSO_GRPC_TLS_CLIENT_PEM="" \
+    SSO_GRPC_SMTP_HOST="" \
+    SSO_GRPC_SMTP_PORT="" \
+    SSO_GRPC_SMTP_USER="" \
+    SSO_GRPC_SMTP_PASSWORD="" \
+    SSO_GRPC_SMTP_FILE="" \
+    SSO_GRPC_PASSWORD_PWNED="true" \
+    SSO_GRPC_GITHUB_CLIENT_ID="" \
+    SSO_GRPC_GITHUB_CLIENT_SECRET="" \
+    SSO_GRPC_MICROSOFT_CLIENT_ID="" \
+    SSO_GRPC_MICROSOFT_CLIENT_SECRET=""
 
 # Rust crate dependencies.
 # This prevents having to download crates for cargo commands.
@@ -83,6 +96,8 @@ WORKDIR /sso
 RUN cargo fetch; \
     chmod 777 -R /usr/local/cargo;
 
+COPY ./docker/build/entrypoint.sh /entrypoint.sh
 COPY ./docker/build/versions.sh /versions.sh
-RUN chmod +x /versions.sh
+RUN chmod +x /entrypoint.sh /versions.sh
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/versions.sh"]

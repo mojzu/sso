@@ -20,6 +20,7 @@ http = "0.1.21"
 http-body = "=0.2.0-alpha.3"
 prost = "0.5.0"
 prost-derive = "0.5.0"
+sso = { path = "../sso" }
 tokio = { version = "0.2", features = ["rt-threaded", "time", "stream", "fs", "macros", "uds"] }
 tonic = { git = "https://github.com/hyperium/tonic.git" }
 tower = { git = "https://github.com/tower-rs/tower" }
