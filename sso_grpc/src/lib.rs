@@ -2,7 +2,9 @@ pub mod pb {
     //! Generated protobuf server and client items.
     tonic::include_proto!("sso");
 }
-pub mod client;
+mod client;
+
+pub use crate::{client::{ClientBlocking, ClientOptions}, pb::sso_client::SsoClient as Client};
 
 use crate::pb::{AuditListReply, AuditListRequest, Empty, Text};
 use tonic::{
@@ -57,14 +59,14 @@ impl pb::sso_server::Sso for SsoGrpc {
         }))
     }
 
-    async fn audit_list(
-        &self,
-        request: Request<AuditListRequest>,
-    ) -> Result<Response<AuditListReply>, Status> {
-        println!("Got a request: {:?}", request);
+    // async fn audit_list(
+    //     &self,
+    //     request: Request<AuditListRequest>,
+    // ) -> Result<Response<AuditListReply>, Status> {
+    //     println!("Got a request: {:?}", request);
 
-        let reply = AuditListReply {};
+    //     let reply = AuditListReply {};
 
-        Ok(Response::new(reply))
-    }
+    //     Ok(Response::new(reply))
+    // }
 }

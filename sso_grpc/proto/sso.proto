@@ -1,6 +1,7 @@
 syntax = "proto3";
 package sso;
 
+import "google/protobuf/any.proto";
 import "annotations.proto";
 
 service Sso {
@@ -31,6 +32,32 @@ message Text {
     string text = 1;
 }
 
-message AuditListRequest {}
+message AuditListRequest {
+    string ge = 1;
+    string le = 2;
+    int64 limit = 3;
+    string offset_id = 4;
+    repeated string id = 5;
+    repeated string type = 6;
+    repeated string subject = 7;
+    repeated string service_id = 8;
+    repeated string user_id = 9;
+}
 
-message AuditListReply {}
+message AuditListReply {
+    AuditListRequest meta = 1;
+    repeated Audit data = 2;
+}
+
+message Audit {
+    string created_at = 1;
+    string updated_at = 2;
+    string id = 3;
+    string user_agent = 4;
+    string remote = 5;
+    string forwarded = 6;
+    uint32 status_code = 7;
+    string type = 8;
+    string subject = 9;
+    google.protobuf.Any data = 10;
+}
