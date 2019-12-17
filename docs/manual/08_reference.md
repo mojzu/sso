@@ -6,7 +6,6 @@
 [cargo-audit]: https://github.com/RustSec/cargo-audit
 [cargo-publishing]: https://doc.rust-lang.org/cargo/reference/publishing.html
 [postgresql]: https://www.postgresql.org/
-[sqlite]: https://www.sqlite.org/index.html
 [docker]: https://docs.docker.com/install/
 [docker-compose]: https://docs.docker.com/compose/
 [pwned-passwords]: https://haveibeenpwned.com/Passwords

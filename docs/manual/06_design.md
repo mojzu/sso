@@ -4,10 +4,10 @@
 
 | Directory     | Description                                                                                           |
 | ------------- | ----------------------------------------------------------------------------------------------------- |
-| `migrations`  | SQL migration files for [Postgres][postgresql] driver. [SQLite][sqlite] driver is planned.            |
+| `migrations`  | SQL migration files for [Postgres][postgresql] driver.                                                |
 | `/src/api`    | API request and response types and synchronous handlers.                                              |
 | `/src/client` | Synchronous and asynchronous clients using [reqwest][reqwest] crate and `api` module types.           |
-| `/src/driver` | Database types and driver for Postgres, SQLite support is planned.                                    |
+| `/src/driver` | Database types and driver for Postgres.                                                               |
 | `/src/notify` | Email notifications actor.                                                                            |
 | `/src/server` | Actix-web frontend for API, asynchronous route handlers deserialise data for synchronous `api` calls. |
 | `/tests`      | Integration tests which use `ClientSync` to run tests against an instance of `sso`.                   |
@@ -36,7 +36,6 @@ TODO(feature): User last login, key last use information (calculate in SQL).
 TODO(feature): Login from unknown IP address warnings, SMS support?
 TODO(feature): Jsonwebtoken handling improvements.
 <https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html>
-TODO(feature): Implement SQLite driver.
 TODO(feature): Support more process/other metrics, check units.
 <https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors>
 <https://peteris.rocks/blog/htop/>
@@ -51,7 +50,7 @@ The OWASP Application Security Verification Standard is being used as a referenc
 
 ### 1.2.1
 
-- Binary sso and postgres/sqlite must be run as unique or special low privelege operating system accounts.
+- Binary sso and postgres must be run as unique or special low privilege operating system accounts.
 
 TODO(docs): Systemd unit file examples, sso, postgres, nginx, etc.
 

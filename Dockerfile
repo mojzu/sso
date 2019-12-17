@@ -100,4 +100,4 @@ COPY ./docker/build/entrypoint.sh /entrypoint.sh
 COPY ./docker/build/versions.sh /versions.sh
 RUN chmod +x /entrypoint.sh /versions.sh
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/versions.sh"]
+CMD ["/bin/bash", "/versions.sh"]
