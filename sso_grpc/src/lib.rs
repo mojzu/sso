@@ -57,14 +57,17 @@ impl pb::sso_server::Sso for SsoGrpc {
         }))
     }
 
-    // async fn audit_list(
-    //     &self,
-    //     request: Request<AuditListRequest>,
-    // ) -> Result<Response<AuditListReply>, Status> {
-    //     println!("Got a request: {:?}", request);
+    async fn audit_list(
+        &self,
+        request: Request<AuditListRequest>,
+    ) -> Result<Response<AuditListReply>, Status> {
+        println!("Got a request: {:?}", request);
 
-    //     let reply = AuditListReply {};
+        let reply = AuditListReply {
+            meta: None,
+            data: None,
+        };
 
-    //     Ok(Response::new(reply))
-    // }
+        Ok(Response::new(reply))
+    }
 }

@@ -54,18 +54,28 @@ service Sso {
 message Empty {}
 
 message Text {
+    // Text content.
     string text = 1;
 }
 
 message AuditListRequest {
+    // Greater than or equal to date and time in ISO 8601 format.
     string ge = 1;
+    // Less than or equal to date and time in ISO 8601 format.
     string le = 2;
+    // Limit number of returned logs.
     int64 limit = 3;
+    // Offset log UUID for paging.
     string offset_id = 4;
+    // Log UUID filter array.
     repeated string id = 5;
+    // Log type filter array.
     repeated string type = 6;
+    // Log subject filter array.
     repeated string subject = 7;
+    // Log service UUID filter array.
     repeated string service_id = 8;
+    // Log user UUID filter array.
     repeated string user_id = 9;
 }
 
@@ -112,4 +122,25 @@ message Audit {
     string service_id = 12;
     string user_id = 13;
     string user_key_id = 14;
+}
+
+message KeyListRequest {
+    // Greater than key UUID.
+    string gt = 1;
+    // Less than key UUID.
+    string lt = 2;
+    // Limit number of returned keys.
+    int64 limit = 3;
+    // Key UUID filter array.
+    repeated string id = 4;
+    // Key is_enabled flag filter.
+    string is_enabled = 5;
+    // Key is_revoked flag filter.
+    string is_revoked = 6;
+    // Key type filter array.
+    repeated string type = 7;
+    // Key service UUID filter array.
+    repeated string service_id = 8;
+    // Key user UUID filter array.
+    repeated string user_id = 9;
 }
