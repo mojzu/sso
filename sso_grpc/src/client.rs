@@ -1,9 +1,9 @@
 //! Blocking client.
 use crate::pb::{sso_client::SsoClient, Empty, Text};
 use http::{HeaderValue, Uri};
+use std::str::FromStr;
 use tokio::runtime::{Builder, Runtime};
 use tonic::transport::Channel;
-use std::str::FromStr;
 
 type StdError = Box<dyn std::error::Error + Send + Sync + 'static>;
 type Result<T, E = StdError> = ::std::result::Result<T, E>;

@@ -1,7 +1,7 @@
+use sso::{env, pattern, Cli, CliOptions, Driver, DriverPostgres};
 use std::sync::Arc;
 use tonic::{body::BoxBody, transport::Server};
 use tower::Service;
-use sso::{Cli, CliOptions, pattern, env, Driver, DriverPostgres};
 
 /// Sentry URL for logging integration.
 const ENV_SENTRY_URL: &str = "SSO_GRPC_SENTRY_URL";
@@ -59,13 +59,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         options.audit_retention(),
     );
 
-    let password_pwned =
-        env::value_opt::<bool>(ENV_PASSWORD_PWNED).unwrap().unwrap_or(false);
+    let password_pwned = env::value_opt::<bool>(ENV_PASSWORD_PWNED)
+        .unwrap()
+        .unwrap_or(false);
     let github_oauth2 = env::oauth2(ENV_GITHUB_CLIENT_ID, ENV_GITHUB_CLIENT_SECRET).unwrap();
-    let microsoft_oauth2 = env::oauth2(
-        ENV_MICROSOFT_CLIENT_ID,
-        ENV_MICROSOFT_CLIENT_SECRET,
-    ).unwrap();
+    let microsoft_oauth2 =
+        env::oauth2(ENV_MICROSOFT_CLIENT_ID, ENV_MICROSOFT_CLIENT_SECRET).unwrap();
 
     // let smtp = env::smtp(
     //     ENV_SMTP_HOST,

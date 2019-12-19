@@ -4,7 +4,10 @@ pub mod pb {
 }
 mod client;
 
-pub use crate::{client::{ClientBlocking, ClientOptions}, pb::sso_client::SsoClient as Client};
+pub use crate::{
+    client::{ClientBlocking, ClientOptions},
+    pb::sso_client::SsoClient as Client,
+};
 
 use crate::pb::{AuditListReply, AuditListRequest, Empty, Text};
 use tonic::{
