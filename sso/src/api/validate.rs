@@ -18,9 +18,10 @@ pub trait ValidateRequest<T: Validate> {
         t.validate()
             .map_err::<DriverError, _>(Into::into)
             .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
-    fn api_validate_fut(t: &T) -> future::FutureResult<(), ApiError> {
+    fn api_validate_fut(t: &T) -> future::FutureResult<(), tonic::Status> {
         future::result(Self::api_validate(t))
     }
 }
@@ -31,9 +32,10 @@ pub trait ValidateRequestQuery<T: DeserializeOwned> {
         serde_qs::from_str(s)
             .map_err::<DriverError, _>(Into::into)
             .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
-    fn from_str_fut(s: &str) -> future::FutureResult<T, ApiError> {
+    fn from_str_fut(s: &str) -> future::FutureResult<T, tonic::Status> {
         future::result(Self::from_str(s))
     }
 }

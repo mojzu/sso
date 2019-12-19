@@ -7,6 +7,7 @@ use crate::{
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
+use tonic::Status;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -238,7 +239,10 @@ pub fn audit_list(
             filter,
             service_id: service.map(|s| s.id),
         };
-        driver.audit_list(&list).map_err(ApiError::BadRequest)
+        driver
+            .audit_list(&list)
+            .map_err(ApiError::BadRequest)
+            .map_err(Into::into)
     }
 
     let res = list_inner(driver, &mut audit, key_value, &query, &filter);
@@ -271,6 +275,7 @@ pub fn audit_create(
             .user_key_id(request.user_key_id)
             .create(driver, request.type_, request.subject, request.data)
             .map_err(ApiError::BadRequest)
+            .map_err::<Status, _>(Into::into)
     }
 
     let res = create_inner(driver, &mut audit, key_value, request);
@@ -301,8 +306,12 @@ pub fn audit_read(
                     .subject(request.subject)
                     .service_id(service.map(|x| x.id)),
             )
-            .map_err(ApiError::BadRequest)?
-            .ok_or_else(|| ApiError::NotFound(DriverError::AuditNotFound))
+            .map_err(ApiError::BadRequest)
+            .map_err::<Status, _>(Into::into)?
+            .ok_or_else(|| {
+                let e: Status = ApiError::NotFound(DriverError::AuditNotFound).into();
+                e
+            })
     }
 
     let res = read_inner(driver, &mut audit, key_value, audit_id, request);
@@ -331,6 +340,7 @@ pub fn audit_update(
         driver
             .audit_update(&audit_id, &update, service.map(|x| x.id))
             .map_err(ApiError::BadRequest)
+            .map_err(Into::into)
     }
 
     let res = update_inner(driver, &mut audit, key_value, audit_id, update);

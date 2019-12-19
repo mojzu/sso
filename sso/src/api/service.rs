@@ -342,7 +342,10 @@ mod server_service {
         key_root_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let list = ServiceList { query, filter };
-        driver.service_list(&list).map_err(ApiError::BadRequest)
+        driver
+            .service_list(&list)
+            .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     pub fn create(
@@ -353,7 +356,10 @@ mod server_service {
     ) -> ApiResult<Service> {
         key_root_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        driver.service_create(&create).map_err(ApiError::BadRequest)
+        driver
+            .service_create(&create)
+            .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     pub fn read(
@@ -395,6 +401,7 @@ mod server_service {
         driver
             .service_delete(&service_id)
             .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
             .map(|_| service)
     }
 
@@ -405,8 +412,10 @@ mod server_service {
     ) -> ApiResult<Service> {
         driver
             .service_read(&ServiceRead::new(service_id).service_id_mask(service.map(|x| x.id)))
-            .map_err(ApiError::BadRequest)?
+            .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)?
             .ok_or_else(|| DriverError::ServiceNotFound)
             .map_err(ApiError::NotFound)
+            .map_err::<tonic::Status, _>(Into::into)
     }
 }

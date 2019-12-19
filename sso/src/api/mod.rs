@@ -25,6 +25,7 @@ use crate::{
 };
 use http::StatusCode;
 use serde_json::Value;
+use tonic::Status;
 
 /// API Paths
 pub mod path {
@@ -137,7 +138,9 @@ mod server {
     ) -> ApiResult<String> {
         let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        Metrics::read(driver, service.as_ref()).map_err(ApiError::BadRequest)
+        Metrics::read(driver, service.as_ref())
+            .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
     }
 }
 
@@ -145,9 +148,9 @@ mod server {
 
 fn result_audit<T>(driver: &dyn Driver, audit: &AuditBuilder, res: ApiResult<T>) -> ApiResult<T> {
     res.or_else(|e| {
-        let data = AuditDiffBuilder::typed_data("error", &e);
+        let data = AuditDiffBuilder::typed_data("error", StatusData::from_status(&e));
         audit
-            .create_data(driver, e.status_code(), None, Some(data))
+            .create_data(driver, e.code() as u16, None, Some(data))
             .unwrap();
         Err(e)
     })
@@ -165,9 +168,9 @@ fn result_audit_err<T>(
     res: ApiResult<T>,
 ) -> ApiResult<T> {
     res.or_else(|e| {
-        let data = AuditDiffBuilder::typed_data("error", &e);
+        let data = AuditDiffBuilder::typed_data("error", StatusData::from_status(&e));
         audit
-            .create_data(driver, e.status_code(), None, Some(data))
+            .create_data(driver, e.code() as u16, None, Some(data))
             .unwrap();
         Err(e)
     })
@@ -179,9 +182,9 @@ fn result_audit_subject<T: AuditSubject>(
     res: ApiResult<T>,
 ) -> ApiResult<T> {
     res.or_else(|e| {
-        let data = AuditDiffBuilder::typed_data("error", &e);
+        let data = AuditDiffBuilder::typed_data("error", StatusData::from_status(&e));
         audit
-            .create_data(driver, e.status_code(), None, Some(data))
+            .create_data(driver, e.code() as u16, None, Some(data))
             .unwrap();
         Err(e)
     })
@@ -199,9 +202,9 @@ fn result_audit_diff<T: AuditSubject + AuditDiff>(
     res: ApiResult<(T, T)>,
 ) -> ApiResult<T> {
     res.or_else(|e| {
-        let data = AuditDiffBuilder::typed_data("error", &e);
+        let data = AuditDiffBuilder::typed_data("error", StatusData::from_status(&e));
         audit
-            .create_data(driver, e.status_code(), None, Some(data))
+            .create_data(driver, e.code() as u16, None, Some(data))
             .unwrap();
         Err(e)
     })
@@ -222,8 +225,10 @@ fn result_audit_diff<T: AuditSubject + AuditDiff>(
 fn csrf_verify(driver: &dyn Driver, service: &Service, csrf_key: &str) -> ApiResult<()> {
     driver
         .csrf_read(&csrf_key)
-        .map_err(ApiError::BadRequest)?
+        .map_err(ApiError::BadRequest)
+        .map_err::<Status, _>(Into::into)?
         .ok_or_else(|| DriverError::CsrfNotFoundOrUsed)
         .and_then(|csrf| csrf.check_service(service.id))
         .map_err(ApiError::BadRequest)
+        .map_err::<Status, _>(Into::into)
 }

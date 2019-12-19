@@ -50,7 +50,6 @@ mod provider_github {
         pattern::*,
         AuditBuilder, CsrfCreate, Driver, DriverError, DriverResult, Service, UserToken,
     };
-    use http::header;
     use oauth2::{
         basic::BasicClient, reqwest::http_client, AuthUrl, AuthorizationCode, ClientId,
         ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
@@ -137,7 +136,7 @@ mod provider_github {
         let authorisation = format!("token {}", access_token);
         client
             .get("https://api.github.com/user")
-            .header(header::AUTHORIZATION, authorisation)
+            .header("authorization", authorisation)
             .send()
             .and_then(|res| res.error_for_status())
             .and_then(|mut res| res.json::<GithubUser>())

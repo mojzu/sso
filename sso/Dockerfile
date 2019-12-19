@@ -1,7 +1,7 @@
 FROM sso-build:latest as build
 
 # Copy files and build binary.
-ADD . /sso/sso_grpc
+ADD . /sso/sso
 RUN cargo make release;
 
 FROM debian:10.2

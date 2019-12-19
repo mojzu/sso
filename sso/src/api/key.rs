@@ -294,7 +294,10 @@ mod server_key {
             filter,
             service_id_mask: service.map(|s| s.id),
         };
-        driver.key_list(&list).map_err(ApiError::BadRequest)
+        driver
+            .key_list(&list)
+            .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     pub fn create(
@@ -308,6 +311,7 @@ mod server_key {
             Some(service_id) => {
                 key_root_authenticate(driver, audit, key_value)
                     .map_err(ApiError::Unauthorised)
+                    .map_err::<tonic::Status, _>(Into::into)
                     .and_then(|_| {
                         match request.user_id {
                             // User ID is defined, creating user key for service.
@@ -326,11 +330,13 @@ mod server_key {
                             )),
                         }
                         .map_err(ApiError::BadRequest)
+                        .map_err::<tonic::Status, _>(Into::into)
                     })
             }
             None => {
                 key_service_authenticate(driver, audit, key_value)
                     .map_err(ApiError::Unauthorised)
+                    .map_err::<tonic::Status, _>(Into::into)
                     .and_then(|service| {
                         match request.user_id {
                             // User ID is defined, creating user key for service.
@@ -345,6 +351,7 @@ mod server_key {
                             None => Err(DriverError::ServiceCannotCreateServiceKey),
                         }
                         .map_err(ApiError::BadRequest)
+                        .map_err::<tonic::Status, _>(Into::into)
                     })
             }
         }
@@ -357,7 +364,9 @@ mod server_key {
         key_id: Uuid,
         request: KeyReadRequest,
     ) -> ApiResult<Key> {
-        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value)
+            .map_err(ApiError::Unauthorised)
+            .map_err::<tonic::Status, _>(Into::into)?;
 
         read_inner(driver, key_id, service.as_ref(), request.user_id)
     }
@@ -369,7 +378,9 @@ mod server_key {
         key_id: Uuid,
         request: KeyUpdateRequest,
     ) -> ApiResult<(Key, Key)> {
-        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+        let service = key_authenticate(driver, audit, key_value)
+            .map_err(ApiError::Unauthorised)
+            .map_err::<tonic::Status, _>(Into::into)?;
 
         let previous_key = read_inner(driver, key_id, service.as_ref(), None)?;
         let key = driver
@@ -397,6 +408,7 @@ mod server_key {
         driver
             .key_delete(&key_id)
             .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
             .map(|_| key)
     }
 
@@ -409,8 +421,12 @@ mod server_key {
         let read = KeyRead::IdServiceUser(key_id, service.map(|x| x.id), user_id);
         driver
             .key_read(&read)
-            .map_err(ApiError::BadRequest)?
-            .ok_or_else(|| ApiError::NotFound(DriverError::KeyNotFound))
+            .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)?
+            .ok_or_else(|| {
+                let e: tonic::Status = ApiError::NotFound(DriverError::KeyNotFound).into();
+                e
+            })
             .map(|x| x.into())
     }
 }

@@ -112,7 +112,7 @@ sso-build cargo make doc
 Install crate locally.
 
 ```bash
-cargo install --force --path sso_grpc
+cargo install --force --path sso
 ```
 
 [To publish crate(s)][cargo-publishing].

@@ -26,7 +26,7 @@ services:
   # gRPC service.
   # <https://grpc.io/>
   sso_grpc:
-    build: sso_grpc
+    build: sso
     # depends_on:
     #   - postgres
     restart: always

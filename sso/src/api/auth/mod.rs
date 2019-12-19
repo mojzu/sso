@@ -555,7 +555,9 @@ mod server_auth {
             .map_err(ApiError::BadRequest)?;
 
         // Verify TOTP code.
-        totp_verify(&key.value, &request.totp).map_err(ApiError::BadRequest)
+        totp_verify(&key.value, &request.totp)
+            .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     pub fn csrf_create(
@@ -572,6 +574,7 @@ mod server_auth {
         driver
             .csrf_create(&CsrfCreate::generate(expires_s, service.id))
             .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     pub fn csrf_verify(
@@ -597,7 +600,8 @@ mod server_auth {
     ) -> ApiResult<UserToken> {
         // Check service making url and callback requests match.
         if service.id != service_id {
-            return Err(ApiError::BadRequest(DriverError::CsrfServiceMismatch));
+            let e: tonic::Status = ApiError::BadRequest(DriverError::CsrfServiceMismatch).into();
+            return Err(e);
         }
 
         // OAuth2 login requires token key type.
@@ -616,5 +620,6 @@ mod server_auth {
             refresh_token_expires,
         )
         .map_err(ApiError::BadRequest)
+        .map_err::<tonic::Status, _>(Into::into)
     }
 }

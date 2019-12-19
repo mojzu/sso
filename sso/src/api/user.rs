@@ -352,7 +352,10 @@ mod server_user {
             key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         let list = UserList { query, filter };
-        driver.user_list(&list).map_err(ApiError::BadRequest)
+        driver
+            .user_list(&list)
+            .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     pub fn create(
@@ -364,7 +367,10 @@ mod server_user {
         let _service =
             key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
-        driver.user_create(&create).map_err(ApiError::BadRequest)
+        driver
+            .user_create(&create)
+            .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     pub fn read(
@@ -412,14 +418,17 @@ mod server_user {
         driver
             .user_delete(&user_id)
             .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)
             .map(|_| user)
     }
 
     fn read_inner(driver: &dyn Driver, read: &UserRead) -> ApiResult<User> {
         driver
             .user_read(read)
-            .map_err(ApiError::BadRequest)?
+            .map_err(ApiError::BadRequest)
+            .map_err::<tonic::Status, _>(Into::into)?
             .ok_or_else(|| DriverError::UserNotFound)
             .map_err(ApiError::NotFound)
+            .map_err::<tonic::Status, _>(Into::into)
     }
 }

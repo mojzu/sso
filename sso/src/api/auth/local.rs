@@ -75,7 +75,9 @@ pub fn auth_provider_local_login(
 
         // Forbidden if user password update required.
         if user.password_require_update {
-            return Err(ApiError::Forbidden(DriverError::UserPasswordUpdateRequired));
+            let e: tonic::Status =
+                ApiError::Forbidden(DriverError::UserPasswordUpdateRequired).into();
+            return Err(e);
         }
 
         // Check user password.
@@ -92,6 +94,7 @@ pub fn auth_provider_local_login(
             refresh_token_expires,
         )
         .map_err(ApiError::BadRequest)
+        .map_err::<tonic::Status, _>(Into::into)
     }
 
     AuthLoginRequest::api_validate(&request)?;
@@ -187,9 +190,9 @@ where
 
         // Bad request if service not allowed to register users.
         if !service.user_allow_register {
-            return Err(ApiError::BadRequest(
-                DriverError::ServiceUserRegisterDisabled,
-            ));
+            let e: tonic::Status =
+                ApiError::BadRequest(DriverError::ServiceUserRegisterDisabled).into();
+            return Err(e);
         }
 
         // Create user, is allowed to request password reset in case register token expires.
@@ -271,9 +274,9 @@ where
 
         // Bad request if service not allowed to register users.
         if !service.user_allow_register {
-            return Err(ApiError::BadRequest(
-                DriverError::ServiceUserRegisterDisabled,
-            ));
+            let e: tonic::Status =
+                ApiError::BadRequest(DriverError::ServiceUserRegisterDisabled).into();
+            return Err(e);
         }
 
         // Unsafely decode token to get user identifier, used to read key for safe token decode.
@@ -426,7 +429,9 @@ where
 
         // Bad request if user password reset is disabled.
         if !user.password_allow_reset {
-            return Err(ApiError::BadRequest(DriverError::UserResetPasswordDisabled));
+            let e: tonic::Status =
+                ApiError::BadRequest(DriverError::UserResetPasswordDisabled).into();
+            return Err(e);
         }
 
         // Encode reset token.
@@ -500,7 +505,8 @@ where
 
         // Bad request if user password reset is disabled.
         if !user.password_allow_reset {
-            return Err(ApiError::BadRequest(DriverError::UserResetPasswordDisabled));
+            let e = ApiError::BadRequest(DriverError::UserResetPasswordDisabled).into();
+            return Err(e);
         }
 
         // Safely decode token with user key.
@@ -608,7 +614,9 @@ where
 
         // Forbidden if user password update required.
         if user.password_require_update {
-            return Err(ApiError::Forbidden(DriverError::UserPasswordUpdateRequired));
+            let e: tonic::Status =
+                ApiError::Forbidden(DriverError::UserPasswordUpdateRequired).into();
+            return Err(e);
         }
 
         // Check user password.

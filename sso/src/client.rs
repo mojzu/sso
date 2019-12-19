@@ -1,9 +1,16 @@
 //! Blocking client.
 use crate::pb::{self, sso_client::SsoClient, Empty, Text};
 use http::{HeaderValue, Uri};
+use std::fmt;
 use std::str::FromStr;
 use tokio::runtime::{Builder, Runtime};
 use tonic::transport::Channel;
+
+impl fmt::Debug for SsoClient<tonic::transport::Channel> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "SsoClient {{ }}")
+    }
+}
 
 type StdError = Box<dyn std::error::Error + Send + Sync + 'static>;
 type Result<T, E = StdError> = ::std::result::Result<T, E>;
@@ -34,6 +41,12 @@ impl ClientOptions {
 pub struct ClientBlocking {
     rt: Runtime,
     client: SsoClient<tonic::transport::Channel>,
+}
+
+impl fmt::Debug for ClientBlocking {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "ClientBlocking {{ rt: {:?}, client }}", self.rt)
+    }
 }
 
 impl ClientBlocking {

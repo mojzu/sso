@@ -2,7 +2,6 @@ pub mod pb {
     //! Generated protobuf server and client items.
     tonic::include_proto!("sso");
 }
-mod client;
 
 pub use crate::{
     client::{ClientBlocking, ClientOptions},
@@ -16,11 +15,11 @@ use tonic::{
 };
 
 /// gRPC server.
-#[derive(Clone)]
-pub struct SsoGrpc {}
+#[derive(Debug, Clone)]
+pub struct Server {}
 
-impl SsoGrpc {
-    /// Returns a new `SsoGrpc`.
+impl Server {
+    /// Returns a new `Server`.
     pub fn new() -> Self {
         Self {}
     }
@@ -45,7 +44,7 @@ impl SsoGrpc {
 }
 
 #[tonic::async_trait]
-impl pb::sso_server::Sso for SsoGrpc {
+impl pb::sso_server::Sso for Server {
     async fn ping(&self, request: Request<Empty>) -> Result<Response<Text>, Status> {
         println!("Got a request: {:?}", request);
 

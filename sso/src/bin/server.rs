@@ -1,10 +1,10 @@
 #[macro_use]
 extern crate log;
 
+use sentry::integrations::log::LoggerOptions;
 use sso::{env, pattern, Cli, CliOptions, Driver, DriverPostgres};
 use std::sync::Arc;
 use tonic::{body::BoxBody, transport::Server};
-use sentry::integrations::log::LoggerOptions;
 use tower::Service;
 
 /// Sentry URL for logging integration.
@@ -102,7 +102,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let bind = env::string(ENV_BIND).unwrap();
     let addr = bind.parse()?;
-    let sso = sso_grpc::SsoGrpc::new();
+    let sso = sso::SsoGrpc::new();
     let sso_ref = Arc::new(sso.clone());
 
     Server::builder()
@@ -140,7 +140,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // }
             }
         })
-        .add_service(sso_grpc::pb::sso_server::SsoServer::new(sso))
+        .add_service(sso::pb::sso_server::SsoServer::new(sso))
         .serve(addr)
         .await?;
 

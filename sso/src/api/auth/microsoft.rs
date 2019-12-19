@@ -50,7 +50,6 @@ mod provider_microsoft {
         pattern::*,
         AuditBuilder, CsrfCreate, Driver, DriverError, DriverResult, Service, UserToken,
     };
-    use http::header;
     use oauth2::{
         basic::BasicClient, reqwest::http_client, AuthType, AuthUrl, AuthorizationCode, ClientId,
         ClientSecret, CsrfToken, PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, Scope,
@@ -148,7 +147,7 @@ mod provider_microsoft {
         let authorisation = format!("Bearer {}", access_token);
         client
             .get("https://graph.microsoft.com/v1.0/me")
-            .header(header::AUTHORIZATION, authorisation)
+            .header("authorization", authorisation)
             .send()
             .and_then(|res| res.error_for_status())
             .and_then(|mut res| res.json::<MicrosoftUser>())

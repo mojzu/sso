@@ -94,7 +94,6 @@ ENV SSO_GRPC_SENTRY_URL="" \
 # Set 777 to allow any user to write to `/usr/local/cargo`.
 ADD ./docs /sso/docs
 ADD ./sso /sso/sso
-ADD ./sso_grpc /sso/sso_grpc
 ADD ./sso_openapi /sso/sso_openapi
 ADD ./Makefile.toml /sso/Makefile.toml
 ADD ./docker/build/Cargo.toml /sso/Cargo.toml
