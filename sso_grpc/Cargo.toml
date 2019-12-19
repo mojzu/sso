@@ -16,11 +16,14 @@ path = "src/bin/server.rs"
 
 [dependencies]
 bytes = "0.4.12"
+env_logger = "0.7.1"
 http = "0.2"
 http-body = "=0.2.0-alpha.3"
+log = { version = "0.4.8", features = ["max_level_trace", "release_max_level_info"] }
 prost = "0.5.0"
 prost-derive = "0.5.0"
 prost-types = "0.5.0"
+sentry = "0.17.0"
 sso = { path = "../sso" }
 tokio = { version = "0.2", features = ["rt-threaded", "time", "stream", "fs", "macros", "uds"] }
 tonic = { git = "https://github.com/hyperium/tonic.git" }

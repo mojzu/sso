@@ -306,7 +306,10 @@
           "$ref": "#/definitions/ssoAuditListRequest"
         },
         "data": {
-          "$ref": "#/definitions/ssoAudit"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ssoAudit"
+          }
         }
       }
     },

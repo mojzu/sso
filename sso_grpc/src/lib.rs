@@ -70,7 +70,7 @@ impl pb::sso_server::Sso for SsoGrpc {
 
         let reply = AuditListReply {
             meta: None,
-            data: None,
+            data: Vec::new(),
         };
 
         Ok(Response::new(reply))

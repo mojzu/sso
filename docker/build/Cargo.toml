@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "sso",
+    "sso_grpc",
+]

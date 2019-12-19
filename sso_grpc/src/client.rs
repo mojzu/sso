@@ -1,5 +1,5 @@
 //! Blocking client.
-use crate::pb::{sso_client::SsoClient, Empty, Text};
+use crate::pb::{self, sso_client::SsoClient, Empty, Text};
 use http::{HeaderValue, Uri};
 use std::str::FromStr;
 use tokio::runtime::{Builder, Runtime};
@@ -15,15 +15,15 @@ pub struct ClientOptions {
 }
 
 impl ClientOptions {
-    pub fn new(uri: &str) -> Self {
+    pub fn new<U: AsRef<str>>(uri: U) -> Self {
         Self {
-            uri: Uri::from_str(uri).unwrap(),
+            uri: Uri::from_str(uri.as_ref()).unwrap(),
             authorisation: String::from(""),
         }
     }
 
-    pub fn authorisation(mut self, authorisation: &str) -> Self {
-        self.authorisation = authorisation.to_owned();
+    pub fn authorisation<A: Into<String>>(mut self, authorisation: A) -> Self {
+        self.authorisation = authorisation.into();
         self
     }
 }
@@ -65,5 +65,40 @@ impl ClientBlocking {
         request: impl tonic::IntoRequest<Empty>,
     ) -> Result<tonic::Response<Text>, tonic::Status> {
         self.rt.block_on(self.client.ping(request))
+    }
+
+    pub fn metrics(
+        &mut self,
+        request: impl tonic::IntoRequest<Empty>,
+    ) -> Result<tonic::Response<Text>, tonic::Status> {
+        self.rt.block_on(self.client.metrics(request))
+    }
+
+    pub fn audit_list(
+        &mut self,
+        request: impl tonic::IntoRequest<pb::AuditListRequest>,
+    ) -> Result<tonic::Response<pb::AuditListReply>, tonic::Status> {
+        self.rt.block_on(self.client.audit_list(request))
+    }
+
+    pub fn audit_create(
+        &mut self,
+        request: impl tonic::IntoRequest<pb::AuditCreateRequest>,
+    ) -> Result<tonic::Response<pb::AuditReadReply>, tonic::Status> {
+        self.rt.block_on(self.client.audit_create(request))
+    }
+
+    pub fn audit_read(
+        &mut self,
+        request: impl tonic::IntoRequest<pb::AuditReadRequest>,
+    ) -> Result<tonic::Response<pb::AuditReadReply>, tonic::Status> {
+        self.rt.block_on(self.client.audit_read(request))
+    }
+
+    pub fn audit_update(
+        &mut self,
+        request: impl tonic::IntoRequest<pb::AuditUpdateRequest>,
+    ) -> Result<tonic::Response<pb::AuditReadReply>, tonic::Status> {
+        self.rt.block_on(self.client.audit_update(request))
     }
 }

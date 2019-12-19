@@ -15,7 +15,7 @@ docker run --rm --user $(id -u):$(id -g) --network host -v "$(pwd):/sso" -t sso-
 Create an alias on Linux for the above with the command.
 
 ```bash
-alias sso-build='docker run --rm --user $(id -u):$(id -g) --network host -v "$(pwd):/sso" -t sso-build:latest'
+alias sso-build='docker run --rm --init --user $(id -u):$(id -g) --network host -v "$(pwd):/sso" -t sso-build:latest'
 ```
 
 Environment variables are configured in `Dockerfile`.
@@ -112,7 +112,6 @@ sso-build cargo make doc
 Install crate locally.
 
 ```bash
-sso-build cargo clean
 cargo install --force --path sso_grpc
 ```
 

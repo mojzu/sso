@@ -1,6 +1,10 @@
+#[macro_use]
+extern crate log;
+
 use sso::{env, pattern, Cli, CliOptions, Driver, DriverPostgres};
 use std::sync::Arc;
 use tonic::{body::BoxBody, transport::Server};
+use sentry::integrations::log::LoggerOptions;
 use tower::Service;
 
 /// Sentry URL for logging integration.
@@ -46,6 +50,28 @@ const ENV_MICROSOFT_CLIENT_SECRET: &str = "SSO_GRPC_MICROSOFT_CLIENT_SECRET";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Configure logging environment variables.
+    std::env::set_var("RUST_BACKTRACE", "1");
+    std::env::set_var("RUST_LOG", "info");
+
+    // If SENTRY_URL is defined, enable logging and panic handler integration.
+    let _guard = match std::env::var(ENV_SENTRY_URL) {
+        Ok(sentry_url) => {
+            let guard = sentry::init(sentry_url);
+            let mut options = LoggerOptions::default();
+            options.emit_warning_events = true;
+
+            sentry::integrations::env_logger::init(None, options);
+            sentry::integrations::panic::register_panic_handler();
+            Some(guard)
+        }
+        Err(e) => {
+            env_logger::init();
+            warn!("SENTRY_URL is undefined, integration is disabled ({})", e);
+            None
+        }
+    };
+
     let database_url = env::string(ENV_DATABASE_URL).unwrap();
     let database_connections = env::value_opt::<u32>(ENV_DATABASE_CONNECTIONS).unwrap();
     let driver = DriverPostgres::initialise(&database_url, database_connections)

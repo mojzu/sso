@@ -12,8 +12,7 @@ ENV RUSTUP_HOME="/usr/local/rustup" \
     CARGO_HOME="/usr/local/cargo" \
     PATH="/usr/local/cargo/bin:$PATH" \
     RUST_VERSION="1.39.0" \
-    RUSTUP_URL="https://static.rust-lang.org/rustup/archive/1.20.2/x86_64-unknown-linux-gnu/rustup-init" \
-    HOME="/root"
+    RUSTUP_URL="https://static.rust-lang.org/rustup/archive/1.20.2/x86_64-unknown-linux-gnu/rustup-init"
 
 # Go environment.
 ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH" \
@@ -30,7 +29,7 @@ RUN wget -q "$RUSTUP_URL"; \
     ./rustup-init -y --no-modify-path --profile default --default-toolchain $RUST_VERSION; \
     rm rustup-init; \
     chmod -R a+w $RUSTUP_HOME $CARGO_HOME; \
-    chmod 777 -R $HOME
+    chmod 777 -R /root
 
 # Install Rust tools.
 RUN cargo install --force cargo-make; \
@@ -94,14 +93,12 @@ ADD ./docs /sso/docs
 ADD ./sso /sso/sso
 ADD ./sso_grpc /sso/sso_grpc
 ADD ./sso_openapi /sso/sso_openapi
-ADD ./Cargo.toml /sso/Cargo.toml
 ADD ./Makefile.toml /sso/Makefile.toml
+ADD ./docker/build/Cargo.toml /sso/Cargo.toml
 WORKDIR /sso
 RUN cargo fetch; \
     chmod 777 -R /usr/local/cargo;
 
-COPY ./docker/build/entrypoint.sh /entrypoint.sh
-COPY ./docker/build/versions.sh /versions.sh
-RUN chmod +x /entrypoint.sh /versions.sh
-ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
-CMD ["/bin/bash", "/versions.sh"]
+ADD ./docker/build/versions.sh /versions.sh
+RUN chmod +x /versions.sh
+CMD ["/versions.sh"]

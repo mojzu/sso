@@ -1187,7 +1187,7 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 <tbody>
 <tr class="odd">
 <td><code>migrations</code></td>
-<td>SQL migration files for <a href="https://www.postgresql.org/">Postgres</a> driver. <a href="https://www.sqlite.org/index.html">SQLite</a> driver is planned.</td>
+<td>SQL migration files for <a href="https://www.postgresql.org/">Postgres</a> driver.</td>
 </tr>
 <tr class="even">
 <td><code>/src/api</code></td>
@@ -1199,7 +1199,7 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 </tr>
 <tr class="even">
 <td><code>/src/driver</code></td>
-<td>Database types and driver for Postgres, SQLite support is planned.</td>
+<td>Database types and driver for Postgres.</td>
 </tr>
 <tr class="odd">
 <td><code>/src/notify</code></td>
@@ -1227,7 +1227,7 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 </section>
 <section id="possible-features" data-number="6.3">
 <h2 data-number="6.3"><span class="header-section-number">6.3</span> Possible Features</h2>
-<p>TODO(feature): User sessions route for active tokens/keys. TODO(feature): Support more OAuth2 providers. TODO(feature): Webauthn support. <a href="https://webauthn.guide/" class="uri">https://webauthn.guide/</a> <a href="https://webauthn.org/" class="uri">https://webauthn.org/</a> TODO(feature): Configurable canary routes. TODO(feature): Improved public library API interface (gui service as example?). TODO(feature): Email translation/formatting using user locale and timezone. TODO(feature): Handle changes to password hash version. TODO(feature): Option to enforce provider URLs HTTPS. TODO(feature): User last login, key last use information (calculate in SQL). TODO(feature): Login from unknown IP address warnings, SMS support? TODO(feature): Jsonwebtoken handling improvements. <a href="https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html" class="uri">https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html</a> TODO(feature): Implement SQLite driver. TODO(feature): Support more process/other metrics, check units. <a href="https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors" class="uri">https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors</a> <a href="https://peteris.rocks/blog/htop/" class="uri">https://peteris.rocks/blog/htop/</a> TODO(feature): Service IP whitelist. TODO(feature): Service/user groups for segmentation.</p>
+<p>TODO(feature): User sessions route for active tokens/keys. TODO(feature): Support more OAuth2 providers. TODO(feature): Webauthn support. <a href="https://webauthn.guide/" class="uri">https://webauthn.guide/</a> <a href="https://webauthn.org/" class="uri">https://webauthn.org/</a> TODO(feature): Configurable canary routes. TODO(feature): Improved public library API interface (gui service as example?). TODO(feature): Email translation/formatting using user locale and timezone. TODO(feature): Handle changes to password hash version. TODO(feature): Option to enforce provider URLs HTTPS. TODO(feature): User last login, key last use information (calculate in SQL). TODO(feature): Login from unknown IP address warnings, SMS support? TODO(feature): Jsonwebtoken handling improvements. <a href="https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html" class="uri">https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html</a> TODO(feature): Support more process/other metrics, check units. <a href="https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors" class="uri">https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors</a> <a href="https://peteris.rocks/blog/htop/" class="uri">https://peteris.rocks/blog/htop/</a> TODO(feature): Service IP whitelist. TODO(feature): Service/user groups for segmentation.</p>
 </section>
 <section id="owasp-asvs" data-number="6.4">
 <h2 data-number="6.4"><span class="header-section-number">6.4</span> OWASP: ASVS</h2>
@@ -1236,7 +1236,7 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 <section id="section-9" data-number="6.4.1">
 <h3 data-number="6.4.1"><span class="header-section-number">6.4.1</span> 1.2.1</h3>
 <ul>
-<li>Binary sso and postgres/sqlite must be run as unique or special low privelege operating system accounts.</li>
+<li>Binary sso and postgres must be run as unique or special low privilege operating system accounts.</li>
 </ul>
 <p>TODO(docs): Systemd unit file examples, sso, postgres, nginx, etc.</p>
 </section>
@@ -1424,7 +1424,7 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 <p>Development tools are run with the command.</p>
 <div class="sourceCode" id="cb71"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb71-1"><a href="#cb71-1"></a><span class="ex">docker</span> run --rm --user <span class="va">$(</span><span class="fu">id</span> -u<span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> -g<span class="va">)</span> --network host -v <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">:/sso&quot;</span> -t sso-build:latest <span class="va">$ARGS</span></span></code></pre></div>
 <p>Create an alias on Linux for the above with the command.</p>
-<div class="sourceCode" id="cb72"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb72-1"><a href="#cb72-1"></a><span class="bu">alias</span> sso-build=<span class="st">&#39;docker run --rm --user $(id -u):$(id -g) --network host -v &quot;$(pwd):/sso&quot; -t sso-build:latest&#39;</span></span></code></pre></div>
+<div class="sourceCode" id="cb72"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb72-1"><a href="#cb72-1"></a><span class="bu">alias</span> sso-build=<span class="st">&#39;docker run --rm --init --user $(id -u):$(id -g) --network host -v &quot;$(pwd):/sso&quot; -t sso-build:latest&#39;</span></span></code></pre></div>
 <p>Environment variables are configured in <code>Dockerfile</code>.</p>
 <p>Services are run using <a href="https://docs.docker.com/compose/">Docker Compose</a>, start them with the command.</p>
 <div class="sourceCode" id="cb73"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb73-1"><a href="#cb73-1"></a><span class="ex">docker-compose</span> build</span>

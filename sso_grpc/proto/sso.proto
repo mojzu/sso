@@ -1,7 +1,6 @@
 syntax = "proto3";
 package sso;
 
-import "google/protobuf/any.proto";
 import "annotations.proto";
 
 service Sso {
