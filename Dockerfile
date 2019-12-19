@@ -7,6 +7,9 @@ RUN apt-get update; \
         wget unzip ca-certificates build-essential libpq-dev libssl-dev pkg-config git; \
     rm -rf /var/lib/apt/lists/*
 
+# Environment.
+ENV HOME="/root"
+
 # Rust environment.
 ENV RUSTUP_HOME="/usr/local/rustup" \
     CARGO_HOME="/usr/local/cargo" \
