@@ -12,7 +12,8 @@ ENV RUSTUP_HOME="/usr/local/rustup" \
     CARGO_HOME="/usr/local/cargo" \
     PATH="/usr/local/cargo/bin:$PATH" \
     RUST_VERSION="1.39.0" \
-    RUSTUP_URL="https://static.rust-lang.org/rustup/archive/1.20.2/x86_64-unknown-linux-gnu/rustup-init"
+    RUSTUP_URL="https://static.rust-lang.org/rustup/archive/1.20.2/x86_64-unknown-linux-gnu/rustup-init" \
+    HOME="/root"
 
 # Go environment.
 ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH" \
@@ -28,7 +29,8 @@ RUN wget -q "$RUSTUP_URL"; \
     chmod +x rustup-init; \
     ./rustup-init -y --no-modify-path --profile default --default-toolchain $RUST_VERSION; \
     rm rustup-init; \
-    chmod -R a+w $RUSTUP_HOME $CARGO_HOME;
+    chmod -R a+w $RUSTUP_HOME $CARGO_HOME; \
+    chmod 777 -R $HOME
 
 # Install Rust tools.
 RUN cargo install --force cargo-make; \
@@ -43,11 +45,13 @@ RUN wget -O go.tgz -q "$GOLANG_URL"; \
     wget -O protoc.zip -q "$PROTOC_URL"; \
     unzip -o protoc.zip -d /usr/local bin/protoc; \
     unzip -o protoc.zip -d /usr/local 'include/*'; \
-    chmod +rx /usr/local/bin/protoc; \
+    chmod -R 777 /usr/local/bin/protoc; \
+    chmod -R 777 /usr/local/include/google; \
     rm protoc.zip;
 
 # Install Go tools.
 # <https://github.com/grpc-ecosystem/grpc-gateway>
+# <https://grpc-ecosystem.github.io/grpc-gateway/>
 RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway; \
     go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger; \
     go get -u github.com/golang/protobuf/protoc-gen-go; \
@@ -99,5 +103,5 @@ RUN cargo fetch; \
 COPY ./docker/build/entrypoint.sh /entrypoint.sh
 COPY ./docker/build/versions.sh /versions.sh
 RUN chmod +x /entrypoint.sh /versions.sh
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
 CMD ["/bin/bash", "/versions.sh"]

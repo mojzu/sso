@@ -27,8 +27,8 @@ services:
   # <https://grpc.io/>
   sso_grpc:
     build: sso_grpc
-    depends_on:
-      - postgres
+    # depends_on:
+    #   - postgres
     restart: always
     network_mode: "host"
     environment:
@@ -40,10 +40,11 @@ services:
 
   # OpenAPI gateway service.
   # <https://github.com/grpc-ecosystem/grpc-gateway>
+  # <https://grpc-ecosystem.github.io/grpc-gateway/>
   sso_openapi:
     build: sso_openapi
-    depends_on:
-      - sso_grpc
+    # depends_on:
+    #   - sso_grpc
     restart: always
     network_mode: "host"
     environment:

@@ -17,9 +17,9 @@
         "operationId": "Metrics",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "Text content.",
             "schema": {
-              "$ref": "#/definitions/ssoText"
+              "type": "string"
             }
           }
         },
@@ -34,9 +34,9 @@
         "operationId": "Ping",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "Text content.",
             "schema": {
-              "$ref": "#/definitions/ssoText"
+              "type": "string"
             }
           }
         },
@@ -47,6 +47,7 @@
     },
     "/v1/audit": {
       "get": {
+        "summary": "List audit logs.",
         "operationId": "AuditList",
         "responses": {
           "200": {
@@ -56,6 +57,173 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "ge",
+            "description": "Greater than or equal to date and time in ISO 8601 format.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "le",
+            "description": "Less than or equal to date and time in ISO 8601 format.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "description": "Limit number of returned logs.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset_id",
+            "description": "Offset log UUID for paging.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "description": "Log UUID filter array.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "type",
+            "description": "Log type filter array.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "subject",
+            "description": "Log subject filter array.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "service_id",
+            "description": "Log service UUID filter array.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "user_id",
+            "description": "Log user UUID filter array.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      },
+      "post": {
+        "summary": "Create audit log.",
+        "operationId": "AuditCreate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuditReadReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuditCreateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/audit/{id}": {
+      "get": {
+        "summary": "Read audit log.",
+        "operationId": "AuditRead",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuditReadReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      },
+      "patch": {
+        "summary": "Update audit log.",
+        "operationId": "AuditUpdate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuditReadReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuditUpdateRequest"
+            }
+          }
+        ],
         "tags": [
           "Sso"
         ]
@@ -63,14 +231,174 @@
     }
   },
   "definitions": {
+    "ssoAudit": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "user_agent": {
+          "type": "string"
+        },
+        "remote": {
+          "type": "string"
+        },
+        "forwarded": {
+          "type": "string"
+        },
+        "status_code": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "type": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string"
+        },
+        "key_id": {
+          "type": "string"
+        },
+        "service_id": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "user_key_id": {
+          "type": "string"
+        }
+      }
+    },
+    "ssoAuditCreateRequest": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "user_key_id": {
+          "type": "string"
+        }
+      }
+    },
     "ssoAuditListReply": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "meta": {
+          "$ref": "#/definitions/ssoAuditListRequest"
+        },
+        "data": {
+          "$ref": "#/definitions/ssoAudit"
+        }
+      }
+    },
+    "ssoAuditListRequest": {
+      "type": "object",
+      "properties": {
+        "ge": {
+          "type": "string",
+          "description": "Greater than or equal to date and time in ISO 8601 format."
+        },
+        "le": {
+          "type": "string",
+          "description": "Less than or equal to date and time in ISO 8601 format."
+        },
+        "limit": {
+          "type": "string",
+          "format": "int64",
+          "description": "Limit number of returned logs."
+        },
+        "offset_id": {
+          "type": "string",
+          "description": "Offset log UUID for paging."
+        },
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Log UUID filter array."
+        },
+        "type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Log type filter array."
+        },
+        "subject": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Log subject filter array."
+        },
+        "service_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Log service UUID filter array."
+        },
+        "user_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Log user UUID filter array."
+        }
+      }
+    },
+    "ssoAuditReadReply": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/ssoAudit"
+        }
+      }
+    },
+    "ssoAuditUpdateRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "status_code": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string"
+        }
+      }
     },
     "ssoText": {
       "type": "object",
       "properties": {
         "text": {
-          "type": "string"
+          "type": "string",
+          "description": "Text content."
         }
       }
     }

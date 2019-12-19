@@ -57,6 +57,7 @@ func (m *Empty) XXX_DiscardUnknown() {
 var xxx_messageInfo_Empty proto.InternalMessageInfo
 
 type Text struct {
+	// Text content.
 	Text                 string   `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -96,6 +97,24 @@ func (m *Text) GetText() string {
 }
 
 type AuditListRequest struct {
+	// Greater than or equal to date and time in ISO 8601 format.
+	Ge string `protobuf:"bytes,1,opt,name=ge,proto3" json:"ge,omitempty"`
+	// Less than or equal to date and time in ISO 8601 format.
+	Le string `protobuf:"bytes,2,opt,name=le,proto3" json:"le,omitempty"`
+	// Limit number of returned logs.
+	Limit int64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	// Offset log UUID for paging.
+	OffsetId string `protobuf:"bytes,4,opt,name=offset_id,json=offsetId,proto3" json:"offset_id,omitempty"`
+	// Log UUID filter array.
+	Id []string `protobuf:"bytes,5,rep,name=id,proto3" json:"id,omitempty"`
+	// Log type filter array.
+	Type []string `protobuf:"bytes,6,rep,name=type,proto3" json:"type,omitempty"`
+	// Log subject filter array.
+	Subject []string `protobuf:"bytes,7,rep,name=subject,proto3" json:"subject,omitempty"`
+	// Log service UUID filter array.
+	ServiceId []string `protobuf:"bytes,8,rep,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
+	// Log user UUID filter array.
+	UserId               []string `protobuf:"bytes,9,rep,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -126,10 +145,75 @@ func (m *AuditListRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_AuditListRequest proto.InternalMessageInfo
 
+func (m *AuditListRequest) GetGe() string {
+	if m != nil {
+		return m.Ge
+	}
+	return ""
+}
+
+func (m *AuditListRequest) GetLe() string {
+	if m != nil {
+		return m.Le
+	}
+	return ""
+}
+
+func (m *AuditListRequest) GetLimit() int64 {
+	if m != nil {
+		return m.Limit
+	}
+	return 0
+}
+
+func (m *AuditListRequest) GetOffsetId() string {
+	if m != nil {
+		return m.OffsetId
+	}
+	return ""
+}
+
+func (m *AuditListRequest) GetId() []string {
+	if m != nil {
+		return m.Id
+	}
+	return nil
+}
+
+func (m *AuditListRequest) GetType() []string {
+	if m != nil {
+		return m.Type
+	}
+	return nil
+}
+
+func (m *AuditListRequest) GetSubject() []string {
+	if m != nil {
+		return m.Subject
+	}
+	return nil
+}
+
+func (m *AuditListRequest) GetServiceId() []string {
+	if m != nil {
+		return m.ServiceId
+	}
+	return nil
+}
+
+func (m *AuditListRequest) GetUserId() []string {
+	if m != nil {
+		return m.UserId
+	}
+	return nil
+}
+
 type AuditListReply struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Meta                 *AuditListRequest `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Data                 *Audit            `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *AuditListReply) Reset()         { *m = AuditListReply{} }
@@ -157,31 +241,552 @@ func (m *AuditListReply) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_AuditListReply proto.InternalMessageInfo
 
+func (m *AuditListReply) GetMeta() *AuditListRequest {
+	if m != nil {
+		return m.Meta
+	}
+	return nil
+}
+
+func (m *AuditListReply) GetData() *Audit {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
+type AuditCreateRequest struct {
+	Type                 string   `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Subject              string   `protobuf:"bytes,2,opt,name=subject,proto3" json:"subject,omitempty"`
+	Data                 string   `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	UserId               string   `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserKeyId            string   `protobuf:"bytes,5,opt,name=user_key_id,json=userKeyId,proto3" json:"user_key_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AuditCreateRequest) Reset()         { *m = AuditCreateRequest{} }
+func (m *AuditCreateRequest) String() string { return proto.CompactTextString(m) }
+func (*AuditCreateRequest) ProtoMessage()    {}
+func (*AuditCreateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{4}
+}
+
+func (m *AuditCreateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuditCreateRequest.Unmarshal(m, b)
+}
+func (m *AuditCreateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuditCreateRequest.Marshal(b, m, deterministic)
+}
+func (m *AuditCreateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuditCreateRequest.Merge(m, src)
+}
+func (m *AuditCreateRequest) XXX_Size() int {
+	return xxx_messageInfo_AuditCreateRequest.Size(m)
+}
+func (m *AuditCreateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuditCreateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuditCreateRequest proto.InternalMessageInfo
+
+func (m *AuditCreateRequest) GetType() string {
+	if m != nil {
+		return m.Type
+	}
+	return ""
+}
+
+func (m *AuditCreateRequest) GetSubject() string {
+	if m != nil {
+		return m.Subject
+	}
+	return ""
+}
+
+func (m *AuditCreateRequest) GetData() string {
+	if m != nil {
+		return m.Data
+	}
+	return ""
+}
+
+func (m *AuditCreateRequest) GetUserId() string {
+	if m != nil {
+		return m.UserId
+	}
+	return ""
+}
+
+func (m *AuditCreateRequest) GetUserKeyId() string {
+	if m != nil {
+		return m.UserKeyId
+	}
+	return ""
+}
+
+type AuditReadRequest struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AuditReadRequest) Reset()         { *m = AuditReadRequest{} }
+func (m *AuditReadRequest) String() string { return proto.CompactTextString(m) }
+func (*AuditReadRequest) ProtoMessage()    {}
+func (*AuditReadRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{5}
+}
+
+func (m *AuditReadRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuditReadRequest.Unmarshal(m, b)
+}
+func (m *AuditReadRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuditReadRequest.Marshal(b, m, deterministic)
+}
+func (m *AuditReadRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuditReadRequest.Merge(m, src)
+}
+func (m *AuditReadRequest) XXX_Size() int {
+	return xxx_messageInfo_AuditReadRequest.Size(m)
+}
+func (m *AuditReadRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuditReadRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuditReadRequest proto.InternalMessageInfo
+
+func (m *AuditReadRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+type AuditReadReply struct {
+	Data                 *Audit   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AuditReadReply) Reset()         { *m = AuditReadReply{} }
+func (m *AuditReadReply) String() string { return proto.CompactTextString(m) }
+func (*AuditReadReply) ProtoMessage()    {}
+func (*AuditReadReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{6}
+}
+
+func (m *AuditReadReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuditReadReply.Unmarshal(m, b)
+}
+func (m *AuditReadReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuditReadReply.Marshal(b, m, deterministic)
+}
+func (m *AuditReadReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuditReadReply.Merge(m, src)
+}
+func (m *AuditReadReply) XXX_Size() int {
+	return xxx_messageInfo_AuditReadReply.Size(m)
+}
+func (m *AuditReadReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuditReadReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuditReadReply proto.InternalMessageInfo
+
+func (m *AuditReadReply) GetData() *Audit {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
+type AuditUpdateRequest struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	StatusCode           uint32   `protobuf:"varint,2,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
+	Subject              string   `protobuf:"bytes,3,opt,name=subject,proto3" json:"subject,omitempty"`
+	Data                 string   `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AuditUpdateRequest) Reset()         { *m = AuditUpdateRequest{} }
+func (m *AuditUpdateRequest) String() string { return proto.CompactTextString(m) }
+func (*AuditUpdateRequest) ProtoMessage()    {}
+func (*AuditUpdateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{7}
+}
+
+func (m *AuditUpdateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuditUpdateRequest.Unmarshal(m, b)
+}
+func (m *AuditUpdateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuditUpdateRequest.Marshal(b, m, deterministic)
+}
+func (m *AuditUpdateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuditUpdateRequest.Merge(m, src)
+}
+func (m *AuditUpdateRequest) XXX_Size() int {
+	return xxx_messageInfo_AuditUpdateRequest.Size(m)
+}
+func (m *AuditUpdateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuditUpdateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuditUpdateRequest proto.InternalMessageInfo
+
+func (m *AuditUpdateRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *AuditUpdateRequest) GetStatusCode() uint32 {
+	if m != nil {
+		return m.StatusCode
+	}
+	return 0
+}
+
+func (m *AuditUpdateRequest) GetSubject() string {
+	if m != nil {
+		return m.Subject
+	}
+	return ""
+}
+
+func (m *AuditUpdateRequest) GetData() string {
+	if m != nil {
+		return m.Data
+	}
+	return ""
+}
+
+type Audit struct {
+	CreatedAt            string   `protobuf:"bytes,1,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt            string   `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Id                   string   `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
+	UserAgent            string   `protobuf:"bytes,4,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	Remote               string   `protobuf:"bytes,5,opt,name=remote,proto3" json:"remote,omitempty"`
+	Forwarded            string   `protobuf:"bytes,6,opt,name=forwarded,proto3" json:"forwarded,omitempty"`
+	StatusCode           uint32   `protobuf:"varint,7,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
+	Type                 string   `protobuf:"bytes,8,opt,name=type,proto3" json:"type,omitempty"`
+	Subject              string   `protobuf:"bytes,9,opt,name=subject,proto3" json:"subject,omitempty"`
+	Data                 string   `protobuf:"bytes,10,opt,name=data,proto3" json:"data,omitempty"`
+	KeyId                string   `protobuf:"bytes,11,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
+	ServiceId            string   `protobuf:"bytes,12,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
+	UserId               string   `protobuf:"bytes,13,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserKeyId            string   `protobuf:"bytes,14,opt,name=user_key_id,json=userKeyId,proto3" json:"user_key_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Audit) Reset()         { *m = Audit{} }
+func (m *Audit) String() string { return proto.CompactTextString(m) }
+func (*Audit) ProtoMessage()    {}
+func (*Audit) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{8}
+}
+
+func (m *Audit) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Audit.Unmarshal(m, b)
+}
+func (m *Audit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Audit.Marshal(b, m, deterministic)
+}
+func (m *Audit) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Audit.Merge(m, src)
+}
+func (m *Audit) XXX_Size() int {
+	return xxx_messageInfo_Audit.Size(m)
+}
+func (m *Audit) XXX_DiscardUnknown() {
+	xxx_messageInfo_Audit.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Audit proto.InternalMessageInfo
+
+func (m *Audit) GetCreatedAt() string {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return ""
+}
+
+func (m *Audit) GetUpdatedAt() string {
+	if m != nil {
+		return m.UpdatedAt
+	}
+	return ""
+}
+
+func (m *Audit) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *Audit) GetUserAgent() string {
+	if m != nil {
+		return m.UserAgent
+	}
+	return ""
+}
+
+func (m *Audit) GetRemote() string {
+	if m != nil {
+		return m.Remote
+	}
+	return ""
+}
+
+func (m *Audit) GetForwarded() string {
+	if m != nil {
+		return m.Forwarded
+	}
+	return ""
+}
+
+func (m *Audit) GetStatusCode() uint32 {
+	if m != nil {
+		return m.StatusCode
+	}
+	return 0
+}
+
+func (m *Audit) GetType() string {
+	if m != nil {
+		return m.Type
+	}
+	return ""
+}
+
+func (m *Audit) GetSubject() string {
+	if m != nil {
+		return m.Subject
+	}
+	return ""
+}
+
+func (m *Audit) GetData() string {
+	if m != nil {
+		return m.Data
+	}
+	return ""
+}
+
+func (m *Audit) GetKeyId() string {
+	if m != nil {
+		return m.KeyId
+	}
+	return ""
+}
+
+func (m *Audit) GetServiceId() string {
+	if m != nil {
+		return m.ServiceId
+	}
+	return ""
+}
+
+func (m *Audit) GetUserId() string {
+	if m != nil {
+		return m.UserId
+	}
+	return ""
+}
+
+func (m *Audit) GetUserKeyId() string {
+	if m != nil {
+		return m.UserKeyId
+	}
+	return ""
+}
+
+type KeyListRequest struct {
+	// Greater than key UUID.
+	Gt string `protobuf:"bytes,1,opt,name=gt,proto3" json:"gt,omitempty"`
+	// Less than key UUID.
+	Lt string `protobuf:"bytes,2,opt,name=lt,proto3" json:"lt,omitempty"`
+	// Limit number of returned keys.
+	Limit int64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	// Key UUID filter array.
+	Id []string `protobuf:"bytes,4,rep,name=id,proto3" json:"id,omitempty"`
+	// Key is_enabled flag filter.
+	IsEnabled string `protobuf:"bytes,5,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	// Key is_revoked flag filter.
+	IsRevoked string `protobuf:"bytes,6,opt,name=is_revoked,json=isRevoked,proto3" json:"is_revoked,omitempty"`
+	// Key type filter array.
+	Type []string `protobuf:"bytes,7,rep,name=type,proto3" json:"type,omitempty"`
+	// Key service UUID filter array.
+	ServiceId []string `protobuf:"bytes,8,rep,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
+	// Key user UUID filter array.
+	UserId               []string `protobuf:"bytes,9,rep,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *KeyListRequest) Reset()         { *m = KeyListRequest{} }
+func (m *KeyListRequest) String() string { return proto.CompactTextString(m) }
+func (*KeyListRequest) ProtoMessage()    {}
+func (*KeyListRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{9}
+}
+
+func (m *KeyListRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_KeyListRequest.Unmarshal(m, b)
+}
+func (m *KeyListRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_KeyListRequest.Marshal(b, m, deterministic)
+}
+func (m *KeyListRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KeyListRequest.Merge(m, src)
+}
+func (m *KeyListRequest) XXX_Size() int {
+	return xxx_messageInfo_KeyListRequest.Size(m)
+}
+func (m *KeyListRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_KeyListRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_KeyListRequest proto.InternalMessageInfo
+
+func (m *KeyListRequest) GetGt() string {
+	if m != nil {
+		return m.Gt
+	}
+	return ""
+}
+
+func (m *KeyListRequest) GetLt() string {
+	if m != nil {
+		return m.Lt
+	}
+	return ""
+}
+
+func (m *KeyListRequest) GetLimit() int64 {
+	if m != nil {
+		return m.Limit
+	}
+	return 0
+}
+
+func (m *KeyListRequest) GetId() []string {
+	if m != nil {
+		return m.Id
+	}
+	return nil
+}
+
+func (m *KeyListRequest) GetIsEnabled() string {
+	if m != nil {
+		return m.IsEnabled
+	}
+	return ""
+}
+
+func (m *KeyListRequest) GetIsRevoked() string {
+	if m != nil {
+		return m.IsRevoked
+	}
+	return ""
+}
+
+func (m *KeyListRequest) GetType() []string {
+	if m != nil {
+		return m.Type
+	}
+	return nil
+}
+
+func (m *KeyListRequest) GetServiceId() []string {
+	if m != nil {
+		return m.ServiceId
+	}
+	return nil
+}
+
+func (m *KeyListRequest) GetUserId() []string {
+	if m != nil {
+		return m.UserId
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*Empty)(nil), "sso.Empty")
 	proto.RegisterType((*Text)(nil), "sso.Text")
 	proto.RegisterType((*AuditListRequest)(nil), "sso.AuditListRequest")
 	proto.RegisterType((*AuditListReply)(nil), "sso.AuditListReply")
+	proto.RegisterType((*AuditCreateRequest)(nil), "sso.AuditCreateRequest")
+	proto.RegisterType((*AuditReadRequest)(nil), "sso.AuditReadRequest")
+	proto.RegisterType((*AuditReadReply)(nil), "sso.AuditReadReply")
+	proto.RegisterType((*AuditUpdateRequest)(nil), "sso.AuditUpdateRequest")
+	proto.RegisterType((*Audit)(nil), "sso.Audit")
+	proto.RegisterType((*KeyListRequest)(nil), "sso.KeyListRequest")
 }
 
 func init() { proto.RegisterFile("sso.proto", fileDescriptor_37aabceb39ca51ce) }
 
 var fileDescriptor_37aabceb39ca51ce = []byte{
-	// 221 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2c, 0x2e, 0xce, 0xd7,
-	0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x2e, 0x2e, 0xce, 0x97, 0x12, 0x4c, 0xcc, 0xcb, 0xcb,
-	0x2f, 0x49, 0x2c, 0xc9, 0xcc, 0xcf, 0x2b, 0x86, 0x88, 0x2b, 0xb1, 0x73, 0xb1, 0xba, 0xe6, 0x16,
-	0x94, 0x54, 0x2a, 0x49, 0x71, 0xb1, 0x84, 0xa4, 0x56, 0x94, 0x08, 0x09, 0x71, 0xb1, 0x94, 0xa4,
-	0x56, 0x94, 0x48, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x06, 0x81, 0xd9, 0x4a, 0x42, 0x5c, 0x02, 0x8e,
-	0xa5, 0x29, 0x99, 0x25, 0x3e, 0x99, 0xc5, 0x25, 0x41, 0xa9, 0x85, 0xa5, 0xa9, 0xc5, 0x25, 0x4a,
-	0x02, 0x5c, 0x7c, 0x48, 0x62, 0x05, 0x39, 0x95, 0x46, 0x9b, 0x19, 0xb9, 0x98, 0x83, 0x8b, 0xf3,
-	0x85, 0x74, 0xb8, 0x58, 0x02, 0x32, 0xf3, 0xd2, 0x85, 0xb8, 0xf4, 0x40, 0xd6, 0x83, 0x4d, 0x97,
-	0xe2, 0x04, 0xb3, 0x41, 0x16, 0x28, 0xf1, 0x36, 0x5d, 0x7e, 0x32, 0x99, 0x89, 0x5d, 0x88, 0x55,
-	0xbf, 0x00, 0xa4, 0xca, 0x88, 0x8b, 0xdd, 0x37, 0xb5, 0xa4, 0x28, 0x33, 0xb9, 0x18, 0x97, 0x06,
-	0x01, 0xb0, 0x06, 0x2e, 0x21, 0x0e, 0xfd, 0x5c, 0xa8, 0x42, 0x2f, 0x2e, 0x4e, 0xb8, 0xdd, 0x42,
-	0xa2, 0x60, 0x95, 0xe8, 0xee, 0x93, 0x12, 0x46, 0x17, 0x2e, 0xc8, 0xa9, 0x54, 0x12, 0x04, 0x1b,
-	0xc5, 0x2d, 0xc4, 0xa9, 0x5f, 0x66, 0xa8, 0x9f, 0x08, 0x92, 0x4b, 0x62, 0x03, 0x87, 0x83, 0x31,
-	0x20, 0x00, 0x00, 0xff, 0xff, 0x70, 0xef, 0x10, 0x50, 0x2c, 0x01, 0x00, 0x00,
+	// 759 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x55, 0xbd, 0x72, 0xdb, 0x46,
+	0x10, 0x1e, 0x10, 0xe0, 0x0f, 0x96, 0x11, 0x47, 0x3a, 0xfd, 0x21, 0x4c, 0xa4, 0x68, 0x50, 0x29,
+	0x2a, 0xc4, 0x84, 0x69, 0x32, 0xea, 0x38, 0x1a, 0x15, 0x8c, 0x92, 0x89, 0x0d, 0xff, 0x34, 0x2e,
+	0x38, 0x20, 0x6f, 0xc5, 0x39, 0x8b, 0x24, 0x68, 0xdc, 0x51, 0x16, 0xc7, 0xe3, 0xc6, 0x2f, 0xe0,
+	0xc2, 0x8f, 0xe3, 0xc7, 0x70, 0xe9, 0xc6, 0x85, 0x1f, 0xc3, 0x85, 0xe7, 0xf6, 0x0e, 0x20, 0x04,
+	0x53, 0x2e, 0xdc, 0x61, 0xbf, 0xdd, 0x5b, 0xee, 0xf7, 0xdd, 0xde, 0x47, 0xf0, 0xa5, 0x4c, 0x4e,
+	0xe7, 0x69, 0xa2, 0x12, 0xe6, 0x4a, 0x99, 0xb4, 0xb7, 0xe2, 0xd9, 0x2c, 0x51, 0xb1, 0x12, 0xc9,
+	0x4c, 0x1a, 0x3c, 0xac, 0x43, 0xf5, 0x62, 0x3a, 0x57, 0xcb, 0xb0, 0x0d, 0xde, 0x63, 0xbc, 0x55,
+	0x8c, 0x81, 0xa7, 0xf0, 0x56, 0x05, 0xce, 0x91, 0x73, 0xec, 0x47, 0xf4, 0x1d, 0x7e, 0x74, 0x60,
+	0xb3, 0xb7, 0xe0, 0x42, 0xfd, 0x2b, 0xa4, 0x8a, 0xf0, 0xc5, 0x02, 0xa5, 0x62, 0x2d, 0xa8, 0x8c,
+	0xd1, 0x96, 0x55, 0xc6, 0xa8, 0xe3, 0x09, 0x06, 0x15, 0x13, 0x4f, 0x90, 0xed, 0x40, 0x75, 0x22,
+	0xa6, 0x42, 0x05, 0xee, 0x91, 0x73, 0xec, 0x46, 0x26, 0x60, 0xbf, 0x80, 0x9f, 0x5c, 0x5d, 0x49,
+	0x54, 0x03, 0xc1, 0x03, 0x8f, 0x8a, 0x1b, 0x06, 0xe8, 0x73, 0xdd, 0x42, 0xf0, 0xa0, 0x7a, 0xe4,
+	0xea, 0x16, 0x82, 0xd3, 0x2c, 0xcb, 0x39, 0x06, 0x35, 0x42, 0xe8, 0x9b, 0x05, 0x50, 0x97, 0x8b,
+	0xe1, 0x73, 0x1c, 0xa9, 0xa0, 0x4e, 0x70, 0x16, 0xb2, 0x03, 0x00, 0x89, 0xe9, 0x8d, 0x18, 0xa1,
+	0xee, 0xdd, 0xa0, 0xa4, 0x6f, 0x91, 0x3e, 0x67, 0xfb, 0x50, 0x5f, 0x48, 0x4c, 0x75, 0xce, 0xa7,
+	0x5c, 0x4d, 0x87, 0x7d, 0x1e, 0x3e, 0x83, 0x56, 0x81, 0xdc, 0x7c, 0xb2, 0x64, 0xbf, 0x83, 0x37,
+	0x45, 0x15, 0x13, 0xb9, 0x66, 0x77, 0xf7, 0x54, 0xcb, 0x58, 0xe6, 0x1f, 0x51, 0x09, 0x3b, 0x04,
+	0x8f, 0xc7, 0x2a, 0x26, 0xde, 0xcd, 0x2e, 0xac, 0x4a, 0x23, 0xc2, 0xc3, 0xb7, 0x0e, 0x30, 0x8a,
+	0xcf, 0x53, 0x8c, 0x15, 0x66, 0xe2, 0x65, 0xcc, 0x32, 0x95, 0x4b, 0xcc, 0x8c, 0x8a, 0x39, 0x33,
+	0x66, 0x7f, 0xc4, 0x35, 0xd5, 0xfa, 0xbb, 0x48, 0xc7, 0xc8, 0x68, 0xe9, 0xb0, 0x43, 0x68, 0x52,
+	0xe2, 0x1a, 0x97, 0x03, 0x52, 0x53, 0x27, 0x7d, 0x0d, 0x5d, 0xe2, 0xb2, 0xcf, 0xc3, 0xd0, 0xde,
+	0x65, 0x84, 0x31, 0x2f, 0xdc, 0xa5, 0xe0, 0xd9, 0x5d, 0x0a, 0x1e, 0xfe, 0x61, 0x25, 0x31, 0x35,
+	0x5a, 0x92, 0x8c, 0xa7, 0x73, 0x0f, 0x4f, 0x69, 0x69, 0x3e, 0x99, 0xf3, 0x02, 0xcd, 0x52, 0x5f,
+	0xf6, 0x1b, 0x34, 0xa5, 0x8a, 0xd5, 0x42, 0x0e, 0x46, 0x09, 0x37, 0xcb, 0xb2, 0x11, 0x81, 0x81,
+	0xce, 0x13, 0x7e, 0x47, 0x03, 0x77, 0xbd, 0x06, 0xde, 0x4a, 0x83, 0xf0, 0x4b, 0x05, 0xaa, 0xf4,
+	0xab, 0xfa, 0xee, 0x47, 0x24, 0x30, 0x1f, 0xc4, 0xd9, 0xee, 0xfa, 0x16, 0xe9, 0x51, 0x7a, 0x41,
+	0x83, 0x51, 0xba, 0x62, 0x25, 0x31, 0x48, 0x2f, 0x1b, 0xd3, 0xcd, 0xc7, 0xd4, 0xe5, 0x5a, 0xc2,
+	0x78, 0x8c, 0x33, 0x65, 0x7f, 0x91, 0x14, 0xec, 0x69, 0x80, 0xed, 0x41, 0x2d, 0xc5, 0x69, 0xa2,
+	0xd0, 0x8a, 0x6b, 0x23, 0xf6, 0x2b, 0xf8, 0x57, 0x49, 0xfa, 0x32, 0x4e, 0x39, 0xf2, 0xa0, 0x66,
+	0x4e, 0xe5, 0x40, 0x99, 0x7b, 0xfd, 0x1b, 0xee, 0xd9, 0x4e, 0x34, 0xd6, 0xef, 0x84, 0xbf, 0x5e,
+	0x0f, 0x28, 0xec, 0xc4, 0x2e, 0xd4, 0xec, 0xad, 0x37, 0x09, 0xad, 0x5e, 0xeb, 0x1b, 0x2f, 0x3d,
+	0x8c, 0x9f, 0xcc, 0x60, 0x6b, 0x1f, 0xc6, 0xc6, 0xf7, 0x36, 0xa9, 0x55, 0xde, 0xa4, 0x4f, 0x0e,
+	0xb4, 0x2e, 0x71, 0x59, 0x36, 0x05, 0x95, 0x9b, 0x02, 0xc5, 0x13, 0x95, 0x9b, 0x82, 0xba, 0xc7,
+	0x14, 0x8c, 0xfe, 0x5e, 0xfe, 0xee, 0x0f, 0x00, 0x84, 0x1c, 0xe0, 0x2c, 0x1e, 0x4e, 0x30, 0xdf,
+	0x60, 0x21, 0x2f, 0x0c, 0x60, 0xd3, 0x29, 0xde, 0x24, 0xd7, 0x2b, 0xa1, 0x85, 0x8c, 0x0c, 0x90,
+	0xeb, 0x58, 0x2f, 0xb8, 0xc6, 0x0f, 0x7a, 0x43, 0xf7, 0xbd, 0x0b, 0xee, 0x23, 0x99, 0xb0, 0x2e,
+	0x78, 0x0f, 0xc4, 0x6c, 0xcc, 0xcc, 0xe2, 0x93, 0x63, 0xb6, 0x7d, 0xfa, 0xd6, 0xa6, 0x19, 0x6e,
+	0xbf, 0xf9, 0xf0, 0xf9, 0x5d, 0x65, 0x83, 0x55, 0x3b, 0x73, 0x31, 0x1b, 0x0f, 0xc9, 0x35, 0xd9,
+	0xdf, 0x50, 0xff, 0x0f, 0x55, 0x2a, 0x46, 0xf2, 0xbe, 0x63, 0x7b, 0x74, 0x6c, 0x93, 0x35, 0x3a,
+	0x53, 0x53, 0x68, 0x4f, 0xfe, 0x03, 0x7e, 0x6e, 0x37, 0x6c, 0xbd, 0xfd, 0xb4, 0xb7, 0xcb, 0xf0,
+	0x7c, 0xb2, 0x0c, 0xb7, 0xa8, 0x61, 0x93, 0xf9, 0x9d, 0x9b, 0x3f, 0x3b, 0x31, 0xbd, 0x8c, 0x87,
+	0xd0, 0x2c, 0xf8, 0x0f, 0xdb, 0x5f, 0x1d, 0xbb, 0xe3, 0x48, 0xc5, 0x7e, 0xf9, 0xab, 0x0f, 0x77,
+	0xa8, 0x5f, 0x2b, 0x5c, 0xf5, 0x3b, 0x73, 0x4e, 0xd8, 0xff, 0x76, 0x3c, 0x5d, 0x57, 0x1c, 0xaf,
+	0xe0, 0x28, 0xeb, 0xdb, 0x65, 0x7c, 0x5b, 0x79, 0xbb, 0xce, 0x2b, 0xc1, 0x5f, 0xb3, 0xa7, 0x76,
+	0x46, 0x63, 0x1e, 0xc5, 0x19, 0xef, 0xd8, 0xc9, 0xfa, 0xa6, 0x3f, 0x53, 0xd3, 0xed, 0x6e, 0xa9,
+	0xe9, 0x99, 0x73, 0x32, 0xac, 0xd1, 0x7f, 0xdc, 0x5f, 0x5f, 0x03, 0x00, 0x00, 0xff, 0xff, 0xdb,
+	0x91, 0xa4, 0x66, 0x08, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -200,7 +805,14 @@ type SsoClient interface {
 	Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Text, error)
 	// Returns metrics in Prometheus exposition format.
 	Metrics(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Text, error)
+	// List audit logs.
 	AuditList(ctx context.Context, in *AuditListRequest, opts ...grpc.CallOption) (*AuditListReply, error)
+	// Create audit log.
+	AuditCreate(ctx context.Context, in *AuditCreateRequest, opts ...grpc.CallOption) (*AuditReadReply, error)
+	// Read audit log.
+	AuditRead(ctx context.Context, in *AuditReadRequest, opts ...grpc.CallOption) (*AuditReadReply, error)
+	// Update audit log.
+	AuditUpdate(ctx context.Context, in *AuditUpdateRequest, opts ...grpc.CallOption) (*AuditReadReply, error)
 }
 
 type ssoClient struct {
@@ -238,13 +850,47 @@ func (c *ssoClient) AuditList(ctx context.Context, in *AuditListRequest, opts ..
 	return out, nil
 }
 
+func (c *ssoClient) AuditCreate(ctx context.Context, in *AuditCreateRequest, opts ...grpc.CallOption) (*AuditReadReply, error) {
+	out := new(AuditReadReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuditCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuditRead(ctx context.Context, in *AuditReadRequest, opts ...grpc.CallOption) (*AuditReadReply, error) {
+	out := new(AuditReadReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuditRead", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuditUpdate(ctx context.Context, in *AuditUpdateRequest, opts ...grpc.CallOption) (*AuditReadReply, error) {
+	out := new(AuditReadReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuditUpdate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SsoServer is the server API for Sso service.
 type SsoServer interface {
 	// Returns pong response.
 	Ping(context.Context, *Empty) (*Text, error)
 	// Returns metrics in Prometheus exposition format.
 	Metrics(context.Context, *Empty) (*Text, error)
+	// List audit logs.
 	AuditList(context.Context, *AuditListRequest) (*AuditListReply, error)
+	// Create audit log.
+	AuditCreate(context.Context, *AuditCreateRequest) (*AuditReadReply, error)
+	// Read audit log.
+	AuditRead(context.Context, *AuditReadRequest) (*AuditReadReply, error)
+	// Update audit log.
+	AuditUpdate(context.Context, *AuditUpdateRequest) (*AuditReadReply, error)
 }
 
 // UnimplementedSsoServer can be embedded to have forward compatible implementations.
@@ -259,6 +905,15 @@ func (*UnimplementedSsoServer) Metrics(ctx context.Context, req *Empty) (*Text, 
 }
 func (*UnimplementedSsoServer) AuditList(ctx context.Context, req *AuditListRequest) (*AuditListReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuditList not implemented")
+}
+func (*UnimplementedSsoServer) AuditCreate(ctx context.Context, req *AuditCreateRequest) (*AuditReadReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuditCreate not implemented")
+}
+func (*UnimplementedSsoServer) AuditRead(ctx context.Context, req *AuditReadRequest) (*AuditReadReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuditRead not implemented")
+}
+func (*UnimplementedSsoServer) AuditUpdate(ctx context.Context, req *AuditUpdateRequest) (*AuditReadReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuditUpdate not implemented")
 }
 
 func RegisterSsoServer(s *grpc.Server, srv SsoServer) {
@@ -319,6 +974,60 @@ func _Sso_AuditList_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Sso_AuditCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuditCreateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuditCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuditCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuditCreate(ctx, req.(*AuditCreateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuditRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuditReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuditRead(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuditRead",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuditRead(ctx, req.(*AuditReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuditUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuditUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuditUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuditUpdate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuditUpdate(ctx, req.(*AuditUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Sso_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sso.Sso",
 	HandlerType: (*SsoServer)(nil),
@@ -334,6 +1043,18 @@ var _Sso_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuditList",
 			Handler:    _Sso_AuditList_Handler,
+		},
+		{
+			MethodName: "AuditCreate",
+			Handler:    _Sso_AuditCreate_Handler,
+		},
+		{
+			MethodName: "AuditRead",
+			Handler:    _Sso_AuditRead_Handler,
+		},
+		{
+			MethodName: "AuditUpdate",
+			Handler:    _Sso_AuditUpdate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -9,6 +9,7 @@ service Sso {
     rpc Ping (Empty) returns (Text) {
         option (google.api.http) = {
             get: "/ping"
+            response_body: "text"
         };
     }
 
@@ -16,12 +17,37 @@ service Sso {
     rpc Metrics (Empty) returns (Text) {
         option (google.api.http) = {
             get: "/metrics"
+            response_body: "text"
         };
     }
 
+    // List audit logs.
     rpc AuditList (AuditListRequest) returns (AuditListReply) {
         option (google.api.http) = {
             get: "/v1/audit"
+        };
+    }
+
+    // Create audit log.
+    rpc AuditCreate(AuditCreateRequest) returns (AuditReadReply) {
+        option (google.api.http) = {
+            post: "/v1/audit"
+            body: "*"
+        };
+    }
+
+    // Read audit log.
+    rpc AuditRead(AuditReadRequest) returns (AuditReadReply) {
+        option (google.api.http) = {
+            get: "/v1/audit/{id}"
+        };
+    }
+
+    // Update audit log.
+    rpc AuditUpdate(AuditUpdateRequest) returns (AuditReadReply) {
+        option (google.api.http) = {
+            patch: "/v1/audit/{id}"
+            body: "*"
         };
     }
 }
@@ -29,24 +55,57 @@ service Sso {
 message Empty {}
 
 message Text {
+    // Text content.
     string text = 1;
 }
 
 message AuditListRequest {
+    // Greater than or equal to date and time in ISO 8601 format.
     string ge = 1;
+    // Less than or equal to date and time in ISO 8601 format.
     string le = 2;
+    // Limit number of returned logs.
     int64 limit = 3;
+    // Offset log UUID for paging.
     string offset_id = 4;
+    // Log UUID filter array.
     repeated string id = 5;
+    // Log type filter array.
     repeated string type = 6;
+    // Log subject filter array.
     repeated string subject = 7;
+    // Log service UUID filter array.
     repeated string service_id = 8;
+    // Log user UUID filter array.
     repeated string user_id = 9;
 }
 
 message AuditListReply {
     AuditListRequest meta = 1;
     repeated Audit data = 2;
+}
+
+message AuditCreateRequest {
+    string type = 1;
+    string subject = 2;
+    string data = 3;
+    string user_id = 4;
+    string user_key_id = 5;
+}
+
+message AuditReadRequest {
+    string id = 1;
+}
+
+message AuditReadReply {
+    Audit data = 1;
+}
+
+message AuditUpdateRequest {
+    string id = 1;
+    uint32 status_code = 2;
+    string subject = 3;
+    string data = 4;
 }
 
 message Audit {
@@ -59,5 +118,30 @@ message Audit {
     uint32 status_code = 7;
     string type = 8;
     string subject = 9;
-    google.protobuf.Any data = 10;
+    string data = 10;
+    string key_id = 11;
+    string service_id = 12;
+    string user_id = 13;
+    string user_key_id = 14;
+}
+
+message KeyListRequest {
+    // Greater than key UUID.
+    string gt = 1;
+    // Less than key UUID.
+    string lt = 2;
+    // Limit number of returned keys.
+    int64 limit = 3;
+    // Key UUID filter array.
+    repeated string id = 4;
+    // Key is_enabled flag filter.
+    string is_enabled = 5;
+    // Key is_revoked flag filter.
+    string is_revoked = 6;
+    // Key type filter array.
+    repeated string type = 7;
+    // Key service UUID filter array.
+    repeated string service_id = 8;
+    // Key user UUID filter array.
+    repeated string user_id = 9;
 }
