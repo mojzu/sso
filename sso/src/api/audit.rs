@@ -11,39 +11,41 @@ use tonic::Status;
 use uuid::Uuid;
 use validator::Validate;
 
+// TODO(refactor): Remove builder?
+
 #[derive(Debug, Serialize, Deserialize, Validate, Builder)]
 #[serde(deny_unknown_fields)]
 pub struct AuditListRequest {
     #[builder(default = "None")]
-    ge: Option<DateTime<Utc>>,
+    pub ge: Option<DateTime<Utc>>,
 
     #[builder(default = "None")]
-    le: Option<DateTime<Utc>>,
+    pub le: Option<DateTime<Utc>>,
 
     #[builder(default = "None")]
     #[validate(custom = "validate::limit")]
-    limit: Option<i64>,
+    pub limit: Option<i64>,
 
     #[builder(default = "None")]
-    offset_id: Option<Uuid>,
+    pub offset_id: Option<Uuid>,
 
     #[builder(default = "None")]
-    id: Option<Vec<Uuid>>,
+    pub id: Option<Vec<Uuid>>,
 
     #[builder(default = "None")]
     #[serde(rename = "type")]
     #[validate(custom = "validate::audit_type_vec")]
-    type_: Option<Vec<String>>,
+    pub type_: Option<Vec<String>>,
 
     #[builder(default = "None")]
     #[validate(custom = "validate::audit_subject_vec")]
-    subject: Option<Vec<String>>,
+    pub subject: Option<Vec<String>>,
 
     #[builder(default = "None")]
-    service_id: Option<Vec<Uuid>>,
+    pub service_id: Option<Vec<Uuid>>,
 
     #[builder(default = "None")]
-    user_id: Option<Vec<Uuid>>,
+    pub user_id: Option<Vec<Uuid>>,
 }
 
 impl ValidateRequest<AuditListRequest> for AuditListRequest {}

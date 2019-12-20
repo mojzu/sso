@@ -75,5 +75,7 @@ tokio = { version = "0.2", features = ["rt-threaded", "time", "stream", "fs", "m
 tonic = { git = "https://github.com/hyperium/tonic.git" }
 tower = { git = "https://github.com/tower-rs/tower" }
 
+tokio-executor = { version = "0.2.0-alpha.6", features = ["blocking"] }
+
 [build-dependencies]
 tonic-build = { git = "https://github.com/hyperium/tonic.git" }

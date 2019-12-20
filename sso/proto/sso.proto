@@ -1,6 +1,7 @@
 syntax = "proto3";
 package sso;
 
+import "google/protobuf/timestamp.proto";
 import "annotations.proto";
 
 service Sso {
@@ -59,10 +60,10 @@ message Text {
 }
 
 message AuditListRequest {
-    // Greater than or equal to date and time in ISO 8601 format.
-    string ge = 1;
-    // Less than or equal to date and time in ISO 8601 format.
-    string le = 2;
+    // Greater than or equal to date and time.
+    google.protobuf.Timestamp ge = 1;
+    // Less than or equal to date and time.
+    google.protobuf.Timestamp le = 2;
     // Limit number of returned logs.
     int64 limit = 3;
     // Offset log UUID for paging.
@@ -108,8 +109,10 @@ message AuditUpdateRequest {
 }
 
 message Audit {
-    string created_at = 1;
-    string updated_at = 2;
+    // Created at date and time.
+    google.protobuf.Timestamp created_at = 1;
+    // Updated at date and time.
+    google.protobuf.Timestamp updated_at = 2;
     string id = 3;
     string user_agent = 4;
     string remote = 5;

@@ -102,7 +102,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let bind = env::string(ENV_BIND).unwrap();
     let addr = bind.parse()?;
-    let sso = sso::SsoGrpc::new();
+    let sso = sso::Server::new(driver);
     let sso_ref = Arc::new(sso.clone());
 
     Server::builder()
