@@ -1,23 +1,25 @@
 syntax = "proto3";
 package sso;
 
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 import "annotations.proto";
 
 service Sso {
     // Returns pong response.
-    rpc Ping (Empty) returns (Text) {
+    rpc Ping (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (google.api.http) = {
             get: "/ping"
-            response_body: "text"
+            response_body: "value"
         };
     }
 
     // Returns metrics in Prometheus exposition format.
-    rpc Metrics (Empty) returns (Text) {
+    rpc Metrics (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (google.api.http) = {
             get: "/metrics"
-            response_body: "text"
+            response_body: "value"
         };
     }
 
@@ -52,22 +54,16 @@ service Sso {
     }
 }
 
-message Empty {}
-
-message Text {
-    // Text content.
-    string text = 1;
-}
-
+// List audit logs request.
 message AuditListRequest {
     // Greater than or equal to date and time.
     google.protobuf.Timestamp ge = 1;
     // Less than or equal to date and time.
     google.protobuf.Timestamp le = 2;
     // Limit number of returned logs.
-    int64 limit = 3;
+    google.protobuf.Int64Value limit = 3;
     // Offset log UUID for paging.
-    string offset_id = 4;
+    google.protobuf.StringValue offset_id = 4;
     // Log UUID filter array.
     repeated string id = 5;
     // Log type filter array.
@@ -80,66 +76,86 @@ message AuditListRequest {
     repeated string user_id = 9;
 }
 
+// List audit logs reply.
 message AuditListReply {
+    // Request message.
     AuditListRequest meta = 1;
+    // Logs array.
     repeated Audit data = 2;
 }
 
+// Create audit log request.
 message AuditCreateRequest {
+    // Log type.
     string type = 1;
-    string subject = 2;
-    string data = 3;
-    string user_id = 4;
-    string user_key_id = 5;
+    // Log subject.
+    google.protobuf.StringValue subject = 2;
+    // Log key, value data.
+    map<string, string> data = 3;
+    // Log user UUID.
+    google.protobuf.StringValue user_id = 4;
+    // Log user key UUID.
+    google.protobuf.StringValue user_key_id = 5;
 }
 
+// Read audit log request.
 message AuditReadRequest {
     string id = 1;
 }
 
+// Read audit log reply.
 message AuditReadReply {
+    // Log.
     Audit data = 1;
 }
 
+// Update audit log request.
 message AuditUpdateRequest {
+    // Log UUID.
     string id = 1;
-    uint32 status_code = 2;
-    string subject = 3;
-    string data = 4;
+    // Log status code.
+    google.protobuf.UInt32Value status_code = 2;
+    // Log subject.
+    google.protobuf.StringValue subject = 3;
+    // Log key, value data.
+    map<string, string> data = 4;
 }
 
+// Audit log.
 message Audit {
     // Created at date and time.
     google.protobuf.Timestamp created_at = 1;
     // Updated at date and time.
     google.protobuf.Timestamp updated_at = 2;
+    // UUID.
     string id = 3;
     string user_agent = 4;
     string remote = 5;
-    string forwarded = 6;
-    uint32 status_code = 7;
+    google.protobuf.StringValue forwarded = 6;
+    google.protobuf.UInt32Value status_code = 7;
     string type = 8;
-    string subject = 9;
-    string data = 10;
-    string key_id = 11;
-    string service_id = 12;
-    string user_id = 13;
-    string user_key_id = 14;
+    google.protobuf.StringValue subject = 9;
+    map<string, string> data = 10;
+    google.protobuf.StringValue key_id = 11;
+    google.protobuf.StringValue service_id = 12;
+    google.protobuf.StringValue user_id = 13;
+    google.protobuf.StringValue user_key_id = 14;
 }
 
+// List keys request.
 message KeyListRequest {
     // Greater than key UUID.
-    string gt = 1;
+    google.protobuf.StringValue gt = 1;
     // Less than key UUID.
-    string lt = 2;
+    google.protobuf.StringValue lt = 2;
     // Limit number of returned keys.
-    int64 limit = 3;
+    google.protobuf.Int64Value limit = 3;
     // Key UUID filter array.
     repeated string id = 4;
     // Key is_enabled flag filter.
-    string is_enabled = 5;
+    google.protobuf.BoolValue is_enabled = 5;
     // Key is_revoked flag filter.
-    string is_revoked = 6;
+    google.protobuf.BoolValue is_revoked = 6;
     // Key type filter array.
     repeated string type = 7;
     // Key service UUID filter array.

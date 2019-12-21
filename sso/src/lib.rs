@@ -27,11 +27,10 @@ extern crate validator_derive;
 
 pub mod api;
 mod cli;
-mod client;
 mod driver;
-mod grpc;
+pub mod grpc;
 
-pub use crate::{cli::*, client::*, driver::*, grpc::*};
+pub use crate::{cli::*, driver::*};
 
 /// Implement `to_string` and `from_string` on simple enums.
 ///

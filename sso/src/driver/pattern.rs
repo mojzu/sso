@@ -1,4 +1,4 @@
-//! # Pattern Functions
+//! # Pattern functions.
 use crate::{
     AuditBuilder, Driver, DriverError, DriverResult, Jwt, KeyRead, KeyType, KeyWithValue, Service,
     ServiceRead, User, UserRead,

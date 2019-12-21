@@ -17,7 +17,7 @@
         "operationId": "Metrics",
         "responses": {
           "200": {
-            "description": "Text content.",
+            "description": "The string value.",
             "schema": {
               "type": "string"
             }
@@ -34,7 +34,7 @@
         "operationId": "Ping",
         "responses": {
           "200": {
-            "description": "Text content.",
+            "description": "The string value.",
             "schema": {
               "type": "string"
             }
@@ -213,6 +213,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Log UUID.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -247,7 +248,8 @@
           "description": "Updated at date and time."
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "description": "UUID."
         },
         "user_agent": {
           "type": "string"
@@ -269,7 +271,10 @@
           "type": "string"
         },
         "data": {
-          "type": "string"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "key_id": {
           "type": "string"
@@ -283,41 +288,54 @@
         "user_key_id": {
           "type": "string"
         }
-      }
+      },
+      "description": "Audit log."
     },
     "ssoAuditCreateRequest": {
       "type": "object",
       "properties": {
         "type": {
-          "type": "string"
+          "type": "string",
+          "description": "Log type."
         },
         "subject": {
-          "type": "string"
+          "type": "string",
+          "description": "Log subject."
         },
         "data": {
-          "type": "string"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Log key, value data."
         },
         "user_id": {
-          "type": "string"
+          "type": "string",
+          "description": "Log user UUID."
         },
         "user_key_id": {
-          "type": "string"
+          "type": "string",
+          "description": "Log user key UUID."
         }
-      }
+      },
+      "description": "Create audit log request."
     },
     "ssoAuditListReply": {
       "type": "object",
       "properties": {
         "meta": {
-          "$ref": "#/definitions/ssoAuditListRequest"
+          "$ref": "#/definitions/ssoAuditListRequest",
+          "description": "Request message."
         },
         "data": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/ssoAudit"
-          }
+          },
+          "description": "Logs array."
         }
-      }
+      },
+      "description": "List audit logs reply."
     },
     "ssoAuditListRequest": {
       "type": "object",
@@ -376,42 +394,44 @@
           },
           "description": "Log user UUID filter array."
         }
-      }
+      },
+      "description": "List audit logs request."
     },
     "ssoAuditReadReply": {
       "type": "object",
       "properties": {
         "data": {
-          "$ref": "#/definitions/ssoAudit"
+          "$ref": "#/definitions/ssoAudit",
+          "description": "Log."
         }
-      }
+      },
+      "description": "Read audit log reply."
     },
     "ssoAuditUpdateRequest": {
       "type": "object",
       "properties": {
         "id": {
-          "type": "string"
+          "type": "string",
+          "description": "Log UUID."
         },
         "status_code": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Log status code."
         },
         "subject": {
-          "type": "string"
+          "type": "string",
+          "description": "Log subject."
         },
         "data": {
-          "type": "string"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Log key, value data."
         }
-      }
-    },
-    "ssoText": {
-      "type": "object",
-      "properties": {
-        "text": {
-          "type": "string",
-          "description": "Text content."
-        }
-      }
+      },
+      "description": "Update audit log request."
     }
   }
 }

@@ -102,7 +102,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let bind = env::string(ENV_BIND).unwrap();
     let addr = bind.parse()?;
-    let sso = sso::Server::new(driver);
+    let sso = sso::grpc::Server::new(driver);
     let sso_ref = Arc::new(sso.clone());
 
     Server::builder()
@@ -140,7 +140,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // }
             }
         })
-        .add_service(sso::pb::sso_server::SsoServer::new(sso))
+        .add_service(sso::grpc::pb::sso_server::SsoServer::new(sso))
         .serve(addr)
         .await?;
 

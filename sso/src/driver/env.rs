@@ -1,4 +1,4 @@
-//! # Environment Functions
+//! # Environment functions.
 use crate::{api::AuthProviderOauth2, DriverError, DriverResult};
 use std::str::FromStr;
 

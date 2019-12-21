@@ -1,5 +1,5 @@
 //! Blocking client.
-use crate::pb::{self, sso_client::SsoClient, Empty, Text};
+use crate::grpc::pb::{self, sso_client::SsoClient, Empty, Text};
 use http::{HeaderValue, Uri};
 use std::fmt;
 use std::str::FromStr;

@@ -65,7 +65,7 @@ validator = "0.10.0"
 validator_derive = "0.10.0"
 zxcvbn = "2.0.0"
 
-bytes = "0.5.3"
+bytes = "0.4.12"
 http = "0.2"
 http-body = "0.3.1"
 prost = "0.5.0"

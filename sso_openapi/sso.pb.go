@@ -7,7 +7,9 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	timestamp "github.com/golang/protobuf/ptypes/timestamp"
+	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -26,86 +28,16 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type Empty struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *Empty) Reset()         { *m = Empty{} }
-func (m *Empty) String() string { return proto.CompactTextString(m) }
-func (*Empty) ProtoMessage()    {}
-func (*Empty) Descriptor() ([]byte, []int) {
-	return fileDescriptor_37aabceb39ca51ce, []int{0}
-}
-
-func (m *Empty) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Empty.Unmarshal(m, b)
-}
-func (m *Empty) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Empty.Marshal(b, m, deterministic)
-}
-func (m *Empty) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Empty.Merge(m, src)
-}
-func (m *Empty) XXX_Size() int {
-	return xxx_messageInfo_Empty.Size(m)
-}
-func (m *Empty) XXX_DiscardUnknown() {
-	xxx_messageInfo_Empty.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Empty proto.InternalMessageInfo
-
-type Text struct {
-	// Text content.
-	Text                 string   `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *Text) Reset()         { *m = Text{} }
-func (m *Text) String() string { return proto.CompactTextString(m) }
-func (*Text) ProtoMessage()    {}
-func (*Text) Descriptor() ([]byte, []int) {
-	return fileDescriptor_37aabceb39ca51ce, []int{1}
-}
-
-func (m *Text) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Text.Unmarshal(m, b)
-}
-func (m *Text) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Text.Marshal(b, m, deterministic)
-}
-func (m *Text) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Text.Merge(m, src)
-}
-func (m *Text) XXX_Size() int {
-	return xxx_messageInfo_Text.Size(m)
-}
-func (m *Text) XXX_DiscardUnknown() {
-	xxx_messageInfo_Text.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Text proto.InternalMessageInfo
-
-func (m *Text) GetText() string {
-	if m != nil {
-		return m.Text
-	}
-	return ""
-}
-
+// List audit logs request.
 type AuditListRequest struct {
 	// Greater than or equal to date and time.
 	Ge *timestamp.Timestamp `protobuf:"bytes,1,opt,name=ge,proto3" json:"ge,omitempty"`
 	// Less than or equal to date and time.
 	Le *timestamp.Timestamp `protobuf:"bytes,2,opt,name=le,proto3" json:"le,omitempty"`
 	// Limit number of returned logs.
-	Limit int64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	Limit *wrappers.Int64Value `protobuf:"bytes,3,opt,name=limit,proto3" json:"limit,omitempty"`
 	// Offset log UUID for paging.
-	OffsetId string `protobuf:"bytes,4,opt,name=offset_id,json=offsetId,proto3" json:"offset_id,omitempty"`
+	OffsetId *wrappers.StringValue `protobuf:"bytes,4,opt,name=offset_id,json=offsetId,proto3" json:"offset_id,omitempty"`
 	// Log UUID filter array.
 	Id []string `protobuf:"bytes,5,rep,name=id,proto3" json:"id,omitempty"`
 	// Log type filter array.
@@ -125,7 +57,7 @@ func (m *AuditListRequest) Reset()         { *m = AuditListRequest{} }
 func (m *AuditListRequest) String() string { return proto.CompactTextString(m) }
 func (*AuditListRequest) ProtoMessage()    {}
 func (*AuditListRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_37aabceb39ca51ce, []int{2}
+	return fileDescriptor_37aabceb39ca51ce, []int{0}
 }
 
 func (m *AuditListRequest) XXX_Unmarshal(b []byte) error {
@@ -160,18 +92,18 @@ func (m *AuditListRequest) GetLe() *timestamp.Timestamp {
 	return nil
 }
 
-func (m *AuditListRequest) GetLimit() int64 {
+func (m *AuditListRequest) GetLimit() *wrappers.Int64Value {
 	if m != nil {
 		return m.Limit
 	}
-	return 0
+	return nil
 }
 
-func (m *AuditListRequest) GetOffsetId() string {
+func (m *AuditListRequest) GetOffsetId() *wrappers.StringValue {
 	if m != nil {
 		return m.OffsetId
 	}
-	return ""
+	return nil
 }
 
 func (m *AuditListRequest) GetId() []string {
@@ -209,19 +141,22 @@ func (m *AuditListRequest) GetUserId() []string {
 	return nil
 }
 
+// List audit logs reply.
 type AuditListReply struct {
-	Meta                 *AuditListRequest `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
-	Data                 []*Audit          `protobuf:"bytes,2,rep,name=data,proto3" json:"data,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	// Request message.
+	Meta *AuditListRequest `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	// Logs array.
+	Data                 []*Audit `protobuf:"bytes,2,rep,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *AuditListReply) Reset()         { *m = AuditListReply{} }
 func (m *AuditListReply) String() string { return proto.CompactTextString(m) }
 func (*AuditListReply) ProtoMessage()    {}
 func (*AuditListReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_37aabceb39ca51ce, []int{3}
+	return fileDescriptor_37aabceb39ca51ce, []int{1}
 }
 
 func (m *AuditListReply) XXX_Unmarshal(b []byte) error {
@@ -256,22 +191,28 @@ func (m *AuditListReply) GetData() []*Audit {
 	return nil
 }
 
+// Create audit log request.
 type AuditCreateRequest struct {
-	Type                 string   `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	Subject              string   `protobuf:"bytes,2,opt,name=subject,proto3" json:"subject,omitempty"`
-	Data                 string   `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
-	UserId               string   `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	UserKeyId            string   `protobuf:"bytes,5,opt,name=user_key_id,json=userKeyId,proto3" json:"user_key_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Log type.
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	// Log subject.
+	Subject *wrappers.StringValue `protobuf:"bytes,2,opt,name=subject,proto3" json:"subject,omitempty"`
+	// Log key, value data.
+	Data map[string]string `protobuf:"bytes,3,rep,name=data,proto3" json:"data,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// Log user UUID.
+	UserId *wrappers.StringValue `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	// Log user key UUID.
+	UserKeyId            *wrappers.StringValue `protobuf:"bytes,5,opt,name=user_key_id,json=userKeyId,proto3" json:"user_key_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *AuditCreateRequest) Reset()         { *m = AuditCreateRequest{} }
 func (m *AuditCreateRequest) String() string { return proto.CompactTextString(m) }
 func (*AuditCreateRequest) ProtoMessage()    {}
 func (*AuditCreateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_37aabceb39ca51ce, []int{4}
+	return fileDescriptor_37aabceb39ca51ce, []int{2}
 }
 
 func (m *AuditCreateRequest) XXX_Unmarshal(b []byte) error {
@@ -299,34 +240,35 @@ func (m *AuditCreateRequest) GetType() string {
 	return ""
 }
 
-func (m *AuditCreateRequest) GetSubject() string {
+func (m *AuditCreateRequest) GetSubject() *wrappers.StringValue {
 	if m != nil {
 		return m.Subject
 	}
-	return ""
+	return nil
 }
 
-func (m *AuditCreateRequest) GetData() string {
+func (m *AuditCreateRequest) GetData() map[string]string {
 	if m != nil {
 		return m.Data
 	}
-	return ""
+	return nil
 }
 
-func (m *AuditCreateRequest) GetUserId() string {
+func (m *AuditCreateRequest) GetUserId() *wrappers.StringValue {
 	if m != nil {
 		return m.UserId
 	}
-	return ""
+	return nil
 }
 
-func (m *AuditCreateRequest) GetUserKeyId() string {
+func (m *AuditCreateRequest) GetUserKeyId() *wrappers.StringValue {
 	if m != nil {
 		return m.UserKeyId
 	}
-	return ""
+	return nil
 }
 
+// Read audit log request.
 type AuditReadRequest struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -338,7 +280,7 @@ func (m *AuditReadRequest) Reset()         { *m = AuditReadRequest{} }
 func (m *AuditReadRequest) String() string { return proto.CompactTextString(m) }
 func (*AuditReadRequest) ProtoMessage()    {}
 func (*AuditReadRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_37aabceb39ca51ce, []int{5}
+	return fileDescriptor_37aabceb39ca51ce, []int{3}
 }
 
 func (m *AuditReadRequest) XXX_Unmarshal(b []byte) error {
@@ -366,7 +308,9 @@ func (m *AuditReadRequest) GetId() string {
 	return ""
 }
 
+// Read audit log reply.
 type AuditReadReply struct {
+	// Log.
 	Data                 *Audit   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -377,7 +321,7 @@ func (m *AuditReadReply) Reset()         { *m = AuditReadReply{} }
 func (m *AuditReadReply) String() string { return proto.CompactTextString(m) }
 func (*AuditReadReply) ProtoMessage()    {}
 func (*AuditReadReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_37aabceb39ca51ce, []int{6}
+	return fileDescriptor_37aabceb39ca51ce, []int{4}
 }
 
 func (m *AuditReadReply) XXX_Unmarshal(b []byte) error {
@@ -405,21 +349,26 @@ func (m *AuditReadReply) GetData() *Audit {
 	return nil
 }
 
+// Update audit log request.
 type AuditUpdateRequest struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	StatusCode           uint32   `protobuf:"varint,2,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
-	Subject              string   `protobuf:"bytes,3,opt,name=subject,proto3" json:"subject,omitempty"`
-	Data                 string   `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Log UUID.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Log status code.
+	StatusCode *wrappers.UInt32Value `protobuf:"bytes,2,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
+	// Log subject.
+	Subject *wrappers.StringValue `protobuf:"bytes,3,opt,name=subject,proto3" json:"subject,omitempty"`
+	// Log key, value data.
+	Data                 map[string]string `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *AuditUpdateRequest) Reset()         { *m = AuditUpdateRequest{} }
 func (m *AuditUpdateRequest) String() string { return proto.CompactTextString(m) }
 func (*AuditUpdateRequest) ProtoMessage()    {}
 func (*AuditUpdateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_37aabceb39ca51ce, []int{7}
+	return fileDescriptor_37aabceb39ca51ce, []int{5}
 }
 
 func (m *AuditUpdateRequest) XXX_Unmarshal(b []byte) error {
@@ -447,54 +396,56 @@ func (m *AuditUpdateRequest) GetId() string {
 	return ""
 }
 
-func (m *AuditUpdateRequest) GetStatusCode() uint32 {
+func (m *AuditUpdateRequest) GetStatusCode() *wrappers.UInt32Value {
 	if m != nil {
 		return m.StatusCode
 	}
-	return 0
+	return nil
 }
 
-func (m *AuditUpdateRequest) GetSubject() string {
+func (m *AuditUpdateRequest) GetSubject() *wrappers.StringValue {
 	if m != nil {
 		return m.Subject
 	}
-	return ""
+	return nil
 }
 
-func (m *AuditUpdateRequest) GetData() string {
+func (m *AuditUpdateRequest) GetData() map[string]string {
 	if m != nil {
 		return m.Data
 	}
-	return ""
+	return nil
 }
 
+// Audit log.
 type Audit struct {
 	// Created at date and time.
 	CreatedAt *timestamp.Timestamp `protobuf:"bytes,1,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	// Updated at date and time.
-	UpdatedAt            *timestamp.Timestamp `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Id                   string               `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
-	UserAgent            string               `protobuf:"bytes,4,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
-	Remote               string               `protobuf:"bytes,5,opt,name=remote,proto3" json:"remote,omitempty"`
-	Forwarded            string               `protobuf:"bytes,6,opt,name=forwarded,proto3" json:"forwarded,omitempty"`
-	StatusCode           uint32               `protobuf:"varint,7,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
-	Type                 string               `protobuf:"bytes,8,opt,name=type,proto3" json:"type,omitempty"`
-	Subject              string               `protobuf:"bytes,9,opt,name=subject,proto3" json:"subject,omitempty"`
-	Data                 string               `protobuf:"bytes,10,opt,name=data,proto3" json:"data,omitempty"`
-	KeyId                string               `protobuf:"bytes,11,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
-	ServiceId            string               `protobuf:"bytes,12,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
-	UserId               string               `protobuf:"bytes,13,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	UserKeyId            string               `protobuf:"bytes,14,opt,name=user_key_id,json=userKeyId,proto3" json:"user_key_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_unrecognized     []byte               `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
+	UpdatedAt *timestamp.Timestamp `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// UUID.
+	Id                   string                `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
+	UserAgent            string                `protobuf:"bytes,4,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	Remote               string                `protobuf:"bytes,5,opt,name=remote,proto3" json:"remote,omitempty"`
+	Forwarded            *wrappers.StringValue `protobuf:"bytes,6,opt,name=forwarded,proto3" json:"forwarded,omitempty"`
+	StatusCode           *wrappers.UInt32Value `protobuf:"bytes,7,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
+	Type                 string                `protobuf:"bytes,8,opt,name=type,proto3" json:"type,omitempty"`
+	Subject              *wrappers.StringValue `protobuf:"bytes,9,opt,name=subject,proto3" json:"subject,omitempty"`
+	Data                 map[string]string     `protobuf:"bytes,10,rep,name=data,proto3" json:"data,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	KeyId                *wrappers.StringValue `protobuf:"bytes,11,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
+	ServiceId            *wrappers.StringValue `protobuf:"bytes,12,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
+	UserId               *wrappers.StringValue `protobuf:"bytes,13,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserKeyId            *wrappers.StringValue `protobuf:"bytes,14,opt,name=user_key_id,json=userKeyId,proto3" json:"user_key_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *Audit) Reset()         { *m = Audit{} }
 func (m *Audit) String() string { return proto.CompactTextString(m) }
 func (*Audit) ProtoMessage()    {}
 func (*Audit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_37aabceb39ca51ce, []int{8}
+	return fileDescriptor_37aabceb39ca51ce, []int{6}
 }
 
 func (m *Audit) XXX_Unmarshal(b []byte) error {
@@ -550,18 +501,18 @@ func (m *Audit) GetRemote() string {
 	return ""
 }
 
-func (m *Audit) GetForwarded() string {
+func (m *Audit) GetForwarded() *wrappers.StringValue {
 	if m != nil {
 		return m.Forwarded
 	}
-	return ""
+	return nil
 }
 
-func (m *Audit) GetStatusCode() uint32 {
+func (m *Audit) GetStatusCode() *wrappers.UInt32Value {
 	if m != nil {
 		return m.StatusCode
 	}
-	return 0
+	return nil
 }
 
 func (m *Audit) GetType() string {
@@ -571,61 +522,62 @@ func (m *Audit) GetType() string {
 	return ""
 }
 
-func (m *Audit) GetSubject() string {
+func (m *Audit) GetSubject() *wrappers.StringValue {
 	if m != nil {
 		return m.Subject
 	}
-	return ""
+	return nil
 }
 
-func (m *Audit) GetData() string {
+func (m *Audit) GetData() map[string]string {
 	if m != nil {
 		return m.Data
 	}
-	return ""
+	return nil
 }
 
-func (m *Audit) GetKeyId() string {
+func (m *Audit) GetKeyId() *wrappers.StringValue {
 	if m != nil {
 		return m.KeyId
 	}
-	return ""
+	return nil
 }
 
-func (m *Audit) GetServiceId() string {
+func (m *Audit) GetServiceId() *wrappers.StringValue {
 	if m != nil {
 		return m.ServiceId
 	}
-	return ""
+	return nil
 }
 
-func (m *Audit) GetUserId() string {
+func (m *Audit) GetUserId() *wrappers.StringValue {
 	if m != nil {
 		return m.UserId
 	}
-	return ""
+	return nil
 }
 
-func (m *Audit) GetUserKeyId() string {
+func (m *Audit) GetUserKeyId() *wrappers.StringValue {
 	if m != nil {
 		return m.UserKeyId
 	}
-	return ""
+	return nil
 }
 
+// List keys request.
 type KeyListRequest struct {
 	// Greater than key UUID.
-	Gt string `protobuf:"bytes,1,opt,name=gt,proto3" json:"gt,omitempty"`
+	Gt *wrappers.StringValue `protobuf:"bytes,1,opt,name=gt,proto3" json:"gt,omitempty"`
 	// Less than key UUID.
-	Lt string `protobuf:"bytes,2,opt,name=lt,proto3" json:"lt,omitempty"`
+	Lt *wrappers.StringValue `protobuf:"bytes,2,opt,name=lt,proto3" json:"lt,omitempty"`
 	// Limit number of returned keys.
-	Limit int64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	Limit *wrappers.Int64Value `protobuf:"bytes,3,opt,name=limit,proto3" json:"limit,omitempty"`
 	// Key UUID filter array.
 	Id []string `protobuf:"bytes,4,rep,name=id,proto3" json:"id,omitempty"`
 	// Key is_enabled flag filter.
-	IsEnabled string `protobuf:"bytes,5,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	IsEnabled *wrappers.BoolValue `protobuf:"bytes,5,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
 	// Key is_revoked flag filter.
-	IsRevoked string `protobuf:"bytes,6,opt,name=is_revoked,json=isRevoked,proto3" json:"is_revoked,omitempty"`
+	IsRevoked *wrappers.BoolValue `protobuf:"bytes,6,opt,name=is_revoked,json=isRevoked,proto3" json:"is_revoked,omitempty"`
 	// Key type filter array.
 	Type []string `protobuf:"bytes,7,rep,name=type,proto3" json:"type,omitempty"`
 	// Key service UUID filter array.
@@ -641,7 +593,7 @@ func (m *KeyListRequest) Reset()         { *m = KeyListRequest{} }
 func (m *KeyListRequest) String() string { return proto.CompactTextString(m) }
 func (*KeyListRequest) ProtoMessage()    {}
 func (*KeyListRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_37aabceb39ca51ce, []int{9}
+	return fileDescriptor_37aabceb39ca51ce, []int{7}
 }
 
 func (m *KeyListRequest) XXX_Unmarshal(b []byte) error {
@@ -662,25 +614,25 @@ func (m *KeyListRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_KeyListRequest proto.InternalMessageInfo
 
-func (m *KeyListRequest) GetGt() string {
+func (m *KeyListRequest) GetGt() *wrappers.StringValue {
 	if m != nil {
 		return m.Gt
 	}
-	return ""
+	return nil
 }
 
-func (m *KeyListRequest) GetLt() string {
+func (m *KeyListRequest) GetLt() *wrappers.StringValue {
 	if m != nil {
 		return m.Lt
 	}
-	return ""
+	return nil
 }
 
-func (m *KeyListRequest) GetLimit() int64 {
+func (m *KeyListRequest) GetLimit() *wrappers.Int64Value {
 	if m != nil {
 		return m.Limit
 	}
-	return 0
+	return nil
 }
 
 func (m *KeyListRequest) GetId() []string {
@@ -690,18 +642,18 @@ func (m *KeyListRequest) GetId() []string {
 	return nil
 }
 
-func (m *KeyListRequest) GetIsEnabled() string {
+func (m *KeyListRequest) GetIsEnabled() *wrappers.BoolValue {
 	if m != nil {
 		return m.IsEnabled
 	}
-	return ""
+	return nil
 }
 
-func (m *KeyListRequest) GetIsRevoked() string {
+func (m *KeyListRequest) GetIsRevoked() *wrappers.BoolValue {
 	if m != nil {
 		return m.IsRevoked
 	}
-	return ""
+	return nil
 }
 
 func (m *KeyListRequest) GetType() []string {
@@ -726,73 +678,82 @@ func (m *KeyListRequest) GetUserId() []string {
 }
 
 func init() {
-	proto.RegisterType((*Empty)(nil), "sso.Empty")
-	proto.RegisterType((*Text)(nil), "sso.Text")
 	proto.RegisterType((*AuditListRequest)(nil), "sso.AuditListRequest")
 	proto.RegisterType((*AuditListReply)(nil), "sso.AuditListReply")
 	proto.RegisterType((*AuditCreateRequest)(nil), "sso.AuditCreateRequest")
+	proto.RegisterMapType((map[string]string)(nil), "sso.AuditCreateRequest.DataEntry")
 	proto.RegisterType((*AuditReadRequest)(nil), "sso.AuditReadRequest")
 	proto.RegisterType((*AuditReadReply)(nil), "sso.AuditReadReply")
 	proto.RegisterType((*AuditUpdateRequest)(nil), "sso.AuditUpdateRequest")
+	proto.RegisterMapType((map[string]string)(nil), "sso.AuditUpdateRequest.DataEntry")
 	proto.RegisterType((*Audit)(nil), "sso.Audit")
+	proto.RegisterMapType((map[string]string)(nil), "sso.Audit.DataEntry")
 	proto.RegisterType((*KeyListRequest)(nil), "sso.KeyListRequest")
 }
 
 func init() { proto.RegisterFile("sso.proto", fileDescriptor_37aabceb39ca51ce) }
 
 var fileDescriptor_37aabceb39ca51ce = []byte{
-	// 808 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0xcd, 0x72, 0xdb, 0x36,
-	0x10, 0x1e, 0x91, 0xd4, 0x0f, 0x57, 0xb5, 0xc6, 0x86, 0xff, 0x58, 0xb5, 0xb6, 0x35, 0x3c, 0xa9,
-	0x3e, 0x48, 0xad, 0x7a, 0x69, 0x7d, 0xd3, 0x78, 0x7c, 0x50, 0xdd, 0x4e, 0x5b, 0xd6, 0xed, 0xa5,
-	0x07, 0x0d, 0x25, 0x40, 0x1c, 0xc4, 0x94, 0xc8, 0x10, 0x90, 0x63, 0x4d, 0x26, 0x97, 0xbc, 0x40,
-	0x0e, 0x7e, 0x95, 0xdc, 0xf2, 0x18, 0x79, 0x81, 0x1c, 0xf2, 0x20, 0x19, 0x2e, 0x40, 0x8a, 0xa6,
-	0xe5, 0x38, 0x93, 0x1b, 0xf0, 0x61, 0x77, 0xb1, 0xdf, 0x87, 0xc5, 0x07, 0xb6, 0x10, 0x51, 0x2f,
-	0x4e, 0x22, 0x19, 0x11, 0x53, 0x88, 0xa8, 0x7d, 0x12, 0x44, 0x51, 0x10, 0xb2, 0x3e, 0x42, 0x93,
-	0xe5, 0xac, 0x2f, 0xf9, 0x9c, 0x09, 0xe9, 0xcf, 0x63, 0x15, 0xd5, 0xde, 0xf1, 0x17, 0x8b, 0x48,
-	0xfa, 0x92, 0x47, 0x0b, 0xa1, 0x20, 0xb7, 0x0e, 0xd5, 0x8b, 0x79, 0x2c, 0x57, 0x6e, 0x1b, 0xac,
-	0x2b, 0x76, 0x2b, 0x09, 0x01, 0x4b, 0xb2, 0x5b, 0xe9, 0x54, 0x3a, 0x95, 0xae, 0xed, 0xe1, 0xda,
-	0xbd, 0x33, 0x60, 0x7b, 0xb8, 0xa4, 0x5c, 0xfe, 0xce, 0x85, 0xf4, 0xd8, 0xf3, 0x25, 0x13, 0x92,
-	0x9c, 0x82, 0x11, 0x30, 0x0c, 0x6b, 0x0e, 0xda, 0x3d, 0x75, 0x75, 0x2f, 0xbb, 0xba, 0x77, 0x95,
-	0x5d, 0xed, 0x19, 0x01, 0x4b, 0x63, 0x43, 0xe6, 0x18, 0x4f, 0xc7, 0x86, 0x8c, 0xec, 0x41, 0x35,
-	0xe4, 0x73, 0x2e, 0x1d, 0xb3, 0x53, 0xe9, 0x9a, 0x9e, 0xda, 0x90, 0xef, 0xc0, 0x8e, 0x66, 0x33,
-	0xc1, 0xe4, 0x98, 0x53, 0xc7, 0xc2, 0xde, 0x1a, 0x0a, 0x18, 0x51, 0xd2, 0x02, 0x83, 0x53, 0xa7,
-	0xda, 0x31, 0xbb, 0xb6, 0x67, 0x70, 0x8a, 0x1c, 0x56, 0x31, 0x73, 0x6a, 0x88, 0xe0, 0x9a, 0x38,
-	0x50, 0x17, 0xcb, 0xc9, 0x33, 0x36, 0x95, 0x4e, 0x1d, 0xe1, 0x6c, 0x4b, 0x8e, 0x00, 0x04, 0x4b,
-	0x6e, 0xf8, 0x94, 0xa5, 0xb5, 0x1b, 0x78, 0x68, 0x6b, 0x64, 0x44, 0xc9, 0x21, 0xd4, 0x97, 0x82,
-	0x25, 0xe9, 0x99, 0x8d, 0x67, 0xb5, 0x74, 0x3b, 0xa2, 0xee, 0xff, 0xd0, 0x2a, 0x88, 0x12, 0x87,
-	0x2b, 0xf2, 0x03, 0x58, 0x73, 0x26, 0x7d, 0x2d, 0xca, 0x7e, 0x2f, 0x7d, 0x9f, 0xb2, 0x6e, 0x1e,
-	0x86, 0x90, 0x63, 0xb0, 0xa8, 0x2f, 0x7d, 0xc7, 0xe8, 0x98, 0xdd, 0xe6, 0x00, 0xd6, 0xa1, 0x1e,
-	0xe2, 0xee, 0x9b, 0x0a, 0x10, 0xdc, 0x9f, 0x27, 0xcc, 0x97, 0x2c, 0x13, 0x3d, 0x63, 0x96, 0xbd,
-	0x4e, 0x89, 0x99, 0x81, 0x70, 0xce, 0x8c, 0xe8, 0x4b, 0x4c, 0x15, 0x9d, 0xae, 0x8b, 0x74, 0x94,
-	0x8c, 0x9a, 0x0e, 0x39, 0x86, 0x26, 0x1e, 0x5c, 0xb3, 0xd5, 0x18, 0xd5, 0x4c, 0x0f, 0xed, 0x14,
-	0xba, 0x64, 0xab, 0x11, 0x75, 0x5d, 0x3d, 0x03, 0x1e, 0xf3, 0x69, 0xd6, 0x8e, 0x12, 0x5e, 0x35,
-	0x63, 0x70, 0xea, 0xfe, 0xa8, 0x25, 0x51, 0x31, 0xa9, 0x24, 0x19, 0x4f, 0x25, 0xc9, 0x43, 0x9e,
-	0x42, 0xd3, 0xfc, 0x37, 0xa6, 0x05, 0x9a, 0xa5, 0xba, 0xe4, 0x04, 0x9a, 0x42, 0xfa, 0x72, 0x29,
-	0xc6, 0xd3, 0x88, 0xaa, 0x41, 0xda, 0xf2, 0x40, 0x41, 0xe7, 0x11, 0xbd, 0xa7, 0x81, 0xb9, 0x59,
-	0x03, 0x6b, 0xad, 0x81, 0xfb, 0xd6, 0x84, 0x2a, 0xde, 0x4a, 0x7e, 0x05, 0x98, 0xa2, 0xc0, 0x74,
-	0xec, 0xcb, 0x2f, 0x18, 0x66, 0x5b, 0x47, 0x0f, 0x31, 0x75, 0x89, 0x4d, 0x63, 0xea, 0xd3, 0xb3,
-	0x6d, 0xeb, 0xe8, 0x61, 0x46, 0xcf, 0xcc, 0xe9, 0x1d, 0x01, 0xa0, 0xf4, 0x7e, 0xc0, 0x16, 0x52,
-	0x77, 0x8a, 0xca, 0x0f, 0x53, 0x80, 0x1c, 0x40, 0x2d, 0x61, 0xf3, 0x48, 0x32, 0xfd, 0x28, 0x7a,
-	0x47, 0xbe, 0x07, 0x7b, 0x16, 0x25, 0x2f, 0xfc, 0x84, 0x32, 0xea, 0xd4, 0x54, 0x56, 0x0e, 0x94,
-	0x35, 0xab, 0x3f, 0xd0, 0x2c, 0x9b, 0xa5, 0xc6, 0xe6, 0x59, 0xb2, 0x37, 0xeb, 0x08, 0x85, 0x59,
-	0xda, 0x87, 0x9a, 0x9e, 0x96, 0x26, 0xa2, 0xd5, 0xeb, 0x74, 0x52, 0x4a, 0x1f, 0xea, 0x1b, 0xd5,
-	0xd8, 0xc6, 0x0f, 0xb5, 0xf5, 0xb9, 0x09, 0x6c, 0x95, 0x27, 0xf0, 0x43, 0x05, 0x5a, 0x97, 0x6c,
-	0x55, 0x34, 0xa1, 0x16, 0x18, 0x41, 0xe6, 0x55, 0x46, 0x80, 0xfb, 0x30, 0xfb, 0x06, 0x46, 0x28,
-	0x1f, 0x31, 0x13, 0xa5, 0xbf, 0x95, 0xfb, 0xc5, 0x11, 0x00, 0x17, 0x63, 0xb6, 0xf0, 0x27, 0x21,
-	0xcb, 0x27, 0x9f, 0x8b, 0x0b, 0x05, 0xe8, 0xe3, 0x84, 0xdd, 0x44, 0xd7, 0x6b, 0xa1, 0xb9, 0xf0,
-	0x14, 0x90, 0xeb, 0x58, 0x2f, 0xb8, 0xcd, 0x57, 0x7a, 0xca, 0xe0, 0x9d, 0x09, 0xe6, 0x3f, 0x22,
-	0x22, 0x03, 0xb0, 0xfe, 0xe2, 0x8b, 0x80, 0xa8, 0x0f, 0x83, 0x0e, 0xdd, 0xb6, 0x71, 0x9d, 0x9a,
-	0xb4, 0xbb, 0xfb, 0xfa, 0xfd, 0xc7, 0x3b, 0x63, 0x8b, 0x54, 0xfb, 0x31, 0x5f, 0x04, 0x13, 0x74,
-	0x69, 0xf2, 0x0b, 0xd4, 0xff, 0x60, 0x32, 0xe1, 0x53, 0xf1, 0x58, 0xda, 0x01, 0xa6, 0x6d, 0x93,
-	0x46, 0x7f, 0xae, 0x02, 0x75, 0xe6, 0x6f, 0x60, 0xe7, 0x36, 0x45, 0x36, 0xdb, 0x56, 0x7b, 0xb7,
-	0x0c, 0xc7, 0xe1, 0xca, 0xdd, 0xc1, 0x82, 0x4d, 0x62, 0xf7, 0x6f, 0x7e, 0xea, 0xfb, 0xf8, 0xa3,
-	0xfe, 0x86, 0x66, 0xc1, 0xb7, 0xc8, 0xe1, 0x3a, 0xed, 0x9e, 0x93, 0x15, 0xeb, 0xe5, 0x6e, 0xe1,
-	0xee, 0x61, 0xbd, 0x96, 0xbb, 0xae, 0x77, 0x56, 0x39, 0x25, 0x7f, 0xea, 0xf6, 0xd2, 0xb8, 0x62,
-	0x7b, 0x05, 0x27, 0xda, 0x5c, 0x2e, 0xe3, 0xdb, 0xca, 0xcb, 0xf5, 0x5f, 0x72, 0xfa, 0x8a, 0xfc,
-	0xa7, 0x7b, 0x54, 0xa6, 0x53, 0xec, 0xf1, 0x9e, 0x0d, 0x6d, 0x2e, 0xfa, 0x2d, 0x16, 0xdd, 0x1d,
-	0x94, 0x8a, 0x9e, 0x55, 0x4e, 0x27, 0x35, 0xfc, 0xf6, 0x3f, 0x7f, 0x0a, 0x00, 0x00, 0xff, 0xff,
-	0xc6, 0x71, 0xa8, 0x8b, 0x99, 0x07, 0x00, 0x00,
+	// 932 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x56, 0xcf, 0x73, 0xdb, 0x44,
+	0x14, 0x1e, 0x4b, 0xfe, 0x11, 0x3d, 0x83, 0x27, 0xd9, 0x86, 0x44, 0xb8, 0xb4, 0x04, 0x9f, 0x42,
+	0x86, 0xb1, 0xa9, 0x43, 0x0b, 0x09, 0x70, 0x08, 0x25, 0x07, 0x53, 0x18, 0x40, 0xa5, 0x1d, 0x66,
+	0x38, 0x78, 0xd6, 0xde, 0x17, 0xcd, 0x12, 0x59, 0x12, 0xda, 0x75, 0x3a, 0x1a, 0x86, 0x0b, 0x57,
+	0x8e, 0xfc, 0x4d, 0x5c, 0xb9, 0x30, 0xfc, 0x07, 0xfc, 0x03, 0x9c, 0xb9, 0x30, 0xda, 0x5d, 0xc9,
+	0xb2, 0x9c, 0x36, 0xae, 0x0f, 0xbd, 0x59, 0xbb, 0xdf, 0xfb, 0xf6, 0xed, 0xf7, 0xbd, 0x7d, 0xcf,
+	0xe0, 0x08, 0x11, 0xf5, 0xe3, 0x24, 0x92, 0x11, 0xb1, 0x85, 0x88, 0xba, 0xb7, 0xfd, 0x28, 0xf2,
+	0x03, 0x1c, 0xa8, 0xa5, 0xc9, 0xfc, 0x62, 0x80, 0xb3, 0x58, 0xa6, 0x1a, 0xd1, 0x7d, 0xbb, 0xba,
+	0x29, 0xf9, 0x0c, 0x85, 0xa4, 0xb3, 0xd8, 0x00, 0xee, 0x56, 0x01, 0xcf, 0x12, 0x1a, 0xc7, 0x98,
+	0x08, 0xb3, 0xbf, 0x43, 0xc3, 0x30, 0x92, 0x54, 0xf2, 0x28, 0x34, 0x4b, 0xbd, 0x3f, 0x2d, 0xd8,
+	0x3e, 0x9b, 0x33, 0x2e, 0xbf, 0xe4, 0x42, 0x7a, 0xf8, 0xd3, 0x1c, 0x85, 0x24, 0x47, 0x60, 0xf9,
+	0xe8, 0xd6, 0x0e, 0x6a, 0x87, 0xed, 0x61, 0xb7, 0xaf, 0x49, 0xfb, 0x39, 0x69, 0xff, 0xbb, 0xfc,
+	0x54, 0xcf, 0xf2, 0x31, 0xc3, 0x06, 0xe8, 0x5a, 0x37, 0x63, 0x03, 0x24, 0xf7, 0xa0, 0x11, 0xf0,
+	0x19, 0x97, 0xae, 0xad, 0xe0, 0xb7, 0x57, 0xe0, 0xa3, 0x50, 0x3e, 0xf8, 0xe0, 0x29, 0x0d, 0xe6,
+	0xe8, 0x69, 0x24, 0x39, 0x01, 0x27, 0xba, 0xb8, 0x10, 0x28, 0xc7, 0x9c, 0xb9, 0x75, 0x15, 0xf6,
+	0xd6, 0x4a, 0xd8, 0x63, 0x99, 0xf0, 0xd0, 0xd7, 0x71, 0x5b, 0x1a, 0x3e, 0x62, 0xa4, 0x03, 0x16,
+	0x67, 0x6e, 0xe3, 0xc0, 0x3e, 0x74, 0x3c, 0x8b, 0x33, 0x42, 0xa0, 0x2e, 0xd3, 0x18, 0xdd, 0xa6,
+	0x5a, 0x51, 0xbf, 0x89, 0x0b, 0x2d, 0x31, 0x9f, 0xfc, 0x88, 0x53, 0xe9, 0xb6, 0xd4, 0x72, 0xfe,
+	0x49, 0xee, 0x00, 0x08, 0x4c, 0xae, 0xf8, 0x14, 0xb3, 0x93, 0xb7, 0xd4, 0xa6, 0x63, 0x56, 0x46,
+	0x8c, 0xec, 0x43, 0x6b, 0x2e, 0x30, 0xc9, 0xf6, 0x1c, 0xb5, 0xd7, 0xcc, 0x3e, 0x47, 0xac, 0xf7,
+	0x03, 0x74, 0x4a, 0x7a, 0xc6, 0x41, 0x4a, 0xde, 0x85, 0xfa, 0x0c, 0x25, 0x35, 0x7a, 0xbe, 0xd1,
+	0xcf, 0x2c, 0xaf, 0x4a, 0xee, 0x29, 0x08, 0xb9, 0x0b, 0x75, 0x46, 0x25, 0x75, 0xad, 0x03, 0xfb,
+	0xb0, 0x3d, 0x84, 0x05, 0xd4, 0x53, 0xeb, 0xbd, 0x3f, 0x2c, 0x20, 0xea, 0xfb, 0x61, 0x82, 0x54,
+	0x62, 0xee, 0x57, 0x7e, 0xb3, 0xec, 0x84, 0xfc, 0x66, 0x0f, 0x16, 0x37, 0xb3, 0xd6, 0x90, 0xad,
+	0xb8, 0xf7, 0x7d, 0x93, 0x82, 0xad, 0x52, 0x78, 0x67, 0x91, 0xc2, 0xd2, 0x91, 0xfd, 0xcf, 0xa9,
+	0xa4, 0xe7, 0xa1, 0x4c, 0x52, 0x9d, 0x19, 0xb9, 0xbf, 0xd0, 0x63, 0x1d, 0x97, 0x8c, 0x5a, 0xe4,
+	0x13, 0x68, 0xab, 0xb0, 0x4b, 0x4c, 0xc7, 0xca, 0xac, 0x9b, 0x43, 0x9d, 0x2c, 0xe0, 0x11, 0xa6,
+	0x23, 0xd6, 0xfd, 0x10, 0x9c, 0x22, 0x0f, 0xb2, 0x0d, 0xf6, 0x25, 0xa6, 0x46, 0x83, 0xec, 0x27,
+	0xd9, 0x85, 0xc6, 0x55, 0x16, 0xa2, 0x04, 0x70, 0x3c, 0xfd, 0x71, 0x6a, 0x7d, 0x54, 0xeb, 0xf5,
+	0x4c, 0xd1, 0x7b, 0x48, 0x59, 0x2e, 0xa2, 0x2e, 0x17, 0x1d, 0x6e, 0x71, 0xd6, 0x7b, 0xdf, 0x18,
+	0xa9, 0x31, 0x99, 0x91, 0xb9, 0x3b, 0xda, 0xc8, 0x55, 0x77, 0x7e, 0xcb, 0xdd, 0x79, 0x12, 0xb3,
+	0x92, 0x3b, 0x15, 0x62, 0xf2, 0x29, 0xb4, 0x85, 0xa4, 0x72, 0x2e, 0xc6, 0xd3, 0x88, 0xe1, 0x73,
+	0xdd, 0x79, 0x32, 0x0a, 0xe5, 0xf1, 0x50, 0xdf, 0x19, 0x74, 0xc0, 0xc3, 0x88, 0x2d, 0x19, 0x6b,
+	0x6f, 0x62, 0x6c, 0xbd, 0x6a, 0xec, 0x52, 0xb6, 0x55, 0x63, 0x37, 0xd7, 0xf8, 0xef, 0x06, 0x34,
+	0x14, 0x3f, 0x39, 0x01, 0x98, 0xaa, 0xe2, 0x61, 0x63, 0x2a, 0xd7, 0x68, 0x2b, 0x8e, 0x41, 0x9f,
+	0xa9, 0xd0, 0xb9, 0x4a, 0x4f, 0x85, 0xde, 0xdc, 0x65, 0x1c, 0x83, 0x3e, 0xcb, 0x65, 0xb7, 0x0b,
+	0xd9, 0xef, 0x00, 0xa8, 0x52, 0xa3, 0x3e, 0x86, 0x52, 0x15, 0xa9, 0xa3, 0x6b, 0xe9, 0x2c, 0x5b,
+	0x20, 0x7b, 0xd0, 0x4c, 0x70, 0x16, 0x49, 0x54, 0x45, 0xe8, 0x78, 0xe6, 0x8b, 0x9c, 0x82, 0x73,
+	0x11, 0x25, 0xcf, 0x68, 0xc2, 0x90, 0xb9, 0xcd, 0x75, 0xea, 0xb3, 0x80, 0x57, 0x9d, 0x6e, 0xbd,
+	0xa4, 0xd3, 0xf9, 0xb3, 0xde, 0xba, 0xfe, 0x59, 0x3b, 0x2f, 0xe3, 0xfe, 0xa1, 0x71, 0x1f, 0x94,
+	0xfb, 0xbb, 0x0b, 0xf7, 0x57, 0x5e, 0xf2, 0x31, 0x34, 0xcd, 0x6b, 0x6c, 0xaf, 0x71, 0x40, 0xe3,
+	0x32, 0x7b, 0x89, 0xe4, 0xe3, 0xa5, 0x6e, 0xf9, 0xda, 0x3a, 0x32, 0x2d, 0x7a, 0x69, 0xa9, 0x77,
+	0xbc, 0xbe, 0x79, 0xef, 0xe8, 0xbc, 0xa2, 0xde, 0xf1, 0xaf, 0x05, 0x9d, 0x47, 0x98, 0x96, 0xe7,
+	0xe5, 0x7b, 0x60, 0xf9, 0x79, 0x61, 0xbf, 0x38, 0x01, 0xcb, 0x57, 0xe8, 0x60, 0xbd, 0xa6, 0x6c,
+	0x05, 0x72, 0x93, 0x99, 0xa9, 0x2b, 0xbf, 0x5e, 0x0c, 0xbe, 0x13, 0x00, 0x2e, 0xc6, 0x18, 0xd2,
+	0x49, 0x80, 0x79, 0x8f, 0x5d, 0x7d, 0x44, 0x9f, 0x45, 0x51, 0x60, 0x54, 0xe2, 0xe2, 0x5c, 0x83,
+	0x4d, 0x68, 0x82, 0x57, 0xd1, 0x65, 0x51, 0xfe, 0x37, 0x84, 0x7a, 0x1a, 0x5c, 0x54, 0x6f, 0xab,
+	0x34, 0x6e, 0x37, 0x1c, 0xaa, 0xc3, 0xff, 0x6c, 0xb0, 0x1f, 0x8b, 0x88, 0x78, 0x50, 0xff, 0x86,
+	0x87, 0x3e, 0xd9, 0x5b, 0x49, 0xe1, 0x3c, 0xfb, 0x9f, 0xd4, 0x7d, 0xa1, 0x9c, 0xbd, 0xdd, 0x5f,
+	0xff, 0xfa, 0xe7, 0x77, 0xab, 0x43, 0x1a, 0x83, 0x98, 0x87, 0xfe, 0x44, 0x7b, 0x4a, 0xbe, 0x87,
+	0xd6, 0x57, 0x28, 0x13, 0x3e, 0x15, 0x1b, 0xd2, 0xee, 0x2b, 0xda, 0x1d, 0xb2, 0x35, 0x98, 0x69,
+	0x9e, 0x9c, 0xf9, 0x0b, 0x70, 0x8a, 0x39, 0x4f, 0xae, 0x9f, 0xfb, 0xdd, 0x5b, 0xd5, 0xe5, 0x38,
+	0x48, 0x7b, 0x3b, 0x8a, 0xb1, 0x4d, 0x9c, 0xc1, 0xd5, 0xbd, 0x01, 0x55, 0x3d, 0xf4, 0x5b, 0x68,
+	0x97, 0xa6, 0x30, 0xd9, 0x7f, 0xce, 0x5c, 0x2e, 0xf3, 0x15, 0x83, 0x2b, 0xbf, 0x78, 0x6f, 0xc1,
+	0x77, 0x5a, 0x3b, 0x22, 0x5f, 0x9b, 0xf4, 0x32, 0x5c, 0x39, 0xbd, 0xd2, 0x50, 0xbc, 0x9e, 0x6e,
+	0x4f, 0xd1, 0x6d, 0x93, 0x4e, 0x41, 0x37, 0xf8, 0x99, 0xb3, 0x5f, 0xc8, 0x53, 0x93, 0xa3, 0x1e,
+	0x28, 0xe5, 0x1c, 0x97, 0x46, 0xcc, 0xf5, 0xa4, 0x6f, 0x2a, 0xd2, 0x5b, 0xc3, 0x0a, 0xe9, 0x69,
+	0xed, 0x68, 0xd2, 0x54, 0xb2, 0x1f, 0xff, 0x1f, 0x00, 0x00, 0xff, 0xff, 0xeb, 0x3d, 0xcf, 0x2c,
+	0x2d, 0x0b, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -808,9 +769,9 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SsoClient interface {
 	// Returns pong response.
-	Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Text, error)
+	Ping(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*wrappers.StringValue, error)
 	// Returns metrics in Prometheus exposition format.
-	Metrics(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Text, error)
+	Metrics(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*wrappers.StringValue, error)
 	// List audit logs.
 	AuditList(ctx context.Context, in *AuditListRequest, opts ...grpc.CallOption) (*AuditListReply, error)
 	// Create audit log.
@@ -829,8 +790,8 @@ func NewSsoClient(cc *grpc.ClientConn) SsoClient {
 	return &ssoClient{cc}
 }
 
-func (c *ssoClient) Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Text, error) {
-	out := new(Text)
+func (c *ssoClient) Ping(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*wrappers.StringValue, error) {
+	out := new(wrappers.StringValue)
 	err := c.cc.Invoke(ctx, "/sso.Sso/Ping", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -838,8 +799,8 @@ func (c *ssoClient) Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption
 	return out, nil
 }
 
-func (c *ssoClient) Metrics(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Text, error) {
-	out := new(Text)
+func (c *ssoClient) Metrics(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*wrappers.StringValue, error) {
+	out := new(wrappers.StringValue)
 	err := c.cc.Invoke(ctx, "/sso.Sso/Metrics", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -886,9 +847,9 @@ func (c *ssoClient) AuditUpdate(ctx context.Context, in *AuditUpdateRequest, opt
 // SsoServer is the server API for Sso service.
 type SsoServer interface {
 	// Returns pong response.
-	Ping(context.Context, *Empty) (*Text, error)
+	Ping(context.Context, *empty.Empty) (*wrappers.StringValue, error)
 	// Returns metrics in Prometheus exposition format.
-	Metrics(context.Context, *Empty) (*Text, error)
+	Metrics(context.Context, *empty.Empty) (*wrappers.StringValue, error)
 	// List audit logs.
 	AuditList(context.Context, *AuditListRequest) (*AuditListReply, error)
 	// Create audit log.
@@ -903,10 +864,10 @@ type SsoServer interface {
 type UnimplementedSsoServer struct {
 }
 
-func (*UnimplementedSsoServer) Ping(ctx context.Context, req *Empty) (*Text, error) {
+func (*UnimplementedSsoServer) Ping(ctx context.Context, req *empty.Empty) (*wrappers.StringValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
-func (*UnimplementedSsoServer) Metrics(ctx context.Context, req *Empty) (*Text, error) {
+func (*UnimplementedSsoServer) Metrics(ctx context.Context, req *empty.Empty) (*wrappers.StringValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Metrics not implemented")
 }
 func (*UnimplementedSsoServer) AuditList(ctx context.Context, req *AuditListRequest) (*AuditListReply, error) {
@@ -927,7 +888,7 @@ func RegisterSsoServer(s *grpc.Server, srv SsoServer) {
 }
 
 func _Sso_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
+	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -939,13 +900,13 @@ func _Sso_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{
 		FullMethod: "/sso.Sso/Ping",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SsoServer).Ping(ctx, req.(*Empty))
+		return srv.(SsoServer).Ping(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Sso_Metrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
+	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -957,7 +918,7 @@ func _Sso_Metrics_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: "/sso.Sso/Metrics",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SsoServer).Metrics(ctx, req.(*Empty))
+		return srv.(SsoServer).Metrics(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

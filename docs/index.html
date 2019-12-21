@@ -1445,8 +1445,9 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 <div class="sourceCode" id="cb79"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb79-1"><a href="#cb79-1"></a><span class="ex">sso-build</span> cargo make build</span>
 <span id="cb79-2"><a href="#cb79-2"></a><span class="ex">sso-build</span> cargo make release</span></code></pre></div>
 <p>Run development binaries.</p>
-<div class="sourceCode" id="cb80"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb80-1"><a href="#cb80-1"></a><span class="ex">sso-build</span> cargo run --bin sso-cli -- <span class="va">$ARGS</span></span>
-<span id="cb80-2"><a href="#cb80-2"></a><span class="ex">sso-build</span> cargo run --bin sso-grpc-server</span></code></pre></div>
+<div class="sourceCode" id="cb80"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb80-1"><a href="#cb80-1"></a><span class="ex">sso-build</span> cargo make sso-cli -- <span class="va">$ARGS</span></span>
+<span id="cb80-2"><a href="#cb80-2"></a><span class="ex">sso-build</span> cargo make sso-grpc-server</span>
+<span id="cb80-3"><a href="#cb80-3"></a><span class="ex">sso-build</span> cargo make sso-openapi-server</span></code></pre></div>
 <p>Run unit tests.</p>
 <div class="sourceCode" id="cb81"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb81-1"><a href="#cb81-1"></a><span class="ex">sso-build</span> cargo make test</span></code></pre></div>
 <p>Run integration tests. This expects <code>sso_grpc</code> service is running.</p>
@@ -1460,8 +1461,7 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 <p>Build crate documentation.</p>
 <div class="sourceCode" id="cb86"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb86-1"><a href="#cb86-1"></a><span class="ex">sso-build</span> cargo make doc</span></code></pre></div>
 <p>Install crate locally.</p>
-<div class="sourceCode" id="cb87"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb87-1"><a href="#cb87-1"></a><span class="ex">sso-build</span> cargo clean</span>
-<span id="cb87-2"><a href="#cb87-2"></a><span class="ex">cargo</span> install --force --path sso_grpc</span></code></pre></div>
+<div class="sourceCode" id="cb87"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb87-1"><a href="#cb87-1"></a><span class="ex">cargo</span> install --force --path sso</span></code></pre></div>
 <p><a href="https://doc.rust-lang.org/cargo/reference/publishing.html">To publish crate(s)</a>.</p>
 </section>
 </div>

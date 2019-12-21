@@ -1,12 +1,12 @@
+//! gRPC server and clients.
+mod client;
 pub mod pb {
     //! Generated protobuf server and client items.
     tonic::include_proto!("sso");
 }
 
-pub use crate::{
-    client::{ClientBlocking, ClientOptions},
-    pb::sso_client::SsoClient as Client,
-};
+pub use crate::grpc::client::*;
+pub use crate::grpc::pb::sso_client::SsoClient as Client;
 
 // use crate::pb::{AuditListReply, AuditListRequest, Empty, Audit, Text};
 use crate::{

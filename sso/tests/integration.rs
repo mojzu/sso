@@ -1,4 +1,4 @@
-use sso::{pb::Empty, ClientBlocking, ClientOptions};
+use sso::grpc::{pb::Empty, ClientBlocking, ClientOptions};
 
 #[test]
 #[ignore]

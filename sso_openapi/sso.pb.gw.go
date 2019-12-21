@@ -15,6 +15,7 @@ import (
 
 	"github.com/golang/protobuf/descriptor"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/utilities"
 	"google.golang.org/grpc"
@@ -32,7 +33,7 @@ var _ = utilities.NewDoubleArray
 var _ = descriptor.ForMessage
 
 func request_Sso_Ping_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Empty
+	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
 	msg, err := client.Ping(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -41,7 +42,7 @@ func request_Sso_Ping_0(ctx context.Context, marshaler runtime.Marshaler, client
 }
 
 func local_request_Sso_Ping_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Empty
+	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
 	msg, err := server.Ping(ctx, &protoReq)
@@ -50,7 +51,7 @@ func local_request_Sso_Ping_0(ctx context.Context, marshaler runtime.Marshaler, 
 }
 
 func request_Sso_Metrics_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Empty
+	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
 	msg, err := client.Metrics(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -59,7 +60,7 @@ func request_Sso_Metrics_0(ctx context.Context, marshaler runtime.Marshaler, cli
 }
 
 func local_request_Sso_Metrics_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Empty
+	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
 	msg, err := server.Metrics(ctx, &protoReq)
@@ -552,8 +553,8 @@ type response_Sso_Ping_0 struct {
 }
 
 func (m response_Sso_Ping_0) XXX_ResponseBody() interface{} {
-	response := m.Message.(*Text)
-	return response.Text
+	response := m.Message.(*wrappers.StringValue)
+	return response.Value
 }
 
 type response_Sso_Metrics_0 struct {
@@ -561,8 +562,8 @@ type response_Sso_Metrics_0 struct {
 }
 
 func (m response_Sso_Metrics_0) XXX_ResponseBody() interface{} {
-	response := m.Message.(*Text)
-	return response.Text
+	response := m.Message.(*wrappers.StringValue)
+	return response.Value
 }
 
 var (

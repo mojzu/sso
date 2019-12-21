@@ -1,4 +1,4 @@
-//! # API Functions
+//! # API functions.
 mod audit;
 mod auth;
 mod error;
