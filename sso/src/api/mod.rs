@@ -162,7 +162,7 @@ fn result_audit<T>(driver: &dyn Driver, audit: &AuditBuilder, res: ApiResult<T>)
     })
 }
 
-fn result_audit_err<T>(
+pub fn result_audit_err<T>(
     driver: &dyn Driver,
     audit: &AuditBuilder,
     res: ApiResult<T>,

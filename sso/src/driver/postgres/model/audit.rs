@@ -79,33 +79,37 @@ struct ModelAuditInsert<'a> {
 }
 
 impl ModelAudit {
-    pub fn list(conn: &PgConnection, list: &AuditList) -> DriverResult<Vec<Audit>> {
+    pub fn list(
+        conn: &PgConnection,
+        list: &AuditList,
+        service_id: Option<Uuid>,
+    ) -> DriverResult<Vec<Audit>> {
         match list.query {
             AuditListQuery::CreatedLe(le, limit, offset_id) => Self::list_where_created_le(
                 conn,
-                le,
-                *limit,
-                offset_id,
-                list.filter,
-                list.service_id.as_ref(),
+                &le,
+                limit,
+                &offset_id,
+                &list.filter,
+                service_id.as_ref(),
             ),
             AuditListQuery::CreatedGe(ge, limit, offset_id) => Self::list_where_created_ge(
                 conn,
-                ge,
-                *limit,
-                offset_id,
-                list.filter,
-                list.service_id.as_ref(),
+                &ge,
+                limit,
+                &offset_id,
+                &list.filter,
+                service_id.as_ref(),
             ),
             AuditListQuery::CreatedLeAndGe(le, ge, limit, offset_id) => {
                 Self::list_where_created_le_and_ge(
                     conn,
-                    le,
-                    ge,
-                    *limit,
-                    offset_id,
-                    list.filter,
-                    list.service_id.as_ref(),
+                    &le,
+                    &ge,
+                    limit,
+                    &offset_id,
+                    &list.filter,
+                    service_id.as_ref(),
                 )
             }
         }
@@ -114,7 +118,7 @@ impl ModelAudit {
     pub fn create(conn: &PgConnection, create: &AuditCreate) -> DriverResult<Audit> {
         let now = Utc::now();
         let id = Uuid::new_v4();
-        let data = Self::wrap_data(create.data.as_ref());
+        let data = create.data.clone().unwrap_or(json!({}));
         let value = ModelAuditInsert {
             created_at: &now,
             updated_at: &now,
@@ -181,7 +185,7 @@ impl ModelAudit {
     ) -> DriverResult<Audit> {
         let now = Utc::now();
         let status_code = update.status_code.map(|x| x as i16);
-        let data = Self::wrap_data(update.data.as_ref());
+        let data = update.data.clone().unwrap_or(json!({}));
         diesel::sql_query(include_str!("audit_update.sql"))
             .bind::<sql_types::Uuid, _>(id)
             .bind::<sql_types::Timestamptz, _>(now)
@@ -404,12 +408,5 @@ impl ModelAudit {
         }
 
         query
-    }
-
-    fn wrap_data(data: Option<&Value>) -> Value {
-        match data {
-            Some(data) => json!([data]),
-            None => json!([]),
-        }
     }
 }

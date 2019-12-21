@@ -10,8 +10,8 @@ pub use crate::grpc::pb::sso_client::SsoClient as Client;
 
 // use crate::pb::{AuditListReply, AuditListRequest, Empty, Audit, Text};
 use crate::{
-    api, pattern, Audit, AuditMeta, Driver, HEADER_AUTHORISATION_NAME,
-    HEADER_USER_AUTHORISATION_NAME,
+    api::{self, ApiError, ValidateRequest},
+    *,
 };
 use chrono::{DateTime, Utc};
 use core::pin::Pin;
@@ -50,36 +50,85 @@ impl Server {
 
 #[tonic::async_trait]
 impl pb::sso_server::Sso for Server {
-    async fn ping(&self, request: Request<pb::Empty>) -> Result<Response<pb::Text>, Status> {
+    async fn ping(&self, request: Request<()>) -> Result<Response<String>, Status> {
         println!("Got a request: {:?}", request);
-
-        let reply = pb::Text {
-            text: format!("Hello!"),
-        };
-
-        Ok(Response::new(reply))
+        Ok(Response::new(format!("Hello!")))
     }
 
-    async fn metrics(&self, request: Request<pb::Empty>) -> Result<Response<pb::Text>, Status> {
-        Ok(Response::new(pb::Text {
-            text: "# prometheus".to_owned(),
-        }))
+    async fn metrics(&self, request: Request<()>) -> Result<Response<String>, Status> {
+        Ok(Response::new("# prometheus".to_owned()))
     }
 
     async fn audit_list(
         &self,
         request: Request<pb::AuditListRequest>,
     ) -> Result<Response<pb::AuditListReply>, Status> {
-        let driver = self.driver.clone();
         let audit_meta = request_audit_meta(request.remote_addr(), request.metadata())?;
         let auth = request_authorisation(request.metadata())?;
-        let req: api::AuditListRequest = request.into_inner().try_into()?;
+        let req: AuditList = request.into_inner().try_into()?;
+        AuditList::status_validate(&req)?;
 
-        let res =
-            blocking(move || api::audit_list(driver.as_ref().as_ref(), audit_meta, auth, req))
-                .await?;
+        let driver = self.driver.clone();
+        let reply = blocking::<_, Status, _>(move || {
+            let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditList);
+            let res: Result<Vec<Audit>, Status> = {
+                let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+                    .map_err(ApiError::Unauthorised)?;
+                let service_id = service.map(|s| s.id);
 
-        Ok(Response::new(res.try_into()?))
+                driver
+                    .as_ref()
+                    .audit_list(&req, service_id)
+                    .map_err(ApiError::BadRequest)
+                    .map_err::<Status, _>(Into::into)
+            };
+            let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+            let reply = pb::AuditListReply {
+                meta: Some(req.try_into()?),
+                data: data.into_iter().map::<pb::Audit, _>(|x| x.into()).collect(),
+            };
+            Ok(reply)
+        })
+        .await?;
+        Ok(Response::new(reply))
+    }
+
+    async fn audit_create(
+        &self,
+        request: Request<pb::AuditCreateRequest>,
+    ) -> Result<Response<pb::AuditReadReply>, Status> {
+        let audit_meta = request_audit_meta(request.remote_addr(), request.metadata())?;
+        let auth = request_authorisation(request.metadata())?;
+        let req = request.into_inner();
+        let data = serde_json::to_value(req.data).unwrap();
+        let req = AuditCreate::new(audit_meta.clone(), req.r#type)
+            .subject(req.subject)
+            .data(Some(data))
+            .user_id(string_opt_to_uuid_opt(req.user_id))
+            .user_key_id(string_opt_to_uuid_opt(req.user_key_id));
+        AuditCreate::status_validate(&req)?;
+
+        let driver = self.driver.clone();
+        let reply = blocking::<_, Status, _>(move || {
+            let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditList);
+            let res: Result<Audit, Status> = {
+                let _service =
+                    pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+                        .map_err(ApiError::Unauthorised)?;
+
+                audit
+                    .create2(driver.as_ref().as_ref(), req)
+                    .map_err(ApiError::BadRequest)
+                    .map_err::<Status, _>(Into::into)
+            };
+            let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+            let reply = pb::AuditReadReply {
+                data: Some(data.into()),
+            };
+            Ok(reply)
+        })
+        .await?;
+        Ok(Response::new(reply))
     }
 }
 
@@ -145,23 +194,19 @@ pub fn timestamp_opt_to_datetime_opt(ti: Option<prost_types::Timestamp>) -> Opti
     }
 }
 
-pub fn datetime_opt_to_timestamp_opt(dt: Option<DateTime<Utc>>) -> Option<prost_types::Timestamp> {
-    match dt {
-        Some(dt) => {
-            let st: std::time::SystemTime = dt.into();
-            let ti: prost_types::Timestamp = st.into();
-            Some(ti)
-        }
-        None => None,
-    }
+pub fn datetime_to_timestamp_opt(dt: DateTime<Utc>) -> Option<prost_types::Timestamp> {
+    let st: std::time::SystemTime = dt.into();
+    let ti: prost_types::Timestamp = st.into();
+    Some(ti)
 }
 
-pub fn string_to_uuid_opt(s: String) -> Option<Uuid> {
-    if s.is_empty() {
-        None
-    } else {
-        let u: Uuid = serde_json::from_str(&s).unwrap();
-        Some(u)
+pub fn string_opt_to_uuid_opt(s: Option<String>) -> Option<Uuid> {
+    match s {
+        Some(s) => {
+            let u: Uuid = serde_json::from_str(&s).unwrap();
+            Some(u)
+        }
+        None => None,
     }
 }
 
@@ -185,10 +230,14 @@ pub fn string_vec_to_string_vec_opt(s: Vec<String>) -> Option<Vec<String>> {
     }
 }
 
-pub fn uuid_opt_to_string(u: Option<Uuid>) -> String {
+pub fn uuid_to_string(u: Uuid) -> String {
+    format!("{}", u)
+}
+
+pub fn uuid_opt_to_string_opt(u: Option<Uuid>) -> Option<String> {
     match u {
-        Some(u) => format!("{}", u),
-        None => "".to_owned(),
+        Some(u) => Some(uuid_to_string(u)),
+        None => None,
     }
 }
 
@@ -202,59 +251,97 @@ pub fn uuid_vec_opt_to_string_vec(u: Option<Vec<Uuid>>) -> Vec<String> {
     }
 }
 
-impl TryFrom<pb::AuditListRequest> for api::AuditListRequest {
+impl TryFrom<pb::AuditListRequest> for AuditList {
     type Error = Status;
 
     fn try_from(r: pb::AuditListRequest) -> Result<Self, Self::Error> {
-        Ok(Self {
-            ge: timestamp_opt_to_datetime_opt(r.ge),
-            le: timestamp_opt_to_datetime_opt(r.le),
-            limit: Some(r.limit),
-            offset_id: string_to_uuid_opt(r.offset_id),
+        let limit = r.limit.unwrap_or(DEFAULT_LIMIT);
+        let ge = timestamp_opt_to_datetime_opt(r.ge);
+        let le = timestamp_opt_to_datetime_opt(r.le);
+        let offset_id = string_opt_to_uuid_opt(r.offset_id);
+        let query = match (ge, le) {
+            (Some(ge), Some(le)) => AuditListQuery::CreatedLeAndGe(le, ge, limit, offset_id),
+            (Some(ge), None) => AuditListQuery::CreatedGe(ge, limit, offset_id),
+            (None, Some(le)) => AuditListQuery::CreatedLe(le, limit, offset_id),
+            (None, None) => AuditListQuery::CreatedLe(Utc::now(), limit, offset_id),
+        };
+        let filter = AuditListFilter {
             id: string_vec_to_uuid_vec_opt(r.id),
             type_: string_vec_to_string_vec_opt(r.r#type),
             subject: string_vec_to_string_vec_opt(r.subject),
             service_id: string_vec_to_uuid_vec_opt(r.service_id),
             user_id: string_vec_to_uuid_vec_opt(r.user_id),
-        })
+        };
+        Ok(AuditList { query, filter })
     }
 }
 
-impl TryFrom<api::AuditListRequest> for pb::AuditListRequest {
+impl TryFrom<AuditList> for pb::AuditListRequest {
     type Error = Status;
 
-    fn try_from(r: api::AuditListRequest) -> Result<Self, Self::Error> {
-        Ok(Self {
-            ge: datetime_opt_to_timestamp_opt(r.ge),
-            le: datetime_opt_to_timestamp_opt(r.le),
-            limit: r.limit.unwrap_or(0),
-            offset_id: uuid_opt_to_string(r.offset_id),
-            id: uuid_vec_opt_to_string_vec(r.id),
-            r#type: r.type_.unwrap_or(Vec::new()),
-            subject: r.subject.unwrap_or(Vec::new()),
-            service_id: uuid_vec_opt_to_string_vec(r.service_id),
-            user_id: uuid_vec_opt_to_string_vec(r.user_id),
+    fn try_from(l: AuditList) -> Result<Self, Self::Error> {
+        let id = uuid_vec_opt_to_string_vec(l.filter.id);
+        let type_ = l.filter.type_.unwrap_or(Vec::new());
+        let subject = l.filter.subject.unwrap_or(Vec::new());
+        let service_id = uuid_vec_opt_to_string_vec(l.filter.service_id);
+        let user_id = uuid_vec_opt_to_string_vec(l.filter.user_id);
+        Ok(match l.query {
+            AuditListQuery::CreatedLe(le, limit, offset_id) => Self {
+                ge: None,
+                le: datetime_to_timestamp_opt(le),
+                limit: Some(limit),
+                offset_id: uuid_opt_to_string_opt(offset_id),
+                id,
+                r#type: type_,
+                subject,
+                service_id,
+                user_id,
+            },
+            AuditListQuery::CreatedGe(ge, limit, offset_id) => Self {
+                ge: datetime_to_timestamp_opt(ge),
+                le: None,
+                limit: Some(limit),
+                offset_id: uuid_opt_to_string_opt(offset_id),
+                id,
+                r#type: type_,
+                subject,
+                service_id,
+                user_id,
+            },
+            AuditListQuery::CreatedLeAndGe(le, ge, limit, offset_id) => Self {
+                ge: datetime_to_timestamp_opt(ge),
+                le: datetime_to_timestamp_opt(le),
+                limit: Some(limit),
+                offset_id: uuid_opt_to_string_opt(offset_id),
+                id,
+                r#type: type_,
+                subject,
+                service_id,
+                user_id,
+            },
         })
     }
 }
 
 impl From<Audit> for pb::Audit {
     fn from(r: Audit) -> Self {
-        unimplemented!();
-    }
-}
-
-impl TryFrom<api::AuditListResponse> for pb::AuditListReply {
-    type Error = Status;
-
-    fn try_from(r: api::AuditListResponse) -> Result<Self, Self::Error> {
-        Ok(Self {
-            meta: Some(r.meta.try_into()?),
-            data: r
-                .data
-                .into_iter()
-                .map::<pb::Audit, _>(|x| x.into())
-                .collect(),
-        })
+        let data: std::collections::HashMap<String, String> =
+            serde_json::from_value(r.data).unwrap();
+        Self {
+            created_at: datetime_to_timestamp_opt(r.created_at),
+            updated_at: datetime_to_timestamp_opt(r.updated_at),
+            id: uuid_to_string(r.id),
+            user_agent: r.user_agent,
+            remote: r.remote,
+            forwarded: r.forwarded,
+            status_code: r.status_code.map(|x| x as u32),
+            r#type: r.type_,
+            subject: r.subject,
+            data,
+            key_id: uuid_opt_to_string_opt(r.key_id),
+            service_id: uuid_opt_to_string_opt(r.service_id),
+            user_id: uuid_opt_to_string_opt(r.user_id),
+            user_key_id: uuid_opt_to_string_opt(r.user_key_id),
+        }
     }
 }

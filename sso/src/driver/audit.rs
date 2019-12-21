@@ -1,12 +1,15 @@
 use crate::{
-    impl_enum_to_from_string, pattern::HeaderAuth, Driver, DriverResult, KeyWithValue, Service,
-    User,
+    api::{validate, ValidateRequest},
+    impl_enum_to_from_string,
+    pattern::HeaderAuth,
+    Driver, DriverResult, KeyWithValue, Service, User,
 };
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
 use std::fmt;
 use uuid::Uuid;
+use validator::Validate;
 
 /// Audit type maximum length.
 pub const AUDIT_TYPE_MAX_LEN: usize = 200;
@@ -116,11 +119,13 @@ impl fmt::Display for Audit {
 }
 
 /// Audit create.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct AuditCreate {
     pub meta: AuditMeta,
     pub status_code: Option<u16>,
+    #[validate(custom = "validate::audit_type")]
     pub type_: String,
+    #[validate(custom = "validate::audit_subject")]
     pub subject: Option<String>,
     pub data: Option<Value>,
     pub key_id: Option<Uuid>,
@@ -180,6 +185,8 @@ impl AuditCreate {
     }
 }
 
+impl ValidateRequest<AuditCreate> for AuditCreate {}
+
 /// Audit list query.
 #[derive(Debug)]
 pub enum AuditListQuery {
@@ -192,22 +199,25 @@ pub enum AuditListQuery {
 }
 
 /// Audit list filter.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct AuditListFilter {
     pub id: Option<Vec<Uuid>>,
+    #[validate(custom = "validate::audit_type_vec")]
     pub type_: Option<Vec<String>>,
+    #[validate(custom = "validate::audit_subject_vec")]
     pub subject: Option<Vec<String>>,
     pub service_id: Option<Vec<Uuid>>,
     pub user_id: Option<Vec<Uuid>>,
 }
 
 /// Audit list.
-#[derive(Debug)]
-pub struct AuditList<'a> {
-    pub query: &'a AuditListQuery,
-    pub filter: &'a AuditListFilter,
-    pub service_id: Option<Uuid>,
+#[derive(Debug, Validate)]
+pub struct AuditList {
+    pub query: AuditListQuery,
+    pub filter: AuditListFilter,
 }
+
+impl ValidateRequest<AuditList> for AuditList {}
 
 /// Audit read.
 #[derive(Debug)]
@@ -374,6 +384,17 @@ impl AuditBuilder {
             .service_id(self.service)
             .user_id(self.user)
             .user_key_id(self.user_key);
+        driver.audit_create(&data)
+    }
+
+    pub fn create2(&self, driver: &dyn Driver, create: AuditCreate) -> DriverResult<Audit> {
+        let data = AuditCreate::new(self.meta.clone(), create.type_)
+            .subject(create.subject)
+            .data(create.data)
+            .key_id(self.key)
+            .service_id(self.service)
+            .user_id(create.user_id)
+            .user_key_id(create.user_key_id);
         driver.audit_create(&data)
     }
 

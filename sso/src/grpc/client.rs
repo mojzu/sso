@@ -1,5 +1,5 @@
 //! Blocking client.
-use crate::grpc::pb::{self, sso_client::SsoClient, Empty, Text};
+use crate::grpc::pb::{self, sso_client::SsoClient};
 use http::{HeaderValue, Uri};
 use std::fmt;
 use std::str::FromStr;
@@ -75,15 +75,15 @@ impl ClientBlocking {
 
     pub fn ping(
         &mut self,
-        request: impl tonic::IntoRequest<Empty>,
-    ) -> Result<tonic::Response<Text>, tonic::Status> {
+        request: impl tonic::IntoRequest<()>,
+    ) -> Result<tonic::Response<String>, tonic::Status> {
         self.rt.block_on(self.client.ping(request))
     }
 
     pub fn metrics(
         &mut self,
-        request: impl tonic::IntoRequest<Empty>,
-    ) -> Result<tonic::Response<Text>, tonic::Status> {
+        request: impl tonic::IntoRequest<()>,
+    ) -> Result<tonic::Response<String>, tonic::Status> {
         self.rt.block_on(self.client.metrics(request))
     }
 

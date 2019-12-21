@@ -24,25 +24,6 @@ pub fn route_v1_scope() -> Scope {
         )
 }
 
-fn create_handler(
-    data: web::Data<Data>,
-    req: HttpRequest,
-    id: Identity,
-    body: web::Json<api::AuditCreateRequest>,
-) -> impl Future<Item = HttpResponse, Error = Error> {
-    let audit_meta = request_audit_meta(&req);
-    let id = id.identity();
-    let request = body.into_inner();
-
-    audit_meta
-        .and_then(move |audit_meta| {
-            web::block(move || api::audit_create(data.driver(), audit_meta, id, request))
-                .map_err(Into::into)
-        })
-        .map_err(Into::into)
-        .then(route_response_json)
-}
-
 fn read_handler(
     data: web::Data<Data>,
     req: HttpRequest,

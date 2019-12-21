@@ -9,6 +9,7 @@ use chrono_tz::Tz;
 use futures::future;
 use serde::de::DeserializeOwned;
 use std::str::FromStr;
+use tonic::Status;
 use unic_langid::LanguageIdentifier;
 use validator::{validate_email, Validate, ValidationError};
 
@@ -23,6 +24,11 @@ pub trait ValidateRequest<T: Validate> {
 
     fn api_validate_fut(t: &T) -> future::FutureResult<(), tonic::Status> {
         future::result(Self::api_validate(t))
+    }
+
+    fn status_validate(t: &T) -> Result<(), Status> {
+        t.validate()
+            .map_err(|e| Status::invalid_argument(format!("{}", e)))
     }
 }
 
