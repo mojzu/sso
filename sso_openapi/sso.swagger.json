@@ -60,17 +60,19 @@
         "parameters": [
           {
             "name": "ge",
-            "description": "Greater than or equal to date and time in ISO 8601 format.",
+            "description": "Greater than or equal to date and time.",
             "in": "query",
             "required": false,
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           },
           {
             "name": "le",
-            "description": "Less than or equal to date and time in ISO 8601 format.",
+            "description": "Less than or equal to date and time.",
             "in": "query",
             "required": false,
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           },
           {
             "name": "limit",
@@ -236,11 +238,13 @@
       "properties": {
         "created_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Created at date and time."
         },
         "updated_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Updated at date and time."
         },
         "id": {
           "type": "string"
@@ -320,11 +324,13 @@
       "properties": {
         "ge": {
           "type": "string",
-          "description": "Greater than or equal to date and time in ISO 8601 format."
+          "format": "date-time",
+          "description": "Greater than or equal to date and time."
         },
         "le": {
           "type": "string",
-          "description": "Less than or equal to date and time in ISO 8601 format."
+          "format": "date-time",
+          "description": "Less than or equal to date and time."
         },
         "limit": {
           "type": "string",

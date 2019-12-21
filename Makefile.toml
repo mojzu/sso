@@ -30,6 +30,27 @@ script = [
     "(cd sso && DATABASE_URL=\"postgres://guest:guest@localhost:5432/sso\" diesel migration generate ${@})",
 ]
 
+[tasks.sso-cli]
+workspace = false
+script = [
+    "(cd sso && cargo build)",
+    "/sso/target/debug/sso-cli ${@}"
+]
+
+[tasks.sso-grpc-server]
+workspace = false
+script = [
+    "(cd sso && cargo build)",
+    "/sso/target/debug/sso-grpc-server"
+]
+
+[tasks.sso-openapi-server]
+workspace = false
+script = [
+    "/sso/sso_openapi/sso-openapi-server"
+]
+dependencies = ["openapi-bin"]
+
 [tasks.manual]
 workspace = false
 script = [

@@ -69,8 +69,9 @@ sso-build cargo make release
 Run development binaries.
 
 ```bash
-sso-build cargo run --bin sso-cli -- $ARGS
-sso-build cargo run --bin sso-grpc-server
+sso-build cargo make sso-cli -- $ARGS
+sso-build cargo make sso-grpc-server
+sso-build cargo make sso-openapi-server
 ```
 
 Run unit tests.

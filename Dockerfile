@@ -88,18 +88,22 @@ ENV SSO_GRPC_SENTRY_URL="" \
     SSO_GRPC_GITHUB_CLIENT_SECRET="" \
     SSO_GRPC_MICROSOFT_CLIENT_ID="" \
     SSO_GRPC_MICROSOFT_CLIENT_SECRET=""
+# sso-openapi-server
+ENV SSO_OPENAPI_SSO_GRPC="localhost:7000" \
+    SSO_OPENAPI_BIND="localhost:8000"
 
-# Rust crate dependencies.
-# This prevents having to download crates for cargo commands.
-# Set 777 to allow any user to write to `/usr/local/cargo`.
+# Copy project files and set working directory.
+# These are required for docker-compose service builds.
 ADD ./docs /sso/docs
 ADD ./sso /sso/sso
 ADD ./sso_openapi /sso/sso_openapi
 ADD ./Makefile.toml /sso/Makefile.toml
 ADD ./docker/build/Cargo.toml /sso/Cargo.toml
 WORKDIR /sso
-RUN cargo fetch; \
-    chmod 777 -R /usr/local/cargo;
+
+# Set cargo cache directory in volume.
+# This prevents having to download dependencies in development builds.
+ENV CARGO_HOME="/sso/.cargo"
 
 ADD ./docker/build/versions.sh /versions.sh
 RUN chmod +x /versions.sh
