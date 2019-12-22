@@ -28,6 +28,35 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+// Key type.
+type KeyType int32
+
+const (
+	KeyType_KEY   KeyType = 0
+	KeyType_TOKEN KeyType = 1
+	KeyType_TOTP  KeyType = 2
+)
+
+var KeyType_name = map[int32]string{
+	0: "KEY",
+	1: "TOKEN",
+	2: "TOTP",
+}
+
+var KeyType_value = map[string]int32{
+	"KEY":   0,
+	"TOKEN": 1,
+	"TOTP":  2,
+}
+
+func (x KeyType) String() string {
+	return proto.EnumName(KeyType_name, int32(x))
+}
+
+func (KeyType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{0}
+}
+
 // List audit logs request.
 type AuditListRequest struct {
 	// Greater than or equal to date and time.
@@ -270,10 +299,13 @@ func (m *AuditCreateRequest) GetUserKeyId() *wrappers.StringValue {
 
 // Read audit log request.
 type AuditReadRequest struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	// Log UUID.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Log subject filter.
+	Subject              *wrappers.StringValue `protobuf:"bytes,2,opt,name=subject,proto3" json:"subject,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *AuditReadRequest) Reset()         { *m = AuditReadRequest{} }
@@ -306,6 +338,13 @@ func (m *AuditReadRequest) GetId() string {
 		return m.Id
 	}
 	return ""
+}
+
+func (m *AuditReadRequest) GetSubject() *wrappers.StringValue {
+	if m != nil {
+		return m.Subject
+	}
+	return nil
 }
 
 // Read audit log reply.
@@ -424,17 +463,28 @@ type Audit struct {
 	// Updated at date and time.
 	UpdatedAt *timestamp.Timestamp `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	// UUID.
-	Id                   string                `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
-	UserAgent            string                `protobuf:"bytes,4,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
-	Remote               string                `protobuf:"bytes,5,opt,name=remote,proto3" json:"remote,omitempty"`
-	Forwarded            *wrappers.StringValue `protobuf:"bytes,6,opt,name=forwarded,proto3" json:"forwarded,omitempty"`
-	StatusCode           *wrappers.UInt32Value `protobuf:"bytes,7,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
-	Type                 string                `protobuf:"bytes,8,opt,name=type,proto3" json:"type,omitempty"`
-	Subject              *wrappers.StringValue `protobuf:"bytes,9,opt,name=subject,proto3" json:"subject,omitempty"`
-	Data                 map[string]string     `protobuf:"bytes,10,rep,name=data,proto3" json:"data,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	KeyId                *wrappers.StringValue `protobuf:"bytes,11,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
-	ServiceId            *wrappers.StringValue `protobuf:"bytes,12,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
-	UserId               *wrappers.StringValue `protobuf:"bytes,13,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Id string `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
+	// User-agent header (or unknown if not available).
+	UserAgent string `protobuf:"bytes,4,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	// Remote IP address (or unknown if not available).
+	Remote string `protobuf:"bytes,5,opt,name=remote,proto3" json:"remote,omitempty"`
+	// X-forwarded-for header.
+	Forwarded *wrappers.StringValue `protobuf:"bytes,6,opt,name=forwarded,proto3" json:"forwarded,omitempty"`
+	// Response status code.
+	StatusCode *wrappers.UInt32Value `protobuf:"bytes,7,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
+	// Type.
+	Type string `protobuf:"bytes,8,opt,name=type,proto3" json:"type,omitempty"`
+	// Subject.
+	Subject *wrappers.StringValue `protobuf:"bytes,9,opt,name=subject,proto3" json:"subject,omitempty"`
+	// Key, value data.
+	Data map[string]string `protobuf:"bytes,10,rep,name=data,proto3" json:"data,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// Key UUID.
+	KeyId *wrappers.StringValue `protobuf:"bytes,11,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
+	// Service UUID.
+	ServiceId *wrappers.StringValue `protobuf:"bytes,12,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
+	// User UUID.
+	UserId *wrappers.StringValue `protobuf:"bytes,13,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	// User key UUID.
 	UserKeyId            *wrappers.StringValue `protobuf:"bytes,14,opt,name=user_key_id,json=userKeyId,proto3" json:"user_key_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
 	XXX_unrecognized     []byte                `json:"-"`
@@ -579,7 +629,7 @@ type KeyListRequest struct {
 	// Key is_revoked flag filter.
 	IsRevoked *wrappers.BoolValue `protobuf:"bytes,6,opt,name=is_revoked,json=isRevoked,proto3" json:"is_revoked,omitempty"`
 	// Key type filter array.
-	Type []string `protobuf:"bytes,7,rep,name=type,proto3" json:"type,omitempty"`
+	Type []KeyType `protobuf:"varint,7,rep,packed,name=type,proto3,enum=sso.KeyType" json:"type,omitempty"`
 	// Key service UUID filter array.
 	ServiceId []string `protobuf:"bytes,8,rep,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
 	// Key user UUID filter array.
@@ -656,7 +706,7 @@ func (m *KeyListRequest) GetIsRevoked() *wrappers.BoolValue {
 	return nil
 }
 
-func (m *KeyListRequest) GetType() []string {
+func (m *KeyListRequest) GetType() []KeyType {
 	if m != nil {
 		return m.Type
 	}
@@ -677,7 +727,2566 @@ func (m *KeyListRequest) GetUserId() []string {
 	return nil
 }
 
+// List keys reply.
+type KeyListReply struct {
+	// Request message.
+	Meta *KeyListRequest `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	// Keys array.
+	Data                 []*Key   `protobuf:"bytes,2,rep,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *KeyListReply) Reset()         { *m = KeyListReply{} }
+func (m *KeyListReply) String() string { return proto.CompactTextString(m) }
+func (*KeyListReply) ProtoMessage()    {}
+func (*KeyListReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{8}
+}
+
+func (m *KeyListReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_KeyListReply.Unmarshal(m, b)
+}
+func (m *KeyListReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_KeyListReply.Marshal(b, m, deterministic)
+}
+func (m *KeyListReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KeyListReply.Merge(m, src)
+}
+func (m *KeyListReply) XXX_Size() int {
+	return xxx_messageInfo_KeyListReply.Size(m)
+}
+func (m *KeyListReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_KeyListReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_KeyListReply proto.InternalMessageInfo
+
+func (m *KeyListReply) GetMeta() *KeyListRequest {
+	if m != nil {
+		return m.Meta
+	}
+	return nil
+}
+
+func (m *KeyListReply) GetData() []*Key {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
+// Create key request.
+type KeyCreateRequest struct {
+	// Key type.
+	Type KeyType `protobuf:"varint,1,opt,name=type,proto3,enum=sso.KeyType" json:"type,omitempty"`
+	// Key name.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Key is_enabled flag.
+	IsEnabled *wrappers.BoolValue `protobuf:"bytes,3,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	// Key service UUID.
+	ServiceId *wrappers.StringValue `protobuf:"bytes,4,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
+	// Key user UUID.
+	UserId               *wrappers.StringValue `protobuf:"bytes,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *KeyCreateRequest) Reset()         { *m = KeyCreateRequest{} }
+func (m *KeyCreateRequest) String() string { return proto.CompactTextString(m) }
+func (*KeyCreateRequest) ProtoMessage()    {}
+func (*KeyCreateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{9}
+}
+
+func (m *KeyCreateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_KeyCreateRequest.Unmarshal(m, b)
+}
+func (m *KeyCreateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_KeyCreateRequest.Marshal(b, m, deterministic)
+}
+func (m *KeyCreateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KeyCreateRequest.Merge(m, src)
+}
+func (m *KeyCreateRequest) XXX_Size() int {
+	return xxx_messageInfo_KeyCreateRequest.Size(m)
+}
+func (m *KeyCreateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_KeyCreateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_KeyCreateRequest proto.InternalMessageInfo
+
+func (m *KeyCreateRequest) GetType() KeyType {
+	if m != nil {
+		return m.Type
+	}
+	return KeyType_KEY
+}
+
+func (m *KeyCreateRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *KeyCreateRequest) GetIsEnabled() *wrappers.BoolValue {
+	if m != nil {
+		return m.IsEnabled
+	}
+	return nil
+}
+
+func (m *KeyCreateRequest) GetServiceId() *wrappers.StringValue {
+	if m != nil {
+		return m.ServiceId
+	}
+	return nil
+}
+
+func (m *KeyCreateRequest) GetUserId() *wrappers.StringValue {
+	if m != nil {
+		return m.UserId
+	}
+	return nil
+}
+
+// Create key reply.
+type KeyCreateReply struct {
+	// Key.
+	Data                 *KeyWithValue `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *KeyCreateReply) Reset()         { *m = KeyCreateReply{} }
+func (m *KeyCreateReply) String() string { return proto.CompactTextString(m) }
+func (*KeyCreateReply) ProtoMessage()    {}
+func (*KeyCreateReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{10}
+}
+
+func (m *KeyCreateReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_KeyCreateReply.Unmarshal(m, b)
+}
+func (m *KeyCreateReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_KeyCreateReply.Marshal(b, m, deterministic)
+}
+func (m *KeyCreateReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KeyCreateReply.Merge(m, src)
+}
+func (m *KeyCreateReply) XXX_Size() int {
+	return xxx_messageInfo_KeyCreateReply.Size(m)
+}
+func (m *KeyCreateReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_KeyCreateReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_KeyCreateReply proto.InternalMessageInfo
+
+func (m *KeyCreateReply) GetData() *KeyWithValue {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
+// Read key request.
+type KeyReadRequest struct {
+	// Key UUID.
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *KeyReadRequest) Reset()         { *m = KeyReadRequest{} }
+func (m *KeyReadRequest) String() string { return proto.CompactTextString(m) }
+func (*KeyReadRequest) ProtoMessage()    {}
+func (*KeyReadRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{11}
+}
+
+func (m *KeyReadRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_KeyReadRequest.Unmarshal(m, b)
+}
+func (m *KeyReadRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_KeyReadRequest.Marshal(b, m, deterministic)
+}
+func (m *KeyReadRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KeyReadRequest.Merge(m, src)
+}
+func (m *KeyReadRequest) XXX_Size() int {
+	return xxx_messageInfo_KeyReadRequest.Size(m)
+}
+func (m *KeyReadRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_KeyReadRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_KeyReadRequest proto.InternalMessageInfo
+
+func (m *KeyReadRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+// Read key reply.
+type KeyReadReply struct {
+	// Key.
+	Data                 *Key     `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *KeyReadReply) Reset()         { *m = KeyReadReply{} }
+func (m *KeyReadReply) String() string { return proto.CompactTextString(m) }
+func (*KeyReadReply) ProtoMessage()    {}
+func (*KeyReadReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{12}
+}
+
+func (m *KeyReadReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_KeyReadReply.Unmarshal(m, b)
+}
+func (m *KeyReadReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_KeyReadReply.Marshal(b, m, deterministic)
+}
+func (m *KeyReadReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KeyReadReply.Merge(m, src)
+}
+func (m *KeyReadReply) XXX_Size() int {
+	return xxx_messageInfo_KeyReadReply.Size(m)
+}
+func (m *KeyReadReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_KeyReadReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_KeyReadReply proto.InternalMessageInfo
+
+func (m *KeyReadReply) GetData() *Key {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
+// Update key request.
+type KeyUpdateRequest struct {
+	// Key UUID.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Key name.
+	Name *wrappers.StringValue `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Key is_enabled flag.
+	IsEnabled            *wrappers.BoolValue `protobuf:"bytes,3,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
+	XXX_unrecognized     []byte              `json:"-"`
+	XXX_sizecache        int32               `json:"-"`
+}
+
+func (m *KeyUpdateRequest) Reset()         { *m = KeyUpdateRequest{} }
+func (m *KeyUpdateRequest) String() string { return proto.CompactTextString(m) }
+func (*KeyUpdateRequest) ProtoMessage()    {}
+func (*KeyUpdateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{13}
+}
+
+func (m *KeyUpdateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_KeyUpdateRequest.Unmarshal(m, b)
+}
+func (m *KeyUpdateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_KeyUpdateRequest.Marshal(b, m, deterministic)
+}
+func (m *KeyUpdateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KeyUpdateRequest.Merge(m, src)
+}
+func (m *KeyUpdateRequest) XXX_Size() int {
+	return xxx_messageInfo_KeyUpdateRequest.Size(m)
+}
+func (m *KeyUpdateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_KeyUpdateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_KeyUpdateRequest proto.InternalMessageInfo
+
+func (m *KeyUpdateRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *KeyUpdateRequest) GetName() *wrappers.StringValue {
+	if m != nil {
+		return m.Name
+	}
+	return nil
+}
+
+func (m *KeyUpdateRequest) GetIsEnabled() *wrappers.BoolValue {
+	if m != nil {
+		return m.IsEnabled
+	}
+	return nil
+}
+
+// Key.
+type Key struct {
+	// Created at date and time.
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,1,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Updated at date and time.
+	UpdatedAt *timestamp.Timestamp `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// UUID.
+	Id string `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
+	// Is enabled flag.
+	IsEnabled bool `protobuf:"varint,4,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	// Is revoked flag.
+	IsRevoked bool `protobuf:"varint,5,opt,name=is_revoked,json=isRevoked,proto3" json:"is_revoked,omitempty"`
+	// Type.
+	Type KeyType `protobuf:"varint,6,opt,name=type,proto3,enum=sso.KeyType" json:"type,omitempty"`
+	// Name.
+	Name string `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
+	// Service UUID.
+	ServiceId *wrappers.StringValue `protobuf:"bytes,8,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
+	// User UUID.
+	UserId               *wrappers.StringValue `protobuf:"bytes,9,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *Key) Reset()         { *m = Key{} }
+func (m *Key) String() string { return proto.CompactTextString(m) }
+func (*Key) ProtoMessage()    {}
+func (*Key) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{14}
+}
+
+func (m *Key) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Key.Unmarshal(m, b)
+}
+func (m *Key) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Key.Marshal(b, m, deterministic)
+}
+func (m *Key) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Key.Merge(m, src)
+}
+func (m *Key) XXX_Size() int {
+	return xxx_messageInfo_Key.Size(m)
+}
+func (m *Key) XXX_DiscardUnknown() {
+	xxx_messageInfo_Key.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Key proto.InternalMessageInfo
+
+func (m *Key) GetCreatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return nil
+}
+
+func (m *Key) GetUpdatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.UpdatedAt
+	}
+	return nil
+}
+
+func (m *Key) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *Key) GetIsEnabled() bool {
+	if m != nil {
+		return m.IsEnabled
+	}
+	return false
+}
+
+func (m *Key) GetIsRevoked() bool {
+	if m != nil {
+		return m.IsRevoked
+	}
+	return false
+}
+
+func (m *Key) GetType() KeyType {
+	if m != nil {
+		return m.Type
+	}
+	return KeyType_KEY
+}
+
+func (m *Key) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *Key) GetServiceId() *wrappers.StringValue {
+	if m != nil {
+		return m.ServiceId
+	}
+	return nil
+}
+
+func (m *Key) GetUserId() *wrappers.StringValue {
+	if m != nil {
+		return m.UserId
+	}
+	return nil
+}
+
+// Key with value.
+type KeyWithValue struct {
+	// Key.
+	Key *Key `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Key value.
+	Value                string   `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *KeyWithValue) Reset()         { *m = KeyWithValue{} }
+func (m *KeyWithValue) String() string { return proto.CompactTextString(m) }
+func (*KeyWithValue) ProtoMessage()    {}
+func (*KeyWithValue) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{15}
+}
+
+func (m *KeyWithValue) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_KeyWithValue.Unmarshal(m, b)
+}
+func (m *KeyWithValue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_KeyWithValue.Marshal(b, m, deterministic)
+}
+func (m *KeyWithValue) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KeyWithValue.Merge(m, src)
+}
+func (m *KeyWithValue) XXX_Size() int {
+	return xxx_messageInfo_KeyWithValue.Size(m)
+}
+func (m *KeyWithValue) XXX_DiscardUnknown() {
+	xxx_messageInfo_KeyWithValue.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_KeyWithValue proto.InternalMessageInfo
+
+func (m *KeyWithValue) GetKey() *Key {
+	if m != nil {
+		return m.Key
+	}
+	return nil
+}
+
+func (m *KeyWithValue) GetValue() string {
+	if m != nil {
+		return m.Value
+	}
+	return ""
+}
+
+// List services request.
+type ServiceListRequest struct {
+	// Greater than service UUID.
+	Gt *wrappers.StringValue `protobuf:"bytes,1,opt,name=gt,proto3" json:"gt,omitempty"`
+	// Less than service UUID.
+	Lt *wrappers.StringValue `protobuf:"bytes,2,opt,name=lt,proto3" json:"lt,omitempty"`
+	// Limit number of returned services.
+	Limit *wrappers.Int64Value `protobuf:"bytes,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	// Service UUID filter array.
+	Id []string `protobuf:"bytes,4,rep,name=id,proto3" json:"id,omitempty"`
+	// Service is_enabled flag filter.
+	IsEnabled            *wrappers.BoolValue `protobuf:"bytes,5,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
+	XXX_unrecognized     []byte              `json:"-"`
+	XXX_sizecache        int32               `json:"-"`
+}
+
+func (m *ServiceListRequest) Reset()         { *m = ServiceListRequest{} }
+func (m *ServiceListRequest) String() string { return proto.CompactTextString(m) }
+func (*ServiceListRequest) ProtoMessage()    {}
+func (*ServiceListRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{16}
+}
+
+func (m *ServiceListRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ServiceListRequest.Unmarshal(m, b)
+}
+func (m *ServiceListRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ServiceListRequest.Marshal(b, m, deterministic)
+}
+func (m *ServiceListRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ServiceListRequest.Merge(m, src)
+}
+func (m *ServiceListRequest) XXX_Size() int {
+	return xxx_messageInfo_ServiceListRequest.Size(m)
+}
+func (m *ServiceListRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ServiceListRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ServiceListRequest proto.InternalMessageInfo
+
+func (m *ServiceListRequest) GetGt() *wrappers.StringValue {
+	if m != nil {
+		return m.Gt
+	}
+	return nil
+}
+
+func (m *ServiceListRequest) GetLt() *wrappers.StringValue {
+	if m != nil {
+		return m.Lt
+	}
+	return nil
+}
+
+func (m *ServiceListRequest) GetLimit() *wrappers.Int64Value {
+	if m != nil {
+		return m.Limit
+	}
+	return nil
+}
+
+func (m *ServiceListRequest) GetId() []string {
+	if m != nil {
+		return m.Id
+	}
+	return nil
+}
+
+func (m *ServiceListRequest) GetIsEnabled() *wrappers.BoolValue {
+	if m != nil {
+		return m.IsEnabled
+	}
+	return nil
+}
+
+// List services reply.
+type ServiceListReply struct {
+	// Request message.
+	Meta *ServiceListRequest `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	// Services array.
+	Data                 []*Service `protobuf:"bytes,2,rep,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
+	XXX_unrecognized     []byte     `json:"-"`
+	XXX_sizecache        int32      `json:"-"`
+}
+
+func (m *ServiceListReply) Reset()         { *m = ServiceListReply{} }
+func (m *ServiceListReply) String() string { return proto.CompactTextString(m) }
+func (*ServiceListReply) ProtoMessage()    {}
+func (*ServiceListReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{17}
+}
+
+func (m *ServiceListReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ServiceListReply.Unmarshal(m, b)
+}
+func (m *ServiceListReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ServiceListReply.Marshal(b, m, deterministic)
+}
+func (m *ServiceListReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ServiceListReply.Merge(m, src)
+}
+func (m *ServiceListReply) XXX_Size() int {
+	return xxx_messageInfo_ServiceListReply.Size(m)
+}
+func (m *ServiceListReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_ServiceListReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ServiceListReply proto.InternalMessageInfo
+
+func (m *ServiceListReply) GetMeta() *ServiceListRequest {
+	if m != nil {
+		return m.Meta
+	}
+	return nil
+}
+
+func (m *ServiceListReply) GetData() []*Service {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
+// Create service request.
+type ServiceCreateRequest struct {
+	// Service name.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Service URL.
+	Url string `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
+	// Service is_enabled flag.
+	IsEnabled *wrappers.BoolValue `protobuf:"bytes,3,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	// Service user_allow_register flag.
+	UserAllowRegister *wrappers.BoolValue `protobuf:"bytes,4,opt,name=user_allow_register,json=userAllowRegister,proto3" json:"user_allow_register,omitempty"`
+	// Service user email text.
+	UserEmailText *wrappers.StringValue `protobuf:"bytes,5,opt,name=user_email_text,json=userEmailText,proto3" json:"user_email_text,omitempty"`
+	// Service local provider URL.
+	ProviderLocalUrl *wrappers.StringValue `protobuf:"bytes,6,opt,name=provider_local_url,json=providerLocalUrl,proto3" json:"provider_local_url,omitempty"`
+	// Service GitHub OAuth2 provider URL.
+	ProviderGithubOauth2Url *wrappers.StringValue `protobuf:"bytes,7,opt,name=provider_github_oauth2_url,json=providerGithubOauth2Url,proto3" json:"provider_github_oauth2_url,omitempty"`
+	// Service Microsoft OAuth2 provider URL.
+	ProviderMicrosoftOauth2Url *wrappers.StringValue `protobuf:"bytes,8,opt,name=provider_microsoft_oauth2_url,json=providerMicrosoftOauth2Url,proto3" json:"provider_microsoft_oauth2_url,omitempty"`
+	XXX_NoUnkeyedLiteral       struct{}              `json:"-"`
+	XXX_unrecognized           []byte                `json:"-"`
+	XXX_sizecache              int32                 `json:"-"`
+}
+
+func (m *ServiceCreateRequest) Reset()         { *m = ServiceCreateRequest{} }
+func (m *ServiceCreateRequest) String() string { return proto.CompactTextString(m) }
+func (*ServiceCreateRequest) ProtoMessage()    {}
+func (*ServiceCreateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{18}
+}
+
+func (m *ServiceCreateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ServiceCreateRequest.Unmarshal(m, b)
+}
+func (m *ServiceCreateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ServiceCreateRequest.Marshal(b, m, deterministic)
+}
+func (m *ServiceCreateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ServiceCreateRequest.Merge(m, src)
+}
+func (m *ServiceCreateRequest) XXX_Size() int {
+	return xxx_messageInfo_ServiceCreateRequest.Size(m)
+}
+func (m *ServiceCreateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ServiceCreateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ServiceCreateRequest proto.InternalMessageInfo
+
+func (m *ServiceCreateRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *ServiceCreateRequest) GetUrl() string {
+	if m != nil {
+		return m.Url
+	}
+	return ""
+}
+
+func (m *ServiceCreateRequest) GetIsEnabled() *wrappers.BoolValue {
+	if m != nil {
+		return m.IsEnabled
+	}
+	return nil
+}
+
+func (m *ServiceCreateRequest) GetUserAllowRegister() *wrappers.BoolValue {
+	if m != nil {
+		return m.UserAllowRegister
+	}
+	return nil
+}
+
+func (m *ServiceCreateRequest) GetUserEmailText() *wrappers.StringValue {
+	if m != nil {
+		return m.UserEmailText
+	}
+	return nil
+}
+
+func (m *ServiceCreateRequest) GetProviderLocalUrl() *wrappers.StringValue {
+	if m != nil {
+		return m.ProviderLocalUrl
+	}
+	return nil
+}
+
+func (m *ServiceCreateRequest) GetProviderGithubOauth2Url() *wrappers.StringValue {
+	if m != nil {
+		return m.ProviderGithubOauth2Url
+	}
+	return nil
+}
+
+func (m *ServiceCreateRequest) GetProviderMicrosoftOauth2Url() *wrappers.StringValue {
+	if m != nil {
+		return m.ProviderMicrosoftOauth2Url
+	}
+	return nil
+}
+
+// Read service request.
+type ServiceReadRequest struct {
+	// Service UUID.
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ServiceReadRequest) Reset()         { *m = ServiceReadRequest{} }
+func (m *ServiceReadRequest) String() string { return proto.CompactTextString(m) }
+func (*ServiceReadRequest) ProtoMessage()    {}
+func (*ServiceReadRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{19}
+}
+
+func (m *ServiceReadRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ServiceReadRequest.Unmarshal(m, b)
+}
+func (m *ServiceReadRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ServiceReadRequest.Marshal(b, m, deterministic)
+}
+func (m *ServiceReadRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ServiceReadRequest.Merge(m, src)
+}
+func (m *ServiceReadRequest) XXX_Size() int {
+	return xxx_messageInfo_ServiceReadRequest.Size(m)
+}
+func (m *ServiceReadRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ServiceReadRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ServiceReadRequest proto.InternalMessageInfo
+
+func (m *ServiceReadRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+// Read service reply.
+type ServiceReadReply struct {
+	// Service.
+	Data                 *Service `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ServiceReadReply) Reset()         { *m = ServiceReadReply{} }
+func (m *ServiceReadReply) String() string { return proto.CompactTextString(m) }
+func (*ServiceReadReply) ProtoMessage()    {}
+func (*ServiceReadReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{20}
+}
+
+func (m *ServiceReadReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ServiceReadReply.Unmarshal(m, b)
+}
+func (m *ServiceReadReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ServiceReadReply.Marshal(b, m, deterministic)
+}
+func (m *ServiceReadReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ServiceReadReply.Merge(m, src)
+}
+func (m *ServiceReadReply) XXX_Size() int {
+	return xxx_messageInfo_ServiceReadReply.Size(m)
+}
+func (m *ServiceReadReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_ServiceReadReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ServiceReadReply proto.InternalMessageInfo
+
+func (m *ServiceReadReply) GetData() *Service {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
+// Update service request.
+type ServiceUpdateRequest struct {
+	// Service UUID.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Service name.
+	Name *wrappers.StringValue `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Service URL.
+	Url *wrappers.StringValue `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
+	// Service is_enabled flag.
+	IsEnabled *wrappers.BoolValue `protobuf:"bytes,4,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	// Service user_allow_register flag.
+	UserAllowRegister *wrappers.BoolValue `protobuf:"bytes,5,opt,name=user_allow_register,json=userAllowRegister,proto3" json:"user_allow_register,omitempty"`
+	// Service user email text.
+	UserEmailText *wrappers.StringValue `protobuf:"bytes,6,opt,name=user_email_text,json=userEmailText,proto3" json:"user_email_text,omitempty"`
+	// Service local provider URL.
+	ProviderLocalUrl *wrappers.StringValue `protobuf:"bytes,7,opt,name=provider_local_url,json=providerLocalUrl,proto3" json:"provider_local_url,omitempty"`
+	// Service GitHub OAuth2 provider URL.
+	ProviderGithubOauth2Url *wrappers.StringValue `protobuf:"bytes,8,opt,name=provider_github_oauth2_url,json=providerGithubOauth2Url,proto3" json:"provider_github_oauth2_url,omitempty"`
+	// Service Microsoft OAuth2 provider URL.
+	ProviderMicrosoftOauth2Url *wrappers.StringValue `protobuf:"bytes,9,opt,name=provider_microsoft_oauth2_url,json=providerMicrosoftOauth2Url,proto3" json:"provider_microsoft_oauth2_url,omitempty"`
+	XXX_NoUnkeyedLiteral       struct{}              `json:"-"`
+	XXX_unrecognized           []byte                `json:"-"`
+	XXX_sizecache              int32                 `json:"-"`
+}
+
+func (m *ServiceUpdateRequest) Reset()         { *m = ServiceUpdateRequest{} }
+func (m *ServiceUpdateRequest) String() string { return proto.CompactTextString(m) }
+func (*ServiceUpdateRequest) ProtoMessage()    {}
+func (*ServiceUpdateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{21}
+}
+
+func (m *ServiceUpdateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ServiceUpdateRequest.Unmarshal(m, b)
+}
+func (m *ServiceUpdateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ServiceUpdateRequest.Marshal(b, m, deterministic)
+}
+func (m *ServiceUpdateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ServiceUpdateRequest.Merge(m, src)
+}
+func (m *ServiceUpdateRequest) XXX_Size() int {
+	return xxx_messageInfo_ServiceUpdateRequest.Size(m)
+}
+func (m *ServiceUpdateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ServiceUpdateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ServiceUpdateRequest proto.InternalMessageInfo
+
+func (m *ServiceUpdateRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *ServiceUpdateRequest) GetName() *wrappers.StringValue {
+	if m != nil {
+		return m.Name
+	}
+	return nil
+}
+
+func (m *ServiceUpdateRequest) GetUrl() *wrappers.StringValue {
+	if m != nil {
+		return m.Url
+	}
+	return nil
+}
+
+func (m *ServiceUpdateRequest) GetIsEnabled() *wrappers.BoolValue {
+	if m != nil {
+		return m.IsEnabled
+	}
+	return nil
+}
+
+func (m *ServiceUpdateRequest) GetUserAllowRegister() *wrappers.BoolValue {
+	if m != nil {
+		return m.UserAllowRegister
+	}
+	return nil
+}
+
+func (m *ServiceUpdateRequest) GetUserEmailText() *wrappers.StringValue {
+	if m != nil {
+		return m.UserEmailText
+	}
+	return nil
+}
+
+func (m *ServiceUpdateRequest) GetProviderLocalUrl() *wrappers.StringValue {
+	if m != nil {
+		return m.ProviderLocalUrl
+	}
+	return nil
+}
+
+func (m *ServiceUpdateRequest) GetProviderGithubOauth2Url() *wrappers.StringValue {
+	if m != nil {
+		return m.ProviderGithubOauth2Url
+	}
+	return nil
+}
+
+func (m *ServiceUpdateRequest) GetProviderMicrosoftOauth2Url() *wrappers.StringValue {
+	if m != nil {
+		return m.ProviderMicrosoftOauth2Url
+	}
+	return nil
+}
+
+// Service.
+type Service struct {
+	// Created at date and time.
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,1,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Updated at date and time.
+	UpdatedAt *timestamp.Timestamp `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// UUID.
+	Id string `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
+	// Is enabled flag.
+	IsEnabled bool `protobuf:"varint,4,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	// Name.
+	Name string `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
+	// URL.
+	Url string `protobuf:"bytes,6,opt,name=url,proto3" json:"url,omitempty"`
+	// User allow register flag.
+	UserAllowRegister bool `protobuf:"varint,7,opt,name=user_allow_register,json=userAllowRegister,proto3" json:"user_allow_register,omitempty"`
+	// User email text.
+	UserEmailText string `protobuf:"bytes,8,opt,name=user_email_text,json=userEmailText,proto3" json:"user_email_text,omitempty"`
+	// Local provider URL.
+	ProviderLocalUrl *wrappers.StringValue `protobuf:"bytes,9,opt,name=provider_local_url,json=providerLocalUrl,proto3" json:"provider_local_url,omitempty"`
+	// GitHub OAuth2 provider URL.
+	ProviderGithubOauth2Url *wrappers.StringValue `protobuf:"bytes,10,opt,name=provider_github_oauth2_url,json=providerGithubOauth2Url,proto3" json:"provider_github_oauth2_url,omitempty"`
+	// Microsoft OAuth2 provider URL.
+	ProviderMicrosoftOauth2Url *wrappers.StringValue `protobuf:"bytes,11,opt,name=provider_microsoft_oauth2_url,json=providerMicrosoftOauth2Url,proto3" json:"provider_microsoft_oauth2_url,omitempty"`
+	XXX_NoUnkeyedLiteral       struct{}              `json:"-"`
+	XXX_unrecognized           []byte                `json:"-"`
+	XXX_sizecache              int32                 `json:"-"`
+}
+
+func (m *Service) Reset()         { *m = Service{} }
+func (m *Service) String() string { return proto.CompactTextString(m) }
+func (*Service) ProtoMessage()    {}
+func (*Service) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{22}
+}
+
+func (m *Service) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Service.Unmarshal(m, b)
+}
+func (m *Service) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Service.Marshal(b, m, deterministic)
+}
+func (m *Service) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Service.Merge(m, src)
+}
+func (m *Service) XXX_Size() int {
+	return xxx_messageInfo_Service.Size(m)
+}
+func (m *Service) XXX_DiscardUnknown() {
+	xxx_messageInfo_Service.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Service proto.InternalMessageInfo
+
+func (m *Service) GetCreatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return nil
+}
+
+func (m *Service) GetUpdatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.UpdatedAt
+	}
+	return nil
+}
+
+func (m *Service) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *Service) GetIsEnabled() bool {
+	if m != nil {
+		return m.IsEnabled
+	}
+	return false
+}
+
+func (m *Service) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *Service) GetUrl() string {
+	if m != nil {
+		return m.Url
+	}
+	return ""
+}
+
+func (m *Service) GetUserAllowRegister() bool {
+	if m != nil {
+		return m.UserAllowRegister
+	}
+	return false
+}
+
+func (m *Service) GetUserEmailText() string {
+	if m != nil {
+		return m.UserEmailText
+	}
+	return ""
+}
+
+func (m *Service) GetProviderLocalUrl() *wrappers.StringValue {
+	if m != nil {
+		return m.ProviderLocalUrl
+	}
+	return nil
+}
+
+func (m *Service) GetProviderGithubOauth2Url() *wrappers.StringValue {
+	if m != nil {
+		return m.ProviderGithubOauth2Url
+	}
+	return nil
+}
+
+func (m *Service) GetProviderMicrosoftOauth2Url() *wrappers.StringValue {
+	if m != nil {
+		return m.ProviderMicrosoftOauth2Url
+	}
+	return nil
+}
+
+// List users request.
+type UserListRequest struct {
+	// Greater than service UUID.
+	Gt *wrappers.StringValue `protobuf:"bytes,1,opt,name=gt,proto3" json:"gt,omitempty"`
+	// Less than service UUID.
+	Lt *wrappers.StringValue `protobuf:"bytes,2,opt,name=lt,proto3" json:"lt,omitempty"`
+	// Greater than or equal user name.
+	NameGe *wrappers.StringValue `protobuf:"bytes,3,opt,name=name_ge,json=nameGe,proto3" json:"name_ge,omitempty"`
+	// Less than or equal user name.
+	NameLe *wrappers.StringValue `protobuf:"bytes,4,opt,name=name_le,json=nameLe,proto3" json:"name_le,omitempty"`
+	// Limit number of returned users.
+	Limit *wrappers.Int64Value `protobuf:"bytes,5,opt,name=limit,proto3" json:"limit,omitempty"`
+	// Offset user UUID for paging.
+	OffsetId *wrappers.StringValue `protobuf:"bytes,6,opt,name=offset_id,json=offsetId,proto3" json:"offset_id,omitempty"`
+	// User UUID filter array.
+	Id []string `protobuf:"bytes,7,rep,name=id,proto3" json:"id,omitempty"`
+	// User email filter array.
+	Email                []string `protobuf:"bytes,8,rep,name=email,proto3" json:"email,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserListRequest) Reset()         { *m = UserListRequest{} }
+func (m *UserListRequest) String() string { return proto.CompactTextString(m) }
+func (*UserListRequest) ProtoMessage()    {}
+func (*UserListRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{23}
+}
+
+func (m *UserListRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserListRequest.Unmarshal(m, b)
+}
+func (m *UserListRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserListRequest.Marshal(b, m, deterministic)
+}
+func (m *UserListRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserListRequest.Merge(m, src)
+}
+func (m *UserListRequest) XXX_Size() int {
+	return xxx_messageInfo_UserListRequest.Size(m)
+}
+func (m *UserListRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserListRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserListRequest proto.InternalMessageInfo
+
+func (m *UserListRequest) GetGt() *wrappers.StringValue {
+	if m != nil {
+		return m.Gt
+	}
+	return nil
+}
+
+func (m *UserListRequest) GetLt() *wrappers.StringValue {
+	if m != nil {
+		return m.Lt
+	}
+	return nil
+}
+
+func (m *UserListRequest) GetNameGe() *wrappers.StringValue {
+	if m != nil {
+		return m.NameGe
+	}
+	return nil
+}
+
+func (m *UserListRequest) GetNameLe() *wrappers.StringValue {
+	if m != nil {
+		return m.NameLe
+	}
+	return nil
+}
+
+func (m *UserListRequest) GetLimit() *wrappers.Int64Value {
+	if m != nil {
+		return m.Limit
+	}
+	return nil
+}
+
+func (m *UserListRequest) GetOffsetId() *wrappers.StringValue {
+	if m != nil {
+		return m.OffsetId
+	}
+	return nil
+}
+
+func (m *UserListRequest) GetId() []string {
+	if m != nil {
+		return m.Id
+	}
+	return nil
+}
+
+func (m *UserListRequest) GetEmail() []string {
+	if m != nil {
+		return m.Email
+	}
+	return nil
+}
+
+// List users reply.
+type UserListReply struct {
+	// Request message.
+	Meta *UserListRequest `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	// Users array.
+	Data                 []*User  `protobuf:"bytes,2,rep,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserListReply) Reset()         { *m = UserListReply{} }
+func (m *UserListReply) String() string { return proto.CompactTextString(m) }
+func (*UserListReply) ProtoMessage()    {}
+func (*UserListReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{24}
+}
+
+func (m *UserListReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserListReply.Unmarshal(m, b)
+}
+func (m *UserListReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserListReply.Marshal(b, m, deterministic)
+}
+func (m *UserListReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserListReply.Merge(m, src)
+}
+func (m *UserListReply) XXX_Size() int {
+	return xxx_messageInfo_UserListReply.Size(m)
+}
+func (m *UserListReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserListReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserListReply proto.InternalMessageInfo
+
+func (m *UserListReply) GetMeta() *UserListRequest {
+	if m != nil {
+		return m.Meta
+	}
+	return nil
+}
+
+func (m *UserListReply) GetData() []*User {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
+// Create user request.
+type UserCreateRequest struct {
+	// User name.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// User email.
+	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	// User is_enabled flag.
+	IsEnabled *wrappers.BoolValue `protobuf:"bytes,3,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	// User locale.
+	Locale *wrappers.StringValue `protobuf:"bytes,4,opt,name=locale,proto3" json:"locale,omitempty"`
+	// User timezone.
+	Timezone *wrappers.StringValue `protobuf:"bytes,5,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	// User password_allow_reset flag.
+	PasswordAllowReset *wrappers.BoolValue `protobuf:"bytes,6,opt,name=password_allow_reset,json=passwordAllowReset,proto3" json:"password_allow_reset,omitempty"`
+	// User password_require_update flag.
+	PasswordRequireUpdate *wrappers.BoolValue `protobuf:"bytes,7,opt,name=password_require_update,json=passwordRequireUpdate,proto3" json:"password_require_update,omitempty"`
+	// User password.
+	Password             *wrappers.StringValue `protobuf:"bytes,8,opt,name=password,proto3" json:"password,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *UserCreateRequest) Reset()         { *m = UserCreateRequest{} }
+func (m *UserCreateRequest) String() string { return proto.CompactTextString(m) }
+func (*UserCreateRequest) ProtoMessage()    {}
+func (*UserCreateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{25}
+}
+
+func (m *UserCreateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserCreateRequest.Unmarshal(m, b)
+}
+func (m *UserCreateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserCreateRequest.Marshal(b, m, deterministic)
+}
+func (m *UserCreateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserCreateRequest.Merge(m, src)
+}
+func (m *UserCreateRequest) XXX_Size() int {
+	return xxx_messageInfo_UserCreateRequest.Size(m)
+}
+func (m *UserCreateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserCreateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserCreateRequest proto.InternalMessageInfo
+
+func (m *UserCreateRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UserCreateRequest) GetEmail() string {
+	if m != nil {
+		return m.Email
+	}
+	return ""
+}
+
+func (m *UserCreateRequest) GetIsEnabled() *wrappers.BoolValue {
+	if m != nil {
+		return m.IsEnabled
+	}
+	return nil
+}
+
+func (m *UserCreateRequest) GetLocale() *wrappers.StringValue {
+	if m != nil {
+		return m.Locale
+	}
+	return nil
+}
+
+func (m *UserCreateRequest) GetTimezone() *wrappers.StringValue {
+	if m != nil {
+		return m.Timezone
+	}
+	return nil
+}
+
+func (m *UserCreateRequest) GetPasswordAllowReset() *wrappers.BoolValue {
+	if m != nil {
+		return m.PasswordAllowReset
+	}
+	return nil
+}
+
+func (m *UserCreateRequest) GetPasswordRequireUpdate() *wrappers.BoolValue {
+	if m != nil {
+		return m.PasswordRequireUpdate
+	}
+	return nil
+}
+
+func (m *UserCreateRequest) GetPassword() *wrappers.StringValue {
+	if m != nil {
+		return m.Password
+	}
+	return nil
+}
+
+// Read user request.
+type UserReadRequest struct {
+	// User UUID.
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserReadRequest) Reset()         { *m = UserReadRequest{} }
+func (m *UserReadRequest) String() string { return proto.CompactTextString(m) }
+func (*UserReadRequest) ProtoMessage()    {}
+func (*UserReadRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{26}
+}
+
+func (m *UserReadRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserReadRequest.Unmarshal(m, b)
+}
+func (m *UserReadRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserReadRequest.Marshal(b, m, deterministic)
+}
+func (m *UserReadRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserReadRequest.Merge(m, src)
+}
+func (m *UserReadRequest) XXX_Size() int {
+	return xxx_messageInfo_UserReadRequest.Size(m)
+}
+func (m *UserReadRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserReadRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserReadRequest proto.InternalMessageInfo
+
+func (m *UserReadRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+// Read user reply.
+type UserReadReply struct {
+	// User.
+	Data                 *User    `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserReadReply) Reset()         { *m = UserReadReply{} }
+func (m *UserReadReply) String() string { return proto.CompactTextString(m) }
+func (*UserReadReply) ProtoMessage()    {}
+func (*UserReadReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{27}
+}
+
+func (m *UserReadReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserReadReply.Unmarshal(m, b)
+}
+func (m *UserReadReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserReadReply.Marshal(b, m, deterministic)
+}
+func (m *UserReadReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserReadReply.Merge(m, src)
+}
+func (m *UserReadReply) XXX_Size() int {
+	return xxx_messageInfo_UserReadReply.Size(m)
+}
+func (m *UserReadReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserReadReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserReadReply proto.InternalMessageInfo
+
+func (m *UserReadReply) GetData() *User {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
+// Update user request.
+type UserUpdateRequest struct {
+	// User UUID.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// User name.
+	Name *wrappers.StringValue `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// User is_enabled flag.
+	IsEnabled *wrappers.BoolValue `protobuf:"bytes,3,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	// User locale.
+	Locale *wrappers.StringValue `protobuf:"bytes,4,opt,name=locale,proto3" json:"locale,omitempty"`
+	// User timezone.
+	Timezone *wrappers.StringValue `protobuf:"bytes,5,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	// User password_allow_reset flag.
+	PasswordAllowReset *wrappers.BoolValue `protobuf:"bytes,6,opt,name=password_allow_reset,json=passwordAllowReset,proto3" json:"password_allow_reset,omitempty"`
+	// User password_require_update flag.
+	PasswordRequireUpdate *wrappers.BoolValue `protobuf:"bytes,7,opt,name=password_require_update,json=passwordRequireUpdate,proto3" json:"password_require_update,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}            `json:"-"`
+	XXX_unrecognized      []byte              `json:"-"`
+	XXX_sizecache         int32               `json:"-"`
+}
+
+func (m *UserUpdateRequest) Reset()         { *m = UserUpdateRequest{} }
+func (m *UserUpdateRequest) String() string { return proto.CompactTextString(m) }
+func (*UserUpdateRequest) ProtoMessage()    {}
+func (*UserUpdateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{28}
+}
+
+func (m *UserUpdateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserUpdateRequest.Unmarshal(m, b)
+}
+func (m *UserUpdateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserUpdateRequest.Marshal(b, m, deterministic)
+}
+func (m *UserUpdateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserUpdateRequest.Merge(m, src)
+}
+func (m *UserUpdateRequest) XXX_Size() int {
+	return xxx_messageInfo_UserUpdateRequest.Size(m)
+}
+func (m *UserUpdateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserUpdateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserUpdateRequest proto.InternalMessageInfo
+
+func (m *UserUpdateRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *UserUpdateRequest) GetName() *wrappers.StringValue {
+	if m != nil {
+		return m.Name
+	}
+	return nil
+}
+
+func (m *UserUpdateRequest) GetIsEnabled() *wrappers.BoolValue {
+	if m != nil {
+		return m.IsEnabled
+	}
+	return nil
+}
+
+func (m *UserUpdateRequest) GetLocale() *wrappers.StringValue {
+	if m != nil {
+		return m.Locale
+	}
+	return nil
+}
+
+func (m *UserUpdateRequest) GetTimezone() *wrappers.StringValue {
+	if m != nil {
+		return m.Timezone
+	}
+	return nil
+}
+
+func (m *UserUpdateRequest) GetPasswordAllowReset() *wrappers.BoolValue {
+	if m != nil {
+		return m.PasswordAllowReset
+	}
+	return nil
+}
+
+func (m *UserUpdateRequest) GetPasswordRequireUpdate() *wrappers.BoolValue {
+	if m != nil {
+		return m.PasswordRequireUpdate
+	}
+	return nil
+}
+
+// User.
+type User struct {
+	// Created at date and time.
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,1,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Updated at date and time.
+	UpdatedAt *timestamp.Timestamp `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// UUID.
+	Id string `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
+	// Is enabled flag.
+	IsEnabled bool `protobuf:"varint,4,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	// Name.
+	Name string `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
+	// Email.
+	Email string `protobuf:"bytes,6,opt,name=email,proto3" json:"email,omitempty"`
+	// Locale.
+	Locale string `protobuf:"bytes,7,opt,name=locale,proto3" json:"locale,omitempty"`
+	// Timezone.
+	Timezone string `protobuf:"bytes,8,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	// Password allow reset flag.
+	PasswordAllowReset bool `protobuf:"varint,9,opt,name=password_allow_reset,json=passwordAllowReset,proto3" json:"password_allow_reset,omitempty"`
+	// Password require update flag.
+	PasswordRequireUpdate bool     `protobuf:"varint,10,opt,name=password_require_update,json=passwordRequireUpdate,proto3" json:"password_require_update,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{} `json:"-"`
+	XXX_unrecognized      []byte   `json:"-"`
+	XXX_sizecache         int32    `json:"-"`
+}
+
+func (m *User) Reset()         { *m = User{} }
+func (m *User) String() string { return proto.CompactTextString(m) }
+func (*User) ProtoMessage()    {}
+func (*User) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{29}
+}
+
+func (m *User) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_User.Unmarshal(m, b)
+}
+func (m *User) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_User.Marshal(b, m, deterministic)
+}
+func (m *User) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_User.Merge(m, src)
+}
+func (m *User) XXX_Size() int {
+	return xxx_messageInfo_User.Size(m)
+}
+func (m *User) XXX_DiscardUnknown() {
+	xxx_messageInfo_User.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_User proto.InternalMessageInfo
+
+func (m *User) GetCreatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return nil
+}
+
+func (m *User) GetUpdatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.UpdatedAt
+	}
+	return nil
+}
+
+func (m *User) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *User) GetIsEnabled() bool {
+	if m != nil {
+		return m.IsEnabled
+	}
+	return false
+}
+
+func (m *User) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *User) GetEmail() string {
+	if m != nil {
+		return m.Email
+	}
+	return ""
+}
+
+func (m *User) GetLocale() string {
+	if m != nil {
+		return m.Locale
+	}
+	return ""
+}
+
+func (m *User) GetTimezone() string {
+	if m != nil {
+		return m.Timezone
+	}
+	return ""
+}
+
+func (m *User) GetPasswordAllowReset() bool {
+	if m != nil {
+		return m.PasswordAllowReset
+	}
+	return false
+}
+
+func (m *User) GetPasswordRequireUpdate() bool {
+	if m != nil {
+		return m.PasswordRequireUpdate
+	}
+	return false
+}
+
+// Authentication key request.
+type AuthKeyRequest struct {
+	// Key value.
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Audit type.
+	Audit                *wrappers.StringValue `protobuf:"bytes,2,opt,name=audit,proto3" json:"audit,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *AuthKeyRequest) Reset()         { *m = AuthKeyRequest{} }
+func (m *AuthKeyRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthKeyRequest) ProtoMessage()    {}
+func (*AuthKeyRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{30}
+}
+
+func (m *AuthKeyRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthKeyRequest.Unmarshal(m, b)
+}
+func (m *AuthKeyRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthKeyRequest.Marshal(b, m, deterministic)
+}
+func (m *AuthKeyRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthKeyRequest.Merge(m, src)
+}
+func (m *AuthKeyRequest) XXX_Size() int {
+	return xxx_messageInfo_AuthKeyRequest.Size(m)
+}
+func (m *AuthKeyRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthKeyRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthKeyRequest proto.InternalMessageInfo
+
+func (m *AuthKeyRequest) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *AuthKeyRequest) GetAudit() *wrappers.StringValue {
+	if m != nil {
+		return m.Audit
+	}
+	return nil
+}
+
+// Authentication key reply.
+type AuthKeyReply struct {
+	// User.
+	User *User `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	// User key.
+	Key *Key `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	// Audit UUID.
+	Audit                *wrappers.StringValue `protobuf:"bytes,3,opt,name=audit,proto3" json:"audit,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *AuthKeyReply) Reset()         { *m = AuthKeyReply{} }
+func (m *AuthKeyReply) String() string { return proto.CompactTextString(m) }
+func (*AuthKeyReply) ProtoMessage()    {}
+func (*AuthKeyReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{31}
+}
+
+func (m *AuthKeyReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthKeyReply.Unmarshal(m, b)
+}
+func (m *AuthKeyReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthKeyReply.Marshal(b, m, deterministic)
+}
+func (m *AuthKeyReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthKeyReply.Merge(m, src)
+}
+func (m *AuthKeyReply) XXX_Size() int {
+	return xxx_messageInfo_AuthKeyReply.Size(m)
+}
+func (m *AuthKeyReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthKeyReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthKeyReply proto.InternalMessageInfo
+
+func (m *AuthKeyReply) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *AuthKeyReply) GetKey() *Key {
+	if m != nil {
+		return m.Key
+	}
+	return nil
+}
+
+func (m *AuthKeyReply) GetAudit() *wrappers.StringValue {
+	if m != nil {
+		return m.Audit
+	}
+	return nil
+}
+
+// Authentication audit reply.
+type AuthAuditReply struct {
+	// Audit UUID.
+	Audit                *wrappers.StringValue `protobuf:"bytes,1,opt,name=audit,proto3" json:"audit,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *AuthAuditReply) Reset()         { *m = AuthAuditReply{} }
+func (m *AuthAuditReply) String() string { return proto.CompactTextString(m) }
+func (*AuthAuditReply) ProtoMessage()    {}
+func (*AuthAuditReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{32}
+}
+
+func (m *AuthAuditReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthAuditReply.Unmarshal(m, b)
+}
+func (m *AuthAuditReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthAuditReply.Marshal(b, m, deterministic)
+}
+func (m *AuthAuditReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthAuditReply.Merge(m, src)
+}
+func (m *AuthAuditReply) XXX_Size() int {
+	return xxx_messageInfo_AuthAuditReply.Size(m)
+}
+func (m *AuthAuditReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthAuditReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthAuditReply proto.InternalMessageInfo
+
+func (m *AuthAuditReply) GetAudit() *wrappers.StringValue {
+	if m != nil {
+		return m.Audit
+	}
+	return nil
+}
+
+// Authentication token request/
+type AuthTokenRequest struct {
+	// Token value.
+	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	// Audit type.
+	Audit                *wrappers.StringValue `protobuf:"bytes,2,opt,name=audit,proto3" json:"audit,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *AuthTokenRequest) Reset()         { *m = AuthTokenRequest{} }
+func (m *AuthTokenRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthTokenRequest) ProtoMessage()    {}
+func (*AuthTokenRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{33}
+}
+
+func (m *AuthTokenRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthTokenRequest.Unmarshal(m, b)
+}
+func (m *AuthTokenRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthTokenRequest.Marshal(b, m, deterministic)
+}
+func (m *AuthTokenRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthTokenRequest.Merge(m, src)
+}
+func (m *AuthTokenRequest) XXX_Size() int {
+	return xxx_messageInfo_AuthTokenRequest.Size(m)
+}
+func (m *AuthTokenRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthTokenRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthTokenRequest proto.InternalMessageInfo
+
+func (m *AuthTokenRequest) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+func (m *AuthTokenRequest) GetAudit() *wrappers.StringValue {
+	if m != nil {
+		return m.Audit
+	}
+	return nil
+}
+
+// Authentication token verify reply.
+type AuthTokenVerifyReply struct {
+	// User.
+	User *User `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	// Access token.
+	Access *AuthToken `protobuf:"bytes,2,opt,name=access,proto3" json:"access,omitempty"`
+	// Audit UUID.
+	Audit                *wrappers.StringValue `protobuf:"bytes,3,opt,name=audit,proto3" json:"audit,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *AuthTokenVerifyReply) Reset()         { *m = AuthTokenVerifyReply{} }
+func (m *AuthTokenVerifyReply) String() string { return proto.CompactTextString(m) }
+func (*AuthTokenVerifyReply) ProtoMessage()    {}
+func (*AuthTokenVerifyReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{34}
+}
+
+func (m *AuthTokenVerifyReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthTokenVerifyReply.Unmarshal(m, b)
+}
+func (m *AuthTokenVerifyReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthTokenVerifyReply.Marshal(b, m, deterministic)
+}
+func (m *AuthTokenVerifyReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthTokenVerifyReply.Merge(m, src)
+}
+func (m *AuthTokenVerifyReply) XXX_Size() int {
+	return xxx_messageInfo_AuthTokenVerifyReply.Size(m)
+}
+func (m *AuthTokenVerifyReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthTokenVerifyReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthTokenVerifyReply proto.InternalMessageInfo
+
+func (m *AuthTokenVerifyReply) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *AuthTokenVerifyReply) GetAccess() *AuthToken {
+	if m != nil {
+		return m.Access
+	}
+	return nil
+}
+
+func (m *AuthTokenVerifyReply) GetAudit() *wrappers.StringValue {
+	if m != nil {
+		return m.Audit
+	}
+	return nil
+}
+
+// Authentication token reply.
+type AuthTokenReply struct {
+	// User.
+	User *User `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	// Access token.
+	Access *AuthToken `protobuf:"bytes,2,opt,name=access,proto3" json:"access,omitempty"`
+	// Refresh token.
+	Refresh *AuthToken `protobuf:"bytes,3,opt,name=refresh,proto3" json:"refresh,omitempty"`
+	// Audit UUID.
+	Audit                *wrappers.StringValue `protobuf:"bytes,4,opt,name=audit,proto3" json:"audit,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *AuthTokenReply) Reset()         { *m = AuthTokenReply{} }
+func (m *AuthTokenReply) String() string { return proto.CompactTextString(m) }
+func (*AuthTokenReply) ProtoMessage()    {}
+func (*AuthTokenReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{35}
+}
+
+func (m *AuthTokenReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthTokenReply.Unmarshal(m, b)
+}
+func (m *AuthTokenReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthTokenReply.Marshal(b, m, deterministic)
+}
+func (m *AuthTokenReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthTokenReply.Merge(m, src)
+}
+func (m *AuthTokenReply) XXX_Size() int {
+	return xxx_messageInfo_AuthTokenReply.Size(m)
+}
+func (m *AuthTokenReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthTokenReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthTokenReply proto.InternalMessageInfo
+
+func (m *AuthTokenReply) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *AuthTokenReply) GetAccess() *AuthToken {
+	if m != nil {
+		return m.Access
+	}
+	return nil
+}
+
+func (m *AuthTokenReply) GetRefresh() *AuthToken {
+	if m != nil {
+		return m.Refresh
+	}
+	return nil
+}
+
+func (m *AuthTokenReply) GetAudit() *wrappers.StringValue {
+	if m != nil {
+		return m.Audit
+	}
+	return nil
+}
+
+// Authentication token.
+type AuthToken struct {
+	// Token value.
+	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	// Token expires.
+	TokenExpires         int64    `protobuf:"varint,2,opt,name=token_expires,json=tokenExpires,proto3" json:"token_expires,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AuthToken) Reset()         { *m = AuthToken{} }
+func (m *AuthToken) String() string { return proto.CompactTextString(m) }
+func (*AuthToken) ProtoMessage()    {}
+func (*AuthToken) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{36}
+}
+
+func (m *AuthToken) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthToken.Unmarshal(m, b)
+}
+func (m *AuthToken) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthToken.Marshal(b, m, deterministic)
+}
+func (m *AuthToken) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthToken.Merge(m, src)
+}
+func (m *AuthToken) XXX_Size() int {
+	return xxx_messageInfo_AuthToken.Size(m)
+}
+func (m *AuthToken) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthToken.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthToken proto.InternalMessageInfo
+
+func (m *AuthToken) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+func (m *AuthToken) GetTokenExpires() int64 {
+	if m != nil {
+		return m.TokenExpires
+	}
+	return 0
+}
+
+// Authentication TOTP request.
+type AuthTotpRequest struct {
+	// User UUID.
+	UserId string `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	// TOTP code.
+	Totp                 string   `protobuf:"bytes,2,opt,name=totp,proto3" json:"totp,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AuthTotpRequest) Reset()         { *m = AuthTotpRequest{} }
+func (m *AuthTotpRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthTotpRequest) ProtoMessage()    {}
+func (*AuthTotpRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{37}
+}
+
+func (m *AuthTotpRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthTotpRequest.Unmarshal(m, b)
+}
+func (m *AuthTotpRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthTotpRequest.Marshal(b, m, deterministic)
+}
+func (m *AuthTotpRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthTotpRequest.Merge(m, src)
+}
+func (m *AuthTotpRequest) XXX_Size() int {
+	return xxx_messageInfo_AuthTotpRequest.Size(m)
+}
+func (m *AuthTotpRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthTotpRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthTotpRequest proto.InternalMessageInfo
+
+func (m *AuthTotpRequest) GetUserId() string {
+	if m != nil {
+		return m.UserId
+	}
+	return ""
+}
+
+func (m *AuthTotpRequest) GetTotp() string {
+	if m != nil {
+		return m.Totp
+	}
+	return ""
+}
+
+// Authentication create CSRF token request.
+type AuthCsrfCreateRequest struct {
+	// CSRF token expires.
+	ExpiresS             *wrappers.Int64Value `protobuf:"bytes,1,opt,name=expires_s,json=expiresS,proto3" json:"expires_s,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *AuthCsrfCreateRequest) Reset()         { *m = AuthCsrfCreateRequest{} }
+func (m *AuthCsrfCreateRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthCsrfCreateRequest) ProtoMessage()    {}
+func (*AuthCsrfCreateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{38}
+}
+
+func (m *AuthCsrfCreateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthCsrfCreateRequest.Unmarshal(m, b)
+}
+func (m *AuthCsrfCreateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthCsrfCreateRequest.Marshal(b, m, deterministic)
+}
+func (m *AuthCsrfCreateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthCsrfCreateRequest.Merge(m, src)
+}
+func (m *AuthCsrfCreateRequest) XXX_Size() int {
+	return xxx_messageInfo_AuthCsrfCreateRequest.Size(m)
+}
+func (m *AuthCsrfCreateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthCsrfCreateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthCsrfCreateRequest proto.InternalMessageInfo
+
+func (m *AuthCsrfCreateRequest) GetExpiresS() *wrappers.Int64Value {
+	if m != nil {
+		return m.ExpiresS
+	}
+	return nil
+}
+
+// Authentication CSRF token.
+type AuthCsrfCreateReply struct {
+	// CSRF.
+	Csrf                 *Csrf    `protobuf:"bytes,1,opt,name=csrf,proto3" json:"csrf,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AuthCsrfCreateReply) Reset()         { *m = AuthCsrfCreateReply{} }
+func (m *AuthCsrfCreateReply) String() string { return proto.CompactTextString(m) }
+func (*AuthCsrfCreateReply) ProtoMessage()    {}
+func (*AuthCsrfCreateReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{39}
+}
+
+func (m *AuthCsrfCreateReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthCsrfCreateReply.Unmarshal(m, b)
+}
+func (m *AuthCsrfCreateReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthCsrfCreateReply.Marshal(b, m, deterministic)
+}
+func (m *AuthCsrfCreateReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthCsrfCreateReply.Merge(m, src)
+}
+func (m *AuthCsrfCreateReply) XXX_Size() int {
+	return xxx_messageInfo_AuthCsrfCreateReply.Size(m)
+}
+func (m *AuthCsrfCreateReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthCsrfCreateReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthCsrfCreateReply proto.InternalMessageInfo
+
+func (m *AuthCsrfCreateReply) GetCsrf() *Csrf {
+	if m != nil {
+		return m.Csrf
+	}
+	return nil
+}
+
+// Authentication verify CSRF token request.
+type AuthCsrfVerifyRequest struct {
+	// CSRF token value.
+	Csrf string `protobuf:"bytes,1,opt,name=csrf,proto3" json:"csrf,omitempty"`
+	// Audit type.
+	Audit                *wrappers.StringValue `protobuf:"bytes,2,opt,name=audit,proto3" json:"audit,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *AuthCsrfVerifyRequest) Reset()         { *m = AuthCsrfVerifyRequest{} }
+func (m *AuthCsrfVerifyRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthCsrfVerifyRequest) ProtoMessage()    {}
+func (*AuthCsrfVerifyRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{40}
+}
+
+func (m *AuthCsrfVerifyRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthCsrfVerifyRequest.Unmarshal(m, b)
+}
+func (m *AuthCsrfVerifyRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthCsrfVerifyRequest.Marshal(b, m, deterministic)
+}
+func (m *AuthCsrfVerifyRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthCsrfVerifyRequest.Merge(m, src)
+}
+func (m *AuthCsrfVerifyRequest) XXX_Size() int {
+	return xxx_messageInfo_AuthCsrfVerifyRequest.Size(m)
+}
+func (m *AuthCsrfVerifyRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthCsrfVerifyRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthCsrfVerifyRequest proto.InternalMessageInfo
+
+func (m *AuthCsrfVerifyRequest) GetCsrf() string {
+	if m != nil {
+		return m.Csrf
+	}
+	return ""
+}
+
+func (m *AuthCsrfVerifyRequest) GetAudit() *wrappers.StringValue {
+	if m != nil {
+		return m.Audit
+	}
+	return nil
+}
+
+// CSRF.
+type Csrf struct {
+	// Created at date and time.
+	CreatedAt *timestamp.Timestamp `protobuf:"bytes,1,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Key.
+	Key string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	// Value.
+	Value string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
+	// Time to live.
+	Ttl *timestamp.Timestamp `protobuf:"bytes,4,opt,name=ttl,proto3" json:"ttl,omitempty"`
+	// Service UUID.
+	ServiceId            *wrappers.StringValue `protobuf:"bytes,5,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *Csrf) Reset()         { *m = Csrf{} }
+func (m *Csrf) String() string { return proto.CompactTextString(m) }
+func (*Csrf) ProtoMessage()    {}
+func (*Csrf) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{41}
+}
+
+func (m *Csrf) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Csrf.Unmarshal(m, b)
+}
+func (m *Csrf) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Csrf.Marshal(b, m, deterministic)
+}
+func (m *Csrf) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Csrf.Merge(m, src)
+}
+func (m *Csrf) XXX_Size() int {
+	return xxx_messageInfo_Csrf.Size(m)
+}
+func (m *Csrf) XXX_DiscardUnknown() {
+	xxx_messageInfo_Csrf.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Csrf proto.InternalMessageInfo
+
+func (m *Csrf) GetCreatedAt() *timestamp.Timestamp {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return nil
+}
+
+func (m *Csrf) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *Csrf) GetValue() string {
+	if m != nil {
+		return m.Value
+	}
+	return ""
+}
+
+func (m *Csrf) GetTtl() *timestamp.Timestamp {
+	if m != nil {
+		return m.Ttl
+	}
+	return nil
+}
+
+func (m *Csrf) GetServiceId() *wrappers.StringValue {
+	if m != nil {
+		return m.ServiceId
+	}
+	return nil
+}
+
+// Authentication login request.
+type AuthLoginRequest struct {
+	// User email.
+	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	// User password.
+	Password             string   `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AuthLoginRequest) Reset()         { *m = AuthLoginRequest{} }
+func (m *AuthLoginRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthLoginRequest) ProtoMessage()    {}
+func (*AuthLoginRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{42}
+}
+
+func (m *AuthLoginRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthLoginRequest.Unmarshal(m, b)
+}
+func (m *AuthLoginRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthLoginRequest.Marshal(b, m, deterministic)
+}
+func (m *AuthLoginRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthLoginRequest.Merge(m, src)
+}
+func (m *AuthLoginRequest) XXX_Size() int {
+	return xxx_messageInfo_AuthLoginRequest.Size(m)
+}
+func (m *AuthLoginRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthLoginRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthLoginRequest proto.InternalMessageInfo
+
+func (m *AuthLoginRequest) GetEmail() string {
+	if m != nil {
+		return m.Email
+	}
+	return ""
+}
+
+func (m *AuthLoginRequest) GetPassword() string {
+	if m != nil {
+		return m.Password
+	}
+	return ""
+}
+
+// Authentication login reply.
+type AuthLoginReply struct {
+	// Password metadata.
+	Meta *AuthPasswordMeta `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	// User.
+	User *User `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
+	// Access token.
+	Access *AuthToken `protobuf:"bytes,3,opt,name=access,proto3" json:"access,omitempty"`
+	// Refresh token.
+	Refresh              *AuthToken `protobuf:"bytes,4,opt,name=refresh,proto3" json:"refresh,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
+	XXX_unrecognized     []byte     `json:"-"`
+	XXX_sizecache        int32      `json:"-"`
+}
+
+func (m *AuthLoginReply) Reset()         { *m = AuthLoginReply{} }
+func (m *AuthLoginReply) String() string { return proto.CompactTextString(m) }
+func (*AuthLoginReply) ProtoMessage()    {}
+func (*AuthLoginReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{43}
+}
+
+func (m *AuthLoginReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthLoginReply.Unmarshal(m, b)
+}
+func (m *AuthLoginReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthLoginReply.Marshal(b, m, deterministic)
+}
+func (m *AuthLoginReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthLoginReply.Merge(m, src)
+}
+func (m *AuthLoginReply) XXX_Size() int {
+	return xxx_messageInfo_AuthLoginReply.Size(m)
+}
+func (m *AuthLoginReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthLoginReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthLoginReply proto.InternalMessageInfo
+
+func (m *AuthLoginReply) GetMeta() *AuthPasswordMeta {
+	if m != nil {
+		return m.Meta
+	}
+	return nil
+}
+
+func (m *AuthLoginReply) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+func (m *AuthLoginReply) GetAccess() *AuthToken {
+	if m != nil {
+		return m.Access
+	}
+	return nil
+}
+
+func (m *AuthLoginReply) GetRefresh() *AuthToken {
+	if m != nil {
+		return m.Refresh
+	}
+	return nil
+}
+
+// Authentication register request.
+type AuthRegisterRequest struct {
+	// User name.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// User email.
+	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	// User locale.
+	Locale *wrappers.StringValue `protobuf:"bytes,3,opt,name=locale,proto3" json:"locale,omitempty"`
+	// User timezone.
+	Timezone             *wrappers.StringValue `protobuf:"bytes,4,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *AuthRegisterRequest) Reset()         { *m = AuthRegisterRequest{} }
+func (m *AuthRegisterRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthRegisterRequest) ProtoMessage()    {}
+func (*AuthRegisterRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{44}
+}
+
+func (m *AuthRegisterRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthRegisterRequest.Unmarshal(m, b)
+}
+func (m *AuthRegisterRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthRegisterRequest.Marshal(b, m, deterministic)
+}
+func (m *AuthRegisterRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthRegisterRequest.Merge(m, src)
+}
+func (m *AuthRegisterRequest) XXX_Size() int {
+	return xxx_messageInfo_AuthRegisterRequest.Size(m)
+}
+func (m *AuthRegisterRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthRegisterRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthRegisterRequest proto.InternalMessageInfo
+
+func (m *AuthRegisterRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *AuthRegisterRequest) GetEmail() string {
+	if m != nil {
+		return m.Email
+	}
+	return ""
+}
+
+func (m *AuthRegisterRequest) GetLocale() *wrappers.StringValue {
+	if m != nil {
+		return m.Locale
+	}
+	return nil
+}
+
+func (m *AuthRegisterRequest) GetTimezone() *wrappers.StringValue {
+	if m != nil {
+		return m.Timezone
+	}
+	return nil
+}
+
+// Authentication register confirm request.
+type AuthRegisterConfirmRequest struct {
+	// Register token value.
+	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	// User password.
+	Password *wrappers.StringValue `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	// User password_allow_reset flag.
+	PasswordAllowReset   *wrappers.BoolValue `protobuf:"bytes,3,opt,name=password_allow_reset,json=passwordAllowReset,proto3" json:"password_allow_reset,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
+	XXX_unrecognized     []byte              `json:"-"`
+	XXX_sizecache        int32               `json:"-"`
+}
+
+func (m *AuthRegisterConfirmRequest) Reset()         { *m = AuthRegisterConfirmRequest{} }
+func (m *AuthRegisterConfirmRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthRegisterConfirmRequest) ProtoMessage()    {}
+func (*AuthRegisterConfirmRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{45}
+}
+
+func (m *AuthRegisterConfirmRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthRegisterConfirmRequest.Unmarshal(m, b)
+}
+func (m *AuthRegisterConfirmRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthRegisterConfirmRequest.Marshal(b, m, deterministic)
+}
+func (m *AuthRegisterConfirmRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthRegisterConfirmRequest.Merge(m, src)
+}
+func (m *AuthRegisterConfirmRequest) XXX_Size() int {
+	return xxx_messageInfo_AuthRegisterConfirmRequest.Size(m)
+}
+func (m *AuthRegisterConfirmRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthRegisterConfirmRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthRegisterConfirmRequest proto.InternalMessageInfo
+
+func (m *AuthRegisterConfirmRequest) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+func (m *AuthRegisterConfirmRequest) GetPassword() *wrappers.StringValue {
+	if m != nil {
+		return m.Password
+	}
+	return nil
+}
+
+func (m *AuthRegisterConfirmRequest) GetPasswordAllowReset() *wrappers.BoolValue {
+	if m != nil {
+		return m.PasswordAllowReset
+	}
+	return nil
+}
+
+// Authentication password metadata reply.
+type AuthPasswordMetaReply struct {
+	// Password metadata.
+	Meta                 *AuthPasswordMeta `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *AuthPasswordMetaReply) Reset()         { *m = AuthPasswordMetaReply{} }
+func (m *AuthPasswordMetaReply) String() string { return proto.CompactTextString(m) }
+func (*AuthPasswordMetaReply) ProtoMessage()    {}
+func (*AuthPasswordMetaReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{46}
+}
+
+func (m *AuthPasswordMetaReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthPasswordMetaReply.Unmarshal(m, b)
+}
+func (m *AuthPasswordMetaReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthPasswordMetaReply.Marshal(b, m, deterministic)
+}
+func (m *AuthPasswordMetaReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthPasswordMetaReply.Merge(m, src)
+}
+func (m *AuthPasswordMetaReply) XXX_Size() int {
+	return xxx_messageInfo_AuthPasswordMetaReply.Size(m)
+}
+func (m *AuthPasswordMetaReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthPasswordMetaReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthPasswordMetaReply proto.InternalMessageInfo
+
+func (m *AuthPasswordMetaReply) GetMeta() *AuthPasswordMeta {
+	if m != nil {
+		return m.Meta
+	}
+	return nil
+}
+
+// Authentication password metadata.
+type AuthPasswordMeta struct {
+	// Password strength.
+	PasswordStrength *wrappers.UInt32Value `protobuf:"bytes,1,opt,name=password_strength,json=passwordStrength,proto3" json:"password_strength,omitempty"`
+	// Password pwned.
+	PasswordPwned        *wrappers.BoolValue `protobuf:"bytes,2,opt,name=password_pwned,json=passwordPwned,proto3" json:"password_pwned,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
+	XXX_unrecognized     []byte              `json:"-"`
+	XXX_sizecache        int32               `json:"-"`
+}
+
+func (m *AuthPasswordMeta) Reset()         { *m = AuthPasswordMeta{} }
+func (m *AuthPasswordMeta) String() string { return proto.CompactTextString(m) }
+func (*AuthPasswordMeta) ProtoMessage()    {}
+func (*AuthPasswordMeta) Descriptor() ([]byte, []int) {
+	return fileDescriptor_37aabceb39ca51ce, []int{47}
+}
+
+func (m *AuthPasswordMeta) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AuthPasswordMeta.Unmarshal(m, b)
+}
+func (m *AuthPasswordMeta) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AuthPasswordMeta.Marshal(b, m, deterministic)
+}
+func (m *AuthPasswordMeta) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AuthPasswordMeta.Merge(m, src)
+}
+func (m *AuthPasswordMeta) XXX_Size() int {
+	return xxx_messageInfo_AuthPasswordMeta.Size(m)
+}
+func (m *AuthPasswordMeta) XXX_DiscardUnknown() {
+	xxx_messageInfo_AuthPasswordMeta.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AuthPasswordMeta proto.InternalMessageInfo
+
+func (m *AuthPasswordMeta) GetPasswordStrength() *wrappers.UInt32Value {
+	if m != nil {
+		return m.PasswordStrength
+	}
+	return nil
+}
+
+func (m *AuthPasswordMeta) GetPasswordPwned() *wrappers.BoolValue {
+	if m != nil {
+		return m.PasswordPwned
+	}
+	return nil
+}
+
 func init() {
+	proto.RegisterEnum("sso.KeyType", KeyType_name, KeyType_value)
 	proto.RegisterType((*AuditListRequest)(nil), "sso.AuditListRequest")
 	proto.RegisterType((*AuditListReply)(nil), "sso.AuditListReply")
 	proto.RegisterType((*AuditCreateRequest)(nil), "sso.AuditCreateRequest")
@@ -689,71 +3298,226 @@ func init() {
 	proto.RegisterType((*Audit)(nil), "sso.Audit")
 	proto.RegisterMapType((map[string]string)(nil), "sso.Audit.DataEntry")
 	proto.RegisterType((*KeyListRequest)(nil), "sso.KeyListRequest")
+	proto.RegisterType((*KeyListReply)(nil), "sso.KeyListReply")
+	proto.RegisterType((*KeyCreateRequest)(nil), "sso.KeyCreateRequest")
+	proto.RegisterType((*KeyCreateReply)(nil), "sso.KeyCreateReply")
+	proto.RegisterType((*KeyReadRequest)(nil), "sso.KeyReadRequest")
+	proto.RegisterType((*KeyReadReply)(nil), "sso.KeyReadReply")
+	proto.RegisterType((*KeyUpdateRequest)(nil), "sso.KeyUpdateRequest")
+	proto.RegisterType((*Key)(nil), "sso.Key")
+	proto.RegisterType((*KeyWithValue)(nil), "sso.KeyWithValue")
+	proto.RegisterType((*ServiceListRequest)(nil), "sso.ServiceListRequest")
+	proto.RegisterType((*ServiceListReply)(nil), "sso.ServiceListReply")
+	proto.RegisterType((*ServiceCreateRequest)(nil), "sso.ServiceCreateRequest")
+	proto.RegisterType((*ServiceReadRequest)(nil), "sso.ServiceReadRequest")
+	proto.RegisterType((*ServiceReadReply)(nil), "sso.ServiceReadReply")
+	proto.RegisterType((*ServiceUpdateRequest)(nil), "sso.ServiceUpdateRequest")
+	proto.RegisterType((*Service)(nil), "sso.Service")
+	proto.RegisterType((*UserListRequest)(nil), "sso.UserListRequest")
+	proto.RegisterType((*UserListReply)(nil), "sso.UserListReply")
+	proto.RegisterType((*UserCreateRequest)(nil), "sso.UserCreateRequest")
+	proto.RegisterType((*UserReadRequest)(nil), "sso.UserReadRequest")
+	proto.RegisterType((*UserReadReply)(nil), "sso.UserReadReply")
+	proto.RegisterType((*UserUpdateRequest)(nil), "sso.UserUpdateRequest")
+	proto.RegisterType((*User)(nil), "sso.User")
+	proto.RegisterType((*AuthKeyRequest)(nil), "sso.AuthKeyRequest")
+	proto.RegisterType((*AuthKeyReply)(nil), "sso.AuthKeyReply")
+	proto.RegisterType((*AuthAuditReply)(nil), "sso.AuthAuditReply")
+	proto.RegisterType((*AuthTokenRequest)(nil), "sso.AuthTokenRequest")
+	proto.RegisterType((*AuthTokenVerifyReply)(nil), "sso.AuthTokenVerifyReply")
+	proto.RegisterType((*AuthTokenReply)(nil), "sso.AuthTokenReply")
+	proto.RegisterType((*AuthToken)(nil), "sso.AuthToken")
+	proto.RegisterType((*AuthTotpRequest)(nil), "sso.AuthTotpRequest")
+	proto.RegisterType((*AuthCsrfCreateRequest)(nil), "sso.AuthCsrfCreateRequest")
+	proto.RegisterType((*AuthCsrfCreateReply)(nil), "sso.AuthCsrfCreateReply")
+	proto.RegisterType((*AuthCsrfVerifyRequest)(nil), "sso.AuthCsrfVerifyRequest")
+	proto.RegisterType((*Csrf)(nil), "sso.Csrf")
+	proto.RegisterType((*AuthLoginRequest)(nil), "sso.AuthLoginRequest")
+	proto.RegisterType((*AuthLoginReply)(nil), "sso.AuthLoginReply")
+	proto.RegisterType((*AuthRegisterRequest)(nil), "sso.AuthRegisterRequest")
+	proto.RegisterType((*AuthRegisterConfirmRequest)(nil), "sso.AuthRegisterConfirmRequest")
+	proto.RegisterType((*AuthPasswordMetaReply)(nil), "sso.AuthPasswordMetaReply")
+	proto.RegisterType((*AuthPasswordMeta)(nil), "sso.AuthPasswordMeta")
 }
 
 func init() { proto.RegisterFile("sso.proto", fileDescriptor_37aabceb39ca51ce) }
 
 var fileDescriptor_37aabceb39ca51ce = []byte{
-	// 932 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x56, 0xcf, 0x73, 0xdb, 0x44,
-	0x14, 0x1e, 0x4b, 0xfe, 0x11, 0x3d, 0x83, 0x27, 0xd9, 0x86, 0x44, 0xb8, 0xb4, 0x04, 0x9f, 0x42,
-	0x86, 0xb1, 0xa9, 0x43, 0x0b, 0x09, 0x70, 0x08, 0x25, 0x07, 0x53, 0x18, 0x40, 0xa5, 0x1d, 0x66,
-	0x38, 0x78, 0xd6, 0xde, 0x17, 0xcd, 0x12, 0x59, 0x12, 0xda, 0x75, 0x3a, 0x1a, 0x86, 0x0b, 0x57,
-	0x8e, 0xfc, 0x4d, 0x5c, 0xb9, 0x30, 0xfc, 0x07, 0xfc, 0x03, 0x9c, 0xb9, 0x30, 0xda, 0x5d, 0xc9,
-	0xb2, 0x9c, 0x36, 0xae, 0x0f, 0xbd, 0x59, 0xbb, 0xdf, 0xfb, 0xf6, 0xed, 0xf7, 0xbd, 0x7d, 0xcf,
-	0xe0, 0x08, 0x11, 0xf5, 0xe3, 0x24, 0x92, 0x11, 0xb1, 0x85, 0x88, 0xba, 0xb7, 0xfd, 0x28, 0xf2,
-	0x03, 0x1c, 0xa8, 0xa5, 0xc9, 0xfc, 0x62, 0x80, 0xb3, 0x58, 0xa6, 0x1a, 0xd1, 0x7d, 0xbb, 0xba,
-	0x29, 0xf9, 0x0c, 0x85, 0xa4, 0xb3, 0xd8, 0x00, 0xee, 0x56, 0x01, 0xcf, 0x12, 0x1a, 0xc7, 0x98,
-	0x08, 0xb3, 0xbf, 0x43, 0xc3, 0x30, 0x92, 0x54, 0xf2, 0x28, 0x34, 0x4b, 0xbd, 0x3f, 0x2d, 0xd8,
-	0x3e, 0x9b, 0x33, 0x2e, 0xbf, 0xe4, 0x42, 0x7a, 0xf8, 0xd3, 0x1c, 0x85, 0x24, 0x47, 0x60, 0xf9,
-	0xe8, 0xd6, 0x0e, 0x6a, 0x87, 0xed, 0x61, 0xb7, 0xaf, 0x49, 0xfb, 0x39, 0x69, 0xff, 0xbb, 0xfc,
-	0x54, 0xcf, 0xf2, 0x31, 0xc3, 0x06, 0xe8, 0x5a, 0x37, 0x63, 0x03, 0x24, 0xf7, 0xa0, 0x11, 0xf0,
-	0x19, 0x97, 0xae, 0xad, 0xe0, 0xb7, 0x57, 0xe0, 0xa3, 0x50, 0x3e, 0xf8, 0xe0, 0x29, 0x0d, 0xe6,
-	0xe8, 0x69, 0x24, 0x39, 0x01, 0x27, 0xba, 0xb8, 0x10, 0x28, 0xc7, 0x9c, 0xb9, 0x75, 0x15, 0xf6,
-	0xd6, 0x4a, 0xd8, 0x63, 0x99, 0xf0, 0xd0, 0xd7, 0x71, 0x5b, 0x1a, 0x3e, 0x62, 0xa4, 0x03, 0x16,
-	0x67, 0x6e, 0xe3, 0xc0, 0x3e, 0x74, 0x3c, 0x8b, 0x33, 0x42, 0xa0, 0x2e, 0xd3, 0x18, 0xdd, 0xa6,
-	0x5a, 0x51, 0xbf, 0x89, 0x0b, 0x2d, 0x31, 0x9f, 0xfc, 0x88, 0x53, 0xe9, 0xb6, 0xd4, 0x72, 0xfe,
-	0x49, 0xee, 0x00, 0x08, 0x4c, 0xae, 0xf8, 0x14, 0xb3, 0x93, 0xb7, 0xd4, 0xa6, 0x63, 0x56, 0x46,
-	0x8c, 0xec, 0x43, 0x6b, 0x2e, 0x30, 0xc9, 0xf6, 0x1c, 0xb5, 0xd7, 0xcc, 0x3e, 0x47, 0xac, 0xf7,
-	0x03, 0x74, 0x4a, 0x7a, 0xc6, 0x41, 0x4a, 0xde, 0x85, 0xfa, 0x0c, 0x25, 0x35, 0x7a, 0xbe, 0xd1,
-	0xcf, 0x2c, 0xaf, 0x4a, 0xee, 0x29, 0x08, 0xb9, 0x0b, 0x75, 0x46, 0x25, 0x75, 0xad, 0x03, 0xfb,
-	0xb0, 0x3d, 0x84, 0x05, 0xd4, 0x53, 0xeb, 0xbd, 0x3f, 0x2c, 0x20, 0xea, 0xfb, 0x61, 0x82, 0x54,
-	0x62, 0xee, 0x57, 0x7e, 0xb3, 0xec, 0x84, 0xfc, 0x66, 0x0f, 0x16, 0x37, 0xb3, 0xd6, 0x90, 0xad,
-	0xb8, 0xf7, 0x7d, 0x93, 0x82, 0xad, 0x52, 0x78, 0x67, 0x91, 0xc2, 0xd2, 0x91, 0xfd, 0xcf, 0xa9,
-	0xa4, 0xe7, 0xa1, 0x4c, 0x52, 0x9d, 0x19, 0xb9, 0xbf, 0xd0, 0x63, 0x1d, 0x97, 0x8c, 0x5a, 0xe4,
-	0x13, 0x68, 0xab, 0xb0, 0x4b, 0x4c, 0xc7, 0xca, 0xac, 0x9b, 0x43, 0x9d, 0x2c, 0xe0, 0x11, 0xa6,
-	0x23, 0xd6, 0xfd, 0x10, 0x9c, 0x22, 0x0f, 0xb2, 0x0d, 0xf6, 0x25, 0xa6, 0x46, 0x83, 0xec, 0x27,
-	0xd9, 0x85, 0xc6, 0x55, 0x16, 0xa2, 0x04, 0x70, 0x3c, 0xfd, 0x71, 0x6a, 0x7d, 0x54, 0xeb, 0xf5,
-	0x4c, 0xd1, 0x7b, 0x48, 0x59, 0x2e, 0xa2, 0x2e, 0x17, 0x1d, 0x6e, 0x71, 0xd6, 0x7b, 0xdf, 0x18,
-	0xa9, 0x31, 0x99, 0x91, 0xb9, 0x3b, 0xda, 0xc8, 0x55, 0x77, 0x7e, 0xcb, 0xdd, 0x79, 0x12, 0xb3,
-	0x92, 0x3b, 0x15, 0x62, 0xf2, 0x29, 0xb4, 0x85, 0xa4, 0x72, 0x2e, 0xc6, 0xd3, 0x88, 0xe1, 0x73,
-	0xdd, 0x79, 0x32, 0x0a, 0xe5, 0xf1, 0x50, 0xdf, 0x19, 0x74, 0xc0, 0xc3, 0x88, 0x2d, 0x19, 0x6b,
-	0x6f, 0x62, 0x6c, 0xbd, 0x6a, 0xec, 0x52, 0xb6, 0x55, 0x63, 0x37, 0xd7, 0xf8, 0xef, 0x06, 0x34,
-	0x14, 0x3f, 0x39, 0x01, 0x98, 0xaa, 0xe2, 0x61, 0x63, 0x2a, 0xd7, 0x68, 0x2b, 0x8e, 0x41, 0x9f,
-	0xa9, 0xd0, 0xb9, 0x4a, 0x4f, 0x85, 0xde, 0xdc, 0x65, 0x1c, 0x83, 0x3e, 0xcb, 0x65, 0xb7, 0x0b,
-	0xd9, 0xef, 0x00, 0xa8, 0x52, 0xa3, 0x3e, 0x86, 0x52, 0x15, 0xa9, 0xa3, 0x6b, 0xe9, 0x2c, 0x5b,
-	0x20, 0x7b, 0xd0, 0x4c, 0x70, 0x16, 0x49, 0x54, 0x45, 0xe8, 0x78, 0xe6, 0x8b, 0x9c, 0x82, 0x73,
-	0x11, 0x25, 0xcf, 0x68, 0xc2, 0x90, 0xb9, 0xcd, 0x75, 0xea, 0xb3, 0x80, 0x57, 0x9d, 0x6e, 0xbd,
-	0xa4, 0xd3, 0xf9, 0xb3, 0xde, 0xba, 0xfe, 0x59, 0x3b, 0x2f, 0xe3, 0xfe, 0xa1, 0x71, 0x1f, 0x94,
-	0xfb, 0xbb, 0x0b, 0xf7, 0x57, 0x5e, 0xf2, 0x31, 0x34, 0xcd, 0x6b, 0x6c, 0xaf, 0x71, 0x40, 0xe3,
-	0x32, 0x7b, 0x89, 0xe4, 0xe3, 0xa5, 0x6e, 0xf9, 0xda, 0x3a, 0x32, 0x2d, 0x7a, 0x69, 0xa9, 0x77,
-	0xbc, 0xbe, 0x79, 0xef, 0xe8, 0xbc, 0xa2, 0xde, 0xf1, 0xaf, 0x05, 0x9d, 0x47, 0x98, 0x96, 0xe7,
-	0xe5, 0x7b, 0x60, 0xf9, 0x79, 0x61, 0xbf, 0x38, 0x01, 0xcb, 0x57, 0xe8, 0x60, 0xbd, 0xa6, 0x6c,
-	0x05, 0x72, 0x93, 0x99, 0xa9, 0x2b, 0xbf, 0x5e, 0x0c, 0xbe, 0x13, 0x00, 0x2e, 0xc6, 0x18, 0xd2,
-	0x49, 0x80, 0x79, 0x8f, 0x5d, 0x7d, 0x44, 0x9f, 0x45, 0x51, 0x60, 0x54, 0xe2, 0xe2, 0x5c, 0x83,
-	0x4d, 0x68, 0x82, 0x57, 0xd1, 0x65, 0x51, 0xfe, 0x37, 0x84, 0x7a, 0x1a, 0x5c, 0x54, 0x6f, 0xab,
-	0x34, 0x6e, 0x37, 0x1c, 0xaa, 0xc3, 0xff, 0x6c, 0xb0, 0x1f, 0x8b, 0x88, 0x78, 0x50, 0xff, 0x86,
-	0x87, 0x3e, 0xd9, 0x5b, 0x49, 0xe1, 0x3c, 0xfb, 0x9f, 0xd4, 0x7d, 0xa1, 0x9c, 0xbd, 0xdd, 0x5f,
-	0xff, 0xfa, 0xe7, 0x77, 0xab, 0x43, 0x1a, 0x83, 0x98, 0x87, 0xfe, 0x44, 0x7b, 0x4a, 0xbe, 0x87,
-	0xd6, 0x57, 0x28, 0x13, 0x3e, 0x15, 0x1b, 0xd2, 0xee, 0x2b, 0xda, 0x1d, 0xb2, 0x35, 0x98, 0x69,
-	0x9e, 0x9c, 0xf9, 0x0b, 0x70, 0x8a, 0x39, 0x4f, 0xae, 0x9f, 0xfb, 0xdd, 0x5b, 0xd5, 0xe5, 0x38,
-	0x48, 0x7b, 0x3b, 0x8a, 0xb1, 0x4d, 0x9c, 0xc1, 0xd5, 0xbd, 0x01, 0x55, 0x3d, 0xf4, 0x5b, 0x68,
-	0x97, 0xa6, 0x30, 0xd9, 0x7f, 0xce, 0x5c, 0x2e, 0xf3, 0x15, 0x83, 0x2b, 0xbf, 0x78, 0x6f, 0xc1,
-	0x77, 0x5a, 0x3b, 0x22, 0x5f, 0x9b, 0xf4, 0x32, 0x5c, 0x39, 0xbd, 0xd2, 0x50, 0xbc, 0x9e, 0x6e,
-	0x4f, 0xd1, 0x6d, 0x93, 0x4e, 0x41, 0x37, 0xf8, 0x99, 0xb3, 0x5f, 0xc8, 0x53, 0x93, 0xa3, 0x1e,
-	0x28, 0xe5, 0x1c, 0x97, 0x46, 0xcc, 0xf5, 0xa4, 0x6f, 0x2a, 0xd2, 0x5b, 0xc3, 0x0a, 0xe9, 0x69,
-	0xed, 0x68, 0xd2, 0x54, 0xb2, 0x1f, 0xff, 0x1f, 0x00, 0x00, 0xff, 0xff, 0xeb, 0x3d, 0xcf, 0x2c,
-	0x2d, 0x0b, 0x00, 0x00,
+	// 2775 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x5a, 0x4b, 0x70, 0x1c, 0x47,
+	0x19, 0x66, 0xdf, 0x3b, 0xbf, 0x1e, 0x5e, 0xb5, 0x5e, 0x9b, 0x75, 0x94, 0x28, 0x03, 0x49, 0x84,
+	0x12, 0x24, 0x47, 0x7e, 0xc4, 0x76, 0x80, 0x42, 0xb6, 0x15, 0x97, 0x2c, 0x3b, 0xb6, 0xd7, 0x92,
+	0x1d, 0x27, 0xc0, 0xd6, 0x68, 0xb7, 0xb5, 0x1a, 0x3c, 0xbb, 0xb3, 0x99, 0xe9, 0x95, 0xbd, 0x50,
+	0xb9, 0x70, 0x85, 0x2a, 0x2a, 0xc5, 0x9d, 0xa2, 0x38, 0x53, 0xc5, 0x05, 0x2e, 0x9c, 0xe1, 0xca,
+	0x05, 0x38, 0x72, 0xe3, 0x0c, 0x07, 0x0e, 0x1c, 0xa1, 0xfa, 0x39, 0x3d, 0xb3, 0x33, 0xab, 0xd1,
+	0xca, 0x4e, 0x25, 0x05, 0xb7, 0x9d, 0x9e, 0xfe, 0xbf, 0xfe, 0xfb, 0xff, 0xbf, 0xfe, 0x1f, 0x3d,
+	0x0b, 0x86, 0xef, 0xbb, 0x6b, 0x3d, 0xcf, 0x25, 0x2e, 0xca, 0xf9, 0xbe, 0x5b, 0x3b, 0xdb, 0x76,
+	0xdd, 0xb6, 0x83, 0xd7, 0xd9, 0xd0, 0x7e, 0xff, 0x60, 0x1d, 0x77, 0x7a, 0x64, 0xc0, 0x67, 0xd4,
+	0x5e, 0x8d, 0xbe, 0x24, 0x76, 0x07, 0xfb, 0xc4, 0xea, 0xf4, 0xc4, 0x84, 0x57, 0xa2, 0x13, 0x9e,
+	0x7a, 0x56, 0xaf, 0x87, 0x3d, 0x5f, 0xbc, 0x9f, 0xb1, 0xba, 0x5d, 0x97, 0x58, 0xc4, 0x76, 0xbb,
+	0x62, 0xc8, 0xfc, 0x53, 0x16, 0x2a, 0x9b, 0xfd, 0x96, 0x4d, 0x6e, 0xdb, 0x3e, 0xa9, 0xe3, 0x4f,
+	0xfa, 0xd8, 0x27, 0x68, 0x15, 0xb2, 0x6d, 0x5c, 0xcd, 0x2c, 0x67, 0x56, 0x26, 0x36, 0x6a, 0x6b,
+	0x1c, 0x74, 0x4d, 0x82, 0xae, 0xed, 0xca, 0x55, 0xeb, 0xd9, 0x36, 0xa6, 0x73, 0x1d, 0x5c, 0xcd,
+	0x1e, 0x3f, 0xd7, 0xc1, 0xe8, 0x1d, 0x28, 0x38, 0x76, 0xc7, 0x26, 0xd5, 0x1c, 0x9b, 0x7e, 0x76,
+	0x68, 0xfa, 0x76, 0x97, 0x5c, 0xba, 0xf0, 0xd0, 0x72, 0xfa, 0xb8, 0xce, 0x67, 0xa2, 0x2b, 0x60,
+	0xb8, 0x07, 0x07, 0x3e, 0x26, 0x0d, 0xbb, 0x55, 0xcd, 0x33, 0xb1, 0x97, 0x87, 0xc4, 0x1e, 0x10,
+	0xcf, 0xee, 0xb6, 0xb9, 0x5c, 0x99, 0x4f, 0xdf, 0x6e, 0xa1, 0x69, 0xc8, 0xda, 0xad, 0x6a, 0x61,
+	0x39, 0xb7, 0x62, 0xd4, 0xb3, 0x76, 0x0b, 0x21, 0xc8, 0x93, 0x41, 0x0f, 0x57, 0x8b, 0x6c, 0x84,
+	0xfd, 0x46, 0x55, 0x28, 0xf9, 0xfd, 0xfd, 0x1f, 0xe0, 0x26, 0xa9, 0x96, 0xd8, 0xb0, 0x7c, 0x44,
+	0x4b, 0x00, 0x3e, 0xf6, 0x8e, 0xec, 0x26, 0xa6, 0x2b, 0x97, 0xd9, 0x4b, 0x43, 0x8c, 0x6c, 0xb7,
+	0xd0, 0x22, 0x94, 0xfa, 0x3e, 0xf6, 0xe8, 0x3b, 0x83, 0xbd, 0x2b, 0xd2, 0xc7, 0xed, 0x96, 0xf9,
+	0x31, 0x4c, 0x6b, 0xf6, 0xec, 0x39, 0x03, 0xf4, 0x75, 0xc8, 0x77, 0x30, 0xb1, 0x84, 0x3d, 0xe7,
+	0xd7, 0xa8, 0xcb, 0xa3, 0x26, 0xaf, 0xb3, 0x29, 0xe8, 0x15, 0xc8, 0xb7, 0x2c, 0x62, 0x55, 0xb3,
+	0xcb, 0xb9, 0x95, 0x89, 0x0d, 0x08, 0xa6, 0xd6, 0xd9, 0xb8, 0xf9, 0xc7, 0x2c, 0x20, 0xf6, 0x7c,
+	0xdd, 0xc3, 0x16, 0xc1, 0xd2, 0x5f, 0x72, 0x67, 0x74, 0x05, 0xb9, 0xb3, 0x4b, 0xc1, 0xce, 0xb2,
+	0x29, 0xcc, 0xa6, 0xf6, 0x7d, 0x51, 0xa8, 0x90, 0x63, 0x2a, 0xbc, 0x16, 0xa8, 0x10, 0x5a, 0x72,
+	0xed, 0x86, 0x45, 0xac, 0xad, 0x2e, 0xf1, 0x06, 0x5c, 0x33, 0x74, 0x31, 0xb0, 0x47, 0x1a, 0x2f,
+	0x09, 0x6b, 0xa1, 0x6f, 0xc2, 0x04, 0x13, 0x7b, 0x82, 0x07, 0x0d, 0xe6, 0xac, 0xe3, 0x45, 0x0d,
+	0x2a, 0xb0, 0x83, 0x07, 0xdb, 0xad, 0xda, 0xbb, 0x60, 0x28, 0x3d, 0x50, 0x05, 0x72, 0x4f, 0xf0,
+	0x40, 0xd8, 0x80, 0xfe, 0x44, 0x73, 0x50, 0x38, 0xa2, 0x22, 0xcc, 0x00, 0x46, 0x9d, 0x3f, 0x5c,
+	0xcd, 0x5e, 0xce, 0x98, 0x1f, 0x09, 0xd2, 0xd7, 0xb1, 0xd5, 0x92, 0x46, 0xe4, 0x74, 0xe1, 0xe2,
+	0x94, 0x2e, 0x63, 0x1a, 0xd0, 0x3c, 0x27, 0x08, 0xc0, 0xb1, 0x29, 0x01, 0xa4, 0x57, 0x39, 0x01,
+	0x86, 0xbd, 0xfa, 0x13, 0xe9, 0xd5, 0xbd, 0x5e, 0x4b, 0xf3, 0x6a, 0x54, 0xa1, 0x6f, 0xc1, 0x84,
+	0x4f, 0x2c, 0xd2, 0xf7, 0x1b, 0x4d, 0xb7, 0x85, 0x13, 0x95, 0xda, 0xdb, 0xee, 0x92, 0xf3, 0x1b,
+	0x5c, 0x29, 0xe0, 0x02, 0xd7, 0xdd, 0x56, 0x88, 0x10, 0xb9, 0x71, 0x08, 0x91, 0x8f, 0x12, 0x22,
+	0xa4, 0x6d, 0x94, 0x10, 0xe3, 0xfb, 0xe6, 0xaf, 0x05, 0x28, 0x30, 0x7c, 0x74, 0x05, 0xa0, 0xc9,
+	0x48, 0xd7, 0x6a, 0x58, 0x24, 0x45, 0x38, 0x32, 0xc4, 0xec, 0x4d, 0x26, 0xda, 0x67, 0xea, 0x31,
+	0xd1, 0xe3, 0xa3, 0x93, 0x21, 0x66, 0x6f, 0x4a, 0xb3, 0xe7, 0x94, 0xd9, 0x97, 0x00, 0x18, 0x45,
+	0xad, 0x36, 0xee, 0x12, 0x46, 0x6e, 0x83, 0x73, 0x70, 0x93, 0x0e, 0xa0, 0x05, 0x28, 0x7a, 0xb8,
+	0xe3, 0x12, 0xcc, 0xc8, 0x6b, 0xd4, 0xc5, 0x13, 0xba, 0x0a, 0xc6, 0x81, 0xeb, 0x3d, 0xb5, 0xbc,
+	0x16, 0x6e, 0x55, 0x8b, 0x69, 0x78, 0xad, 0xa6, 0x47, 0x3d, 0x5d, 0x3a, 0xa1, 0xa7, 0x65, 0x38,
+	0x28, 0xc7, 0x87, 0x03, 0xe3, 0x24, 0xde, 0x5f, 0x11, 0xde, 0x07, 0xe6, 0xfd, 0xb9, 0xc0, 0xfb,
+	0x43, 0x11, 0xe0, 0x3c, 0x14, 0xc5, 0x29, 0x9e, 0x48, 0xb1, 0x40, 0xe1, 0x09, 0x3d, 0xc1, 0xe8,
+	0xbd, 0x50, 0x94, 0x9d, 0x4c, 0x63, 0xa6, 0x20, 0x06, 0x6b, 0x31, 0x67, 0x6a, 0xfc, 0x98, 0x33,
+	0xfd, 0x39, 0xc5, 0x9c, 0xff, 0x64, 0x61, 0x7a, 0x07, 0x0f, 0xf4, 0x3c, 0xfb, 0x36, 0x64, 0xdb,
+	0x92, 0xd8, 0xa3, 0x15, 0xc8, 0xb6, 0xd9, 0x6c, 0x27, 0x5d, 0x2c, 0xca, 0x3a, 0x64, 0x9c, 0x5c,
+	0xcb, 0x99, 0x9f, 0x57, 0x09, 0xf3, 0x0a, 0x80, 0xed, 0x37, 0x70, 0xd7, 0xda, 0x77, 0xb0, 0x8c,
+	0xcd, 0xc3, 0x87, 0xe8, 0x9a, 0xeb, 0x3a, 0xc2, 0x4a, 0xb6, 0xbf, 0xc5, 0x27, 0x0b, 0x51, 0x0f,
+	0x1f, 0xb9, 0x4f, 0x14, 0xfd, 0x8f, 0x11, 0xad, 0xf3, 0xc9, 0x68, 0x59, 0xb0, 0x97, 0xe6, 0xe3,
+	0xe9, 0x8d, 0x49, 0xc6, 0xb8, 0x1d, 0x3c, 0xd8, 0x1d, 0xf4, 0xb0, 0xe0, 0xf2, 0xb8, 0xa9, 0x79,
+	0x0f, 0x26, 0x95, 0x03, 0x68, 0x5c, 0x7e, 0x33, 0x94, 0x98, 0x67, 0xe5, 0x4a, 0xc3, 0x69, 0xf9,
+	0xe5, 0x50, 0x5a, 0x2e, 0xcb, 0x89, 0x22, 0x7c, 0xff, 0x3b, 0x03, 0x95, 0x1d, 0x3c, 0x08, 0xa7,
+	0xe4, 0x65, 0x2d, 0x25, 0xc7, 0xef, 0x02, 0x41, 0xbe, 0x6b, 0x75, 0x24, 0x51, 0xd8, 0xef, 0x88,
+	0xc5, 0x73, 0x27, 0xb1, 0x78, 0xf8, 0x24, 0xe5, 0xc7, 0x3e, 0x49, 0x85, 0xf4, 0x27, 0xc9, 0x7c,
+	0x97, 0x31, 0x5a, 0x6e, 0x9c, 0x9a, 0xf4, 0xf5, 0x50, 0xaa, 0x9b, 0x91, 0xdb, 0x7e, 0x64, 0x93,
+	0x43, 0x2e, 0xca, 0x4d, 0xb6, 0xcc, 0x04, 0x47, 0x64, 0x5f, 0xf3, 0x6d, 0xe6, 0xab, 0x20, 0x87,
+	0xbe, 0x1c, 0x02, 0x8e, 0xba, 0xe0, 0x67, 0xdc, 0x05, 0xa3, 0xf3, 0xe7, 0x39, 0xcd, 0xe0, 0xc7,
+	0xed, 0xf0, 0xb4, 0xee, 0x30, 0xff, 0x95, 0x85, 0xdc, 0x0e, 0x1e, 0x7c, 0x71, 0x72, 0x98, 0xb6,
+	0x11, 0x4a, 0x8e, 0xb2, 0xce, 0x9d, 0xa5, 0xd0, 0x69, 0x2d, 0xc8, 0xd7, 0xd1, 0x13, 0x59, 0x3c,
+	0x96, 0xcb, 0x25, 0x8d, 0xcb, 0xef, 0x45, 0x4e, 0xe9, 0xb8, 0x84, 0x34, 0x4e, 0x40, 0xc8, 0xef,
+	0x30, 0xd6, 0x28, 0xb6, 0xa1, 0x5a, 0x10, 0x9f, 0x75, 0xd2, 0x24, 0x47, 0x6a, 0xf3, 0x1f, 0x19,
+	0x40, 0x0f, 0xb8, 0x1a, 0xff, 0x13, 0x91, 0xda, 0xb4, 0xa0, 0x12, 0xda, 0x2f, 0x3d, 0x6c, 0x6f,
+	0x85, 0x02, 0xe3, 0x22, 0xb3, 0xdb, 0xb0, 0x51, 0x44, 0x70, 0x5c, 0x0e, 0x05, 0xc7, 0x49, 0x7d,
+	0xb2, 0x38, 0x9d, 0x9f, 0xe5, 0x61, 0x4e, 0x8c, 0x0c, 0xf5, 0x2d, 0x8c, 0x36, 0x19, 0x8d, 0x36,
+	0x15, 0xc8, 0xf5, 0x3d, 0x47, 0x38, 0x85, 0xfe, 0x3c, 0x4d, 0x50, 0xbc, 0x05, 0xb3, 0xbc, 0x76,
+	0x73, 0x1c, 0xf7, 0x69, 0xc3, 0xc3, 0x6d, 0xdb, 0x27, 0xd8, 0x13, 0xd1, 0x71, 0x14, 0xc6, 0x0c,
+	0x2b, 0xf0, 0xa8, 0x54, 0x5d, 0x08, 0xa1, 0x1b, 0x70, 0x86, 0x61, 0xe1, 0x8e, 0x65, 0x3b, 0x0d,
+	0x82, 0x9f, 0x91, 0x54, 0xb1, 0x72, 0x8a, 0x0a, 0x6d, 0x51, 0x99, 0x5d, 0xfc, 0x8c, 0xa0, 0x5b,
+	0x80, 0x7a, 0x9e, 0x7b, 0x64, 0xb7, 0xb0, 0xd7, 0x70, 0xdc, 0xa6, 0xe5, 0x34, 0xe8, 0x6e, 0xd3,
+	0xd4, 0x87, 0x15, 0x29, 0x77, 0x9b, 0x8a, 0xed, 0x79, 0x0e, 0x7a, 0x0c, 0x35, 0x85, 0xd5, 0xb6,
+	0xc9, 0x61, 0x7f, 0xbf, 0xe1, 0x5a, 0x7d, 0x72, 0xb8, 0xc1, 0x30, 0x4b, 0x29, 0x30, 0x17, 0xa5,
+	0xfc, 0x4d, 0x26, 0x7e, 0x97, 0x49, 0x53, 0xe8, 0x06, 0x2c, 0x29, 0xe8, 0x8e, 0xdd, 0xf4, 0x5c,
+	0xdf, 0x3d, 0x20, 0x3a, 0x7a, 0x9a, 0xf3, 0xac, 0xb4, 0xbb, 0x23, 0x11, 0xd4, 0x02, 0xe6, 0xd7,
+	0xd4, 0x31, 0x1b, 0x95, 0x05, 0x2e, 0x28, 0x72, 0x06, 0x99, 0x60, 0x39, 0x94, 0x09, 0xe2, 0xf8,
+	0xf6, 0xb7, 0x80, 0x6f, 0xcf, 0x3b, 0x23, 0xac, 0x71, 0x76, 0xa6, 0x69, 0xa0, 0x62, 0xb8, 0x9b,
+	0x7f, 0x0e, 0xdc, 0x2d, 0x3c, 0x27, 0xee, 0x16, 0x9f, 0x17, 0x77, 0x4b, 0x2f, 0x80, 0xbb, 0xe5,
+	0x17, 0xca, 0x5d, 0xe3, 0x94, 0xdc, 0xfd, 0x6d, 0x1e, 0x4a, 0x82, 0x5f, 0x5f, 0x8e, 0xfc, 0x2e,
+	0xe3, 0x6c, 0x61, 0x38, 0xce, 0x16, 0x83, 0x38, 0xbb, 0x16, 0x4f, 0xb8, 0x12, 0x43, 0x8b, 0x21,
+	0xd5, 0x1b, 0xc3, 0xa4, 0xe2, 0x1d, 0x67, 0x2a, 0xda, 0x18, 0x2f, 0x80, 0x36, 0xf0, 0x42, 0x69,
+	0x33, 0x71, 0x4a, 0xda, 0xfc, 0x33, 0x0b, 0x67, 0xf6, 0x7c, 0xec, 0x7d, 0x5e, 0x75, 0xc5, 0x45,
+	0x28, 0x51, 0x4f, 0x37, 0xda, 0x38, 0x55, 0xbc, 0x2a, 0xd2, 0xc9, 0x37, 0xb1, 0x12, 0x73, 0x70,
+	0xba, 0x9b, 0x3c, 0x3a, 0xf9, 0xb6, 0x76, 0xb7, 0x5b, 0x18, 0xef, 0x6e, 0xb7, 0x38, 0xc6, 0xdd,
+	0x6e, 0x49, 0x15, 0x40, 0x73, 0x50, 0x60, 0x34, 0x14, 0xdd, 0x20, 0x7f, 0x30, 0x3f, 0x84, 0xa9,
+	0xc0, 0xe0, 0x34, 0x77, 0xac, 0x84, 0x0a, 0x1b, 0x7e, 0x9b, 0x11, 0x71, 0x89, 0xa8, 0x6a, 0x96,
+	0x42, 0x55, 0x8d, 0xa1, 0x66, 0x8a, 0x14, 0xf3, 0x87, 0x1c, 0xcc, 0xd0, 0xc7, 0xe3, 0xeb, 0x19,
+	0xa5, 0x99, 0x28, 0x33, 0xd9, 0xc3, 0x69, 0x6a, 0x9a, 0x0b, 0x50, 0x64, 0xa7, 0x28, 0xa5, 0x7b,
+	0xf8, 0x5c, 0x74, 0x19, 0xca, 0xc4, 0xee, 0xe0, 0x1f, 0xba, 0x5d, 0x9c, 0xaa, 0x6c, 0x51, 0xb3,
+	0xd1, 0x6d, 0x98, 0xeb, 0x59, 0xbe, 0xff, 0xd4, 0xf5, 0x5a, 0x2a, 0x34, 0xf8, 0x98, 0xa4, 0x68,
+	0xea, 0x91, 0x94, 0x13, 0x71, 0xc3, 0xc7, 0x04, 0xd5, 0x61, 0x51, 0xa1, 0x79, 0xf8, 0x93, 0xbe,
+	0xed, 0xe1, 0x06, 0x8f, 0x6b, 0x22, 0x91, 0x8c, 0x02, 0x9c, 0x97, 0xa2, 0x75, 0x2e, 0xc9, 0xb3,
+	0x3b, 0xdd, 0x9b, 0x7c, 0x91, 0x2a, 0x73, 0xa8, 0xd9, 0xe6, 0x6b, 0xfc, 0x44, 0x8e, 0x2a, 0x41,
+	0xd6, 0x38, 0x87, 0x82, 0xfa, 0x63, 0x29, 0x54, 0x7f, 0x0c, 0x31, 0xe3, 0x57, 0x82, 0x19, 0x5f,
+	0x9c, 0x5e, 0xf4, 0xff, 0x8c, 0x89, 0x32, 0x86, 0x76, 0xe7, 0x79, 0xea, 0xa4, 0x2f, 0x6f, 0xfa,
+	0x56, 0x61, 0xa5, 0xa8, 0x87, 0x95, 0x05, 0xe5, 0x69, 0xde, 0x89, 0x4b, 0x5f, 0xd6, 0x34, 0x5f,
+	0xf2, 0x1c, 0x1d, 0x78, 0xeb, 0x5c, 0x82, 0xb7, 0x0c, 0xa6, 0x46, 0x9c, 0x47, 0x2e, 0x25, 0x7b,
+	0x04, 0x98, 0x50, 0x82, 0xd5, 0x1f, 0xc2, 0xf4, 0x66, 0x9f, 0x1c, 0xb2, 0x7b, 0x1d, 0x7e, 0x2c,
+	0x86, 0xef, 0x4f, 0x37, 0xa0, 0x60, 0xf5, 0x5b, 0x76, 0xba, 0x2c, 0xc7, 0xa7, 0x9a, 0x9f, 0xc2,
+	0xa4, 0xc2, 0x15, 0x27, 0x94, 0x56, 0x20, 0x31, 0x27, 0x94, 0x0e, 0xcb, 0x4b, 0x81, 0x6c, 0xdc,
+	0xa5, 0x80, 0x5a, 0x3e, 0x97, 0x7e, 0xf9, 0x1b, 0x7c, 0x5b, 0xe2, 0xa3, 0x0f, 0x55, 0x40, 0xa1,
+	0x64, 0xd2, 0xa3, 0x7c, 0x17, 0x2a, 0x14, 0x65, 0xd7, 0x7d, 0x82, 0xbb, 0xd2, 0x3c, 0x73, 0x50,
+	0x20, 0xf4, 0x59, 0x18, 0x88, 0x3f, 0x8c, 0x65, 0xa2, 0xcf, 0x32, 0x30, 0xa7, 0xe0, 0x1f, 0x62,
+	0xcf, 0x3e, 0x48, 0x67, 0xab, 0x37, 0xa0, 0x68, 0x35, 0x9b, 0xd8, 0xf7, 0xc5, 0x62, 0xd3, 0xe2,
+	0x03, 0x80, 0x54, 0x54, 0xbc, 0x1d, 0xcb, 0x6e, 0xbf, 0xcb, 0x70, 0xc3, 0x89, 0x2d, 0x3f, 0x47,
+	0x6d, 0x56, 0xa0, 0xe4, 0xe1, 0x03, 0x0f, 0xfb, 0x87, 0x42, 0x9f, 0xe8, 0x44, 0xf9, 0x3a, 0xd0,
+	0x3b, 0x9f, 0x5e, 0xef, 0xf7, 0xc1, 0x50, 0x48, 0x09, 0x2e, 0xfa, 0x2a, 0x4c, 0xb1, 0x1f, 0x0d,
+	0xfc, 0xac, 0x67, 0x7b, 0x98, 0xeb, 0x9b, 0xab, 0x4f, 0xb2, 0xc1, 0x2d, 0x3e, 0x66, 0x7e, 0x1b,
+	0xce, 0x70, 0x1c, 0xd2, 0x93, 0x0e, 0xd7, 0xae, 0xae, 0x39, 0x9e, 0xfc, 0x66, 0x81, 0x20, 0x4f,
+	0x5c, 0xd2, 0x93, 0x97, 0xc5, 0xf4, 0xb7, 0x79, 0x1f, 0xe6, 0xa9, 0xfc, 0x75, 0xdf, 0x3b, 0x08,
+	0x97, 0x21, 0x97, 0xc1, 0x10, 0xeb, 0x36, 0x7c, 0x61, 0xca, 0x91, 0xe5, 0x58, 0x59, 0xcc, 0x7e,
+	0x60, 0x5e, 0x80, 0xd9, 0x28, 0xa4, 0x70, 0x4b, 0xd3, 0xf7, 0x0e, 0x42, 0x6e, 0xa1, 0x73, 0xea,
+	0x6c, 0xd8, 0x6c, 0x04, 0x8a, 0x48, 0x6a, 0xa9, 0x7a, 0x48, 0xc9, 0x19, 0x7c, 0xf2, 0x58, 0xec,
+	0xfd, 0x4b, 0x06, 0xf2, 0x14, 0xfd, 0x34, 0xe1, 0xba, 0x12, 0x9c, 0xfa, 0xe8, 0xa7, 0x9a, 0x9c,
+	0x76, 0x01, 0x88, 0xde, 0x86, 0x1c, 0x21, 0x4e, 0x62, 0xab, 0x1e, 0x60, 0xd3, 0x69, 0x91, 0x4b,
+	0xce, 0xc2, 0x89, 0x2e, 0x39, 0xcd, 0x1b, 0xfc, 0xc8, 0xdf, 0x76, 0xdb, 0xb6, 0x7e, 0xe4, 0x79,
+	0x5c, 0xcf, 0xe8, 0x71, 0xbd, 0xa6, 0x55, 0x38, 0x7c, 0x07, 0x41, 0x0d, 0xf3, 0x6b, 0x71, 0x8c,
+	0x04, 0x4c, 0xf2, 0x3f, 0x0e, 0xc8, 0xe1, 0x3d, 0x21, 0x73, 0x07, 0x13, 0x2b, 0xa8, 0x73, 0xd9,
+	0x89, 0xcb, 0x1e, 0x77, 0xe2, 0x72, 0x69, 0x4f, 0x5c, 0x7e, 0xe4, 0x89, 0x33, 0x7f, 0x93, 0xe1,
+	0x1c, 0x93, 0x6d, 0xe4, 0xc9, 0x6b, 0xe7, 0xa0, 0x9c, 0xc9, 0x8d, 0x59, 0xce, 0xe4, 0x4f, 0x52,
+	0xce, 0x98, 0xbf, 0xcf, 0x40, 0x4d, 0xd7, 0xf8, 0xba, 0xdb, 0x3d, 0xb0, 0xbd, 0xce, 0xe8, 0x20,
+	0x7d, 0x39, 0xe2, 0xb1, 0xd4, 0x35, 0x69, 0x62, 0xf5, 0x94, 0x1b, 0xa7, 0x7a, 0x32, 0xaf, 0xf1,
+	0xb3, 0x19, 0xf2, 0xfc, 0x09, 0x39, 0x62, 0xfe, 0x32, 0xc3, 0x89, 0xaa, 0xbf, 0x42, 0xdb, 0x30,
+	0xa3, 0xd4, 0xf4, 0x89, 0x87, 0xbb, 0x6d, 0x72, 0x98, 0x98, 0xef, 0xf4, 0x2f, 0xd5, 0x15, 0x29,
+	0xf6, 0x40, 0x48, 0xa1, 0x4d, 0x98, 0x56, 0x50, 0xbd, 0xa7, 0x5d, 0xdc, 0x4a, 0xac, 0xa6, 0x82,
+	0xbd, 0x4e, 0x49, 0x89, 0x7b, 0x54, 0x60, 0xf5, 0x4d, 0x28, 0x89, 0x2f, 0x12, 0xa8, 0x04, 0xb9,
+	0x9d, 0xad, 0xc7, 0x95, 0xaf, 0x20, 0x03, 0x0a, 0xbb, 0x77, 0x77, 0xb6, 0x3e, 0xa8, 0x64, 0x50,
+	0x19, 0xf2, 0xbb, 0x77, 0x77, 0xef, 0x55, 0xb2, 0x1b, 0xbf, 0x58, 0x80, 0xdc, 0x03, 0xdf, 0x45,
+	0x75, 0xc8, 0xdf, 0xb3, 0xbb, 0x6d, 0xb4, 0x30, 0xb4, 0xc6, 0x56, 0xa7, 0x47, 0x06, 0xb5, 0x91,
+	0xde, 0x32, 0xe7, 0x7e, 0xfc, 0xe7, 0xbf, 0xff, 0x3c, 0x3b, 0x8d, 0x0a, 0xeb, 0x3d, 0xbb, 0xdb,
+	0xde, 0x17, 0xa1, 0xe3, 0x43, 0x28, 0xdd, 0xc1, 0xc4, 0xb3, 0x9b, 0xfe, 0x98, 0xb0, 0x8b, 0x0c,
+	0x76, 0x06, 0x95, 0xd7, 0x3b, 0x1c, 0x47, 0x22, 0xdf, 0xa2, 0x29, 0x47, 0xfc, 0x63, 0x08, 0xc5,
+	0xff, 0x83, 0xa8, 0x36, 0x1b, 0x1d, 0xee, 0x39, 0x03, 0x73, 0x86, 0x21, 0x4e, 0x20, 0x63, 0xfd,
+	0xe8, 0x9d, 0x75, 0x16, 0x4c, 0xd1, 0x7d, 0x98, 0xd0, 0xfe, 0xcf, 0x83, 0x16, 0x13, 0xfe, 0xe1,
+	0xa3, 0xe3, 0xa9, 0xe6, 0x47, 0x6e, 0xdc, 0x0c, 0xf0, 0xae, 0x66, 0x56, 0xd1, 0x5d, 0xa1, 0x1e,
+	0x9d, 0xa7, 0xab, 0xa7, 0xf5, 0x55, 0xf1, 0x70, 0x0b, 0x0c, 0xae, 0x82, 0xa6, 0x15, 0xdc, 0xfa,
+	0x8f, 0xec, 0xd6, 0xa7, 0xe8, 0xa1, 0xd0, 0x51, 0x34, 0x78, 0x8b, 0x09, 0x7f, 0x3a, 0x89, 0x07,
+	0x7d, 0x89, 0x81, 0xce, 0x6e, 0x44, 0x40, 0xa9, 0xa2, 0xd7, 0x18, 0x4d, 0x98, 0x15, 0xe3, 0x3e,
+	0xf7, 0xd6, 0x66, 0xc2, 0x83, 0x14, 0xed, 0x0c, 0x43, 0x33, 0x50, 0x89, 0xa2, 0xd1, 0xb4, 0xb1,
+	0x03, 0x86, 0xfa, 0xe8, 0x29, 0x36, 0x1b, 0xfd, 0xfa, 0x5b, 0x9b, 0x8d, 0x0e, 0x53, 0x24, 0xc4,
+	0x90, 0x26, 0x4d, 0x89, 0x44, 0x15, 0xba, 0xc9, 0x14, 0x62, 0x76, 0x53, 0x32, 0xba, 0xd5, 0x66,
+	0xc2, 0x83, 0x9a, 0x0b, 0xd0, 0xa4, 0x80, 0xe1, 0x16, 0xfb, 0x80, 0x69, 0x25, 0xec, 0xa5, 0xb4,
+	0x0a, 0x5b, 0x2b, 0x06, 0x4c, 0x30, 0x6e, 0x23, 0x04, 0x46, 0x15, 0xe3, 0x78, 0x37, 0xb0, 0x83,
+	0x09, 0x8e, 0x57, 0x2d, 0x81, 0xe2, 0x52, 0xbf, 0xd5, 0xb0, 0x7e, 0x75, 0x98, 0xd0, 0xbe, 0x20,
+	0xa1, 0xa4, 0x6f, 0x4a, 0xb5, 0xf9, 0xe1, 0x17, 0x54, 0xcf, 0x59, 0x06, 0x3a, 0x85, 0x26, 0x28,
+	0xa8, 0xc8, 0xa0, 0xe8, 0x31, 0x4c, 0x85, 0x3e, 0x2b, 0xa1, 0x97, 0x74, 0xe1, 0xb0, 0x47, 0x42,
+	0xb8, 0x43, 0x04, 0x34, 0x75, 0x5c, 0xba, 0xfd, 0x47, 0x4a, 0x5d, 0xe6, 0x9b, 0xc5, 0x61, 0xe9,
+	0x91, 0xb0, 0x55, 0x06, 0x8b, 0x50, 0x45, 0x83, 0xe5, 0x76, 0xf8, 0xbe, 0xd2, 0x59, 0xf8, 0x2a,
+	0xa4, 0x73, 0xd8, 0x5f, 0x09, 0xe0, 0x67, 0x19, 0xf8, 0xfc, 0xc6, 0x10, 0x38, 0x55, 0xfc, 0x23,
+	0x85, 0x2f, 0x7c, 0x97, 0xa8, 0x7a, 0x92, 0xff, 0x84, 0xee, 0xab, 0xc3, 0xba, 0xbf, 0x0f, 0x65,
+	0x79, 0x59, 0x86, 0x62, 0xef, 0xce, 0x6a, 0x28, 0x32, 0x4a, 0xd5, 0xad, 0x30, 0x3c, 0x40, 0x65,
+	0x8a, 0xc7, 0x8a, 0x8a, 0x3b, 0x00, 0xc1, 0xdd, 0x19, 0x5a, 0x50, 0x32, 0x61, 0x8f, 0x05, 0x58,
+	0xc1, 0xd6, 0x05, 0x0d, 0x4c, 0x85, 0x45, 0xb7, 0xbc, 0xc3, 0xd5, 0x62, 0x8e, 0x9a, 0x8b, 0x08,
+	0x25, 0x43, 0xcd, 0x33, 0xa8, 0x33, 0x68, 0x4a, 0x42, 0x49, 0x9e, 0x42, 0x70, 0x7b, 0xa3, 0xe9,
+	0x16, 0xf6, 0x4c, 0x1c, 0xa0, 0xb0, 0xdb, 0x46, 0x18, 0x90, 0x2a, 0x78, 0x9f, 0x63, 0x0a, 0x87,
+	0xc4, 0xab, 0x98, 0xe4, 0x0d, 0xa1, 0xe6, 0x6a, 0x44, 0xcd, 0x47, 0x30, 0x25, 0x5a, 0x5e, 0x5e,
+	0x71, 0xa3, 0x59, 0x95, 0xc0, 0x83, 0xf6, 0x5a, 0x1c, 0x78, 0xbd, 0x37, 0x36, 0x5f, 0x61, 0x78,
+	0x55, 0x73, 0x96, 0x07, 0x47, 0x72, 0xc8, 0x8e, 0xe8, 0x11, 0x03, 0xa1, 0xba, 0x3e, 0x56, 0xc0,
+	0xfc, 0xeb, 0x7f, 0x3c, 0x70, 0x30, 0x18, 0x74, 0xbd, 0x09, 0xd0, 0xfc, 0x5f, 0x05, 0x14, 0x1a,
+	0xcb, 0x7e, 0x47, 0xb5, 0xa0, 0x68, 0x3e, 0x52, 0x25, 0x0a, 0xf8, 0x97, 0xc2, 0xc3, 0x5a, 0xbf,
+	0x6a, 0x2e, 0xb3, 0x45, 0x6a, 0xe6, 0xbc, 0x5a, 0x84, 0xd5, 0x5b, 0xda, 0x0e, 0xac, 0x50, 0x23,
+	0xcd, 0xdb, 0xbc, 0x84, 0x75, 0x66, 0xa3, 0xc3, 0x74, 0x85, 0xd7, 0xd8, 0x0a, 0x67, 0xcd, 0x85,
+	0xc8, 0x0a, 0xa2, 0x80, 0xa5, 0x4b, 0x34, 0xb4, 0x9d, 0x08, 0x33, 0x1d, 0xbb, 0x82, 0x66, 0xa8,
+	0xa4, 0x3d, 0x04, 0xa6, 0xda, 0x93, 0x9d, 0x31, 0xe9, 0x09, 0x4b, 0xcd, 0x69, 0xf8, 0xaa, 0x5f,
+	0x8c, 0x87, 0x17, 0x44, 0x34, 0xa7, 0x34, 0x78, 0xd2, 0xa3, 0xb0, 0xdf, 0xe3, 0xb0, 0x41, 0x7b,
+	0x87, 0x6a, 0x0a, 0x60, 0xa8, 0x8d, 0xac, 0x55, 0x63, 0xdf, 0x0d, 0x9d, 0x1d, 0xb6, 0x02, 0x6b,
+	0xed, 0x3e, 0x0e, 0xe0, 0x85, 0xd6, 0x61, 0xf8, 0x50, 0x73, 0x98, 0x56, 0x77, 0x8a, 0x4c, 0x75,
+	0x3f, 0x90, 0x5d, 0x4e, 0xd3, 0x72, 0x58, 0xab, 0xa3, 0x99, 0x5c, 0xef, 0xa0, 0x34, 0xdc, 0xa0,
+	0x23, 0x32, 0x57, 0x18, 0xae, 0x69, 0x2e, 0x29, 0x5c, 0xf9, 0xa1, 0x66, 0x9d, 0xf5, 0x07, 0xeb,
+	0x0e, 0x9d, 0x4b, 0xd7, 0x71, 0x61, 0x46, 0xad, 0xa3, 0x3e, 0x75, 0x05, 0xa6, 0x88, 0xb4, 0x2d,
+	0xf1, 0xbb, 0x78, 0x8b, 0xad, 0xf6, 0xba, 0xb9, 0x9c, 0xb4, 0x9a, 0xfc, 0xb8, 0x46, 0x17, 0xfc,
+	0x69, 0x06, 0xaa, 0x43, 0x2b, 0x8a, 0x1e, 0x03, 0xbd, 0x3a, 0xb4, 0x70, 0xb8, 0xfb, 0xa8, 0xd5,
+	0xe2, 0x0b, 0x77, 0xa6, 0xc6, 0x79, 0xa6, 0xc6, 0x37, 0xcc, 0x95, 0xe3, 0xd4, 0x58, 0x6f, 0x72,
+	0xd0, 0xab, 0x99, 0xd5, 0xfd, 0x22, 0x0b, 0x40, 0xe7, 0xff, 0x1b, 0x00, 0x00, 0xff, 0xff, 0x1f,
+	0xc2, 0x0d, 0xd8, 0x9a, 0x30, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -780,6 +3544,58 @@ type SsoClient interface {
 	AuditRead(ctx context.Context, in *AuditReadRequest, opts ...grpc.CallOption) (*AuditReadReply, error)
 	// Update audit log.
 	AuditUpdate(ctx context.Context, in *AuditUpdateRequest, opts ...grpc.CallOption) (*AuditReadReply, error)
+	// List keys.
+	KeyList(ctx context.Context, in *KeyListRequest, opts ...grpc.CallOption) (*KeyListReply, error)
+	// Create key.
+	KeyCreate(ctx context.Context, in *KeyCreateRequest, opts ...grpc.CallOption) (*KeyCreateReply, error)
+	// Read key.
+	KeyRead(ctx context.Context, in *KeyReadRequest, opts ...grpc.CallOption) (*KeyReadReply, error)
+	// Update key.
+	KeyUpdate(ctx context.Context, in *KeyUpdateRequest, opts ...grpc.CallOption) (*KeyReadReply, error)
+	// Delete key.
+	KeyDelete(ctx context.Context, in *KeyReadRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	// List services.
+	ServiceList(ctx context.Context, in *ServiceListRequest, opts ...grpc.CallOption) (*ServiceListReply, error)
+	// Create service.
+	ServiceCreate(ctx context.Context, in *ServiceCreateRequest, opts ...grpc.CallOption) (*ServiceReadReply, error)
+	// Read service.
+	ServiceRead(ctx context.Context, in *ServiceReadRequest, opts ...grpc.CallOption) (*ServiceReadReply, error)
+	// Update service.
+	ServiceUpdate(ctx context.Context, in *ServiceUpdateRequest, opts ...grpc.CallOption) (*ServiceReadReply, error)
+	// Delete service.
+	ServiceDelete(ctx context.Context, in *ServiceReadRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	// List users.
+	UserList(ctx context.Context, in *UserListRequest, opts ...grpc.CallOption) (*UserListReply, error)
+	// Create user.
+	UserCreate(ctx context.Context, in *UserCreateRequest, opts ...grpc.CallOption) (*UserReadReply, error)
+	// Read user.
+	UserRead(ctx context.Context, in *UserReadRequest, opts ...grpc.CallOption) (*UserReadReply, error)
+	// Update user.
+	UserUpdate(ctx context.Context, in *UserUpdateRequest, opts ...grpc.CallOption) (*UserReadReply, error)
+	// Delete user.
+	UserDelete(ctx context.Context, in *UserReadRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	// Authentication verify key.
+	AuthKeyVerify(ctx context.Context, in *AuthKeyRequest, opts ...grpc.CallOption) (*AuthKeyReply, error)
+	// Authentication revoke key.
+	AuthKeyRevoke(ctx context.Context, in *AuthKeyRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
+	// Authentication verify token.
+	AuthTokenVerify(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthTokenVerifyReply, error)
+	// Authentication refresh token.
+	AuthTokenRefresh(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthTokenReply, error)
+	// Authentication revoke token.
+	AuthTokenRevoke(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
+	// Authentication verify TOTP code.
+	AuthTotpVerify(ctx context.Context, in *AuthTotpRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
+	// Authentication create CSRF token.
+	AuthCsrfCreate(ctx context.Context, in *AuthCsrfCreateRequest, opts ...grpc.CallOption) (*AuthCsrfCreateReply, error)
+	// Authentication verify CSRF token.
+	AuthCsrfVerify(ctx context.Context, in *AuthCsrfVerifyRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
+	// Authentication local provider login.
+	AuthLocalLogin(ctx context.Context, in *AuthLoginRequest, opts ...grpc.CallOption) (*AuthLoginReply, error)
+	// Authentication local provider register.
+	AuthLocalRegister(ctx context.Context, in *AuthRegisterRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
+	// Authentication local provider register confirm.
+	AuthLocalRegisterConfirm(ctx context.Context, in *AuthRegisterConfirmRequest, opts ...grpc.CallOption) (*AuthPasswordMetaReply, error)
 }
 
 type ssoClient struct {
@@ -844,6 +3660,240 @@ func (c *ssoClient) AuditUpdate(ctx context.Context, in *AuditUpdateRequest, opt
 	return out, nil
 }
 
+func (c *ssoClient) KeyList(ctx context.Context, in *KeyListRequest, opts ...grpc.CallOption) (*KeyListReply, error) {
+	out := new(KeyListReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/KeyList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) KeyCreate(ctx context.Context, in *KeyCreateRequest, opts ...grpc.CallOption) (*KeyCreateReply, error) {
+	out := new(KeyCreateReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/KeyCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) KeyRead(ctx context.Context, in *KeyReadRequest, opts ...grpc.CallOption) (*KeyReadReply, error) {
+	out := new(KeyReadReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/KeyRead", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) KeyUpdate(ctx context.Context, in *KeyUpdateRequest, opts ...grpc.CallOption) (*KeyReadReply, error) {
+	out := new(KeyReadReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/KeyUpdate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) KeyDelete(ctx context.Context, in *KeyReadRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/sso.Sso/KeyDelete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) ServiceList(ctx context.Context, in *ServiceListRequest, opts ...grpc.CallOption) (*ServiceListReply, error) {
+	out := new(ServiceListReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/ServiceList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) ServiceCreate(ctx context.Context, in *ServiceCreateRequest, opts ...grpc.CallOption) (*ServiceReadReply, error) {
+	out := new(ServiceReadReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/ServiceCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) ServiceRead(ctx context.Context, in *ServiceReadRequest, opts ...grpc.CallOption) (*ServiceReadReply, error) {
+	out := new(ServiceReadReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/ServiceRead", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) ServiceUpdate(ctx context.Context, in *ServiceUpdateRequest, opts ...grpc.CallOption) (*ServiceReadReply, error) {
+	out := new(ServiceReadReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/ServiceUpdate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) ServiceDelete(ctx context.Context, in *ServiceReadRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/sso.Sso/ServiceDelete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) UserList(ctx context.Context, in *UserListRequest, opts ...grpc.CallOption) (*UserListReply, error) {
+	out := new(UserListReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/UserList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) UserCreate(ctx context.Context, in *UserCreateRequest, opts ...grpc.CallOption) (*UserReadReply, error) {
+	out := new(UserReadReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/UserCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) UserRead(ctx context.Context, in *UserReadRequest, opts ...grpc.CallOption) (*UserReadReply, error) {
+	out := new(UserReadReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/UserRead", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) UserUpdate(ctx context.Context, in *UserUpdateRequest, opts ...grpc.CallOption) (*UserReadReply, error) {
+	out := new(UserReadReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/UserUpdate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) UserDelete(ctx context.Context, in *UserReadRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/sso.Sso/UserDelete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuthKeyVerify(ctx context.Context, in *AuthKeyRequest, opts ...grpc.CallOption) (*AuthKeyReply, error) {
+	out := new(AuthKeyReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuthKeyVerify", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuthKeyRevoke(ctx context.Context, in *AuthKeyRequest, opts ...grpc.CallOption) (*AuthAuditReply, error) {
+	out := new(AuthAuditReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuthKeyRevoke", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuthTokenVerify(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthTokenVerifyReply, error) {
+	out := new(AuthTokenVerifyReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuthTokenVerify", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuthTokenRefresh(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthTokenReply, error) {
+	out := new(AuthTokenReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuthTokenRefresh", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuthTokenRevoke(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthAuditReply, error) {
+	out := new(AuthAuditReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuthTokenRevoke", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuthTotpVerify(ctx context.Context, in *AuthTotpRequest, opts ...grpc.CallOption) (*AuthAuditReply, error) {
+	out := new(AuthAuditReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuthTotpVerify", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuthCsrfCreate(ctx context.Context, in *AuthCsrfCreateRequest, opts ...grpc.CallOption) (*AuthCsrfCreateReply, error) {
+	out := new(AuthCsrfCreateReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuthCsrfCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuthCsrfVerify(ctx context.Context, in *AuthCsrfVerifyRequest, opts ...grpc.CallOption) (*AuthAuditReply, error) {
+	out := new(AuthAuditReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuthCsrfVerify", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuthLocalLogin(ctx context.Context, in *AuthLoginRequest, opts ...grpc.CallOption) (*AuthLoginReply, error) {
+	out := new(AuthLoginReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuthLocalLogin", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuthLocalRegister(ctx context.Context, in *AuthRegisterRequest, opts ...grpc.CallOption) (*AuthAuditReply, error) {
+	out := new(AuthAuditReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuthLocalRegister", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ssoClient) AuthLocalRegisterConfirm(ctx context.Context, in *AuthRegisterConfirmRequest, opts ...grpc.CallOption) (*AuthPasswordMetaReply, error) {
+	out := new(AuthPasswordMetaReply)
+	err := c.cc.Invoke(ctx, "/sso.Sso/AuthLocalRegisterConfirm", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SsoServer is the server API for Sso service.
 type SsoServer interface {
 	// Returns pong response.
@@ -858,6 +3908,58 @@ type SsoServer interface {
 	AuditRead(context.Context, *AuditReadRequest) (*AuditReadReply, error)
 	// Update audit log.
 	AuditUpdate(context.Context, *AuditUpdateRequest) (*AuditReadReply, error)
+	// List keys.
+	KeyList(context.Context, *KeyListRequest) (*KeyListReply, error)
+	// Create key.
+	KeyCreate(context.Context, *KeyCreateRequest) (*KeyCreateReply, error)
+	// Read key.
+	KeyRead(context.Context, *KeyReadRequest) (*KeyReadReply, error)
+	// Update key.
+	KeyUpdate(context.Context, *KeyUpdateRequest) (*KeyReadReply, error)
+	// Delete key.
+	KeyDelete(context.Context, *KeyReadRequest) (*empty.Empty, error)
+	// List services.
+	ServiceList(context.Context, *ServiceListRequest) (*ServiceListReply, error)
+	// Create service.
+	ServiceCreate(context.Context, *ServiceCreateRequest) (*ServiceReadReply, error)
+	// Read service.
+	ServiceRead(context.Context, *ServiceReadRequest) (*ServiceReadReply, error)
+	// Update service.
+	ServiceUpdate(context.Context, *ServiceUpdateRequest) (*ServiceReadReply, error)
+	// Delete service.
+	ServiceDelete(context.Context, *ServiceReadRequest) (*empty.Empty, error)
+	// List users.
+	UserList(context.Context, *UserListRequest) (*UserListReply, error)
+	// Create user.
+	UserCreate(context.Context, *UserCreateRequest) (*UserReadReply, error)
+	// Read user.
+	UserRead(context.Context, *UserReadRequest) (*UserReadReply, error)
+	// Update user.
+	UserUpdate(context.Context, *UserUpdateRequest) (*UserReadReply, error)
+	// Delete user.
+	UserDelete(context.Context, *UserReadRequest) (*empty.Empty, error)
+	// Authentication verify key.
+	AuthKeyVerify(context.Context, *AuthKeyRequest) (*AuthKeyReply, error)
+	// Authentication revoke key.
+	AuthKeyRevoke(context.Context, *AuthKeyRequest) (*AuthAuditReply, error)
+	// Authentication verify token.
+	AuthTokenVerify(context.Context, *AuthTokenRequest) (*AuthTokenVerifyReply, error)
+	// Authentication refresh token.
+	AuthTokenRefresh(context.Context, *AuthTokenRequest) (*AuthTokenReply, error)
+	// Authentication revoke token.
+	AuthTokenRevoke(context.Context, *AuthTokenRequest) (*AuthAuditReply, error)
+	// Authentication verify TOTP code.
+	AuthTotpVerify(context.Context, *AuthTotpRequest) (*AuthAuditReply, error)
+	// Authentication create CSRF token.
+	AuthCsrfCreate(context.Context, *AuthCsrfCreateRequest) (*AuthCsrfCreateReply, error)
+	// Authentication verify CSRF token.
+	AuthCsrfVerify(context.Context, *AuthCsrfVerifyRequest) (*AuthAuditReply, error)
+	// Authentication local provider login.
+	AuthLocalLogin(context.Context, *AuthLoginRequest) (*AuthLoginReply, error)
+	// Authentication local provider register.
+	AuthLocalRegister(context.Context, *AuthRegisterRequest) (*AuthAuditReply, error)
+	// Authentication local provider register confirm.
+	AuthLocalRegisterConfirm(context.Context, *AuthRegisterConfirmRequest) (*AuthPasswordMetaReply, error)
 }
 
 // UnimplementedSsoServer can be embedded to have forward compatible implementations.
@@ -881,6 +3983,84 @@ func (*UnimplementedSsoServer) AuditRead(ctx context.Context, req *AuditReadRequ
 }
 func (*UnimplementedSsoServer) AuditUpdate(ctx context.Context, req *AuditUpdateRequest) (*AuditReadReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuditUpdate not implemented")
+}
+func (*UnimplementedSsoServer) KeyList(ctx context.Context, req *KeyListRequest) (*KeyListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method KeyList not implemented")
+}
+func (*UnimplementedSsoServer) KeyCreate(ctx context.Context, req *KeyCreateRequest) (*KeyCreateReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method KeyCreate not implemented")
+}
+func (*UnimplementedSsoServer) KeyRead(ctx context.Context, req *KeyReadRequest) (*KeyReadReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method KeyRead not implemented")
+}
+func (*UnimplementedSsoServer) KeyUpdate(ctx context.Context, req *KeyUpdateRequest) (*KeyReadReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method KeyUpdate not implemented")
+}
+func (*UnimplementedSsoServer) KeyDelete(ctx context.Context, req *KeyReadRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method KeyDelete not implemented")
+}
+func (*UnimplementedSsoServer) ServiceList(ctx context.Context, req *ServiceListRequest) (*ServiceListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ServiceList not implemented")
+}
+func (*UnimplementedSsoServer) ServiceCreate(ctx context.Context, req *ServiceCreateRequest) (*ServiceReadReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ServiceCreate not implemented")
+}
+func (*UnimplementedSsoServer) ServiceRead(ctx context.Context, req *ServiceReadRequest) (*ServiceReadReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ServiceRead not implemented")
+}
+func (*UnimplementedSsoServer) ServiceUpdate(ctx context.Context, req *ServiceUpdateRequest) (*ServiceReadReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ServiceUpdate not implemented")
+}
+func (*UnimplementedSsoServer) ServiceDelete(ctx context.Context, req *ServiceReadRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ServiceDelete not implemented")
+}
+func (*UnimplementedSsoServer) UserList(ctx context.Context, req *UserListRequest) (*UserListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserList not implemented")
+}
+func (*UnimplementedSsoServer) UserCreate(ctx context.Context, req *UserCreateRequest) (*UserReadReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserCreate not implemented")
+}
+func (*UnimplementedSsoServer) UserRead(ctx context.Context, req *UserReadRequest) (*UserReadReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserRead not implemented")
+}
+func (*UnimplementedSsoServer) UserUpdate(ctx context.Context, req *UserUpdateRequest) (*UserReadReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserUpdate not implemented")
+}
+func (*UnimplementedSsoServer) UserDelete(ctx context.Context, req *UserReadRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserDelete not implemented")
+}
+func (*UnimplementedSsoServer) AuthKeyVerify(ctx context.Context, req *AuthKeyRequest) (*AuthKeyReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthKeyVerify not implemented")
+}
+func (*UnimplementedSsoServer) AuthKeyRevoke(ctx context.Context, req *AuthKeyRequest) (*AuthAuditReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthKeyRevoke not implemented")
+}
+func (*UnimplementedSsoServer) AuthTokenVerify(ctx context.Context, req *AuthTokenRequest) (*AuthTokenVerifyReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthTokenVerify not implemented")
+}
+func (*UnimplementedSsoServer) AuthTokenRefresh(ctx context.Context, req *AuthTokenRequest) (*AuthTokenReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthTokenRefresh not implemented")
+}
+func (*UnimplementedSsoServer) AuthTokenRevoke(ctx context.Context, req *AuthTokenRequest) (*AuthAuditReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthTokenRevoke not implemented")
+}
+func (*UnimplementedSsoServer) AuthTotpVerify(ctx context.Context, req *AuthTotpRequest) (*AuthAuditReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthTotpVerify not implemented")
+}
+func (*UnimplementedSsoServer) AuthCsrfCreate(ctx context.Context, req *AuthCsrfCreateRequest) (*AuthCsrfCreateReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthCsrfCreate not implemented")
+}
+func (*UnimplementedSsoServer) AuthCsrfVerify(ctx context.Context, req *AuthCsrfVerifyRequest) (*AuthAuditReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthCsrfVerify not implemented")
+}
+func (*UnimplementedSsoServer) AuthLocalLogin(ctx context.Context, req *AuthLoginRequest) (*AuthLoginReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthLocalLogin not implemented")
+}
+func (*UnimplementedSsoServer) AuthLocalRegister(ctx context.Context, req *AuthRegisterRequest) (*AuthAuditReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthLocalRegister not implemented")
+}
+func (*UnimplementedSsoServer) AuthLocalRegisterConfirm(ctx context.Context, req *AuthRegisterConfirmRequest) (*AuthPasswordMetaReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthLocalRegisterConfirm not implemented")
 }
 
 func RegisterSsoServer(s *grpc.Server, srv SsoServer) {
@@ -995,6 +4175,474 @@ func _Sso_AuditUpdate_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Sso_KeyList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(KeyListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).KeyList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/KeyList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).KeyList(ctx, req.(*KeyListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_KeyCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(KeyCreateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).KeyCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/KeyCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).KeyCreate(ctx, req.(*KeyCreateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_KeyRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(KeyReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).KeyRead(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/KeyRead",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).KeyRead(ctx, req.(*KeyReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_KeyUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(KeyUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).KeyUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/KeyUpdate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).KeyUpdate(ctx, req.(*KeyUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_KeyDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(KeyReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).KeyDelete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/KeyDelete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).KeyDelete(ctx, req.(*KeyReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_ServiceList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ServiceListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).ServiceList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/ServiceList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).ServiceList(ctx, req.(*ServiceListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_ServiceCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ServiceCreateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).ServiceCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/ServiceCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).ServiceCreate(ctx, req.(*ServiceCreateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_ServiceRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ServiceReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).ServiceRead(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/ServiceRead",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).ServiceRead(ctx, req.(*ServiceReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_ServiceUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ServiceUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).ServiceUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/ServiceUpdate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).ServiceUpdate(ctx, req.(*ServiceUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_ServiceDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ServiceReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).ServiceDelete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/ServiceDelete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).ServiceDelete(ctx, req.(*ServiceReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_UserList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).UserList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/UserList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).UserList(ctx, req.(*UserListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_UserCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserCreateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).UserCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/UserCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).UserCreate(ctx, req.(*UserCreateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_UserRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).UserRead(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/UserRead",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).UserRead(ctx, req.(*UserReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_UserUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).UserUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/UserUpdate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).UserUpdate(ctx, req.(*UserUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_UserDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).UserDelete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/UserDelete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).UserDelete(ctx, req.(*UserReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuthKeyVerify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuthKeyVerify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuthKeyVerify",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuthKeyVerify(ctx, req.(*AuthKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuthKeyRevoke_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuthKeyRevoke(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuthKeyRevoke",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuthKeyRevoke(ctx, req.(*AuthKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuthTokenVerify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuthTokenVerify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuthTokenVerify",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuthTokenVerify(ctx, req.(*AuthTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuthTokenRefresh_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuthTokenRefresh(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuthTokenRefresh",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuthTokenRefresh(ctx, req.(*AuthTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuthTokenRevoke_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuthTokenRevoke(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuthTokenRevoke",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuthTokenRevoke(ctx, req.(*AuthTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuthTotpVerify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthTotpRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuthTotpVerify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuthTotpVerify",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuthTotpVerify(ctx, req.(*AuthTotpRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuthCsrfCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthCsrfCreateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuthCsrfCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuthCsrfCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuthCsrfCreate(ctx, req.(*AuthCsrfCreateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuthCsrfVerify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthCsrfVerifyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuthCsrfVerify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuthCsrfVerify",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuthCsrfVerify(ctx, req.(*AuthCsrfVerifyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuthLocalLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthLoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuthLocalLogin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuthLocalLogin",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuthLocalLogin(ctx, req.(*AuthLoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuthLocalRegister_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthRegisterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuthLocalRegister(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuthLocalRegister",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuthLocalRegister(ctx, req.(*AuthRegisterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Sso_AuthLocalRegisterConfirm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthRegisterConfirmRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsoServer).AuthLocalRegisterConfirm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sso.Sso/AuthLocalRegisterConfirm",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsoServer).AuthLocalRegisterConfirm(ctx, req.(*AuthRegisterConfirmRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Sso_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sso.Sso",
 	HandlerType: (*SsoServer)(nil),
@@ -1022,6 +4670,110 @@ var _Sso_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuditUpdate",
 			Handler:    _Sso_AuditUpdate_Handler,
+		},
+		{
+			MethodName: "KeyList",
+			Handler:    _Sso_KeyList_Handler,
+		},
+		{
+			MethodName: "KeyCreate",
+			Handler:    _Sso_KeyCreate_Handler,
+		},
+		{
+			MethodName: "KeyRead",
+			Handler:    _Sso_KeyRead_Handler,
+		},
+		{
+			MethodName: "KeyUpdate",
+			Handler:    _Sso_KeyUpdate_Handler,
+		},
+		{
+			MethodName: "KeyDelete",
+			Handler:    _Sso_KeyDelete_Handler,
+		},
+		{
+			MethodName: "ServiceList",
+			Handler:    _Sso_ServiceList_Handler,
+		},
+		{
+			MethodName: "ServiceCreate",
+			Handler:    _Sso_ServiceCreate_Handler,
+		},
+		{
+			MethodName: "ServiceRead",
+			Handler:    _Sso_ServiceRead_Handler,
+		},
+		{
+			MethodName: "ServiceUpdate",
+			Handler:    _Sso_ServiceUpdate_Handler,
+		},
+		{
+			MethodName: "ServiceDelete",
+			Handler:    _Sso_ServiceDelete_Handler,
+		},
+		{
+			MethodName: "UserList",
+			Handler:    _Sso_UserList_Handler,
+		},
+		{
+			MethodName: "UserCreate",
+			Handler:    _Sso_UserCreate_Handler,
+		},
+		{
+			MethodName: "UserRead",
+			Handler:    _Sso_UserRead_Handler,
+		},
+		{
+			MethodName: "UserUpdate",
+			Handler:    _Sso_UserUpdate_Handler,
+		},
+		{
+			MethodName: "UserDelete",
+			Handler:    _Sso_UserDelete_Handler,
+		},
+		{
+			MethodName: "AuthKeyVerify",
+			Handler:    _Sso_AuthKeyVerify_Handler,
+		},
+		{
+			MethodName: "AuthKeyRevoke",
+			Handler:    _Sso_AuthKeyRevoke_Handler,
+		},
+		{
+			MethodName: "AuthTokenVerify",
+			Handler:    _Sso_AuthTokenVerify_Handler,
+		},
+		{
+			MethodName: "AuthTokenRefresh",
+			Handler:    _Sso_AuthTokenRefresh_Handler,
+		},
+		{
+			MethodName: "AuthTokenRevoke",
+			Handler:    _Sso_AuthTokenRevoke_Handler,
+		},
+		{
+			MethodName: "AuthTotpVerify",
+			Handler:    _Sso_AuthTotpVerify_Handler,
+		},
+		{
+			MethodName: "AuthCsrfCreate",
+			Handler:    _Sso_AuthCsrfCreate_Handler,
+		},
+		{
+			MethodName: "AuthCsrfVerify",
+			Handler:    _Sso_AuthCsrfVerify_Handler,
+		},
+		{
+			MethodName: "AuthLocalLogin",
+			Handler:    _Sso_AuthLocalLogin_Handler,
+		},
+		{
+			MethodName: "AuthLocalRegister",
+			Handler:    _Sso_AuthLocalRegister_Handler,
+		},
+		{
+			MethodName: "AuthLocalRegisterConfirm",
+			Handler:    _Sso_AuthLocalRegisterConfirm_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

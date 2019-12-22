@@ -190,8 +190,16 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Log UUID.",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "description": "Log subject filter.",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -231,6 +239,872 @@
           "Sso"
         ]
       }
+    },
+    "/v1/auth/csrf": {
+      "get": {
+        "summary": "Authentication create CSRF token.",
+        "operationId": "AuthCsrfCreate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthCsrfCreateReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "expires_s",
+            "description": "CSRF token expires.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      },
+      "post": {
+        "summary": "Authentication verify CSRF token.",
+        "operationId": "AuthCsrfVerify",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthCsrfVerifyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/key/revoke": {
+      "post": {
+        "summary": "Authentication revoke key.",
+        "operationId": "AuthKeyRevoke",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthKeyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/key/verify": {
+      "post": {
+        "summary": "Authentication verify key.",
+        "operationId": "AuthKeyVerify",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthKeyReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthKeyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/login": {
+      "post": {
+        "summary": "Authentication local provider login.",
+        "operationId": "AuthLocalLogin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthLoginReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/register": {
+      "post": {
+        "summary": "Authentication local provider register.",
+        "operationId": "AuthLocalRegister",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthRegisterRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/register/confirm": {
+      "post": {
+        "summary": "Authentication local provider register confirm.",
+        "operationId": "AuthLocalRegisterConfirm",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthPasswordMetaReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthRegisterConfirmRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/token/refresh": {
+      "post": {
+        "summary": "Authentication refresh token.",
+        "operationId": "AuthTokenRefresh",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/token/revoke": {
+      "post": {
+        "summary": "Authentication revoke token.",
+        "operationId": "AuthTokenRevoke",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/token/verify": {
+      "post": {
+        "summary": "Authentication verify token.",
+        "operationId": "AuthTokenVerify",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenVerifyReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/totp": {
+      "post": {
+        "summary": "Authentication verify TOTP code.",
+        "operationId": "AuthTotpVerify",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTotpRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/key": {
+      "get": {
+        "summary": "List keys.",
+        "operationId": "KeyList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoKeyListReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "gt",
+            "description": "Greater than key UUID.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "lt",
+            "description": "Less than key UUID.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "description": "Limit number of returned keys.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "description": "Key UUID filter array.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "is_enabled",
+            "description": "Key is_enabled flag filter.",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "is_revoked",
+            "description": "Key is_revoked flag filter.",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "type",
+            "description": "Key type filter array.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "KEY",
+                "TOKEN",
+                "TOTP"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "service_id",
+            "description": "Key service UUID filter array.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "user_id",
+            "description": "Key user UUID filter array.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      },
+      "post": {
+        "summary": "Create key.",
+        "operationId": "KeyCreate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoKeyCreateReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoKeyCreateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/key/{id}": {
+      "get": {
+        "summary": "Read key.",
+        "operationId": "KeyRead",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoKeyReadReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "Key UUID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      },
+      "delete": {
+        "summary": "Delete key.",
+        "operationId": "KeyDelete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "Key UUID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      },
+      "patch": {
+        "summary": "Update key.",
+        "operationId": "KeyUpdate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoKeyReadReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "Key UUID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoKeyUpdateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/service": {
+      "get": {
+        "summary": "List services.",
+        "operationId": "ServiceList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoServiceListReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "gt",
+            "description": "Greater than service UUID.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "lt",
+            "description": "Less than service UUID.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "description": "Limit number of returned services.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "description": "Service UUID filter array.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "is_enabled",
+            "description": "Service is_enabled flag filter.",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      },
+      "post": {
+        "summary": "Create service.",
+        "operationId": "ServiceCreate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoServiceReadReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoServiceCreateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/service/{id}": {
+      "get": {
+        "summary": "Read service.",
+        "operationId": "ServiceRead",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoServiceReadReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "Service UUID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      },
+      "delete": {
+        "summary": "Delete service.",
+        "operationId": "ServiceDelete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "Service UUID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      },
+      "patch": {
+        "summary": "Update service.",
+        "operationId": "ServiceUpdate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoServiceReadReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "Service UUID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoServiceUpdateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/user": {
+      "get": {
+        "summary": "List users.",
+        "operationId": "UserList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoUserListReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "gt",
+            "description": "Greater than service UUID.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "lt",
+            "description": "Less than service UUID.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "name_ge",
+            "description": "Greater than or equal user name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "name_le",
+            "description": "Less than or equal user name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "description": "Limit number of returned users.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "offset_id",
+            "description": "Offset user UUID for paging.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "description": "User UUID filter array.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "email",
+            "description": "User email filter array.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      },
+      "post": {
+        "summary": "Create user.",
+        "operationId": "UserCreate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoUserReadReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoUserCreateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/user/{id}": {
+      "get": {
+        "summary": "Read user.",
+        "operationId": "UserRead",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoUserReadReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "User UUID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      },
+      "delete": {
+        "summary": "Delete user.",
+        "operationId": "UserDelete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "User UUID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      },
+      "patch": {
+        "summary": "Update user.",
+        "operationId": "UserUpdate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoUserReadReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "User UUID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoUserUpdateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
     }
   },
   "definitions": {
@@ -252,41 +1126,52 @@
           "description": "UUID."
         },
         "user_agent": {
-          "type": "string"
+          "type": "string",
+          "description": "User-agent header (or unknown if not available)."
         },
         "remote": {
-          "type": "string"
+          "type": "string",
+          "description": "Remote IP address (or unknown if not available)."
         },
         "forwarded": {
-          "type": "string"
+          "type": "string",
+          "description": "X-forwarded-for header."
         },
         "status_code": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Response status code."
         },
         "type": {
-          "type": "string"
+          "type": "string",
+          "description": "Type."
         },
         "subject": {
-          "type": "string"
+          "type": "string",
+          "description": "Subject."
         },
         "data": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
-          }
+          },
+          "description": "Key, value data."
         },
         "key_id": {
-          "type": "string"
+          "type": "string",
+          "description": "Key UUID."
         },
         "service_id": {
-          "type": "string"
+          "type": "string",
+          "description": "Service UUID."
         },
         "user_id": {
-          "type": "string"
+          "type": "string",
+          "description": "User UUID."
         },
         "user_key_id": {
-          "type": "string"
+          "type": "string",
+          "description": "User key UUID."
         }
       },
       "description": "Audit log."
@@ -432,6 +1317,893 @@
         }
       },
       "description": "Update audit log request."
+    },
+    "ssoAuthAuditReply": {
+      "type": "object",
+      "properties": {
+        "audit": {
+          "type": "string",
+          "description": "Audit UUID."
+        }
+      },
+      "description": "Authentication audit reply."
+    },
+    "ssoAuthCsrfCreateReply": {
+      "type": "object",
+      "properties": {
+        "csrf": {
+          "$ref": "#/definitions/ssoCsrf",
+          "description": "CSRF."
+        }
+      },
+      "description": "Authentication CSRF token."
+    },
+    "ssoAuthCsrfVerifyRequest": {
+      "type": "object",
+      "properties": {
+        "csrf": {
+          "type": "string",
+          "description": "CSRF token value."
+        },
+        "audit": {
+          "type": "string",
+          "description": "Audit type."
+        }
+      },
+      "description": "Authentication verify CSRF token request."
+    },
+    "ssoAuthKeyReply": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/ssoUser",
+          "description": "User."
+        },
+        "key": {
+          "$ref": "#/definitions/ssoKey",
+          "description": "User key."
+        },
+        "audit": {
+          "type": "string",
+          "description": "Audit UUID."
+        }
+      },
+      "description": "Authentication key reply."
+    },
+    "ssoAuthKeyRequest": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Key value."
+        },
+        "audit": {
+          "type": "string",
+          "description": "Audit type."
+        }
+      },
+      "description": "Authentication key request."
+    },
+    "ssoAuthLoginReply": {
+      "type": "object",
+      "properties": {
+        "meta": {
+          "$ref": "#/definitions/ssoAuthPasswordMeta",
+          "description": "Password metadata."
+        },
+        "user": {
+          "$ref": "#/definitions/ssoUser",
+          "description": "User."
+        },
+        "access": {
+          "$ref": "#/definitions/ssoAuthToken",
+          "description": "Access token."
+        },
+        "refresh": {
+          "$ref": "#/definitions/ssoAuthToken",
+          "description": "Refresh token."
+        }
+      },
+      "description": "Authentication login reply."
+    },
+    "ssoAuthLoginRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "User email."
+        },
+        "password": {
+          "type": "string",
+          "description": "User password."
+        }
+      },
+      "description": "Authentication login request."
+    },
+    "ssoAuthPasswordMeta": {
+      "type": "object",
+      "properties": {
+        "password_strength": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Password strength."
+        },
+        "password_pwned": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Password pwned."
+        }
+      },
+      "description": "Authentication password metadata."
+    },
+    "ssoAuthPasswordMetaReply": {
+      "type": "object",
+      "properties": {
+        "meta": {
+          "$ref": "#/definitions/ssoAuthPasswordMeta",
+          "description": "Password metadata."
+        }
+      },
+      "description": "Authentication password metadata reply."
+    },
+    "ssoAuthRegisterConfirmRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Register token value."
+        },
+        "password": {
+          "type": "string",
+          "description": "User password."
+        },
+        "password_allow_reset": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User password_allow_reset flag."
+        }
+      },
+      "description": "Authentication register confirm request."
+    },
+    "ssoAuthRegisterRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "User name."
+        },
+        "email": {
+          "type": "string",
+          "description": "User email."
+        },
+        "locale": {
+          "type": "string",
+          "description": "User locale."
+        },
+        "timezone": {
+          "type": "string",
+          "description": "User timezone."
+        }
+      },
+      "description": "Authentication register request."
+    },
+    "ssoAuthToken": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Token value."
+        },
+        "token_expires": {
+          "type": "string",
+          "format": "int64",
+          "description": "Token expires."
+        }
+      },
+      "description": "Authentication token."
+    },
+    "ssoAuthTokenReply": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/ssoUser",
+          "description": "User."
+        },
+        "access": {
+          "$ref": "#/definitions/ssoAuthToken",
+          "description": "Access token."
+        },
+        "refresh": {
+          "$ref": "#/definitions/ssoAuthToken",
+          "description": "Refresh token."
+        },
+        "audit": {
+          "type": "string",
+          "description": "Audit UUID."
+        }
+      },
+      "description": "Authentication token reply."
+    },
+    "ssoAuthTokenRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Token value."
+        },
+        "audit": {
+          "type": "string",
+          "description": "Audit type."
+        }
+      },
+      "title": "Authentication token request/"
+    },
+    "ssoAuthTokenVerifyReply": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/ssoUser",
+          "description": "User."
+        },
+        "access": {
+          "$ref": "#/definitions/ssoAuthToken",
+          "description": "Access token."
+        },
+        "audit": {
+          "type": "string",
+          "description": "Audit UUID."
+        }
+      },
+      "description": "Authentication token verify reply."
+    },
+    "ssoAuthTotpRequest": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "description": "User UUID."
+        },
+        "totp": {
+          "type": "string",
+          "description": "TOTP code."
+        }
+      },
+      "description": "Authentication TOTP request."
+    },
+    "ssoCsrf": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Created at date and time."
+        },
+        "key": {
+          "type": "string",
+          "description": "Key."
+        },
+        "value": {
+          "type": "string",
+          "description": "Value."
+        },
+        "ttl": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Time to live."
+        },
+        "service_id": {
+          "type": "string",
+          "description": "Service UUID."
+        }
+      },
+      "description": "CSRF."
+    },
+    "ssoKey": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Created at date and time."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Updated at date and time."
+        },
+        "id": {
+          "type": "string",
+          "description": "UUID."
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Is enabled flag."
+        },
+        "is_revoked": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Is revoked flag."
+        },
+        "type": {
+          "$ref": "#/definitions/ssoKeyType",
+          "description": "Type."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name."
+        },
+        "service_id": {
+          "type": "string",
+          "description": "Service UUID."
+        },
+        "user_id": {
+          "type": "string",
+          "description": "User UUID."
+        }
+      },
+      "description": "Key."
+    },
+    "ssoKeyCreateReply": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/ssoKeyWithValue",
+          "description": "Key."
+        }
+      },
+      "description": "Create key reply."
+    },
+    "ssoKeyCreateRequest": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/ssoKeyType",
+          "description": "Key type."
+        },
+        "name": {
+          "type": "string",
+          "description": "Key name."
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Key is_enabled flag."
+        },
+        "service_id": {
+          "type": "string",
+          "description": "Key service UUID."
+        },
+        "user_id": {
+          "type": "string",
+          "description": "Key user UUID."
+        }
+      },
+      "description": "Create key request."
+    },
+    "ssoKeyListReply": {
+      "type": "object",
+      "properties": {
+        "meta": {
+          "$ref": "#/definitions/ssoKeyListRequest",
+          "description": "Request message."
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ssoKey"
+          },
+          "description": "Keys array."
+        }
+      },
+      "description": "List keys reply."
+    },
+    "ssoKeyListRequest": {
+      "type": "object",
+      "properties": {
+        "gt": {
+          "type": "string",
+          "description": "Greater than key UUID."
+        },
+        "lt": {
+          "type": "string",
+          "description": "Less than key UUID."
+        },
+        "limit": {
+          "type": "string",
+          "format": "int64",
+          "description": "Limit number of returned keys."
+        },
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Key UUID filter array."
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Key is_enabled flag filter."
+        },
+        "is_revoked": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Key is_revoked flag filter."
+        },
+        "type": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ssoKeyType"
+          },
+          "description": "Key type filter array."
+        },
+        "service_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Key service UUID filter array."
+        },
+        "user_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Key user UUID filter array."
+        }
+      },
+      "description": "List keys request."
+    },
+    "ssoKeyReadReply": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/ssoKey",
+          "description": "Key."
+        }
+      },
+      "description": "Read key reply."
+    },
+    "ssoKeyType": {
+      "type": "string",
+      "enum": [
+        "KEY",
+        "TOKEN",
+        "TOTP"
+      ],
+      "default": "KEY",
+      "description": "Key type."
+    },
+    "ssoKeyUpdateRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Key UUID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Key name."
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Key is_enabled flag."
+        }
+      },
+      "description": "Update key request."
+    },
+    "ssoKeyWithValue": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "#/definitions/ssoKey",
+          "description": "Key."
+        },
+        "value": {
+          "type": "string",
+          "description": "Key value."
+        }
+      },
+      "description": "Key with value."
+    },
+    "ssoService": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Created at date and time."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Updated at date and time."
+        },
+        "id": {
+          "type": "string",
+          "description": "UUID."
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Is enabled flag."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name."
+        },
+        "url": {
+          "type": "string",
+          "description": "URL."
+        },
+        "user_allow_register": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User allow register flag."
+        },
+        "user_email_text": {
+          "type": "string",
+          "description": "User email text."
+        },
+        "provider_local_url": {
+          "type": "string",
+          "description": "Local provider URL."
+        },
+        "provider_github_oauth2_url": {
+          "type": "string",
+          "description": "GitHub OAuth2 provider URL."
+        },
+        "provider_microsoft_oauth2_url": {
+          "type": "string",
+          "description": "Microsoft OAuth2 provider URL."
+        }
+      },
+      "description": "Service."
+    },
+    "ssoServiceCreateRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Service name."
+        },
+        "url": {
+          "type": "string",
+          "description": "Service URL."
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Service is_enabled flag."
+        },
+        "user_allow_register": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Service user_allow_register flag."
+        },
+        "user_email_text": {
+          "type": "string",
+          "description": "Service user email text."
+        },
+        "provider_local_url": {
+          "type": "string",
+          "description": "Service local provider URL."
+        },
+        "provider_github_oauth2_url": {
+          "type": "string",
+          "description": "Service GitHub OAuth2 provider URL."
+        },
+        "provider_microsoft_oauth2_url": {
+          "type": "string",
+          "description": "Service Microsoft OAuth2 provider URL."
+        }
+      },
+      "description": "Create service request."
+    },
+    "ssoServiceListReply": {
+      "type": "object",
+      "properties": {
+        "meta": {
+          "$ref": "#/definitions/ssoServiceListRequest",
+          "description": "Request message."
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ssoService"
+          },
+          "description": "Services array."
+        }
+      },
+      "description": "List services reply."
+    },
+    "ssoServiceListRequest": {
+      "type": "object",
+      "properties": {
+        "gt": {
+          "type": "string",
+          "description": "Greater than service UUID."
+        },
+        "lt": {
+          "type": "string",
+          "description": "Less than service UUID."
+        },
+        "limit": {
+          "type": "string",
+          "format": "int64",
+          "description": "Limit number of returned services."
+        },
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Service UUID filter array."
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Service is_enabled flag filter."
+        }
+      },
+      "description": "List services request."
+    },
+    "ssoServiceReadReply": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/ssoService",
+          "description": "Service."
+        }
+      },
+      "description": "Read service reply."
+    },
+    "ssoServiceUpdateRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Service UUID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Service name."
+        },
+        "url": {
+          "type": "string",
+          "description": "Service URL."
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Service is_enabled flag."
+        },
+        "user_allow_register": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Service user_allow_register flag."
+        },
+        "user_email_text": {
+          "type": "string",
+          "description": "Service user email text."
+        },
+        "provider_local_url": {
+          "type": "string",
+          "description": "Service local provider URL."
+        },
+        "provider_github_oauth2_url": {
+          "type": "string",
+          "description": "Service GitHub OAuth2 provider URL."
+        },
+        "provider_microsoft_oauth2_url": {
+          "type": "string",
+          "description": "Service Microsoft OAuth2 provider URL."
+        }
+      },
+      "description": "Update service request."
+    },
+    "ssoUser": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Created at date and time."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Updated at date and time."
+        },
+        "id": {
+          "type": "string",
+          "description": "UUID."
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Is enabled flag."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email."
+        },
+        "locale": {
+          "type": "string",
+          "description": "Locale."
+        },
+        "timezone": {
+          "type": "string",
+          "description": "Timezone."
+        },
+        "password_allow_reset": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Password allow reset flag."
+        },
+        "password_require_update": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Password require update flag."
+        }
+      },
+      "description": "User."
+    },
+    "ssoUserCreateRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "User name."
+        },
+        "email": {
+          "type": "string",
+          "description": "User email."
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User is_enabled flag."
+        },
+        "locale": {
+          "type": "string",
+          "description": "User locale."
+        },
+        "timezone": {
+          "type": "string",
+          "description": "User timezone."
+        },
+        "password_allow_reset": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User password_allow_reset flag."
+        },
+        "password_require_update": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User password_require_update flag."
+        },
+        "password": {
+          "type": "string",
+          "description": "User password."
+        }
+      },
+      "description": "Create user request."
+    },
+    "ssoUserListReply": {
+      "type": "object",
+      "properties": {
+        "meta": {
+          "$ref": "#/definitions/ssoUserListRequest",
+          "description": "Request message."
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ssoUser"
+          },
+          "description": "Users array."
+        }
+      },
+      "description": "List users reply."
+    },
+    "ssoUserListRequest": {
+      "type": "object",
+      "properties": {
+        "gt": {
+          "type": "string",
+          "description": "Greater than service UUID."
+        },
+        "lt": {
+          "type": "string",
+          "description": "Less than service UUID."
+        },
+        "name_ge": {
+          "type": "string",
+          "description": "Greater than or equal user name."
+        },
+        "name_le": {
+          "type": "string",
+          "description": "Less than or equal user name."
+        },
+        "limit": {
+          "type": "string",
+          "format": "int64",
+          "description": "Limit number of returned users."
+        },
+        "offset_id": {
+          "type": "string",
+          "description": "Offset user UUID for paging."
+        },
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "User UUID filter array."
+        },
+        "email": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "User email filter array."
+        }
+      },
+      "description": "List users request."
+    },
+    "ssoUserReadReply": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/ssoUser",
+          "description": "User."
+        }
+      },
+      "description": "Read user reply."
+    },
+    "ssoUserUpdateRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "User UUID."
+        },
+        "name": {
+          "type": "string",
+          "description": "User name."
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User is_enabled flag."
+        },
+        "locale": {
+          "type": "string",
+          "description": "User locale."
+        },
+        "timezone": {
+          "type": "string",
+          "description": "User timezone."
+        },
+        "password_allow_reset": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User password_allow_reset flag."
+        },
+        "password_require_update": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User password_require_update flag."
+        }
+      },
+      "description": "Update user request."
     }
   }
 }

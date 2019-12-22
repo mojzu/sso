@@ -20,11 +20,7 @@ use std::fmt;
 use std::future::Future;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tonic::{
-    body::{Body, BoxBody},
-    metadata::MetadataMap,
-    Request, Response, Status,
-};
+use tonic::{metadata::MetadataMap, Request, Response, Status};
 use uuid::Uuid;
 
 /// gRPC server.
@@ -51,12 +47,29 @@ impl Server {
 #[tonic::async_trait]
 impl pb::sso_server::Sso for Server {
     async fn ping(&self, request: Request<()>) -> Result<Response<String>, Status> {
-        println!("Got a request: {:?}", request);
-        Ok(Response::new(format!("Hello!")))
+        let audit_meta = request_audit_meta(request.remote_addr(), request.metadata())?;
+        Ok(Response::new(format!("{}", audit_meta.remote())))
     }
 
     async fn metrics(&self, request: Request<()>) -> Result<Response<String>, Status> {
-        Ok(Response::new("# prometheus".to_owned()))
+        let audit_meta = request_audit_meta(request.remote_addr(), request.metadata())?;
+        let auth = request_authorisation(request.metadata())?;
+
+        let driver = self.driver.clone();
+        let reply = blocking::<_, Status, _>(move || {
+            let mut audit = AuditBuilder::new(audit_meta, AuditType::Metrics);
+            let res: Result<String, Status> = {
+                let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+                    .map_err(ApiError::Unauthorised)?;
+
+                Metrics::read(driver.as_ref().as_ref(), service.as_ref())
+                    .map_err(ApiError::BadRequest)
+                    .map_err::<Status, _>(Into::into)
+            };
+            api::result_audit_err(driver.as_ref().as_ref(), &audit, res)
+        })
+        .await?;
+        Ok(Response::new(reply))
     }
 
     async fn audit_list(
@@ -74,17 +87,16 @@ impl pb::sso_server::Sso for Server {
             let res: Result<Vec<Audit>, Status> = {
                 let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
                     .map_err(ApiError::Unauthorised)?;
-                let service_id = service.map(|s| s.id);
 
                 driver
                     .as_ref()
-                    .audit_list(&req, service_id)
+                    .audit_list(&req, service.map(|s| s.id))
                     .map_err(ApiError::BadRequest)
                     .map_err::<Status, _>(Into::into)
             };
             let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
             let reply = pb::AuditListReply {
-                meta: Some(req.try_into()?),
+                meta: Some(req.into()),
                 data: data.into_iter().map::<pb::Audit, _>(|x| x.into()).collect(),
             };
             Ok(reply)
@@ -110,7 +122,7 @@ impl pb::sso_server::Sso for Server {
 
         let driver = self.driver.clone();
         let reply = blocking::<_, Status, _>(move || {
-            let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditList);
+            let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditCreate);
             let res: Result<Audit, Status> = {
                 let _service =
                     pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
@@ -118,6 +130,72 @@ impl pb::sso_server::Sso for Server {
 
                 audit
                     .create2(driver.as_ref().as_ref(), req)
+                    .map_err(ApiError::BadRequest)
+                    .map_err::<Status, _>(Into::into)
+            };
+            let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+            let reply = pb::AuditReadReply {
+                data: Some(data.into()),
+            };
+            Ok(reply)
+        })
+        .await?;
+        Ok(Response::new(reply))
+    }
+
+    async fn audit_read(
+        &self,
+        request: Request<pb::AuditReadRequest>,
+    ) -> Result<Response<pb::AuditReadReply>, Status> {
+        let audit_meta = request_audit_meta(request.remote_addr(), request.metadata())?;
+        let auth = request_authorisation(request.metadata())?;
+        let req: AuditRead = request.into_inner().try_into()?;
+        AuditRead::status_validate(&req)?;
+
+        let driver = self.driver.clone();
+        let reply = blocking::<_, Status, _>(move || {
+            let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditRead);
+            let res: Result<Audit, Status> = {
+                let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+                    .map_err(ApiError::Unauthorised)?;
+
+                driver
+                    .audit_read(&req, service.map(|x| x.id))
+                    .map_err(ApiError::BadRequest)
+                    .map_err::<Status, _>(Into::into)?
+                    .ok_or_else(|| {
+                        let e: Status = ApiError::NotFound(DriverError::AuditNotFound).into();
+                        e
+                    })
+            };
+            let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+            let reply = pb::AuditReadReply {
+                data: Some(data.into()),
+            };
+            Ok(reply)
+        })
+        .await?;
+        Ok(Response::new(reply))
+    }
+
+    async fn audit_update(
+        &self,
+        request: Request<pb::AuditUpdateRequest>,
+    ) -> Result<Response<pb::AuditReadReply>, Status> {
+        let audit_meta = request_audit_meta(request.remote_addr(), request.metadata())?;
+        let auth = request_authorisation(request.metadata())?;
+        let req: AuditUpdate = request.into_inner().try_into()?;
+        AuditUpdate::status_validate(&req)?;
+
+        let driver = self.driver.clone();
+        let reply = blocking::<_, Status, _>(move || {
+            let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditUpdate);
+            let res: Result<Audit, Status> = {
+                let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+                    .map_err(ApiError::Unauthorised)?;
+
+                driver
+                    .audit_update(&req, service.map(|x| x.id))
                     .map_err(ApiError::BadRequest)
                     .map_err::<Status, _>(Into::into)
             };
@@ -200,6 +278,10 @@ pub fn datetime_to_timestamp_opt(dt: DateTime<Utc>) -> Option<prost_types::Times
     Some(ti)
 }
 
+pub fn string_to_uuid(s: String) -> Uuid {
+    serde_json::from_str(&s).unwrap()
+}
+
 pub fn string_opt_to_uuid_opt(s: Option<String>) -> Option<Uuid> {
     match s {
         Some(s) => {
@@ -276,16 +358,36 @@ impl TryFrom<pb::AuditListRequest> for AuditList {
     }
 }
 
-impl TryFrom<AuditList> for pb::AuditListRequest {
+impl TryFrom<pb::AuditReadRequest> for AuditRead {
     type Error = Status;
 
-    fn try_from(l: AuditList) -> Result<Self, Self::Error> {
+    fn try_from(r: pb::AuditReadRequest) -> Result<Self, Self::Error> {
+        Ok(Self::new(string_to_uuid(r.id)).subject(r.subject))
+    }
+}
+
+impl TryFrom<pb::AuditUpdateRequest> for AuditUpdate {
+    type Error = Status;
+
+    fn try_from(r: pb::AuditUpdateRequest) -> Result<Self, Self::Error> {
+        let data = serde_json::to_value(r.data).unwrap();
+        Ok(Self {
+            id: string_to_uuid(r.id),
+            status_code: r.status_code.map(|x| x as u16),
+            subject: r.subject,
+            data: Some(data),
+        })
+    }
+}
+
+impl From<AuditList> for pb::AuditListRequest {
+    fn from(l: AuditList) -> Self {
         let id = uuid_vec_opt_to_string_vec(l.filter.id);
         let type_ = l.filter.type_.unwrap_or(Vec::new());
         let subject = l.filter.subject.unwrap_or(Vec::new());
         let service_id = uuid_vec_opt_to_string_vec(l.filter.service_id);
         let user_id = uuid_vec_opt_to_string_vec(l.filter.user_id);
-        Ok(match l.query {
+        match l.query {
             AuditListQuery::CreatedLe(le, limit, offset_id) => Self {
                 ge: None,
                 le: datetime_to_timestamp_opt(le),
@@ -319,7 +421,7 @@ impl TryFrom<AuditList> for pb::AuditListRequest {
                 service_id,
                 user_id,
             },
-        })
+        }
     }
 }
 

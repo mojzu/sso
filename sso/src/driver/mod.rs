@@ -56,7 +56,8 @@ pub trait DriverIf {
     fn audit_create(&self, data: &AuditCreate) -> DriverResult<Audit>;
 
     /// Read audit log.
-    fn audit_read(&self, read: &AuditRead) -> DriverResult<Option<Audit>>;
+    fn audit_read(&self, read: &AuditRead, service_id: Option<Uuid>)
+        -> DriverResult<Option<Audit>>;
 
     /// Read audit metrics, returns array of counts for distinct audit types.
     fn audit_read_metrics(
@@ -68,7 +69,6 @@ pub trait DriverIf {
     /// Update audit log, append data to data array.
     fn audit_update(
         &self,
-        id: &Uuid,
         update: &AuditUpdate,
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Audit>;

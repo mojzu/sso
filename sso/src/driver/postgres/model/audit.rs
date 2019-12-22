@@ -142,13 +142,17 @@ impl ModelAudit {
             .map(Into::into)
     }
 
-    pub fn read(conn: &PgConnection, read: &AuditRead) -> DriverResult<Option<Audit>> {
+    pub fn read(
+        conn: &PgConnection,
+        read: &AuditRead,
+        service_id: Option<Uuid>,
+    ) -> DriverResult<Option<Audit>> {
         let mut query = sso_audit::table.into_boxed();
 
         if let Some(subject) = read.subject.as_ref() {
             query = query.filter(sso_audit::dsl::subject.eq(subject));
         }
-        if let Some(service_id) = read.service_id.as_ref() {
+        if let Some(service_id) = service_id.as_ref() {
             query = query.filter(sso_audit::dsl::service_id.eq(service_id));
         }
 
@@ -179,7 +183,6 @@ impl ModelAudit {
 
     pub fn update(
         conn: &PgConnection,
-        id: &Uuid,
         update: &AuditUpdate,
         service_id_mask: Option<Uuid>,
     ) -> DriverResult<Audit> {
@@ -187,7 +190,7 @@ impl ModelAudit {
         let status_code = update.status_code.map(|x| x as i16);
         let data = update.data.clone().unwrap_or(json!({}));
         diesel::sql_query(include_str!("audit_update.sql"))
-            .bind::<sql_types::Uuid, _>(id)
+            .bind::<sql_types::Uuid, _>(&update.id)
             .bind::<sql_types::Timestamptz, _>(now)
             .bind::<sql_types::Nullable<sql_types::Int2>, _>(status_code)
             .bind::<sql_types::Nullable<sql_types::Text>, _>(&update.subject)

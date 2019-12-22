@@ -220,40 +220,37 @@ pub struct AuditList {
 impl ValidateRequest<AuditList> for AuditList {}
 
 /// Audit read.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct AuditRead {
     pub id: Uuid,
+    #[validate(custom = "validate::audit_subject")]
     pub subject: Option<String>,
-    pub service_id: Option<Uuid>,
 }
 
 impl AuditRead {
     pub fn new(id: Uuid) -> Self {
-        Self {
-            id,
-            subject: None,
-            service_id: None,
-        }
+        Self { id, subject: None }
     }
 
     pub fn subject(mut self, subject: Option<String>) -> Self {
         self.subject = subject;
         self
     }
-
-    pub fn service_id(mut self, service_id: Option<Uuid>) -> Self {
-        self.service_id = service_id;
-        self
-    }
 }
 
+impl ValidateRequest<AuditRead> for AuditRead {}
+
 /// Audit update.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct AuditUpdate {
+    pub id: Uuid,
     pub status_code: Option<u16>,
+    #[validate(custom = "validate::audit_subject")]
     pub subject: Option<String>,
     pub data: Option<Value>,
 }
+
+impl ValidateRequest<AuditUpdate> for AuditUpdate {}
 
 /// Audit metadata.
 ///

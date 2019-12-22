@@ -14,7 +14,7 @@ ENV HOME="/root"
 ENV RUSTUP_HOME="/usr/local/rustup" \
     CARGO_HOME="/usr/local/cargo" \
     PATH="/usr/local/cargo/bin:$PATH" \
-    RUST_VERSION="1.39.0" \
+    RUST_VERSION="1.40.0" \
     RUSTUP_URL="https://static.rust-lang.org/rustup/archive/1.20.2/x86_64-unknown-linux-gnu/rustup-init"
 
 # Go environment.

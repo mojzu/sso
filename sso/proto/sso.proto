@@ -4,7 +4,26 @@ package sso;
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
+// import "protoc-gen-swagger/options/annotations.proto";
+
 import "annotations.proto";
+
+// option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+//     info: {
+//         title: "Single Sign-on";
+//         version: "v1";
+//     };
+// 	security_definitions: {
+//         security: {
+//             key: "ApiKeyAuth";
+//             value: {
+//                 type: TYPE_API_KEY;
+//                 in: IN_HEADER;
+//                 name: "Authorization";
+//             }
+//         }
+//     };
+// };
 
 service Sso {
     // Returns pong response.
@@ -31,7 +50,7 @@ service Sso {
     }
 
     // Create audit log.
-    rpc AuditCreate(AuditCreateRequest) returns (AuditReadReply) {
+    rpc AuditCreate (AuditCreateRequest) returns (AuditReadReply) {
         option (google.api.http) = {
             post: "/v1/audit"
             body: "*"
@@ -39,16 +58,214 @@ service Sso {
     }
 
     // Read audit log.
-    rpc AuditRead(AuditReadRequest) returns (AuditReadReply) {
+    rpc AuditRead (AuditReadRequest) returns (AuditReadReply) {
         option (google.api.http) = {
             get: "/v1/audit/{id}"
         };
     }
 
     // Update audit log.
-    rpc AuditUpdate(AuditUpdateRequest) returns (AuditReadReply) {
+    rpc AuditUpdate (AuditUpdateRequest) returns (AuditReadReply) {
         option (google.api.http) = {
             patch: "/v1/audit/{id}"
+            body: "*"
+        };
+    }
+
+    // List keys.
+    rpc KeyList (KeyListRequest) returns (KeyListReply) {
+        option (google.api.http) = {
+            get: "/v1/key"
+        };
+    }
+
+    // Create key.
+    rpc KeyCreate (KeyCreateRequest) returns (KeyCreateReply) {
+        option (google.api.http) = {
+            post: "/v1/key"
+            body: "*"
+        };
+    }
+
+    // Read key.
+    rpc KeyRead (KeyReadRequest) returns (KeyReadReply) {
+        option (google.api.http) = {
+            get: "/v1/key/{id}"
+        };
+    }
+
+    // Update key.
+    rpc KeyUpdate (KeyUpdateRequest) returns (KeyReadReply) {
+        option (google.api.http) = {
+            patch: "/v1/key/{id}"
+            body: "*"
+        };
+    }
+
+    // Delete key.
+    rpc KeyDelete (KeyReadRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/v1/key/{id}"
+        };
+    }
+
+    // List services.
+    rpc ServiceList (ServiceListRequest) returns (ServiceListReply) {
+        option (google.api.http) = {
+            get: "/v1/service"
+        };
+    }
+
+    // Create service.
+    rpc ServiceCreate (ServiceCreateRequest) returns (ServiceReadReply) {
+        option (google.api.http) = {
+            post: "/v1/service"
+            body: "*"
+        };
+    }
+
+    // Read service.
+    rpc ServiceRead (ServiceReadRequest) returns (ServiceReadReply) {
+        option (google.api.http) = {
+            get: "/v1/service/{id}"
+        };
+    }
+
+    // Update service.
+    rpc ServiceUpdate (ServiceUpdateRequest) returns (ServiceReadReply) {
+        option (google.api.http) = {
+            patch: "/v1/service/{id}"
+            body: "*"
+        };
+    }
+
+    // Delete service.
+    rpc ServiceDelete (ServiceReadRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/v1/service/{id}"
+        };
+    }
+
+    // List users.
+    rpc UserList (UserListRequest) returns (UserListReply) {
+        option (google.api.http) = {
+            get: "/v1/user"
+        };
+    }
+
+    // Create user.
+    rpc UserCreate (UserCreateRequest) returns (UserReadReply) {
+        option (google.api.http) = {
+            post: "/v1/user"
+            body: "*"
+        };
+    }
+
+    // Read user.
+    rpc UserRead (UserReadRequest) returns (UserReadReply) {
+        option (google.api.http) = {
+            get: "/v1/user/{id}"
+        };
+    }
+
+    // Update user.
+    rpc UserUpdate (UserUpdateRequest) returns (UserReadReply) {
+        option (google.api.http) = {
+            patch: "/v1/user/{id}"
+            body: "*"
+        };
+    }
+
+    // Delete user.
+    rpc UserDelete (UserReadRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/v1/user/{id}"
+        };
+    }
+
+    // Authentication verify key.
+    rpc AuthKeyVerify (AuthKeyRequest) returns (AuthKeyReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/key/verify"
+            body: "*"
+        };
+    }
+
+    // Authentication revoke key.
+    rpc AuthKeyRevoke (AuthKeyRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/key/revoke"
+            body: "*"
+        };
+    }
+
+    // Authentication verify token.
+    rpc AuthTokenVerify (AuthTokenRequest) returns (AuthTokenVerifyReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/token/verify"
+            body: "*"
+        };
+    }
+
+    // Authentication refresh token.
+    rpc AuthTokenRefresh (AuthTokenRequest) returns (AuthTokenReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/token/refresh"
+            body: "*"
+        };
+    }
+
+    // Authentication revoke token.
+    rpc AuthTokenRevoke (AuthTokenRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/token/revoke"
+            body: "*"
+        };
+    }
+
+    // Authentication verify TOTP code.
+    rpc AuthTotpVerify (AuthTotpRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/totp"
+            body: "*"
+        };
+    }
+
+    // Authentication create CSRF token.
+    rpc AuthCsrfCreate (AuthCsrfCreateRequest) returns (AuthCsrfCreateReply) {
+        option (google.api.http) = {
+            get: "/v1/auth/csrf"
+        };
+    }
+
+    // Authentication verify CSRF token.
+    rpc AuthCsrfVerify (AuthCsrfVerifyRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/csrf"
+            body: "*"
+        };
+    }
+
+    // Authentication local provider login.
+    rpc AuthLocalLogin (AuthLoginRequest) returns (AuthLoginReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/login"
+            body: "*"
+        };
+    }
+
+    // Authentication local provider register.
+    rpc AuthLocalRegister (AuthRegisterRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/register"
+            body: "*"
+        };
+    }
+
+    // Authentication local provider register confirm.
+    rpc AuthLocalRegisterConfirm (AuthRegisterConfirmRequest) returns (AuthPasswordMetaReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/register/confirm"
             body: "*"
         };
     }
@@ -100,7 +317,10 @@ message AuditCreateRequest {
 
 // Read audit log request.
 message AuditReadRequest {
+    // Log UUID.
     string id = 1;
+    // Log subject filter.
+    google.protobuf.StringValue subject = 2;
 }
 
 // Read audit log reply.
@@ -129,17 +349,35 @@ message Audit {
     google.protobuf.Timestamp updated_at = 2;
     // UUID.
     string id = 3;
+    // User-agent header (or unknown if not available).
     string user_agent = 4;
+    // Remote IP address (or unknown if not available).
     string remote = 5;
+    // X-forwarded-for header.
     google.protobuf.StringValue forwarded = 6;
+    // Response status code.
     google.protobuf.UInt32Value status_code = 7;
+    // Type.
     string type = 8;
+    // Subject.
     google.protobuf.StringValue subject = 9;
+    // Key, value data.
     map<string, string> data = 10;
+    // Key UUID.
     google.protobuf.StringValue key_id = 11;
+    // Service UUID.
     google.protobuf.StringValue service_id = 12;
+    // User UUID.
     google.protobuf.StringValue user_id = 13;
+    // User key UUID.
     google.protobuf.StringValue user_key_id = 14;
+}
+
+// Key type.
+enum KeyType {
+    KEY = 0;
+    TOKEN = 1;
+    TOTP = 2;
 }
 
 // List keys request.
@@ -157,9 +395,453 @@ message KeyListRequest {
     // Key is_revoked flag filter.
     google.protobuf.BoolValue is_revoked = 6;
     // Key type filter array.
-    repeated string type = 7;
+    repeated KeyType type = 7;
     // Key service UUID filter array.
     repeated string service_id = 8;
     // Key user UUID filter array.
     repeated string user_id = 9;
+}
+
+// List keys reply.
+message KeyListReply {
+    // Request message.
+    KeyListRequest meta = 1;
+    // Keys array.
+    repeated Key data = 2;
+}
+
+// Create key request.
+message KeyCreateRequest {
+    // Key type.
+    KeyType type = 1;
+    // Key name.
+    string name = 2;
+    // Key is_enabled flag.
+    google.protobuf.BoolValue is_enabled = 3;
+    // Key service UUID.
+    google.protobuf.StringValue service_id = 4;
+    // Key user UUID.
+    google.protobuf.StringValue user_id = 5;
+}
+
+// Create key reply.
+message KeyCreateReply {
+    // Key.
+    KeyWithValue data = 1;
+}
+
+// Read key request.
+message KeyReadRequest {
+    // Key UUID.
+    string id = 1;
+}
+
+// Read key reply.
+message KeyReadReply {
+    // Key.
+    Key data = 1;
+}
+
+// Update key request.
+message KeyUpdateRequest {
+    // Key UUID.
+    string id = 1;
+    // Key name.
+    google.protobuf.StringValue name = 2;
+    // Key is_enabled flag.
+    google.protobuf.BoolValue is_enabled = 3;
+}
+
+// Key.
+message Key {
+    // Created at date and time.
+    google.protobuf.Timestamp created_at = 1;
+    // Updated at date and time.
+    google.protobuf.Timestamp updated_at = 2;
+    // UUID.
+    string id = 3;
+    // Is enabled flag.
+    bool is_enabled = 4;
+    // Is revoked flag.
+    bool is_revoked = 5;
+    // Type.
+    KeyType type = 6;
+    // Name.
+    string name = 7;
+    // Service UUID.
+    google.protobuf.StringValue service_id = 8;
+    // User UUID.
+    google.protobuf.StringValue user_id = 9;
+}
+
+// Key with value.
+message KeyWithValue {
+    // Key.
+    Key key = 1;
+    // Key value.
+    string value = 2;
+}
+
+// List services request.
+message ServiceListRequest {
+    // Greater than service UUID.
+    google.protobuf.StringValue gt = 1;
+    // Less than service UUID.
+    google.protobuf.StringValue lt = 2;
+    // Limit number of returned services.
+    google.protobuf.Int64Value limit = 3;
+    // Service UUID filter array.
+    repeated string id = 4;
+    // Service is_enabled flag filter.
+    google.protobuf.BoolValue is_enabled = 5;
+}
+
+// List services reply.
+message ServiceListReply {
+    // Request message.
+    ServiceListRequest meta = 1;
+    // Services array.
+    repeated Service data = 2;
+}
+
+// Create service request.
+message ServiceCreateRequest {
+    // Service name.
+    string name = 1;
+    // Service URL.
+    string url = 2;
+    // Service is_enabled flag.
+    google.protobuf.BoolValue is_enabled = 3;
+    // Service user_allow_register flag.
+    google.protobuf.BoolValue user_allow_register = 4;
+    // Service user email text.
+    google.protobuf.StringValue user_email_text = 5;
+    // Service local provider URL.
+    google.protobuf.StringValue provider_local_url = 6;
+    // Service GitHub OAuth2 provider URL.
+    google.protobuf.StringValue provider_github_oauth2_url = 7;
+    // Service Microsoft OAuth2 provider URL.
+    google.protobuf.StringValue provider_microsoft_oauth2_url = 8;
+}
+
+// Read service request.
+message ServiceReadRequest {
+    // Service UUID.
+    string id = 1;
+}
+
+// Read service reply.
+message ServiceReadReply {
+    // Service.
+    Service data = 1;
+}
+
+// Update service request.
+message ServiceUpdateRequest {
+    // Service UUID.
+    string id = 1;
+    // Service name.
+    google.protobuf.StringValue name = 2;
+    // Service URL.
+    google.protobuf.StringValue url = 3;
+    // Service is_enabled flag.
+    google.protobuf.BoolValue is_enabled = 4;
+    // Service user_allow_register flag.
+    google.protobuf.BoolValue user_allow_register = 5;
+    // Service user email text.
+    google.protobuf.StringValue user_email_text = 6;
+    // Service local provider URL.
+    google.protobuf.StringValue provider_local_url = 7;
+    // Service GitHub OAuth2 provider URL.
+    google.protobuf.StringValue provider_github_oauth2_url = 8;
+    // Service Microsoft OAuth2 provider URL.
+    google.protobuf.StringValue provider_microsoft_oauth2_url = 9;
+}
+
+// Service.
+message Service {
+    // Created at date and time.
+    google.protobuf.Timestamp created_at = 1;
+    // Updated at date and time.
+    google.protobuf.Timestamp updated_at = 2;
+    // UUID.
+    string id = 3;
+    // Is enabled flag.
+    bool is_enabled = 4;
+    // Name.
+    string name = 5;
+    // URL.
+    string url = 6;
+    // User allow register flag.
+    bool user_allow_register = 7;
+    // User email text.
+    string user_email_text = 8;
+    // Local provider URL.
+    google.protobuf.StringValue provider_local_url = 9;
+    // GitHub OAuth2 provider URL.
+    google.protobuf.StringValue provider_github_oauth2_url = 10;
+    // Microsoft OAuth2 provider URL.
+    google.protobuf.StringValue provider_microsoft_oauth2_url = 11;
+}
+
+// List users request.
+message UserListRequest {
+    // Greater than service UUID.
+    google.protobuf.StringValue gt = 1;
+    // Less than service UUID.
+    google.protobuf.StringValue lt = 2;
+    // Greater than or equal user name.
+    google.protobuf.StringValue name_ge = 3;
+    // Less than or equal user name.
+    google.protobuf.StringValue name_le = 4;
+    // Limit number of returned users.
+    google.protobuf.Int64Value limit = 5;
+    // Offset user UUID for paging.
+    google.protobuf.StringValue offset_id = 6;
+    // User UUID filter array.
+    repeated string id = 7;
+    // User email filter array.
+    repeated string email = 8;
+}
+
+// List users reply.
+message UserListReply {
+    // Request message.
+    UserListRequest meta = 1;
+    // Users array.
+    repeated User data = 2;
+}
+
+// Create user request.
+message UserCreateRequest {
+    // User name.
+    string name = 1;
+    // User email.
+    string email = 2;
+    // User is_enabled flag.
+    google.protobuf.BoolValue is_enabled = 3;
+    // User locale.
+    google.protobuf.StringValue locale = 4;
+    // User timezone.
+    google.protobuf.StringValue timezone = 5;
+    // User password_allow_reset flag.
+    google.protobuf.BoolValue password_allow_reset = 6;
+    // User password_require_update flag.
+    google.protobuf.BoolValue password_require_update = 7;
+    // User password.
+    google.protobuf.StringValue password = 8;
+}
+
+// Read user request.
+message UserReadRequest {
+    // User UUID.
+    string id = 1;
+}
+
+// Read user reply.
+message UserReadReply {
+    // User.
+    User data = 1;
+}
+
+// Update user request.
+message UserUpdateRequest {
+    // User UUID.
+    string id = 1;
+    // User name.
+    google.protobuf.StringValue name = 2;
+    // User is_enabled flag.
+    google.protobuf.BoolValue is_enabled = 3;
+    // User locale.
+    google.protobuf.StringValue locale = 4;
+    // User timezone.
+    google.protobuf.StringValue timezone = 5;
+    // User password_allow_reset flag.
+    google.protobuf.BoolValue password_allow_reset = 6;
+    // User password_require_update flag.
+    google.protobuf.BoolValue password_require_update = 7;
+}
+
+// User.
+message User {
+    // Created at date and time.
+    google.protobuf.Timestamp created_at = 1;
+    // Updated at date and time.
+    google.protobuf.Timestamp updated_at = 2;
+    // UUID.
+    string id = 3;
+    // Is enabled flag.
+    bool is_enabled = 4;
+    // Name.
+    string name = 5;
+    // Email.
+    string email = 6;
+    // Locale.
+    string locale = 7;
+    // Timezone.
+    string timezone = 8;
+    // Password allow reset flag.
+    bool password_allow_reset = 9;
+    // Password require update flag.
+    bool password_require_update = 10;
+}
+
+// Authentication key request.
+message AuthKeyRequest {
+    // Key value.
+    string key = 1;
+    // Audit type.
+    google.protobuf.StringValue audit = 2;
+}
+
+// Authentication key reply.
+message AuthKeyReply {
+    // User.
+    User user = 1;
+    // User key.
+    Key key = 2;
+    // Audit UUID.
+    google.protobuf.StringValue audit = 3;
+}
+
+// Authentication audit reply.
+message AuthAuditReply {
+    // Audit UUID.
+    google.protobuf.StringValue audit = 1;
+}
+
+// Authentication token request/
+message AuthTokenRequest {
+    // Token value.
+    string token = 1;
+    // Audit type.
+    google.protobuf.StringValue audit = 2;
+}
+
+// Authentication token verify reply.
+message AuthTokenVerifyReply {
+    // User.
+    User user = 1;
+    // Access token.
+    AuthToken access = 2;
+    // Audit UUID.
+    google.protobuf.StringValue audit = 3;
+}
+
+// Authentication token reply.
+message AuthTokenReply {
+    // User.
+    User user = 1;
+    // Access token.
+    AuthToken access = 2;
+    // Refresh token.
+    AuthToken refresh = 3;
+    // Audit UUID.
+    google.protobuf.StringValue audit = 4;
+}
+
+// Authentication token.
+message AuthToken {
+    // Token value.
+    string token = 1;
+    // Token expires.
+    int64 token_expires = 2;
+}
+
+// Authentication TOTP request.
+message AuthTotpRequest {
+    // User UUID.
+    string user_id = 1;
+    // TOTP code.
+    string totp = 2;
+}
+
+// Authentication create CSRF token request.
+message AuthCsrfCreateRequest {
+    // CSRF token expires.
+    google.protobuf.Int64Value expires_s = 1;
+}
+
+// Authentication CSRF token.
+message AuthCsrfCreateReply {
+    // CSRF.
+    Csrf csrf = 1;
+}
+
+// Authentication verify CSRF token request.
+message AuthCsrfVerifyRequest {
+    // CSRF token value.
+    string csrf = 1;
+    // Audit type.
+    google.protobuf.StringValue audit = 2;
+}
+
+// CSRF.
+message Csrf {
+    // Created at date and time.
+    google.protobuf.Timestamp created_at = 1;
+    // Key.
+    string key = 2;
+    // Value.
+    string value = 3;
+    // Time to live.
+    google.protobuf.Timestamp ttl = 4;
+    // Service UUID.
+    google.protobuf.StringValue service_id = 5;
+}
+
+// Authentication login request.
+message AuthLoginRequest {
+    // User email.
+    string email = 1;
+    // User password.
+    string password = 2;
+}
+
+// Authentication login reply.
+message AuthLoginReply {
+    // Password metadata.
+    AuthPasswordMeta meta = 1;
+    // User.
+    User user = 2;
+    // Access token.
+    AuthToken access = 3;
+    // Refresh token.
+    AuthToken refresh = 4;
+}
+
+// Authentication register request.
+message AuthRegisterRequest {
+    // User name.
+    string name = 1;
+    // User email.
+    string email = 2;
+    // User locale.
+    google.protobuf.StringValue locale = 3;
+    // User timezone.
+    google.protobuf.StringValue timezone = 4;
+}
+
+// Authentication register confirm request.
+message AuthRegisterConfirmRequest {
+    // Register token value.
+    string token = 1;
+    // User password.
+    google.protobuf.StringValue password = 2;
+    // User password_allow_reset flag.
+    google.protobuf.BoolValue password_allow_reset = 3;
+}
+
+// Authentication password metadata reply.
+message AuthPasswordMetaReply {
+    // Password metadata.
+    AuthPasswordMeta meta = 1;
+}
+
+// Authentication password metadata.
+message AuthPasswordMeta {
+    // Password strength.
+    google.protobuf.UInt32Value password_strength = 1;
+    // Password pwned.
+    google.protobuf.BoolValue password_pwned = 2;
 }

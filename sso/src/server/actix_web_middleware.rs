@@ -13,54 +13,6 @@ use futures::{
 use prometheus::{HistogramTimer, HistogramVec, IntCounterVec};
 use std::fmt;
 
-/// Header identity policy middleware.
-#[derive(Debug)]
-pub struct HeaderIdentityPolicy {
-    header: String,
-}
-
-impl HeaderIdentityPolicy {
-    /// Create new identity service.
-    pub fn identity_service() -> IdentityService<Self> {
-        IdentityService::new(HeaderIdentityPolicy::default())
-    }
-}
-
-impl Default for HeaderIdentityPolicy {
-    fn default() -> Self {
-        Self {
-            header: HEADER_AUTHORISATION_NAME.to_owned(),
-        }
-    }
-}
-
-impl IdentityPolicy for HeaderIdentityPolicy {
-    type Future = ActixWebResult<Option<String>, Error>;
-    type ResponseFuture = ActixWebResult<(), Error>;
-
-    fn from_request(&self, request: &mut ServiceRequest) -> Self::Future {
-        let service_key = match request.headers().get(&self.header) {
-            Some(value) => {
-                let value = value
-                    .to_str()
-                    .map_err(|_err| ApiError::Unauthorised(DriverError::HttpHeader))?;
-                HeaderAuth::parse_key(value)
-            }
-            None => None,
-        };
-        Ok(service_key)
-    }
-
-    fn to_response<B>(
-        &self,
-        _id: Option<String>,
-        _changed: bool,
-        _response: &mut ServiceResponse<B>,
-    ) -> Self::ResponseFuture {
-        Ok(())
-    }
-}
-
 /// Metrics middleware constructor.
 pub struct Metrics {
     count: IntCounterVec,

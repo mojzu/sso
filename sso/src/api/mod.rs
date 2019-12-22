@@ -1,5 +1,4 @@
 //! # API functions.
-mod audit;
 mod auth;
 mod error;
 mod key;
@@ -9,7 +8,6 @@ mod user;
 pub mod validate;
 
 pub use crate::api::{
-    audit::*,
     auth::*,
     error::*,
     key::*,
@@ -20,12 +18,11 @@ pub use crate::api::{
 };
 
 use crate::{
-    AuditBuilder, AuditDiff, AuditDiffBuilder, AuditMeta, AuditSubject, AuditType, Driver,
-    DriverError, Service,
+    AuditBuilder, AuditDiff, AuditDiffBuilder, AuditSubject, Driver, DriverError, Service,
 };
 use http::StatusCode;
-use serde_json::Value;
 use tonic::Status;
+use uuid::Uuid;
 
 /// API Paths
 pub mod path {
@@ -109,41 +106,6 @@ pub mod route {
     }
 }
 
-pub fn server_ping() -> Value {
-    json!("pong")
-}
-
-pub fn server_metrics(
-    driver: &dyn Driver,
-    audit_meta: AuditMeta,
-    key_value: Option<String>,
-) -> ApiResult<String> {
-    let mut audit = AuditBuilder::new(audit_meta, AuditType::Metrics);
-
-    let res = server::metrics(driver, &mut audit, key_value);
-    result_audit_err(driver, &audit, res)
-}
-
-mod server {
-    use crate::{
-        api::{ApiError, ApiResult},
-        pattern::*,
-        AuditBuilder, Driver, Metrics,
-    };
-
-    pub fn metrics(
-        driver: &dyn Driver,
-        audit: &mut AuditBuilder,
-        key_value: Option<String>,
-    ) -> ApiResult<String> {
-        let service = key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
-
-        Metrics::read(driver, service.as_ref())
-            .map_err(ApiError::BadRequest)
-            .map_err::<tonic::Status, _>(Into::into)
-    }
-}
-
 // TODO(refactor): Unwrap check and cleanup.
 
 fn result_audit<T>(driver: &dyn Driver, audit: &AuditBuilder, res: ApiResult<T>) -> ApiResult<T> {
@@ -160,6 +122,12 @@ fn result_audit<T>(driver: &dyn Driver, audit: &AuditBuilder, res: ApiResult<T>)
             .unwrap();
         Ok(res)
     })
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuditIdOptResponse {
+    pub audit: Option<Uuid>,
 }
 
 pub fn result_audit_err<T>(
