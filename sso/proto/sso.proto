@@ -4,10 +4,9 @@ package sso;
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
-// import "protoc-gen-swagger/options/annotations.proto";
-
 import "annotations.proto";
 
+// import "protoc-gen-swagger/options/annotations.proto";
 // option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 //     info: {
 //         title: "Single Sign-on";
@@ -24,6 +23,8 @@ import "annotations.proto";
 //         }
 //     };
 // };
+
+// TODO(refactor): Split ping/metrics into service.
 
 service Sso {
     // Returns pong response.
@@ -255,7 +256,7 @@ service Sso {
     }
 
     // Authentication local provider register.
-    rpc AuthLocalRegister (AuthRegisterRequest) returns (AuthAuditReply) {
+    rpc AuthLocalRegister (AuthRegisterRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/register"
             body: "*"
@@ -266,6 +267,100 @@ service Sso {
     rpc AuthLocalRegisterConfirm (AuthRegisterConfirmRequest) returns (AuthPasswordMetaReply) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/register/confirm"
+            body: "*"
+        };
+    }
+
+    // Authentication local provider register revoke.
+    rpc AuthLocalRegisterRevoke (AuthTokenRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/register/revoke"
+            body: "*"
+        };
+    }
+
+    // Authentication local provider reset password.
+    rpc AuthLocalResetPassword (AuthResetPasswordRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/reset-password"
+            body: "*"
+        };
+    }
+
+    // Authentication local provider reset password confirm.
+    rpc AuthLocalResetPasswordConfirm (AuthResetPasswordConfirmRequest) returns (AuthPasswordMetaReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/reset-password/confirm"
+            body: "*"
+        };
+    }
+
+    // Authentication local provider reset password revoke.
+    rpc AuthLocalResetPasswordRevoke (AuthTokenRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/reset-password/revoke"
+            body: "*"
+        };
+    }
+
+    // Authentication local provider update email.
+    rpc AuthLocalUpdateEmail (AuthUpdateEmailRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/update-email"
+            body: "*"
+        };
+    }
+
+    // Authentication local provider update email revoke.
+    rpc AuthLocalUpdateEmailRevoke (AuthTokenRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/update-email/revoke"
+            body: "*"
+        };
+    }
+
+    // Authentication local provider update password.
+    rpc AuthLocalUpdatePassword (AuthUpdatePasswordRequest) returns (AuthPasswordMetaReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/update-password"
+            body: "*"
+        };
+    }
+
+    // Authentication local provider update password revoke.
+    rpc AuthLocalUpdatePasswordRevoke (AuthTokenRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/update-password/revoke"
+            body: "*"
+        };
+    }
+
+    // Authentication Github provider OAuth2 URL.
+    rpc AuthGithubOauth2Url (google.protobuf.Empty) returns (AuthOauth2UrlReply) {
+        option (google.api.http) = {
+            get: "/v1/auth/provider/github/oauth2"
+        };
+    }
+
+    // Authentication Github provider OAuth2 callback.
+    rpc AuthGithubOauth2Callback (AuthOauth2CallbackRequest) returns (AuthTokenReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/github/oauth2"
+            body: "*"
+        };
+    }
+
+    // Authentication Microsoft provider OAuth2 URL.
+    rpc AuthMicrosoftOauth2Url (google.protobuf.Empty) returns (AuthOauth2UrlReply) {
+        option (google.api.http) = {
+            get: "/v1/auth/provider/microsoft/oauth2"
+        };
+    }
+
+    // Authentication Microsoft provider OAuth2 callback.
+    rpc AuthMicrosoftOauth2Callback (AuthOauth2CallbackRequest) returns (AuthTokenReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/microsoft/oauth2"
             body: "*"
         };
     }
@@ -844,4 +939,52 @@ message AuthPasswordMeta {
     google.protobuf.UInt32Value password_strength = 1;
     // Password pwned.
     google.protobuf.BoolValue password_pwned = 2;
+}
+
+// Authentication reset password request.
+message AuthResetPasswordRequest {
+    // User email.
+    string email = 1;
+}
+
+// Authentication reset password confirm request.
+message AuthResetPasswordConfirmRequest {
+    // Reset password token.
+    string token = 1;
+    // User password.
+    string password = 2;
+}
+
+// Authentication update email request.
+message AuthUpdateEmailRequest {
+    // User UUID.
+    string user_id = 1;
+    // User current password.
+    string password = 2;
+    // User new email address.
+    string new_email = 3;
+}
+
+// Authentication update password request.
+message AuthUpdatePasswordRequest {
+    // User UUID.
+    string user_id = 1;
+    // User current password.
+    string password = 2;
+    // User new password.
+    string new_password = 3;
+}
+
+// Authentication OAuth2 URL reply.
+message AuthOauth2UrlReply {
+    // URL.
+    string url = 1;
+}
+
+// Authentication OAuth2 callback request.
+message AuthOauth2CallbackRequest {
+    // Code.
+    string code = 1;
+    // State.
+    string state = 2;
 }

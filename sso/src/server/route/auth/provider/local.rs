@@ -9,62 +9,6 @@ use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 
-pub fn route_v1_scope() -> Scope {
-    web::scope(api::path::LOCAL)
-        .service(web::resource(api::path::LOGIN).route(web::post().to_async(login_handler)))
-        .service(
-            web::scope(api::path::REGISTER)
-                .service(
-                    web::resource(api::path::NONE).route(web::post().to_async(register_handler)),
-                )
-                .service(
-                    web::resource(api::path::CONFIRM)
-                        .route(web::post().to_async(register_confirm_handler)),
-                )
-                .service(
-                    web::resource(api::path::REVOKE)
-                        .route(web::post().to_async(register_revoke_handler)),
-                ),
-        )
-        .service(
-            web::scope(api::path::RESET_PASSWORD)
-                .service(
-                    web::resource(api::path::NONE)
-                        .route(web::post().to_async(reset_password_handler)),
-                )
-                .service(
-                    web::resource(api::path::CONFIRM)
-                        .route(web::post().to_async(reset_password_confirm_handler)),
-                )
-                .service(
-                    web::resource(api::path::REVOKE)
-                        .route(web::post().to_async(reset_password_revoke_handler)),
-                ),
-        )
-        .service(
-            web::scope(api::path::UPDATE_EMAIL)
-                .service(
-                    web::resource(api::path::NONE)
-                        .route(web::post().to_async(update_email_handler)),
-                )
-                .service(
-                    web::resource(api::path::REVOKE)
-                        .route(web::post().to_async(update_email_revoke_handler)),
-                ),
-        )
-        .service(
-            web::scope(api::path::UPDATE_PASSWORD)
-                .service(
-                    web::resource(api::path::NONE)
-                        .route(web::post().to_async(update_password_handler)),
-                )
-                .service(
-                    web::resource(api::path::REVOKE)
-                        .route(web::post().to_async(update_password_revoke_handler)),
-                ),
-        )
-}
-
 fn login_handler(
     data: web::Data<Data>,
     req: HttpRequest,

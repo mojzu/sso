@@ -14,19 +14,6 @@ use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 
-pub fn route_v1_scope() -> Scope {
-    web::scope(api::path::AUTH)
-        .service(provider::route_v1_scope())
-        .service(key::route_v1_scope())
-        .service(token::route_v1_scope())
-        .service(web::resource(api::path::TOTP).route(web::post().to_async(totp_handler)))
-        .service(
-            web::resource(api::path::CSRF)
-                .route(web::get().to_async(csrf_create_handler))
-                .route(web::post().to_async(csrf_verify_handler)),
-        )
-}
-
 fn totp_handler(
     data: web::Data<Data>,
     req: HttpRequest,

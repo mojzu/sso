@@ -9,13 +9,6 @@ use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 
-pub fn route_v1_scope() -> Scope {
-    web::scope(api::path::TOKEN)
-        .service(web::resource(api::path::VERIFY).route(web::post().to_async(verify_handler)))
-        .service(web::resource(api::path::REFRESH).route(web::post().to_async(refresh_handler)))
-        .service(web::resource(api::path::REVOKE).route(web::post().to_async(revoke_handler)))
-}
-
 fn verify_handler(
     data: web::Data<Data>,
     req: HttpRequest,

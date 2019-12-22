@@ -346,6 +346,48 @@
         ]
       }
     },
+    "/v1/auth/provider/github/oauth2": {
+      "get": {
+        "summary": "Authentication Github provider OAuth2 URL.",
+        "operationId": "AuthGithubOauth2Url",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthOauth2UrlReply"
+            }
+          }
+        },
+        "tags": [
+          "Sso"
+        ]
+      },
+      "post": {
+        "summary": "Authentication Github provider OAuth2 callback.",
+        "operationId": "AuthGithubOauth2Callback",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthOauth2CallbackRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
     "/v1/auth/provider/local/login": {
       "post": {
         "summary": "Authentication local provider login.",
@@ -381,7 +423,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/ssoAuthAuditReply"
+              "properties": {}
             }
           }
         },
@@ -419,6 +461,264 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/ssoAuthRegisterConfirmRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/register/revoke": {
+      "post": {
+        "summary": "Authentication local provider register revoke.",
+        "operationId": "AuthLocalRegisterRevoke",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/reset-password": {
+      "post": {
+        "summary": "Authentication local provider reset password.",
+        "operationId": "AuthLocalResetPassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthResetPasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/reset-password/confirm": {
+      "post": {
+        "summary": "Authentication local provider reset password confirm.",
+        "operationId": "AuthLocalResetPasswordConfirm",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthPasswordMetaReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthResetPasswordConfirmRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/reset-password/revoke": {
+      "post": {
+        "summary": "Authentication local provider reset password revoke.",
+        "operationId": "AuthLocalResetPasswordRevoke",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/update-email": {
+      "post": {
+        "summary": "Authentication local provider update email.",
+        "operationId": "AuthLocalUpdateEmail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthUpdateEmailRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/update-email/revoke": {
+      "post": {
+        "summary": "Authentication local provider update email revoke.",
+        "operationId": "AuthLocalUpdateEmailRevoke",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/update-password": {
+      "post": {
+        "summary": "Authentication local provider update password.",
+        "operationId": "AuthLocalUpdatePassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthPasswordMetaReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthUpdatePasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/update-password/revoke": {
+      "post": {
+        "summary": "Authentication local provider update password revoke.",
+        "operationId": "AuthLocalUpdatePasswordRevoke",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/provider/microsoft/oauth2": {
+      "get": {
+        "summary": "Authentication Microsoft provider OAuth2 URL.",
+        "operationId": "AuthMicrosoftOauth2Url",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthOauth2UrlReply"
+            }
+          }
+        },
+        "tags": [
+          "Sso"
+        ]
+      },
+      "post": {
+        "summary": "Authentication Microsoft provider OAuth2 callback.",
+        "operationId": "AuthMicrosoftOauth2Callback",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthOauth2CallbackRequest"
             }
           }
         ],
@@ -1420,6 +1720,30 @@
       },
       "description": "Authentication login request."
     },
+    "ssoAuthOauth2CallbackRequest": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Code."
+        },
+        "state": {
+          "type": "string",
+          "description": "State."
+        }
+      },
+      "description": "Authentication OAuth2 callback request."
+    },
+    "ssoAuthOauth2UrlReply": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "URL."
+        }
+      },
+      "description": "Authentication OAuth2 URL reply."
+    },
     "ssoAuthPasswordMeta": {
       "type": "object",
       "properties": {
@@ -1486,6 +1810,30 @@
         }
       },
       "description": "Authentication register request."
+    },
+    "ssoAuthResetPasswordConfirmRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Reset password token."
+        },
+        "password": {
+          "type": "string",
+          "description": "User password."
+        }
+      },
+      "description": "Authentication reset password confirm request."
+    },
+    "ssoAuthResetPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "User email."
+        }
+      },
+      "description": "Authentication reset password request."
     },
     "ssoAuthToken": {
       "type": "object",
@@ -1569,6 +1917,42 @@
         }
       },
       "description": "Authentication TOTP request."
+    },
+    "ssoAuthUpdateEmailRequest": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "description": "User UUID."
+        },
+        "password": {
+          "type": "string",
+          "description": "User current password."
+        },
+        "new_email": {
+          "type": "string",
+          "description": "User new email address."
+        }
+      },
+      "description": "Authentication update email request."
+    },
+    "ssoAuthUpdatePasswordRequest": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "description": "User UUID."
+        },
+        "password": {
+          "type": "string",
+          "description": "User current password."
+        },
+        "new_password": {
+          "type": "string",
+          "description": "User new password."
+        }
+      },
+      "description": "Authentication update password request."
     },
     "ssoCsrf": {
       "type": "object",

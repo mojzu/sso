@@ -11,25 +11,6 @@ use actix_identity::Identity;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 
-pub fn route_v1_scope() -> Scope {
-    web::scope(api::path::PROVIDER)
-        .service(local::route_v1_scope())
-        .service(
-            web::scope(api::path::GITHUB).service(
-                web::resource(api::path::OAUTH2)
-                    .route(web::get().to_async(github_oauth2_url_handler))
-                    .route(web::post().to_async(github_oauth2_callback_handler)),
-            ),
-        )
-        .service(
-            web::scope(api::path::MICROSOFT).service(
-                web::resource(api::path::OAUTH2)
-                    .route(web::get().to_async(microsoft_oauth2_url_handler))
-                    .route(web::post().to_async(microsoft_oauth2_callback_handler)),
-            ),
-        )
-}
-
 fn github_oauth2_url_handler(
     data: web::Data<Data>,
     req: HttpRequest,

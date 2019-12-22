@@ -10,21 +10,6 @@ use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 use uuid::Uuid;
 
-pub fn route_v1_scope() -> Scope {
-    web::scope(api::path::KEY)
-        .service(
-            web::resource(api::path::NONE)
-                .route(web::get().to_async(list_handler))
-                .route(web::post().to_async(create_handler)),
-        )
-        .service(
-            web::resource(api::path::ID)
-                .route(web::get().to_async(read_handler))
-                .route(web::patch().to_async(update_handler))
-                .route(web::delete().to_async(delete_handler)),
-        )
-}
-
 fn list_handler(
     data: web::Data<Data>,
     req: HttpRequest,
