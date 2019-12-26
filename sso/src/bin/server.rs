@@ -92,17 +92,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let microsoft_oauth2 =
         env::oauth2(ENV_MICROSOFT_CLIENT_ID, ENV_MICROSOFT_CLIENT_SECRET).unwrap();
 
-    // let smtp = env::smtp(
-    //     ENV_SMTP_HOST,
-    //     ENV_SMTP_PORT,
-    //     ENV_SMTP_USER,
-    //     ENV_SMTP_PASSWORD,
-    // ).unwrap();
-    // let smtp_file = env::string_opt(ENV_SMTP_FILE);
+    let smtp = env::smtp(
+        ENV_SMTP_HOST,
+        ENV_SMTP_PORT,
+        ENV_SMTP_USER,
+        ENV_SMTP_PASSWORD,
+    )
+    .unwrap();
+    let smtp_file = env::string_opt(ENV_SMTP_FILE);
 
     let bind = env::string(ENV_BIND).unwrap();
     let addr = bind.parse()?;
-    let sso = sso::grpc::Server::new(driver);
+    let options = sso::grpc::ServerOptions::new()
+        .smtp_transport(smtp)
+        .smtp_file_transport(smtp_file);
+    let sso = sso::grpc::Server::new(driver, options);
     let sso_ref = Arc::new(sso.clone());
 
     Server::builder()

@@ -1,24 +1,27 @@
 //! gRPC server and clients.
 mod client;
+mod options;
 pub mod pb {
     //! Generated protobuf server and client items.
     tonic::include_proto!("sso");
 }
 
-pub use crate::grpc::client::*;
 pub use crate::grpc::pb::sso_client::SsoClient as Client;
+pub use crate::grpc::{client::*, options::*};
 
-// use crate::pb::{AuditListReply, AuditListRequest, Empty, Audit, Text};
 use crate::{
     api::{self, ApiError, ValidateRequest},
     *,
 };
 use chrono::{DateTime, Utc};
 use core::pin::Pin;
+use lettre::{file::FileTransport, SmtpClient, Transport};
+use lettre_email::Email;
 use std::convert::{TryFrom, TryInto};
 use std::fmt;
 use std::future::Future;
 use std::net::SocketAddr;
+use std::path::PathBuf;
 use std::sync::Arc;
 use tonic::{metadata::MetadataMap, Request, Response, Status};
 use uuid::Uuid;
@@ -26,7 +29,9 @@ use uuid::Uuid;
 /// gRPC server.
 #[derive(Clone)]
 pub struct Server {
+    options: ServerOptions,
     driver: Arc<Box<dyn Driver>>,
+    smtp_client: Arc<Option<SmtpClient>>,
 }
 
 impl fmt::Debug for Server {
@@ -37,10 +42,55 @@ impl fmt::Debug for Server {
 
 impl Server {
     /// Returns a new `Server`.
-    pub fn new(driver: Box<dyn Driver>) -> Self {
+    pub fn new(driver: Box<dyn Driver>, options: ServerOptions) -> Self {
+        let smtp_client = options.smtp_client().unwrap();
         Self {
+            options,
             driver: Arc::new(driver),
+            smtp_client: Arc::new(smtp_client),
         }
+    }
+
+    /// Build email callback function. Must be called from blocking context.
+    /// If client is None and file directory path is provided, file transport is used.
+    pub fn smtp_email(&self) -> Box<dyn FnOnce(TemplateEmail) -> DriverResult<()>> {
+        let client = self.smtp_client.clone();
+        let from_email = self.options.smtp_from_email();
+        let smtp_file = self.options.smtp_file();
+
+        Box::new(move |email| {
+            let email_builder = Email::builder()
+                .to((email.to_email, email.to_name))
+                .subject(email.subject)
+                .text(email.text);
+
+            match (client.as_ref(), smtp_file) {
+                (Some(client), _) => {
+                    let email = email_builder
+                        .from((from_email.unwrap(), email.from_name))
+                        .build()
+                        .map_err(DriverError::LettreEmail)?;
+
+                    let mut transport = client.clone().transport();
+                    transport.send(email.into()).map_err(DriverError::Lettre)?;
+                    Ok(())
+                }
+                (_, Some(smtp_file)) => {
+                    let email = email_builder
+                        .from(("file@localhost", email.from_name))
+                        .build()
+                        .map_err(DriverError::LettreEmail)?;
+
+                    let path = PathBuf::from(smtp_file);
+                    let mut transport = FileTransport::new(path);
+                    transport
+                        .send(email.into())
+                        .map_err(DriverError::LettreFile)?;
+                    Ok(())
+                }
+                (None, None) => Err(DriverError::SmtpDisabled),
+            }
+        })
     }
 }
 

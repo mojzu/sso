@@ -9,11 +9,6 @@ use crate::{
 };
 use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer};
 use http::{header, HeaderMap};
-use lettre::{
-    file::FileTransport,
-    smtp::authentication::{Credentials, Mechanism},
-    ClientSecurity, ClientTlsParameters, SmtpClient, Transport,
-};
 use lettre_email::Email;
 use native_tls::{Protocol, TlsConnector};
 use reqwest::{r#async::Client as AsyncClient, Client as SyncClient};
@@ -70,27 +65,6 @@ impl ServerOptionsRustls {
     }
 }
 
-/// Server SMTP options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServerOptionsSmtp {
-    host: String,
-    port: u16,
-    user: String,
-    password: String,
-}
-
-impl ServerOptionsSmtp {
-    /// Create new SMTP options.
-    pub fn new(host: String, port: u16, user: String, password: String) -> Self {
-        Self {
-            host,
-            port,
-            user,
-            password,
-        }
-    }
-}
-
 /// Server options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerOptions {
@@ -111,10 +85,6 @@ pub struct ServerOptions {
     rustls: Option<ServerOptionsRustls>,
     /// User agent for outgoing HTTP requests.
     user_agent: String,
-    /// SMTP transport options.
-    smtp_transport: Option<ServerOptionsSmtp>,
-    /// SMTP file transport path.
-    smtp_file_transport: Option<String>,
 }
 
 impl ServerOptions {
@@ -133,8 +103,6 @@ impl ServerOptions {
             provider: ServerOptionsProviderGroup::default(),
             rustls: None,
             user_agent: crate_name!().to_string(),
-            smtp_transport: None,
-            smtp_file_transport: None,
         }
     }
 
@@ -171,18 +139,6 @@ impl ServerOptions {
         UA: Into<String>,
     {
         self.user_agent = user_agent.into();
-        self
-    }
-
-    /// Set SMTP transport options.
-    pub fn set_smtp_transport(mut self, smtp_transport: Option<ServerOptionsSmtp>) -> Self {
-        self.smtp_transport = smtp_transport;
-        self
-    }
-
-    /// Set SMTP file transport.
-    pub fn set_smtp_file_transport(mut self, smtp_file_transport: Option<String>) -> Self {
-        self.smtp_file_transport = smtp_file_transport;
         self
     }
 
@@ -281,32 +237,6 @@ impl ServerOptions {
     pub fn user_agent(&self) -> &str {
         &self.user_agent
     }
-
-    /// Returns SMTP client built from options.
-    pub fn smtp_client(smtp: Option<&ServerOptionsSmtp>) -> DriverResult<Option<SmtpClient>> {
-        if let Some(smtp) = smtp {
-            let mut tls_builder = TlsConnector::builder();
-            tls_builder.min_protocol_version(Some(Protocol::Tlsv10));
-            let tls_parameters = ClientTlsParameters::new(
-                smtp.host.to_owned(),
-                tls_builder.build().map_err(DriverError::NativeTls)?,
-            );
-
-            let client = SmtpClient::new(
-                (smtp.host.as_ref(), smtp.port),
-                ClientSecurity::Required(tls_parameters),
-            )
-            .map_err(DriverError::Lettre)?
-            .authentication_mechanism(Mechanism::Login)
-            .credentials(Credentials::new(
-                smtp.user.to_owned(),
-                smtp.password.to_owned(),
-            ));
-            Ok(Some(client))
-        } else {
-            Ok(None)
-        }
-    }
 }
 
 /// Server data.
@@ -316,7 +246,6 @@ struct Data {
     options: ServerOptions,
     client: AsyncClient,
     client_sync: SyncClient,
-    smtp_client: Option<SmtpClient>,
 }
 
 impl Data {
@@ -326,14 +255,12 @@ impl Data {
         options: ServerOptions,
         client: AsyncClient,
         client_sync: SyncClient,
-        smtp_client: Option<SmtpClient>,
     ) -> Self {
         Data {
             driver,
             options,
             client,
             client_sync,
-            smtp_client,
         }
     }
 
@@ -356,56 +283,6 @@ impl Data {
     pub fn client_sync(&self) -> &SyncClient {
         &self.client_sync
     }
-
-    /// Build email callback function.
-    /// If client is None and file directory path is provided, file transport is used.
-    pub fn smtp_email(&self) -> Box<dyn FnOnce(TemplateEmail) -> DriverResult<()>> {
-        let client = self.smtp_client.clone();
-        let from_email = self
-            .options()
-            .smtp_transport
-            .as_ref()
-            .map(|x| x.user.to_owned());
-        let smtp_file = self
-            .options()
-            .smtp_file_transport
-            .as_ref()
-            .map(|x| x.to_owned());
-
-        Box::new(move |email| {
-            let email_builder = Email::builder()
-                .to((email.to_email, email.to_name))
-                .subject(email.subject)
-                .text(email.text);
-
-            match (client, smtp_file) {
-                (Some(client), _) => {
-                    let email = email_builder
-                        .from((from_email.unwrap(), email.from_name))
-                        .build()
-                        .map_err(DriverError::LettreEmail)?;
-
-                    let mut transport = client.transport();
-                    transport.send(email.into()).map_err(DriverError::Lettre)?;
-                    Ok(())
-                }
-                (_, Some(smtp_file)) => {
-                    let email = email_builder
-                        .from(("file@localhost", email.from_name))
-                        .build()
-                        .map_err(DriverError::LettreEmail)?;
-
-                    let path = PathBuf::from(smtp_file);
-                    let mut transport = FileTransport::new(path);
-                    transport
-                        .send(email.into())
-                        .map_err(DriverError::LettreFile)?;
-                    Ok(())
-                }
-                (None, None) => Err(DriverError::SmtpDisabled),
-            }
-        })
-    }
 }
 
 /// Server functions.
@@ -422,7 +299,6 @@ impl Server {
         let options_clone = options.clone();
         let client = Self::client_build(options.user_agent())?;
         let client_sync = Self::client_sync_build(options.user_agent())?;
-        let smtp_client = ServerOptions::smtp_client(options.smtp_transport.as_ref())?;
         let default_json_limit: usize = 1024;
         let (http_count, http_latency) = Metrics::http_metrics();
 
@@ -434,7 +310,6 @@ impl Server {
                     options_clone.clone(),
                     client.clone(),
                     client_sync.clone(),
-                    smtp_client.clone(),
                 ))
                 // Global JSON configuration.
                 .data(web::JsonConfig::default().limit(default_json_limit))

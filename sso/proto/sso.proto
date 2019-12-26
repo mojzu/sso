@@ -24,8 +24,6 @@ import "annotations.proto";
 //     };
 // };
 
-// TODO(refactor): Split ping/metrics into service.
-
 service Sso {
     // Returns pong response.
     rpc Ping (google.protobuf.Empty) returns (google.protobuf.StringValue) {
