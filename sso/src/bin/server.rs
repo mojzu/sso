@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate log;
 
+use futures_util::future::join;
 use sentry::integrations::log::LoggerOptions;
 use sso::{env, pattern, Cli, CliOptions, Driver, DriverPostgres};
 use std::sync::Arc;
@@ -15,7 +16,7 @@ const ENV_DATABASE_URL: &str = "SSO_GRPC_DATABASE_URL";
 /// Database connection.
 const ENV_DATABASE_CONNECTIONS: &str = "SSO_GRPC_DATABASE_CONNECTIONS";
 
-/// Server bind address.
+/// Server bind address (gRPC).
 const ENV_BIND: &str = "SSO_GRPC_BIND";
 /// Server TLS certificate file.
 const ENV_TLS_CERT_PEM: &str = "SSO_GRPC_TLS_CERT_PEM";
@@ -23,6 +24,8 @@ const ENV_TLS_CERT_PEM: &str = "SSO_GRPC_TLS_CERT_PEM";
 const ENV_TLS_KEY_PEM: &str = "SSO_GRPC_TLS_KEY_PEM";
 /// Server mutual TLS client file.
 const ENV_TLS_CLIENT_PEM: &str = "SSO_GRPC_TLS_CLIENT_PEM";
+/// Server bind address (HTTP).
+const ENV_HTTP_BIND: &str = "SSO_GRPC_HTTP_BIND";
 
 /// SMTP server, optional.
 const ENV_SMTP_HOST: &str = "SSO_GRPC_SMTP_HOST";
@@ -44,7 +47,6 @@ const ENV_GITHUB_CLIENT_SECRET: &str = "SSO_GRPC_GITHUB_CLIENT_SECRET";
 const ENV_MICROSOFT_CLIENT_ID: &str = "SSO_GRPC_MICROSOFT_CLIENT_ID";
 const ENV_MICROSOFT_CLIENT_SECRET: &str = "SSO_GRPC_MICROSOFT_CLIENT_SECRET";
 
-// TODO(refactor): SMTP support.
 // TODO(refactor): TLS support.
 // <https://github.com/hyperium/tonic/blob/master/examples/src/tls/server.rs>
 
@@ -102,52 +104,73 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let smtp_file = env::string_opt(ENV_SMTP_FILE);
 
     let bind = env::string(ENV_BIND).unwrap();
-    let addr = bind.parse()?;
-    let options = sso::grpc::ServerOptions::new()
+    let grpc_addr = bind.parse()?;
+    let options = sso::grpc::ServerOptions::new("sso")
         .smtp_transport(smtp)
         .smtp_file_transport(smtp_file);
     let sso = sso::grpc::Server::new(driver, options);
     let sso_ref = Arc::new(sso.clone());
 
-    Server::builder()
+    let grpc_sso = sso_ref.clone();
+    let grpc = Server::builder()
         .interceptor_fn(move |svc, req| {
-            // let auth_header = req.headers().get("authorization").clone();
+            let p = req.uri().path().to_owned();
+            let (t, c) = grpc_sso.metrics_start(&p);
 
-            // println!("{:?}", req);
-
-            // let authed = if let Some(auth_header) = auth_header {
-            //     auth_header == "Bearer some-secret-token"
-            // } else {
-            //     false
-            // };
-
-            // let path_intercept = sso_ref.path_interceptor(req.uri().path());
             let fut = svc.call(req);
 
+            let sso_ref = grpc_sso.clone();
             async move {
-                fut.await
-                // match path_intercept {
-                //     Ok(Some(res)) => {
-                //         drop(fut);
-                //         Ok(res)
-                //     }
-                //     Ok(None) => fut.await,
-                //     Err(e) => {
-                //         drop(fut);
-                //         Ok(http::Response::builder()
-                //             .status(500)
-                //             .header("grpc-status", format!("{}", e.code() as isize))
-                //             .header("grpc-message", e.message())
-                //             .body(BoxBody::empty())
-                //             .unwrap())
-                //     }
-                // }
+                let res = fut.await;
+                sso_ref.metrics_end(t, c, &p, "0");
+                res
             }
         })
         .add_service(sso::grpc::pb::sso_server::SsoServer::new(sso))
-        .serve(addr)
-        .await?;
+        .serve(grpc_addr);
+
+    let http_bind = env::string(ENV_HTTP_BIND).unwrap();
+    let http_addr = http_bind.parse()?;
+    let http_sso = sso_ref.clone();
+    let http = hyper::Server::bind(&http_addr).serve(hyper::service::make_service_fn(move |_| {
+        let sso_ref = http_sso.clone();
+        async {
+            Ok::<_, hyper::Error>(hyper::service::service_fn(move |req| {
+                sso::grpc::http_response(sso_ref.driver(), req)
+            }))
+        }
+    }));
+
+    let (grpc, http) = join(grpc, http).await;
+    grpc?;
+    http?;
 
     pattern::task_thread_stop(task_handle, task_tx);
     Ok(())
 }
+
+// TODO(refactor): Metrics end status collection.
+// let auth_header = req.headers().get("authorization").clone();
+// println!("{:?}", req);
+// let authed = if let Some(auth_header) = auth_header {
+//     auth_header == "Bearer some-secret-token"
+// } else {
+//     false
+// };
+// let path_intercept = sso_ref.path_interceptor(req.uri().path());
+// match path_intercept {
+//     Ok(Some(res)) => {
+//         drop(fut);
+//         Ok(res)
+//     }
+//     Ok(None) => fut.await,
+//     Err(e) => {
+//         drop(fut);
+//         Ok(http::Response::builder()
+//             .status(500)
+//             .header("grpc-status", format!("{}", e.code() as isize))
+//             .header("grpc-message", e.message())
+//             .body(BoxBody::empty())
+//             .unwrap())
+//     }
+// }

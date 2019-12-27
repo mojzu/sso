@@ -1,17 +1,15 @@
-pub mod actix_web_middleware;
 mod route;
 
 // TODO(refactor): Remove deprecated server code.
 
 use crate::{
     api::{AuthProviderOauth2, AuthProviderOauth2Args},
-    Driver, DriverError, DriverResult, Metrics, TemplateEmail,
+    Driver, DriverError, DriverResult, TemplateEmail,
 };
 use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer};
 use http::{header, HeaderMap};
 use lettre_email::Email;
 use native_tls::{Protocol, TlsConnector};
-use reqwest::{r#async::Client as AsyncClient, Client as SyncClient};
 use rustls::{
     internal::pemfile::{certs, rsa_private_keys},
     AllowAnyAuthenticatedClient, NoClientAuth, RootCertStore, ServerConfig,
@@ -83,8 +81,6 @@ pub struct ServerOptions {
     provider: ServerOptionsProviderGroup,
     /// Rustls options for TLS support.
     rustls: Option<ServerOptionsRustls>,
-    /// User agent for outgoing HTTP requests.
-    user_agent: String,
 }
 
 impl ServerOptions {
@@ -102,7 +98,6 @@ impl ServerOptions {
             revoke_token_expires: 604_800,
             provider: ServerOptionsProviderGroup::default(),
             rustls: None,
-            user_agent: crate_name!().to_string(),
         }
     }
 
@@ -130,15 +125,6 @@ impl ServerOptions {
     /// Set Rustls options.
     pub fn set_rustls(mut self, rustls: Option<ServerOptionsRustls>) -> Self {
         self.rustls = rustls;
-        self
-    }
-
-    /// Set user_agent.
-    pub fn set_user_agent<UA>(mut self, user_agent: UA) -> Self
-    where
-        UA: Into<String>,
-    {
-        self.user_agent = user_agent.into();
         self
     }
 
@@ -232,11 +218,6 @@ impl ServerOptions {
             Ok(None)
         }
     }
-
-    /// Returns user agent.
-    pub fn user_agent(&self) -> &str {
-        &self.user_agent
-    }
 }
 
 /// Server data.
@@ -244,8 +225,6 @@ impl ServerOptions {
 struct Data {
     driver: Box<dyn Driver>,
     options: ServerOptions,
-    client: AsyncClient,
-    client_sync: SyncClient,
 }
 
 impl Data {
@@ -253,14 +232,10 @@ impl Data {
     pub fn new(
         driver: Box<dyn Driver>,
         options: ServerOptions,
-        client: AsyncClient,
-        client_sync: SyncClient,
     ) -> Self {
         Data {
             driver,
             options,
-            client,
-            client_sync,
         }
     }
 
@@ -272,16 +247,6 @@ impl Data {
     /// Get reference to options.
     pub fn options(&self) -> &ServerOptions {
         &self.options
-    }
-
-    /// Get reference to asynchronous client.
-    pub fn client(&self) -> &AsyncClient {
-        &self.client
-    }
-
-    /// Get reference to synchronous client.
-    pub fn client_sync(&self) -> &SyncClient {
-        &self.client_sync
     }
 }
 
@@ -297,10 +262,7 @@ impl Server {
         options: ServerOptions,
     ) -> DriverResult<()> {
         let options_clone = options.clone();
-        let client = Self::client_build(options.user_agent())?;
-        let client_sync = Self::client_sync_build(options.user_agent())?;
         let default_json_limit: usize = 1024;
-        let (http_count, http_latency) = Metrics::http_metrics();
 
         let server = HttpServer::new(move || {
             App::new()
@@ -308,18 +270,9 @@ impl Server {
                 .data(Data::new(
                     driver.clone(),
                     options_clone.clone(),
-                    client.clone(),
-                    client_sync.clone(),
                 ))
                 // Global JSON configuration.
                 .data(web::JsonConfig::default().limit(default_json_limit))
-                // Header identity middleware.
-                .wrap(actix_web_middleware::HeaderIdentityPolicy::identity_service())
-                // Metrics middleware.
-                .wrap(actix_web_middleware::Metrics::new(
-                    http_count.clone(),
-                    http_latency.clone(),
-                ))
                 // Logger middleware.
                 .wrap(Logger::default())
                 // Route service.
@@ -340,25 +293,5 @@ impl Server {
 
         server.start();
         Ok(())
-    }
-
-    fn client_build(user_agent: &str) -> DriverResult<AsyncClient> {
-        let mut headers = HeaderMap::new();
-        headers.insert(header::USER_AGENT, user_agent.parse().unwrap());
-        AsyncClient::builder()
-            .use_rustls_tls()
-            .default_headers(headers)
-            .build()
-            .map_err(DriverError::Reqwest)
-    }
-
-    fn client_sync_build(user_agent: &str) -> DriverResult<SyncClient> {
-        let mut headers = HeaderMap::new();
-        headers.insert(header::USER_AGENT, user_agent.parse().unwrap());
-        SyncClient::builder()
-            .use_rustls_tls()
-            .default_headers(headers)
-            .build()
-            .map_err(DriverError::Reqwest)
     }
 }

@@ -1,5 +1,6 @@
 //! gRPC server and clients.
 mod client;
+mod http;
 mod options;
 pub mod pb {
     //! Generated protobuf server and client items.
@@ -7,7 +8,7 @@ pub mod pb {
 }
 
 pub use crate::grpc::pb::sso_client::SsoClient as Client;
-pub use crate::grpc::{client::*, options::*};
+pub use crate::grpc::{client::*, http::*, options::*};
 
 use crate::{
     api::{self, ApiError, ValidateRequest},
@@ -17,6 +18,7 @@ use chrono::{DateTime, Utc};
 use core::pin::Pin;
 use lettre::{file::FileTransport, SmtpClient, Transport};
 use lettre_email::Email;
+use prometheus::{HistogramTimer, HistogramVec, IntCounterVec};
 use std::convert::{TryFrom, TryInto};
 use std::fmt;
 use std::future::Future;
@@ -31,7 +33,10 @@ use uuid::Uuid;
 pub struct Server {
     options: ServerOptions,
     driver: Arc<Box<dyn Driver>>,
+    client: Arc<reqwest::Client>,
     smtp_client: Arc<Option<SmtpClient>>,
+    count: IntCounterVec,
+    latency: HistogramVec,
 }
 
 impl fmt::Debug for Server {
@@ -43,12 +48,22 @@ impl fmt::Debug for Server {
 impl Server {
     /// Returns a new `Server`.
     pub fn new(driver: Box<dyn Driver>, options: ServerOptions) -> Self {
+        let client = options.client().unwrap();
         let smtp_client = options.smtp_client().unwrap();
+        let (count, latency) = Metrics::http_metrics();
         Self {
             options,
             driver: Arc::new(driver),
+            client: Arc::new(client),
             smtp_client: Arc::new(smtp_client),
+            count,
+            latency,
         }
+    }
+
+    /// Returns reference to driver.
+    pub fn driver(&self) -> Arc<Box<dyn Driver>> {
+        self.driver.clone()
     }
 
     /// Build email callback function. Must be called from blocking context.
@@ -92,34 +107,32 @@ impl Server {
             }
         })
     }
+
+    pub fn metrics_start(&self, path: &str) -> (HistogramTimer, IntCounterVec) {
+        let timer = self.latency.with_label_values(&[path]).start_timer();
+        (timer, self.count.clone())
+    }
+
+    pub fn metrics_end(
+        &self,
+        timer: HistogramTimer,
+        count: IntCounterVec,
+        path: &str,
+        status: &str,
+    ) {
+        timer.observe_duration();
+        count.with_label_values(&[path, status]).inc_by(1);
+    }
 }
 
 #[tonic::async_trait]
 impl pb::sso_server::Sso for Server {
-    async fn ping(&self, request: Request<()>) -> Result<Response<String>, Status> {
-        let audit_meta = request_audit_meta(request.remote_addr(), request.metadata())?;
-        Ok(Response::new(format!("{}", audit_meta.remote())))
+    async fn ping(&self, _: Request<()>) -> Result<Response<String>, Status> {
+        Err(Status::not_found(""))
     }
 
-    async fn metrics(&self, request: Request<()>) -> Result<Response<String>, Status> {
-        let audit_meta = request_audit_meta(request.remote_addr(), request.metadata())?;
-        let auth = request_authorisation(request.metadata())?;
-
-        let driver = self.driver.clone();
-        let reply = blocking::<_, Status, _>(move || {
-            let mut audit = AuditBuilder::new(audit_meta, AuditType::Metrics);
-            let res: Result<String, Status> = {
-                let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
-
-                Metrics::read(driver.as_ref().as_ref(), service.as_ref())
-                    .map_err(ApiError::BadRequest)
-                    .map_err::<Status, _>(Into::into)
-            };
-            api::result_audit_err(driver.as_ref().as_ref(), &audit, res)
-        })
-        .await?;
-        Ok(Response::new(reply))
+    async fn metrics(&self, _: Request<()>) -> Result<Response<String>, Status> {
+        Err(Status::not_found(""))
     }
 
     async fn audit_list(

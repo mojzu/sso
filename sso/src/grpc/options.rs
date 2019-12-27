@@ -1,9 +1,11 @@
 use crate::{DriverError, DriverResult};
+use http01::{header, HeaderMap};
 use lettre::{
     smtp::authentication::{Credentials, Mechanism},
     ClientSecurity, ClientTlsParameters, SmtpClient,
 };
 use native_tls::{Protocol, TlsConnector};
+use reqwest::Client;
 
 /// Server SMTP options.
 #[derive(Debug, Clone)]
@@ -29,6 +31,8 @@ impl ServerOptionsSmtp {
 /// gRPC server options.
 #[derive(Debug, Clone)]
 pub struct ServerOptions {
+    /// User agent for outgoing HTTP requests.
+    user_agent: String,
     /// SMTP transport.
     smtp_transport: Option<ServerOptionsSmtp>,
     /// SMTP file transport.
@@ -37,8 +41,12 @@ pub struct ServerOptions {
 
 impl ServerOptions {
     /// Returns new `ServerOptions`.
-    pub fn new() -> Self {
+    pub fn new<UA>(user_agent: UA) -> Self
+    where
+        UA: Into<String>,
+    {
         Self {
+            user_agent: user_agent.into(),
             smtp_transport: None,
             smtp_file_transport: None,
         }
@@ -54,6 +62,17 @@ impl ServerOptions {
     pub fn smtp_file_transport(mut self, smtp_file_transport: Option<String>) -> Self {
         self.smtp_file_transport = smtp_file_transport;
         self
+    }
+
+    /// Returns synchronous reqwest `Client` built from options.
+    pub fn client(&self) -> DriverResult<Client> {
+        let mut headers = HeaderMap::new();
+        headers.insert(header::USER_AGENT, self.user_agent.parse().unwrap());
+        Client::builder()
+            .use_rustls_tls()
+            .default_headers(headers)
+            .build()
+            .map_err(DriverError::Reqwest)
     }
 
     /// Returns `SmtpClient` built from options.
