@@ -985,6 +985,13 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "user_id",
+            "description": "Key user UUID.",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1008,6 +1015,13 @@
             "description": "Key UUID.",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "description": "Key user UUID.",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -1305,7 +1319,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/ssoUserReadReply"
+              "$ref": "#/definitions/ssoUserCreateReply"
             }
           }
         },
@@ -2438,6 +2452,20 @@
         }
       },
       "description": "User."
+    },
+    "ssoUserCreateReply": {
+      "type": "object",
+      "properties": {
+        "meta": {
+          "$ref": "#/definitions/ssoAuthPasswordMeta",
+          "description": "Password metadata."
+        },
+        "data": {
+          "$ref": "#/definitions/ssoUser",
+          "description": "User."
+        }
+      },
+      "description": "Create user reply."
     },
     "ssoUserCreateRequest": {
       "type": "object",

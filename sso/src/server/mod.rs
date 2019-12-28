@@ -68,9 +68,6 @@ impl ServerOptionsRustls {
 pub struct ServerOptions {
     hostname: String,
     bind: String,
-    /// Enable Pwned Passwords API to check passwords.
-    /// API keys may be required in the future to use this API.
-    password_pwned_enabled: bool,
     /// Access token expiry time in seconds.
     access_token_expires: i64,
     /// Refresh token expiry time in seconds.
@@ -92,7 +89,6 @@ impl ServerOptions {
         Self {
             hostname: crate_name!().to_string(),
             bind: bind.into(),
-            password_pwned_enabled: false,
             access_token_expires: 3_600,
             refresh_token_expires: 86_400,
             revoke_token_expires: 604_800,
@@ -107,12 +103,6 @@ impl ServerOptions {
         H: Into<String>,
     {
         self.hostname = hostname.into();
-        self
-    }
-
-    /// Set password pwned enabled.
-    pub fn set_password_pwned_enabled(mut self, password_pwned_enabled: bool) -> Self {
-        self.password_pwned_enabled = password_pwned_enabled;
         self
     }
 
@@ -136,11 +126,6 @@ impl ServerOptions {
     /// Returns bind address reference.
     pub fn bind(&self) -> &str {
         &self.bind
-    }
-
-    /// Returns password pwned enabled flag.
-    pub fn password_pwned_enabled(&self) -> bool {
-        self.password_pwned_enabled
     }
 
     /// Returns access token expiry value.

@@ -237,8 +237,14 @@ impl pb::sso_server::Sso for Server {
     async fn user_create(
         &self,
         request: tonic::Request<pb::UserCreateRequest>,
-    ) -> Result<tonic::Response<pb::UserReadReply>, tonic::Status> {
-        methods::user::create(self.driver.clone(), request).await
+    ) -> Result<tonic::Response<pb::UserCreateReply>, tonic::Status> {
+        methods::user::create(
+            self.driver.clone(),
+            self.client.clone(),
+            self.options.password_pwned_enabled(),
+            request,
+        )
+        .await
     }
 
     async fn user_read(

@@ -74,14 +74,18 @@ struct ModelUserUpdate<'a> {
 
 impl ModelUser {
     pub fn list(conn: &PgConnection, list: &UserList) -> DriverResult<Vec<User>> {
-        match list.query {
-            UserListQuery::IdGt(gt, limit) => Self::list_where_id_gt(conn, gt, *limit, list.filter),
-            UserListQuery::IdLt(lt, limit) => Self::list_where_id_lt(conn, lt, *limit, list.filter),
+        match &list.query {
+            UserListQuery::IdGt(gt, limit) => {
+                Self::list_where_id_gt(conn, &gt, *limit, &list.filter)
+            }
+            UserListQuery::IdLt(lt, limit) => {
+                Self::list_where_id_lt(conn, &lt, *limit, &list.filter)
+            }
             UserListQuery::NameGe(name_ge, limit, offset_id) => {
-                Self::list_where_name_ge(conn, name_ge, *limit, offset_id, list.filter)
+                Self::list_where_name_ge(conn, &name_ge, *limit, &offset_id, &list.filter)
             }
             UserListQuery::NameLe(name_le, limit, offset_id) => {
-                Self::list_where_name_le(conn, name_le, *limit, offset_id, list.filter)
+                Self::list_where_name_le(conn, &name_le, *limit, &offset_id, &list.filter)
             }
         }
         .map(|x| x.into_iter().map(|x| x.into()).collect())

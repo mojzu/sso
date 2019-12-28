@@ -105,7 +105,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let bind = env::string(ENV_BIND).unwrap();
     let grpc_addr = bind.parse()?;
-    let options = sso::grpc::ServerOptions::new("sso")
+    let options = sso::grpc::ServerOptions::new("sso", password_pwned)
         .smtp_transport(smtp)
         .smtp_file_transport(smtp_file);
     let sso = sso::grpc::Server::new(driver, options);

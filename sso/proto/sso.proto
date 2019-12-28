@@ -153,7 +153,7 @@ service Sso {
     }
 
     // Create user.
-    rpc UserCreate (UserCreateRequest) returns (UserReadReply) {
+    rpc UserCreate (UserCreateRequest) returns (UserCreateReply) {
         option (google.api.http) = {
             post: "/v1/user"
             body: "*"
@@ -731,6 +731,14 @@ message UserCreateRequest {
 message UserReadRequest {
     // User UUID.
     string id = 1;
+}
+
+// Create user reply.
+message UserCreateReply {
+    // Password metadata.
+    AuthPasswordMeta meta = 1;
+    // User.
+    User data = 2;
 }
 
 // Read user reply.

@@ -1,9 +1,13 @@
-use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, DriverError, DriverResult};
+use crate::{
+    api::{validate, ValidateRequest},
+    AuditDiff, AuditDiffBuilder, AuditSubject, DriverError, DriverResult,
+};
 use chrono::{DateTime, Utc};
 use libreauth::pass::HashBuilder;
 use serde_json::Value;
 use std::fmt;
 use uuid::Uuid;
+use validator::Validate;
 
 /// Name maximum length.
 pub const NAME_MAX_LEN: usize = 100;
@@ -137,21 +141,23 @@ pub enum UserListQuery {
 }
 
 /// User list filter.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct UserListFilter {
     pub id: Option<Vec<Uuid>>,
     pub email: Option<Vec<String>>,
 }
 
 /// User list.
-#[derive(Debug)]
-pub struct UserList<'a> {
-    pub query: &'a UserListQuery,
-    pub filter: &'a UserListFilter,
+#[derive(Debug, Validate)]
+pub struct UserList {
+    pub query: UserListQuery,
+    pub filter: UserListFilter,
 }
 
+impl ValidateRequest<UserList> for UserList {}
+
 /// User create.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct UserCreate {
     pub is_enabled: bool,
     pub name: String,
@@ -218,6 +224,8 @@ impl UserCreate {
     }
 }
 
+impl ValidateRequest<UserCreate> for UserCreate {}
+
 /// User read.
 #[derive(Debug)]
 pub enum UserRead {
@@ -226,7 +234,7 @@ pub enum UserRead {
 }
 
 /// User update.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct UserUpdate {
     pub is_enabled: Option<bool>,
     pub name: Option<String>,
@@ -318,6 +326,8 @@ impl UserUpdate {
         self
     }
 }
+
+impl ValidateRequest<UserUpdate> for UserUpdate {}
 
 /// User token.
 #[derive(Debug, Clone, Serialize, Deserialize)]

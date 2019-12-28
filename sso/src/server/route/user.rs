@@ -10,53 +10,6 @@ use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use futures::Future;
 use uuid::Uuid;
 
-fn list_handler(
-    data: web::Data<Data>,
-    req: HttpRequest,
-    id: Identity,
-) -> impl Future<Item = HttpResponse, Error = Error> {
-    let audit_meta = request_audit_meta(&req);
-    let id = id.identity();
-    let request = api::UserListRequest::from_str_fut(req.query_string());
-
-    audit_meta
-        .join(request)
-        .and_then(move |(audit_meta, request)| {
-            web::block(move || api::user_list(data.driver(), audit_meta, id, request))
-                .map_err(Into::into)
-        })
-        .map_err(Into::into)
-        .then(route_response_json)
-}
-
-fn create_handler(
-    data: web::Data<Data>,
-    req: HttpRequest,
-    id: Identity,
-    body: web::Json<api::UserCreateRequest>,
-) -> impl Future<Item = HttpResponse, Error = Error> {
-    let id = id.identity();
-    let audit_meta = request_audit_meta(&req);
-    let request = body.into_inner();
-    let password_meta = api::password_meta(
-        data.client(),
-        data.options().password_pwned_enabled(),
-        request.password.clone(),
-    )
-    .map_err(ApiError::BadRequest);
-
-    audit_meta
-        .join(password_meta)
-        .and_then(move |(audit_meta, password_meta)| {
-            web::block(move || {
-                api::user_create(data.driver(), audit_meta, id, password_meta, request)
-            })
-            .map_err(Into::into)
-        })
-        .map_err(Into::into)
-        .then(route_response_json)
-}
-
 fn read_handler(
     data: web::Data<Data>,
     req: HttpRequest,

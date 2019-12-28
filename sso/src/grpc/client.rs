@@ -195,7 +195,7 @@ impl ClientBlocking {
     pub fn user_create(
         &mut self,
         request: impl tonic::IntoRequest<pb::UserCreateRequest>,
-    ) -> Result<tonic::Response<pb::UserReadReply>, tonic::Status> {
+    ) -> Result<tonic::Response<pb::UserCreateReply>, tonic::Status> {
         self.rt.block_on(self.client.user_create(request))
     }
 

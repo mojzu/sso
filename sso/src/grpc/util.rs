@@ -219,6 +219,56 @@ impl From<Service> for pb::Service {
     }
 }
 
+impl TryFrom<pb::UserListRequest> for UserList {
+    type Error = Status;
+
+    fn try_from(r: pb::UserListRequest) -> Result<Self, Self::Error> {
+        unimplemented!();
+    }
+}
+
+impl TryFrom<pb::UserCreateRequest> for UserCreate {
+    type Error = Status;
+
+    fn try_from(r: pb::UserCreateRequest) -> Result<Self, Self::Error> {
+        unimplemented!();
+    }
+}
+
+impl TryFrom<pb::UserReadRequest> for UserRead {
+    type Error = Status;
+
+    fn try_from(r: pb::UserReadRequest) -> Result<Self, Self::Error> {
+        unimplemented!();
+    }
+}
+
+impl TryFrom<pb::UserUpdateRequest> for UserUpdate {
+    type Error = Status;
+
+    fn try_from(r: pb::UserUpdateRequest) -> Result<Self, Self::Error> {
+        unimplemented!();
+    }
+}
+
+impl From<UserList> for pb::UserListRequest {
+    fn from(l: UserList) -> Self {
+        unimplemented!();
+    }
+}
+
+impl From<User> for pb::User {
+    fn from(r: User) -> Self {
+        unimplemented!();
+    }
+}
+
+impl From<UserPasswordMeta> for pb::AuthPasswordMeta {
+    fn from(r: UserPasswordMeta) -> Self {
+        unimplemented!();
+    }
+}
+
 impl TryFrom<pb::AuditListRequest> for AuditList {
     type Error = Status;
 

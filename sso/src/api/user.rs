@@ -251,41 +251,6 @@ impl UserUpdateRequest {
     }
 }
 
-pub fn user_list(
-    driver: &dyn Driver,
-    audit_meta: AuditMeta,
-    key_value: Option<String>,
-    request: UserListRequest,
-) -> ApiResult<UserListResponse> {
-    UserListRequest::api_validate(&request)?;
-    let mut audit = AuditBuilder::new(audit_meta, AuditType::UserList);
-    let (query, filter) = request.into_query_filter();
-
-    let res = server_user::list(driver, &mut audit, key_value, &query, &filter);
-    result_audit_err(driver, &audit, res).map(|data| UserListResponse {
-        meta: UserListRequest::from_query_filter(query, filter),
-        data,
-    })
-}
-
-pub fn user_create(
-    driver: &dyn Driver,
-    audit_meta: AuditMeta,
-    key_value: Option<String>,
-    password_meta: UserPasswordMeta,
-    request: UserCreateRequest,
-) -> ApiResult<UserCreateResponse> {
-    UserCreateRequest::api_validate(&request)?;
-    let mut audit = AuditBuilder::new(audit_meta, AuditType::UserCreate);
-
-    let create = request.into_create()?;
-    let res = server_user::create(driver, &mut audit, key_value, create);
-    result_audit_subject(driver, &audit, res).map(|data| UserCreateResponse {
-        meta: password_meta,
-        data,
-    })
-}
-
 pub fn user_read(
     driver: &dyn Driver,
     audit_meta: AuditMeta,
@@ -340,38 +305,6 @@ mod server_user {
         pattern::*,
         AuditBuilder, Driver, DriverError, User, UserList, UserListFilter, UserListQuery, UserRead,
     };
-
-    pub fn list(
-        driver: &dyn Driver,
-        audit: &mut AuditBuilder,
-        key_value: Option<String>,
-        query: &UserListQuery,
-        filter: &UserListFilter,
-    ) -> ApiResult<Vec<User>> {
-        let _service =
-            key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
-
-        let list = UserList { query, filter };
-        driver
-            .user_list(&list)
-            .map_err(ApiError::BadRequest)
-            .map_err::<tonic::Status, _>(Into::into)
-    }
-
-    pub fn create(
-        driver: &dyn Driver,
-        audit: &mut AuditBuilder,
-        key_value: Option<String>,
-        create: UserCreate,
-    ) -> ApiResult<User> {
-        let _service =
-            key_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
-
-        driver
-            .user_create(&create)
-            .map_err(ApiError::BadRequest)
-            .map_err::<tonic::Status, _>(Into::into)
-    }
 
     pub fn read(
         driver: &dyn Driver,

@@ -33,6 +33,9 @@ impl ServerOptionsSmtp {
 pub struct ServerOptions {
     /// User agent for outgoing HTTP requests.
     user_agent: String,
+    /// Enable Pwned Passwords API to check passwords.
+    /// API keys may be required in the future to use this API.
+    password_pwned_enabled: bool,
     /// SMTP transport.
     smtp_transport: Option<ServerOptionsSmtp>,
     /// SMTP file transport.
@@ -41,12 +44,13 @@ pub struct ServerOptions {
 
 impl ServerOptions {
     /// Returns new `ServerOptions`.
-    pub fn new<UA>(user_agent: UA) -> Self
+    pub fn new<UA>(user_agent: UA, password_pwned_enabled: bool) -> Self
     where
         UA: Into<String>,
     {
         Self {
             user_agent: user_agent.into(),
+            password_pwned_enabled,
             smtp_transport: None,
             smtp_file_transport: None,
         }
@@ -73,6 +77,11 @@ impl ServerOptions {
             .default_headers(headers)
             .build()
             .map_err(DriverError::Reqwest)
+    }
+
+    /// Returns password pwned enabled flag.
+    pub fn password_pwned_enabled(&self) -> bool {
+        self.password_pwned_enabled
     }
 
     /// Returns `SmtpClient` built from options.
