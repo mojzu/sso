@@ -81,7 +81,7 @@ pub fn key_root_authenticate(
         Some(key_value) => {
             let read = KeyRead::RootValue(key_value);
             driver
-                .key_read(&read)?
+                .key_read(&read, None)?
                 .ok_or_else(|| DriverError::KeyNotFound)
                 .map(|key| {
                     audit.key(Some(&key));
@@ -135,7 +135,7 @@ fn key_service_authenticate_try(
 ) -> DriverResult<Service> {
     match key_value {
         Some(key_value) => driver
-            .key_read(&KeyRead::ServiceValue(key_value))?
+            .key_read(&KeyRead::ServiceValue(key_value), None)?
             .ok_or_else(|| DriverError::KeyNotFound)
             .and_then(|key| {
                 audit.key(Some(&key));
@@ -153,7 +153,7 @@ fn key_service_authenticate_inner(
     service_id: Uuid,
 ) -> DriverResult<Service> {
     let service = driver
-        .service_read(&ServiceRead::new(service_id))?
+        .service_read(&ServiceRead::new(service_id), None)?
         .ok_or_else(|| DriverError::ServiceNotFound)?
         .check()?;
     audit.service(Some(&service));
@@ -257,9 +257,10 @@ pub fn key_read_user_checked(
     key_type: KeyType,
 ) -> DriverResult<KeyWithValue> {
     let key = driver
-        .key_read(&KeyRead::user_id(
-            service.id, user.id, true, false, key_type,
-        ))?
+        .key_read(
+            &KeyRead::user_id(service.id, user.id, true, false, key_type),
+            None,
+        )?
         .ok_or_else(|| DriverError::KeyNotFound)?;
     audit.user_key(Some(&key));
     if !key.is_enabled {
@@ -281,9 +282,10 @@ pub fn key_read_user_unchecked(
     key_type: KeyType,
 ) -> DriverResult<KeyWithValue> {
     let key = driver
-        .key_read(&KeyRead::user_id(
-            service.id, user.id, true, false, key_type,
-        ))?
+        .key_read(
+            &KeyRead::user_id(service.id, user.id, true, false, key_type),
+            None,
+        )?
         .ok_or_else(|| DriverError::KeyNotFound)?;
     audit.user_key(Some(&key));
     Ok(key)
@@ -302,13 +304,10 @@ where
     K: Into<String>,
 {
     let key = driver
-        .key_read(&KeyRead::user_value(
-            service.id,
-            key.into(),
-            true,
-            false,
-            key_type,
-        ))?
+        .key_read(
+            &KeyRead::user_value(service.id, key.into(), true, false, key_type),
+            None,
+        )?
         .ok_or_else(|| DriverError::KeyNotFound)?;
     audit.user_key(Some(&key));
     if !key.is_enabled {
@@ -330,7 +329,10 @@ pub fn key_read_user_value_unchecked(
     key_type: KeyType,
 ) -> DriverResult<KeyWithValue> {
     let key = driver
-        .key_read(&KeyRead::user_value(service.id, key, true, false, key_type))?
+        .key_read(
+            &KeyRead::user_value(service.id, key, true, false, key_type),
+            None,
+        )?
         .ok_or_else(|| DriverError::KeyNotFound)?;
     audit.user_key(Some(&key));
     Ok(key)

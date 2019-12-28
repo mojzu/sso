@@ -137,9 +137,9 @@ impl DriverIf for DriverPostgres {
         ModelCsrf::read(&conn, key)
     }
 
-    fn key_list(&self, list: &KeyList) -> DriverResult<Vec<Key>> {
+    fn key_list(&self, list: &KeyList, service_id: Option<Uuid>) -> DriverResult<Vec<Key>> {
         let conn = self.conn()?;
-        ModelKey::list(&conn, list)
+        ModelKey::list(&conn, list, service_id)
     }
 
     fn key_count(&self, count: &KeyCount) -> DriverResult<usize> {
@@ -152,14 +152,18 @@ impl DriverIf for DriverPostgres {
         ModelKey::create(&conn, create)
     }
 
-    fn key_read(&self, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
+    fn key_read(
+        &self,
+        read: &KeyRead,
+        service_id: Option<Uuid>,
+    ) -> DriverResult<Option<KeyWithValue>> {
         let conn = self.conn()?;
-        ModelKey::read(&conn, read)
+        ModelKey::read(&conn, read, service_id)
     }
 
-    fn key_update(&self, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key> {
+    fn key_update(&self, update: &KeyUpdate) -> DriverResult<Key> {
         let conn = self.conn()?;
-        ModelKey::update(&conn, id, update)
+        ModelKey::update(&conn, update)
     }
 
     fn key_update_many(&self, user_id: &Uuid, update: &KeyUpdate) -> DriverResult<usize> {
@@ -182,14 +186,18 @@ impl DriverIf for DriverPostgres {
         ModelService::create(&conn, create)
     }
 
-    fn service_read(&self, read: &ServiceRead) -> DriverResult<Option<Service>> {
+    fn service_read(
+        &self,
+        read: &ServiceRead,
+        service_id: Option<Uuid>,
+    ) -> DriverResult<Option<Service>> {
         let conn = self.conn()?;
-        ModelService::read(&conn, read)
+        ModelService::read(&conn, read, service_id)
     }
 
-    fn service_update(&self, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service> {
+    fn service_update(&self, update: &ServiceUpdate) -> DriverResult<Service> {
         let conn = self.conn()?;
-        ModelService::update(&conn, id, update)
+        ModelService::update(&conn, update)
     }
 
     fn service_delete(&self, id: &Uuid) -> DriverResult<usize> {
@@ -323,8 +331,8 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelCsrf::read(self.conn(), key)
     }
 
-    fn key_list(&self, list: &KeyList) -> DriverResult<Vec<Key>> {
-        ModelKey::list(self.conn(), list)
+    fn key_list(&self, list: &KeyList, service_id: Option<Uuid>) -> DriverResult<Vec<Key>> {
+        ModelKey::list(self.conn(), list, service_id)
     }
 
     fn key_count(&self, count: &KeyCount) -> DriverResult<usize> {
@@ -335,12 +343,16 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelKey::create(self.conn(), create)
     }
 
-    fn key_read(&self, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
-        ModelKey::read(self.conn(), read)
+    fn key_read(
+        &self,
+        read: &KeyRead,
+        service_id: Option<Uuid>,
+    ) -> DriverResult<Option<KeyWithValue>> {
+        ModelKey::read(self.conn(), read, service_id)
     }
 
-    fn key_update(&self, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key> {
-        ModelKey::update(self.conn(), id, update)
+    fn key_update(&self, update: &KeyUpdate) -> DriverResult<Key> {
+        ModelKey::update(self.conn(), update)
     }
 
     fn key_update_many(&self, user_id: &Uuid, update: &KeyUpdate) -> DriverResult<usize> {
@@ -359,12 +371,16 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelService::create(self.conn(), create)
     }
 
-    fn service_read(&self, read: &ServiceRead) -> DriverResult<Option<Service>> {
-        ModelService::read(self.conn(), read)
+    fn service_read(
+        &self,
+        read: &ServiceRead,
+        service_id: Option<Uuid>,
+    ) -> DriverResult<Option<Service>> {
+        ModelService::read(self.conn(), read, service_id)
     }
 
-    fn service_update(&self, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service> {
-        ModelService::update(self.conn(), id, update)
+    fn service_update(&self, update: &ServiceUpdate) -> DriverResult<Service> {
+        ModelService::update(self.conn(), update)
     }
 
     fn service_delete(&self, id: &Uuid) -> DriverResult<usize> {

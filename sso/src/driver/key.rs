@@ -1,9 +1,13 @@
-use crate::{impl_enum_to_from_string, AuditDiff, AuditDiffBuilder, AuditSubject};
+use crate::{
+    api::{validate, ValidateRequest},
+    impl_enum_to_from_string, AuditDiff, AuditDiffBuilder, AuditSubject,
+};
 use chrono::{DateTime, Utc};
 use libreauth::key::KeyBuilder;
 use serde_json::Value;
 use std::fmt;
 use uuid::Uuid;
+use validator::Validate;
 
 // TODO(refactor): Add name ge/le key, service list query options.
 
@@ -138,7 +142,7 @@ pub enum KeyListQuery {
 }
 
 /// Key list filter.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct KeyListFilter {
     pub id: Option<Vec<Uuid>>,
     pub is_enabled: Option<bool>,
@@ -149,12 +153,13 @@ pub struct KeyListFilter {
 }
 
 /// Key list.
-#[derive(Debug)]
-pub struct KeyList<'a> {
-    pub query: &'a KeyListQuery,
-    pub filter: &'a KeyListFilter,
-    pub service_id_mask: Option<Uuid>,
+#[derive(Debug, Validate)]
+pub struct KeyList {
+    pub query: KeyListQuery,
+    pub filter: KeyListFilter,
 }
+
+impl ValidateRequest<KeyList> for KeyList {}
 
 /// Key count.
 #[derive(Debug)]
@@ -164,7 +169,7 @@ pub enum KeyCount {
 }
 
 /// Key create data.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct KeyCreate {
     pub is_enabled: bool,
     pub is_revoked: bool,
@@ -234,6 +239,8 @@ impl KeyCreate {
     }
 }
 
+impl ValidateRequest<KeyCreate> for KeyCreate {}
+
 /// Key read by service ID and user ID.
 #[derive(Debug)]
 pub struct KeyReadUserId {
@@ -257,7 +264,7 @@ pub struct KeyReadUserValue {
 /// Key read.
 #[derive(Debug)]
 pub enum KeyRead {
-    IdServiceUser(Uuid, Option<Uuid>, Option<Uuid>),
+    IdUser(Uuid, Option<Uuid>),
     RootValue(String),
     ServiceValue(String),
     UserId(KeyReadUserId),
@@ -302,12 +309,15 @@ impl KeyRead {
 }
 
 /// Key update data.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct KeyUpdate {
+    pub id: Uuid,
     pub is_enabled: Option<bool>,
     pub is_revoked: Option<bool>,
     pub name: Option<String>,
 }
+
+impl ValidateRequest<KeyUpdate> for KeyUpdate {}
 
 /// Generate new key value from random bytes.
 fn value_generate() -> String {

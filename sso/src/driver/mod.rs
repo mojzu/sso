@@ -91,7 +91,7 @@ pub trait DriverIf {
     // -------------
 
     /// List keys.
-    fn key_list(&self, list: &KeyList) -> DriverResult<Vec<Key>>;
+    fn key_list(&self, list: &KeyList, service_id: Option<Uuid>) -> DriverResult<Vec<Key>>;
 
     /// Count keys.
     fn key_count(&self, count: &KeyCount) -> DriverResult<usize>;
@@ -103,10 +103,14 @@ pub trait DriverIf {
     fn key_create(&self, create: &KeyCreate) -> DriverResult<KeyWithValue>;
 
     /// Read key.
-    fn key_read(&self, read: &KeyRead) -> DriverResult<Option<KeyWithValue>>;
+    fn key_read(
+        &self,
+        read: &KeyRead,
+        service_id: Option<Uuid>,
+    ) -> DriverResult<Option<KeyWithValue>>;
 
     /// Update key.
-    fn key_update(&self, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key>;
+    fn key_update(&self, update: &KeyUpdate) -> DriverResult<Key>;
 
     /// Update many keys by user ID.
     fn key_update_many(&self, user_id: &Uuid, update: &KeyUpdate) -> DriverResult<usize>;
@@ -125,10 +129,14 @@ pub trait DriverIf {
     fn service_create(&self, create: &ServiceCreate) -> DriverResult<Service>;
 
     /// Read service.
-    fn service_read(&self, read: &ServiceRead) -> DriverResult<Option<Service>>;
+    fn service_read(
+        &self,
+        read: &ServiceRead,
+        service_id: Option<Uuid>,
+    ) -> DriverResult<Option<Service>>;
 
     /// Update service.
-    fn service_update(&self, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service>;
+    fn service_update(&self, update: &ServiceUpdate) -> DriverResult<Service>;
 
     /// Delete service.
     fn service_delete(&self, id: &Uuid) -> DriverResult<usize>;

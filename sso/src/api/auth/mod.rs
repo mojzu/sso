@@ -377,14 +377,12 @@ mod server_auth {
 
         // Disable and revoke key.
         driver
-            .key_update(
-                &key.id,
-                &KeyUpdate {
-                    is_enabled: Some(false),
-                    is_revoked: Some(true),
-                    name: None,
-                },
-            )
+            .key_update(&KeyUpdate {
+                id: key.id,
+                is_enabled: Some(false),
+                is_revoked: Some(true),
+                name: None,
+            })
             .map_err(ApiError::BadRequest)?;
 
         // Optionally create custom audit log.
@@ -518,14 +516,12 @@ mod server_auth {
 
         // Token revoked, disable and revoked linked key.
         driver
-            .key_update(
-                &key.id,
-                &KeyUpdate {
-                    is_enabled: Some(false),
-                    is_revoked: Some(true),
-                    name: None,
-                },
-            )
+            .key_update(&KeyUpdate {
+                id: key.id,
+                is_enabled: Some(false),
+                is_revoked: Some(true),
+                name: None,
+            })
             .map_err(ApiError::BadRequest)?;
 
         // Optionally create custom audit log.

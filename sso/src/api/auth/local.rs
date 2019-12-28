@@ -810,16 +810,16 @@ fn revoke_inner(
     driver
         .user_update(&user.id, &UserUpdate::default().set_is_enabled(false))
         .map_err(ApiError::BadRequest)?;
-    driver
-        .key_update_many(
-            &user.id,
-            &KeyUpdate {
-                is_enabled: Some(false),
-                is_revoked: Some(true),
-                name: None,
-            },
-        )
-        .map_err(ApiError::BadRequest)?;
+    // driver
+    //     .key_update_many(
+    //         &user.id,
+    //         &KeyUpdate {
+    //             is_enabled: Some(false),
+    //             is_revoked: Some(true),
+    //             name: None,
+    //         },
+    //     )
+    //     .map_err(ApiError::BadRequest)?;
 
     // Optionally create custom audit log.
     if let Some(x) = request.audit {

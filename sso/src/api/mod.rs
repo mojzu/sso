@@ -1,19 +1,13 @@
 //! # API functions.
 mod auth;
 mod error;
-mod key;
 mod password;
-mod service;
-mod user;
 pub mod validate;
 
 pub use crate::api::{
     auth::*,
     error::*,
-    key::*,
     password::*,
-    service::*,
-    user::*,
     validate::{ValidateRequest, ValidateRequestQuery},
 };
 
@@ -62,7 +56,7 @@ pub fn result_audit_err<T>(
     })
 }
 
-fn result_audit_subject<T: AuditSubject>(
+pub fn result_audit_subject<T: AuditSubject>(
     driver: &dyn Driver,
     audit: &AuditBuilder,
     res: ApiResult<T>,
@@ -82,7 +76,7 @@ fn result_audit_subject<T: AuditSubject>(
     })
 }
 
-fn result_audit_diff<T: AuditSubject + AuditDiff>(
+pub fn result_audit_diff<T: AuditSubject + AuditDiff>(
     driver: &dyn Driver,
     audit: &AuditBuilder,
     res: ApiResult<(T, T)>,

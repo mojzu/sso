@@ -88,21 +88,21 @@ impl ModelService {
         match list.query {
             ServiceListQuery::Limit(limit) => query
                 .filter(sso_service::dsl::id.gt(Uuid::nil()))
-                .limit(*limit)
+                .limit(limit)
                 .order(sso_service::dsl::id.asc())
                 .load::<ModelService>(conn)
                 .map_err(Into::into)
                 .map(|x| x.into_iter().map(|x| x.into()).collect()),
             ServiceListQuery::IdGt(gt, limit) => query
                 .filter(sso_service::dsl::id.gt(gt))
-                .limit(*limit)
+                .limit(limit)
                 .order(sso_service::dsl::id.asc())
                 .load::<ModelService>(conn)
                 .map_err(Into::into)
                 .map(|x| x.into_iter().map(|x| x.into()).collect()),
             ServiceListQuery::IdLt(lt, limit) => query
                 .filter(sso_service::dsl::id.lt(lt))
-                .limit(*limit)
+                .limit(limit)
                 .order(sso_service::dsl::id.desc())
                 .load::<ModelService>(conn)
                 .map_err(Into::into)
@@ -139,8 +139,12 @@ impl ModelService {
             .map(Into::into)
     }
 
-    pub fn read(conn: &PgConnection, read: &ServiceRead) -> DriverResult<Option<Service>> {
-        match read.service_id_mask {
+    pub fn read(
+        conn: &PgConnection,
+        read: &ServiceRead,
+        service_id: Option<Uuid>,
+    ) -> DriverResult<Option<Service>> {
+        match service_id {
             Some(service_id_mask) => sso_service::table
                 .filter(
                     sso_service::dsl::id
@@ -157,7 +161,7 @@ impl ModelService {
         .map(|x| x.map(Into::into))
     }
 
-    pub fn update(conn: &PgConnection, id: &Uuid, update: &ServiceUpdate) -> DriverResult<Service> {
+    pub fn update(conn: &PgConnection, update: &ServiceUpdate) -> DriverResult<Service> {
         let now = chrono::Utc::now();
         let value = ModelServiceUpdate {
             updated_at: &now,
@@ -173,7 +177,7 @@ impl ModelService {
                 .as_ref()
                 .map(|x| &**x),
         };
-        diesel::update(sso_service::table.filter(sso_service::dsl::id.eq(id)))
+        diesel::update(sso_service::table.filter(sso_service::dsl::id.eq(update.id)))
             .set(value)
             .get_result::<ModelService>(conn)
             .map_err(Into::into)

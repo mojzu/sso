@@ -527,6 +527,8 @@ message KeyCreateReply {
 message KeyReadRequest {
     // Key UUID.
     string id = 1;
+    // Key user UUID.
+    google.protobuf.StringValue user_id = 2;
 }
 
 // Read key reply.

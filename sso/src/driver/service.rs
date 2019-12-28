@@ -1,10 +1,14 @@
-use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, DriverError, DriverResult};
+use crate::{
+    api::{validate, ValidateRequest},
+    AuditDiff, AuditDiffBuilder, AuditSubject, DriverError, DriverResult,
+};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
 use std::fmt;
 use url::Url;
 use uuid::Uuid;
+use validator::Validate;
 
 /// Service.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -169,21 +173,23 @@ pub enum ServiceListQuery {
 }
 
 /// Service list filter.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct ServiceListFilter {
     pub id: Option<Vec<Uuid>>,
     pub is_enabled: Option<bool>,
 }
 
 /// Service list.
-#[derive(Debug)]
-pub struct ServiceList<'a> {
-    pub query: &'a ServiceListQuery,
-    pub filter: &'a ServiceListFilter,
+#[derive(Debug, Validate)]
+pub struct ServiceList {
+    pub query: ServiceListQuery,
+    pub filter: ServiceListFilter,
 }
 
+impl ValidateRequest<ServiceList> for ServiceList {}
+
 /// Service create.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct ServiceCreate {
     pub is_enabled: bool,
     pub name: String,
@@ -195,30 +201,26 @@ pub struct ServiceCreate {
     pub provider_microsoft_oauth2_url: Option<String>,
 }
 
+impl ValidateRequest<ServiceCreate> for ServiceCreate {}
+
 /// Service read.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct ServiceRead {
     pub id: Uuid,
-    pub service_id_mask: Option<Uuid>,
 }
 
 impl ServiceRead {
     pub fn new(id: Uuid) -> Self {
-        Self {
-            id,
-            service_id_mask: None,
-        }
-    }
-
-    pub fn service_id_mask(mut self, service_id_mask: Option<Uuid>) -> Self {
-        self.service_id_mask = service_id_mask;
-        self
+        Self { id }
     }
 }
 
+impl ValidateRequest<ServiceRead> for ServiceRead {}
+
 /// Service update.
-#[derive(Debug)]
+#[derive(Debug, Validate)]
 pub struct ServiceUpdate {
+    pub id: Uuid,
     pub is_enabled: Option<bool>,
     pub name: Option<String>,
     pub url: Option<String>,
@@ -228,6 +230,8 @@ pub struct ServiceUpdate {
     pub provider_github_oauth2_url: Option<String>,
     pub provider_microsoft_oauth2_url: Option<String>,
 }
+
+impl ValidateRequest<ServiceUpdate> for ServiceUpdate {}
 
 #[cfg(test)]
 mod tests {

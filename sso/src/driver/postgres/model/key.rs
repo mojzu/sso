@@ -95,7 +95,11 @@ impl<'a> ModelKeyUpdate<'a> {
 }
 
 impl ModelKey {
-    pub fn list(conn: &PgConnection, list: &KeyList) -> DriverResult<Vec<Key>> {
+    pub fn list(
+        conn: &PgConnection,
+        list: &KeyList,
+        service_id: Option<Uuid>,
+    ) -> DriverResult<Vec<Key>> {
         use diesel::dsl::any;
 
         let mut query = sso_key::table.into_boxed();
@@ -122,28 +126,28 @@ impl ModelKey {
             let user_id: Vec<Uuid> = user_id.iter().copied().collect();
             query = query.filter(sso_key::dsl::user_id.eq(any(user_id)));
         }
-        if let Some(service_id_mask) = list.service_id_mask {
+        if let Some(service_id_mask) = service_id {
             query = query.filter(sso_key::dsl::service_id.eq(service_id_mask));
         }
 
         match list.query {
             KeyListQuery::Limit(limit) => query
                 .filter(sso_key::dsl::id.gt(Uuid::nil()))
-                .limit(*limit)
+                .limit(limit)
                 .order(sso_key::dsl::id.asc())
                 .load::<ModelKey>(conn)
                 .map_err(Into::into)
                 .map(|x| x.into_iter().map(|x| x.into()).collect()),
             KeyListQuery::IdGt(gt, limit) => query
                 .filter(sso_key::dsl::id.gt(gt))
-                .limit(*limit)
+                .limit(limit)
                 .order(sso_key::dsl::id.asc())
                 .load::<ModelKey>(conn)
                 .map_err(Into::into)
                 .map(|x| x.into_iter().map(|x| x.into()).collect()),
             KeyListQuery::IdLt(lt, limit) => query
                 .filter(sso_key::dsl::id.lt(lt))
-                .limit(*limit)
+                .limit(limit)
                 .order(sso_key::dsl::id.desc())
                 .load::<ModelKey>(conn)
                 .map_err(Into::into)
@@ -186,7 +190,7 @@ impl ModelKey {
             }
         }
         if let Some(service_id) = &create.service_id {
-            ModelService::read(conn, &ServiceRead::new(*service_id))?
+            ModelService::read(conn, &ServiceRead::new(*service_id), None)?
                 .ok_or_else(|| DriverError::ServiceNotFound)?;
         }
         if let Some(user_id) = &create.user_id {
@@ -215,11 +219,13 @@ impl ModelKey {
             .map(Into::into)
     }
 
-    pub fn read(conn: &PgConnection, read: &KeyRead) -> DriverResult<Option<KeyWithValue>> {
+    pub fn read(
+        conn: &PgConnection,
+        read: &KeyRead,
+        service_id: Option<Uuid>,
+    ) -> DriverResult<Option<KeyWithValue>> {
         match read {
-            KeyRead::IdServiceUser(id, service_id, user_id) => {
-                Self::read_by_id(conn, id, service_id, user_id)
-            }
+            KeyRead::IdUser(id, user_id) => Self::read_by_id(conn, id, &service_id, user_id),
             KeyRead::RootValue(value) => Self::read_by_root_value(conn, value),
             KeyRead::ServiceValue(value) => Self::read_by_service_value(conn, value),
             KeyRead::UserId(r) => Self::read_by_user_id(conn, r),
@@ -227,10 +233,10 @@ impl ModelKey {
         }
     }
 
-    pub fn update(conn: &PgConnection, id: &Uuid, update: &KeyUpdate) -> DriverResult<Key> {
+    pub fn update(conn: &PgConnection, update: &KeyUpdate) -> DriverResult<Key> {
         let now = chrono::Utc::now();
         let value = ModelKeyUpdate::from_update(&now, update);
-        diesel::update(sso_key::table.filter(sso_key::dsl::id.eq(id)))
+        diesel::update(sso_key::table.filter(sso_key::dsl::id.eq(update.id)))
             .set(&value)
             .get_result::<ModelKey>(conn)
             .map_err(Into::into)
