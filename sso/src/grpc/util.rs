@@ -145,6 +145,12 @@ impl From<Key> for pb::Key {
     }
 }
 
+impl From<KeyWithValue> for pb::Key {
+    fn from(r: KeyWithValue) -> Self {
+        unimplemented!();
+    }
+}
+
 impl TryFrom<pb::KeyCreateRequest> for KeyCreate {
     type Error = Status;
 
@@ -219,6 +225,12 @@ impl From<Service> for pb::Service {
     }
 }
 
+impl From<UserTokenAccess> for pb::AuthToken {
+    fn from(r: UserTokenAccess) -> Self {
+        unimplemented!();
+    }
+}
+
 impl TryFrom<pb::UserListRequest> for UserList {
     type Error = Status;
 
@@ -265,6 +277,22 @@ impl From<User> for pb::User {
 
 impl From<UserPasswordMeta> for pb::AuthPasswordMeta {
     fn from(r: UserPasswordMeta) -> Self {
+        unimplemented!();
+    }
+}
+
+impl From<Csrf> for pb::Csrf {
+    fn from(r: Csrf) -> Self {
+        unimplemented!();
+    }
+}
+
+impl UserToken {
+    pub fn access_token(&self) -> pb::AuthToken {
+        unimplemented!();
+    }
+
+    pub fn refresh_token(&self) -> pb::AuthToken {
         unimplemented!();
     }
 }

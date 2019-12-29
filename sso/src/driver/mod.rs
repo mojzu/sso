@@ -157,7 +157,7 @@ pub trait DriverIf {
     fn user_read(&self, read: &UserRead) -> DriverResult<Option<User>>;
 
     /// Update user.
-    fn user_update(&self, id: &Uuid, update: &UserUpdate) -> DriverResult<User>;
+    fn user_update(&self, update: &UserUpdate) -> DriverResult<User>;
 
     /// Delete user.
     fn user_delete(&self, id: &Uuid) -> DriverResult<usize>;

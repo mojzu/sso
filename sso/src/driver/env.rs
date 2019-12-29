@@ -1,5 +1,8 @@
 //! # Environment functions.
-use crate::{api::AuthProviderOauth2, grpc::ServerOptionsSmtp, DriverError, DriverResult};
+use crate::{
+    grpc::{ServerOptionsProvider, ServerOptionsSmtp},
+    DriverError, DriverResult,
+};
 use std::str::FromStr;
 
 /// Read required environment variable string value.
@@ -76,12 +79,12 @@ pub fn has_any_name(names: &[&str]) -> bool {
 pub fn oauth2(
     client_id_name: &str,
     client_secret_name: &str,
-) -> DriverResult<Option<AuthProviderOauth2>> {
+) -> DriverResult<Option<ServerOptionsProvider>> {
     if has_any_name(&[client_id_name, client_secret_name]) {
         let client_id = string(client_id_name)?;
         let client_secret = string(client_secret_name)?;
 
-        Ok(Some(AuthProviderOauth2::new(client_id, client_secret)))
+        Ok(Some(ServerOptionsProvider::new(client_id, client_secret)))
     } else {
         Ok(None)
     }

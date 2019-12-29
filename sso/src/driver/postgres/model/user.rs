@@ -127,7 +127,7 @@ impl ModelUser {
         .map(|r| r.map(|u| u.into()))
     }
 
-    pub fn update(conn: &PgConnection, id: &Uuid, update: &UserUpdate) -> DriverResult<User> {
+    pub fn update(conn: &PgConnection, update: &UserUpdate) -> DriverResult<User> {
         let now = Utc::now();
         let value = ModelUserUpdate {
             updated_at: &now,
@@ -140,7 +140,7 @@ impl ModelUser {
             password_require_update: update.password_require_update,
             password_hash: update.password_hash.as_ref().map(|x| &**x),
         };
-        diesel::update(sso_user::table.filter(sso_user::dsl::id.eq(id)))
+        diesel::update(sso_user::table.filter(sso_user::dsl::id.eq(update.id)))
             .set(&value)
             .get_result::<ModelUser>(conn)
             .map_err(Into::into)

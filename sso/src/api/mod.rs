@@ -1,26 +1,25 @@
 //! # API functions.
-mod auth;
 mod error;
 mod password;
 pub mod validate;
 
 pub use crate::api::{
-    auth::*,
     error::*,
     password::*,
     validate::{ValidateRequest, ValidateRequestQuery},
 };
 
-use crate::{
-    AuditBuilder, AuditDiff, AuditDiffBuilder, AuditSubject, Driver, DriverError, Service,
-};
+use crate::{AuditBuilder, AuditDiff, AuditDiffBuilder, AuditSubject, Driver};
 use http::StatusCode;
-use tonic::Status;
 use uuid::Uuid;
 
 // TODO(refactor): Unwrap check and cleanup.
 
-fn result_audit<T>(driver: &dyn Driver, audit: &AuditBuilder, res: ApiResult<T>) -> ApiResult<T> {
+pub fn result_audit<T>(
+    driver: &dyn Driver,
+    audit: &AuditBuilder,
+    res: ApiResult<T>,
+) -> ApiResult<T> {
     res.or_else(|e| {
         let data = AuditDiffBuilder::typed_data("error", StatusData::from_status(&e));
         audit
@@ -100,15 +99,4 @@ pub fn result_audit_diff<T: AuditSubject + AuditDiff>(
             .unwrap();
         Ok(n)
     })
-}
-
-fn csrf_verify(driver: &dyn Driver, service: &Service, csrf_key: &str) -> ApiResult<()> {
-    driver
-        .csrf_read(&csrf_key)
-        .map_err(ApiError::BadRequest)
-        .map_err::<Status, _>(Into::into)?
-        .ok_or_else(|| DriverError::CsrfNotFoundOrUsed)
-        .and_then(|csrf| csrf.check_service(service.id))
-        .map_err(ApiError::BadRequest)
-        .map_err::<Status, _>(Into::into)
 }

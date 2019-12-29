@@ -7,6 +7,23 @@ use lettre::{
 use native_tls::{Protocol, TlsConnector};
 use reqwest::Client;
 
+/// Server provider options.
+#[derive(Debug, Clone)]
+pub struct ServerOptionsProvider {
+    pub client_id: String,
+    pub client_secret: String,
+}
+
+impl ServerOptionsProvider {
+    /// Returns new `ServerOptionsProvider`.
+    pub fn new(client_id: String, client_secret: String) -> Self {
+        Self {
+            client_id,
+            client_secret,
+        }
+    }
+}
+
 /// Server SMTP options.
 #[derive(Debug, Clone)]
 pub struct ServerOptionsSmtp {
@@ -36,10 +53,20 @@ pub struct ServerOptions {
     /// Enable Pwned Passwords API to check passwords.
     /// API keys may be required in the future to use this API.
     password_pwned_enabled: bool,
+    /// Access token expiry time in seconds.
+    access_token_expires: i64,
+    /// Refresh token expiry time in seconds.
+    refresh_token_expires: i64,
+    /// Revoke token expiry time in seconds.
+    revoke_token_expires: i64,
     /// SMTP transport.
     smtp_transport: Option<ServerOptionsSmtp>,
     /// SMTP file transport.
     smtp_file_transport: Option<String>,
+    /// Github provider.
+    github: Option<ServerOptionsProvider>,
+    /// Microsoft provider.
+    microsoft: Option<ServerOptionsProvider>,
 }
 
 impl ServerOptions {
@@ -51,8 +78,13 @@ impl ServerOptions {
         Self {
             user_agent: user_agent.into(),
             password_pwned_enabled,
+            access_token_expires: 3_600,
+            refresh_token_expires: 86_400,
+            revoke_token_expires: 604_800,
             smtp_transport: None,
             smtp_file_transport: None,
+            github: None,
+            microsoft: None,
         }
     }
 
@@ -65,6 +97,18 @@ impl ServerOptions {
     /// Set SMTP file transport.
     pub fn smtp_file_transport(mut self, smtp_file_transport: Option<String>) -> Self {
         self.smtp_file_transport = smtp_file_transport;
+        self
+    }
+
+    /// Set Github provider.
+    pub fn github(mut self, github: Option<ServerOptionsProvider>) -> Self {
+        self.github = github;
+        self
+    }
+
+    /// Set Microsoft provider.
+    pub fn microsoft(mut self, microsoft: Option<ServerOptionsProvider>) -> Self {
+        self.microsoft = microsoft;
         self
     }
 
@@ -82,6 +126,21 @@ impl ServerOptions {
     /// Returns password pwned enabled flag.
     pub fn password_pwned_enabled(&self) -> bool {
         self.password_pwned_enabled
+    }
+
+    /// Returns access token expiry value.
+    pub fn access_token_expires(&self) -> i64 {
+        self.access_token_expires
+    }
+
+    /// Returns refresh token expiry value.
+    pub fn refresh_token_expires(&self) -> i64 {
+        self.refresh_token_expires
+    }
+
+    /// Returns revoke token expiry value.
+    pub fn revoke_token_expires(&self) -> i64 {
+        self.revoke_token_expires
     }
 
     /// Returns `SmtpClient` built from options.
@@ -118,5 +177,45 @@ impl ServerOptions {
     /// Returns SMTP file transport directory.
     pub fn smtp_file(&self) -> Option<String> {
         self.smtp_file_transport.as_ref().map(|x| x.to_owned())
+    }
+
+    /// Returns provider GitHub OAuth2 common arguments.
+    pub fn github_oauth2_args(&self) -> ServerProviderOauth2Args {
+        ServerProviderOauth2Args::new(
+            self.github.clone(),
+            self.access_token_expires(),
+            self.refresh_token_expires(),
+        )
+    }
+
+    /// Returns provider Microsoft OAuth2 common arguments.
+    pub fn microsoft_oauth2_args(&self) -> ServerProviderOauth2Args {
+        ServerProviderOauth2Args::new(
+            self.microsoft.clone(),
+            self.access_token_expires(),
+            self.refresh_token_expires(),
+        )
+    }
+}
+
+/// Authentication provider OAuth2 common arguments.
+#[derive(Debug)]
+pub struct ServerProviderOauth2Args {
+    pub provider: Option<ServerOptionsProvider>,
+    pub access_token_expires: i64,
+    pub refresh_token_expires: i64,
+}
+
+impl ServerProviderOauth2Args {
+    pub fn new(
+        provider: Option<ServerOptionsProvider>,
+        access_token_expires: i64,
+        refresh_token_expires: i64,
+    ) -> Self {
+        Self {
+            provider,
+            access_token_expires,
+            refresh_token_expires,
+        }
     }
 }

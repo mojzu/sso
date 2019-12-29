@@ -6,7 +6,6 @@ use crate::{
 use std::convert::TryInto;
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
-use uuid::Uuid;
 
 pub async fn list(
     driver: Arc<Box<dyn Driver>>,
@@ -81,19 +80,97 @@ pub async fn read(
     driver: Arc<Box<dyn Driver>>,
     request: Request<pb::UserReadRequest>,
 ) -> Result<Response<pb::UserReadReply>, Status> {
-    unimplemented!();
+    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
+    let req: UserRead = request.into_inner().try_into()?;
+    // TODO(refactor): Validate input.
+    // UserRead::status_validate(&req)?;
+
+    let driver = driver.clone();
+    let reply = blocking::<_, Status, _>(move || {
+        let mut audit = AuditBuilder::new(audit_meta, AuditType::UserRead);
+        let res: Result<User, Status> = {
+            let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+                .map_err(ApiError::Unauthorised)?;
+
+            read_inner(driver.as_ref().as_ref(), &req)
+        };
+        let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let reply = pb::UserReadReply {
+            data: Some(data.into()),
+        };
+        Ok(reply)
+    })
+    .await?;
+    Ok(Response::new(reply))
 }
 
 pub async fn update(
     driver: Arc<Box<dyn Driver>>,
     request: Request<pb::UserUpdateRequest>,
 ) -> Result<Response<pb::UserReadReply>, Status> {
-    unimplemented!();
+    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
+    let req: UserUpdate = request.into_inner().try_into()?;
+    UserUpdate::status_validate(&req)?;
+
+    let driver = driver.clone();
+    let reply = blocking::<_, Status, _>(move || {
+        let mut audit = AuditBuilder::new(audit_meta, AuditType::UserRead);
+        let res: Result<(User, User), Status> = {
+            let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+                .map_err(ApiError::Unauthorised)?;
+
+            let read = UserRead::Id(req.id);
+            let previous_user = read_inner(driver.as_ref().as_ref(), &read)?;
+
+            let user = driver.user_update(&req).map_err(ApiError::BadRequest)?;
+            Ok((previous_user, user))
+        };
+        let data = api::result_audit_diff(driver.as_ref().as_ref(), &audit, res)?;
+        let reply = pb::UserReadReply {
+            data: Some(data.into()),
+        };
+        Ok(reply)
+    })
+    .await?;
+    Ok(Response::new(reply))
 }
 
 pub async fn delete(
     driver: Arc<Box<dyn Driver>>,
     request: Request<pb::UserReadRequest>,
 ) -> Result<Response<()>, Status> {
-    unimplemented!();
+    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
+    let req: UserRead = request.into_inner().try_into()?;
+    // TODO(refactor): Validate input.
+    // UserRead::status_validate(&req)?;
+
+    let driver = driver.clone();
+    let reply = blocking::<_, Status, _>(move || {
+        let mut audit = AuditBuilder::new(audit_meta, AuditType::UserDelete);
+        let res: Result<User, Status> = {
+            let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+                .map_err(ApiError::Unauthorised)?;
+
+            let user = read_inner(driver.as_ref().as_ref(), &req)?;
+            driver
+                .user_delete(&user.id)
+                .map_err(ApiError::BadRequest)
+                .map_err::<tonic::Status, _>(Into::into)
+                .map(|_| user)
+        };
+        api::result_audit_subject(driver.as_ref().as_ref(), &audit, res)?;
+        Ok(())
+    })
+    .await?;
+    Ok(Response::new(reply))
+}
+
+fn read_inner(driver: &dyn Driver, read: &UserRead) -> ApiResult<User> {
+    driver
+        .user_read(read)
+        .map_err(ApiError::BadRequest)
+        .map_err::<tonic::Status, _>(Into::into)?
+        .ok_or_else(|| DriverError::UserNotFound)
+        .map_err(ApiError::NotFound)
+        .map_err::<tonic::Status, _>(Into::into)
 }

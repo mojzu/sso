@@ -220,9 +220,9 @@ impl DriverIf for DriverPostgres {
         ModelUser::read(&conn, read)
     }
 
-    fn user_update(&self, id: &Uuid, update: &UserUpdate) -> DriverResult<User> {
+    fn user_update(&self, update: &UserUpdate) -> DriverResult<User> {
         let conn = self.conn()?;
-        ModelUser::update(&conn, id, update)
+        ModelUser::update(&conn, update)
     }
 
     fn user_delete(&self, id: &Uuid) -> DriverResult<usize> {
@@ -399,8 +399,8 @@ impl<'a> DriverIf for DriverPostgresConnRef<'a> {
         ModelUser::read(self.conn(), read)
     }
 
-    fn user_update(&self, id: &Uuid, update: &UserUpdate) -> DriverResult<User> {
-        ModelUser::update(self.conn(), id, update)
+    fn user_update(&self, update: &UserUpdate) -> DriverResult<User> {
+        ModelUser::update(self.conn(), update)
     }
 
     fn user_delete(&self, id: &Uuid) -> DriverResult<usize> {

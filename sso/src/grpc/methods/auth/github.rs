@@ -1,52 +1,72 @@
 use crate::{
-    api::{
-        result_audit, result_audit_err, ApiResult, AuthOauth2CallbackRequest,
-        AuthOauth2UrlResponse, AuthProviderOauth2Args, AuthTokenResponse, ValidateRequest,
-    },
-    AuditBuilder, AuditMeta, AuditType, Driver,
+    api::{self},
+    grpc::{pb, util::*, ServerProviderOauth2Args},
+    *,
 };
-use reqwest::Client as SyncClient;
+use std::sync::Arc;
+use tonic::{Request, Response, Status};
 
-pub fn auth_provider_github_oauth2_url(
-    driver: &dyn Driver,
-    audit_meta: AuditMeta,
-    key_value: Option<String>,
-    args: AuthProviderOauth2Args,
-) -> ApiResult<AuthOauth2UrlResponse> {
-    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Url);
+pub async fn oauth2_url(
+    driver: Arc<Box<dyn Driver>>,
+    request: Request<()>,
+    args: ServerProviderOauth2Args,
+) -> Result<Response<pb::AuthOauth2UrlReply>, Status> {
+    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
 
-    let res = provider_github::oauth2_url(driver, &mut audit, key_value, &args);
-    result_audit_err(driver, &audit, res).map(|url| AuthOauth2UrlResponse { url })
+    let driver = driver.clone();
+    let reply = blocking::<_, Status, _>(move || {
+        let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Url);
+        let res: Result<String, Status> =
+            { provider_github::oauth2_url(driver.as_ref().as_ref(), &mut audit, auth, &args) };
+        let url = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let reply = pb::AuthOauth2UrlReply { url };
+        Ok(reply)
+    })
+    .await?;
+    Ok(Response::new(reply))
 }
 
-pub fn auth_provider_github_oauth2_callback(
-    driver: &dyn Driver,
-    audit_meta: AuditMeta,
-    key_value: Option<String>,
-    request: AuthOauth2CallbackRequest,
-    args: AuthProviderOauth2Args,
-    client_sync: &SyncClient,
-) -> ApiResult<AuthTokenResponse> {
-    AuthOauth2CallbackRequest::api_validate(&request)?;
-    let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Callback);
+pub async fn oauth2_callback(
+    driver: Arc<Box<dyn Driver>>,
+    request: Request<pb::AuthOauth2CallbackRequest>,
+    args: ServerProviderOauth2Args,
+    client: Arc<reqwest::Client>,
+) -> Result<Response<pb::AuthTokenReply>, Status> {
+    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
+    let req = request.into_inner();
+    // TODO(refactor): Validate input.
+    // AuditList::status_validate(&req)?;
 
-    let res = provider_github::oauth2_callback(
-        driver,
-        &mut audit,
-        key_value,
-        &args,
-        request,
-        client_sync,
-    );
-    result_audit(driver, &audit, res).map(|data| AuthTokenResponse { data, audit: None })
+    let driver = driver.clone();
+    let reply = blocking::<_, Status, _>(move || {
+        let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Callback);
+        let res: Result<UserToken, Status> = {
+            provider_github::oauth2_callback(
+                driver.as_ref().as_ref(),
+                &mut audit,
+                auth,
+                &args,
+                req,
+                client.as_ref(),
+            )
+        };
+        let user_token = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let reply = pb::AuthTokenReply {
+            user: Some(user_token.user.clone().into()),
+            access: Some(user_token.access_token()),
+            refresh: Some(user_token.refresh_token()),
+            audit: None,
+        };
+        Ok(reply)
+    })
+    .await?;
+    Ok(Response::new(reply))
 }
 
 mod provider_github {
     use crate::{
-        api::{
-            auth::server_auth::oauth2_login, ApiError, ApiResult, AuthOauth2CallbackRequest,
-            AuthProviderOauth2, AuthProviderOauth2Args,
-        },
+        api::{ApiError, ApiResult},
+        grpc::{methods::auth::oauth2_login, pb, ServerOptionsProvider, ServerProviderOauth2Args},
         pattern::*,
         AuditBuilder, CsrfCreate, Driver, DriverError, DriverResult, Service, UserToken,
     };
@@ -61,13 +81,13 @@ mod provider_github {
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<String>,
-        args: &AuthProviderOauth2Args,
+        args: &ServerProviderOauth2Args,
     ) -> ApiResult<String> {
         let service =
             key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
 
         // Generate the authorisation URL to which we'll redirect the user.
-        let client = new_client(&service, args.provider).map_err(ApiError::BadRequest)?;
+        let client = new_client(&service, &args.provider).map_err(ApiError::BadRequest)?;
         let (authorise_url, csrf_state) = client
             .authorize_url(CsrfToken::new_random)
             .add_scope(Scope::new("user:email".to_string()))
@@ -88,8 +108,8 @@ mod provider_github {
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<String>,
-        args: &AuthProviderOauth2Args,
-        request: AuthOauth2CallbackRequest,
+        args: &ServerProviderOauth2Args,
+        request: pb::AuthOauth2CallbackRequest,
         client_sync: &SyncClient,
     ) -> ApiResult<UserToken> {
         let service =
@@ -103,7 +123,7 @@ mod provider_github {
             .map_err(ApiError::BadRequest)?;
 
         // Exchange the code with a token.
-        let client = new_client(&service, args.provider).map_err(ApiError::BadRequest)?;
+        let client = new_client(&service, &args.provider).map_err(ApiError::BadRequest)?;
         let code = AuthorizationCode::new(request.code);
         let token = client
             .exchange_code(code)
@@ -146,7 +166,7 @@ mod provider_github {
 
     fn new_client(
         service: &Service,
-        provider: Option<&AuthProviderOauth2>,
+        provider: &Option<ServerOptionsProvider>,
     ) -> DriverResult<BasicClient> {
         let (provider_github_oauth2_url, provider) =
             match (&service.provider_github_oauth2_url, provider) {

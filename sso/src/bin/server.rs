@@ -3,9 +3,9 @@ extern crate log;
 
 use futures_util::future::join;
 use sentry::integrations::log::LoggerOptions;
-use sso::{env, pattern, Cli, CliOptions, Driver, DriverPostgres};
+use sso::{env, pattern, CliOptions, Driver, DriverPostgres};
 use std::sync::Arc;
-use tonic::{body::BoxBody, transport::Server};
+use tonic::transport::Server;
 use tower::Service;
 
 /// Sentry URL for logging integration.
@@ -107,7 +107,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let grpc_addr = bind.parse()?;
     let options = sso::grpc::ServerOptions::new("sso", password_pwned)
         .smtp_transport(smtp)
-        .smtp_file_transport(smtp_file);
+        .smtp_file_transport(smtp_file)
+        .github(github_oauth2)
+        .microsoft(microsoft_oauth2);
     let sso = sso::grpc::Server::new(driver, options);
     let sso_ref = Arc::new(sso.clone());
 

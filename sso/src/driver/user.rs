@@ -236,6 +236,7 @@ pub enum UserRead {
 /// User update.
 #[derive(Debug, Validate)]
 pub struct UserUpdate {
+    pub id: Uuid,
     pub is_enabled: Option<bool>,
     pub name: Option<String>,
     pub email: Option<String>,
@@ -246,23 +247,9 @@ pub struct UserUpdate {
     pub password_hash: Option<String>,
 }
 
-impl Default for UserUpdate {
-    fn default() -> Self {
-        Self {
-            is_enabled: None,
-            name: None,
-            email: None,
-            locale: None,
-            timezone: None,
-            password_allow_reset: None,
-            password_require_update: None,
-            password_hash: None,
-        }
-    }
-}
-
 impl UserUpdate {
     pub fn new(
+        id: Uuid,
         is_enabled: Option<bool>,
         name: Option<String>,
         locale: Option<String>,
@@ -271,6 +258,7 @@ impl UserUpdate {
         password_require_update: Option<bool>,
     ) -> Self {
         Self {
+            id,
             is_enabled,
             name,
             email: None,
@@ -283,11 +271,12 @@ impl UserUpdate {
     }
 
     /// Update user email.
-    pub fn new_email<E>(email: E) -> Self
+    pub fn new_email<E>(id: Uuid, email: E) -> Self
     where
         E: Into<String>,
     {
         Self {
+            id,
             is_enabled: None,
             name: None,
             email: Some(email.into()),
@@ -300,11 +289,12 @@ impl UserUpdate {
     }
 
     /// Update user password.
-    pub fn new_password<P>(password: P) -> DriverResult<Self>
+    pub fn new_password<P>(id: Uuid, password: P) -> DriverResult<Self>
     where
         P: AsRef<str>,
     {
         Ok(Self {
+            id,
             is_enabled: None,
             name: None,
             email: None,
