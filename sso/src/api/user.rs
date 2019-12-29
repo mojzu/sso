@@ -127,23 +127,6 @@ pub struct UserCreateRequest {
 impl ValidateRequest<UserCreateRequest> for UserCreateRequest {}
 
 impl UserCreateRequest {
-    pub fn new<N, E>(is_enabled: bool, name: N, email: E) -> Self
-    where
-        N: Into<String>,
-        E: Into<String>,
-    {
-        Self {
-            is_enabled: Some(is_enabled),
-            name: name.into(),
-            email: email.into(),
-            locale: None,
-            timezone: None,
-            password_allow_reset: None,
-            password_require_update: None,
-            password: None,
-        }
-    }
-
     pub fn locale<L>(mut self, locale: L) -> Self
     where
         L: Into<String>,
@@ -157,21 +140,6 @@ impl UserCreateRequest {
         T: Into<String>,
     {
         self.timezone = Some(timezone.into());
-        self
-    }
-
-    pub fn with_password<P>(
-        mut self,
-        password_allow_reset: bool,
-        password_require_update: bool,
-        password: P,
-    ) -> Self
-    where
-        P: Into<String>,
-    {
-        self.password_allow_reset = Some(password_allow_reset);
-        self.password_require_update = Some(password_require_update);
-        self.password = Some(password.into());
         self
     }
 

@@ -4,53 +4,29 @@ macro_rules! audit_integration_test {
         #[test]
         #[ignore]
         fn api_audit_list_created_ok() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
             let client = client_create(Some(&service_key.value));
             let type_ = "test_1".to_owned();
-            let read = AuditReadRequest::new(None);
             let limit = 3;
 
             let a1 = client
-                .audit_create(
-                    AuditCreateRequestBuilder::default()
-                        .type_(type_.clone())
-                        .build()
-                        .unwrap(),
-                )
+                .audit_create(pb::AuditCreateRequest::new(type_.clone()))
                 .unwrap()
-                .data;
-            client
-                .audit_create(
-                    AuditCreateRequestBuilder::default()
-                        .type_(type_.clone())
-                        .build()
-                        .unwrap(),
-                )
+                .into_inner()
+                .data
                 .unwrap();
             client
-                .audit_create(
-                    AuditCreateRequestBuilder::default()
-                        .type_(type_.clone())
-                        .build()
-                        .unwrap(),
-                )
+                .audit_create(pb::AuditCreateRequest::new(type_.clone()))
                 .unwrap();
             client
-                .audit_create(
-                    AuditCreateRequestBuilder::default()
-                        .type_(type_.clone())
-                        .build()
-                        .unwrap(),
-                )
+                .audit_create(pb::AuditCreateRequest::new(type_.clone()))
                 .unwrap();
             client
-                .audit_create(
-                    AuditCreateRequestBuilder::default()
-                        .type_(type_.clone())
-                        .build()
-                        .unwrap(),
-                )
+                .audit_create(pb::AuditCreateRequest::new(type_.clone()))
+                .unwrap();
+            client
+                .audit_create(pb::AuditCreateRequest::new(type_.clone()))
                 .unwrap();
 
             let res1 = client

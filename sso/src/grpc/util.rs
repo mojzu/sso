@@ -1,6 +1,7 @@
 use crate::{grpc::pb, *};
 use chrono::{DateTime, Utc};
 use core::pin::Pin;
+use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::future::Future;
 use std::net::SocketAddr;
@@ -408,6 +409,154 @@ impl From<Audit> for pb::Audit {
             service_id: uuid_opt_to_string_opt(r.service_id),
             user_id: uuid_opt_to_string_opt(r.user_id),
             user_key_id: uuid_opt_to_string_opt(r.user_key_id),
+        }
+    }
+}
+
+impl pb::ServiceCreateRequest {
+    pub fn new<N, U>(is_enabled: bool, name: N, url: U) -> Self
+    where
+        N: Into<String>,
+        U: Into<String>,
+    {
+        Self {
+            name: name.into(),
+            url: url.into(),
+            is_enabled: Some(is_enabled),
+            user_allow_register: None,
+            user_email_text: None,
+            provider_local_url: None,
+            provider_github_oauth2_url: None,
+            provider_microsoft_oauth2_url: None,
+        }
+    }
+
+    pub fn user_allow_register(mut self, user_allow_register: bool) -> Self {
+        self.user_allow_register = Some(user_allow_register);
+        self
+    }
+
+    pub fn user_email_text<S: Into<String>>(mut self, user_email_text: S) -> Self {
+        self.user_email_text = Some(user_email_text.into());
+        self
+    }
+
+    pub fn provider_local_url<S: Into<String>>(mut self, provider_local_url: S) -> Self {
+        self.provider_local_url = Some(provider_local_url.into());
+        self
+    }
+
+    pub fn provider_github_oauth2_url<S: Into<String>>(
+        mut self,
+        provider_github_oauth2_url: S,
+    ) -> Self {
+        self.provider_github_oauth2_url = Some(provider_github_oauth2_url.into());
+        self
+    }
+
+    pub fn provider_microsoft_oauth2_url<S: Into<String>>(
+        mut self,
+        provider_microsoft_oauth2_url: S,
+    ) -> Self {
+        self.provider_microsoft_oauth2_url = Some(provider_microsoft_oauth2_url.into());
+        self
+    }
+}
+
+impl pb::KeyCreateRequest {
+    pub fn with_service_id<N>(is_enabled: bool, type_: KeyType, name: N, service_id: String) -> Self
+    where
+        N: Into<String>,
+    {
+        Self {
+            r#type: type_ as i32,
+            name: name.into(),
+            is_enabled: Some(is_enabled),
+            service_id: Some(service_id),
+            user_id: None,
+        }
+    }
+
+    pub fn with_user_id<N>(is_enabled: bool, type_: KeyType, name: N, user_id: String) -> Self
+    where
+        N: Into<String>,
+    {
+        Self {
+            r#type: type_ as i32,
+            name: name.into(),
+            is_enabled: Some(is_enabled),
+            service_id: None,
+            user_id: Some(user_id),
+        }
+    }
+}
+
+impl pb::UserCreateRequest {
+    pub fn new<N, E>(is_enabled: bool, name: N, email: E) -> Self
+    where
+        N: Into<String>,
+        E: Into<String>,
+    {
+        Self {
+            name: name.into(),
+            email: email.into(),
+            is_enabled: Some(is_enabled),
+            locale: None,
+            timezone: None,
+            password_allow_reset: None,
+            password_require_update: None,
+            password: None,
+        }
+    }
+
+    pub fn with_password<P>(
+        mut self,
+        password_allow_reset: bool,
+        password_require_update: bool,
+        password: P,
+    ) -> Self
+    where
+        P: Into<String>,
+    {
+        self.password_allow_reset = Some(password_allow_reset);
+        self.password_require_update = Some(password_require_update);
+        self.password = Some(password.into());
+        self
+    }
+}
+
+impl pb::AuthKeyRequest {
+    pub fn new<K>(key: K, audit: Option<String>) -> Self
+    where
+        K: Into<String>,
+    {
+        Self {
+            key: key.into(),
+            audit,
+        }
+    }
+}
+
+impl pb::AuthTokenRequest {
+    pub fn new<T>(token: T, audit: Option<String>) -> Self
+    where
+        T: Into<String>,
+    {
+        Self {
+            token: token.into(),
+            audit,
+        }
+    }
+}
+
+impl pb::AuditCreateRequest {
+    pub fn new(type_: String) -> Self {
+        Self {
+            r#type: type_,
+            subject: None,
+            data: HashMap::new(),
+            user_id: None,
+            user_key_id: None,
         }
     }
 }

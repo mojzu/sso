@@ -133,32 +133,6 @@ impl KeyCreateRequest {
             user_id: None,
         }
     }
-
-    pub fn with_service_id<S1>(is_enabled: bool, type_: KeyType, name: S1, service_id: Uuid) -> Self
-    where
-        S1: Into<String>,
-    {
-        Self {
-            is_enabled,
-            type_,
-            name: name.into(),
-            service_id: Some(service_id),
-            user_id: None,
-        }
-    }
-
-    pub fn with_user_id<S1>(is_enabled: bool, type_: KeyType, name: S1, user_id: Uuid) -> Self
-    where
-        S1: Into<String>,
-    {
-        Self {
-            is_enabled,
-            type_,
-            name: name.into(),
-            service_id: None,
-            user_id: Some(user_id),
-        }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

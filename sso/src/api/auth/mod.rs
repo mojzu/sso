@@ -23,18 +23,6 @@ pub struct AuthTokenRequest {
 
 impl ValidateRequest<AuthTokenRequest> for AuthTokenRequest {}
 
-impl AuthTokenRequest {
-    pub fn new<T>(token: T, audit: Option<String>) -> Self
-    where
-        T: Into<String>,
-    {
-        Self {
-            token: token.into(),
-            audit,
-        }
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthTokenResponse {
@@ -58,18 +46,6 @@ pub struct AuthKeyRequest {
 }
 
 impl ValidateRequest<AuthKeyRequest> for AuthKeyRequest {}
-
-impl AuthKeyRequest {
-    pub fn new<K>(key: K, audit: Option<String>) -> Self
-    where
-        K: Into<String>,
-    {
-        Self {
-            key: key.into(),
-            audit,
-        }
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

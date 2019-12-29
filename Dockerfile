@@ -92,6 +92,9 @@ ENV SSO_GRPC_SENTRY_URL="" \
 # sso-openapi-server
 ENV SSO_OPENAPI_SSO_GRPC="localhost:7000" \
     SSO_OPENAPI_BIND="localhost:8000"
+# test
+ENV TEST_SSO_GRPC_URL="http://localhost:7000" \
+    TEST_SSO_GRPC_KEY="BT4K6FZK54YZYIQKKPNG4FAQTU36JOQXA4"
 
 # Copy project files and set working directory.
 # These are required for docker-compose service builds.
