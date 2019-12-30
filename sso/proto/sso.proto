@@ -3,6 +3,7 @@ package sso;
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/wrappers.proto";
 import "annotations.proto";
 
@@ -401,7 +402,7 @@ message AuditCreateRequest {
     // Log subject.
     google.protobuf.StringValue subject = 2;
     // Log key, value data.
-    map<string, string> data = 3;
+    google.protobuf.Struct data = 3;
     // Log user UUID.
     google.protobuf.StringValue user_id = 4;
     // Log user key UUID.
@@ -431,7 +432,7 @@ message AuditUpdateRequest {
     // Log subject.
     google.protobuf.StringValue subject = 3;
     // Log key, value data.
-    map<string, string> data = 4;
+    google.protobuf.Struct data = 4;
 }
 
 // Audit log.
@@ -455,7 +456,7 @@ message Audit {
     // Subject.
     google.protobuf.StringValue subject = 9;
     // Key, value data.
-    map<string, string> data = 10;
+    google.protobuf.Struct data = 10;
     // Key UUID.
     google.protobuf.StringValue key_id = 11;
     // Service UUID.

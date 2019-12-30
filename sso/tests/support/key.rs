@@ -3,75 +3,99 @@ macro_rules! key_integration_test {
     () => {
         #[test]
         #[ignore]
-        fn api_key_list_unauthorised() {
-            let client = client_create(Some(INVALID_KEY));
-            let res = client
-                .key_list(KeyListRequestBuilder::default().build().unwrap())
-                .unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
+        fn key_list_unauthorised() {
+            let mut client = client_create(Some(INVALID_KEY));
+            let res = client.key_list(pb::KeyListRequest::default()).unwrap_err();
+            assert_eq!(res.code(), tonic::Code::Unauthenticated);
         }
 
         #[test]
         #[ignore]
-        fn api_key_list_bad_request_invalid_limit() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn key_list_bad_request_invalid_limit() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
 
-            let client = client_create(Some(&service_key.value));
-            let res = client
-                .key_list(
-                    KeyListRequestBuilder::default()
-                        .limit(Some(-1))
-                        .build()
-                        .unwrap(),
-                )
-                .unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            let mut client = client_create(Some(&service_key.value));
+            let res = client.key_list(pb::KeyListRequest::limit(-1)).unwrap_err();
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_key_list_ok() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn key_list_ok() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email);
+            let mut client = client_create(Some(&service_key.value));
+            let user = user_create(&mut client, true, USER_NAME, &user_email);
             let limit = 3;
 
-            let body = KeyCreateRequest::with_user_id(true, KeyType::Key, KEY_NAME, user.id);
-            let k1 = client.key_create(body.clone()).unwrap().data.id;
-            let k2 = client.key_create(body.clone()).unwrap().data.id;
-            let k3 = client.key_create(body.clone()).unwrap().data.id;
-            let k4 = client.key_create(body.clone()).unwrap().data.id;
-            let k5 = client.key_create(body.clone()).unwrap().data.id;
+            let body = pb::KeyCreateRequest::with_user_id(true, KeyType::Key, KEY_NAME, user.id);
+            let k1 = client
+                .key_create(body.clone())
+                .unwrap()
+                .into_inner()
+                .data
+                .unwrap()
+                .key
+                .unwrap()
+                .id;
+            let k2 = client
+                .key_create(body.clone())
+                .unwrap()
+                .into_inner()
+                .data
+                .unwrap()
+                .key
+                .unwrap()
+                .id;
+            let k3 = client
+                .key_create(body.clone())
+                .unwrap()
+                .into_inner()
+                .data
+                .unwrap()
+                .key
+                .unwrap()
+                .id;
+            let k4 = client
+                .key_create(body.clone())
+                .unwrap()
+                .into_inner()
+                .data
+                .unwrap()
+                .key
+                .unwrap()
+                .id;
+            let k5 = client
+                .key_create(body.clone())
+                .unwrap()
+                .into_inner()
+                .data
+                .unwrap()
+                .key
+                .unwrap()
+                .id;
             let id = vec![k1, k2, k3, k4, k5];
 
             let res1 = client
-                .key_list(
-                    KeyListRequestBuilder::default()
-                        .limit(Some(limit))
-                        .id(Some(id.clone()))
-                        .build()
-                        .unwrap(),
-                )
-                .unwrap();
+                .key_list(pb::KeyListRequest::limit_id(limit, id.clone()))
+                .unwrap()
+                .into_inner();
             assert_eq!(res1.data.len(), 3);
             let r1_1 = &res1.data[0].id;
             let r1_2 = &res1.data[1].id;
             let r1_3 = &res1.data[2].id;
 
             let res2 = client
-                .key_list(
-                    KeyListRequestBuilder::default()
-                        .gt(Some(r1_1.to_owned()))
-                        .limit(Some(limit))
-                        .id(Some(id.clone()))
-                        .build()
-                        .unwrap(),
-                )
-                .unwrap();
+                .key_list(pb::KeyListRequest::gt_limit_id(
+                    r1_1.clone(),
+                    limit,
+                    id.clone(),
+                ))
+                .unwrap()
+                .into_inner();
             assert_eq!(res2.data.len(), 3);
             let r2_2 = &res2.data[0].id;
             let r2_3 = &res2.data[1].id;
@@ -80,15 +104,13 @@ macro_rules! key_integration_test {
             assert_eq!(r2_3, r1_3);
 
             let res3 = client
-                .key_list(
-                    KeyListRequestBuilder::default()
-                        .gt(Some(r1_2.to_owned()))
-                        .limit(Some(limit))
-                        .id(Some(id.clone()))
-                        .build()
-                        .unwrap(),
-                )
-                .unwrap();
+                .key_list(pb::KeyListRequest::gt_limit_id(
+                    r1_2.clone(),
+                    limit,
+                    id.clone(),
+                ))
+                .unwrap()
+                .into_inner();
             assert_eq!(res3.data.len(), 3);
             let r3_3 = &res3.data[0].id;
             let r3_4 = &res3.data[1].id;
@@ -97,15 +119,13 @@ macro_rules! key_integration_test {
             assert_eq!(r3_4, r2_4);
 
             let res4 = client
-                .key_list(
-                    KeyListRequestBuilder::default()
-                        .lt(Some(r3_5.to_owned()))
-                        .limit(Some(limit))
-                        .id(Some(id.clone()))
-                        .build()
-                        .unwrap(),
-                )
-                .unwrap();
+                .key_list(pb::KeyListRequest::lt_limit_id(
+                    r3_5.clone(),
+                    limit,
+                    id.clone(),
+                ))
+                .unwrap()
+                .into_inner();
             assert_eq!(res4.data.len(), 3);
             let r4_2 = &res4.data[0].id;
             let r4_3 = &res4.data[1].id;
@@ -115,15 +135,13 @@ macro_rules! key_integration_test {
             assert_eq!(r4_4, r3_4);
 
             let res5 = client
-                .key_list(
-                    KeyListRequestBuilder::default()
-                        .lt(Some(r4_4.to_owned()))
-                        .limit(Some(limit))
-                        .id(Some(id.clone()))
-                        .build()
-                        .unwrap(),
-                )
-                .unwrap();
+                .key_list(pb::KeyListRequest::lt_limit_id(
+                    r4_4.clone(),
+                    limit,
+                    id.clone(),
+                ))
+                .unwrap()
+                .into_inner();
             assert_eq!(res5.data.len(), 3);
             let r5_1 = &res5.data[0].id;
             let r5_2 = &res5.data[1].id;
@@ -135,112 +153,140 @@ macro_rules! key_integration_test {
 
         #[test]
         #[ignore]
-        fn api_key_create_unauthorised() {
-            let client = client_create(Some(INVALID_KEY));
-            let body = KeyCreateRequest::new(true, KeyType::Key, KEY_NAME);
+        fn key_create_unauthorised() {
+            let mut client = client_create(Some(INVALID_KEY));
+            let body = pb::KeyCreateRequest::new(true, KeyType::Key, KEY_NAME);
             let res = client.key_create(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
+            assert_eq!(res.code(), tonic::Code::Unauthenticated);
         }
 
         #[test]
         #[ignore]
-        fn api_key_create_bad_request_multiple_active_token_keys() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn key_create_bad_request_multiple_active_token_keys() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email);
+            let mut client = client_create(Some(&service_key.value));
+            let user = user_create(&mut client, true, USER_NAME, &user_email);
 
-            let body = KeyCreateRequest::with_user_id(true, KeyType::Token, KEY_NAME, user.id);
+            let body = pb::KeyCreateRequest::with_user_id(true, KeyType::Token, KEY_NAME, user.id);
             client.key_create(body.clone()).unwrap();
             let res = client.key_create(body.clone()).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_key_create_bad_request_multiple_active_totp_keys() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn key_create_bad_request_multiple_active_totp_keys() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
-            let user = user_create(&client, true, USER_NAME, &user_email);
+            let mut client = client_create(Some(&service_key.value));
+            let user = user_create(&mut client, true, USER_NAME, &user_email);
 
-            let body = KeyCreateRequest::with_user_id(true, KeyType::Totp, KEY_NAME, user.id);
+            let body = pb::KeyCreateRequest::with_user_id(true, KeyType::Totp, KEY_NAME, user.id);
             client.key_create(body.clone()).unwrap();
             let res = client.key_create(body.clone()).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_key_create_bad_request_invalid_service_id() {
-            let client = client_create(None);
-            let body = KeyCreateRequest::with_service_id(true, KeyType::Key, KEY_NAME, Uuid::nil());
+        fn key_create_bad_request_invalid_service_id() {
+            let mut client = client_create(None);
+            let body = pb::KeyCreateRequest::with_service_id(
+                true,
+                KeyType::Key,
+                KEY_NAME,
+                UUID_NIL.to_owned(),
+            );
             let res = client.key_create(body.clone()).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_key_create_bad_request_invalid_user_id() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn key_create_bad_request_invalid_user_id() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
 
-            let client = client_create(Some(&service_key.value));
-            let body = KeyCreateRequest::with_user_id(true, KeyType::Key, KEY_NAME, Uuid::nil());
+            let mut client = client_create(Some(&service_key.value));
+            let body = pb::KeyCreateRequest::with_user_id(
+                true,
+                KeyType::Key,
+                KEY_NAME,
+                UUID_NIL.to_owned(),
+            );
             let res = client.key_create(body.clone()).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_key_read_unauthorised() {
-            let client = client_create(Some(INVALID_KEY));
+        fn key_read_unauthorised() {
+            let mut client = client_create(Some(INVALID_KEY));
             let res = client
-                .key_read(Uuid::nil(), KeyReadRequest::new(None))
+                .key_read(pb::KeyReadRequest {
+                    id: UUID_NIL.to_owned(),
+                    user_id: None,
+                })
                 .unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
+            assert_eq!(res.code(), tonic::Code::Unauthenticated);
         }
 
         #[test]
         #[ignore]
-        fn api_key_read_not_found_service_mask() {
-            let client = client_create(None);
-            let (_service1, service1_key) = service_key_create(&client);
-            let (_service2, service2_key) = service_key_create(&client);
+        fn key_read_not_found_service_mask() {
+            let mut client = client_create(None);
+            let (_service1, service1_key) = service_key_create(&mut client);
+            let (_service2, service2_key) = service_key_create(&mut client);
 
-            let client = client_create(Some(&service1_key.value));
+            let mut client = client_create(Some(&service1_key.value));
             let res = client
-                .key_read(service2_key.id, KeyReadRequest::new(None))
+                .key_read(pb::KeyReadRequest {
+                    id: service2_key.key.unwrap().id,
+                    user_id: None,
+                })
                 .unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::NOT_FOUND.as_u16());
+            assert_eq!(res.code(), tonic::Code::NotFound);
         }
 
         #[test]
         #[ignore]
-        fn api_key_read_ok() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn key_read_ok() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
+            let service_key_id = service_key.key.unwrap().id;
             let key = client
-                .key_read(service_key.id, KeyReadRequest::new(None))
+                .key_read(pb::KeyReadRequest {
+                    id: service_key_id.clone(),
+                    user_id: None,
+                })
                 .unwrap()
-                .data;
-            assert_eq!(key.id, service_key.id);
+                .into_inner()
+                .data
+                .unwrap();
+            assert_eq!(key.id, service_key_id);
         }
 
         #[test]
         #[ignore]
-        fn api_key_delete_not_found_service_mask() {
-            let client = client_create(None);
-            let (_service1, service1_key) = service_key_create(&client);
-            let (_service2, service2_key) = service_key_create(&client);
+        fn key_delete_not_found_service_mask() {
+            let mut client = client_create(None);
+            let (_service1, service1_key) = service_key_create(&mut client);
+            let (_service2, service2_key) = service_key_create(&mut client);
+            let service2_key_id = service2_key.key.unwrap().id;
 
-            let client = client_create(Some(&service1_key.value));
-            let res = client.key_delete(service2_key.id).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::NOT_FOUND.as_u16());
+            let mut client = client_create(Some(&service1_key.value));
+            let res = client
+                .key_delete(pb::KeyReadRequest {
+                    id: service2_key_id,
+                    user_id: None,
+                })
+                .unwrap_err();
+            assert_eq!(res.code(), tonic::Code::NotFound);
         }
     };
 }

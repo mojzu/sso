@@ -502,7 +502,7 @@ where
                 driver.as_ref().as_ref(),
                 Some(&service),
                 &mut audit,
-                string_to_uuid(req.user_id.clone()),
+                string_to_uuid(req.user_id.clone())?,
             )
             .map_err(ApiError::BadRequest)?;
             let key = pattern::key_read_user_checked(
@@ -540,7 +540,7 @@ where
                 driver.as_ref().as_ref(),
                 Some(&service),
                 &mut audit,
-                string_to_uuid(req.user_id),
+                string_to_uuid(req.user_id)?,
             )
             .map_err(ApiError::BadRequest)?;
             // Send update email email.
@@ -624,7 +624,7 @@ where
                 driver.as_ref().as_ref(),
                 Some(&service),
                 &mut audit,
-                string_to_uuid(req.user_id.clone()),
+                string_to_uuid(req.user_id.clone())?,
             )
             .map_err(ApiError::BadRequest)?;
             let key = pattern::key_read_user_checked(
@@ -658,7 +658,7 @@ where
                 driver.as_ref().as_ref(),
                 Some(&service),
                 &mut audit,
-                string_to_uuid(req.user_id),
+                string_to_uuid(req.user_id)?,
             )
             .map_err(ApiError::BadRequest)?;
             // Send update password email.

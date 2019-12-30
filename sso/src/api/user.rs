@@ -29,7 +29,6 @@ pub struct UserListRequest {
     name_le: Option<String>,
 
     #[builder(default = "None")]
-    #[validate(custom = "validate::limit")]
     limit: Option<i64>,
 
     #[builder(default = "None")]
@@ -39,129 +38,17 @@ pub struct UserListRequest {
     id: Option<Vec<Uuid>>,
 
     #[builder(default = "None")]
-    #[validate(custom = "validate::email_vec")]
     email: Option<Vec<String>>,
 }
 
 impl ValidateRequest<UserListRequest> for UserListRequest {}
 impl ValidateRequestQuery<UserListRequest> for UserListRequest {}
 
-impl UserListRequest {
-    pub fn into_query_filter(self) -> (UserListQuery, UserListFilter) {
-        let limit = self.limit.unwrap_or(DEFAULT_LIMIT);
-
-        let query = match (self.gt, self.lt, self.name_ge, self.name_le) {
-            (Some(gt), _, _, _) => UserListQuery::IdGt(gt, limit),
-            (_, Some(lt), _, _) => UserListQuery::IdLt(lt, limit),
-            (_, _, Some(name_ge), _) => UserListQuery::NameGe(name_ge, limit, self.offset_id),
-            (_, _, _, Some(name_le)) => UserListQuery::NameLe(name_le, limit, self.offset_id),
-            (_, _, _, _) => UserListQuery::IdGt(Uuid::nil(), limit),
-        };
-        let filter = UserListFilter {
-            id: self.id,
-            email: self.email,
-        };
-
-        (query, filter)
-    }
-
-    pub fn from_query_filter(query: UserListQuery, filter: UserListFilter) -> Self {
-        let mut builder = UserListRequestBuilder::default();
-        builder.id(filter.id);
-        builder.email(filter.email);
-        match query {
-            UserListQuery::IdGt(gt, limit) => {
-                builder.gt(Some(gt)).limit(Some(limit)).build().unwrap()
-            }
-            UserListQuery::IdLt(lt, limit) => {
-                builder.lt(Some(lt)).limit(Some(limit)).build().unwrap()
-            }
-            UserListQuery::NameGe(name_ge, limit, offset_id) => builder
-                .name_ge(Some(name_ge))
-                .limit(Some(limit))
-                .offset_id(offset_id)
-                .build()
-                .unwrap(),
-            UserListQuery::NameLe(name_le, limit, offset_id) => builder
-                .name_le(Some(name_le))
-                .limit(Some(limit))
-                .offset_id(offset_id)
-                .build()
-                .unwrap(),
-        }
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct UserListResponse {
     pub meta: UserListRequest,
     pub data: Vec<User>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
-#[serde(deny_unknown_fields)]
-pub struct UserCreateRequest {
-    pub is_enabled: Option<bool>,
-
-    #[validate(custom = "validate::name")]
-    pub name: String,
-
-    #[validate(email)]
-    pub email: String,
-
-    #[validate(custom = "validate::locale")]
-    pub locale: Option<String>,
-
-    #[validate(custom = "validate::timezone")]
-    pub timezone: Option<String>,
-
-    pub password_allow_reset: Option<bool>,
-
-    pub password_require_update: Option<bool>,
-
-    #[validate(custom = "validate::password")]
-    pub password: Option<String>,
-}
-
-impl ValidateRequest<UserCreateRequest> for UserCreateRequest {}
-
-impl UserCreateRequest {
-    pub fn locale<L>(mut self, locale: L) -> Self
-    where
-        L: Into<String>,
-    {
-        self.locale = Some(locale.into());
-        self
-    }
-
-    pub fn timezone<T>(mut self, timezone: T) -> Self
-    where
-        T: Into<String>,
-    {
-        self.timezone = Some(timezone.into());
-        self
-    }
-
-    pub fn into_create(self) -> ApiResult<UserCreate> {
-        let mut create = UserCreate::new(self.is_enabled.unwrap_or(true), self.name, self.email);
-        if let Some(locale) = self.locale {
-            create = create.locale(locale);
-        }
-        if let Some(timezone) = self.timezone {
-            create = create.timezone(timezone);
-        }
-        if let Some(password) = self.password {
-            create = create
-                .with_password(
-                    self.password_allow_reset.unwrap_or(false),
-                    self.password_require_update.unwrap_or(false),
-                    password,
-                )
-                .map_err(ApiError::BadRequest)?;
-        }
-        Ok(create)
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -190,31 +77,3 @@ pub struct UserUpdateRequest {
 }
 
 impl ValidateRequest<UserUpdateRequest> for UserUpdateRequest {}
-
-impl Default for UserUpdateRequest {
-    fn default() -> Self {
-        Self {
-            is_enabled: None,
-            name: None,
-            locale: None,
-            timezone: None,
-            password_allow_reset: None,
-            password_require_update: None,
-        }
-    }
-}
-
-impl UserUpdateRequest {
-    pub fn set_is_enabled(mut self, is_enabled: bool) -> Self {
-        self.is_enabled = Some(is_enabled);
-        self
-    }
-
-    pub fn set_name<N>(mut self, name: N) -> Self
-    where
-        N: Into<String>,
-    {
-        self.name = Some(name.into());
-        self
-    }
-}

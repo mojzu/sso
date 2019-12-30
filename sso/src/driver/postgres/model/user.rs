@@ -75,17 +75,13 @@ struct ModelUserUpdate<'a> {
 impl ModelUser {
     pub fn list(conn: &PgConnection, list: &UserList) -> DriverResult<Vec<User>> {
         match &list.query {
-            UserListQuery::IdGt(gt, limit) => {
-                Self::list_where_id_gt(conn, &gt, *limit, &list.filter)
+            UserListQuery::IdGt(gt) => Self::list_where_id_gt(conn, &gt, &list.filter),
+            UserListQuery::IdLt(lt) => Self::list_where_id_lt(conn, &lt, &list.filter),
+            UserListQuery::NameGe(name_ge, offset_id) => {
+                Self::list_where_name_ge(conn, &name_ge, &offset_id, &list.filter)
             }
-            UserListQuery::IdLt(lt, limit) => {
-                Self::list_where_id_lt(conn, &lt, *limit, &list.filter)
-            }
-            UserListQuery::NameGe(name_ge, limit, offset_id) => {
-                Self::list_where_name_ge(conn, &name_ge, *limit, &offset_id, &list.filter)
-            }
-            UserListQuery::NameLe(name_le, limit, offset_id) => {
-                Self::list_where_name_le(conn, &name_le, *limit, &offset_id, &list.filter)
+            UserListQuery::NameLe(name_le, offset_id) => {
+                Self::list_where_name_le(conn, &name_le, &offset_id, &list.filter)
             }
         }
         .map(|x| x.into_iter().map(|x| x.into()).collect())
@@ -156,7 +152,6 @@ impl ModelUser {
     fn list_where_id_gt(
         conn: &PgConnection,
         gt: &Uuid,
-        limit: i64,
         filter: &UserListFilter,
     ) -> DriverResult<Vec<ModelUser>> {
         let mut query = sso_user::table.into_boxed();
@@ -164,7 +159,7 @@ impl ModelUser {
 
         query
             .filter(sso_user::dsl::id.gt(gt))
-            .limit(limit)
+            .limit(filter.limit)
             .order(sso_user::dsl::id.asc())
             .load::<ModelUser>(conn)
             .map_err(DriverError::DieselResult)
@@ -173,7 +168,6 @@ impl ModelUser {
     fn list_where_id_lt(
         conn: &PgConnection,
         lt: &Uuid,
-        limit: i64,
         filter: &UserListFilter,
     ) -> DriverResult<Vec<ModelUser>> {
         let mut query = sso_user::table.into_boxed();
@@ -181,7 +175,7 @@ impl ModelUser {
 
         query
             .filter(sso_user::dsl::id.lt(lt))
-            .limit(limit)
+            .limit(filter.limit)
             .order(sso_user::dsl::id.desc())
             .load::<ModelUser>(conn)
             .map_err(DriverError::DieselResult)
@@ -194,19 +188,16 @@ impl ModelUser {
     fn list_where_name_ge(
         conn: &PgConnection,
         name_ge: &str,
-        limit: i64,
         offset_id: &Option<Uuid>,
         filter: &UserListFilter,
     ) -> DriverResult<Vec<ModelUser>> {
         let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
-        Self::list_where_name_ge_inner(conn, name_ge, limit, offset, filter).and_then(|res| {
+        Self::list_where_name_ge_inner(conn, name_ge, offset, filter).and_then(|res| {
             if let Some(offset_id) = offset_id {
                 for (i, user) in res.iter().enumerate() {
                     if &user.id == offset_id {
                         let offset: i64 = (i + 1).try_into().unwrap();
-                        return Self::list_where_name_ge_inner(
-                            conn, name_ge, limit, offset, filter,
-                        );
+                        return Self::list_where_name_ge_inner(conn, name_ge, offset, filter);
                     }
                 }
             }
@@ -217,7 +208,6 @@ impl ModelUser {
     fn list_where_name_ge_inner(
         conn: &PgConnection,
         name_ge: &str,
-        limit: i64,
         offset: i64,
         filter: &UserListFilter,
     ) -> DriverResult<Vec<ModelUser>> {
@@ -226,7 +216,7 @@ impl ModelUser {
 
         query
             .filter(sso_user::dsl::name.ge(name_ge))
-            .limit(limit)
+            .limit(filter.limit)
             .offset(offset)
             .order(sso_user::dsl::name.asc())
             .load::<ModelUser>(conn)
@@ -236,19 +226,16 @@ impl ModelUser {
     fn list_where_name_le(
         conn: &PgConnection,
         name_le: &str,
-        limit: i64,
         offset_id: &Option<Uuid>,
         filter: &UserListFilter,
     ) -> DriverResult<Vec<ModelUser>> {
         let offset: i64 = if offset_id.is_some() { 1 } else { 0 };
-        Self::list_where_name_le_inner(conn, name_le, limit, offset, filter).and_then(|mut res| {
+        Self::list_where_name_le_inner(conn, name_le, offset, filter).and_then(|mut res| {
             if let Some(offset_id) = offset_id {
                 for (i, user) in res.iter().enumerate() {
                     if &user.id == offset_id {
                         let offset: i64 = (i + 1).try_into().unwrap();
-                        return Self::list_where_name_le_inner(
-                            conn, name_le, limit, offset, filter,
-                        );
+                        return Self::list_where_name_le_inner(conn, name_le, offset, filter);
                     }
                 }
             }
@@ -260,7 +247,6 @@ impl ModelUser {
     fn list_where_name_le_inner(
         conn: &PgConnection,
         name_le: &str,
-        limit: i64,
         offset: i64,
         filter: &UserListFilter,
     ) -> DriverResult<Vec<ModelUser>> {
@@ -269,7 +255,7 @@ impl ModelUser {
 
         query
             .filter(sso_user::dsl::name.le(name_le))
-            .limit(limit)
+            .limit(filter.limit)
             .offset(offset)
             .order(sso_user::dsl::name.desc())
             .load::<ModelUser>(conn)

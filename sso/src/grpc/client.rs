@@ -19,6 +19,7 @@ type Result<T, E = StdError> = ::std::result::Result<T, E>;
 pub struct ClientOptions {
     pub uri: Uri,
     pub authorisation: String,
+    pub user_authorisation: Option<String>,
 }
 
 impl ClientOptions {
@@ -26,11 +27,17 @@ impl ClientOptions {
         Self {
             uri: Uri::from_str(uri.as_ref()).unwrap(),
             authorisation: String::from(""),
+            user_authorisation: None,
         }
     }
 
     pub fn authorisation<A: Into<String>>(mut self, authorisation: A) -> Self {
         self.authorisation = authorisation.into();
+        self
+    }
+
+    pub fn user_authorisation(mut self, user_authorisation: Option<String>) -> Self {
+        self.user_authorisation = user_authorisation;
         self
     }
 }
@@ -58,6 +65,7 @@ impl ClientBlocking {
             .unwrap();
 
         let authorisation = options.authorisation.to_owned();
+        let user_authorisation = options.user_authorisation.to_owned();
         let channel = rt.block_on(
             Channel::builder(options.uri.clone())
                 .intercept_headers(move |headers| {
@@ -65,6 +73,12 @@ impl ClientBlocking {
                         "Authorization",
                         HeaderValue::from_str(authorisation.as_ref()).unwrap(),
                     );
+                    if let Some(user_authorisation) = &user_authorisation {
+                        headers.insert(
+                            "User-Authorization",
+                            HeaderValue::from_str(user_authorisation).unwrap(),
+                        );
+                    }
                 })
                 .connect(),
         )?;

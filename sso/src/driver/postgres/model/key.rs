@@ -131,23 +131,23 @@ impl ModelKey {
         }
 
         match list.query {
-            KeyListQuery::Limit(limit) => query
+            KeyListQuery::Limit => query
                 .filter(sso_key::dsl::id.gt(Uuid::nil()))
-                .limit(limit)
+                .limit(list.filter.limit)
                 .order(sso_key::dsl::id.asc())
                 .load::<ModelKey>(conn)
                 .map_err(Into::into)
                 .map(|x| x.into_iter().map(|x| x.into()).collect()),
-            KeyListQuery::IdGt(gt, limit) => query
+            KeyListQuery::IdGt(gt) => query
                 .filter(sso_key::dsl::id.gt(gt))
-                .limit(limit)
+                .limit(list.filter.limit)
                 .order(sso_key::dsl::id.asc())
                 .load::<ModelKey>(conn)
                 .map_err(Into::into)
                 .map(|x| x.into_iter().map(|x| x.into()).collect()),
-            KeyListQuery::IdLt(lt, limit) => query
+            KeyListQuery::IdLt(lt) => query
                 .filter(sso_key::dsl::id.lt(lt))
-                .limit(limit)
+                .limit(list.filter.limit)
                 .order(sso_key::dsl::id.desc())
                 .load::<ModelKey>(conn)
                 .map_err(Into::into)

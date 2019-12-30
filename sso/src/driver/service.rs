@@ -167,9 +167,9 @@ impl AuditDiff for Service {
 /// Service list query.
 #[derive(Debug)]
 pub enum ServiceListQuery {
-    Limit(i64),
-    IdGt(Uuid, i64),
-    IdLt(Uuid, i64),
+    Limit,
+    IdGt(Uuid),
+    IdLt(Uuid),
 }
 
 /// Service list filter.
@@ -177,6 +177,8 @@ pub enum ServiceListQuery {
 pub struct ServiceListFilter {
     pub id: Option<Vec<Uuid>>,
     pub is_enabled: Option<bool>,
+    #[validate(custom = "validate::limit")]
+    pub limit: i64,
 }
 
 /// Service list.

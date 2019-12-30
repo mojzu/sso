@@ -86,23 +86,23 @@ impl ModelService {
         }
 
         match list.query {
-            ServiceListQuery::Limit(limit) => query
+            ServiceListQuery::Limit => query
                 .filter(sso_service::dsl::id.gt(Uuid::nil()))
-                .limit(limit)
+                .limit(list.filter.limit)
                 .order(sso_service::dsl::id.asc())
                 .load::<ModelService>(conn)
                 .map_err(Into::into)
                 .map(|x| x.into_iter().map(|x| x.into()).collect()),
-            ServiceListQuery::IdGt(gt, limit) => query
+            ServiceListQuery::IdGt(gt) => query
                 .filter(sso_service::dsl::id.gt(gt))
-                .limit(limit)
+                .limit(list.filter.limit)
                 .order(sso_service::dsl::id.asc())
                 .load::<ModelService>(conn)
                 .map_err(Into::into)
                 .map(|x| x.into_iter().map(|x| x.into()).collect()),
-            ServiceListQuery::IdLt(lt, limit) => query
+            ServiceListQuery::IdLt(lt) => query
                 .filter(sso_service::dsl::id.lt(lt))
-                .limit(limit)
+                .limit(list.filter.limit)
                 .order(sso_service::dsl::id.desc())
                 .load::<ModelService>(conn)
                 .map_err(Into::into)

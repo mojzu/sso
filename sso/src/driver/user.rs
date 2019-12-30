@@ -131,20 +131,23 @@ impl UserPasswordMeta {
 #[derive(Debug)]
 pub enum UserListQuery {
     /// Where ID greater than.
-    IdGt(Uuid, i64),
+    IdGt(Uuid),
     /// Where ID less than.
-    IdLt(Uuid, i64),
+    IdLt(Uuid),
     /// Where name greater than or equal.
-    NameGe(String, i64, Option<Uuid>),
+    NameGe(String, Option<Uuid>),
     /// Where name less than or equal.
-    NameLe(String, i64, Option<Uuid>),
+    NameLe(String, Option<Uuid>),
 }
 
 /// User list filter.
 #[derive(Debug, Validate)]
 pub struct UserListFilter {
     pub id: Option<Vec<Uuid>>,
+    #[validate(custom = "validate::email_vec")]
     pub email: Option<Vec<String>>,
+    #[validate(custom = "validate::limit")]
+    pub limit: i64,
 }
 
 /// User list.
@@ -160,9 +163,13 @@ impl ValidateRequest<UserList> for UserList {}
 #[derive(Debug, Validate)]
 pub struct UserCreate {
     pub is_enabled: bool,
+    #[validate(custom = "validate::name")]
     pub name: String,
+    #[validate(email)]
     pub email: String,
+    #[validate(custom = "validate::locale")]
     pub locale: String,
+    #[validate(custom = "validate::timezone")]
     pub timezone: String,
     pub password_allow_reset: bool,
     pub password_require_update: bool,

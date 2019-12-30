@@ -35,7 +35,6 @@ diesel = { version = "1.4.3", features = ["postgres", "r2d2", "chrono", "serde_j
 diesel_migrations = { version = "1.4.0", features = ["postgres"] }
 env_logger = "0.7.1"
 failure = "0.1.6"
-futures = "0.1.29"
 handlebars = "2.0.2"
 job_scheduler = "1.1.0"
 jsonwebtoken = "6.0.1"

@@ -34,7 +34,7 @@ pub async fn totp_verify(
                 driver.as_ref().as_ref(),
                 Some(&service),
                 &mut audit,
-                string_to_uuid(req.user_id),
+                string_to_uuid(req.user_id)?,
             )
             .map_err(ApiError::BadRequest)?;
             let key = pattern::key_read_user_checked(

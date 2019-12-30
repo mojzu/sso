@@ -14,7 +14,6 @@ pub struct KeyListRequest {
     #[builder(default = "None")]
     lt: Option<Uuid>,
 
-    #[validate(custom = "validate::limit")]
     #[builder(default = "None")]
     limit: Option<i64>,
 
@@ -41,67 +40,6 @@ pub struct KeyListRequest {
 impl ValidateRequest<KeyListRequest> for KeyListRequest {}
 impl ValidateRequestQuery<KeyListRequest> for KeyListRequest {}
 
-impl KeyListRequest {
-    pub fn into_query_filter(self) -> (KeyListQuery, KeyListFilter) {
-        let limit = self.limit.unwrap_or(DEFAULT_LIMIT);
-        let query = match (self.gt, self.lt) {
-            (Some(gt), Some(_lt)) => KeyListQuery::IdGt(gt, limit),
-            (Some(gt), None) => KeyListQuery::IdGt(gt, limit),
-            (None, Some(lt)) => KeyListQuery::IdLt(lt, limit),
-            (None, None) => KeyListQuery::Limit(limit),
-        };
-
-        let filter = KeyListFilter {
-            id: self.id,
-            is_enabled: self.is_enabled,
-            is_revoked: self.is_revoked,
-            type_: self.type_,
-            service_id: self.service_id,
-            user_id: self.user_id,
-        };
-
-        (query, filter)
-    }
-
-    pub fn from_query_filter(query: KeyListQuery, filter: KeyListFilter) -> Self {
-        match query {
-            KeyListQuery::Limit(limit) => Self {
-                gt: None,
-                lt: None,
-                limit: Some(limit),
-                id: filter.id,
-                is_enabled: filter.is_enabled,
-                is_revoked: filter.is_revoked,
-                type_: filter.type_,
-                service_id: filter.service_id,
-                user_id: filter.user_id,
-            },
-            KeyListQuery::IdGt(gt, limit) => Self {
-                gt: Some(gt),
-                lt: None,
-                limit: Some(limit),
-                id: filter.id,
-                is_enabled: filter.is_enabled,
-                is_revoked: filter.is_revoked,
-                type_: filter.type_,
-                service_id: filter.service_id,
-                user_id: filter.user_id,
-            },
-            KeyListQuery::IdLt(lt, limit) => Self {
-                gt: None,
-                lt: Some(lt),
-                limit: Some(limit),
-                id: filter.id,
-                is_enabled: filter.is_enabled,
-                is_revoked: filter.is_revoked,
-                type_: filter.type_,
-                service_id: filter.service_id,
-                user_id: filter.user_id,
-            },
-        }
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct KeyListResponse {
@@ -123,18 +61,6 @@ pub struct KeyCreateRequest {
 
 impl ValidateRequest<KeyCreateRequest> for KeyCreateRequest {}
 
-impl KeyCreateRequest {
-    pub fn new<S1: Into<String>>(is_enabled: bool, type_: KeyType, name: S1) -> Self {
-        Self {
-            is_enabled,
-            type_,
-            name: name.into(),
-            service_id: None,
-            user_id: None,
-        }
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct KeyCreateResponse {
@@ -149,12 +75,6 @@ pub struct KeyReadRequest {
 
 impl ValidateRequest<KeyReadRequest> for KeyReadRequest {}
 impl ValidateRequestQuery<KeyReadRequest> for KeyReadRequest {}
-
-impl KeyReadRequest {
-    pub fn new(user_id: Option<Uuid>) -> Self {
-        Self { user_id }
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

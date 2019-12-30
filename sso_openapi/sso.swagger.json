@@ -1422,6 +1422,14 @@
     }
   },
   "definitions": {
+    "protobufNullValue": {
+      "type": "string",
+      "enum": [
+        "NULL_VALUE"
+      ],
+      "default": "NULL_VALUE",
+      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\n The JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
+    },
     "ssoAudit": {
       "type": "object",
       "properties": {
@@ -1466,9 +1474,6 @@
         },
         "data": {
           "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
           "description": "Key, value data."
         },
         "key_id": {
@@ -1503,9 +1508,6 @@
         },
         "data": {
           "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
           "description": "Log key, value data."
         },
         "user_id": {
@@ -1624,9 +1626,6 @@
         },
         "data": {
           "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
           "description": "Log key, value data."
         }
       },

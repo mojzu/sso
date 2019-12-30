@@ -114,7 +114,7 @@ pub async fn update(
 
     let driver = driver.clone();
     let reply = blocking::<_, Status, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::UserRead);
+        let mut audit = AuditBuilder::new(audit_meta, AuditType::UserUpdate);
         let res: Result<(User, User), Status> = {
             let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
                 .map_err(ApiError::Unauthorised)?;

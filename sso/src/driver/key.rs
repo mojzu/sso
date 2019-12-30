@@ -24,6 +24,17 @@ pub enum KeyType {
 
 impl_enum_to_from_string!(KeyType, "");
 
+impl KeyType {
+    pub fn from_i32(v: i32) -> Self {
+        match v {
+            0 => Self::Key,
+            1 => Self::Token,
+            2 => Self::Totp,
+            _ => unimplemented!(),
+        }
+    }
+}
+
 /// Key.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Key {
@@ -136,9 +147,9 @@ impl From<KeyWithValue> for Key {
 /// Key list query.
 #[derive(Debug)]
 pub enum KeyListQuery {
-    Limit(i64),
-    IdGt(Uuid, i64),
-    IdLt(Uuid, i64),
+    Limit,
+    IdGt(Uuid),
+    IdLt(Uuid),
 }
 
 /// Key list filter.
@@ -150,6 +161,8 @@ pub struct KeyListFilter {
     pub type_: Option<Vec<KeyType>>,
     pub service_id: Option<Vec<Uuid>>,
     pub user_id: Option<Vec<Uuid>>,
+    #[validate(custom = "validate::limit")]
+    pub limit: i64,
 }
 
 /// Key list.

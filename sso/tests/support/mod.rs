@@ -24,6 +24,7 @@ pub const INVALID_KEY: &str = "af8731c10c739d8cce50ea556d0b1d77d3614fdc39";
 pub const USER_NAME: &str = "user-name";
 pub const USER_PASSWORD: &str = "user-name";
 pub const KEY_NAME: &str = "key-name";
+pub const UUID_NIL: &str = "00000000-0000-0000-0000-000000000000";
 
 fn env_test_sso_url() -> String {
     std::env::var("TEST_SSO_GRPC_URL")
@@ -34,17 +35,6 @@ fn env_test_sso_key() -> String {
     std::env::var("TEST_SSO_GRPC_KEY")
         .expect("TEST_SSO_GRPC_KEY is undefined, integration test disabled")
 }
-
-// #[test]
-// #[ignore]
-// fn test_ping() {
-//     let mut client =
-//         ClientBlocking::connect(&ClientOptions::new(env_test_sso_url()).authorisation(env_test_sso_key()))
-//             .unwrap();
-//     let request = tonic::Request::new(());
-//     let response = client.ping(request).unwrap();
-//     println!("RESPONSE={:?}", response);
-// }
 
 pub fn client_create(key: Option<&str>) -> ClientBlocking {
     match key {
@@ -57,6 +47,15 @@ pub fn client_create(key: Option<&str>) -> ClientBlocking {
         )
         .unwrap(),
     }
+}
+
+pub fn client_user_create(key: &str, user_key: &str) -> ClientBlocking {
+    ClientBlocking::connect(
+        &ClientOptions::new(env_test_sso_url())
+            .authorisation(key)
+            .user_authorisation(Some(user_key.to_owned())),
+    )
+    .unwrap()
 }
 
 pub fn email_create() -> String {

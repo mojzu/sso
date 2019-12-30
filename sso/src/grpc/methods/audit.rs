@@ -45,12 +45,12 @@ pub async fn create(
 ) -> Result<Response<pb::AuditReadReply>, Status> {
     let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
     let req = request.into_inner();
-    let data = serde_json::to_value(req.data).unwrap();
+    let data = struct_opt_to_value_opt(req.data);
     let req = AuditCreate::new(audit_meta.clone(), req.r#type)
         .subject(req.subject)
-        .data(Some(data))
-        .user_id(string_opt_to_uuid_opt(req.user_id))
-        .user_key_id(string_opt_to_uuid_opt(req.user_key_id));
+        .data(data)
+        .user_id(string_opt_to_uuid_opt(req.user_id)?)
+        .user_key_id(string_opt_to_uuid_opt(req.user_key_id)?);
     AuditCreate::status_validate(&req)?;
 
     let driver = driver.clone();

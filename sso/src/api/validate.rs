@@ -6,7 +6,6 @@ use crate::{
     USER_TIMEZONE_MAX_LEN,
 };
 use chrono_tz::Tz;
-use futures::future;
 use serde::de::DeserializeOwned;
 use std::str::FromStr;
 use tonic::Status;
@@ -22,10 +21,6 @@ pub trait ValidateRequest<T: Validate> {
             .map_err::<tonic::Status, _>(Into::into)
     }
 
-    fn api_validate_fut(t: &T) -> future::FutureResult<(), tonic::Status> {
-        future::result(Self::api_validate(t))
-    }
-
     fn status_validate(t: &T) -> Result<(), Status> {
         t.validate()
             .map_err(|e| Status::invalid_argument(format!("{}", e)))
@@ -39,10 +34,6 @@ pub trait ValidateRequestQuery<T: DeserializeOwned> {
             .map_err::<DriverError, _>(Into::into)
             .map_err(ApiError::BadRequest)
             .map_err::<tonic::Status, _>(Into::into)
-    }
-
-    fn from_str_fut(s: &str) -> future::FutureResult<T, tonic::Status> {
-        future::result(Self::from_str(s))
     }
 }
 
