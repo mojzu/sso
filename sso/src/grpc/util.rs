@@ -64,6 +64,10 @@ pub fn timestamp_opt_to_datetime_opt(ti: Option<prost_types::Timestamp>) -> Opti
     }
 }
 
+pub fn timestamp_opt_to_datetime(ti: Option<prost_types::Timestamp>) -> DateTime<Utc> {
+    timestamp_opt_to_datetime_opt(ti).unwrap()
+}
+
 pub fn datetime_to_timestamp_opt(dt: DateTime<Utc>) -> Option<prost_types::Timestamp> {
     let st: std::time::SystemTime = dt.into();
     let ti: prost_types::Timestamp = st.into();
@@ -629,6 +633,26 @@ impl From<User> for pb::User {
             password_allow_reset: r.password_allow_reset,
             password_require_update: r.password_require_update,
         }
+    }
+}
+
+impl TryFrom<pb::User> for User {
+    type Error = Status;
+
+    fn try_from(r: pb::User) -> Result<Self, Self::Error> {
+        Ok(Self {
+            created_at: timestamp_opt_to_datetime(r.created_at),
+            updated_at: timestamp_opt_to_datetime(r.updated_at),
+            id: string_to_uuid(r.id)?,
+            is_enabled: r.is_enabled,
+            name: r.name,
+            email: r.email,
+            locale: r.locale,
+            timezone: r.timezone,
+            password_allow_reset: r.password_allow_reset,
+            password_require_update: r.password_require_update,
+            password_hash: None,
+        })
     }
 }
 

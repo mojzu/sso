@@ -3,7 +3,7 @@ mod client;
 mod http;
 mod methods;
 mod options;
-mod util;
+pub mod util;
 
 pub mod pb {
     //! Generated protobuf server and client items.
