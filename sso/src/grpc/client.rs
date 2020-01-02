@@ -12,8 +12,31 @@ impl fmt::Debug for SsoClient<tonic::transport::Channel> {
     }
 }
 
-type StdError = Box<dyn std::error::Error + Send + Sync + 'static>;
-type Result<T, E = StdError> = ::std::result::Result<T, E>;
+impl SsoClient<tonic::transport::Channel> {
+    pub async fn from_options(options: ClientOptions) -> Self {
+        let authorisation = options.authorisation.to_owned();
+        let user_authorisation = options.user_authorisation.to_owned();
+        let channel = Channel::builder(options.uri.clone())
+            .intercept_headers(move |headers| {
+                headers.insert(
+                    "Authorization",
+                    HeaderValue::from_str(authorisation.as_ref()).unwrap(),
+                );
+                if let Some(user_authorisation) = &user_authorisation {
+                    headers.insert(
+                        "User-Authorization",
+                        HeaderValue::from_str(user_authorisation).unwrap(),
+                    );
+                }
+            })
+            .connect()
+            .await
+            .unwrap();
+        SsoClient::new(channel)
+    }
+}
+
+pub type Client = SsoClient<tonic::transport::Channel>;
 
 #[derive(Debug, Clone)]
 pub struct ClientOptions {

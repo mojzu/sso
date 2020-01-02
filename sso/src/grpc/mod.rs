@@ -10,7 +10,6 @@ pub mod pb {
     tonic::include_proto!("sso");
 }
 
-pub use crate::grpc::pb::sso_client::SsoClient as Client;
 pub use crate::grpc::{client::*, http::*, options::*};
 
 use crate::*;
