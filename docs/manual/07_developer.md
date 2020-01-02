@@ -15,7 +15,7 @@ docker run --rm --user $(id -u):$(id -g) --network host -v "$(pwd):/sso" -t sso-
 Create an alias on Linux for the above with the command.
 
 ```bash
-alias sso-build='docker run --rm --init --user $(id -u):$(id -g) --network host -v "$(pwd):/sso" -t sso-build:latest'
+alias sso-build='docker run -it --rm --init --user $(id -u):$(id -g) --network host -v "$(pwd):/sso" -t sso-build:latest'
 ```
 
 Environment variables are configured in `Dockerfile`.
