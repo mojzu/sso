@@ -22,6 +22,9 @@ ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH" \
     GOLANG_URL="https://golang.org/dl/go1.13.5.linux-amd64.tar.gz" \
     PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.11.1/protoc-3.11.1-linux-x86_64.zip"
 
+# Node environment.
+ENV NODE_VERSION="12.14.0"
+
 # Pandoc environment.
 ENV PANDOC_URL="https://github.com/jgm/pandoc/releases/download/2.9/pandoc-2.9-1-amd64.deb"
 
@@ -31,8 +34,7 @@ RUN wget -q "$RUSTUP_URL" \
     && chmod +x rustup-init \
     && ./rustup-init -y --no-modify-path --profile default --default-toolchain $RUST_VERSION \
     && rm rustup-init \
-    && chmod -R a+w $RUSTUP_HOME $CARGO_HOME \
-    && chmod 777 -R /root
+    && chmod 777 -R $RUSTUP_HOME $CARGO_HOME /root
 
 # Install Rust tools.
 RUN cargo install --force cargo-make \
@@ -58,6 +60,13 @@ RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway \
     && go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger \
     && go get -u github.com/golang/protobuf/protoc-gen-go \
     && go get -u google.golang.org/grpc
+
+# Install Node.js and tools.
+# <https://github.com/nodejs/docker-node>
+RUN wget -O node.tgz -q "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
+    && tar -xJf node.tgz -C /usr/local --strip-components=1 --no-same-owner \
+    && rm node.tgz \
+    && ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
 # Install Pandoc.
 # <https://pandoc.org/installing.html>
