@@ -2,10 +2,10 @@ FROM debian:10.2
 ENV DEBIAN_FRONTEND="noninteractive"
 
 # Install dependencies.
-RUN apt-get update; \
-    apt-get install -y --no-install-recommends \
-        wget unzip ca-certificates build-essential libpq-dev libssl-dev pkg-config git; \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    wget unzip ca-certificates build-essential libpq-dev libssl-dev pkg-config git \
+    && rm -rf /var/lib/apt/lists/*
 
 # Environment.
 ENV HOME="/root"
@@ -27,43 +27,43 @@ ENV PANDOC_URL="https://github.com/jgm/pandoc/releases/download/2.9/pandoc-2.9-1
 
 # Install Rust toolchain.
 # <https://github.com/rust-lang/docker-rust>
-RUN wget -q "$RUSTUP_URL"; \
-    chmod +x rustup-init; \
-    ./rustup-init -y --no-modify-path --profile default --default-toolchain $RUST_VERSION; \
-    rm rustup-init; \
-    chmod -R a+w $RUSTUP_HOME $CARGO_HOME; \
-    chmod 777 -R /root
+RUN wget -q "$RUSTUP_URL" \
+    && chmod +x rustup-init \
+    && ./rustup-init -y --no-modify-path --profile default --default-toolchain $RUST_VERSION \
+    && rm rustup-init \
+    && chmod -R a+w $RUSTUP_HOME $CARGO_HOME \
+    && chmod 777 -R /root
 
 # Install Rust tools.
-RUN cargo install --force cargo-make; \
-    cargo install --force diesel_cli --no-default-features --features "postgres"; \
-    cargo install --force cargo-audit;
+RUN cargo install --force cargo-make \
+    && cargo install --force diesel_cli --no-default-features --features "postgres" \
+    && cargo install --force cargo-audit
 
 # Install Go toolchain.
 # <https://github.com/docker-library/golang>
-RUN wget -O go.tgz -q "$GOLANG_URL"; \
-    tar -C /usr/local -xzf go.tgz; \
-    rm go.tgz; \
-    wget -O protoc.zip -q "$PROTOC_URL"; \
-    unzip -o protoc.zip -d /usr/local bin/protoc; \
-    unzip -o protoc.zip -d /usr/local 'include/*'; \
-    chmod -R 777 /usr/local/bin/protoc; \
-    chmod -R 777 /usr/local/include/google; \
-    rm protoc.zip;
+RUN wget -O go.tgz -q "$GOLANG_URL" \
+    && tar -C /usr/local -xzf go.tgz \
+    && rm go.tgz \
+    && wget -O protoc.zip -q "$PROTOC_URL" \
+    && unzip -o protoc.zip -d /usr/local bin/protoc \
+    && unzip -o protoc.zip -d /usr/local 'include/*' \
+    && chmod -R 777 /usr/local/bin/protoc \
+    && chmod -R 777 /usr/local/include/google \
+    && rm protoc.zip
 
 # Install Go tools.
 # <https://github.com/grpc-ecosystem/grpc-gateway>
 # <https://grpc-ecosystem.github.io/grpc-gateway/>
-RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway; \
-    go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger; \
-    go get -u github.com/golang/protobuf/protoc-gen-go; \
-    go get -u google.golang.org/grpc;
+RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway \
+    && go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger \
+    && go get -u github.com/golang/protobuf/protoc-gen-go \
+    && go get -u google.golang.org/grpc
 
 # Install Pandoc.
 # <https://pandoc.org/installing.html>
-RUN wget -O pandoc.deb -q "$PANDOC_URL"; \
-    dpkg -i pandoc.deb; \
-    rm pandoc.deb;
+RUN wget -O pandoc.deb -q "$PANDOC_URL" \
+    && dpkg -i pandoc.deb \
+    && rm pandoc.deb
 
 # Development environment variables.
 # This file is checked into Git and must not contain secrets!
