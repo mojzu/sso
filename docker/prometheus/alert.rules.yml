@@ -43,7 +43,7 @@ groups:
 
       # Alert if HTTP response errors with 4xx status code greater than 5%.
       - alert: sso_high_http_4xx_error
-        expr: sum(rate(http_count{status=~"^4.."}[5m])) / sum(rate(http_count[5m])) * 100 > 5
+        expr: sum(rate(http_count{job="sso",status=~"^4.."}[5m])) / sum(rate(http_count[5m])) * 100 > 5
         for: 1m
         labels:
           severity: warning
@@ -53,7 +53,7 @@ groups:
 
       # Alert if HTTP response errors with 5xx status code greater than 5%.
       - alert: sso_high_http_5xx_error
-        expr: sum(rate(http_count{status=~"^5.."}[5m])) / sum(rate(http_count[5m])) * 100 > 5
+        expr: sum(rate(http_count{job="sso",status=~"^5.."}[5m])) / sum(rate(http_count[5m])) * 100 > 5
         for: 1m
         labels:
           severity: warning
