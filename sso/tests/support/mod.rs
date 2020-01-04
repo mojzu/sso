@@ -142,8 +142,8 @@ pub fn user_key_create(
     (user, key)
 }
 
-pub fn user_key_verify(client: &mut ClientBlocking, key: &UserKey) -> pb::Key {
-    let body = pb::AuthKeyRequest::new(&key.key, None);
+pub fn user_key_verify(client: &mut ClientBlocking, key: &pb::KeyWithValue) -> pb::Key {
+    let body = pb::AuthKeyRequest::new(&key.value, None);
     let verify = client.auth_key_verify(body).unwrap().into_inner();
     let user = verify.user.unwrap();
     let key = verify.key.unwrap();
@@ -151,51 +151,64 @@ pub fn user_key_verify(client: &mut ClientBlocking, key: &UserKey) -> pb::Key {
     key
 }
 
-// pub fn user_key_verify_bad_request(client: &ClientBlocking, key: &str) {
-//     let body = pb::AuthKeyRequest::new(key, None);
-//     let err = client.auth_key_verify(body).unwrap_err();
-//     assert_eq!(err.status_code(), StatusCode::BAD_REQUEST.as_u16());
-// }
+pub fn user_key_verify_bad_request(client: &mut ClientBlocking, key: &str) {
+    let body = pb::AuthKeyRequest::new(key, None);
+    let err = client.auth_key_verify(body).unwrap_err();
+    assert_eq!(err.code(), tonic::Code::InvalidArgument);
+}
 
-// pub fn user_token_verify(client: &ClientBlocking, token: &UserToken) -> UserTokenAccess {
-//     let body = pb::AuthTokenRequest::new(&token.access_token, None);
-//     let verify = client.auth_token_verify(body).unwrap().into_inner();
-//     let user = verify.user.unwrap();
-//     let token = verify.access.unwrap();
-//     assert_eq!(user.id, token.user.id);
-//     assert_eq!(token.token, token.access_token);
-//     assert_eq!(token.token_expires, token.access_token_expires);
-//     user_token
-// }
+pub fn user_token_verify(client: &mut ClientBlocking, token: &pb::AuthLoginReply) -> pb::AuthToken {
+    let body = pb::AuthTokenRequest::new(&token.access.as_ref().unwrap().token, None);
+    let verify = client.auth_token_verify(body).unwrap().into_inner();
+    let user = verify.user.unwrap();
+    let access_token = verify.access.unwrap();
+    assert_eq!(user.id, token.user.as_ref().unwrap().id);
+    assert_eq!(access_token.token, token.access.as_ref().unwrap().token);
+    assert_eq!(
+        access_token.token_expires,
+        token.access.as_ref().unwrap().token_expires
+    );
+    access_token
+}
 
-// pub fn user_token_refresh(client: &ClientBlocking, token: &UserToken) -> UserToken {
-//     std::thread::sleep(std::time::Duration::from_secs(1));
-//     let body = pb::AuthTokenRequest::new(&token.refresh_token, None);
-//     let refresh = client.auth_token_refresh(body).unwrap().into_inner();
-//     let user_token = refresh.data;
-//     assert_eq!(user_token.user.id, token.user.id);
-//     assert_ne!(user_token.access_token, token.access_token);
-//     assert_ne!(user_token.access_token_expires, token.access_token_expires);
-//     assert_ne!(user_token.access_token, token.access_token);
-//     assert_ne!(user_token.access_token_expires, token.access_token_expires);
-//     user_token
-// }
+pub fn user_token_refresh(
+    client: &mut ClientBlocking,
+    token: &pb::AuthLoginReply,
+) -> pb::AuthTokenReply {
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    let body = pb::AuthTokenRequest::new(&token.refresh.as_ref().unwrap().token, None);
+    let refresh = client.auth_token_refresh(body).unwrap().into_inner();
+    assert_eq!(
+        refresh.user.as_ref().unwrap().id,
+        token.user.as_ref().unwrap().id
+    );
+    assert_ne!(
+        refresh.access.as_ref().unwrap().token,
+        token.access.as_ref().unwrap().token
+    );
+    assert_ne!(
+        refresh.access.as_ref().unwrap().token_expires,
+        token.access.as_ref().unwrap().token_expires
+    );
+    assert_ne!(
+        refresh.access.as_ref().unwrap().token,
+        token.access.as_ref().unwrap().token
+    );
+    assert_ne!(
+        refresh.access.as_ref().unwrap().token_expires,
+        token.access.as_ref().unwrap().token_expires
+    );
+    refresh
+}
 
-// pub fn auth_local_login(
-//     client: &ClientBlocking,
-//     user_id: Uuid,
-//     email: &str,
-//     password: &str,
-// ) -> UserToken {
-//     let body = pb::AuthLoginRequest::new(email, password);
-//     let login = client.auth_local_login(body).unwrap();
-//     let user_token = login.data;
-//     assert_eq!(user_token.user.id, user_id);
-//     user_token
-// }
-
-// pub fn auth_microsoft_oauth2_url(client: &ClientBlocking) -> AuthOauth2UrlResponse {
-//     let response = client.auth_microsoft_oauth2_url().unwrap();
-//     assert!(!response.url.is_empty());
-//     response
-// }
+pub fn auth_local_login(
+    client: &mut ClientBlocking,
+    user_id: &str,
+    email: &str,
+    password: &str,
+) -> pb::AuthLoginReply {
+    let body = pb::AuthLoginRequest::new(email, password);
+    let login = client.auth_local_login(body).unwrap().into_inner();
+    assert_eq!(login.user.as_ref().unwrap().id, user_id);
+    login
+}

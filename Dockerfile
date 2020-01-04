@@ -71,8 +71,8 @@ RUN wget -O pandoc.deb -q "$PANDOC_URL" \
 # This file is checked into Git and must not contain secrets!
 
 # sso
-# Sentry URL for logging integration.
-ENV SSO_SENTRY_URL=""
+# # Sentry URL for logging integration.
+# ENV SSO_SENTRY_URL=""
 # Database connection URL.
 ENV SSO_DATABASE_URL="postgres://guest:guest@localhost:5432/sso"
 # Database number of connections.

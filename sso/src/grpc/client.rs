@@ -491,7 +491,6 @@ impl ClientBlocking {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use uuid::Uuid;
 
     #[test]
     fn splits_authorisation_type_none() {

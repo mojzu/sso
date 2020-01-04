@@ -1214,3 +1214,60 @@ impl pb::UserListRequest {
         x
     }
 }
+
+impl pb::AuthLoginRequest {
+    pub fn new<E, P>(email: E, password: P) -> Self
+    where
+        E: Into<String>,
+        P: Into<String>,
+    {
+        Self {
+            email: email.into(),
+            password: password.into(),
+        }
+    }
+}
+
+impl pb::AuthResetPasswordRequest {
+    pub fn new<E>(email: E) -> Self
+    where
+        E: Into<String>,
+    {
+        Self {
+            email: email.into(),
+        }
+    }
+}
+
+impl pb::AuthCsrfCreateRequest {
+    pub fn new(expires_s: i64) -> Self {
+        Self {
+            expires_s: Some(expires_s),
+        }
+    }
+}
+
+impl pb::AuthCsrfVerifyRequest {
+    pub fn new<C>(csrf: C) -> Self
+    where
+        C: Into<String>,
+    {
+        Self {
+            csrf: csrf.into(),
+            audit: None,
+        }
+    }
+}
+
+impl pb::AuthTotpRequest {
+    pub fn new<U, T>(user_id: U, totp: T) -> Self
+    where
+        U: Into<String>,
+        T: Into<String>,
+    {
+        Self {
+            user_id: user_id.into(),
+            totp: totp.into(),
+        }
+    }
+}

@@ -84,6 +84,7 @@ impl Server {
                     Ok(())
                 }
                 (_, Some(smtp_file)) => {
+                    // TODO(fix): Directory must be created before calling this.
                     let email = email_builder
                         .from(("file@localhost", email.from_name))
                         .build()
