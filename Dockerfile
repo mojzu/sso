@@ -96,9 +96,9 @@ ENV SSO_PASSWORD_PWNED="true"
 # # Github OAuth2 support.
 # ENV SSO_GITHUB_CLIENT_ID="" \
 #     SSO_GITHUB_CLIENT_SECRET=""
-# Microsoft OAuth2 support.
-ENV SSO_MICROSOFT_CLIENT_ID="b1d3b206-7198-42f5-b898-5725de9bfc39" \
-    SSO_MICROSOFT_CLIENT_SECRET="h7]({Y8^f5#^|P#M-%$&1L;A6!{)(J7}XwhGuw{{dOt:Ife+{&W6aejKq0to.$"
+# # Microsoft OAuth2 support.
+# ENV SSO_MICROSOFT_CLIENT_ID="" \
+#     SSO_MICROSOFT_CLIENT_SECRET=""
 # OpenAPI gateway configuration.
 ENV SSO_OPENAPI_GRPC="localhost:7000" \
     SSO_OPENAPI_BIND="localhost:8000"

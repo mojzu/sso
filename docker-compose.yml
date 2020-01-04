@@ -14,14 +14,14 @@ services:
     ports:
       - "5432:5432"
 
-  # # Prometheus service.
-  # # <https://prometheus.io/>
-  # prometheus:
-  #   build: docker/prometheus
-  #   restart: always
-  #   network_mode: "host"
-  #   ports:
-  #     - "9090:9090"
+  # Prometheus service.
+  # <https://prometheus.io/>
+  prometheus:
+    build: docker/prometheus
+    restart: always
+    network_mode: "host"
+    ports:
+      - "9090:9090"
 
   # Sso gRPC service.
   # <https://grpc.io/>

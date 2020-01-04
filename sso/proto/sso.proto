@@ -27,6 +27,8 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 };
 
 service Sso {
+    // Ping server.
+    //
     // Returns pong response.
     rpc Ping (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (google.api.http) = {
@@ -35,6 +37,8 @@ service Sso {
         };
     }
 
+    // Get server metrics.
+    //
     // Returns metrics in Prometheus exposition format.
     rpc Metrics (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (google.api.http) = {
@@ -65,7 +69,7 @@ service Sso {
         };
     }
 
-    // Update audit log.
+    // Update audit log (append only).
     rpc AuditUpdate (AuditUpdateRequest) returns (AuditReadReply) {
         option (google.api.http) = {
             patch: "/v1/audit/{id}"
@@ -184,7 +188,7 @@ service Sso {
         };
     }
 
-    // Authentication verify key.
+    // Verify user key.
     rpc AuthKeyVerify (AuthKeyRequest) returns (AuthKeyReply) {
         option (google.api.http) = {
             post: "/v1/auth/key/verify"
@@ -192,7 +196,7 @@ service Sso {
         };
     }
 
-    // Authentication revoke key.
+    // Revoke user key.
     rpc AuthKeyRevoke (AuthKeyRequest) returns (AuthAuditReply) {
         option (google.api.http) = {
             post: "/v1/auth/key/revoke"
@@ -200,7 +204,7 @@ service Sso {
         };
     }
 
-    // Authentication verify token.
+    // Verify user access token.
     rpc AuthTokenVerify (AuthTokenRequest) returns (AuthTokenVerifyReply) {
         option (google.api.http) = {
             post: "/v1/auth/token/verify"
@@ -208,7 +212,7 @@ service Sso {
         };
     }
 
-    // Authentication refresh token.
+    // Refresh user access and refresh tokens.
     rpc AuthTokenRefresh (AuthTokenRequest) returns (AuthTokenReply) {
         option (google.api.http) = {
             post: "/v1/auth/token/refresh"
@@ -216,7 +220,7 @@ service Sso {
         };
     }
 
-    // Authentication revoke token.
+    // Revoke user token.
     rpc AuthTokenRevoke (AuthTokenRequest) returns (AuthAuditReply) {
         option (google.api.http) = {
             post: "/v1/auth/token/revoke"
@@ -224,7 +228,7 @@ service Sso {
         };
     }
 
-    // Authentication verify TOTP code.
+    // Verify TOTP code.
     rpc AuthTotpVerify (AuthTotpRequest) returns (AuthAuditReply) {
         option (google.api.http) = {
             post: "/v1/auth/totp"
@@ -232,14 +236,14 @@ service Sso {
         };
     }
 
-    // Authentication create CSRF token.
+    // Create CSRF token.
     rpc AuthCsrfCreate (AuthCsrfCreateRequest) returns (AuthCsrfCreateReply) {
         option (google.api.http) = {
             get: "/v1/auth/csrf"
         };
     }
 
-    // Authentication verify CSRF token.
+    // Verify CSRF token.
     rpc AuthCsrfVerify (AuthCsrfVerifyRequest) returns (AuthAuditReply) {
         option (google.api.http) = {
             post: "/v1/auth/csrf"
@@ -247,7 +251,9 @@ service Sso {
         };
     }
 
-    // Authentication local provider login.
+    // Login with email and password.
+    //
+    // Local provider login authentication.
     rpc AuthLocalLogin (AuthLoginRequest) returns (AuthLoginReply) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/login"
@@ -255,7 +261,9 @@ service Sso {
         };
     }
 
-    // Authentication local provider register.
+    // Register user for service.
+    //
+    // Local provider user registration.
     rpc AuthLocalRegister (AuthRegisterRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/register"
@@ -263,7 +271,9 @@ service Sso {
         };
     }
 
-    // Authentication local provider register confirm.
+    // Confirm user registration.
+    //
+    // Local provider user registration confirmation.
     rpc AuthLocalRegisterConfirm (AuthRegisterConfirmRequest) returns (AuthPasswordMetaReply) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/register/confirm"
@@ -271,7 +281,9 @@ service Sso {
         };
     }
 
-    // Authentication local provider register revoke.
+    // Revoke user registration.
+    //
+    // Local provider user registration revokation.
     rpc AuthLocalRegisterRevoke (AuthTokenRequest) returns (AuthAuditReply) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/register/revoke"
@@ -279,7 +291,9 @@ service Sso {
         };
     }
 
-    // Authentication local provider reset password.
+    // Reset user password.
+    //
+    // Local provider reset user password request.
     rpc AuthLocalResetPassword (AuthResetPasswordRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/reset-password"
@@ -287,7 +301,9 @@ service Sso {
         };
     }
 
-    // Authentication local provider reset password confirm.
+    // Confirm user password reset.
+    //
+    // Local provider reset user password confirmation.
     rpc AuthLocalResetPasswordConfirm (AuthResetPasswordConfirmRequest) returns (AuthPasswordMetaReply) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/reset-password/confirm"
@@ -295,7 +311,9 @@ service Sso {
         };
     }
 
-    // Authentication local provider reset password revoke.
+    // Revoke user password reset.
+    //
+    // Local provider reset user password revokation.
     rpc AuthLocalResetPasswordRevoke (AuthTokenRequest) returns (AuthAuditReply) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/reset-password/revoke"
@@ -303,7 +321,9 @@ service Sso {
         };
     }
 
-    // Authentication local provider update email.
+    // Update user email.
+    //
+    // Local provider update user email request.
     rpc AuthLocalUpdateEmail (AuthUpdateEmailRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/update-email"
@@ -311,7 +331,9 @@ service Sso {
         };
     }
 
-    // Authentication local provider update email revoke.
+    // Revoke user email update.
+    //
+    // Local provider update user email revokation.
     rpc AuthLocalUpdateEmailRevoke (AuthTokenRequest) returns (AuthAuditReply) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/update-email/revoke"
@@ -319,7 +341,9 @@ service Sso {
         };
     }
 
-    // Authentication local provider update password.
+    // Update user password.
+    //
+    // Local provider update user password request.
     rpc AuthLocalUpdatePassword (AuthUpdatePasswordRequest) returns (AuthPasswordMetaReply) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/update-password"
@@ -327,7 +351,9 @@ service Sso {
         };
     }
 
-    // Authentication local provider update password revoke.
+    // Revoke user password update.
+    //
+    // Local provider update user password revokation.
     rpc AuthLocalUpdatePasswordRevoke (AuthTokenRequest) returns (AuthAuditReply) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/update-password/revoke"
@@ -335,14 +361,14 @@ service Sso {
         };
     }
 
-    // Authentication Github provider OAuth2 URL.
+    // Get Github OAuth2 URL.
     rpc AuthGithubOauth2Url (google.protobuf.Empty) returns (AuthOauth2UrlReply) {
         option (google.api.http) = {
             get: "/v1/auth/provider/github/oauth2"
         };
     }
 
-    // Authentication Github provider OAuth2 callback.
+    // Github OAuth2 callback.
     rpc AuthGithubOauth2Callback (AuthOauth2CallbackRequest) returns (AuthTokenReply) {
         option (google.api.http) = {
             post: "/v1/auth/provider/github/oauth2"
@@ -350,14 +376,14 @@ service Sso {
         };
     }
 
-    // Authentication Microsoft provider OAuth2 URL.
+    // Get Microsoft OAuth2 URL.
     rpc AuthMicrosoftOauth2Url (google.protobuf.Empty) returns (AuthOauth2UrlReply) {
         option (google.api.http) = {
             get: "/v1/auth/provider/microsoft/oauth2"
         };
     }
 
-    // Authentication Microsoft provider OAuth2 callback.
+    // Microsoft OAuth2 callback.
     rpc AuthMicrosoftOauth2Callback (AuthOauth2CallbackRequest) returns (AuthTokenReply) {
         option (google.api.http) = {
             post: "/v1/auth/provider/microsoft/oauth2"

@@ -3927,8 +3927,12 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SsoClient interface {
+	// Ping server.
+	//
 	// Returns pong response.
 	Ping(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*wrappers.StringValue, error)
+	// Get server metrics.
+	//
 	// Returns metrics in Prometheus exposition format.
 	Metrics(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*wrappers.StringValue, error)
 	// List audit logs.
@@ -3937,7 +3941,7 @@ type SsoClient interface {
 	AuditCreate(ctx context.Context, in *AuditCreateRequest, opts ...grpc.CallOption) (*AuditReadReply, error)
 	// Read audit log.
 	AuditRead(ctx context.Context, in *AuditReadRequest, opts ...grpc.CallOption) (*AuditReadReply, error)
-	// Update audit log.
+	// Update audit log (append only).
 	AuditUpdate(ctx context.Context, in *AuditUpdateRequest, opts ...grpc.CallOption) (*AuditReadReply, error)
 	// List keys.
 	KeyList(ctx context.Context, in *KeyListRequest, opts ...grpc.CallOption) (*KeyListReply, error)
@@ -3969,51 +3973,73 @@ type SsoClient interface {
 	UserUpdate(ctx context.Context, in *UserUpdateRequest, opts ...grpc.CallOption) (*UserReadReply, error)
 	// Delete user.
 	UserDelete(ctx context.Context, in *UserReadRequest, opts ...grpc.CallOption) (*empty.Empty, error)
-	// Authentication verify key.
+	// Verify user key.
 	AuthKeyVerify(ctx context.Context, in *AuthKeyRequest, opts ...grpc.CallOption) (*AuthKeyReply, error)
-	// Authentication revoke key.
+	// Revoke user key.
 	AuthKeyRevoke(ctx context.Context, in *AuthKeyRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
-	// Authentication verify token.
+	// Verify user access token.
 	AuthTokenVerify(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthTokenVerifyReply, error)
-	// Authentication refresh token.
+	// Refresh user access and refresh tokens.
 	AuthTokenRefresh(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthTokenReply, error)
-	// Authentication revoke token.
+	// Revoke user token.
 	AuthTokenRevoke(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
-	// Authentication verify TOTP code.
+	// Verify TOTP code.
 	AuthTotpVerify(ctx context.Context, in *AuthTotpRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
-	// Authentication create CSRF token.
+	// Create CSRF token.
 	AuthCsrfCreate(ctx context.Context, in *AuthCsrfCreateRequest, opts ...grpc.CallOption) (*AuthCsrfCreateReply, error)
-	// Authentication verify CSRF token.
+	// Verify CSRF token.
 	AuthCsrfVerify(ctx context.Context, in *AuthCsrfVerifyRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
-	// Authentication local provider login.
+	// Login with email and password.
+	//
+	// Local provider login authentication.
 	AuthLocalLogin(ctx context.Context, in *AuthLoginRequest, opts ...grpc.CallOption) (*AuthLoginReply, error)
-	// Authentication local provider register.
+	// Register user for service.
+	//
+	// Local provider user registration.
 	AuthLocalRegister(ctx context.Context, in *AuthRegisterRequest, opts ...grpc.CallOption) (*empty.Empty, error)
-	// Authentication local provider register confirm.
+	// Confirm user registration.
+	//
+	// Local provider user registration confirmation.
 	AuthLocalRegisterConfirm(ctx context.Context, in *AuthRegisterConfirmRequest, opts ...grpc.CallOption) (*AuthPasswordMetaReply, error)
-	// Authentication local provider register revoke.
+	// Revoke user registration.
+	//
+	// Local provider user registration revokation.
 	AuthLocalRegisterRevoke(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
-	// Authentication local provider reset password.
+	// Reset user password.
+	//
+	// Local provider reset user password request.
 	AuthLocalResetPassword(ctx context.Context, in *AuthResetPasswordRequest, opts ...grpc.CallOption) (*empty.Empty, error)
-	// Authentication local provider reset password confirm.
+	// Confirm user password reset.
+	//
+	// Local provider reset user password confirmation.
 	AuthLocalResetPasswordConfirm(ctx context.Context, in *AuthResetPasswordConfirmRequest, opts ...grpc.CallOption) (*AuthPasswordMetaReply, error)
-	// Authentication local provider reset password revoke.
+	// Revoke user password reset.
+	//
+	// Local provider reset user password revokation.
 	AuthLocalResetPasswordRevoke(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
-	// Authentication local provider update email.
+	// Update user email.
+	//
+	// Local provider update user email request.
 	AuthLocalUpdateEmail(ctx context.Context, in *AuthUpdateEmailRequest, opts ...grpc.CallOption) (*empty.Empty, error)
-	// Authentication local provider update email revoke.
+	// Revoke user email update.
+	//
+	// Local provider update user email revokation.
 	AuthLocalUpdateEmailRevoke(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
-	// Authentication local provider update password.
+	// Update user password.
+	//
+	// Local provider update user password request.
 	AuthLocalUpdatePassword(ctx context.Context, in *AuthUpdatePasswordRequest, opts ...grpc.CallOption) (*AuthPasswordMetaReply, error)
-	// Authentication local provider update password revoke.
+	// Revoke user password update.
+	//
+	// Local provider update user password revokation.
 	AuthLocalUpdatePasswordRevoke(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthAuditReply, error)
-	// Authentication Github provider OAuth2 URL.
+	// Get Github OAuth2 URL.
 	AuthGithubOauth2Url(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*AuthOauth2UrlReply, error)
-	// Authentication Github provider OAuth2 callback.
+	// Github OAuth2 callback.
 	AuthGithubOauth2Callback(ctx context.Context, in *AuthOauth2CallbackRequest, opts ...grpc.CallOption) (*AuthTokenReply, error)
-	// Authentication Microsoft provider OAuth2 URL.
+	// Get Microsoft OAuth2 URL.
 	AuthMicrosoftOauth2Url(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*AuthOauth2UrlReply, error)
-	// Authentication Microsoft provider OAuth2 callback.
+	// Microsoft OAuth2 callback.
 	AuthMicrosoftOauth2Callback(ctx context.Context, in *AuthOauth2CallbackRequest, opts ...grpc.CallOption) (*AuthTokenReply, error)
 }
 
@@ -4423,8 +4449,12 @@ func (c *ssoClient) AuthMicrosoftOauth2Callback(ctx context.Context, in *AuthOau
 
 // SsoServer is the server API for Sso service.
 type SsoServer interface {
+	// Ping server.
+	//
 	// Returns pong response.
 	Ping(context.Context, *empty.Empty) (*wrappers.StringValue, error)
+	// Get server metrics.
+	//
 	// Returns metrics in Prometheus exposition format.
 	Metrics(context.Context, *empty.Empty) (*wrappers.StringValue, error)
 	// List audit logs.
@@ -4433,7 +4463,7 @@ type SsoServer interface {
 	AuditCreate(context.Context, *AuditCreateRequest) (*AuditReadReply, error)
 	// Read audit log.
 	AuditRead(context.Context, *AuditReadRequest) (*AuditReadReply, error)
-	// Update audit log.
+	// Update audit log (append only).
 	AuditUpdate(context.Context, *AuditUpdateRequest) (*AuditReadReply, error)
 	// List keys.
 	KeyList(context.Context, *KeyListRequest) (*KeyListReply, error)
@@ -4465,51 +4495,73 @@ type SsoServer interface {
 	UserUpdate(context.Context, *UserUpdateRequest) (*UserReadReply, error)
 	// Delete user.
 	UserDelete(context.Context, *UserReadRequest) (*empty.Empty, error)
-	// Authentication verify key.
+	// Verify user key.
 	AuthKeyVerify(context.Context, *AuthKeyRequest) (*AuthKeyReply, error)
-	// Authentication revoke key.
+	// Revoke user key.
 	AuthKeyRevoke(context.Context, *AuthKeyRequest) (*AuthAuditReply, error)
-	// Authentication verify token.
+	// Verify user access token.
 	AuthTokenVerify(context.Context, *AuthTokenRequest) (*AuthTokenVerifyReply, error)
-	// Authentication refresh token.
+	// Refresh user access and refresh tokens.
 	AuthTokenRefresh(context.Context, *AuthTokenRequest) (*AuthTokenReply, error)
-	// Authentication revoke token.
+	// Revoke user token.
 	AuthTokenRevoke(context.Context, *AuthTokenRequest) (*AuthAuditReply, error)
-	// Authentication verify TOTP code.
+	// Verify TOTP code.
 	AuthTotpVerify(context.Context, *AuthTotpRequest) (*AuthAuditReply, error)
-	// Authentication create CSRF token.
+	// Create CSRF token.
 	AuthCsrfCreate(context.Context, *AuthCsrfCreateRequest) (*AuthCsrfCreateReply, error)
-	// Authentication verify CSRF token.
+	// Verify CSRF token.
 	AuthCsrfVerify(context.Context, *AuthCsrfVerifyRequest) (*AuthAuditReply, error)
-	// Authentication local provider login.
+	// Login with email and password.
+	//
+	// Local provider login authentication.
 	AuthLocalLogin(context.Context, *AuthLoginRequest) (*AuthLoginReply, error)
-	// Authentication local provider register.
+	// Register user for service.
+	//
+	// Local provider user registration.
 	AuthLocalRegister(context.Context, *AuthRegisterRequest) (*empty.Empty, error)
-	// Authentication local provider register confirm.
+	// Confirm user registration.
+	//
+	// Local provider user registration confirmation.
 	AuthLocalRegisterConfirm(context.Context, *AuthRegisterConfirmRequest) (*AuthPasswordMetaReply, error)
-	// Authentication local provider register revoke.
+	// Revoke user registration.
+	//
+	// Local provider user registration revokation.
 	AuthLocalRegisterRevoke(context.Context, *AuthTokenRequest) (*AuthAuditReply, error)
-	// Authentication local provider reset password.
+	// Reset user password.
+	//
+	// Local provider reset user password request.
 	AuthLocalResetPassword(context.Context, *AuthResetPasswordRequest) (*empty.Empty, error)
-	// Authentication local provider reset password confirm.
+	// Confirm user password reset.
+	//
+	// Local provider reset user password confirmation.
 	AuthLocalResetPasswordConfirm(context.Context, *AuthResetPasswordConfirmRequest) (*AuthPasswordMetaReply, error)
-	// Authentication local provider reset password revoke.
+	// Revoke user password reset.
+	//
+	// Local provider reset user password revokation.
 	AuthLocalResetPasswordRevoke(context.Context, *AuthTokenRequest) (*AuthAuditReply, error)
-	// Authentication local provider update email.
+	// Update user email.
+	//
+	// Local provider update user email request.
 	AuthLocalUpdateEmail(context.Context, *AuthUpdateEmailRequest) (*empty.Empty, error)
-	// Authentication local provider update email revoke.
+	// Revoke user email update.
+	//
+	// Local provider update user email revokation.
 	AuthLocalUpdateEmailRevoke(context.Context, *AuthTokenRequest) (*AuthAuditReply, error)
-	// Authentication local provider update password.
+	// Update user password.
+	//
+	// Local provider update user password request.
 	AuthLocalUpdatePassword(context.Context, *AuthUpdatePasswordRequest) (*AuthPasswordMetaReply, error)
-	// Authentication local provider update password revoke.
+	// Revoke user password update.
+	//
+	// Local provider update user password revokation.
 	AuthLocalUpdatePasswordRevoke(context.Context, *AuthTokenRequest) (*AuthAuditReply, error)
-	// Authentication Github provider OAuth2 URL.
+	// Get Github OAuth2 URL.
 	AuthGithubOauth2Url(context.Context, *empty.Empty) (*AuthOauth2UrlReply, error)
-	// Authentication Github provider OAuth2 callback.
+	// Github OAuth2 callback.
 	AuthGithubOauth2Callback(context.Context, *AuthOauth2CallbackRequest) (*AuthTokenReply, error)
-	// Authentication Microsoft provider OAuth2 URL.
+	// Get Microsoft OAuth2 URL.
 	AuthMicrosoftOauth2Url(context.Context, *empty.Empty) (*AuthOauth2UrlReply, error)
-	// Authentication Microsoft provider OAuth2 callback.
+	// Microsoft OAuth2 callback.
 	AuthMicrosoftOauth2Callback(context.Context, *AuthOauth2CallbackRequest) (*AuthTokenReply, error)
 }
 

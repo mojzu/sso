@@ -15,6 +15,5 @@ scrape_configs:
       - targets: ["localhost:9090"]
 
   - job_name: "sso"
-    bearer_token: "4KYG4LFV2UGWKC3FYWXNRQMX4FBBBJM6CI"
     static_configs:
-      - targets: ["localhost:9000"]
+      - targets: ["localhost:7010"]

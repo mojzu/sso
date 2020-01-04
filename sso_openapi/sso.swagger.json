@@ -13,7 +13,8 @@
   "paths": {
     "/metrics": {
       "get": {
-        "summary": "Returns metrics in Prometheus exposition format.",
+        "summary": "Get server metrics.",
+        "description": "Returns metrics in Prometheus exposition format.",
         "operationId": "Metrics",
         "responses": {
           "200": {
@@ -30,7 +31,8 @@
     },
     "/ping": {
       "get": {
-        "summary": "Returns pong response.",
+        "summary": "Ping server.",
+        "description": "Returns pong response.",
         "operationId": "Ping",
         "responses": {
           "200": {
@@ -208,7 +210,7 @@
         ]
       },
       "patch": {
-        "summary": "Update audit log.",
+        "summary": "Update audit log (append only).",
         "operationId": "AuditUpdate",
         "responses": {
           "200": {
@@ -242,7 +244,7 @@
     },
     "/v1/auth/csrf": {
       "get": {
-        "summary": "Authentication create CSRF token.",
+        "summary": "Create CSRF token.",
         "operationId": "AuthCsrfCreate",
         "responses": {
           "200": {
@@ -267,7 +269,7 @@
         ]
       },
       "post": {
-        "summary": "Authentication verify CSRF token.",
+        "summary": "Verify CSRF token.",
         "operationId": "AuthCsrfVerify",
         "responses": {
           "200": {
@@ -294,7 +296,7 @@
     },
     "/v1/auth/key/revoke": {
       "post": {
-        "summary": "Authentication revoke key.",
+        "summary": "Revoke user key.",
         "operationId": "AuthKeyRevoke",
         "responses": {
           "200": {
@@ -321,7 +323,7 @@
     },
     "/v1/auth/key/verify": {
       "post": {
-        "summary": "Authentication verify key.",
+        "summary": "Verify user key.",
         "operationId": "AuthKeyVerify",
         "responses": {
           "200": {
@@ -348,7 +350,7 @@
     },
     "/v1/auth/provider/github/oauth2": {
       "get": {
-        "summary": "Authentication Github provider OAuth2 URL.",
+        "summary": "Get Github OAuth2 URL.",
         "operationId": "AuthGithubOauth2Url",
         "responses": {
           "200": {
@@ -363,7 +365,7 @@
         ]
       },
       "post": {
-        "summary": "Authentication Github provider OAuth2 callback.",
+        "summary": "Github OAuth2 callback.",
         "operationId": "AuthGithubOauth2Callback",
         "responses": {
           "200": {
@@ -390,7 +392,8 @@
     },
     "/v1/auth/provider/local/login": {
       "post": {
-        "summary": "Authentication local provider login.",
+        "summary": "Login with email and password.",
+        "description": "Local provider login authentication.",
         "operationId": "AuthLocalLogin",
         "responses": {
           "200": {
@@ -417,7 +420,8 @@
     },
     "/v1/auth/provider/local/register": {
       "post": {
-        "summary": "Authentication local provider register.",
+        "summary": "Register user for service.",
+        "description": "Local provider user registration.",
         "operationId": "AuthLocalRegister",
         "responses": {
           "200": {
@@ -444,7 +448,8 @@
     },
     "/v1/auth/provider/local/register/confirm": {
       "post": {
-        "summary": "Authentication local provider register confirm.",
+        "summary": "Confirm user registration.",
+        "description": "Local provider user registration confirmation.",
         "operationId": "AuthLocalRegisterConfirm",
         "responses": {
           "200": {
@@ -471,7 +476,8 @@
     },
     "/v1/auth/provider/local/register/revoke": {
       "post": {
-        "summary": "Authentication local provider register revoke.",
+        "summary": "Revoke user registration.",
+        "description": "Local provider user registration revokation.",
         "operationId": "AuthLocalRegisterRevoke",
         "responses": {
           "200": {
@@ -498,7 +504,8 @@
     },
     "/v1/auth/provider/local/reset-password": {
       "post": {
-        "summary": "Authentication local provider reset password.",
+        "summary": "Reset user password.",
+        "description": "Local provider reset user password request.",
         "operationId": "AuthLocalResetPassword",
         "responses": {
           "200": {
@@ -525,7 +532,8 @@
     },
     "/v1/auth/provider/local/reset-password/confirm": {
       "post": {
-        "summary": "Authentication local provider reset password confirm.",
+        "summary": "Confirm user password reset.",
+        "description": "Local provider reset user password confirmation.",
         "operationId": "AuthLocalResetPasswordConfirm",
         "responses": {
           "200": {
@@ -552,7 +560,8 @@
     },
     "/v1/auth/provider/local/reset-password/revoke": {
       "post": {
-        "summary": "Authentication local provider reset password revoke.",
+        "summary": "Revoke user password reset.",
+        "description": "Local provider reset user password revokation.",
         "operationId": "AuthLocalResetPasswordRevoke",
         "responses": {
           "200": {
@@ -579,7 +588,8 @@
     },
     "/v1/auth/provider/local/update-email": {
       "post": {
-        "summary": "Authentication local provider update email.",
+        "summary": "Update user email.",
+        "description": "Local provider update user email request.",
         "operationId": "AuthLocalUpdateEmail",
         "responses": {
           "200": {
@@ -606,7 +616,8 @@
     },
     "/v1/auth/provider/local/update-email/revoke": {
       "post": {
-        "summary": "Authentication local provider update email revoke.",
+        "summary": "Revoke user email update.",
+        "description": "Local provider update user email revokation.",
         "operationId": "AuthLocalUpdateEmailRevoke",
         "responses": {
           "200": {
@@ -633,7 +644,8 @@
     },
     "/v1/auth/provider/local/update-password": {
       "post": {
-        "summary": "Authentication local provider update password.",
+        "summary": "Update user password.",
+        "description": "Local provider update user password request.",
         "operationId": "AuthLocalUpdatePassword",
         "responses": {
           "200": {
@@ -660,7 +672,8 @@
     },
     "/v1/auth/provider/local/update-password/revoke": {
       "post": {
-        "summary": "Authentication local provider update password revoke.",
+        "summary": "Revoke user password update.",
+        "description": "Local provider update user password revokation.",
         "operationId": "AuthLocalUpdatePasswordRevoke",
         "responses": {
           "200": {
@@ -687,7 +700,7 @@
     },
     "/v1/auth/provider/microsoft/oauth2": {
       "get": {
-        "summary": "Authentication Microsoft provider OAuth2 URL.",
+        "summary": "Get Microsoft OAuth2 URL.",
         "operationId": "AuthMicrosoftOauth2Url",
         "responses": {
           "200": {
@@ -702,7 +715,7 @@
         ]
       },
       "post": {
-        "summary": "Authentication Microsoft provider OAuth2 callback.",
+        "summary": "Microsoft OAuth2 callback.",
         "operationId": "AuthMicrosoftOauth2Callback",
         "responses": {
           "200": {
@@ -729,7 +742,7 @@
     },
     "/v1/auth/token/refresh": {
       "post": {
-        "summary": "Authentication refresh token.",
+        "summary": "Refresh user access and refresh tokens.",
         "operationId": "AuthTokenRefresh",
         "responses": {
           "200": {
@@ -756,7 +769,7 @@
     },
     "/v1/auth/token/revoke": {
       "post": {
-        "summary": "Authentication revoke token.",
+        "summary": "Revoke user token.",
         "operationId": "AuthTokenRevoke",
         "responses": {
           "200": {
@@ -783,7 +796,7 @@
     },
     "/v1/auth/token/verify": {
       "post": {
-        "summary": "Authentication verify token.",
+        "summary": "Verify user access token.",
         "operationId": "AuthTokenVerify",
         "responses": {
           "200": {
@@ -810,7 +823,7 @@
     },
     "/v1/auth/totp": {
       "post": {
-        "summary": "Authentication verify TOTP code.",
+        "summary": "Verify TOTP code.",
         "operationId": "AuthTotpVerify",
         "responses": {
           "200": {
