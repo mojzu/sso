@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND="noninteractive"
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     wget unzip ca-certificates build-essential libpq-dev libssl-dev pkg-config git \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*;
 
 # Environment.
 ENV HOME="/root"
@@ -17,29 +17,24 @@ ENV RUSTUP_HOME="/usr/local/rustup" \
     RUST_VERSION="1.40.0" \
     RUSTUP_URL="https://static.rust-lang.org/rustup/archive/1.20.2/x86_64-unknown-linux-gnu/rustup-init"
 
-# Go environment.
-ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH" \
-    GOLANG_URL="https://golang.org/dl/go1.13.5.linux-amd64.tar.gz" \
-    PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.11.1/protoc-3.11.1-linux-x86_64.zip"
-
-# Node environment.
-ENV NODE_VERSION="12.14.0"
-
-# Pandoc environment.
-ENV PANDOC_URL="https://github.com/jgm/pandoc/releases/download/2.9/pandoc-2.9-1-amd64.deb"
-
 # Install Rust toolchain.
 # <https://github.com/rust-lang/docker-rust>
 RUN wget -q "$RUSTUP_URL" \
     && chmod +x rustup-init \
     && ./rustup-init -y --no-modify-path --profile default --default-toolchain $RUST_VERSION \
     && rm rustup-init \
-    && chmod 777 -R $RUSTUP_HOME $CARGO_HOME /root
+    && chmod -R a+w $RUSTUP_HOME $CARGO_HOME \
+    && chmod 777 -R $HOME;
 
 # Install Rust tools.
 RUN cargo install --force cargo-make \
     && cargo install --force diesel_cli --no-default-features --features "postgres" \
-    && cargo install --force cargo-audit
+    && cargo install --force cargo-audit;
+
+# Go environment.
+ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH" \
+    GOLANG_URL="https://golang.org/dl/go1.13.5.linux-amd64.tar.gz" \
+    PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.11.1/protoc-3.11.1-linux-x86_64.zip"
 
 # Install Go toolchain.
 # <https://github.com/docker-library/golang>
@@ -51,7 +46,7 @@ RUN wget -O go.tgz -q "$GOLANG_URL" \
     && unzip -o protoc.zip -d /usr/local 'include/*' \
     && chmod -R 777 /usr/local/bin/protoc \
     && chmod -R 777 /usr/local/include/google \
-    && rm protoc.zip
+    && rm protoc.zip;
 
 # Install Go tools.
 # <https://github.com/grpc-ecosystem/grpc-gateway>
@@ -59,58 +54,61 @@ RUN wget -O go.tgz -q "$GOLANG_URL" \
 RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway \
     && go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger \
     && go get -u github.com/golang/protobuf/protoc-gen-go \
-    && go get -u google.golang.org/grpc
+    && go get -u google.golang.org/grpc;
 
-# Install Node.js and tools.
-# <https://github.com/nodejs/docker-node>
-RUN wget -O node.tgz -q "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
-    && tar -xJf node.tgz -C /usr/local --strip-components=1 --no-same-owner \
-    && rm node.tgz \
-    && ln -s /usr/local/bin/node /usr/local/bin/nodejs
+# Pandoc environment.
+ENV PANDOC_URL="https://github.com/jgm/pandoc/releases/download/2.9/pandoc-2.9-1-amd64.deb"
 
 # Install Pandoc.
 # <https://pandoc.org/installing.html>
 RUN wget -O pandoc.deb -q "$PANDOC_URL" \
     && dpkg -i pandoc.deb \
-    && rm pandoc.deb
+    && rm pandoc.deb;
 
-# Development environment variables.
+# -----------------------
+# Development Environment
+# -----------------------
 # This file is checked into Git and must not contain secrets!
-# sso-cli
-ENV SSO_CLI_SENTRY_URL="" \
-    SSO_CLI_DATABASE_URL="postgres://guest:guest@localhost:5432/sso"
-# sso-grpc-server
-ENV SSO_GRPC_SENTRY_URL="" \
-    SSO_GRPC_DATABASE_URL="postgres://guest:guest@localhost:5432/sso" \
-    SSO_GRPC_DATABASE_CONNECTIONS="10" \
-    SSO_GRPC_BIND="0.0.0.0:7000" \
-    # SSO_GRPC_TLS_CERT_PEM="" \
-    # SSO_GRPC_TLS_KEY_PEM="" \
-    # SSO_GRPC_TLS_CLIENT_PEM="" \
-    SSO_GRPC_HTTP_BIND="0.0.0.0:7001" \
-    # SSO_GRPC_SMTP_HOST="" \
-    # SSO_GRPC_SMTP_PORT="" \
-    # SSO_GRPC_SMTP_USER="" \
-    # SSO_GRPC_SMTP_PASSWORD="" \
-    SSO_GRPC_SMTP_FILE="/sso/target/smtp" \
-    SSO_GRPC_PASSWORD_PWNED="true" \
-    SSO_GRPC_GITHUB_CLIENT_ID="" \
-    SSO_GRPC_GITHUB_CLIENT_SECRET="" \
-    SSO_GRPC_MICROSOFT_CLIENT_ID="" \
-    SSO_GRPC_MICROSOFT_CLIENT_SECRET=""
-# sso-openapi-server
-ENV SSO_OPENAPI_SSO_GRPC="localhost:7000" \
+
+# sso
+# Sentry URL for logging integration.
+ENV SSO_SENTRY_URL=""
+# Database connection URL.
+ENV SSO_DATABASE_URL="postgres://guest:guest@localhost:5432/sso"
+# Database number of connections.
+ENV SSO_DATABASE_CONNECTIONS="10"
+# Server bind addresses (gRPC and HTTP).
+ENV SSO_BIND="0.0.0.0:7000" \
+    SSO_HTTP_BIND="0.0.0.0:7010"
+# # Server TLS configuration.
+# ENV SSO_TLS_CERT_PEM="" \
+#     SSO_TLS_KEY_PEM="" \
+#     SSO_TLS_CLIENT_PEM=""
+# # SMTP server transport configuration.
+# ENV SSO_SMTP_HOST="" \
+#     SSO_SMTP_PORT="" \
+#     SSO_SMTP_USER="" \
+#     SSO_SMTP_PASSWORD=""
+# SMTP file transport configuration.
+ENV SSO_SMTP_FILE="/sso/target/smtp"
+# Password pwned integration enabled.
+ENV SSO_PASSWORD_PWNED="true"
+# # Github OAuth2 support.
+# ENV SSO_GITHUB_CLIENT_ID="" \
+#     SSO_GITHUB_CLIENT_SECRET=""
+# Microsoft OAuth2 support.
+ENV SSO_MICROSOFT_CLIENT_ID="b1d3b206-7198-42f5-b898-5725de9bfc39" \
+    SSO_MICROSOFT_CLIENT_SECRET="h7]({Y8^f5#^|P#M-%$&1L;A6!{)(J7}XwhGuw{{dOt:Ife+{&W6aejKq0to.$"
+# OpenAPI gateway configuration.
+ENV SSO_OPENAPI_GRPC="localhost:7000" \
     SSO_OPENAPI_BIND="localhost:8000"
-# test
-ENV TEST_SSO_GRPC_URL="http://localhost:7000" \
-    TEST_SSO_GRPC_KEY="BT4K6FZK54YZYIQKKPNG4FAQTU36JOQXA4"
+# Integration test variables.
+ENV SSO_TEST_URL="http://localhost:7000" \
+    SSO_TEST_KEY="E2GGVLXZJ6NPEV6SJKAHYISSGPNL23LTJE"
 
 # Copy project files and set working directory.
 # These are required for docker-compose service builds.
-ADD ./docs /sso/docs
-ADD ./sso /sso/sso
-ADD ./sso_openapi /sso/sso_openapi
-ADD ./Makefile.toml /sso/Makefile.toml
+ADD . /sso
 ADD ./docker/build/Cargo.toml /sso/Cargo.toml
 WORKDIR /sso
 

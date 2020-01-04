@@ -32,10 +32,10 @@ services:
     restart: always
     network_mode: "host"
     environment:
-      SSO_GRPC_DATABASE_URL: "postgres://guest:guest@postgres:5432/sso"
-      SSO_GRPC_DATABASE_CONNECTIONS: "10"
-      SSO_GRPC_BIND: "localhost:7000"
-      SSO_GRPC_HTTP_BIND: "localhost:7001"
+      SSO_DATABASE_URL: "postgres://guest:guest@postgres:5432/sso"
+      SSO_DATABASE_CONNECTIONS: "10"
+      SSO_BIND: "localhost:7000"
+      SSO_HTTP_BIND: "localhost:7001"
     ports:
       - "7000:7000"
       - "7001:7001"
@@ -50,7 +50,7 @@ services:
     restart: always
     network_mode: "host"
     environment:
-      SSO_OPENAPI_SSO_GRPC: "localhost:7000"
+      SSO_OPENAPI_GRPC: "localhost:7000"
       SSO_OPENAPI_BIND: "localhost:8000"
     ports:
       - "8000:8000"

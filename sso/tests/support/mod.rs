@@ -27,13 +27,11 @@ pub const KEY_NAME: &str = "key-name";
 pub const UUID_NIL: &str = "00000000-0000-0000-0000-000000000000";
 
 fn env_test_sso_url() -> String {
-    std::env::var("TEST_SSO_GRPC_URL")
-        .expect("TEST_SSO_GRPC_URL is undefined, integration test disabled")
+    std::env::var("SSO_TEST_URL").expect("SSO_TEST_URL is undefined, integration test disabled")
 }
 
 fn env_test_sso_key() -> String {
-    std::env::var("TEST_SSO_GRPC_KEY")
-        .expect("TEST_SSO_GRPC_KEY is undefined, integration test disabled")
+    std::env::var("SSO_TEST_KEY").expect("SSO_TEST_KEY is undefined, integration test disabled")
 }
 
 pub fn client_create(key: Option<&str>) -> ClientBlocking {

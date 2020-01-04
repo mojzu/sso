@@ -14,10 +14,10 @@ const CRATE_DESCRIPTION: &str = crate_description!();
 const CRATE_AUTHORS: &str = "Sam Ward <git@mojzu.net>";
 
 /// Sentry URL for logging integration.
-const ENV_SENTRY_URL: &str = "SSO_CLI_SENTRY_URL";
+const ENV_SENTRY_URL: &str = "SSO_SENTRY_URL";
 
 /// Database connection URL.
-const ENV_DATABASE_URL: &str = "SSO_CLI_DATABASE_URL";
+const ENV_DATABASE_URL: &str = "SSO_DATABASE_URL";
 
 const CMD_CREATE_ROOT_KEY: &str = "create-root-key";
 const CMD_CREATE_SERVICE_WITH_KEY: &str = "create-service-with-key";

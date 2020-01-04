@@ -9,43 +9,43 @@ use tonic::transport::Server;
 use tower::Service;
 
 /// Sentry URL for logging integration.
-const ENV_SENTRY_URL: &str = "SSO_GRPC_SENTRY_URL";
+const ENV_SENTRY_URL: &str = "SSO_SENTRY_URL";
 
 /// Database connection URL.
-const ENV_DATABASE_URL: &str = "SSO_GRPC_DATABASE_URL";
+const ENV_DATABASE_URL: &str = "SSO_DATABASE_URL";
 /// Database connection.
-const ENV_DATABASE_CONNECTIONS: &str = "SSO_GRPC_DATABASE_CONNECTIONS";
+const ENV_DATABASE_CONNECTIONS: &str = "SSO_DATABASE_CONNECTIONS";
 
 /// Server bind address (gRPC).
-const ENV_BIND: &str = "SSO_GRPC_BIND";
-/// Server TLS certificate file.
-const ENV_TLS_CERT_PEM: &str = "SSO_GRPC_TLS_CERT_PEM";
-/// Server TLS key file.
-const ENV_TLS_KEY_PEM: &str = "SSO_GRPC_TLS_KEY_PEM";
-/// Server mutual TLS client file.
-const ENV_TLS_CLIENT_PEM: &str = "SSO_GRPC_TLS_CLIENT_PEM";
+const ENV_BIND: &str = "SSO_BIND";
 /// Server bind address (HTTP).
-const ENV_HTTP_BIND: &str = "SSO_GRPC_HTTP_BIND";
+const ENV_HTTP_BIND: &str = "SSO_HTTP_BIND";
+/// Server TLS certificate file.
+const ENV_TLS_CERT_PEM: &str = "SSO_TLS_CERT_PEM";
+/// Server TLS key file.
+const ENV_TLS_KEY_PEM: &str = "SSO_TLS_KEY_PEM";
+/// Server mutual TLS client file.
+const ENV_TLS_CLIENT_PEM: &str = "SSO_TLS_CLIENT_PEM";
 
 /// SMTP server, optional.
-const ENV_SMTP_HOST: &str = "SSO_GRPC_SMTP_HOST";
-const ENV_SMTP_PORT: &str = "SSO_GRPC_SMTP_PORT";
-const ENV_SMTP_USER: &str = "SSO_GRPC_SMTP_USER";
-const ENV_SMTP_PASSWORD: &str = "SSO_GRPC_SMTP_PASSWORD";
+const ENV_SMTP_HOST: &str = "SSO_SMTP_HOST";
+const ENV_SMTP_PORT: &str = "SSO_SMTP_PORT";
+const ENV_SMTP_USER: &str = "SSO_SMTP_USER";
+const ENV_SMTP_PASSWORD: &str = "SSO_SMTP_PASSWORD";
 /// Write emails to files in directory, optional.
 /// If server settings are defined this setting is ignored.
-const ENV_SMTP_FILE: &str = "SSO_GRPC_SMTP_FILE";
+const ENV_SMTP_FILE: &str = "SSO_SMTP_FILE";
 
 /// Password pwned integration enabled, optional.
-const ENV_PASSWORD_PWNED: &str = "SSO_GRPC_PASSWORD_PWNED";
+const ENV_PASSWORD_PWNED: &str = "SSO_PASSWORD_PWNED";
 
 /// GitHub OAuth2 provider, optional.
-const ENV_GITHUB_CLIENT_ID: &str = "SSO_GRPC_GITHUB_CLIENT_ID";
-const ENV_GITHUB_CLIENT_SECRET: &str = "SSO_GRPC_GITHUB_CLIENT_SECRET";
+const ENV_GITHUB_CLIENT_ID: &str = "SSO_GITHUB_CLIENT_ID";
+const ENV_GITHUB_CLIENT_SECRET: &str = "SSO_GITHUB_CLIENT_SECRET";
 
 /// Microsoft OAuth2 provider, optional.
-const ENV_MICROSOFT_CLIENT_ID: &str = "SSO_GRPC_MICROSOFT_CLIENT_ID";
-const ENV_MICROSOFT_CLIENT_SECRET: &str = "SSO_GRPC_MICROSOFT_CLIENT_SECRET";
+const ENV_MICROSOFT_CLIENT_ID: &str = "SSO_MICROSOFT_CLIENT_ID";
+const ENV_MICROSOFT_CLIENT_SECRET: &str = "SSO_MICROSOFT_CLIENT_SECRET";
 
 // TODO(refactor): TLS support.
 // <https://github.com/hyperium/tonic/blob/master/examples/src/tls/server.rs>
