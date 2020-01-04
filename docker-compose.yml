@@ -23,30 +23,28 @@ services:
   #   ports:
   #     - "9090:9090"
 
-  # gRPC service.
+  # Sso gRPC service.
   # <https://grpc.io/>
   sso_grpc:
     build: sso
-    # depends_on:
-    #   - postgres
+    depends_on:
+      - postgres
     restart: always
     network_mode: "host"
     environment:
-      SSO_DATABASE_URL: "postgres://guest:guest@postgres:5432/sso"
+      SSO_DATABASE_URL: "postgres://guest:guest@localhost:5432/sso"
       SSO_DATABASE_CONNECTIONS: "10"
-      SSO_BIND: "localhost:7000"
-      SSO_HTTP_BIND: "localhost:7001"
+      SSO_BIND: "0.0.0.0:7000"
+      SSO_HTTP_BIND: "0.0.0.0:7010"
     ports:
       - "7000:7000"
-      - "7001:7001"
+      - "7010:7010"
 
-  # OpenAPI gateway service.
+  # Sso OpenAPI gateway service.
   # <https://github.com/grpc-ecosystem/grpc-gateway>
   # <https://grpc-ecosystem.github.io/grpc-gateway/>
   sso_openapi:
     build: sso_openapi
-    # depends_on:
-    #   - sso_grpc
     restart: always
     network_mode: "host"
     environment:
