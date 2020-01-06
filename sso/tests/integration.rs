@@ -12,9 +12,9 @@ use support::*;
 
 audit_integration_test!();
 auth_csrf_integration_test!();
-// auth_key_integration_test!();
-// auth_local_integration_test!();
-// auth_token_integration_test!();
+auth_key_integration_test!();
+auth_local_integration_test!();
+auth_token_integration_test!();
 auth_totp_integration_test!();
 guide_integration_test!();
 key_integration_test!();

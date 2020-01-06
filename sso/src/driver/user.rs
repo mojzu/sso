@@ -245,9 +245,12 @@ pub enum UserRead {
 pub struct UserUpdate {
     pub id: Uuid,
     pub is_enabled: Option<bool>,
+    // #[validate(custom = "validate::name")]
     pub name: Option<String>,
     pub email: Option<String>,
+    // #[validate(custom = "validate::locale")]
     pub locale: Option<String>,
+    // #[validate(custom = "validate::timezone")]
     pub timezone: Option<String>,
     pub password_allow_reset: Option<bool>,
     pub password_require_update: Option<bool>,

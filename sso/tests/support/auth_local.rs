@@ -3,25 +3,25 @@ macro_rules! auth_local_integration_test {
     () => {
         #[test]
         #[ignore]
-        fn api_auth_local_login_unauthorised() {
-            let client = client_create(Some(INVALID_KEY));
+        fn auth_local_login_unauthorised() {
+            let mut client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
 
-            let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
+            let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
+            assert_eq!(res.code(), tonic::Code::Unauthenticated);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_unauthorised_service_disabled() {
-            let client = client_create(None);
-            let (service, service_key) = service_key_create(&client);
+        fn auth_local_login_unauthorised_service_disabled() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
+            let mut client = client_create(Some(&service_key.value));
             let user = user_create_with_password(
-                &client,
+                &mut client,
                 true,
                 USER_NAME,
                 &user_email,
@@ -29,64 +29,68 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
+            let _user_key = user_key_create(
+                &mut client,
+                KEY_NAME,
+                KeyType::Token,
+                service.id.clone(),
+                user,
+            );
 
-            client
-                .service_update(
-                    service.id,
-                    ServiceUpdateRequest::default().set_is_enabled(false),
-                )
-                .unwrap();
+            let mut req = pb::ServiceUpdateRequest::default();
+            req.id = service.id;
+            req.is_enabled = Some(false);
+            client.service_update(req).unwrap();
 
-            let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
+            let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
+            assert_eq!(res.code(), tonic::Code::Unauthenticated);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_bad_request_invalid_email() {
-            let client = client_create(None);
+        fn auth_local_login_bad_request_invalid_email() {
+            let mut client = client_create(None);
 
-            let body = AuthLoginRequest::new(INVALID_EMAIL, USER_PASSWORD);
+            let body = pb::AuthLoginRequest::new(INVALID_EMAIL, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_bad_request_invalid_password() {
-            let client = client_create(None);
+        fn auth_local_login_bad_request_invalid_password() {
+            let mut client = client_create(None);
             let user_email = email_create();
 
-            let body = AuthLoginRequest::new(&user_email, "");
+            let body = pb::AuthLoginRequest::new(&user_email, "");
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_bad_request_unknown_email() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn auth_local_login_bad_request_unknown_email() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
-            let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
+            let mut client = client_create(Some(&service_key.value));
+            let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_bad_request_user_disabled() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn auth_local_login_bad_request_user_disabled() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
+            let mut client = client_create(Some(&service_key.value));
             let _user = user_create_with_password(
-                &client,
+                &mut client,
                 false,
                 USER_NAME,
                 &user_email,
@@ -95,21 +99,21 @@ macro_rules! auth_local_integration_test {
                 USER_PASSWORD,
             );
 
-            let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
+            let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_bad_request_unknown_user_key() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn auth_local_login_bad_request_unknown_user_key() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
+            let mut client = client_create(Some(&service_key.value));
             let _user = user_create_with_password(
-                &client,
+                &mut client,
                 true,
                 USER_NAME,
                 &user_email,
@@ -118,21 +122,21 @@ macro_rules! auth_local_integration_test {
                 USER_PASSWORD,
             );
 
-            let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
+            let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_bad_request_incorrect_password() {
-            let client = client_create(None);
-            let (service, service_key) = service_key_create(&client);
+        fn auth_local_login_bad_request_incorrect_password() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
+            let mut client = client_create(Some(&service_key.value));
             let user = user_create_with_password(
-                &client,
+                &mut client,
                 true,
                 USER_NAME,
                 &user_email,
@@ -140,24 +144,25 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
+            let _user_key =
+                user_key_create(&mut client, KEY_NAME, KeyType::Token, service.id, user);
 
-            let body = AuthLoginRequest::new(&user_email, INVALID_PASSWORD);
+            let body = pb::AuthLoginRequest::new(&user_email, INVALID_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_bad_request_unknown_user_key_for_service() {
-            let client = client_create(None);
-            let (service1, service1_key) = service_key_create(&client);
-            let (_service2, service2_key) = service_key_create(&client);
+        fn auth_local_login_bad_request_unknown_user_key_for_service() {
+            let mut client = client_create(None);
+            let (service1, service1_key) = service_key_create(&mut client);
+            let (_service2, service2_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service1_key.value));
+            let mut client = client_create(Some(&service1_key.value));
             let user = user_create_with_password(
-                &client,
+                &mut client,
                 true,
                 USER_NAME,
                 &user_email,
@@ -165,24 +170,25 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user);
+            let _user_key =
+                user_key_create(&mut client, KEY_NAME, KeyType::Token, service1.id, user);
 
-            let client = client_create(Some(&service2_key.value));
-            let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
+            let mut client = client_create(Some(&service2_key.value));
+            let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_bad_request_unknown_user_token_key() {
-            let client = client_create(None);
-            let (service, service_key) = service_key_create(&client);
+        fn auth_local_login_bad_request_unknown_user_token_key() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
+            let mut client = client_create(Some(&service_key.value));
             let user = user_create_with_password(
-                &client,
+                &mut client,
                 true,
                 USER_NAME,
                 &user_email,
@@ -190,23 +196,23 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user);
+            let _user_key = user_key_create(&mut client, KEY_NAME, KeyType::Key, service.id, user);
 
-            let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
+            let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_forbidden_user_password_require_update() {
-            let client = client_create(None);
-            let (service, service_key) = service_key_create(&client);
+        fn auth_local_login_forbidden_user_password_require_update() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
+            let mut client = client_create(Some(&service_key.value));
             let user = user_create_with_password(
-                &client,
+                &mut client,
                 true,
                 USER_NAME,
                 &user_email,
@@ -214,23 +220,24 @@ macro_rules! auth_local_integration_test {
                 true,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
+            let _user_key =
+                user_key_create(&mut client, KEY_NAME, KeyType::Token, service.id, user);
 
-            let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
+            let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::FORBIDDEN.as_u16());
+            assert_eq!(res.code(), tonic::Code::PermissionDenied);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_login_ok() {
-            let client = client_create(None);
-            let (service, service_key) = service_key_create(&client);
+        fn auth_local_login_ok() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
+            let mut client = client_create(Some(&service_key.value));
             let user = user_create_with_password(
-                &client,
+                &mut client,
                 true,
                 USER_NAME,
                 &user_email,
@@ -238,147 +245,142 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
+            let (user, _user_key) =
+                user_key_create(&mut client, KEY_NAME, KeyType::Token, service.id, user);
 
-            let body = AuthLoginRequest::new(&user_email, USER_PASSWORD);
-            let res = client.auth_local_login(body).unwrap();
-            assert_eq!(res.data.user.id, user_key.user.id);
+            let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
+            let res = client.auth_local_login(body).unwrap().into_inner();
+            assert_eq!(res.user.unwrap().id, user.id);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_register_ok_unauthorised() {
-            let client = client_create(Some(INVALID_KEY));
+        fn auth_local_register_ok_unauthorised() {
+            let mut client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
 
-            let body = AuthRegisterRequest::new(USER_NAME, &user_email);
+            let body = pb::AuthRegisterRequest::new(USER_NAME, &user_email);
             client.auth_local_register(body).unwrap();
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_register_ok_unauthorised_service_disabled() {
-            let client = client_create(None);
-            let (service, service_key) = service_key_create(&client);
+        fn auth_local_register_ok_unauthorised_service_disabled() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
-            client
-                .service_update(
-                    service.id,
-                    ServiceUpdateRequest::default().set_is_enabled(false),
-                )
-                .unwrap();
+            let mut client = client_create(Some(&service_key.value));
+            let mut req = pb::ServiceUpdateRequest::default();
+            req.id = service.id;
+            req.is_enabled = Some(false);
+            client.service_update(req).unwrap();
 
-            let body = AuthRegisterRequest::new(USER_NAME, &user_email);
+            let body = pb::AuthRegisterRequest::new(USER_NAME, &user_email);
             client.auth_local_register(body).unwrap();
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_register_bad_request_invalid_name() {
-            let client = client_create(None);
+        fn auth_local_register_bad_request_invalid_name() {
+            let mut client = client_create(None);
             let user_email = email_create();
 
-            let body = AuthRegisterRequest::new("", &user_email);
+            let body = pb::AuthRegisterRequest::new("", &user_email);
             let res = client.auth_local_register(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_register_bad_request_invalid_email() {
-            let client = client_create(None);
+        fn auth_local_register_bad_request_invalid_email() {
+            let mut client = client_create(None);
 
-            let body = AuthRegisterRequest::new(USER_NAME, INVALID_EMAIL);
+            let body = pb::AuthRegisterRequest::new(USER_NAME, INVALID_EMAIL);
             let res = client.auth_local_register(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_register_ok_unauthorised_service_register_disabled() {
-            let client = client_create(None);
-            let (service, service_key) = service_key_create(&client);
+        fn auth_local_register_ok_unauthorised_service_register_disabled() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
-            client
-                .service_update(
-                    service.id,
-                    ServiceUpdateRequest::default().set_user_allow_register(false),
-                )
-                .unwrap();
+            let mut client = client_create(Some(&service_key.value));
+            let mut req = pb::ServiceUpdateRequest::default();
+            req.id = service.id;
+            req.user_allow_register = Some(false);
+            client.service_update(req).unwrap();
 
-            let body = AuthRegisterRequest::new(USER_NAME, &user_email);
+            let body = pb::AuthRegisterRequest::new(USER_NAME, &user_email);
             client.auth_local_register(body).unwrap();
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_register_ok() {
-            let client = client_create(None);
-            let (service, service_key) = service_key_create(&client);
+        fn auth_local_register_ok() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
-            client
-                .service_update(
-                    service.id,
-                    ServiceUpdateRequest::default().set_user_allow_register(true),
-                )
-                .unwrap();
+            let mut client = client_create(Some(&service_key.value));
+            let mut req = pb::ServiceUpdateRequest::default();
+            req.id = service.id;
+            req.user_allow_register = Some(true);
+            client.service_update(req).unwrap();
 
-            let body = AuthRegisterRequest::new(USER_NAME, &user_email);
+            let body = pb::AuthRegisterRequest::new(USER_NAME, &user_email);
             client.auth_local_register(body).unwrap();
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_reset_password_unauthorised() {
-            let client = client_create(Some(INVALID_KEY));
+        fn auth_local_reset_password_unauthorised() {
+            let mut client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
 
-            let body = AuthResetPasswordRequest::new(&user_email);
-            client.auth_local_reset_password(body).unwrap()
+            let body = pb::AuthResetPasswordRequest::new(&user_email);
+            client.auth_local_reset_password(body).unwrap();
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_reset_password_bad_request_invalid_email() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn auth_local_reset_password_bad_request_invalid_email() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
 
-            let client = client_create(Some(&service_key.value));
-            let body = AuthResetPasswordRequest::new(INVALID_EMAIL);
+            let mut client = client_create(Some(&service_key.value));
+            let body = pb::AuthResetPasswordRequest::new(INVALID_EMAIL);
             let res = client.auth_local_reset_password(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_reset_password_ok_unknown_email() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn auth_local_reset_password_ok_unknown_email() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
             // Endpoint should not infer users existence.
-            let client = client_create(Some(&service_key.value));
-            let body = AuthResetPasswordRequest::new(&user_email);
+            let mut client = client_create(Some(&service_key.value));
+            let body = pb::AuthResetPasswordRequest::new(&user_email);
             client.auth_local_reset_password(body).unwrap();
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_reset_password_ok_unknown_user_key_for_service() {
-            let client = client_create(None);
-            let (service1, service1_key) = service_key_create(&client);
-            let (_service2, service2_key) = service_key_create(&client);
+        fn auth_local_reset_password_ok_unknown_user_key_for_service() {
+            let mut client = client_create(None);
+            let (service1, service1_key) = service_key_create(&mut client);
+            let (_service2, service2_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service1_key.value));
+            let mut client = client_create(Some(&service1_key.value));
             let user = user_create_with_password(
-                &client,
+                &mut client,
                 true,
                 USER_NAME,
                 &user_email,
@@ -386,24 +388,25 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service1.id, user);
+            let _user_key =
+                user_key_create(&mut client, KEY_NAME, KeyType::Token, service1.id, user);
 
             // Endpoint should not infer users existence.
-            let client = client_create(Some(&service2_key.value));
-            let body = AuthResetPasswordRequest::new(&user_email);
+            let mut client = client_create(Some(&service2_key.value));
+            let body = pb::AuthResetPasswordRequest::new(&user_email);
             client.auth_local_reset_password(body).unwrap();
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_reset_password_ok_unknown_user_token_key() {
-            let client = client_create(None);
-            let (service, service_key) = service_key_create(&client);
+        fn auth_local_reset_password_ok_unknown_user_token_key() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
+            let mut client = client_create(Some(&service_key.value));
             let user = user_create_with_password(
-                &client,
+                &mut client,
                 true,
                 USER_NAME,
                 &user_email,
@@ -411,23 +414,23 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Key, service.id, user);
+            let _user_key = user_key_create(&mut client, KEY_NAME, KeyType::Key, service.id, user);
 
             // Endpoint should not infer users existence.
-            let body = AuthResetPasswordRequest::new(&user_email);
+            let body = pb::AuthResetPasswordRequest::new(&user_email);
             client.auth_local_reset_password(body).unwrap();
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_reset_password_ok_reset_not_allowed() {
-            let client = client_create(None);
-            let (service, service_key) = service_key_create(&client);
+        fn auth_local_reset_password_ok_reset_not_allowed() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
+            let mut client = client_create(Some(&service_key.value));
             let user = user_create_with_password(
-                &client,
+                &mut client,
                 true,
                 USER_NAME,
                 &user_email,
@@ -435,23 +438,24 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
+            let _user_key =
+                user_key_create(&mut client, KEY_NAME, KeyType::Token, service.id, user);
 
             // Endpoint should not infer users existence.
-            let body = AuthResetPasswordRequest::new(&user_email);
+            let body = pb::AuthResetPasswordRequest::new(&user_email);
             client.auth_local_reset_password(body).unwrap();
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_reset_password_ok() {
-            let client = client_create(None);
-            let (service, service_key) = service_key_create(&client);
+        fn auth_local_reset_password_ok() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
+            let mut client = client_create(Some(&service_key.value));
             let user = user_create_with_password(
-                &client,
+                &mut client,
                 true,
                 USER_NAME,
                 &user_email,
@@ -459,55 +463,56 @@ macro_rules! auth_local_integration_test {
                 false,
                 USER_PASSWORD,
             );
-            let _user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
+            let _user_key =
+                user_key_create(&mut client, KEY_NAME, KeyType::Token, service.id, user);
 
-            let body = AuthResetPasswordRequest::new(&user_email);
+            let body = pb::AuthResetPasswordRequest::new(&user_email);
             client.auth_local_reset_password(body).unwrap();
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_reset_password_confirm_unauthorised() {
-            let client = client_create(Some(INVALID_KEY));
-            let body = AuthResetPasswordConfirmRequest::new(INVALID_KEY, USER_PASSWORD);
+        fn auth_local_reset_password_confirm_unauthorised() {
+            let mut client = client_create(Some(INVALID_KEY));
+            let body = pb::AuthResetPasswordConfirmRequest::new(INVALID_KEY, USER_PASSWORD);
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::UNAUTHORIZED.as_u16());
+            assert_eq!(res.code(), tonic::Code::Unauthenticated);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_reset_password_confirm_bad_request_invalid_token() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn auth_local_reset_password_confirm_bad_request_invalid_token() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
 
-            let client = client_create(Some(&service_key.value));
-            let body = AuthResetPasswordConfirmRequest::new("", USER_PASSWORD);
+            let mut client = client_create(Some(&service_key.value));
+            let body = pb::AuthResetPasswordConfirmRequest::new("", USER_PASSWORD);
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_reset_password_confirm_bad_request_invalid_password() {
-            let client = client_create(None);
-            let (_service, service_key) = service_key_create(&client);
+        fn auth_local_reset_password_confirm_bad_request_invalid_password() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
 
-            let client = client_create(Some(&service_key.value));
-            let body = AuthResetPasswordConfirmRequest::new(INVALID_KEY, "");
+            let mut client = client_create(Some(&service_key.value));
+            let body = pb::AuthResetPasswordConfirmRequest::new(INVALID_KEY, "");
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::BAD_REQUEST.as_u16());
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
         }
 
         #[test]
         #[ignore]
-        fn api_auth_local_update_email_forbidden_user_password_require_update() {
-            let client = client_create(None);
-            let (service, service_key) = service_key_create(&client);
+        fn auth_local_update_email_forbidden_user_password_require_update() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
 
-            let client = client_create(Some(&service_key.value));
+            let mut client = client_create(Some(&service_key.value));
             let user = user_create_with_password(
-                &client,
+                &mut client,
                 true,
                 USER_NAME,
                 &user_email,
@@ -515,15 +520,16 @@ macro_rules! auth_local_integration_test {
                 true,
                 USER_PASSWORD,
             );
-            let user_key = user_key_create(&client, KEY_NAME, KeyType::Token, service.id, user);
+            let (user, _user_key) =
+                user_key_create(&mut client, KEY_NAME, KeyType::Token, service.id, user);
 
-            let body = AuthUpdateEmailRequest {
-                user_id: user_key.user.id,
+            let body = pb::AuthUpdateEmailRequest {
+                user_id: user.id,
                 password: USER_PASSWORD.to_owned(),
                 new_email: email_create(),
             };
             let res = client.auth_local_update_email(body).unwrap_err();
-            assert_eq!(res.status_code(), StatusCode::FORBIDDEN.as_u16());
+            assert_eq!(res.code(), tonic::Code::PermissionDenied);
         }
     };
 }

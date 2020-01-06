@@ -1271,3 +1271,29 @@ impl pb::AuthTotpRequest {
         }
     }
 }
+
+impl pb::AuthRegisterRequest {
+    pub fn new<N, E>(name: N, email: E) -> Self
+    where
+        N: Into<String>,
+        E: Into<String>,
+    {
+        let mut x = Self::default();
+        x.name = name.into();
+        x.email = email.into();
+        x
+    }
+}
+
+impl pb::AuthResetPasswordConfirmRequest {
+    pub fn new<T, P>(token: T, password: P) -> Self
+    where
+        T: Into<String>,
+        P: Into<String>,
+    {
+        let mut x = Self::default();
+        x.token = token.into();
+        x.password = password.into();
+        x
+    }
+}

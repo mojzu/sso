@@ -187,6 +187,7 @@ pub struct KeyCreate {
     pub is_enabled: bool,
     pub is_revoked: bool,
     pub type_: KeyType,
+    // #[validate(custom = "validate::name")]
     pub name: String,
     pub value: String,
     pub service_id: Option<Uuid>,
@@ -327,6 +328,7 @@ pub struct KeyUpdate {
     pub id: Uuid,
     pub is_enabled: Option<bool>,
     pub is_revoked: Option<bool>,
+    // #[validate(custom = "validate::name")]
     pub name: Option<String>,
 }
 
