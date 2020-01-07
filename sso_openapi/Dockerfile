@@ -9,4 +9,4 @@ ENV DEBIAN_FRONTEND="noninteractive"
 
 # Copy and start server binary.
 COPY --from=build /sso/sso_openapi/sso-openapi-server .
-CMD ["./sso-openapi-server"]
+ENTRYPOINT ["./sso-openapi-server"]
