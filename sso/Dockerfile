@@ -15,4 +15,4 @@ RUN apt-get update \
 
 # Copy and start server binary.
 COPY --from=build /sso/target/release/sso-grpc-server .
-CMD ["./sso-grpc-server"]
+ENTRYPOINT ["./sso-grpc-server"]
