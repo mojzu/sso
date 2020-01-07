@@ -4,6 +4,7 @@ mod http;
 mod methods;
 mod options;
 pub mod util;
+pub mod validate;
 
 pub mod pb {
     //! Generated protobuf server and client items.
@@ -39,7 +40,7 @@ impl fmt::Debug for Server {
 }
 
 impl Server {
-    /// Returns a new `Server`.
+    /// Returns new `Server`.
     pub fn new(driver: Box<dyn Driver>, options: ServerOptions) -> Self {
         let client = options.client().unwrap();
         let smtp_client = options.smtp_client().unwrap();
@@ -54,9 +55,19 @@ impl Server {
         }
     }
 
+    /// Returns reference to `ServerOptions`.
+    pub fn options(&self) -> &ServerOptions {
+        &self.options
+    }
+
     /// Returns reference to driver.
     pub fn driver(&self) -> Arc<Box<dyn Driver>> {
         self.driver.clone()
+    }
+
+    /// Returns reference to HTTP client.
+    pub fn client(&self) -> Arc<reqwest::Client> {
+        self.client.clone()
     }
 
     /// Build email callback function. Must be called from blocking context.
@@ -334,15 +345,7 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: tonic::Request<pb::AuthLoginRequest>,
     ) -> Result<tonic::Response<pb::AuthLoginReply>, tonic::Status> {
-        methods::auth::local::login(
-            self.driver.clone(),
-            self.client.clone(),
-            self.options.password_pwned_enabled(),
-            self.options.access_token_expires(),
-            self.options.refresh_token_expires(),
-            request,
-        )
-        .await
+        methods::auth::local::login(self, request).await
     }
 
     async fn auth_local_register(

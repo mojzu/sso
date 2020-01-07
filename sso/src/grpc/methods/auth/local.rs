@@ -1,25 +1,33 @@
 use crate::{
     api::{self, ApiError, ApiResult},
-    grpc::{methods::auth::api_csrf_verify, pb, util::*},
+    grpc::{self, methods::auth::api_csrf_verify, pb, util::*, Server},
     *,
 };
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
+use validator::{Validate, ValidationErrors};
+
+impl Validate for pb::AuthLoginRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        grpc::validate::wrapper(|errors| {
+            grpc::validate::email(errors, "email", &self.email);
+            grpc::validate::password(errors, "password", &self.password);
+        })
+    }
+}
 
 pub async fn login(
-    driver: Arc<Box<dyn Driver>>,
-    client: Arc<reqwest::Client>,
-    password_pwned_enabled: bool,
-    access_token_expires: i64,
-    refresh_token_expires: i64,
+    server: &Server,
     request: Request<pb::AuthLoginRequest>,
 ) -> Result<Response<pb::AuthLoginReply>, Status> {
     let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+    let req = grpc::validate::validate(request.into_inner())?;
 
-    let driver = driver.clone();
+    let driver = server.driver();
+    let client = server.client();
+    let password_pwned_enabled = server.options().password_pwned_enabled();
+    let access_token_expires = server.options().access_token_expires();
+    let refresh_token_expires = server.options().refresh_token_expires();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalLogin);
         let password_meta = api::password_meta(
