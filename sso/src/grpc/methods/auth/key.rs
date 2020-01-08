@@ -1,21 +1,28 @@
+use crate::grpc::{validate, Server};
 use crate::{
     api::{self, ApiError},
     grpc::{pb, util::*},
     *,
 };
-use std::sync::Arc;
-use tonic::{Request, Response, Status};
+use tonic::{Response, Status};
+use validator::{Validate, ValidationErrors};
+
+impl Validate for pb::AuthKeyRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::key(e, "key", &self.key);
+            validate::audit_type_opt(e, "audit", self.audit.as_ref().map(|x| &**x));
+        })
+    }
+}
 
 pub async fn verify(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthKeyRequest>,
+    server: &Server,
+    request: MetaRequest<pb::AuthKeyRequest>,
 ) -> Result<Response<pb::AuthKeyReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthKeyVerify);
         let res: Result<(User, KeyWithValue, Option<Audit>), Status> = {
@@ -64,15 +71,12 @@ pub async fn verify(
 }
 
 pub async fn revoke(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthKeyRequest>,
+    server: &Server,
+    request: MetaRequest<pb::AuthKeyRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthKeyRevoke);
         let res: Result<Option<Audit>, Status> = {

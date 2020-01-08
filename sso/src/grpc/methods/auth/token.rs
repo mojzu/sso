@@ -1,21 +1,28 @@
+use crate::grpc::{validate, Server};
 use crate::{
     api::{self, ApiError},
     grpc::{methods::auth::api_csrf_verify, pb, util::*},
     *,
 };
-use std::sync::Arc;
-use tonic::{Request, Response, Status};
+use tonic::{Response, Status};
+use validator::{Validate, ValidationErrors};
+
+impl Validate for pb::AuthTokenRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::token(e, "token", &self.token);
+            validate::audit_type_opt(e, "audit", self.audit.as_ref().map(|x| &**x));
+        })
+    }
+}
 
 pub async fn verify(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthTokenRequest>,
+    server: &Server,
+    request: MetaRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthTokenVerifyReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTokenVerify);
         let res: Result<(User, UserTokenAccess, Option<Audit>), Status> = {
@@ -78,17 +85,14 @@ pub async fn verify(
 }
 
 pub async fn refresh(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthTokenRequest>,
-    access_token_expires: i64,
-    refresh_token_expires: i64,
+    server: &Server,
+    request: MetaRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthTokenReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
+    let access_token_expires = server.options().access_token_expires();
+    let refresh_token_expires = server.options().refresh_token_expires();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTokenRefresh);
         let res: Result<(UserToken, Option<Audit>), Status> = {
@@ -159,15 +163,12 @@ pub async fn refresh(
 }
 
 pub async fn revoke(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthTokenRequest>,
+    server: &Server,
+    request: MetaRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTokenRevoke);
         let res: Result<Option<Audit>, Status> = {

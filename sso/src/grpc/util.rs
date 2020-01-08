@@ -1,10 +1,13 @@
-use crate::{grpc::pb, *};
+use crate::{
+    grpc::{self, pb},
+    *,
+};
 use chrono::{DateTime, Utc};
 use core::pin::Pin;
 use std::convert::TryFrom;
 use std::future::Future;
 use std::net::SocketAddr;
-use tonic::{metadata::MetadataMap, Status};
+use tonic::{metadata::MetadataMap, Request, Status};
 use uuid::Uuid;
 
 /// Run a blocking closure on threadpool.
@@ -18,6 +21,30 @@ where
     let mut f = Some(f);
     let fut = async move { tokio_executor::blocking::run(move || (f.take().unwrap())()).await };
     Box::pin(fut)
+}
+
+/// Request message with extracted metadata.
+#[derive(Debug)]
+pub struct MetaRequest<T: validator::Validate> {
+    audit: AuditMeta,
+    auth: Option<String>,
+    message: T,
+}
+
+impl<T: validator::Validate> MetaRequest<T> {
+    pub fn from_request(request: Request<T>) -> Result<Self, Status> {
+        let (audit, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
+        let message = grpc::validate::validate(request.into_inner())?;
+        Ok(MetaRequest {
+            audit,
+            auth,
+            message,
+        })
+    }
+
+    pub fn into_inner(self) -> (AuditMeta, Option<String>, T) {
+        (self.audit, self.auth, self.message)
+    }
 }
 
 /// Get audit meta and authorisation header from request metadata.

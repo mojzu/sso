@@ -1,6 +1,7 @@
+use crate::grpc::{validate, Server};
 use crate::{
     api::{self, ApiError, ApiResult},
-    grpc::{self, methods::auth::api_csrf_verify, pb, util::*, Server},
+    grpc::{methods::auth::api_csrf_verify, pb, util::*},
     *,
 };
 use std::sync::Arc;
@@ -9,19 +10,18 @@ use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::AuthLoginRequest {
     fn validate(&self) -> Result<(), ValidationErrors> {
-        grpc::validate::wrapper(|errors| {
-            grpc::validate::email(errors, "email", &self.email);
-            grpc::validate::password(errors, "password", &self.password);
+        validate::wrap(|e| {
+            validate::email(e, "email", &self.email);
+            validate::password(e, "password", &self.password);
         })
     }
 }
 
 pub async fn login(
     server: &Server,
-    request: Request<pb::AuthLoginRequest>,
+    request: MetaRequest<pb::AuthLoginRequest>,
 ) -> Result<Response<pb::AuthLoginReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = grpc::validate::validate(request.into_inner())?;
+    let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
     let client = server.client();
@@ -94,22 +94,26 @@ pub async fn login(
     Ok(Response::new(reply))
 }
 
-pub async fn register<F, E>(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthRegisterRequest>,
-    access_token_expires: i64,
-    email: F,
-) -> Result<Response<()>, Status>
-where
-    F: FnOnce(TemplateEmail) -> Result<(), E> + Send + 'static,
-    E: Into<DriverError>,
-{
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+impl Validate for pb::AuthRegisterRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::name(e, "name", &self.name);
+            validate::email(e, "email", &self.email);
+            validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
+            validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn register(
+    server: &Server,
+    request: MetaRequest<pb::AuthRegisterRequest>,
+) -> Result<Response<()>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+
+    let driver = server.driver();
+    let access_token_expires = server.options().access_token_expires();
+    let email = server.smtp_email();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalRegister);
         let res: Result<(), Status> = {
@@ -164,24 +168,26 @@ where
     Ok(Response::new(reply))
 }
 
-pub async fn register_confirm<F, E>(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthRegisterConfirmRequest>,
-    client: Arc<reqwest::Client>,
-    password_pwned_enabled: bool,
-    revoke_token_expires: i64,
-    email: F,
-) -> Result<Response<pb::AuthPasswordMetaReply>, Status>
-where
-    F: FnOnce(TemplateEmail) -> Result<(), E> + Send + 'static,
-    E: Into<DriverError>,
-{
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+impl Validate for pb::AuthRegisterConfirmRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::token(e, "token", &self.token);
+            validate::password_opt(e, "password", self.password.as_ref().map(|x| &**x));
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn register_confirm(
+    server: &Server,
+    request: MetaRequest<pb::AuthRegisterConfirmRequest>,
+) -> Result<Response<pb::AuthPasswordMetaReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+
+    let driver = server.driver();
+    let client = server.client();
+    let password_pwned_enabled = server.options().password_pwned_enabled();
+    let revoke_token_expires = server.options().revoke_token_expires();
+    let email = server.smtp_email();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalRegisterConfirm);
         let password_meta = api::password_meta(
@@ -263,15 +269,12 @@ where
 }
 
 pub async fn register_revoke(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthTokenRequest>,
+    server: &Server,
+    request: MetaRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalRegisterRevoke);
         let res: Result<Option<Audit>, Status> =

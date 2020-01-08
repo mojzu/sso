@@ -283,41 +283,35 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: tonic::Request<pb::AuthKeyRequest>,
     ) -> Result<tonic::Response<pb::AuthKeyReply>, tonic::Status> {
-        methods::auth::key::verify(self.driver.clone(), request).await
+        methods::auth::key::verify(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_key_revoke(
         &self,
         request: tonic::Request<pb::AuthKeyRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::key::revoke(self.driver.clone(), request).await
+        methods::auth::key::revoke(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_token_verify(
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthTokenVerifyReply>, tonic::Status> {
-        methods::auth::token::verify(self.driver.clone(), request).await
+        methods::auth::token::verify(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_token_refresh(
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
-        methods::auth::token::refresh(
-            self.driver.clone(),
-            request,
-            self.options.access_token_expires(),
-            self.options.refresh_token_expires(),
-        )
-        .await
+        methods::auth::token::refresh(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_token_revoke(
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::token::revoke(self.driver.clone(), request).await
+        methods::auth::token::revoke(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_totp_verify(
@@ -345,42 +339,29 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: tonic::Request<pb::AuthLoginRequest>,
     ) -> Result<tonic::Response<pb::AuthLoginReply>, tonic::Status> {
-        methods::auth::local::login(self, request).await
+        methods::auth::local::login(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_local_register(
         &self,
         request: tonic::Request<pb::AuthRegisterRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
-        methods::auth::local::register(
-            self.driver.clone(),
-            request,
-            self.options.access_token_expires(),
-            self.smtp_email(),
-        )
-        .await
+        methods::auth::local::register(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_local_register_confirm(
         &self,
         request: tonic::Request<pb::AuthRegisterConfirmRequest>,
     ) -> Result<tonic::Response<pb::AuthPasswordMetaReply>, tonic::Status> {
-        methods::auth::local::register_confirm(
-            self.driver.clone(),
-            request,
-            self.client.clone(),
-            self.options.password_pwned_enabled(),
-            self.options.revoke_token_expires(),
-            self.smtp_email(),
-        )
-        .await
+        methods::auth::local::register_confirm(self, util::MetaRequest::from_request(request)?)
+            .await
     }
 
     async fn auth_local_register_revoke(
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::local::register_revoke(self.driver.clone(), request).await
+        methods::auth::local::register_revoke(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_local_reset_password(
