@@ -77,9 +77,6 @@ RUN wget -O pandoc.deb -q "$PANDOC_URL" \
 ENV SSO_DATABASE_URL="postgres://guest:guest@localhost:5432/sso"
 # Database number of connections.
 ENV SSO_DATABASE_CONNECTIONS="10"
-# Server bind addresses (gRPC and HTTP).
-ENV SSO_BIND="0.0.0.0:7000" \
-    SSO_HTTP_BIND="0.0.0.0:7010"
 # # Server TLS configuration.
 # ENV SSO_TLS_CERT_PEM="" \
 #     SSO_TLS_KEY_PEM="" \
@@ -100,10 +97,9 @@ ENV SSO_PASSWORD_PWNED="true"
 # ENV SSO_MICROSOFT_CLIENT_ID="" \
 #     SSO_MICROSOFT_CLIENT_SECRET=""
 # OpenAPI gateway configuration.
-ENV SSO_OPENAPI_GRPC="localhost:7000" \
-    SSO_OPENAPI_BIND="localhost:8000"
+ENV SSO_OPENAPI_GRPC_URL="localhost:7042"
 # Integration test variables.
-ENV SSO_TEST_URL="http://localhost:7000" \
+ENV SSO_TEST_URL="http://localhost:7042" \
     SSO_TEST_KEY="E2GGVLXZJ6NPEV6SJKAHYISSGPNL23LTJE"
 
 # Copy project files and set working directory.

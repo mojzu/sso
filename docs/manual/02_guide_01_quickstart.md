@@ -20,7 +20,7 @@ Start services.
 docker-compose up
 ```
 
-If successful `sso-grpc-server` is now available at `localhost:7000`, and `sso-openapi-server` is available at `localhost:8000`.
+If successful `sso-grpc-server` is now available at `localhost:7042`, and `sso-openapi-server` is available at `localhost:8042`.
 
 ```bash
 curl -v localhost:8000/ping

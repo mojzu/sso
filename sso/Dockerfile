@@ -7,6 +7,12 @@ RUN cargo make release;
 FROM debian:10.2
 ENV DEBIAN_FRONTEND="noninteractive"
 
+# gRPC server port.
+EXPOSE 7042
+
+# HTTP server port.
+EXPOSE 7043
+
 # Install dependencies.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

@@ -16,10 +16,6 @@ const ENV_DATABASE_URL: &str = "SSO_DATABASE_URL";
 /// Database connection.
 const ENV_DATABASE_CONNECTIONS: &str = "SSO_DATABASE_CONNECTIONS";
 
-/// Server bind address (gRPC).
-const ENV_BIND: &str = "SSO_BIND";
-/// Server bind address (HTTP).
-const ENV_HTTP_BIND: &str = "SSO_HTTP_BIND";
 /// Server TLS certificate file.
 const ENV_TLS_CERT_PEM: &str = "SSO_TLS_CERT_PEM";
 /// Server TLS key file.
@@ -103,8 +99,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .unwrap();
     let smtp_file = env::string_opt(ENV_SMTP_FILE);
 
-    let bind = env::string(ENV_BIND).unwrap();
-    let grpc_addr = bind.parse()?;
+    let grpc_addr = "0.0.0.0:7042".parse()?;
     let options = sso::grpc::ServerOptions::new("sso", password_pwned)
         .smtp_transport(smtp)
         .smtp_file_transport(smtp_file)
@@ -131,8 +126,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_service(sso::grpc::pb::sso_server::SsoServer::new(sso))
         .serve(grpc_addr);
 
-    let http_bind = env::string(ENV_HTTP_BIND).unwrap();
-    let http_addr = http_bind.parse()?;
+    let http_addr = "0.0.0.0:7043".parse()?;
     let http_sso = sso_ref.clone();
     let http = hyper::Server::bind(&http_addr).serve(hyper::service::make_service_fn(move |_| {
         let sso_ref = http_sso.clone();

@@ -14,7 +14,7 @@ import (
 var (
 	// command-line options:
 	// gRPC server endpoint
-	grpcServerEndpoint = flag.String("grpc-server-endpoint", os.Getenv("SSO_OPENAPI_GRPC"), "gRPC server endpoint")
+	grpcServerEndpoint = flag.String("grpc-server-url", os.Getenv("SSO_OPENAPI_GRPC_URL"), "gRPC server URL")
 )
 
 func run() error {
@@ -32,7 +32,7 @@ func run() error {
 	}
 
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
-	return http.ListenAndServe(os.Getenv("SSO_OPENAPI_BIND"), mux)
+	return http.ListenAndServe(":8042", mux)
 }
 
 func main() {
