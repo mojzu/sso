@@ -1,21 +1,35 @@
+use crate::grpc::{validate, Server};
 use crate::{
-    api::{self, ApiError, ApiResult, ValidateRequest},
+    api::{self, ApiError, ApiResult},
     grpc::{pb, util::*},
     *,
 };
 use std::convert::TryInto;
-use std::sync::Arc;
-use tonic::{Request, Response, Status};
+use tonic::{Response, Status};
+use validator::{Validate, ValidationErrors};
+
+impl Validate for pb::KeyListRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
+            validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
+            validate::limit_opt(e, "limit", self.limit);
+            validate::uuid_vec(e, "id", &self.id);
+            validate::key_type_vec(e, "type", &self.r#type);
+            validate::uuid_vec(e, "service_id", &self.service_id);
+            validate::uuid_vec(e, "user_id", &self.user_id);
+        })
+    }
+}
 
 pub async fn list(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::KeyListRequest>,
+    server: &Server,
+    request: MetaRequest<pb::KeyListRequest>,
 ) -> Result<Response<pb::KeyListReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: KeyList = request.into_inner().try_into()?;
-    KeyList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: KeyList = req.try_into()?;
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyList);
         let res: Result<Vec<Key>, Status> = {
@@ -39,15 +53,25 @@ pub async fn list(
     Ok(Response::new(reply))
 }
 
-pub async fn create(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::KeyCreateRequest>,
-) -> Result<Response<pb::KeyCreateReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: KeyCreate = request.into_inner().try_into()?;
-    KeyCreate::status_validate(&req)?;
+impl Validate for pb::KeyCreateRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::key_type(e, "type", self.r#type);
+            validate::name(e, "name", &self.name);
+            validate::uuid_opt(e, "service_id", self.service_id.as_ref().map(|x| &**x));
+            validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn create(
+    server: &Server,
+    request: MetaRequest<pb::KeyCreateRequest>,
+) -> Result<Response<pb::KeyCreateReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: KeyCreate = req.try_into()?;
+
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyCreate);
         let res: Result<KeyWithValue, Status> = {
@@ -111,16 +135,23 @@ pub async fn create(
     Ok(Response::new(reply))
 }
 
-pub async fn read(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::KeyReadRequest>,
-) -> Result<Response<pb::KeyReadReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: KeyRead = request.into_inner().try_into()?;
-    // TODO(refactor): Validate input.
-    // KeyRead::status_validate(&req)?;
+impl Validate for pb::KeyReadRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+            validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn read(
+    server: &Server,
+    request: MetaRequest<pb::KeyReadRequest>,
+) -> Result<Response<pb::KeyReadReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: KeyRead = req.try_into()?;
+
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyRead);
         let res: Result<Key, Status> = {
@@ -140,15 +171,23 @@ pub async fn read(
     Ok(Response::new(reply))
 }
 
-pub async fn update(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::KeyUpdateRequest>,
-) -> Result<Response<pb::KeyReadReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: KeyUpdate = request.into_inner().try_into()?;
-    KeyUpdate::status_validate(&req)?;
+impl Validate for pb::KeyUpdateRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+            validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn update(
+    server: &Server,
+    request: MetaRequest<pb::KeyUpdateRequest>,
+) -> Result<Response<pb::KeyReadReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: KeyUpdate = req.try_into()?;
+
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyUpdate);
         let res: Result<(Key, Key), Status> = {
@@ -179,15 +218,13 @@ pub async fn update(
 }
 
 pub async fn delete(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::KeyReadRequest>,
+    server: &Server,
+    request: MetaRequest<pb::KeyReadRequest>,
 ) -> Result<Response<()>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: KeyRead = request.into_inner().try_into()?;
-    // TODO(refactor): Validate input.
-    // KeyRead::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: KeyRead = req.try_into()?;
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyDelete);
         let res: Result<Key, Status> = {

@@ -1,8 +1,10 @@
 use crate::{
-    AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, NAME_MAX_LEN, USER_LOCALE_MAX_LEN,
-    USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN, USER_TIMEZONE_MAX_LEN,
+    KeyType, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, NAME_MAX_LEN,
+    USER_LOCALE_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN, USER_TIMEZONE_MAX_LEN,
 };
+use std::convert::TryInto;
 use tonic::Status;
+use uuid::Uuid;
 use validator::{Validate, ValidationError, ValidationErrors};
 
 pub fn email(errors: &mut ValidationErrors, field: &'static str, value: &str) {
@@ -26,6 +28,12 @@ pub fn password_opt(errors: &mut ValidationErrors, field: &'static str, value: O
 pub fn name(errors: &mut ValidationErrors, field: &'static str, value: &str) {
     if value.is_empty() || value.len() > NAME_MAX_LEN {
         errors.add(field, ValidationError::new("name_invalid"));
+    }
+}
+
+pub fn name_opt(errors: &mut ValidationErrors, field: &'static str, value: Option<&str>) {
+    if let Some(value) = value {
+        name(errors, field, value);
     }
 }
 
@@ -83,6 +91,73 @@ pub fn audit_type(errors: &mut ValidationErrors, field: &'static str, value: &st
 pub fn audit_type_opt(errors: &mut ValidationErrors, field: &'static str, value: Option<&str>) {
     if let Some(value) = value {
         audit_type(errors, field, value);
+    }
+}
+
+pub fn audit_type_vec(errors: &mut ValidationErrors, field: &'static str, value: &[String]) {
+    for v in value {
+        audit_type(errors, field, v);
+    }
+}
+
+pub fn limit(errors: &mut ValidationErrors, field: &'static str, value: i64) {
+    if value < 0 {
+        errors.add(field, ValidationError::new("limit_invalid"));
+    }
+}
+
+pub fn limit_opt(errors: &mut ValidationErrors, field: &'static str, value: Option<i64>) {
+    if let Some(value) = value {
+        limit(errors, field, value);
+    }
+}
+
+pub fn uuid(errors: &mut ValidationErrors, field: &'static str, value: &str) {
+    if let Err(_e) = Uuid::parse_str(value) {
+        errors.add(field, ValidationError::new("uuid_invalid"));
+    }
+}
+
+pub fn uuid_opt(errors: &mut ValidationErrors, field: &'static str, value: Option<&str>) {
+    if let Some(value) = value {
+        uuid(errors, field, value);
+    }
+}
+
+pub fn uuid_vec(errors: &mut ValidationErrors, field: &'static str, value: &[String]) {
+    for v in value {
+        uuid(errors, field, v);
+    }
+}
+
+pub fn audit_subject(errors: &mut ValidationErrors, field: &'static str, value: &str) {
+    if value.is_empty() || value.len() > AUDIT_SUBJECT_MAX_LEN {
+        errors.add(field, ValidationError::new("audit_subject_invalid"));
+    }
+}
+
+pub fn audit_subject_opt(errors: &mut ValidationErrors, field: &'static str, value: Option<&str>) {
+    if let Some(value) = value {
+        audit_subject(errors, field, value);
+    }
+}
+
+pub fn audit_subject_vec(errors: &mut ValidationErrors, field: &'static str, value: &[String]) {
+    for v in value {
+        audit_subject(errors, field, v);
+    }
+}
+
+pub fn key_type(errors: &mut ValidationErrors, field: &'static str, value: i32) {
+    let x: Result<KeyType, ()> = value.try_into();
+    if let Err(_e) = x {
+        errors.add(field, ValidationError::new("key_type_invalid"));
+    }
+}
+
+pub fn key_type_vec(errors: &mut ValidationErrors, field: &'static str, value: &[i32]) {
+    for v in value {
+        key_type(errors, field, *v);
     }
 }
 

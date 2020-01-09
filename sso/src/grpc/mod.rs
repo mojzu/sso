@@ -133,10 +133,12 @@ impl Server {
 #[tonic::async_trait]
 impl pb::sso_server::Sso for Server {
     async fn ping(&self, _: Request<()>) -> Result<Response<String>, Status> {
+        // Method implemented in HTTP server.
         Err(Status::not_found(""))
     }
 
     async fn metrics(&self, _: Request<()>) -> Result<Response<String>, Status> {
+        // Method implemented in HTTP server.
         Err(Status::not_found(""))
     }
 
@@ -144,63 +146,63 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: Request<pb::AuditListRequest>,
     ) -> Result<Response<pb::AuditListReply>, Status> {
-        methods::audit::list(self.driver.clone(), request).await
+        methods::audit::list(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn audit_create(
         &self,
         request: Request<pb::AuditCreateRequest>,
     ) -> Result<Response<pb::AuditReadReply>, Status> {
-        methods::audit::create(self.driver.clone(), request).await
+        methods::audit::create(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn audit_read(
         &self,
         request: Request<pb::AuditReadRequest>,
     ) -> Result<Response<pb::AuditReadReply>, Status> {
-        methods::audit::read(self.driver.clone(), request).await
+        methods::audit::read(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn audit_update(
         &self,
         request: Request<pb::AuditUpdateRequest>,
     ) -> Result<Response<pb::AuditReadReply>, Status> {
-        methods::audit::update(self.driver.clone(), request).await
+        methods::audit::update(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn key_list(
         &self,
         request: tonic::Request<pb::KeyListRequest>,
     ) -> Result<tonic::Response<pb::KeyListReply>, tonic::Status> {
-        methods::key::list(self.driver.clone(), request).await
+        methods::key::list(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn key_create(
         &self,
         request: tonic::Request<pb::KeyCreateRequest>,
     ) -> Result<tonic::Response<pb::KeyCreateReply>, tonic::Status> {
-        methods::key::create(self.driver.clone(), request).await
+        methods::key::create(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn key_read(
         &self,
         request: tonic::Request<pb::KeyReadRequest>,
     ) -> Result<tonic::Response<pb::KeyReadReply>, tonic::Status> {
-        methods::key::read(self.driver.clone(), request).await
+        methods::key::read(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn key_update(
         &self,
         request: tonic::Request<pb::KeyUpdateRequest>,
     ) -> Result<tonic::Response<pb::KeyReadReply>, tonic::Status> {
-        methods::key::update(self.driver.clone(), request).await
+        methods::key::update(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn key_delete(
         &self,
         request: tonic::Request<pb::KeyReadRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
-        methods::key::delete(self.driver.clone(), request).await
+        methods::key::delete(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn service_list(

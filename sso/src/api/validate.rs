@@ -6,7 +6,6 @@ use crate::{
     USER_TIMEZONE_MAX_LEN,
 };
 use chrono_tz::Tz;
-use serde::de::DeserializeOwned;
 use std::str::FromStr;
 use tonic::Status;
 use unic_langid::LanguageIdentifier;
@@ -24,16 +23,6 @@ pub trait ValidateRequest<T: Validate> {
     fn status_validate(t: &T) -> Result<(), Status> {
         t.validate()
             .map_err(|e| Status::invalid_argument(format!("{}", e)))
-    }
-}
-
-/// API deserialise from request query string trait.
-pub trait ValidateRequestQuery<T: DeserializeOwned> {
-    fn from_str(s: &str) -> ApiResult<T> {
-        serde_qs::from_str(s)
-            .map_err::<DriverError, _>(Into::into)
-            .map_err(ApiError::BadRequest)
-            .map_err::<tonic::Status, _>(Into::into)
     }
 }
 

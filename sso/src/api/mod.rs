@@ -3,11 +3,7 @@ mod error;
 mod password;
 pub mod validate;
 
-pub use crate::api::{
-    error::*,
-    password::*,
-    validate::{ValidateRequest, ValidateRequestQuery},
-};
+pub use crate::api::{error::*, password::*, validate::ValidateRequest};
 
 use crate::{AuditBuilder, AuditDiff, AuditDiffBuilder, AuditSubject, Driver};
 use http::StatusCode;

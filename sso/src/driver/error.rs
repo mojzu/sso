@@ -150,8 +150,8 @@ pub enum DriverError {
     #[fail(display = "SerdeJson {}", _0)]
     SerdeJson(#[fail(cause)] serde_json::Error),
 
-    #[fail(display = "SerdeQs {}", _0)]
-    SerdeQs(String),
+    #[fail(display = "SerdeUrlencoded {}", _0)]
+    SerdeUrlencoded(String),
 
     #[fail(display = "UuidParse {}", _0)]
     UuidParse(#[fail(cause)] uuid::parser::ParseError),
@@ -211,9 +211,9 @@ impl From<libreauth::oath::ErrorCode> for DriverError {
     }
 }
 
-impl From<serde_qs::Error> for DriverError {
-    fn from(e: serde_qs::Error) -> Self {
-        Self::SerdeQs(e.description().to_owned())
+impl From<serde_urlencoded::ser::Error> for DriverError {
+    fn from(e: serde_urlencoded::ser::Error) -> Self {
+        Self::SerdeUrlencoded(format!("{}", e))
     }
 }
 

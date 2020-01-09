@@ -59,7 +59,7 @@ impl Service {
             type_: type_.into(),
             data,
         };
-        let query = serde_qs::to_string(&query).map_err::<DriverError, _>(Into::into)?;
+        let query = serde_urlencoded::to_string(&query).map_err::<DriverError, _>(|e| e.into())?;
         url.set_query(Some(&query));
         Ok(url)
     }

@@ -1,21 +1,58 @@
+use crate::grpc::{validate, Server};
 use crate::{
-    api::{self, ApiError, ValidateRequest},
+    api::{self, ApiError},
     grpc::{pb, util::*},
     *,
 };
+use chrono::Utc;
 use std::convert::TryInto;
-use std::sync::Arc;
-use tonic::{Request, Response, Status};
+use tonic::{Response, Status};
+use validator::{Validate, ValidationErrors};
+
+impl Validate for pb::AuditListRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::limit_opt(e, "limit", self.limit);
+            validate::uuid_opt(e, "offset_id", self.offset_id.as_ref().map(|x| &**x));
+            validate::uuid_vec(e, "id", &self.id);
+            validate::audit_type_vec(e, "type", &self.r#type);
+            validate::audit_subject_vec(e, "subject", &self.subject);
+            validate::uuid_vec(e, "service_id", &self.service_id);
+            validate::uuid_vec(e, "user_id", &self.user_id);
+        })
+    }
+}
+
+impl From<pb::AuditListRequest> for AuditList {
+    fn from(x: pb::AuditListRequest) -> Self {
+        let limit = x.limit.unwrap_or(DEFAULT_LIMIT);
+        let ge = timestamp_opt_to_datetime_opt(x.ge);
+        let le = timestamp_opt_to_datetime_opt(x.le);
+        let offset_id = string_opt_to_uuid_opt(x.offset_id).unwrap();
+        let query = match (ge, le) {
+            (Some(ge), Some(le)) => AuditListQuery::CreatedLeAndGe(le, ge, limit, offset_id),
+            (Some(ge), None) => AuditListQuery::CreatedGe(ge, limit, offset_id),
+            (None, Some(le)) => AuditListQuery::CreatedLe(le, limit, offset_id),
+            (None, None) => AuditListQuery::CreatedLe(Utc::now(), limit, offset_id),
+        };
+        let filter = AuditListFilter {
+            id: string_vec_to_uuid_vec_opt(x.id),
+            type_: string_vec_to_string_vec_opt(x.r#type),
+            subject: string_vec_to_string_vec_opt(x.subject),
+            service_id: string_vec_to_uuid_vec_opt(x.service_id),
+            user_id: string_vec_to_uuid_vec_opt(x.user_id),
+        };
+        AuditList { query, filter }
+    }
+}
 
 pub async fn list(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuditListRequest>,
+    server: &Server,
+    request: MetaRequest<AuditList>,
 ) -> Result<Response<pb::AuditListReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: AuditList = request.into_inner().try_into()?;
-    AuditList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
+    let driver = server.driver();
 
-    let driver = driver.clone();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditList);
         let res: Result<Vec<Audit>, Status> = {
@@ -39,21 +76,30 @@ pub async fn list(
     Ok(Response::new(reply))
 }
 
+impl Validate for pb::AuditCreateRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::audit_type(e, "type", &self.r#type);
+            validate::audit_subject_opt(e, "subject", self.subject.as_ref().map(|x| &**x));
+            validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
+            validate::uuid_opt(e, "user_key_id", self.user_key_id.as_ref().map(|x| &**x));
+        })
+    }
+}
+
 pub async fn create(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuditCreateRequest>,
+    server: &Server,
+    request: MetaRequest<pb::AuditCreateRequest>,
 ) -> Result<Response<pb::AuditReadReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
+    let (audit_meta, auth, req) = request.into_inner();
     let data = struct_opt_to_value_opt(req.data);
     let req = AuditCreate::new(audit_meta.clone(), req.r#type)
         .subject(req.subject)
         .data(data)
         .user_id(string_opt_to_uuid_opt(req.user_id)?)
         .user_key_id(string_opt_to_uuid_opt(req.user_key_id)?);
-    AuditCreate::status_validate(&req)?;
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditCreate);
         let res: Result<Audit, Status> = {
@@ -75,15 +121,23 @@ pub async fn create(
     Ok(Response::new(reply))
 }
 
-pub async fn read(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuditReadRequest>,
-) -> Result<Response<pb::AuditReadReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: AuditRead = request.into_inner().try_into()?;
-    AuditRead::status_validate(&req)?;
+impl Validate for pb::AuditReadRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+            validate::audit_subject_opt(e, "subject", self.subject.as_ref().map(|x| &**x));
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn read(
+    server: &Server,
+    request: MetaRequest<pb::AuditReadRequest>,
+) -> Result<Response<pb::AuditReadReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: AuditRead = req.try_into()?;
+
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditRead);
         let res: Result<Audit, Status> = {
@@ -109,15 +163,23 @@ pub async fn read(
     Ok(Response::new(reply))
 }
 
-pub async fn update(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuditUpdateRequest>,
-) -> Result<Response<pb::AuditReadReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: AuditUpdate = request.into_inner().try_into()?;
-    AuditUpdate::status_validate(&req)?;
+impl Validate for pb::AuditUpdateRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+            validate::audit_subject_opt(e, "subject", self.subject.as_ref().map(|x| &**x));
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn update(
+    server: &Server,
+    request: MetaRequest<pb::AuditUpdateRequest>,
+) -> Result<Response<pb::AuditReadReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: AuditUpdate = req.try_into()?;
+
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditUpdate);
         let res: Result<Audit, Status> = {

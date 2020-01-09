@@ -1,13 +1,10 @@
-use crate::{
-    api::{validate, ValidateRequest},
-    impl_enum_to_from_string, AuditDiff, AuditDiffBuilder, AuditSubject,
-};
+use crate::{impl_enum_to_from_string, AuditDiff, AuditDiffBuilder, AuditSubject};
 use chrono::{DateTime, Utc};
 use libreauth::key::KeyBuilder;
 use serde_json::Value;
+use std::convert::TryFrom;
 use std::fmt;
 use uuid::Uuid;
-use validator::Validate;
 
 // TODO(refactor): Add name ge/le key, service list query options.
 
@@ -31,6 +28,19 @@ impl KeyType {
             1 => Self::Token,
             2 => Self::Totp,
             _ => unimplemented!(),
+        }
+    }
+}
+
+impl TryFrom<i32> for KeyType {
+    type Error = ();
+
+    fn try_from(v: i32) -> Result<Self, Self::Error> {
+        match v {
+            0 => Ok(Self::Key),
+            1 => Ok(Self::Token),
+            2 => Ok(Self::Totp),
+            _ => Err(()),
         }
     }
 }
@@ -153,7 +163,7 @@ pub enum KeyListQuery {
 }
 
 /// Key list filter.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct KeyListFilter {
     pub id: Option<Vec<Uuid>>,
     pub is_enabled: Option<bool>,
@@ -161,18 +171,15 @@ pub struct KeyListFilter {
     pub type_: Option<Vec<KeyType>>,
     pub service_id: Option<Vec<Uuid>>,
     pub user_id: Option<Vec<Uuid>>,
-    #[validate(custom = "validate::limit")]
     pub limit: i64,
 }
 
 /// Key list.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct KeyList {
     pub query: KeyListQuery,
     pub filter: KeyListFilter,
 }
-
-impl ValidateRequest<KeyList> for KeyList {}
 
 /// Key count.
 #[derive(Debug)]
@@ -182,12 +189,11 @@ pub enum KeyCount {
 }
 
 /// Key create data.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct KeyCreate {
     pub is_enabled: bool,
     pub is_revoked: bool,
     pub type_: KeyType,
-    // #[validate(custom = "validate::name")]
     pub name: String,
     pub value: String,
     pub service_id: Option<Uuid>,
@@ -252,8 +258,6 @@ impl KeyCreate {
         }
     }
 }
-
-impl ValidateRequest<KeyCreate> for KeyCreate {}
 
 /// Key read by service ID and user ID.
 #[derive(Debug)]
@@ -323,16 +327,13 @@ impl KeyRead {
 }
 
 /// Key update data.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct KeyUpdate {
     pub id: Uuid,
     pub is_enabled: Option<bool>,
     pub is_revoked: Option<bool>,
-    // #[validate(custom = "validate::name")]
     pub name: Option<String>,
 }
-
-impl ValidateRequest<KeyUpdate> for KeyUpdate {}
 
 /// Generate new key value from random bytes.
 fn value_generate() -> String {

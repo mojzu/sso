@@ -25,20 +25,24 @@ where
 
 /// Request message with extracted metadata.
 #[derive(Debug)]
-pub struct MetaRequest<T: validator::Validate> {
+pub struct MetaRequest<T> {
     audit: AuditMeta,
     auth: Option<String>,
     message: T,
 }
 
-impl<T: validator::Validate> MetaRequest<T> {
-    pub fn from_request(request: Request<T>) -> Result<Self, Status> {
+impl<T> MetaRequest<T> {
+    pub fn from_request<R>(request: Request<R>) -> Result<Self, Status>
+    where
+        R: validator::Validate,
+        T: From<R>,
+    {
         let (audit, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
         let message = grpc::validate::validate(request.into_inner())?;
         Ok(MetaRequest {
             audit,
             auth,
-            message,
+            message: message.into(),
         })
     }
 
@@ -717,31 +721,6 @@ impl UserToken {
             token: self.refresh_token.clone(),
             token_expires: self.refresh_token_expires,
         }
-    }
-}
-
-impl TryFrom<pb::AuditListRequest> for AuditList {
-    type Error = Status;
-
-    fn try_from(r: pb::AuditListRequest) -> Result<Self, Self::Error> {
-        let limit = r.limit.unwrap_or(DEFAULT_LIMIT);
-        let ge = timestamp_opt_to_datetime_opt(r.ge);
-        let le = timestamp_opt_to_datetime_opt(r.le);
-        let offset_id = string_opt_to_uuid_opt(r.offset_id)?;
-        let query = match (ge, le) {
-            (Some(ge), Some(le)) => AuditListQuery::CreatedLeAndGe(le, ge, limit, offset_id),
-            (Some(ge), None) => AuditListQuery::CreatedGe(ge, limit, offset_id),
-            (None, Some(le)) => AuditListQuery::CreatedLe(le, limit, offset_id),
-            (None, None) => AuditListQuery::CreatedLe(Utc::now(), limit, offset_id),
-        };
-        let filter = AuditListFilter {
-            id: string_vec_to_uuid_vec_opt(r.id),
-            type_: string_vec_to_string_vec_opt(r.r#type),
-            subject: string_vec_to_string_vec_opt(r.subject),
-            service_id: string_vec_to_uuid_vec_opt(r.service_id),
-            user_id: string_vec_to_uuid_vec_opt(r.user_id),
-        };
-        Ok(AuditList { query, filter })
     }
 }
 
