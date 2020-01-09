@@ -16,4 +16,4 @@ scrape_configs:
 
   - job_name: "sso"
     static_configs:
-      - targets: ["localhost:7010"]
+      - targets: ["localhost:7043"]
