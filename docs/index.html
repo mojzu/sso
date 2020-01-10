@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="Sam Ward" />
-  <title>sso 0.8.0</title>
+  <title>sso 0.9.0</title>
   <style>
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
@@ -342,7 +342,7 @@ font-size: 16px;
 <div id="toc">
 <div class="toc">
 <header id="title-block-header">
-<h1 class="title">sso 0.8.0</h1>
+<h1 class="title">sso 0.9.0</h1>
 <p class="author">Sam Ward</p>
 </header>
 <nav id="TOC" role="doc-toc">
@@ -529,7 +529,7 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 <div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1"></a><span class="ex">docker-compose</span> build</span></code></pre></div>
 <p>Start services.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1"></a><span class="ex">docker-compose</span> up</span></code></pre></div>
-<p>If successful <code>sso-grpc-server</code> is now available at <code>localhost:7000</code>, and <code>sso-openapi-server</code> is available at <code>localhost:8000</code>.</p>
+<p>If successful <code>sso-grpc-server</code> is now available at <code>localhost:7042</code>, and <code>sso-openapi-server</code> is available at <code>localhost:8042</code>.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1"></a><span class="ex">curl</span> -v localhost:8000/ping</span></code></pre></div>
 </section>
 <section id="deployment" data-number="2.2">
@@ -925,8 +925,8 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 </section>
 <section id="api" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> API</h1>
-<p>The <a href="https://www.getpostman.com/">Postman</a> collection JSON file can be found in <code>docs/sso.postman_collection.json</code>.</p>
-<p>TODO(docs): <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> definition file?</p>
+<p>Documentation is available in an <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> version 2 definition file.</p>
+<p><a href="asset/sso.swagger.json">sso.swagger.json</a></p>
 </section>
 <section id="cli" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> CLI</h1>
@@ -936,12 +936,17 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 <h1 data-number="5"><span class="header-section-number">5</span> Changelog</h1>
 <section id="section" data-number="5.1">
 <h2 data-number="5.1"><span class="header-section-number">5.1</span> 0.9.0 (?)</h2>
-<section id="added" data-number="5.1.1">
-<h3 data-number="5.1.1"><span class="header-section-number">5.1.1</span> Added</h3>
+<section id="breaking" data-number="5.1.1">
+<h3 data-number="5.1.1"><span class="header-section-number">5.1.1</span> Breaking</h3>
+<ul>
+<li>Rewrite to use <code>tonic</code> gRPC server instead of <code>actix-web</code> HTTP server.</li>
+</ul>
+</section>
+<section id="added" data-number="5.1.2">
+<h3 data-number="5.1.2"><span class="header-section-number">5.1.2</span> Added</h3>
 <ul>
 <li>Added <code>compare_opt</code> function to AuditDiffBuilder.</li>
 <li>Added optional <code>subject</code> query parameter to audit read endpoint to mask by subject.</li>
-<li>Added <code>SERVER_THREADS</code> environment configuration option, defaults to 4.</li>
 <li>Added scheduled tasks for audit log retention support.</li>
 <li>Added <code>auth/provider/local/register/revoke</code>, <code>auth/provider/local/reset-password/revoke</code> endpoints.</li>
 </ul>
@@ -1424,7 +1429,7 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 <p>Development tools are run with the command.</p>
 <div class="sourceCode" id="cb71"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb71-1"><a href="#cb71-1"></a><span class="ex">docker</span> run --rm --user <span class="va">$(</span><span class="fu">id</span> -u<span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> -g<span class="va">)</span> --network host -v <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">:/sso&quot;</span> -t sso-build:latest <span class="va">$ARGS</span></span></code></pre></div>
 <p>Create an alias on Linux for the above with the command.</p>
-<div class="sourceCode" id="cb72"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb72-1"><a href="#cb72-1"></a><span class="bu">alias</span> sso-build=<span class="st">&#39;docker run --rm --init --user $(id -u):$(id -g) --network host -v &quot;$(pwd):/sso&quot; -t sso-build:latest&#39;</span></span></code></pre></div>
+<div class="sourceCode" id="cb72"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb72-1"><a href="#cb72-1"></a><span class="bu">alias</span> sso-build=<span class="st">&#39;docker run -it --rm --init --user $(id -u):$(id -g) --network host -v &quot;$(pwd):/sso&quot; -t sso-build:latest&#39;</span></span></code></pre></div>
 <p>Environment variables are configured in <code>Dockerfile</code>.</p>
 <p>Services are run using <a href="https://docs.docker.com/compose/">Docker Compose</a>, start them with the command.</p>
 <div class="sourceCode" id="cb73"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb73-1"><a href="#cb73-1"></a><span class="ex">docker-compose</span> build</span>

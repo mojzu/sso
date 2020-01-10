@@ -24,30 +24,86 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
             }
         }
     };
+    responses: {
+        key: "400";
+        value: {
+            description: "Returned when the request is invalid.";
+            schema {
+                json_schema {
+                    ref: ".sso.ErrorReply";
+                }
+            }
+        }
+    };
+    responses: {
+        key: "401";
+        value: {
+            description: "Returned when the request is not authenticated.";
+            schema {
+                json_schema {
+                    ref: ".sso.ErrorReply";
+                }
+            }
+        }
+    };
+    responses: {
+        key: "403";
+        value: {
+            description: "Returned when the request is not permitted.";
+            schema {
+                json_schema {
+                    ref: ".sso.ErrorReply";
+                }
+            }
+        }
+    };
+    responses: {
+        key: "404";
+        value: {
+            description: "Returned when the requested resource does not exist.";
+            schema {
+                json_schema {
+                    ref: ".sso.ErrorReply";
+                }
+            }
+        }
+    };
 };
 
 service Sso {
     // Ping server.
     //
-    // Returns pong response.
+    // Returns pong response for uptime tests. This endpoint is only available
+    // via the HTTP server port of `sso-grpc-server`. Authentication is not
+    // required, this endpoint is intended for internal use only.
     rpc Ping (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (google.api.http) = {
             get: "/ping"
             response_body: "value"
         };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            security {}
+        };
     }
 
     // Get server metrics.
     //
-    // Returns metrics in Prometheus exposition format.
+    // Returns metrics in Prometheus exposition format. This endpoint is only available
+    // via the HTTP server port of `sso-grpc-server`. Authentication is not
+    // required, this endpoint is intended for internal use only.
     rpc Metrics (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (google.api.http) = {
             get: "/metrics"
             response_body: "value"
         };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            security {}
+        };
     }
 
     // List audit logs.
+    //
+    // All fields are optional.
     rpc AuditList (AuditListRequest) returns (AuditListReply) {
         option (google.api.http) = {
             get: "/v1/audit"
@@ -78,6 +134,8 @@ service Sso {
     }
 
     // List keys.
+    //
+    // All fields are optional.
     rpc KeyList (KeyListRequest) returns (KeyListReply) {
         option (google.api.http) = {
             get: "/v1/key"
@@ -85,6 +143,16 @@ service Sso {
     }
 
     // Create key.
+    //
+    // Service keys can only be created using a root key. If not creating a service key,
+    // field `service_id` must not be defined, user keys are always created for the service
+    // making the request.
+    //
+    // Available keys types are: `Key`, `Token`, `Totp`
+    //
+    // Root and service keys must be `Key` type.
+    // Users may only have one enabled and not revoked key where type is `Token`.
+    // Users may only have one enabled and not revoked key where type is `Totp`.
     rpc KeyCreate (KeyCreateRequest) returns (KeyCreateReply) {
         option (google.api.http) = {
             post: "/v1/key"
@@ -100,6 +168,8 @@ service Sso {
     }
 
     // Update key.
+    //
+    // All fields are optional.
     rpc KeyUpdate (KeyUpdateRequest) returns (KeyReadReply) {
         option (google.api.http) = {
             patch: "/v1/key/{id}"
@@ -115,6 +185,8 @@ service Sso {
     }
 
     // List services.
+    //
+    // All fields are optional.
     rpc ServiceList (ServiceListRequest) returns (ServiceListReply) {
         option (google.api.http) = {
             get: "/v1/service"
@@ -137,6 +209,8 @@ service Sso {
     }
 
     // Update service.
+    //
+    // All fields are optional.
     rpc ServiceUpdate (ServiceUpdateRequest) returns (ServiceReadReply) {
         option (google.api.http) = {
             patch: "/v1/service/{id}"
@@ -152,6 +226,8 @@ service Sso {
     }
 
     // List users.
+    //
+    // All fields are optional.
     rpc UserList (UserListRequest) returns (UserListReply) {
         option (google.api.http) = {
             get: "/v1/user"
@@ -159,6 +235,9 @@ service Sso {
     }
 
     // Create user.
+    //
+    // Users can be created without a password by excluding password related fields
+    // from request.
     rpc UserCreate (UserCreateRequest) returns (UserCreateReply) {
         option (google.api.http) = {
             post: "/v1/user"
@@ -174,6 +253,8 @@ service Sso {
     }
 
     // Update user.
+    //
+    // All fields are optional.
     rpc UserUpdate (UserUpdateRequest) returns (UserReadReply) {
         option (google.api.http) = {
             patch: "/v1/user/{id}"
@@ -390,6 +471,16 @@ service Sso {
             body: "*"
         };
     }
+}
+
+// Error reply.
+message ErrorReply {
+    // Error code.
+    google.protobuf.UInt32Value code = 1;
+    // Error message.
+    google.protobuf.StringValue error = 2;
+    // Error message.
+    google.protobuf.StringValue message = 3;
 }
 
 // List audit logs request.

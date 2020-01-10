@@ -14,7 +14,7 @@
     "/metrics": {
       "get": {
         "summary": "Get server metrics.",
-        "description": "Returns metrics in Prometheus exposition format.",
+        "description": "Returns metrics in Prometheus exposition format. This endpoint is only available\nvia the HTTP server port of `sso-grpc-server`. Authentication is not\nrequired, this endpoint is intended for internal use only.",
         "operationId": "Metrics",
         "responses": {
           "200": {
@@ -22,17 +22,42 @@
             "schema": {
               "type": "string"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "tags": [
           "Sso"
-        ]
+        ],
+        "security": []
       }
     },
     "/ping": {
       "get": {
         "summary": "Ping server.",
-        "description": "Returns pong response.",
+        "description": "Returns pong response for uptime tests. This endpoint is only available\nvia the HTTP server port of `sso-grpc-server`. Authentication is not\nrequired, this endpoint is intended for internal use only.",
         "operationId": "Ping",
         "responses": {
           "200": {
@@ -40,22 +65,72 @@
             "schema": {
               "type": "string"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "tags": [
           "Sso"
-        ]
+        ],
+        "security": []
       }
     },
     "/v1/audit": {
       "get": {
         "summary": "List audit logs.",
+        "description": "All fields are optional.",
         "operationId": "AuditList",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoAuditListReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -160,6 +235,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuditReadReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -186,6 +285,30 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoAuditReadReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -217,6 +340,30 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoAuditReadReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -252,6 +399,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuthCsrfCreateReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -276,6 +447,30 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -304,6 +499,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuthAuditReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -330,6 +549,30 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoAuthKeyReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -358,6 +601,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuthOauth2UrlReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "tags": [
@@ -372,6 +639,30 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoAuthTokenReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -401,6 +692,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuthLoginReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -428,6 +743,30 @@
             "description": "A successful response.",
             "schema": {
               "properties": {}
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -457,6 +796,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuthPasswordMetaReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -484,6 +847,30 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -513,6 +900,30 @@
             "schema": {
               "properties": {}
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -540,6 +951,30 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoAuthPasswordMetaReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -569,6 +1004,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuthAuditReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -596,6 +1055,30 @@
             "description": "A successful response.",
             "schema": {
               "properties": {}
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -625,6 +1108,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuthAuditReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -652,6 +1159,30 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoAuthPasswordMetaReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -681,6 +1212,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuthAuditReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -708,6 +1263,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuthOauth2UrlReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "tags": [
@@ -722,6 +1301,30 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoAuthTokenReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -750,6 +1353,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuthTokenReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -776,6 +1403,30 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -804,6 +1455,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuthTokenVerifyReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -831,6 +1506,30 @@
             "schema": {
               "$ref": "#/definitions/ssoAuthAuditReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -851,12 +1550,37 @@
     "/v1/key": {
       "get": {
         "summary": "List keys.",
+        "description": "All fields are optional.",
         "operationId": "KeyList",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoKeyListReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -955,12 +1679,37 @@
       },
       "post": {
         "summary": "Create key.",
+        "description": "Service keys can only be created using a root key. If not creating a service key,\nfield `service_id` must not be defined, user keys are always created for the service\nmaking the request.\n\nAvailable keys types are: `Key`, `Token`, `Totp`\n\nRoot and service keys must be `Key` type.\nUsers may only have one enabled and not revoked key where type is `Token`.\nUsers may only have one enabled and not revoked key where type is `Totp`.",
         "operationId": "KeyCreate",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoKeyCreateReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -988,6 +1737,30 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoKeyReadReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -1020,6 +1793,30 @@
             "schema": {
               "properties": {}
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -1044,12 +1841,37 @@
       },
       "patch": {
         "summary": "Update key.",
+        "description": "All fields are optional.",
         "operationId": "KeyUpdate",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoKeyReadReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -1078,12 +1900,37 @@
     "/v1/service": {
       "get": {
         "summary": "List services.",
+        "description": "All fields are optional.",
         "operationId": "ServiceList",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoServiceListReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -1143,6 +1990,30 @@
             "schema": {
               "$ref": "#/definitions/ssoServiceReadReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -1170,6 +2041,30 @@
             "schema": {
               "$ref": "#/definitions/ssoServiceReadReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -1194,6 +2089,30 @@
             "schema": {
               "properties": {}
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -1211,12 +2130,37 @@
       },
       "patch": {
         "summary": "Update service.",
+        "description": "All fields are optional.",
         "operationId": "ServiceUpdate",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoServiceReadReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -1245,12 +2189,37 @@
     "/v1/user": {
       "get": {
         "summary": "List users.",
+        "description": "All fields are optional.",
         "operationId": "UserList",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoUserListReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -1327,12 +2296,37 @@
       },
       "post": {
         "summary": "Create user.",
+        "description": "Users can be created without a password by excluding password related fields\nfrom request.",
         "operationId": "UserCreate",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoUserCreateReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -1361,6 +2355,30 @@
             "schema": {
               "$ref": "#/definitions/ssoUserReadReply"
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -1385,6 +2403,30 @@
             "schema": {
               "properties": {}
             }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
           }
         },
         "parameters": [
@@ -1402,12 +2444,37 @@
       },
       "patch": {
         "summary": "Update user.",
+        "description": "All fields are optional.",
         "operationId": "UserUpdate",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ssoUserReadReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
             }
           }
         },
@@ -2007,6 +3074,25 @@
         }
       },
       "description": "CSRF."
+    },
+    "ssoErrorReply": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Error code."
+        },
+        "error": {
+          "type": "string",
+          "description": "Error message."
+        },
+        "message": {
+          "type": "string",
+          "description": "Error message."
+        }
+      },
+      "description": "Error reply."
     },
     "ssoKey": {
       "type": "object",

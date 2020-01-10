@@ -1,5 +1,5 @@
 # API
 
-The [Postman][postman] collection JSON file can be found in `docs/sso.postman_collection.json`.
+Documentation is available in an [OpenAPI][openapi] version 2 definition file.
 
-TODO(docs): [OpenAPI][openapi] definition file?
+[sso.swagger.json](asset/sso.swagger.json)

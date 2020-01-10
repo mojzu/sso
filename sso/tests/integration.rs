@@ -9,6 +9,7 @@ use support::*;
 // User password is updated.
 // Cannot reuse token.
 // Register tests, multiple services, etc.
+// TODO(test): Test audit update append only.
 
 audit_integration_test!();
 auth_csrf_integration_test!();
