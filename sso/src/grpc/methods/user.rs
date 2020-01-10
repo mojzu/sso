@@ -1,21 +1,36 @@
+use crate::grpc::{validate, Server};
 use crate::{
-    api::{self, ApiError, ApiResult, ValidateRequest},
+    api::{self, ApiError, ApiResult},
     grpc::{pb, util::*},
     *,
 };
 use std::convert::TryInto;
-use std::sync::Arc;
-use tonic::{Request, Response, Status};
+use tonic::{Response, Status};
+use validator::{Validate, ValidationErrors};
+
+impl Validate for pb::UserListRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
+            validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
+            validate::name_opt(e, "name_ge", self.name_ge.as_ref().map(|x| &**x));
+            validate::name_opt(e, "name_le", self.name_le.as_ref().map(|x| &**x));
+            validate::limit_opt(e, "limit", self.limit);
+            validate::uuid_opt(e, "offset_id", self.offset_id.as_ref().map(|x| &**x));
+            validate::uuid_vec(e, "id", &self.id);
+            validate::email_vec(e, "email", &self.email);
+        })
+    }
+}
 
 pub async fn list(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::UserListRequest>,
+    server: &Server,
+    request: MetaRequest<pb::UserListRequest>,
 ) -> Result<Response<pb::UserListReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: UserList = request.into_inner().try_into()?;
-    UserList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: UserList = req.try_into()?;
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::UserList);
         let res: Result<Vec<User>, Status> = {
@@ -38,19 +53,29 @@ pub async fn list(
     Ok(Response::new(reply))
 }
 
+impl Validate for pb::UserCreateRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::name(e, "name", &self.name);
+            validate::email(e, "email", &self.email);
+            validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
+            validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
+            validate::password_opt(e, "password", self.password.as_ref().map(|x| &**x));
+        })
+    }
+}
+
 pub async fn create(
-    driver: Arc<Box<dyn Driver>>,
-    client: Arc<reqwest::Client>,
-    password_pwned_enabled: bool,
-    request: Request<pb::UserCreateRequest>,
+    server: &Server,
+    request: MetaRequest<pb::UserCreateRequest>,
 ) -> Result<Response<pb::UserCreateReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
+    let (audit_meta, auth, req) = request.into_inner();
     let password = req.password.clone();
     let req: UserCreate = req.try_into()?;
-    UserCreate::status_validate(&req)?;
 
-    let driver = driver.clone();
+    let driver = server.driver();
+    let client = server.client();
+    let password_pwned_enabled = server.options().password_pwned_enabled();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::UserCreate);
         let password_meta = api::password_meta(client.as_ref(), password_pwned_enabled, password)
@@ -76,16 +101,22 @@ pub async fn create(
     Ok(Response::new(reply))
 }
 
-pub async fn read(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::UserReadRequest>,
-) -> Result<Response<pb::UserReadReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: UserRead = request.into_inner().try_into()?;
-    // TODO(refactor): Validate input.
-    // UserRead::status_validate(&req)?;
+impl Validate for pb::UserReadRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn read(
+    server: &Server,
+    request: MetaRequest<pb::UserReadRequest>,
+) -> Result<Response<pb::UserReadReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: UserRead = req.try_into()?;
+
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::UserRead);
         let res: Result<User, Status> = {
@@ -104,15 +135,25 @@ pub async fn read(
     Ok(Response::new(reply))
 }
 
-pub async fn update(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::UserUpdateRequest>,
-) -> Result<Response<pb::UserReadReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: UserUpdate = request.into_inner().try_into()?;
-    UserUpdate::status_validate(&req)?;
+impl Validate for pb::UserUpdateRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+            validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
+            validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
+            validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn update(
+    server: &Server,
+    request: MetaRequest<pb::UserUpdateRequest>,
+) -> Result<Response<pb::UserReadReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: UserUpdate = req.try_into()?;
+
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::UserUpdate);
         let res: Result<(User, User), Status> = {
@@ -136,15 +177,13 @@ pub async fn update(
 }
 
 pub async fn delete(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::UserReadRequest>,
+    server: &Server,
+    request: MetaRequest<pb::UserReadRequest>,
 ) -> Result<Response<()>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: UserRead = request.into_inner().try_into()?;
-    // TODO(refactor): Validate input.
-    // UserRead::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: UserRead = req.try_into()?;
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::UserDelete);
         let res: Result<User, Status> = {

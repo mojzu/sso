@@ -1,17 +1,5 @@
 # Design
 
-## Architecture
-
-| Directory     | Description                                                                                           |
-| ------------- | ----------------------------------------------------------------------------------------------------- |
-| `migrations`  | SQL migration files for [Postgres][postgresql] driver.                                                |
-| `/src/api`    | API request and response types and synchronous handlers.                                              |
-| `/src/client` | Synchronous and asynchronous clients using [reqwest][reqwest] crate and `api` module types.           |
-| `/src/driver` | Database types and driver for Postgres.                                                               |
-| `/src/notify` | Email notifications actor.                                                                            |
-| `/src/server` | Actix-web frontend for API, asynchronous route handlers deserialise data for synchronous `api` calls. |
-| `/tests`      | Integration tests which use `ClientSync` to run tests against an instance of `sso`.                   |
-
 ## Dependencies
 
 Crate dependencies for cryptography, authentication.

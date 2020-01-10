@@ -209,76 +209,70 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: tonic::Request<pb::ServiceListRequest>,
     ) -> Result<tonic::Response<pb::ServiceListReply>, tonic::Status> {
-        methods::service::list(self.driver.clone(), request).await
+        methods::service::list(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn service_create(
         &self,
         request: tonic::Request<pb::ServiceCreateRequest>,
     ) -> Result<tonic::Response<pb::ServiceReadReply>, tonic::Status> {
-        methods::service::create(self.driver.clone(), request).await
+        methods::service::create(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn service_read(
         &self,
         request: tonic::Request<pb::ServiceReadRequest>,
     ) -> Result<tonic::Response<pb::ServiceReadReply>, tonic::Status> {
-        methods::service::read(self.driver.clone(), request).await
+        methods::service::read(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn service_update(
         &self,
         request: tonic::Request<pb::ServiceUpdateRequest>,
     ) -> Result<tonic::Response<pb::ServiceReadReply>, tonic::Status> {
-        methods::service::update(self.driver.clone(), request).await
+        methods::service::update(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn service_delete(
         &self,
         request: tonic::Request<pb::ServiceReadRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
-        methods::service::delete(self.driver.clone(), request).await
+        methods::service::delete(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn user_list(
         &self,
         request: tonic::Request<pb::UserListRequest>,
     ) -> Result<tonic::Response<pb::UserListReply>, tonic::Status> {
-        methods::user::list(self.driver.clone(), request).await
+        methods::user::list(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn user_create(
         &self,
         request: tonic::Request<pb::UserCreateRequest>,
     ) -> Result<tonic::Response<pb::UserCreateReply>, tonic::Status> {
-        methods::user::create(
-            self.driver.clone(),
-            self.client.clone(),
-            self.options.password_pwned_enabled(),
-            request,
-        )
-        .await
+        methods::user::create(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn user_read(
         &self,
         request: tonic::Request<pb::UserReadRequest>,
     ) -> Result<tonic::Response<pb::UserReadReply>, tonic::Status> {
-        methods::user::read(self.driver.clone(), request).await
+        methods::user::read(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn user_update(
         &self,
         request: tonic::Request<pb::UserUpdateRequest>,
     ) -> Result<tonic::Response<pb::UserReadReply>, tonic::Status> {
-        methods::user::update(self.driver.clone(), request).await
+        methods::user::update(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn user_delete(
         &self,
         request: tonic::Request<pb::UserReadRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
-        methods::user::delete(self.driver.clone(), request).await
+        methods::user::delete(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_key_verify(

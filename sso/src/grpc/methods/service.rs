@@ -1,22 +1,33 @@
+use crate::grpc::{validate, Server};
 use crate::{
-    api::{self, ApiError, ApiResult, ValidateRequest},
+    api::{self, ApiError, ApiResult},
     grpc::{pb, util::*},
     *,
 };
 use std::convert::TryInto;
-use std::sync::Arc;
-use tonic::{Request, Response, Status};
+use tonic::{Response, Status};
 use uuid::Uuid;
+use validator::{Validate, ValidationErrors};
+
+impl Validate for pb::ServiceListRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
+            validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
+            validate::limit_opt(e, "limit", self.limit);
+            validate::uuid_vec(e, "id", &self.id);
+        })
+    }
+}
 
 pub async fn list(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::ServiceListRequest>,
+    server: &Server,
+    request: MetaRequest<pb::ServiceListRequest>,
 ) -> Result<Response<pb::ServiceListReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: ServiceList = request.into_inner().try_into()?;
-    ServiceList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: ServiceList = req.try_into()?;
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceList);
         let res: Result<Vec<Service>, Status> = {
@@ -42,15 +53,43 @@ pub async fn list(
     Ok(Response::new(reply))
 }
 
-pub async fn create(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::ServiceCreateRequest>,
-) -> Result<Response<pb::ServiceReadReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: ServiceCreate = request.into_inner().try_into()?;
-    ServiceCreate::status_validate(&req)?;
+impl Validate for pb::ServiceCreateRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::name(e, "name", &self.name);
+            validate::url(e, "url", &self.url);
+            validate::text_opt(
+                e,
+                "user_email_text",
+                self.user_email_text.as_ref().map(|x| &**x),
+            );
+            validate::url_opt(
+                e,
+                "provider_local_url",
+                self.provider_local_url.as_ref().map(|x| &**x),
+            );
+            validate::url_opt(
+                e,
+                "provider_github_oauth2_url",
+                self.provider_github_oauth2_url.as_ref().map(|x| &**x),
+            );
+            validate::url_opt(
+                e,
+                "provider_microsoft_oauth2_url",
+                self.provider_microsoft_oauth2_url.as_ref().map(|x| &**x),
+            );
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn create(
+    server: &Server,
+    request: MetaRequest<pb::ServiceCreateRequest>,
+) -> Result<Response<pb::ServiceReadReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: ServiceCreate = req.try_into()?;
+
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceCreate);
         let res: Result<Service, Status> = {
@@ -72,15 +111,22 @@ pub async fn create(
     Ok(Response::new(reply))
 }
 
-pub async fn read(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::ServiceReadRequest>,
-) -> Result<Response<pb::ServiceReadReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: ServiceRead = request.into_inner().try_into()?;
-    ServiceRead::status_validate(&req)?;
+impl Validate for pb::ServiceReadRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn read(
+    server: &Server,
+    request: MetaRequest<pb::ServiceReadRequest>,
+) -> Result<Response<pb::ServiceReadReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: ServiceRead = req.try_into()?;
+
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceRead);
         let res: Result<Service, Status> = {
@@ -99,15 +145,44 @@ pub async fn read(
     Ok(Response::new(reply))
 }
 
-pub async fn update(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::ServiceUpdateRequest>,
-) -> Result<Response<pb::ServiceReadReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: ServiceUpdate = request.into_inner().try_into()?;
-    ServiceUpdate::status_validate(&req)?;
+impl Validate for pb::ServiceUpdateRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+            validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
+            validate::url_opt(e, "url", self.url.as_ref().map(|x| &**x));
+            validate::text_opt(
+                e,
+                "user_email_text",
+                self.user_email_text.as_ref().map(|x| &**x),
+            );
+            validate::url_opt(
+                e,
+                "provider_local_url",
+                self.provider_local_url.as_ref().map(|x| &**x),
+            );
+            validate::url_opt(
+                e,
+                "provider_github_oauth2_url",
+                self.provider_github_oauth2_url.as_ref().map(|x| &**x),
+            );
+            validate::url_opt(
+                e,
+                "provider_microsoft_oauth2_url",
+                self.provider_microsoft_oauth2_url.as_ref().map(|x| &**x),
+            );
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn update(
+    server: &Server,
+    request: MetaRequest<pb::ServiceUpdateRequest>,
+) -> Result<Response<pb::ServiceReadReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: ServiceUpdate = req.try_into()?;
+
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceUpdate);
         let res: Result<(Service, Service), Status> = {
@@ -131,14 +206,13 @@ pub async fn update(
 }
 
 pub async fn delete(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::ServiceReadRequest>,
+    server: &Server,
+    request: MetaRequest<pb::ServiceReadRequest>,
 ) -> Result<Response<()>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req: ServiceRead = request.into_inner().try_into()?;
-    ServiceRead::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
+    let req: ServiceRead = req.try_into()?;
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceDelete);
         let res: Result<Service, Status> = {

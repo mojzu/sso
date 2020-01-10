@@ -1,6 +1,7 @@
 use crate::{
     KeyType, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, NAME_MAX_LEN,
-    USER_LOCALE_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN, USER_TIMEZONE_MAX_LEN,
+    TEXT_MAX_LEN, USER_LOCALE_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
+    USER_TIMEZONE_MAX_LEN,
 };
 use std::convert::TryInto;
 use tonic::Status;
@@ -10,6 +11,24 @@ use validator::{Validate, ValidationError, ValidationErrors};
 pub fn email(errors: &mut ValidationErrors, field: &'static str, value: &str) {
     if !validator::validate_email(value) {
         errors.add(field, ValidationError::new("email_invalid"));
+    }
+}
+
+pub fn email_vec(errors: &mut ValidationErrors, field: &'static str, value: &[String]) {
+    for v in value {
+        email(errors, field, v);
+    }
+}
+
+pub fn url(errors: &mut ValidationErrors, field: &'static str, value: &str) {
+    if !validator::validate_url(value) {
+        errors.add(field, ValidationError::new("url_invalid"));
+    }
+}
+
+pub fn url_opt(errors: &mut ValidationErrors, field: &'static str, value: Option<&str>) {
+    if let Some(value) = value {
+        url(errors, field, value);
     }
 }
 
@@ -158,6 +177,18 @@ pub fn key_type(errors: &mut ValidationErrors, field: &'static str, value: i32) 
 pub fn key_type_vec(errors: &mut ValidationErrors, field: &'static str, value: &[i32]) {
     for v in value {
         key_type(errors, field, *v);
+    }
+}
+
+pub fn text(errors: &mut ValidationErrors, field: &'static str, value: &str) {
+    if value.is_empty() || value.len() > TEXT_MAX_LEN {
+        errors.add(field, ValidationError::new("text_invalid"));
+    }
+}
+
+pub fn text_opt(errors: &mut ValidationErrors, field: &'static str, value: Option<&str>) {
+    if let Some(value) = value {
+        text(errors, field, value);
     }
 }
 

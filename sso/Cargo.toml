@@ -27,6 +27,8 @@ path = "src/bin/server.rs"
 default = ["postgres"]
 postgres = []
 
+# TODO(refactor): Dependency updates, audit/clippy checks.
+
 [dependencies]
 clap = "2.33.0"
 chrono = { version = "0.4.10", features = ["serde"] }
@@ -54,14 +56,13 @@ serde = "1.0.104"
 serde_derive = "1.0.104"
 serde_json = "1.0.44"
 serde_urlencoded = "0.6.1"
-sha-1 = "0.8.1"
+sha-1 = "0.8.2"
 sysinfo = "0.9.6"
 unic-langid = "0.7.1"
 url = "1.7.2"
 uuid = { version = "0.7.4", features = ["v4", "serde"] }
 validator = "0.10.0"
-validator_derive = "0.10.0"
-zxcvbn = "2.0.0"
+zxcvbn = "2.0.1"
 
 bytes = "0.4.12"
 futures-util = "0.3"

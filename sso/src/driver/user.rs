@@ -1,13 +1,9 @@
-use crate::{
-    api::{validate, ValidateRequest},
-    AuditDiff, AuditDiffBuilder, AuditSubject, DriverError, DriverResult,
-};
+use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, DriverError, DriverResult};
 use chrono::{DateTime, Utc};
 use libreauth::pass::HashBuilder;
 use serde_json::Value;
 use std::fmt;
 use uuid::Uuid;
-use validator::Validate;
 
 /// Name maximum length.
 pub const NAME_MAX_LEN: usize = 100;
@@ -141,35 +137,27 @@ pub enum UserListQuery {
 }
 
 /// User list filter.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct UserListFilter {
     pub id: Option<Vec<Uuid>>,
-    #[validate(custom = "validate::email_vec")]
     pub email: Option<Vec<String>>,
-    #[validate(custom = "validate::limit")]
     pub limit: i64,
 }
 
 /// User list.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct UserList {
     pub query: UserListQuery,
     pub filter: UserListFilter,
 }
 
-impl ValidateRequest<UserList> for UserList {}
-
 /// User create.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct UserCreate {
     pub is_enabled: bool,
-    #[validate(custom = "validate::name")]
     pub name: String,
-    #[validate(email)]
     pub email: String,
-    #[validate(custom = "validate::locale")]
     pub locale: String,
-    #[validate(custom = "validate::timezone")]
     pub timezone: String,
     pub password_allow_reset: bool,
     pub password_require_update: bool,
@@ -231,8 +219,6 @@ impl UserCreate {
     }
 }
 
-impl ValidateRequest<UserCreate> for UserCreate {}
-
 /// User read.
 #[derive(Debug)]
 pub enum UserRead {
@@ -241,16 +227,13 @@ pub enum UserRead {
 }
 
 /// User update.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct UserUpdate {
     pub id: Uuid,
     pub is_enabled: Option<bool>,
-    // #[validate(custom = "validate::name")]
     pub name: Option<String>,
     pub email: Option<String>,
-    // #[validate(custom = "validate::locale")]
     pub locale: Option<String>,
-    // #[validate(custom = "validate::timezone")]
     pub timezone: Option<String>,
     pub password_allow_reset: Option<bool>,
     pub password_require_update: Option<bool>,
@@ -326,8 +309,6 @@ impl UserUpdate {
         self
     }
 }
-
-impl ValidateRequest<UserUpdate> for UserUpdate {}
 
 /// User token.
 #[derive(Debug, Clone, Serialize, Deserialize)]

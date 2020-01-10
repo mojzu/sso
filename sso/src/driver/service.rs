@@ -1,14 +1,10 @@
-use crate::{
-    api::{validate, ValidateRequest},
-    AuditDiff, AuditDiffBuilder, AuditSubject, DriverError, DriverResult,
-};
+use crate::{AuditDiff, AuditDiffBuilder, AuditSubject, DriverError, DriverResult};
 use chrono::{DateTime, Utc};
 use serde::ser::Serialize;
 use serde_json::Value;
 use std::fmt;
 use url::Url;
 use uuid::Uuid;
-use validator::Validate;
 
 /// Service.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -173,46 +169,35 @@ pub enum ServiceListQuery {
 }
 
 /// Service list filter.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct ServiceListFilter {
     pub id: Option<Vec<Uuid>>,
     pub is_enabled: Option<bool>,
-    #[validate(custom = "validate::limit")]
     pub limit: i64,
 }
 
 /// Service list.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct ServiceList {
     pub query: ServiceListQuery,
     pub filter: ServiceListFilter,
 }
 
-impl ValidateRequest<ServiceList> for ServiceList {}
-
 /// Service create.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct ServiceCreate {
     pub is_enabled: bool,
-    // #[validate(custom = "validate::name")]
     pub name: String,
-    // #[validate(url)]
     pub url: String,
     pub user_allow_register: bool,
-    // #[validate(custom = "validate::text")]
     pub user_email_text: String,
-    // #[validate(url)]
     pub provider_local_url: Option<String>,
-    // #[validate(url)]
     pub provider_github_oauth2_url: Option<String>,
-    // #[validate(url)]
     pub provider_microsoft_oauth2_url: Option<String>,
 }
 
-impl ValidateRequest<ServiceCreate> for ServiceCreate {}
-
 /// Service read.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct ServiceRead {
     pub id: Uuid,
 }
@@ -223,29 +208,19 @@ impl ServiceRead {
     }
 }
 
-impl ValidateRequest<ServiceRead> for ServiceRead {}
-
 /// Service update.
-#[derive(Debug, Validate)]
+#[derive(Debug)]
 pub struct ServiceUpdate {
     pub id: Uuid,
     pub is_enabled: Option<bool>,
-    // #[validate(custom = "validate::name")]
     pub name: Option<String>,
-    // #[validate(url)]
     pub url: Option<String>,
     pub user_allow_register: Option<bool>,
-    // #[validate(custom = "validate::text")]
     pub user_email_text: Option<String>,
-    // #[validate(url)]
     pub provider_local_url: Option<String>,
-    // #[validate(url)]
     pub provider_github_oauth2_url: Option<String>,
-    // #[validate(url)]
     pub provider_microsoft_oauth2_url: Option<String>,
 }
-
-impl ValidateRequest<ServiceUpdate> for ServiceUpdate {}
 
 #[cfg(test)]
 mod tests {

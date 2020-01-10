@@ -383,10 +383,9 @@ font-size: 16px;
 </ul></li>
 <li><a href="#design"><span class="toc-section-number">6</span> Design</a>
 <ul>
-<li><a href="#architecture"><span class="toc-section-number">6.1</span> Architecture</a></li>
-<li><a href="#dependencies"><span class="toc-section-number">6.2</span> Dependencies</a></li>
-<li><a href="#possible-features"><span class="toc-section-number">6.3</span> Possible Features</a></li>
-<li><a href="#owasp-asvs"><span class="toc-section-number">6.4</span> OWASP: ASVS</a></li>
+<li><a href="#dependencies"><span class="toc-section-number">6.1</span> Dependencies</a></li>
+<li><a href="#possible-features"><span class="toc-section-number">6.2</span> Possible Features</a></li>
+<li><a href="#owasp-asvs"><span class="toc-section-number">6.3</span> OWASP: ASVS</a></li>
 </ul></li>
 <li><a href="#developer"><span class="toc-section-number">7</span> Developer</a></li>
 </ul>
@@ -530,7 +529,10 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 <p>Start services.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1"></a><span class="ex">docker-compose</span> up</span></code></pre></div>
 <p>If successful <code>sso-grpc-server</code> is now available at <code>localhost:7042</code>, and <code>sso-openapi-server</code> is available at <code>localhost:8042</code>.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1"></a><span class="ex">curl</span> -v localhost:8000/ping</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1"></a><span class="ex">curl</span> localhost:7043/ping</span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="co"># Pong</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="ex">curl</span> localhost:8042/ping</span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="co"># {&quot;code&quot;:5}</span></span></code></pre></div>
 </section>
 <section id="deployment" data-number="2.2">
 <h2 data-number="2.2"><span class="header-section-number">2.2</span> Deployment</h2>
@@ -1176,53 +1178,8 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 </section>
 <section id="design" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> Design</h1>
-<section id="architecture" data-number="6.1">
-<h2 data-number="6.1"><span class="header-section-number">6.1</span> Architecture</h2>
-<table>
-<colgroup>
-<col style="width: 11%"></col>
-<col style="width: 88%"></col>
-</colgroup>
-<thead>
-<tr class="header">
-<th>Directory</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>migrations</code></td>
-<td>SQL migration files for <a href="https://www.postgresql.org/">Postgres</a> driver.</td>
-</tr>
-<tr class="even">
-<td><code>/src/api</code></td>
-<td>API request and response types and synchronous handlers.</td>
-</tr>
-<tr class="odd">
-<td><code>/src/client</code></td>
-<td>Synchronous and asynchronous clients using <a href="https://github.com/seanmonstar/reqwest">reqwest</a> crate and <code>api</code> module types.</td>
-</tr>
-<tr class="even">
-<td><code>/src/driver</code></td>
-<td>Database types and driver for Postgres.</td>
-</tr>
-<tr class="odd">
-<td><code>/src/notify</code></td>
-<td>Email notifications actor.</td>
-</tr>
-<tr class="even">
-<td><code>/src/server</code></td>
-<td>Actix-web frontend for API, asynchronous route handlers deserialise data for synchronous <code>api</code> calls.</td>
-</tr>
-<tr class="odd">
-<td><code>/tests</code></td>
-<td>Integration tests which use <code>ClientSync</code> to run tests against an instance of <code>sso</code>.</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="dependencies" data-number="6.2">
-<h2 data-number="6.2"><span class="header-section-number">6.2</span> Dependencies</h2>
+<section id="dependencies" data-number="6.1">
+<h2 data-number="6.1"><span class="header-section-number">6.1</span> Dependencies</h2>
 <p>Crate dependencies for cryptography, authentication.</p>
 <ul>
 <li><a href="https://docs.rs/libreauth/0.12.0/libreauth/">libreauth</a></li>
@@ -1230,30 +1187,30 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 <li><a href="https://github.com/ramosbugs/oauth2-rs">oauth2-rs</a></li>
 </ul>
 </section>
-<section id="possible-features" data-number="6.3">
-<h2 data-number="6.3"><span class="header-section-number">6.3</span> Possible Features</h2>
+<section id="possible-features" data-number="6.2">
+<h2 data-number="6.2"><span class="header-section-number">6.2</span> Possible Features</h2>
 <p>TODO(feature): User sessions route for active tokens/keys. TODO(feature): Support more OAuth2 providers. TODO(feature): Webauthn support. <a href="https://webauthn.guide/" class="uri">https://webauthn.guide/</a> <a href="https://webauthn.org/" class="uri">https://webauthn.org/</a> TODO(feature): Configurable canary routes. TODO(feature): Improved public library API interface (gui service as example?). TODO(feature): Email translation/formatting using user locale and timezone. TODO(feature): Handle changes to password hash version. TODO(feature): Option to enforce provider URLs HTTPS. TODO(feature): User last login, key last use information (calculate in SQL). TODO(feature): Login from unknown IP address warnings, SMS support? TODO(feature): Jsonwebtoken handling improvements. <a href="https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html" class="uri">https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html</a> TODO(feature): Support more process/other metrics, check units. <a href="https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors" class="uri">https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors</a> <a href="https://peteris.rocks/blog/htop/" class="uri">https://peteris.rocks/blog/htop/</a> TODO(feature): Service IP whitelist. TODO(feature): Service/user groups for segmentation.</p>
 </section>
-<section id="owasp-asvs" data-number="6.4">
-<h2 data-number="6.4"><span class="header-section-number">6.4</span> OWASP: ASVS</h2>
+<section id="owasp-asvs" data-number="6.3">
+<h2 data-number="6.3"><span class="header-section-number">6.3</span> OWASP: ASVS</h2>
 <p><a href="https://www.owasp.org/index.php/Category:OWASP_Application_Security_Verification_Standard_Project">OWASP ASVS</a></p>
 <p>The OWASP Application Security Verification Standard is being used as a reference to improve this application. These are some development and design notes based on requirements from the 4.0 version of the ASVS standard. This is a self-evaluation and should be viewed skeptically.</p>
-<section id="section-9" data-number="6.4.1">
-<h3 data-number="6.4.1"><span class="header-section-number">6.4.1</span> 1.2.1</h3>
+<section id="section-9" data-number="6.3.1">
+<h3 data-number="6.3.1"><span class="header-section-number">6.3.1</span> 1.2.1</h3>
 <ul>
 <li>Binary sso and postgres must be run as unique or special low privilege operating system accounts.</li>
 </ul>
 <p>TODO(docs): Systemd unit file examples, sso, postgres, nginx, etc.</p>
 </section>
-<section id="section-10" data-number="6.4.2">
-<h3 data-number="6.4.2"><span class="header-section-number">6.4.2</span> 1.2.2</h3>
+<section id="section-10" data-number="6.3.2">
+<h3 data-number="6.3.2"><span class="header-section-number">6.3.2</span> 1.2.2</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
 </ul>
 <p>TODO(docs): Mutual TLS using rustls configuration and PKI for communication between sso and services.</p>
 </section>
-<section id="section-11" data-number="6.4.3">
-<h3 data-number="6.4.3"><span class="header-section-number">6.4.3</span> 1.2.3</h3>
+<section id="section-11" data-number="6.3.3">
+<h3 data-number="6.3.3"><span class="header-section-number">6.3.3</span> 1.2.3</h3>
 <ul>
 <li>Binary sso is designed to provide multiple authentication mechanisms, none of which have been vetted.</li>
 <li>Relies on libraries which may be unvetted, e.g. libreauth, jsonwebtoken, rustls, etc.</li>
@@ -1263,23 +1220,23 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 </ul>
 <p>TODO(feature): Audit logging and prometheus metrics improvements for detecting account abuse and breaches.</p>
 </section>
-<section id="section-12" data-number="6.4.4">
-<h3 data-number="6.4.4"><span class="header-section-number">6.4.4</span> 1.2.4</h3>
+<section id="section-12" data-number="6.3.4">
+<h3 data-number="6.3.4"><span class="header-section-number">6.3.4</span> 1.2.4</h3>
 <ul>
 <li>All authentication pathways are designed to be as strong as that pathway can be.</li>
 <li>For example, email password resets are supported which are probably not considered strong.</li>
 </ul>
 <p>TODO(feature): More opt-ins for pathway branches that may be weak, for example ability to reset passwords by email.</p>
 </section>
-<section id="section-13" data-number="6.4.5">
-<h3 data-number="6.4.5"><span class="header-section-number">6.4.5</span> 1.4.1</h3>
+<section id="section-13" data-number="6.3.5">
+<h3 data-number="6.3.5"><span class="header-section-number">6.3.5</span> 1.4.1</h3>
 <ul>
 <li>All access controls are enforced at a trusted enforcement point (the server).</li>
 <li>Registered services must implement their own access controls for their own data.</li>
 </ul>
 </section>
-<section id="section-14" data-number="6.4.6">
-<h3 data-number="6.4.6"><span class="header-section-number">6.4.6</span> 1.4.2</h3>
+<section id="section-14" data-number="6.3.6">
+<h3 data-number="6.3.6"><span class="header-section-number">6.3.6</span> 1.4.2</h3>
 <ul>
 <li>Access controls are designed for many services and many users, where users have access to one or more services.</li>
 <li>All registered services can read all registered users, other services and keys belonging to them are hidden.</li>
@@ -1287,34 +1244,34 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 </ul>
 <p>TODO(test): More tests for data access, is service data masked correctly.</p>
 </section>
-<section id="section-15" data-number="6.4.7">
-<h3 data-number="6.4.7"><span class="header-section-number">6.4.7</span> 1.4.3</h3>
+<section id="section-15" data-number="6.3.7">
+<h3 data-number="6.3.7"><span class="header-section-number">6.3.7</span> 1.4.3</h3>
 <ul>
 <li>Verify enforcement of principle of least privelege, requires more integration tests.</li>
 </ul>
 <p>TODO(test): More tests on preventing spoofing, elevation of privelege.</p>
 </section>
-<section id="section-16" data-number="6.4.8">
-<h3 data-number="6.4.8"><span class="header-section-number">6.4.8</span> 1.4.4</h3>
+<section id="section-16" data-number="6.3.8">
+<h3 data-number="6.3.8"><span class="header-section-number">6.3.8</span> 1.4.4</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
 </ul>
 <p>TODO(refactor): Service key authentication mechanism code is split across files, cleaner code.</p>
 </section>
-<section id="section-17" data-number="6.4.9">
-<h3 data-number="6.4.9"><span class="header-section-number">6.4.9</span> 1.4.5</h3>
+<section id="section-17" data-number="6.3.9">
+<h3 data-number="6.3.9"><span class="header-section-number">6.3.9</span> 1.4.5</h3>
 <ul>
 <li>This crate provides user authentication, not access control, is this out of scope?</li>
 </ul>
 <p>TODO(feature): Structured data for users, may require access controls.</p>
 </section>
-<section id="section-18" data-number="6.4.10">
-<h3 data-number="6.4.10"><span class="header-section-number">6.4.10</span> 1.5.1</h3>
+<section id="section-18" data-number="6.3.10">
+<h3 data-number="6.3.10"><span class="header-section-number">6.3.10</span> 1.5.1</h3>
 <p>TODO(docs): GDPR and other data protection compliance research.</p>
 <p>Terms of service columns and user accepted columns, handle changes to terms.</p>
 </section>
-<section id="section-19" data-number="6.4.11">
-<h3 data-number="6.4.11"><span class="header-section-number">6.4.11</span> 1.5.2</h3>
+<section id="section-19" data-number="6.3.11">
+<h3 data-number="6.3.11"><span class="header-section-number">6.3.11</span> 1.5.2</h3>
 <ul>
 <li>API for sso is JSON requests over HTTP so serialisation is required.</li>
 <li>Using <a href="https://github.com/serde-rs/serde">serde</a> and <a href="https://github.com/samscott89/serde_qs">serde_qs</a> for serialisation and deserialisation.</li>
@@ -1322,22 +1279,22 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 <p>TODO(test): Test requests with other/unknown content types are handled correctly.</p>
 <p>TODO(feature): Flag(s) to require HTTPS to ensure all requests/responses are encrypted in transmit.</p>
 </section>
-<section id="section-20" data-number="6.4.12">
-<h3 data-number="6.4.12"><span class="header-section-number">6.4.12</span> 1.5.3</h3>
+<section id="section-20" data-number="6.3.12">
+<h3 data-number="6.3.12"><span class="header-section-number">6.3.12</span> 1.5.3</h3>
 <ul>
 <li>Input validation is enforced at a trusted enforcement point (the server).</li>
 <li>Using <a href="https://github.com/Keats/validator">validator</a> for input validation.</li>
 </ul>
 <p>TODO(test): More input tests including unicode passwords, bad strings, etc.</p>
 </section>
-<section id="section-21" data-number="6.4.13">
-<h3 data-number="6.4.13"><span class="header-section-number">6.4.13</span> 1.5.4</h3>
+<section id="section-21" data-number="6.3.13">
+<h3 data-number="6.3.13"><span class="header-section-number">6.3.13</span> 1.5.4</h3>
 <ul>
 <li>All output encoding is <a href="https://en.wikipedia.org/wiki/UTF-8">UTF-8</a>.</li>
 </ul>
 </section>
-<section id="section-22" data-number="6.4.14">
-<h3 data-number="6.4.14"><span class="header-section-number">6.4.14</span> 1.6.1</h3>
+<section id="section-22" data-number="6.3.14">
+<h3 data-number="6.3.14"><span class="header-section-number">6.3.14</span> 1.6.1</h3>
 <ul>
 <li>Key values are used for <a href="https://jwt.io/">JWT</a> cryptographic encoding and decoding.</li>
 <li>Key values are only returned to service or user on creation.</li>
@@ -1345,28 +1302,28 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 </ul>
 <p>TODO(docs): Check this meets key management standard NIST SP 800-57.</p>
 </section>
-<section id="section-23" data-number="6.4.15">
-<h3 data-number="6.4.15"><span class="header-section-number">6.4.15</span> 1.6.2</h3>
+<section id="section-23" data-number="6.3.15">
+<h3 data-number="6.3.15"><span class="header-section-number">6.3.15</span> 1.6.2</h3>
 <ul>
 <li>Cannot verify that services protect created key values.</li>
 </ul>
 </section>
-<section id="section-24" data-number="6.4.16">
-<h3 data-number="6.4.16"><span class="header-section-number">6.4.16</span> 1.6.3</h3>
+<section id="section-24" data-number="6.3.16">
+<h3 data-number="6.3.16"><span class="header-section-number">6.3.16</span> 1.6.3</h3>
 <ul>
 <li>No hard-coded keys or passwords, all keys and passwords can be replaced.</li>
 </ul>
 </section>
-<section id="section-25" data-number="6.4.17">
-<h3 data-number="6.4.17"><span class="header-section-number">6.4.17</span> 1.6.4</h3>
+<section id="section-25" data-number="6.3.17">
+<h3 data-number="6.3.17"><span class="header-section-number">6.3.17</span> 1.6.4</h3>
 <ul>
 <li>API key support is clear-text equivalent.</li>
 <li>Authentication via API key is probably not considered low risk secret.</li>
 <li>Keys can be disabled/revoked to mitigate breaches, but this is not a solution.</li>
 </ul>
 </section>
-<section id="section-26" data-number="6.4.18">
-<h3 data-number="6.4.18"><span class="header-section-number">6.4.18</span> 1.7.1, 1.7.2</h3>
+<section id="section-26" data-number="6.3.18">
+<h3 data-number="6.3.18"><span class="header-section-number">6.3.18</span> 1.7.1, 1.7.2</h3>
 <ul>
 <li>Audit log format is common and used when making calls via API.</li>
 <li>Stdout/stderr logging is not consistent.</li>
@@ -1375,37 +1332,37 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 </ul>
 <p>TODO(feature): Option to transmit audit logs, stdout/stderr to external service(s).</p>
 </section>
-<section id="section-27" data-number="6.4.19">
-<h3 data-number="6.4.19"><span class="header-section-number">6.4.19</span> 1.8.1, 1.8.2</h3>
+<section id="section-27" data-number="6.3.19">
+<h3 data-number="6.3.19"><span class="header-section-number">6.3.19</span> 1.8.1, 1.8.2</h3>
 <ul>
 <li>Sensitive data is not identified or classified into protection levels.</li>
 </ul>
 <p>TODO(docs): Evaluate data and identify/classify sensitive data.</p>
 <p>TODO(refactor): Audit log retention configuration.</p>
 </section>
-<section id="section-28" data-number="6.4.20">
-<h3 data-number="6.4.20"><span class="header-section-number">6.4.20</span> 1.9.1, 1.9.2</h3>
+<section id="section-28" data-number="6.3.20">
+<h3 data-number="6.3.20"><span class="header-section-number">6.3.20</span> 1.9.1, 1.9.2</h3>
 <ul>
 <li>Connection to database, other services must be encrypted.</li>
 </ul>
 <p>TODO(docs): Mutual TLS encryption/authentication for postgres connection.</p>
 </section>
-<section id="section-29" data-number="6.4.21">
-<h3 data-number="6.4.21"><span class="header-section-number">6.4.21</span> 1.10.1</h3>
+<section id="section-29" data-number="6.3.21">
+<h3 data-number="6.3.21"><span class="header-section-number">6.3.21</span> 1.10.1</h3>
 <ul>
 <li>Git and GitHub used for source code control, no formal commit procedure.</li>
 </ul>
 <p>TODO(docs): Some kind of formalised procedures around source code changes.</p>
 </section>
-<section id="section-30" data-number="6.4.22">
-<h3 data-number="6.4.22"><span class="header-section-number">6.4.22</span> 1.11.1</h3>
+<section id="section-30" data-number="6.3.22">
+<h3 data-number="6.3.22"><span class="header-section-number">6.3.22</span> 1.11.1</h3>
 <ul>
 <li>Little documentation and definitions of application components, out of date.</li>
 </ul>
 <p>TODO(docs): Up to date documentation and definitions of application components, diagrams.</p>
 </section>
-<section id="section-31" data-number="6.4.23">
-<h3 data-number="6.4.23"><span class="header-section-number">6.4.23</span> 1.11.2, 1.11.3</h3>
+<section id="section-31" data-number="6.3.23">
+<h3 data-number="6.3.23"><span class="header-section-number">6.3.23</span> 1.11.2, 1.11.3</h3>
 <ul>
 <li>No unsynchronised state shared between high-value business logic flows.</li>
 <li>All code should be threadsafe (no use of unsafe).</li>
@@ -1413,8 +1370,8 @@ GET,PATCH /v1/audit/$audit_id</code></pre>
 </ul>
 <p>TODO(feature): Constant time responses for authentication endpoints to resist timing attacks.</p>
 </section>
-<section id="section-32" data-number="6.4.24">
-<h3 data-number="6.4.24"><span class="header-section-number">6.4.24</span> 1.12.1, 1.12.2</h3>
+<section id="section-32" data-number="6.3.24">
+<h3 data-number="6.3.24"><span class="header-section-number">6.3.24</span> 1.12.1, 1.12.2</h3>
 <ul>
 <li>No user uploaded files, if feature added in future files will be stored as binary blobs in database.</li>
 <li>Serve files as octet stream downloads if added.</li>

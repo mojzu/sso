@@ -23,5 +23,8 @@ docker-compose up
 If successful `sso-grpc-server` is now available at `localhost:7042`, and `sso-openapi-server` is available at `localhost:8042`.
 
 ```bash
-curl -v localhost:8000/ping
+curl localhost:7043/ping
+# Pong
+curl localhost:8042/ping
+# {"code":5}
 ```

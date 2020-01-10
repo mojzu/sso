@@ -2,14 +2,10 @@
 use crate::{
     api::{ApiError, ApiResult},
     DriverError, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES,
-    NAME_MAX_LEN, TEXT_MAX_LEN, USER_LOCALE_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
-    USER_TIMEZONE_MAX_LEN,
+    NAME_MAX_LEN, TEXT_MAX_LEN,
 };
-use chrono_tz::Tz;
-use std::str::FromStr;
 use tonic::Status;
-use unic_langid::LanguageIdentifier;
-use validator::{validate_email, Validate, ValidationError};
+use validator::{Validate, ValidationError};
 
 /// API validate request trait.
 pub trait ValidateRequest<T: Validate> {
@@ -45,49 +41,6 @@ pub fn name(name: &str) -> Result<(), ValidationError> {
 pub fn text(text: &str) -> Result<(), ValidationError> {
     if text.is_empty() || text.len() > TEXT_MAX_LEN {
         Err(ValidationError::new("invalid_text"))
-    } else {
-        Ok(())
-    }
-}
-
-pub fn email(value: &str) -> Result<(), ValidationError> {
-    if value.is_empty() || !validate_email(value) {
-        Err(ValidationError::new("invalid_email"))
-    } else {
-        Ok(())
-    }
-}
-
-pub fn email_vec(value: &[String]) -> Result<(), ValidationError> {
-    for v in value {
-        email(v)?;
-    }
-    Ok(())
-}
-
-pub fn locale(locale: &str) -> Result<(), ValidationError> {
-    if let Err(_e) = locale.parse::<LanguageIdentifier>() {
-        Err(ValidationError::new("invalid_locale"))
-    } else if locale.is_empty() || locale.len() > USER_LOCALE_MAX_LEN {
-        Err(ValidationError::new("invalid_locale"))
-    } else {
-        Ok(())
-    }
-}
-
-pub fn timezone(timezone: &str) -> Result<(), ValidationError> {
-    if let Err(_e) = Tz::from_str(timezone) {
-        Err(ValidationError::new("invalid_timezone"))
-    } else if timezone.is_empty() || timezone.len() > USER_TIMEZONE_MAX_LEN {
-        Err(ValidationError::new("invalid_timezone"))
-    } else {
-        Ok(())
-    }
-}
-
-pub fn password(password: &str) -> Result<(), ValidationError> {
-    if password.len() < USER_PASSWORD_MIN_LEN || password.len() > USER_PASSWORD_MAX_LEN {
-        Err(ValidationError::new("invalid_password"))
     } else {
         Ok(())
     }
