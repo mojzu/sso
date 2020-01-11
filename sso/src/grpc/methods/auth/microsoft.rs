@@ -1,19 +1,19 @@
+use crate::grpc::Server;
 use crate::{
     api::{self},
-    grpc::{pb, util::*, ServerProviderOauth2Args},
+    grpc::{pb, util::*},
     *,
 };
-use std::sync::Arc;
-use tonic::{Request, Response, Status};
+use tonic::{Response, Status};
 
 pub async fn oauth2_url(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<()>,
-    args: ServerProviderOauth2Args,
+    server: &Server,
+    request: MetaRequest<()>,
 ) -> Result<Response<pb::AuthOauth2UrlReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
+    let (audit_meta, auth, _) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
+    let args = server.options().microsoft_oauth2_args();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthMicrosoftOauth2Url);
         let res: Result<String, Status> =
@@ -27,17 +27,14 @@ pub async fn oauth2_url(
 }
 
 pub async fn oauth2_callback(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthOauth2CallbackRequest>,
-    args: ServerProviderOauth2Args,
-    client: Arc<reqwest::Client>,
+    server: &Server,
+    request: MetaRequest<pb::AuthOauth2CallbackRequest>,
 ) -> Result<Response<pb::AuthTokenReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
+    let client = server.client();
+    let args = server.options().microsoft_oauth2_args();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthMicrosoftOauth2Callback);
         let res: Result<UserToken, Status> = {
@@ -179,6 +176,7 @@ mod provider_microsoft {
         service: &Service,
         provider: &Option<ServerOptionsProvider>,
     ) -> DriverResult<BasicClient> {
+        // TODO(refactor): Create and keep client alive at startup.
         let (provider_microsoft_oauth2_url, provider) =
             match (&service.provider_microsoft_oauth2_url, provider) {
                 (Some(provider_microsoft_oauth2_url), Some(provider)) => {

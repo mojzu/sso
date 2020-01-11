@@ -11,6 +11,9 @@ pub const NAME_MAX_LEN: usize = 100;
 /// Text maximum length.
 pub const TEXT_MAX_LEN: usize = 1000;
 
+/// TOTP code maximum length.
+pub const TOTP_MAX_LEN: usize = 10;
+
 /// User locale maximum length.
 pub const USER_LOCALE_MAX_LEN: usize = 10;
 

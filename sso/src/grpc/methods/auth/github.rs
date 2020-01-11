@@ -1,19 +1,20 @@
+use crate::grpc::{validate, Server};
 use crate::{
     api::{self},
-    grpc::{pb, util::*, ServerProviderOauth2Args},
+    grpc::{pb, util::*},
     *,
 };
-use std::sync::Arc;
-use tonic::{Request, Response, Status};
+use tonic::{Response, Status};
+use validator::{Validate, ValidationErrors};
 
 pub async fn oauth2_url(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<()>,
-    args: ServerProviderOauth2Args,
+    server: &Server,
+    request: MetaRequest<()>,
 ) -> Result<Response<pb::AuthOauth2UrlReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
+    let (audit_meta, auth, _) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
+    let args = server.options().github_oauth2_args();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Url);
         let res: Result<String, Status> =
@@ -26,18 +27,24 @@ pub async fn oauth2_url(
     Ok(Response::new(reply))
 }
 
-pub async fn oauth2_callback(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthOauth2CallbackRequest>,
-    args: ServerProviderOauth2Args,
-    client: Arc<reqwest::Client>,
-) -> Result<Response<pb::AuthTokenReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+impl Validate for pb::AuthOauth2CallbackRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::text(e, "code", &self.code);
+            validate::text(e, "state", &self.state);
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn oauth2_callback(
+    server: &Server,
+    request: MetaRequest<pb::AuthOauth2CallbackRequest>,
+) -> Result<Response<pb::AuthTokenReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+
+    let driver = server.driver();
+    let client = server.client();
+    let args = server.options().github_oauth2_args();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Callback);
         let res: Result<UserToken, Status> = {

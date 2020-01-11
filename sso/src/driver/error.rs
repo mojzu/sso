@@ -1,5 +1,3 @@
-use serde_json::Value;
-
 /// Driver errors.
 #[derive(Debug, Fail)]
 pub enum DriverError {
@@ -105,9 +103,6 @@ pub enum DriverError {
     #[fail(display = "AuthenticateTypeUnknown")]
     AuthenticateTypeUnknown,
 
-    #[fail(display = "Validate {}", _0)]
-    Validate(Value),
-
     #[fail(display = "Locked {:?}", _0)]
     Locked(i32),
 
@@ -191,12 +186,6 @@ pub enum DriverError {
 
     #[fail(display = "ActixWebBlockingCancelled")]
     ActixWebBlockingCancelled,
-}
-
-impl From<validator::ValidationErrors> for DriverError {
-    fn from(e: validator::ValidationErrors) -> Self {
-        Self::Validate(serde_json::to_value(e).unwrap())
-    }
 }
 
 impl From<libreauth::pass::ErrorCode> for DriverError {

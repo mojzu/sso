@@ -46,6 +46,18 @@ impl<T> MetaRequest<T> {
         })
     }
 
+    pub fn from_unit(request: Request<()>) -> Result<Self, Status>
+    where
+        T: Default,
+    {
+        let (audit, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
+        Ok(MetaRequest {
+            audit,
+            auth,
+            message: T::default(),
+        })
+    }
+
     pub fn into_inner(self) -> (AuditMeta, Option<String>, T) {
         (self.audit, self.auth, self.message)
     }

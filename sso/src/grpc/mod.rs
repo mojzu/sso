@@ -314,21 +314,21 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: tonic::Request<pb::AuthTotpRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::totp_verify(self.driver.clone(), request).await
+        methods::auth::totp_verify(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_csrf_create(
         &self,
         request: tonic::Request<pb::AuthCsrfCreateRequest>,
     ) -> Result<tonic::Response<pb::AuthCsrfCreateReply>, tonic::Status> {
-        methods::auth::csrf_create(self.driver.clone(), request, DEFAULT_CSRF_EXPIRES_S).await
+        methods::auth::csrf_create(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_csrf_verify(
         &self,
         request: tonic::Request<pb::AuthCsrfVerifyRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::csrf_verify(self.driver.clone(), request).await
+        methods::auth::csrf_verify(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_local_login(
@@ -364,13 +364,7 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: tonic::Request<pb::AuthResetPasswordRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
-        methods::auth::local::reset_password(
-            self.driver.clone(),
-            request,
-            self.options.access_token_expires(),
-            self.smtp_email(),
-        )
-        .await
+        methods::auth::local::reset_password(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_local_reset_password_confirm(
@@ -378,12 +372,8 @@ impl pb::sso_server::Sso for Server {
         request: tonic::Request<pb::AuthResetPasswordConfirmRequest>,
     ) -> Result<tonic::Response<pb::AuthPasswordMetaReply>, tonic::Status> {
         methods::auth::local::reset_password_confirm(
-            self.driver.clone(),
-            request,
-            self.client.clone(),
-            self.options.password_pwned_enabled(),
-            self.options.revoke_token_expires(),
-            self.smtp_email(),
+            self,
+            util::MetaRequest::from_request(request)?,
         )
         .await
     }
@@ -392,98 +382,70 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::local::reset_password_revoke(self.driver.clone(), request).await
+        methods::auth::local::reset_password_revoke(self, util::MetaRequest::from_request(request)?)
+            .await
     }
 
     async fn auth_local_update_email(
         &self,
         request: tonic::Request<pb::AuthUpdateEmailRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
-        methods::auth::local::update_email(
-            self.driver.clone(),
-            request,
-            self.options.revoke_token_expires(),
-            self.smtp_email(),
-        )
-        .await
+        methods::auth::local::update_email(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_local_update_email_revoke(
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::local::update_email_revoke(self.driver.clone(), request).await
+        methods::auth::local::update_email_revoke(self, util::MetaRequest::from_request(request)?)
+            .await
     }
 
     async fn auth_local_update_password(
         &self,
         request: tonic::Request<pb::AuthUpdatePasswordRequest>,
     ) -> Result<tonic::Response<pb::AuthPasswordMetaReply>, tonic::Status> {
-        methods::auth::local::update_password(
-            self.driver.clone(),
-            request,
-            self.client.clone(),
-            self.options.password_pwned_enabled(),
-            self.options.revoke_token_expires(),
-            self.smtp_email(),
-        )
-        .await
+        methods::auth::local::update_password(self, util::MetaRequest::from_request(request)?).await
     }
 
     async fn auth_local_update_password_revoke(
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::local::update_password_revoke(self.driver.clone(), request).await
+        methods::auth::local::update_password_revoke(
+            self,
+            util::MetaRequest::from_request(request)?,
+        )
+        .await
     }
 
     async fn auth_github_oauth2_url(
         &self,
         request: tonic::Request<()>,
     ) -> Result<tonic::Response<pb::AuthOauth2UrlReply>, tonic::Status> {
-        methods::auth::github::oauth2_url(
-            self.driver.clone(),
-            request,
-            self.options.github_oauth2_args(),
-        )
-        .await
+        methods::auth::github::oauth2_url(self, util::MetaRequest::from_unit(request)?).await
     }
 
     async fn auth_github_oauth2_callback(
         &self,
         request: tonic::Request<pb::AuthOauth2CallbackRequest>,
     ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
-        methods::auth::github::oauth2_callback(
-            self.driver.clone(),
-            request,
-            self.options.github_oauth2_args(),
-            self.client.clone(),
-        )
-        .await
+        methods::auth::github::oauth2_callback(self, util::MetaRequest::from_request(request)?)
+            .await
     }
 
     async fn auth_microsoft_oauth2_url(
         &self,
         request: tonic::Request<()>,
     ) -> Result<tonic::Response<pb::AuthOauth2UrlReply>, tonic::Status> {
-        methods::auth::microsoft::oauth2_url(
-            self.driver.clone(),
-            request,
-            self.options.microsoft_oauth2_args(),
-        )
-        .await
+        methods::auth::microsoft::oauth2_url(self, util::MetaRequest::from_unit(request)?).await
     }
 
     async fn auth_microsoft_oauth2_callback(
         &self,
         request: tonic::Request<pb::AuthOauth2CallbackRequest>,
     ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
-        methods::auth::microsoft::oauth2_callback(
-            self.driver.clone(),
-            request,
-            self.options.microsoft_oauth2_args(),
-            self.client.clone(),
-        )
-        .await
+        methods::auth::microsoft::oauth2_callback(self, util::MetaRequest::from_request(request)?)
+            .await
     }
 }

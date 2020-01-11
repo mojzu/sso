@@ -1,9 +1,8 @@
 //! # API functions.
 mod error;
 mod password;
-pub mod validate;
 
-pub use crate::api::{error::*, password::*, validate::ValidateRequest};
+pub use crate::api::{error::*, password::*};
 
 use crate::{AuditBuilder, AuditDiff, AuditDiffBuilder, AuditSubject, Driver};
 use http::StatusCode;

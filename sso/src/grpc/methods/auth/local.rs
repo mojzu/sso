@@ -4,8 +4,7 @@ use crate::{
     grpc::{methods::auth::api_csrf_verify, pb, util::*},
     *,
 };
-use std::sync::Arc;
-use tonic::{Request, Response, Status};
+use tonic::{Response, Status};
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::AuthLoginRequest {
@@ -289,22 +288,23 @@ pub async fn register_revoke(
     Ok(Response::new(reply))
 }
 
-pub async fn reset_password<F, E>(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthResetPasswordRequest>,
-    access_token_expires: i64,
-    email: F,
-) -> Result<Response<()>, Status>
-where
-    F: FnOnce(TemplateEmail) -> Result<(), E> + Send + 'static,
-    E: Into<DriverError>,
-{
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+impl Validate for pb::AuthResetPasswordRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::email(e, "email", &self.email);
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn reset_password(
+    server: &Server,
+    request: MetaRequest<pb::AuthResetPasswordRequest>,
+) -> Result<Response<()>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+
+    let driver = server.driver();
+    let access_token_expires = server.options().access_token_expires();
+    let email = server.smtp_email();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPassword);
         let res: Result<(), Status> = {
@@ -361,24 +361,26 @@ where
     Ok(Response::new(reply))
 }
 
-pub async fn reset_password_confirm<F, E>(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthResetPasswordConfirmRequest>,
-    client: Arc<reqwest::Client>,
-    password_pwned_enabled: bool,
-    revoke_token_expires: i64,
-    email: F,
-) -> Result<Response<pb::AuthPasswordMetaReply>, Status>
-where
-    F: FnOnce(TemplateEmail) -> Result<(), E> + Send + 'static,
-    E: Into<DriverError>,
-{
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+impl Validate for pb::AuthResetPasswordConfirmRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::token(e, "token", &self.token);
+            validate::password(e, "password", &self.password);
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn reset_password_confirm(
+    server: &Server,
+    request: MetaRequest<pb::AuthResetPasswordConfirmRequest>,
+) -> Result<Response<pb::AuthPasswordMetaReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+
+    let driver = server.driver();
+    let client = server.client();
+    let password_pwned_enabled = server.options().password_pwned_enabled();
+    let revoke_token_expires = server.options().revoke_token_expires();
+    let email = server.smtp_email();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPasswordConfirm);
         let password_meta = api::password_meta(
@@ -463,15 +465,12 @@ where
 }
 
 pub async fn reset_password_revoke(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthTokenRequest>,
+    server: &Server,
+    request: MetaRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPasswordRevoke);
         let res: Result<Option<Audit>, Status> =
@@ -486,22 +485,25 @@ pub async fn reset_password_revoke(
     Ok(Response::new(reply))
 }
 
-pub async fn update_email<F, E>(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthUpdateEmailRequest>,
-    revoke_token_expires: i64,
-    email: F,
-) -> Result<Response<()>, Status>
-where
-    F: FnOnce(TemplateEmail) -> Result<(), E> + Send + 'static,
-    E: Into<DriverError>,
-{
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+impl Validate for pb::AuthUpdateEmailRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid(e, "user_id", &self.user_id);
+            validate::password(e, "password", &self.password);
+            validate::email(e, "new_email", &self.new_email);
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn update_email(
+    server: &Server,
+    request: MetaRequest<pb::AuthUpdateEmailRequest>,
+) -> Result<Response<()>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+
+    let driver = server.driver();
+    let revoke_token_expires = server.options().revoke_token_expires();
+    let email = server.smtp_email();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdateEmail);
         let res: Result<(), Status> = {
@@ -576,15 +578,12 @@ where
 }
 
 pub async fn update_email_revoke(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthTokenRequest>,
+    server: &Server,
+    request: MetaRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdateEmailRevoke);
         let res: Result<Option<Audit>, Status> =
@@ -599,24 +598,27 @@ pub async fn update_email_revoke(
     Ok(Response::new(reply))
 }
 
-pub async fn update_password<F, E>(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthUpdatePasswordRequest>,
-    client: Arc<reqwest::Client>,
-    password_pwned_enabled: bool,
-    revoke_token_expires: i64,
-    email: F,
-) -> Result<Response<pb::AuthPasswordMetaReply>, Status>
-where
-    F: FnOnce(TemplateEmail) -> Result<(), E> + Send + 'static,
-    E: Into<DriverError>,
-{
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+impl Validate for pb::AuthUpdatePasswordRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid(e, "user_id", &self.user_id);
+            validate::password(e, "password", &self.password);
+            validate::password(e, "new_password", &self.new_password);
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn update_password(
+    server: &Server,
+    request: MetaRequest<pb::AuthUpdatePasswordRequest>,
+) -> Result<Response<pb::AuthPasswordMetaReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+
+    let driver = server.driver();
+    let client = server.client();
+    let password_pwned_enabled = server.options().password_pwned_enabled();
+    let revoke_token_expires = server.options().revoke_token_expires();
+    let email = server.smtp_email();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdatePassword);
         let password_meta = api::password_meta(
@@ -690,15 +692,12 @@ where
 }
 
 pub async fn update_password_revoke(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthTokenRequest>,
+    server: &Server,
+    request: MetaRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdatePasswordRevoke);
         let res: Result<Option<Audit>, Status> =

@@ -1,6 +1,6 @@
 use crate::{
     KeyType, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, NAME_MAX_LEN,
-    TEXT_MAX_LEN, USER_LOCALE_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
+    TEXT_MAX_LEN, TOTP_MAX_LEN, USER_LOCALE_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
     USER_TIMEZONE_MAX_LEN,
 };
 use std::convert::TryInto;
@@ -189,6 +189,28 @@ pub fn text(errors: &mut ValidationErrors, field: &'static str, value: &str) {
 pub fn text_opt(errors: &mut ValidationErrors, field: &'static str, value: Option<&str>) {
     if let Some(value) = value {
         text(errors, field, value);
+    }
+}
+
+pub fn totp(errors: &mut ValidationErrors, field: &'static str, value: &str) {
+    if value.is_empty() || value.len() > TOTP_MAX_LEN {
+        errors.add(field, ValidationError::new("totp_invalid"));
+    }
+}
+
+pub fn csrf_token(errors: &mut ValidationErrors, field: &'static str, value: &str) {
+    key(errors, field, value);
+}
+
+pub fn csrf_expires_s(errors: &mut ValidationErrors, field: &'static str, value: i64) {
+    if value < 0 || value > 86400 {
+        errors.add(field, ValidationError::new("csrf_expires_s_invalid"));
+    }
+}
+
+pub fn csrf_expires_s_opt(errors: &mut ValidationErrors, field: &'static str, value: Option<i64>) {
+    if let Some(value) = value {
+        csrf_expires_s(errors, field, value);
     }
 }
 

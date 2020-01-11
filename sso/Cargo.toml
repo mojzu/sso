@@ -8,7 +8,7 @@ readme = "README.md"
 homepage = "https://mojzu.net/sso/"
 documentation = "https://docs.rs/crate/sso/"
 repository = "https://github.com/mojzu/sso"
-categories = ["authentication", "web-programming::http-server", "command-line-utilities"]
+categories = ["authentication", "web-programming", "command-line-utilities"]
 edition = "2018"
 
 [lib]

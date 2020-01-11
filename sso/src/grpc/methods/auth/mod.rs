@@ -4,25 +4,32 @@ pub mod local;
 pub mod microsoft;
 pub mod token;
 
+use crate::grpc::{validate, Server};
 use crate::{
     api::{self, ApiError, ApiResult},
     grpc::{pb, util::*},
     *,
 };
-use std::sync::Arc;
-use tonic::{Request, Response, Status};
+use tonic::{Response, Status};
 use uuid::Uuid;
+use validator::{Validate, ValidationErrors};
+
+impl Validate for pb::AuthTotpRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::uuid(e, "user_id", &self.user_id);
+            validate::totp(e, "totp", &self.totp);
+        })
+    }
+}
 
 pub async fn totp_verify(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthTotpRequest>,
+    server: &Server,
+    request: MetaRequest<pb::AuthTotpRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+    let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = driver.clone();
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTotp);
         let res: Result<(), Status> = {
@@ -58,17 +65,21 @@ pub async fn totp_verify(
     Ok(Response::new(reply))
 }
 
-pub async fn csrf_create(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthCsrfCreateRequest>,
-    csrf_token_expires: i64,
-) -> Result<Response<pb::AuthCsrfCreateReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+impl Validate for pb::AuthCsrfCreateRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::csrf_expires_s_opt(e, "expires_s", self.expires_s);
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn csrf_create(
+    server: &Server,
+    request: MetaRequest<pb::AuthCsrfCreateRequest>,
+) -> Result<Response<pb::AuthCsrfCreateReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthCsrfCreate);
         let res: Result<Csrf, Status> = {
@@ -76,7 +87,7 @@ pub async fn csrf_create(
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
                     .map_err(ApiError::Unauthorised)?;
 
-            let expires_s = req.expires_s.unwrap_or(csrf_token_expires);
+            let expires_s = req.expires_s.unwrap_or(DEFAULT_CSRF_EXPIRES_S);
             driver
                 .csrf_create(&CsrfCreate::generate(expires_s, service.id))
                 .map_err(ApiError::BadRequest)
@@ -92,16 +103,22 @@ pub async fn csrf_create(
     Ok(Response::new(reply))
 }
 
-pub async fn csrf_verify(
-    driver: Arc<Box<dyn Driver>>,
-    request: Request<pb::AuthCsrfVerifyRequest>,
-) -> Result<Response<pb::AuthAuditReply>, Status> {
-    let (audit_meta, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-    let req = request.into_inner();
-    // TODO(refactor): Validate input.
-    // AuditList::status_validate(&req)?;
+impl Validate for pb::AuthCsrfVerifyRequest {
+    fn validate(&self) -> Result<(), ValidationErrors> {
+        validate::wrap(|e| {
+            validate::csrf_token(e, "csrf", &self.csrf);
+            validate::audit_type_opt(e, "audit", self.audit.as_ref().map(|x| &**x))
+        })
+    }
+}
 
-    let driver = driver.clone();
+pub async fn csrf_verify(
+    server: &Server,
+    request: MetaRequest<pb::AuthCsrfVerifyRequest>,
+) -> Result<Response<pb::AuthAuditReply>, Status> {
+    let (audit_meta, auth, req) = request.into_inner();
+
+    let driver = server.driver();
     let reply = blocking::<_, Status, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthCsrfVerify);
         let res: Result<(), Status> = {
