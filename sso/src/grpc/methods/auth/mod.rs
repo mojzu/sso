@@ -25,7 +25,7 @@ impl Validate for pb::AuthTotpRequest {
 
 pub async fn totp_verify(
     server: &Server,
-    request: MetaRequest<pb::AuthTotpRequest>,
+    request: MethodRequest<pb::AuthTotpRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -75,7 +75,7 @@ impl Validate for pb::AuthCsrfCreateRequest {
 
 pub async fn csrf_create(
     server: &Server,
-    request: MetaRequest<pb::AuthCsrfCreateRequest>,
+    request: MethodRequest<pb::AuthCsrfCreateRequest>,
 ) -> Result<Response<pb::AuthCsrfCreateReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -114,7 +114,7 @@ impl Validate for pb::AuthCsrfVerifyRequest {
 
 pub async fn csrf_verify(
     server: &Server,
-    request: MetaRequest<pb::AuthCsrfVerifyRequest>,
+    request: MethodRequest<pb::AuthCsrfVerifyRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 

@@ -10,7 +10,6 @@ mod service;
 mod user;
 
 pub use chrono::Utc;
-pub use http::StatusCode;
 pub use serde_json::Value;
 pub use sso::{
     grpc::{pb, ClientBlocking, ClientOptions},

@@ -142,9 +142,6 @@ pub enum DriverError {
     #[fail(display = "Prometheus {}", _0)]
     Prometheus(#[fail(cause)] prometheus::Error),
 
-    #[fail(display = "SerdeJson {}", _0)]
-    SerdeJson(#[fail(cause)] serde_json::Error),
-
     #[fail(display = "SerdeUrlencoded {}", _0)]
     SerdeUrlencoded(String),
 
@@ -186,6 +183,9 @@ pub enum DriverError {
 
     #[fail(display = "ActixWebBlockingCancelled")]
     ActixWebBlockingCancelled,
+
+    #[fail(display = "Validation {}", _0)]
+    Validation(#[fail(cause)] validator::ValidationErrors),
 }
 
 impl From<libreauth::pass::ErrorCode> for DriverError {

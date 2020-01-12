@@ -1,11 +1,8 @@
-use crate::grpc::{validate, Server};
 use crate::{
-    api::{self, ApiError, ApiResult},
-    grpc::{pb, util::*},
+    grpc::{pb, util::*, validate, Server},
     *,
 };
-use std::convert::TryInto;
-use tonic::{Response, Status};
+use tonic::Response;
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::UserListRequest {
@@ -25,24 +22,20 @@ impl Validate for pb::UserListRequest {
 
 pub async fn list(
     server: &Server,
-    request: MetaRequest<pb::UserListRequest>,
-) -> Result<Response<pb::UserListReply>, Status> {
+    request: MethodRequest<UserList>,
+) -> MethodResponse<pb::UserListReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: UserList = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::UserList);
-        let res: Result<Vec<User>, Status> = {
+        let res: Result<Vec<User>, MethodError> = {
             let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
-            driver
-                .user_list(&req)
-                .map_err(ApiError::BadRequest)
-                .map_err::<Status, _>(Into::into)
+            driver.user_list(&req).map_err(MethodError::BadRequest)
         };
-        let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::UserListReply {
             meta: Some(req.into()),
             data: data.into_iter().map::<pb::User, _>(|x| x.into()).collect(),
@@ -67,30 +60,27 @@ impl Validate for pb::UserCreateRequest {
 
 pub async fn create(
     server: &Server,
-    request: MetaRequest<pb::UserCreateRequest>,
-) -> Result<Response<pb::UserCreateReply>, Status> {
+    request: MethodRequest<pb::UserCreateRequest>,
+) -> MethodResponse<pb::UserCreateReply> {
     let (audit_meta, auth, req) = request.into_inner();
     let password = req.password.clone();
-    let req: UserCreate = req.try_into()?;
+    let req: UserCreate = req.into();
 
     let driver = server.driver();
     let client = server.client();
     let password_pwned_enabled = server.options().password_pwned_enabled();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::UserCreate);
         let password_meta = api::password_meta(client.as_ref(), password_pwned_enabled, password)
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
-        let res: Result<User, Status> = {
+        let res: Result<User, MethodError> = {
             let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
-            driver
-                .user_create(&req)
-                .map_err(ApiError::BadRequest)
-                .map_err::<tonic::Status, _>(Into::into)
+            driver.user_create(&req).map_err(MethodError::BadRequest)
         };
-        let data = api::result_audit_subject(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_subject(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::UserCreateReply {
             meta: Some(password_meta.into()),
             data: Some(data.into()),
@@ -111,21 +101,20 @@ impl Validate for pb::UserReadRequest {
 
 pub async fn read(
     server: &Server,
-    request: MetaRequest<pb::UserReadRequest>,
-) -> Result<Response<pb::UserReadReply>, Status> {
+    request: MethodRequest<UserRead>,
+) -> MethodResponse<pb::UserReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: UserRead = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::UserRead);
-        let res: Result<User, Status> = {
+        let res: Result<User, MethodError> = {
             let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
             read_inner(driver.as_ref().as_ref(), &req)
         };
-        let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::UserReadReply {
             data: Some(data.into()),
         };
@@ -148,25 +137,24 @@ impl Validate for pb::UserUpdateRequest {
 
 pub async fn update(
     server: &Server,
-    request: MetaRequest<pb::UserUpdateRequest>,
-) -> Result<Response<pb::UserReadReply>, Status> {
+    request: MethodRequest<UserUpdate>,
+) -> MethodResponse<pb::UserReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: UserUpdate = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::UserUpdate);
-        let res: Result<(User, User), Status> = {
+        let res: Result<(User, User), MethodError> = {
             let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
             let read = UserRead::Id(req.id);
             let previous_user = read_inner(driver.as_ref().as_ref(), &read)?;
 
-            let user = driver.user_update(&req).map_err(ApiError::BadRequest)?;
+            let user = driver.user_update(&req).map_err(MethodError::BadRequest)?;
             Ok((previous_user, user))
         };
-        let data = api::result_audit_diff(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_diff(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::UserReadReply {
             data: Some(data.into()),
         };
@@ -176,40 +164,33 @@ pub async fn update(
     Ok(Response::new(reply))
 }
 
-pub async fn delete(
-    server: &Server,
-    request: MetaRequest<pb::UserReadRequest>,
-) -> Result<Response<()>, Status> {
+pub async fn delete(server: &Server, request: MethodRequest<UserRead>) -> MethodResponse<()> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: UserRead = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::UserDelete);
-        let res: Result<User, Status> = {
+        let res: Result<User, MethodError> = {
             let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
             let user = read_inner(driver.as_ref().as_ref(), &req)?;
             driver
                 .user_delete(&user.id)
-                .map_err(ApiError::BadRequest)
-                .map_err::<tonic::Status, _>(Into::into)
+                .map_err(MethodError::BadRequest)
                 .map(|_| user)
         };
-        api::result_audit_subject(driver.as_ref().as_ref(), &audit, res)?;
+        audit_result_subject(driver.as_ref().as_ref(), &audit, res)?;
         Ok(())
     })
     .await?;
     Ok(Response::new(reply))
 }
 
-fn read_inner(driver: &dyn Driver, read: &UserRead) -> ApiResult<User> {
+fn read_inner(driver: &dyn Driver, read: &UserRead) -> MethodResult<User> {
     driver
         .user_read(read)
-        .map_err(ApiError::BadRequest)
-        .map_err::<tonic::Status, _>(Into::into)?
+        .map_err(MethodError::BadRequest)?
         .ok_or_else(|| DriverError::UserNotFound)
-        .map_err(ApiError::NotFound)
-        .map_err::<tonic::Status, _>(Into::into)
+        .map_err(MethodError::NotFound)
 }

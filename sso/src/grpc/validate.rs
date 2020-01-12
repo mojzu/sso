@@ -1,10 +1,10 @@
 use crate::{
-    KeyType, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES, NAME_MAX_LEN,
-    TEXT_MAX_LEN, TOTP_MAX_LEN, USER_LOCALE_MAX_LEN, USER_PASSWORD_MAX_LEN, USER_PASSWORD_MIN_LEN,
-    USER_TIMEZONE_MAX_LEN,
+    grpc::util::{MethodError, MethodResult},
+    DriverError, KeyType, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES,
+    NAME_MAX_LEN, TEXT_MAX_LEN, TOTP_MAX_LEN, USER_LOCALE_MAX_LEN, USER_PASSWORD_MAX_LEN,
+    USER_PASSWORD_MIN_LEN, USER_TIMEZONE_MAX_LEN,
 };
 use std::convert::TryInto;
-use tonic::Status;
 use uuid::Uuid;
 use validator::{Validate, ValidationError, ValidationErrors};
 
@@ -227,11 +227,11 @@ where
     }
 }
 
-pub fn validate<T>(x: T) -> Result<T, Status>
+pub fn validate<T>(x: T) -> MethodResult<T>
 where
     T: Validate,
 {
     x.validate()
-        .map_err(|e| Status::invalid_argument(format!("{}", e)))?;
+        .map_err(|e| MethodError::BadRequest(DriverError::Validation(e)))?;
     Ok(x)
 }

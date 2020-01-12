@@ -4,10 +4,9 @@ use crate::{
 };
 use chrono::{DateTime, Utc};
 use core::pin::Pin;
-use std::convert::TryFrom;
 use std::future::Future;
 use std::net::SocketAddr;
-use tonic::{metadata::MetadataMap, Request, Status};
+use tonic::{metadata::MetadataMap, Request, Response, Status};
 use uuid::Uuid;
 
 /// Run a blocking closure on threadpool.
@@ -23,35 +22,69 @@ where
     Box::pin(fut)
 }
 
+/// Method errors.
+#[derive(Debug, Fail)]
+pub enum MethodError {
+    #[fail(display = "BadRequest {}", _0)]
+    BadRequest(#[fail(cause)] DriverError),
+
+    #[fail(display = "Unauthorised {}", _0)]
+    Unauthorised(#[fail(cause)] DriverError),
+
+    #[fail(display = "Forbidden {}", _0)]
+    Forbidden(#[fail(cause)] DriverError),
+
+    #[fail(display = "NotFound {}", _0)]
+    NotFound(#[fail(cause)] DriverError),
+
+    #[fail(display = "InternalServerError {}", _0)]
+    InternalServerError(#[fail(cause)] DriverError),
+}
+
+impl From<MethodError> for Status {
+    fn from(e: MethodError) -> Self {
+        match e {
+            MethodError::BadRequest(e) => Status::invalid_argument(format!("{}", e)),
+            MethodError::Unauthorised(e) => Status::unauthenticated(format!("{}", e)),
+            MethodError::Forbidden(e) => Status::permission_denied(format!("{}", e)),
+            MethodError::NotFound(e) => Status::not_found(format!("{}", e)),
+            MethodError::InternalServerError(e) => Status::internal(format!("{}", e)),
+        }
+    }
+}
+
+/// Method result wrapper type.
+pub type MethodResult<T> = Result<T, MethodError>;
+
 /// Request message with extracted metadata.
 #[derive(Debug)]
-pub struct MetaRequest<T> {
+pub struct MethodRequest<T> {
     audit: AuditMeta,
     auth: Option<String>,
     message: T,
 }
 
-impl<T> MetaRequest<T> {
-    pub fn from_request<R>(request: Request<R>) -> Result<Self, Status>
+impl<T> MethodRequest<T> {
+    pub fn from_request<R>(request: Request<R>) -> MethodResult<Self>
     where
         R: validator::Validate,
         T: From<R>,
     {
         let (audit, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
         let message = grpc::validate::validate(request.into_inner())?;
-        Ok(MetaRequest {
+        Ok(MethodRequest {
             audit,
             auth,
             message: message.into(),
         })
     }
 
-    pub fn from_unit(request: Request<()>) -> Result<Self, Status>
+    pub fn from_unit(request: Request<()>) -> MethodResult<Self>
     where
         T: Default,
     {
         let (audit, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
-        Ok(MetaRequest {
+        Ok(MethodRequest {
             audit,
             auth,
             message: T::default(),
@@ -63,11 +96,134 @@ impl<T> MetaRequest<T> {
     }
 }
 
+/// Method response wrapper type.
+pub type MethodResponse<T> = Result<Response<T>, MethodError>;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct MethodErrorData {
+    code: u16,
+    message: String,
+}
+
+impl From<MethodError> for MethodErrorData {
+    fn from(e: MethodError) -> Self {
+        let e: Status = e.into();
+        Self {
+            code: e.code() as u16,
+            message: e.message().to_owned(),
+        }
+    }
+}
+
+pub fn audit_result<T>(
+    driver: &dyn Driver,
+    audit: &AuditBuilder,
+    res: MethodResult<T>,
+) -> MethodResult<T> {
+    match res {
+        Ok(res) => {
+            audit
+                .create_data::<bool>(driver, 0, None, None)
+                .map_err(MethodError::InternalServerError)?;
+            Ok(res)
+        }
+        Err(e) => {
+            let data: MethodErrorData = e.into();
+            audit
+                .create_data(
+                    driver,
+                    data.code,
+                    None,
+                    Some(AuditDiffBuilder::typed_data("error", data)),
+                )
+                .map_err(MethodError::InternalServerError)?;
+            Err(e)
+        }
+    }
+}
+
+pub fn audit_result_err<T>(
+    driver: &dyn Driver,
+    audit: &AuditBuilder,
+    res: MethodResult<T>,
+) -> MethodResult<T> {
+    match res {
+        Ok(res) => Ok(res),
+        Err(e) => {
+            let data: MethodErrorData = e.into();
+            audit
+                .create_data(
+                    driver,
+                    data.code,
+                    None,
+                    Some(AuditDiffBuilder::typed_data("error", data)),
+                )
+                .map_err(MethodError::InternalServerError)?;
+            Err(e)
+        }
+    }
+}
+
+pub fn audit_result_subject<T: AuditSubject>(
+    driver: &dyn Driver,
+    audit: &AuditBuilder,
+    res: MethodResult<T>,
+) -> MethodResult<T> {
+    match res {
+        Ok(res) => {
+            audit
+                .create_data::<bool>(driver, 0, Some(res.subject()), None)
+                .map_err(MethodError::InternalServerError)?;
+            Ok(res)
+        }
+        Err(e) => {
+            let data: MethodErrorData = e.into();
+            audit
+                .create_data(
+                    driver,
+                    data.code,
+                    None,
+                    Some(AuditDiffBuilder::typed_data("error", data)),
+                )
+                .map_err(MethodError::InternalServerError)?;
+            Err(e)
+        }
+    }
+}
+
+pub fn audit_result_diff<T: AuditSubject + AuditDiff>(
+    driver: &dyn Driver,
+    audit: &AuditBuilder,
+    res: MethodResult<(T, T)>,
+) -> MethodResult<T> {
+    match res {
+        Ok((p, n)) => {
+            let diff = n.diff(&p);
+            audit
+                .create_data(driver, 0, Some(n.subject()), Some(diff))
+                .map_err(MethodError::InternalServerError)?;
+            Ok(n)
+        }
+        Err(e) => {
+            let data: MethodErrorData = e.into();
+            audit
+                .create_data(
+                    driver,
+                    data.code,
+                    None,
+                    Some(AuditDiffBuilder::typed_data("error", data)),
+                )
+                .map_err(MethodError::InternalServerError)?;
+            Err(e)
+        }
+    }
+}
+
 /// Get audit meta and authorisation header from request metadata.
 pub fn request_audit_auth(
     remote: Option<SocketAddr>,
     metadata: &MetadataMap,
-) -> Result<(AuditMeta, Option<String>), Status> {
+) -> MethodResult<(AuditMeta, Option<String>)> {
     let user_agent = match metadata.get("user-agent") {
         Some(value) => value.to_str().unwrap().to_owned(),
         None => String::from("none"),
@@ -95,6 +251,7 @@ pub fn request_audit_auth(
 }
 
 // TODO(refactor): Improve translation code between api/grpc.
+// TODO(refactor): Unwrap check and cleanup.
 
 pub fn timestamp_opt_to_datetime_opt(ti: Option<prost_types::Timestamp>) -> Option<DateTime<Utc>> {
     match ti {
@@ -117,17 +274,17 @@ pub fn datetime_to_timestamp_opt(dt: DateTime<Utc>) -> Option<prost_types::Times
     Some(ti)
 }
 
-pub fn string_to_uuid(s: String) -> Result<Uuid, Status> {
-    Uuid::parse_str(s.as_ref()).map_err(|_e| Status::invalid_argument(""))
+pub fn string_to_uuid(s: String) -> Uuid {
+    Uuid::parse_str(s.as_ref()).unwrap()
 }
 
-pub fn string_opt_to_uuid_opt(s: Option<String>) -> Result<Option<Uuid>, Status> {
+pub fn string_opt_to_uuid_opt(s: Option<String>) -> Option<Uuid> {
     match s {
         Some(s) => {
-            let u: Uuid = Uuid::parse_str(s.as_ref()).map_err(|_e| Status::invalid_argument(""))?;
-            Ok(Some(u))
+            let u: Uuid = Uuid::parse_str(s.as_ref()).unwrap();
+            Some(u)
         }
-        None => Ok(None),
+        None => None,
     }
 }
 
@@ -261,13 +418,11 @@ pub fn value_to_struct_opt(s: serde_json::Value) -> Option<prost_types::Struct> 
     }
 }
 
-impl TryFrom<pb::KeyListRequest> for KeyList {
-    type Error = Status;
-
-    fn try_from(r: pb::KeyListRequest) -> Result<Self, Self::Error> {
+impl From<pb::KeyListRequest> for KeyList {
+    fn from(r: pb::KeyListRequest) -> Self {
         let limit = r.limit.unwrap_or(DEFAULT_LIMIT);
-        let gt = string_opt_to_uuid_opt(r.gt)?;
-        let lt = string_opt_to_uuid_opt(r.lt)?;
+        let gt = string_opt_to_uuid_opt(r.gt);
+        let lt = string_opt_to_uuid_opt(r.lt);
         let query = match (gt, lt) {
             (Some(gt), Some(_lt)) => KeyListQuery::IdGt(gt),
             (Some(gt), None) => KeyListQuery::IdGt(gt),
@@ -283,7 +438,7 @@ impl TryFrom<pb::KeyListRequest> for KeyList {
             user_id: string_vec_to_uuid_vec_opt(r.user_id),
             limit,
         };
-        Ok(KeyList { query, filter })
+        KeyList { query, filter }
     }
 }
 
@@ -366,19 +521,17 @@ impl From<KeyWithValue> for pb::Key {
     }
 }
 
-impl TryFrom<pb::KeyCreateRequest> for KeyCreate {
-    type Error = Status;
-
-    fn try_from(r: pb::KeyCreateRequest) -> Result<Self, Self::Error> {
-        Ok(Self {
+impl From<pb::KeyCreateRequest> for KeyCreate {
+    fn from(r: pb::KeyCreateRequest) -> Self {
+        Self {
             is_enabled: r.is_enabled.unwrap_or(true),
             is_revoked: false,
             type_: KeyType::from_i32(r.r#type),
             name: r.name,
             value: "".to_owned(),
-            service_id: string_opt_to_uuid_opt(r.service_id)?,
-            user_id: string_opt_to_uuid_opt(r.user_id)?,
-        })
+            service_id: string_opt_to_uuid_opt(r.service_id),
+            user_id: string_opt_to_uuid_opt(r.user_id),
+        }
     }
 }
 
@@ -392,37 +545,28 @@ impl From<KeyWithValue> for pb::KeyWithValue {
     }
 }
 
-impl TryFrom<pb::KeyReadRequest> for KeyRead {
-    type Error = Status;
-
-    fn try_from(r: pb::KeyReadRequest) -> Result<Self, Self::Error> {
-        Ok(Self::IdUser(
-            string_to_uuid(r.id)?,
-            string_opt_to_uuid_opt(r.user_id)?,
-        ))
+impl From<pb::KeyReadRequest> for KeyRead {
+    fn from(r: pb::KeyReadRequest) -> Self {
+        Self::IdUser(string_to_uuid(r.id), string_opt_to_uuid_opt(r.user_id))
     }
 }
 
-impl TryFrom<pb::KeyUpdateRequest> for KeyUpdate {
-    type Error = Status;
-
-    fn try_from(r: pb::KeyUpdateRequest) -> Result<Self, Self::Error> {
-        Ok(Self {
-            id: string_to_uuid(r.id)?,
+impl From<pb::KeyUpdateRequest> for KeyUpdate {
+    fn from(r: pb::KeyUpdateRequest) -> Self {
+        Self {
+            id: string_to_uuid(r.id),
             is_enabled: r.is_enabled,
             is_revoked: None,
             name: r.name,
-        })
+        }
     }
 }
 
-impl TryFrom<pb::ServiceListRequest> for ServiceList {
-    type Error = Status;
-
-    fn try_from(r: pb::ServiceListRequest) -> Result<Self, Self::Error> {
+impl From<pb::ServiceListRequest> for ServiceList {
+    fn from(r: pb::ServiceListRequest) -> Self {
         let limit = r.limit.unwrap_or(DEFAULT_LIMIT);
-        let gt = string_opt_to_uuid_opt(r.gt)?;
-        let lt = string_opt_to_uuid_opt(r.lt)?;
+        let gt = string_opt_to_uuid_opt(r.gt);
+        let lt = string_opt_to_uuid_opt(r.lt);
         let query = match (gt, lt) {
             (Some(gt), Some(_lt)) => ServiceListQuery::IdGt(gt),
             (Some(gt), None) => ServiceListQuery::IdGt(gt),
@@ -434,15 +578,13 @@ impl TryFrom<pb::ServiceListRequest> for ServiceList {
             is_enabled: r.is_enabled,
             limit,
         };
-        Ok(Self { query, filter })
+        Self { query, filter }
     }
 }
 
-impl TryFrom<pb::ServiceCreateRequest> for ServiceCreate {
-    type Error = Status;
-
-    fn try_from(r: pb::ServiceCreateRequest) -> Result<Self, Self::Error> {
-        Ok(Self {
+impl From<pb::ServiceCreateRequest> for ServiceCreate {
+    fn from(r: pb::ServiceCreateRequest) -> Self {
+        Self {
             is_enabled: r.is_enabled.unwrap_or(true),
             name: r.name,
             url: r.url,
@@ -451,26 +593,22 @@ impl TryFrom<pb::ServiceCreateRequest> for ServiceCreate {
             provider_local_url: r.provider_local_url,
             provider_github_oauth2_url: r.provider_github_oauth2_url,
             provider_microsoft_oauth2_url: r.provider_microsoft_oauth2_url,
-        })
+        }
     }
 }
 
-impl TryFrom<pb::ServiceReadRequest> for ServiceRead {
-    type Error = Status;
-
-    fn try_from(r: pb::ServiceReadRequest) -> Result<Self, Self::Error> {
-        Ok(Self {
-            id: string_to_uuid(r.id)?,
-        })
+impl From<pb::ServiceReadRequest> for ServiceRead {
+    fn from(r: pb::ServiceReadRequest) -> Self {
+        Self {
+            id: string_to_uuid(r.id),
+        }
     }
 }
 
-impl TryFrom<pb::ServiceUpdateRequest> for ServiceUpdate {
-    type Error = Status;
-
-    fn try_from(r: pb::ServiceUpdateRequest) -> Result<Self, Self::Error> {
-        Ok(Self {
-            id: string_to_uuid(r.id)?,
+impl From<pb::ServiceUpdateRequest> for ServiceUpdate {
+    fn from(r: pb::ServiceUpdateRequest) -> Self {
+        Self {
+            id: string_to_uuid(r.id),
             is_enabled: r.is_enabled,
             name: r.name,
             url: r.url,
@@ -479,7 +617,7 @@ impl TryFrom<pb::ServiceUpdateRequest> for ServiceUpdate {
             provider_local_url: r.provider_local_url,
             provider_github_oauth2_url: r.provider_github_oauth2_url,
             provider_microsoft_oauth2_url: r.provider_microsoft_oauth2_url,
-        })
+        }
     }
 }
 
@@ -541,14 +679,12 @@ impl From<UserTokenAccess> for pb::AuthToken {
     }
 }
 
-impl TryFrom<pb::UserListRequest> for UserList {
-    type Error = Status;
-
-    fn try_from(r: pb::UserListRequest) -> Result<Self, Self::Error> {
+impl From<pb::UserListRequest> for UserList {
+    fn from(r: pb::UserListRequest) -> Self {
         let limit = r.limit.unwrap_or(DEFAULT_LIMIT);
-        let gt = string_opt_to_uuid_opt(r.gt)?;
-        let lt = string_opt_to_uuid_opt(r.lt)?;
-        let offset_id = string_opt_to_uuid_opt(r.offset_id)?;
+        let gt = string_opt_to_uuid_opt(r.gt);
+        let lt = string_opt_to_uuid_opt(r.lt);
+        let offset_id = string_opt_to_uuid_opt(r.offset_id);
         let query = match (gt, lt, r.name_ge, r.name_le) {
             (Some(gt), _, _, _) => UserListQuery::IdGt(gt),
             (_, Some(lt), _, _) => UserListQuery::IdLt(lt),
@@ -561,14 +697,12 @@ impl TryFrom<pb::UserListRequest> for UserList {
             email: string_vec_to_string_vec_opt(r.email),
             limit,
         };
-        Ok(Self { query, filter })
+        Self { query, filter }
     }
 }
 
-impl TryFrom<pb::UserCreateRequest> for UserCreate {
-    type Error = Status;
-
-    fn try_from(r: pb::UserCreateRequest) -> Result<Self, Self::Error> {
+impl From<pb::UserCreateRequest> for UserCreate {
+    fn from(r: pb::UserCreateRequest) -> Self {
         let mut create = UserCreate::new(r.is_enabled.unwrap_or(true), r.name, r.email);
         if let Some(locale) = r.locale {
             create = create.locale(locale);
@@ -585,31 +719,27 @@ impl TryFrom<pb::UserCreateRequest> for UserCreate {
                 )
                 .unwrap();
         }
-        Ok(create)
+        create
     }
 }
 
-impl TryFrom<pb::UserReadRequest> for UserRead {
-    type Error = Status;
-
-    fn try_from(r: pb::UserReadRequest) -> Result<Self, Self::Error> {
-        Ok(Self::Id(string_to_uuid(r.id)?))
+impl From<pb::UserReadRequest> for UserRead {
+    fn from(r: pb::UserReadRequest) -> Self {
+        Self::Id(string_to_uuid(r.id))
     }
 }
 
-impl TryFrom<pb::UserUpdateRequest> for UserUpdate {
-    type Error = Status;
-
-    fn try_from(r: pb::UserUpdateRequest) -> Result<Self, Self::Error> {
-        Ok(Self::new(
-            string_to_uuid(r.id)?,
+impl From<pb::UserUpdateRequest> for UserUpdate {
+    fn from(r: pb::UserUpdateRequest) -> Self {
+        Self::new(
+            string_to_uuid(r.id),
             r.is_enabled,
             r.name,
             r.locale,
             r.timezone,
             r.password_allow_reset,
             r.password_require_update,
-        ))
+        )
     }
 }
 
@@ -679,14 +809,12 @@ impl From<User> for pb::User {
     }
 }
 
-impl TryFrom<pb::User> for User {
-    type Error = Status;
-
-    fn try_from(r: pb::User) -> Result<Self, Self::Error> {
-        Ok(Self {
+impl From<pb::User> for User {
+    fn from(r: pb::User) -> Self {
+        Self {
             created_at: timestamp_opt_to_datetime(r.created_at),
             updated_at: timestamp_opt_to_datetime(r.updated_at),
-            id: string_to_uuid(r.id)?,
+            id: string_to_uuid(r.id),
             is_enabled: r.is_enabled,
             name: r.name,
             email: r.email,
@@ -695,7 +823,7 @@ impl TryFrom<pb::User> for User {
             password_allow_reset: r.password_allow_reset,
             password_require_update: r.password_require_update,
             password_hash: None,
-        })
+        }
     }
 }
 
@@ -736,24 +864,20 @@ impl UserToken {
     }
 }
 
-impl TryFrom<pb::AuditReadRequest> for AuditRead {
-    type Error = Status;
-
-    fn try_from(r: pb::AuditReadRequest) -> Result<Self, Self::Error> {
-        Ok(Self::new(string_to_uuid(r.id)?).subject(r.subject))
+impl From<pb::AuditReadRequest> for AuditRead {
+    fn from(r: pb::AuditReadRequest) -> Self {
+        Self::new(string_to_uuid(r.id)).subject(r.subject)
     }
 }
 
-impl TryFrom<pb::AuditUpdateRequest> for AuditUpdate {
-    type Error = Status;
-
-    fn try_from(r: pb::AuditUpdateRequest) -> Result<Self, Self::Error> {
-        Ok(Self {
-            id: string_to_uuid(r.id)?,
+impl From<pb::AuditUpdateRequest> for AuditUpdate {
+    fn from(r: pb::AuditUpdateRequest) -> Self {
+        Self {
+            id: string_to_uuid(r.id),
             status_code: r.status_code.map(|x| x as u16),
             subject: r.subject,
             data: struct_opt_to_value_opt(r.data),
-        })
+        }
     }
 }
 

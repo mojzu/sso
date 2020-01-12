@@ -1,4 +1,4 @@
-use crate::{AuditBuilder, Driver, DriverResult, KeyCreate, KeyWithValue, Service, ServiceCreate};
+use crate::{Driver, DriverResult, KeyCreate, KeyWithValue, Service, ServiceCreate};
 use chrono::Duration;
 
 /// CLI options.
@@ -33,13 +33,6 @@ impl CliOptions {
 pub struct Cli;
 
 impl Cli {
-    /// Create an audit builder for local commands.
-    pub fn audit_builder() -> AuditBuilder {
-        // TODO(refactor): Call into Api from this layer.
-        // AuditBuilder::new(AuditMeta::new("cli", "127.0.0.1", None))
-        unimplemented!();
-    }
-
     /// Create a root key.
     pub fn create_root_key(driver: Box<dyn Driver>, name: &str) -> DriverResult<KeyWithValue> {
         let create = KeyCreate::root(true, name);

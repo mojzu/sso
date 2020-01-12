@@ -146,210 +146,240 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: Request<pb::AuditListRequest>,
     ) -> Result<Response<pb::AuditListReply>, Status> {
-        methods::audit::list(self, util::MetaRequest::from_request(request)?).await
+        methods::audit::list(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn audit_create(
         &self,
         request: Request<pb::AuditCreateRequest>,
     ) -> Result<Response<pb::AuditReadReply>, Status> {
-        methods::audit::create(self, util::MetaRequest::from_request(request)?).await
+        methods::audit::create(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn audit_read(
         &self,
         request: Request<pb::AuditReadRequest>,
     ) -> Result<Response<pb::AuditReadReply>, Status> {
-        methods::audit::read(self, util::MetaRequest::from_request(request)?).await
+        methods::audit::read(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn audit_update(
         &self,
         request: Request<pb::AuditUpdateRequest>,
     ) -> Result<Response<pb::AuditReadReply>, Status> {
-        methods::audit::update(self, util::MetaRequest::from_request(request)?).await
+        methods::audit::update(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn key_list(
         &self,
         request: tonic::Request<pb::KeyListRequest>,
     ) -> Result<tonic::Response<pb::KeyListReply>, tonic::Status> {
-        methods::key::list(self, util::MetaRequest::from_request(request)?).await
+        methods::key::list(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn key_create(
         &self,
         request: tonic::Request<pb::KeyCreateRequest>,
     ) -> Result<tonic::Response<pb::KeyCreateReply>, tonic::Status> {
-        methods::key::create(self, util::MetaRequest::from_request(request)?).await
+        methods::key::create(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn key_read(
         &self,
         request: tonic::Request<pb::KeyReadRequest>,
     ) -> Result<tonic::Response<pb::KeyReadReply>, tonic::Status> {
-        methods::key::read(self, util::MetaRequest::from_request(request)?).await
+        methods::key::read(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn key_update(
         &self,
         request: tonic::Request<pb::KeyUpdateRequest>,
     ) -> Result<tonic::Response<pb::KeyReadReply>, tonic::Status> {
-        methods::key::update(self, util::MetaRequest::from_request(request)?).await
+        methods::key::update(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn key_delete(
         &self,
         request: tonic::Request<pb::KeyReadRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
-        methods::key::delete(self, util::MetaRequest::from_request(request)?).await
+        methods::key::delete(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn service_list(
         &self,
         request: tonic::Request<pb::ServiceListRequest>,
     ) -> Result<tonic::Response<pb::ServiceListReply>, tonic::Status> {
-        methods::service::list(self, util::MetaRequest::from_request(request)?).await
+        methods::service::list(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn service_create(
         &self,
         request: tonic::Request<pb::ServiceCreateRequest>,
     ) -> Result<tonic::Response<pb::ServiceReadReply>, tonic::Status> {
-        methods::service::create(self, util::MetaRequest::from_request(request)?).await
+        methods::service::create(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn service_read(
         &self,
         request: tonic::Request<pb::ServiceReadRequest>,
     ) -> Result<tonic::Response<pb::ServiceReadReply>, tonic::Status> {
-        methods::service::read(self, util::MetaRequest::from_request(request)?).await
+        methods::service::read(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn service_update(
         &self,
         request: tonic::Request<pb::ServiceUpdateRequest>,
     ) -> Result<tonic::Response<pb::ServiceReadReply>, tonic::Status> {
-        methods::service::update(self, util::MetaRequest::from_request(request)?).await
+        methods::service::update(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn service_delete(
         &self,
         request: tonic::Request<pb::ServiceReadRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
-        methods::service::delete(self, util::MetaRequest::from_request(request)?).await
+        methods::service::delete(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn user_list(
         &self,
         request: tonic::Request<pb::UserListRequest>,
     ) -> Result<tonic::Response<pb::UserListReply>, tonic::Status> {
-        methods::user::list(self, util::MetaRequest::from_request(request)?).await
+        methods::user::list(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn user_create(
         &self,
         request: tonic::Request<pb::UserCreateRequest>,
     ) -> Result<tonic::Response<pb::UserCreateReply>, tonic::Status> {
-        methods::user::create(self, util::MetaRequest::from_request(request)?).await
+        methods::user::create(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn user_read(
         &self,
         request: tonic::Request<pb::UserReadRequest>,
     ) -> Result<tonic::Response<pb::UserReadReply>, tonic::Status> {
-        methods::user::read(self, util::MetaRequest::from_request(request)?).await
+        methods::user::read(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn user_update(
         &self,
         request: tonic::Request<pb::UserUpdateRequest>,
     ) -> Result<tonic::Response<pb::UserReadReply>, tonic::Status> {
-        methods::user::update(self, util::MetaRequest::from_request(request)?).await
+        methods::user::update(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn user_delete(
         &self,
         request: tonic::Request<pb::UserReadRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
-        methods::user::delete(self, util::MetaRequest::from_request(request)?).await
+        methods::user::delete(self, util::MethodRequest::from_request(request)?)
+            .await
+            .map_err::<tonic::Status, _>(Into::into)
     }
 
     async fn auth_key_verify(
         &self,
         request: tonic::Request<pb::AuthKeyRequest>,
     ) -> Result<tonic::Response<pb::AuthKeyReply>, tonic::Status> {
-        methods::auth::key::verify(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::key::verify(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn auth_key_revoke(
         &self,
         request: tonic::Request<pb::AuthKeyRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::key::revoke(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::key::revoke(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn auth_token_verify(
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthTokenVerifyReply>, tonic::Status> {
-        methods::auth::token::verify(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::token::verify(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn auth_token_refresh(
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
-        methods::auth::token::refresh(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::token::refresh(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn auth_token_revoke(
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::token::revoke(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::token::revoke(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn auth_totp_verify(
         &self,
         request: tonic::Request<pb::AuthTotpRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::totp_verify(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::totp_verify(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn auth_csrf_create(
         &self,
         request: tonic::Request<pb::AuthCsrfCreateRequest>,
     ) -> Result<tonic::Response<pb::AuthCsrfCreateReply>, tonic::Status> {
-        methods::auth::csrf_create(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::csrf_create(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn auth_csrf_verify(
         &self,
         request: tonic::Request<pb::AuthCsrfVerifyRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::csrf_verify(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::csrf_verify(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn auth_local_login(
         &self,
         request: tonic::Request<pb::AuthLoginRequest>,
     ) -> Result<tonic::Response<pb::AuthLoginReply>, tonic::Status> {
-        methods::auth::local::login(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::local::login(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn auth_local_register(
         &self,
         request: tonic::Request<pb::AuthRegisterRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
-        methods::auth::local::register(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::local::register(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn auth_local_register_confirm(
         &self,
         request: tonic::Request<pb::AuthRegisterConfirmRequest>,
     ) -> Result<tonic::Response<pb::AuthPasswordMetaReply>, tonic::Status> {
-        methods::auth::local::register_confirm(self, util::MetaRequest::from_request(request)?)
+        methods::auth::local::register_confirm(self, util::MethodRequest::from_request(request)?)
             .await
     }
 
@@ -357,14 +387,16 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::local::register_revoke(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::local::register_revoke(self, util::MethodRequest::from_request(request)?)
+            .await
     }
 
     async fn auth_local_reset_password(
         &self,
         request: tonic::Request<pb::AuthResetPasswordRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
-        methods::auth::local::reset_password(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::local::reset_password(self, util::MethodRequest::from_request(request)?)
+            .await
     }
 
     async fn auth_local_reset_password_confirm(
@@ -373,7 +405,7 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<pb::AuthPasswordMetaReply>, tonic::Status> {
         methods::auth::local::reset_password_confirm(
             self,
-            util::MetaRequest::from_request(request)?,
+            util::MethodRequest::from_request(request)?,
         )
         .await
     }
@@ -382,22 +414,25 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::local::reset_password_revoke(self, util::MetaRequest::from_request(request)?)
-            .await
+        methods::auth::local::reset_password_revoke(
+            self,
+            util::MethodRequest::from_request(request)?,
+        )
+        .await
     }
 
     async fn auth_local_update_email(
         &self,
         request: tonic::Request<pb::AuthUpdateEmailRequest>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
-        methods::auth::local::update_email(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::local::update_email(self, util::MethodRequest::from_request(request)?).await
     }
 
     async fn auth_local_update_email_revoke(
         &self,
         request: tonic::Request<pb::AuthTokenRequest>,
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        methods::auth::local::update_email_revoke(self, util::MetaRequest::from_request(request)?)
+        methods::auth::local::update_email_revoke(self, util::MethodRequest::from_request(request)?)
             .await
     }
 
@@ -405,7 +440,8 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: tonic::Request<pb::AuthUpdatePasswordRequest>,
     ) -> Result<tonic::Response<pb::AuthPasswordMetaReply>, tonic::Status> {
-        methods::auth::local::update_password(self, util::MetaRequest::from_request(request)?).await
+        methods::auth::local::update_password(self, util::MethodRequest::from_request(request)?)
+            .await
     }
 
     async fn auth_local_update_password_revoke(
@@ -414,7 +450,7 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
         methods::auth::local::update_password_revoke(
             self,
-            util::MetaRequest::from_request(request)?,
+            util::MethodRequest::from_request(request)?,
         )
         .await
     }
@@ -423,14 +459,14 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: tonic::Request<()>,
     ) -> Result<tonic::Response<pb::AuthOauth2UrlReply>, tonic::Status> {
-        methods::auth::github::oauth2_url(self, util::MetaRequest::from_unit(request)?).await
+        methods::auth::github::oauth2_url(self, util::MethodRequest::from_unit(request)?).await
     }
 
     async fn auth_github_oauth2_callback(
         &self,
         request: tonic::Request<pb::AuthOauth2CallbackRequest>,
     ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
-        methods::auth::github::oauth2_callback(self, util::MetaRequest::from_request(request)?)
+        methods::auth::github::oauth2_callback(self, util::MethodRequest::from_request(request)?)
             .await
     }
 
@@ -438,14 +474,14 @@ impl pb::sso_server::Sso for Server {
         &self,
         request: tonic::Request<()>,
     ) -> Result<tonic::Response<pb::AuthOauth2UrlReply>, tonic::Status> {
-        methods::auth::microsoft::oauth2_url(self, util::MetaRequest::from_unit(request)?).await
+        methods::auth::microsoft::oauth2_url(self, util::MethodRequest::from_unit(request)?).await
     }
 
     async fn auth_microsoft_oauth2_callback(
         &self,
         request: tonic::Request<pb::AuthOauth2CallbackRequest>,
     ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
-        methods::auth::microsoft::oauth2_callback(self, util::MetaRequest::from_request(request)?)
+        methods::auth::microsoft::oauth2_callback(self, util::MethodRequest::from_request(request)?)
             .await
     }
 }

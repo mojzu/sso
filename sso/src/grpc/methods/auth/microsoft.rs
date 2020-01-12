@@ -8,7 +8,7 @@ use tonic::{Response, Status};
 
 pub async fn oauth2_url(
     server: &Server,
-    request: MetaRequest<()>,
+    request: MethodRequest<()>,
 ) -> Result<Response<pb::AuthOauth2UrlReply>, Status> {
     let (audit_meta, auth, _) = request.into_inner();
 
@@ -28,7 +28,7 @@ pub async fn oauth2_url(
 
 pub async fn oauth2_callback(
     server: &Server,
-    request: MetaRequest<pb::AuthOauth2CallbackRequest>,
+    request: MethodRequest<pb::AuthOauth2CallbackRequest>,
 ) -> Result<Response<pb::AuthTokenReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 

@@ -1,11 +1,8 @@
-use crate::grpc::{validate, Server};
 use crate::{
-    api::{self, ApiError, ApiResult},
-    grpc::{pb, util::*},
+    grpc::{pb, util::*, validate, Server},
     *,
 };
-use std::convert::TryInto;
-use tonic::{Response, Status};
+use tonic::Response;
 use uuid::Uuid;
 use validator::{Validate, ValidationErrors};
 
@@ -22,24 +19,20 @@ impl Validate for pb::ServiceListRequest {
 
 pub async fn list(
     server: &Server,
-    request: MetaRequest<pb::ServiceListRequest>,
-) -> Result<Response<pb::ServiceListReply>, Status> {
+    request: MethodRequest<ServiceList>,
+) -> MethodResponse<pb::ServiceListReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: ServiceList = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceList);
-        let res: Result<Vec<Service>, Status> = {
+        let res: Result<Vec<Service>, MethodError> = {
             pattern::key_root_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
-            driver
-                .service_list(&req)
-                .map_err(ApiError::BadRequest)
-                .map_err::<Status, _>(Into::into)
+            driver.service_list(&req).map_err(MethodError::BadRequest)
         };
-        let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::ServiceListReply {
             meta: Some(req.into()),
             data: data
@@ -84,24 +77,20 @@ impl Validate for pb::ServiceCreateRequest {
 
 pub async fn create(
     server: &Server,
-    request: MetaRequest<pb::ServiceCreateRequest>,
-) -> Result<Response<pb::ServiceReadReply>, Status> {
+    request: MethodRequest<ServiceCreate>,
+) -> MethodResponse<pb::ServiceReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: ServiceCreate = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceCreate);
-        let res: Result<Service, Status> = {
+        let res: Result<Service, MethodError> = {
             pattern::key_root_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
-            driver
-                .service_create(&req)
-                .map_err(ApiError::BadRequest)
-                .map_err::<Status, _>(Into::into)
+            driver.service_create(&req).map_err(MethodError::BadRequest)
         };
-        let data = api::result_audit_subject(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_subject(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::ServiceReadReply {
             data: Some(data.into()),
         };
@@ -121,21 +110,20 @@ impl Validate for pb::ServiceReadRequest {
 
 pub async fn read(
     server: &Server,
-    request: MetaRequest<pb::ServiceReadRequest>,
-) -> Result<Response<pb::ServiceReadReply>, Status> {
+    request: MethodRequest<ServiceRead>,
+) -> MethodResponse<pb::ServiceReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: ServiceRead = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceRead);
-        let res: Result<Service, Status> = {
+        let res: Result<Service, MethodError> = {
             let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
             read_inner(driver.as_ref().as_ref(), &req, service.map(|x| x.id))
         };
-        let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::ServiceReadReply {
             data: Some(data.into()),
         };
@@ -177,25 +165,26 @@ impl Validate for pb::ServiceUpdateRequest {
 
 pub async fn update(
     server: &Server,
-    request: MetaRequest<pb::ServiceUpdateRequest>,
-) -> Result<Response<pb::ServiceReadReply>, Status> {
+    request: MethodRequest<ServiceUpdate>,
+) -> MethodResponse<pb::ServiceReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: ServiceUpdate = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceUpdate);
-        let res: Result<(Service, Service), Status> = {
+        let res: Result<(Service, Service), MethodError> = {
             let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
             let read = ServiceRead::new(req.id);
             let previous_service =
                 read_inner(driver.as_ref().as_ref(), &read, service.map(|x| x.id))?;
-            let service = driver.service_update(&req).map_err(ApiError::BadRequest)?;
+            let service = driver
+                .service_update(&req)
+                .map_err(MethodError::BadRequest)?;
             Ok((previous_service, service))
         };
-        let data = api::result_audit_diff(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_diff(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::ServiceReadReply {
             data: Some(data.into()),
         };
@@ -205,28 +194,23 @@ pub async fn update(
     Ok(Response::new(reply))
 }
 
-pub async fn delete(
-    server: &Server,
-    request: MetaRequest<pb::ServiceReadRequest>,
-) -> Result<Response<()>, Status> {
+pub async fn delete(server: &Server, request: MethodRequest<ServiceRead>) -> MethodResponse<()> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: ServiceRead = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceDelete);
-        let res: Result<Service, Status> = {
+        let res: Result<Service, MethodError> = {
             let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
             let service = read_inner(driver.as_ref().as_ref(), &req, service.map(|x| x.id))?;
             driver
                 .service_delete(&service.id)
-                .map_err(ApiError::BadRequest)
-                .map_err::<tonic::Status, _>(Into::into)
+                .map_err(MethodError::BadRequest)
                 .map(|_| service)
         };
-        api::result_audit_subject(driver.as_ref().as_ref(), &audit, res)?;
+        audit_result_subject(driver.as_ref().as_ref(), &audit, res)?;
         Ok(())
     })
     .await?;
@@ -237,12 +221,10 @@ fn read_inner(
     driver: &dyn Driver,
     read: &ServiceRead,
     service_id: Option<Uuid>,
-) -> ApiResult<Service> {
+) -> MethodResult<Service> {
     driver
         .service_read(read, service_id)
-        .map_err(ApiError::BadRequest)
-        .map_err::<tonic::Status, _>(Into::into)?
+        .map_err(MethodError::BadRequest)?
         .ok_or_else(|| DriverError::ServiceNotFound)
-        .map_err(ApiError::NotFound)
-        .map_err::<tonic::Status, _>(Into::into)
+        .map_err(MethodError::NotFound)
 }

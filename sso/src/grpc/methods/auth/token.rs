@@ -18,7 +18,7 @@ impl Validate for pb::AuthTokenRequest {
 
 pub async fn verify(
     server: &Server,
-    request: MetaRequest<pb::AuthTokenRequest>,
+    request: MethodRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthTokenVerifyReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -86,7 +86,7 @@ pub async fn verify(
 
 pub async fn refresh(
     server: &Server,
-    request: MetaRequest<pb::AuthTokenRequest>,
+    request: MethodRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthTokenReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -164,7 +164,7 @@ pub async fn refresh(
 
 pub async fn revoke(
     server: &Server,
-    request: MetaRequest<pb::AuthTokenRequest>,
+    request: MethodRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 

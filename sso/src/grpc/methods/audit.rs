@@ -48,7 +48,7 @@ impl From<pb::AuditListRequest> for AuditList {
 
 pub async fn list(
     server: &Server,
-    request: MetaRequest<AuditList>,
+    request: MethodRequest<AuditList>,
 ) -> Result<Response<pb::AuditListReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
     let driver = server.driver();
@@ -89,7 +89,7 @@ impl Validate for pb::AuditCreateRequest {
 
 pub async fn create(
     server: &Server,
-    request: MetaRequest<pb::AuditCreateRequest>,
+    request: MethodRequest<pb::AuditCreateRequest>,
 ) -> Result<Response<pb::AuditReadReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
     let data = struct_opt_to_value_opt(req.data);
@@ -132,7 +132,7 @@ impl Validate for pb::AuditReadRequest {
 
 pub async fn read(
     server: &Server,
-    request: MetaRequest<pb::AuditReadRequest>,
+    request: MethodRequest<pb::AuditReadRequest>,
 ) -> Result<Response<pb::AuditReadReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
     let req: AuditRead = req.try_into()?;
@@ -174,7 +174,7 @@ impl Validate for pb::AuditUpdateRequest {
 
 pub async fn update(
     server: &Server,
-    request: MetaRequest<pb::AuditUpdateRequest>,
+    request: MethodRequest<pb::AuditUpdateRequest>,
 ) -> Result<Response<pb::AuditReadReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
     let req: AuditUpdate = req.try_into()?;

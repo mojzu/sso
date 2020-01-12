@@ -1,11 +1,8 @@
-use crate::grpc::{validate, Server};
 use crate::{
-    api::{self, ApiError, ApiResult},
-    grpc::{pb, util::*},
+    grpc::{pb, util::*, validate, Server},
     *,
 };
-use std::convert::TryInto;
-use tonic::{Response, Status};
+use tonic::Response;
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::KeyListRequest {
@@ -24,25 +21,23 @@ impl Validate for pb::KeyListRequest {
 
 pub async fn list(
     server: &Server,
-    request: MetaRequest<pb::KeyListRequest>,
-) -> Result<Response<pb::KeyListReply>, Status> {
+    request: MethodRequest<KeyList>,
+) -> MethodResponse<pb::KeyListReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: KeyList = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyList);
-        let res: Result<Vec<Key>, Status> = {
+        let res: Result<Vec<Key>, MethodError> = {
             let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
             driver
                 .as_ref()
                 .key_list(&req, service.map(|s| s.id))
-                .map_err(ApiError::BadRequest)
-                .map_err::<Status, _>(Into::into)
+                .map_err(MethodError::BadRequest)
         };
-        let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::KeyListReply {
             meta: Some(req.into()),
             data: data.into_iter().map::<pb::Key, _>(|x| x.into()).collect(),
@@ -66,21 +61,19 @@ impl Validate for pb::KeyCreateRequest {
 
 pub async fn create(
     server: &Server,
-    request: MetaRequest<pb::KeyCreateRequest>,
-) -> Result<Response<pb::KeyCreateReply>, Status> {
+    request: MethodRequest<KeyCreate>,
+) -> MethodResponse<pb::KeyCreateReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: KeyCreate = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyCreate);
-        let res: Result<KeyWithValue, Status> = {
+        let res: Result<KeyWithValue, MethodError> = {
             // If service ID is some, root key is required to create service keys.
             match req.service_id {
                 Some(service_id) => {
                     pattern::key_root_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                        .map_err(ApiError::Unauthorised)
-                        .map_err::<tonic::Status, _>(Into::into)
+                        .map_err(MethodError::Unauthorised)
                         .and_then(|_| {
                             match req.user_id {
                                 // User ID is defined, creating user key for service.
@@ -98,14 +91,12 @@ pub async fn create(
                                     service_id,
                                 )),
                             }
-                            .map_err(ApiError::BadRequest)
-                            .map_err::<tonic::Status, _>(Into::into)
+                            .map_err(MethodError::BadRequest)
                         })
                 }
                 None => {
                     pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                        .map_err(ApiError::Unauthorised)
-                        .map_err::<tonic::Status, _>(Into::into)
+                        .map_err(MethodError::Unauthorised)
                         .and_then(|service| {
                             match req.user_id {
                                 // User ID is defined, creating user key for service.
@@ -119,13 +110,12 @@ pub async fn create(
                                 // Service cannot create service keys.
                                 None => Err(DriverError::ServiceCannotCreateServiceKey),
                             }
-                            .map_err(ApiError::BadRequest)
-                            .map_err::<tonic::Status, _>(Into::into)
+                            .map_err(MethodError::BadRequest)
                         })
                 }
             }
         };
-        let data = api::result_audit_subject(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_subject(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::KeyCreateReply {
             data: Some(data.into()),
         };
@@ -146,22 +136,20 @@ impl Validate for pb::KeyReadRequest {
 
 pub async fn read(
     server: &Server,
-    request: MetaRequest<pb::KeyReadRequest>,
-) -> Result<Response<pb::KeyReadReply>, Status> {
+    request: MethodRequest<KeyRead>,
+) -> MethodResponse<pb::KeyReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: KeyRead = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyRead);
-        let res: Result<Key, Status> = {
+        let res: Result<Key, MethodError> = {
             let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)
-                .map_err::<tonic::Status, _>(Into::into)?;
+                .map_err(MethodError::Unauthorised)?;
 
             read_inner(driver.as_ref().as_ref(), &req, service.as_ref())
         };
-        let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::KeyReadReply {
             data: Some(data.into()),
         };
@@ -182,18 +170,16 @@ impl Validate for pb::KeyUpdateRequest {
 
 pub async fn update(
     server: &Server,
-    request: MetaRequest<pb::KeyUpdateRequest>,
-) -> Result<Response<pb::KeyReadReply>, Status> {
+    request: MethodRequest<KeyUpdate>,
+) -> MethodResponse<pb::KeyReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: KeyUpdate = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyUpdate);
-        let res: Result<(Key, Key), Status> = {
+        let res: Result<(Key, Key), MethodError> = {
             let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)
-                .map_err::<tonic::Status, _>(Into::into)?;
+                .map_err(MethodError::Unauthorised)?;
 
             let read = KeyRead::IdUser(req.id, None);
             let previous_key = read_inner(driver.as_ref().as_ref(), &read, service.as_ref())?;
@@ -204,10 +190,10 @@ pub async fn update(
                     is_revoked: None,
                     name: req.name,
                 })
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             Ok((previous_key, key))
         };
-        let data = api::result_audit_diff(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_diff(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::KeyReadReply {
             data: Some(data.into()),
         };
@@ -217,42 +203,33 @@ pub async fn update(
     Ok(Response::new(reply))
 }
 
-pub async fn delete(
-    server: &Server,
-    request: MetaRequest<pb::KeyReadRequest>,
-) -> Result<Response<()>, Status> {
+pub async fn delete(server: &Server, request: MethodRequest<KeyRead>) -> MethodResponse<()> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: KeyRead = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyDelete);
-        let res: Result<Key, Status> = {
+        let res: Result<Key, MethodError> = {
             let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
             let key = read_inner(driver.as_ref().as_ref(), &req, service.as_ref())?;
             driver
                 .key_delete(&key.id)
-                .map_err(ApiError::BadRequest)
-                .map_err::<tonic::Status, _>(Into::into)
+                .map_err(MethodError::BadRequest)
                 .map(|_| key)
         };
-        api::result_audit_subject(driver.as_ref().as_ref(), &audit, res)?;
+        audit_result_subject(driver.as_ref().as_ref(), &audit, res)?;
         Ok(())
     })
     .await?;
     Ok(Response::new(reply))
 }
 
-fn read_inner(driver: &dyn Driver, read: &KeyRead, service: Option<&Service>) -> ApiResult<Key> {
+fn read_inner(driver: &dyn Driver, read: &KeyRead, service: Option<&Service>) -> MethodResult<Key> {
     driver
         .key_read(&read, service.map(|x| x.id))
-        .map_err(ApiError::BadRequest)
-        .map_err::<tonic::Status, _>(Into::into)?
-        .ok_or_else(|| {
-            let e: tonic::Status = ApiError::NotFound(DriverError::KeyNotFound).into();
-            e
-        })
+        .map_err(MethodError::BadRequest)?
+        .ok_or_else(|| MethodError::NotFound(DriverError::KeyNotFound))
         .map(|x| x.into())
 }

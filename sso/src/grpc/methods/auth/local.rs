@@ -18,7 +18,7 @@ impl Validate for pb::AuthLoginRequest {
 
 pub async fn login(
     server: &Server,
-    request: MetaRequest<pb::AuthLoginRequest>,
+    request: MethodRequest<pb::AuthLoginRequest>,
 ) -> Result<Response<pb::AuthLoginReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -106,7 +106,7 @@ impl Validate for pb::AuthRegisterRequest {
 
 pub async fn register(
     server: &Server,
-    request: MetaRequest<pb::AuthRegisterRequest>,
+    request: MethodRequest<pb::AuthRegisterRequest>,
 ) -> Result<Response<()>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -178,7 +178,7 @@ impl Validate for pb::AuthRegisterConfirmRequest {
 
 pub async fn register_confirm(
     server: &Server,
-    request: MetaRequest<pb::AuthRegisterConfirmRequest>,
+    request: MethodRequest<pb::AuthRegisterConfirmRequest>,
 ) -> Result<Response<pb::AuthPasswordMetaReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -269,7 +269,7 @@ pub async fn register_confirm(
 
 pub async fn register_revoke(
     server: &Server,
-    request: MetaRequest<pb::AuthTokenRequest>,
+    request: MethodRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -298,7 +298,7 @@ impl Validate for pb::AuthResetPasswordRequest {
 
 pub async fn reset_password(
     server: &Server,
-    request: MetaRequest<pb::AuthResetPasswordRequest>,
+    request: MethodRequest<pb::AuthResetPasswordRequest>,
 ) -> Result<Response<()>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -372,7 +372,7 @@ impl Validate for pb::AuthResetPasswordConfirmRequest {
 
 pub async fn reset_password_confirm(
     server: &Server,
-    request: MetaRequest<pb::AuthResetPasswordConfirmRequest>,
+    request: MethodRequest<pb::AuthResetPasswordConfirmRequest>,
 ) -> Result<Response<pb::AuthPasswordMetaReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -466,7 +466,7 @@ pub async fn reset_password_confirm(
 
 pub async fn reset_password_revoke(
     server: &Server,
-    request: MetaRequest<pb::AuthTokenRequest>,
+    request: MethodRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -497,7 +497,7 @@ impl Validate for pb::AuthUpdateEmailRequest {
 
 pub async fn update_email(
     server: &Server,
-    request: MetaRequest<pb::AuthUpdateEmailRequest>,
+    request: MethodRequest<pb::AuthUpdateEmailRequest>,
 ) -> Result<Response<()>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -579,7 +579,7 @@ pub async fn update_email(
 
 pub async fn update_email_revoke(
     server: &Server,
-    request: MetaRequest<pb::AuthTokenRequest>,
+    request: MethodRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -610,7 +610,7 @@ impl Validate for pb::AuthUpdatePasswordRequest {
 
 pub async fn update_password(
     server: &Server,
-    request: MetaRequest<pb::AuthUpdatePasswordRequest>,
+    request: MethodRequest<pb::AuthUpdatePasswordRequest>,
 ) -> Result<Response<pb::AuthPasswordMetaReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
@@ -693,7 +693,7 @@ pub async fn update_password(
 
 pub async fn update_password_revoke(
     server: &Server,
-    request: MetaRequest<pb::AuthTokenRequest>,
+    request: MethodRequest<pb::AuthTokenRequest>,
 ) -> Result<Response<pb::AuthAuditReply>, Status> {
     let (audit_meta, auth, req) = request.into_inner();
 
