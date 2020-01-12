@@ -167,6 +167,8 @@ TODO(refactor): Audit log retention configuration.
 
 TODO(docs): Mutual TLS encryption/authentication for postgres connection.
 
+TODO(refactor): Dependency updates, blocked on `jsonwebtoken`.
+
 ### 1.10.1
 
 - Git and GitHub used for source code control, no formal commit procedure.

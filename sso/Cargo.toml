@@ -27,8 +27,6 @@ path = "src/bin/server.rs"
 default = ["postgres"]
 postgres = []
 
-# TODO(refactor): Dependency updates, audit/clippy checks.
-
 [dependencies]
 clap = "2.33.0"
 chrono = { version = "0.4.10", features = ["serde"] }
@@ -50,14 +48,14 @@ prometheus = "0.7.0"
 r2d2 = "0.8.8"
 reqwest = { version = "0.9.19", features = ["rustls-tls"] }
 rustls = "0.15.2"
-oauth2 = "= 3.0.0-alpha.3"
+oauth2 = "=3.0.0-alpha.3"
 sentry = "0.17.0"
 serde = "1.0.104"
 serde_derive = "1.0.104"
 serde_json = "1.0.44"
 serde_urlencoded = "0.6.1"
 sha-1 = "0.8.2"
-sysinfo = "0.9.6"
+sysinfo = "0.10.4"
 unic-langid = "0.7.1"
 url = "1.7.2"
 uuid = { version = "0.7.4", features = ["v4", "serde"] }
@@ -67,18 +65,18 @@ zxcvbn = "2.0.1"
 bytes = "0.4.12"
 futures-util = "0.3"
 http = "0.2"
-http01 = { version = "0.1", package = "http" }
+httpv01 = { version = "0.1", package = "http" }
 http-body = "0.3.1"
 hyper = "0.13"
 prost = "0.5.0"
 prost-derive = "0.5.0"
 prost-types = "0.5.0"
 tokio = { version = "0.2", features = ["rt-threaded", "time", "stream", "fs", "macros", "uds"] }
-tonic = "0.1.0-beta.1"
+tonic = "=0.1.0-beta.1"
 tower = "0.3"
 tower-service = "0.3"
 
-tokio-executor = { version = "0.2.0-alpha.6", features = ["blocking"] }
+tokio-executor = { version = "=0.2.0-alpha.6", features = ["blocking"] }
 
 [build-dependencies]
-tonic-build = "0.1.0-beta.1"
+tonic-build = "=0.1.0-beta.1"

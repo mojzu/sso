@@ -1,12 +1,9 @@
-use crate::grpc::{validate, Server};
 use crate::{
-    api::{self, ApiError},
-    grpc::{pb, util::*},
+    grpc::{pb, util::*, validate, Server},
     *,
 };
 use chrono::Utc;
-use std::convert::TryInto;
-use tonic::{Response, Status};
+use tonic::Response;
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::AuditListRequest {
@@ -28,7 +25,7 @@ impl From<pb::AuditListRequest> for AuditList {
         let limit = x.limit.unwrap_or(DEFAULT_LIMIT);
         let ge = timestamp_opt_to_datetime_opt(x.ge);
         let le = timestamp_opt_to_datetime_opt(x.le);
-        let offset_id = string_opt_to_uuid_opt(x.offset_id).unwrap();
+        let offset_id = string_opt_to_uuid_opt(x.offset_id);
         let query = match (ge, le) {
             (Some(ge), Some(le)) => AuditListQuery::CreatedLeAndGe(le, ge, limit, offset_id),
             (Some(ge), None) => AuditListQuery::CreatedGe(ge, limit, offset_id),
@@ -49,23 +46,22 @@ impl From<pb::AuditListRequest> for AuditList {
 pub async fn list(
     server: &Server,
     request: MethodRequest<AuditList>,
-) -> Result<Response<pb::AuditListReply>, Status> {
+) -> MethodResponse<pb::AuditListReply> {
     let (audit_meta, auth, req) = request.into_inner();
     let driver = server.driver();
 
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditList);
-        let res: Result<Vec<Audit>, Status> = {
+        let res: Result<Vec<Audit>, MethodError> = {
             let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
             driver
                 .as_ref()
                 .audit_list(&req, service.map(|s| s.id))
-                .map_err(ApiError::BadRequest)
-                .map_err::<Status, _>(Into::into)
+                .map_err(MethodError::BadRequest)
         };
-        let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuditListReply {
             meta: Some(req.into()),
             data: data.into_iter().map::<pb::Audit, _>(|x| x.into()).collect(),
@@ -90,28 +86,27 @@ impl Validate for pb::AuditCreateRequest {
 pub async fn create(
     server: &Server,
     request: MethodRequest<pb::AuditCreateRequest>,
-) -> Result<Response<pb::AuditReadReply>, Status> {
+) -> MethodResponse<pb::AuditReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
     let data = struct_opt_to_value_opt(req.data);
     let req = AuditCreate::new(audit_meta.clone(), req.r#type)
         .subject(req.subject)
         .data(data)
-        .user_id(string_opt_to_uuid_opt(req.user_id)?)
-        .user_key_id(string_opt_to_uuid_opt(req.user_key_id)?);
+        .user_id(string_opt_to_uuid_opt(req.user_id))
+        .user_key_id(string_opt_to_uuid_opt(req.user_key_id));
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditCreate);
-        let res: Result<Audit, Status> = {
+        let res: Result<Audit, MethodError> = {
             let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
             audit
                 .create2(driver.as_ref().as_ref(), req)
-                .map_err(ApiError::BadRequest)
-                .map_err::<Status, _>(Into::into)
+                .map_err(MethodError::BadRequest)
         };
-        let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuditReadReply {
             data: Some(data.into()),
         };
@@ -132,28 +127,23 @@ impl Validate for pb::AuditReadRequest {
 
 pub async fn read(
     server: &Server,
-    request: MethodRequest<pb::AuditReadRequest>,
-) -> Result<Response<pb::AuditReadReply>, Status> {
+    request: MethodRequest<AuditRead>,
+) -> MethodResponse<pb::AuditReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: AuditRead = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditRead);
-        let res: Result<Audit, Status> = {
+        let res: Result<Audit, MethodError> = {
             let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
             driver
                 .audit_read(&req, service.map(|x| x.id))
-                .map_err(ApiError::BadRequest)
-                .map_err::<Status, _>(Into::into)?
-                .ok_or_else(|| {
-                    let e: Status = ApiError::NotFound(DriverError::AuditNotFound).into();
-                    e
-                })
+                .map_err(MethodError::BadRequest)?
+                .ok_or_else(|| MethodError::NotFound(DriverError::AuditNotFound))
         };
-        let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuditReadReply {
             data: Some(data.into()),
         };
@@ -174,24 +164,22 @@ impl Validate for pb::AuditUpdateRequest {
 
 pub async fn update(
     server: &Server,
-    request: MethodRequest<pb::AuditUpdateRequest>,
-) -> Result<Response<pb::AuditReadReply>, Status> {
+    request: MethodRequest<AuditUpdate>,
+) -> MethodResponse<pb::AuditReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let req: AuditUpdate = req.try_into()?;
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuditUpdate);
-        let res: Result<Audit, Status> = {
+        let res: Result<Audit, MethodError> = {
             let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(ApiError::Unauthorised)?;
+                .map_err(MethodError::Unauthorised)?;
 
             driver
                 .audit_update(&req, service.map(|x| x.id))
-                .map_err(ApiError::BadRequest)
-                .map_err::<Status, _>(Into::into)
+                .map_err(MethodError::BadRequest)
         };
-        let data = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuditReadReply {
             data: Some(data.into()),
         };

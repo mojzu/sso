@@ -1,10 +1,8 @@
-use crate::grpc::{validate, Server};
 use crate::{
-    api::{self, ApiError},
-    grpc::{methods::auth::api_csrf_verify, pb, util::*},
+    grpc::{methods::auth::api_csrf_verify, pb, util::*, validate, Server},
     *,
 };
-use tonic::{Response, Status};
+use tonic::Response;
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::AuthTokenRequest {
@@ -19,20 +17,20 @@ impl Validate for pb::AuthTokenRequest {
 pub async fn verify(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> Result<Response<pb::AuthTokenVerifyReply>, Status> {
+) -> MethodResponse<pb::AuthTokenVerifyReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTokenVerify);
-        let res: Result<(User, UserTokenAccess, Option<Audit>), Status> = {
+        let res: Result<(User, UserTokenAccess, Option<Audit>), MethodError> = {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
+                    .map_err(MethodError::Unauthorised)?;
 
             // Unsafely decode token to get user identifier, used to read key for safe token decode.
             let (user_id, _) =
-                Jwt::decode_unsafe(&req.token, service.id).map_err(ApiError::BadRequest)?;
+                Jwt::decode_unsafe(&req.token, service.id).map_err(MethodError::BadRequest)?;
 
             // Token verify requires token key type.
             let user = pattern::user_read_id_checked(
@@ -41,7 +39,7 @@ pub async fn verify(
                 &mut audit,
                 user_id,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             let key = pattern::key_read_user_checked(
                 driver.as_ref().as_ref(),
                 &service,
@@ -49,11 +47,11 @@ pub async fn verify(
                 &user,
                 KeyType::Token,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
             // Safely decode token with user key.
             let access_token_expires = Jwt::decode_access_token(&service, &user, &key, &req.token)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
 
             // Token verified.
             let user_token = UserTokenAccess {
@@ -66,13 +64,13 @@ pub async fn verify(
             if let Some(x) = req.audit {
                 let audit = audit
                     .create(driver.as_ref().as_ref(), x, None, None)
-                    .map_err(ApiError::BadRequest)?;
+                    .map_err(MethodError::BadRequest)?;
                 Ok((user, user_token, Some(audit)))
             } else {
                 Ok((user, user_token, None))
             }
         };
-        let (user, token, audit) = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let (user, token, audit) = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthTokenVerifyReply {
             user: Some(user.into()),
             access: Some(token.into()),
@@ -87,22 +85,22 @@ pub async fn verify(
 pub async fn refresh(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> Result<Response<pb::AuthTokenReply>, Status> {
+) -> MethodResponse<pb::AuthTokenReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
     let refresh_token_expires = server.options().refresh_token_expires();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTokenRefresh);
-        let res: Result<(UserToken, Option<Audit>), Status> = {
+        let res: Result<(UserToken, Option<Audit>), MethodError> = {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
+                    .map_err(MethodError::Unauthorised)?;
 
             // Unsafely decode token to get user identifier, used to read key for safe token decode.
             let (user_id, _) =
-                Jwt::decode_unsafe(&req.token, service.id).map_err(ApiError::BadRequest)?;
+                Jwt::decode_unsafe(&req.token, service.id).map_err(MethodError::BadRequest)?;
 
             // Token refresh requires token key type.
             let user = pattern::user_read_id_checked(
@@ -111,7 +109,7 @@ pub async fn refresh(
                 &mut audit,
                 user_id,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             let key = pattern::key_read_user_checked(
                 driver.as_ref().as_ref(),
                 &service,
@@ -119,11 +117,11 @@ pub async fn refresh(
                 &user,
                 KeyType::Token,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
             // Safely decode token with user key.
             let csrf_key = Jwt::decode_refresh_token(&service, &user, &key, &req.token)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
 
             // Verify CSRF to prevent reuse.
             api_csrf_verify(driver.as_ref().as_ref(), &service, &csrf_key)?;
@@ -137,19 +135,19 @@ pub async fn refresh(
                 access_token_expires,
                 refresh_token_expires,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
             // Optionally create custom audit log.
             if let Some(x) = req.audit {
                 let audit = audit
                     .create(driver.as_ref().as_ref(), x, None, None)
-                    .map_err(ApiError::BadRequest)?;
+                    .map_err(MethodError::BadRequest)?;
                 Ok((user_token, Some(audit)))
             } else {
                 Ok((user_token, None))
             }
         };
-        let (user_token, audit) = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let (user_token, audit) = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthTokenReply {
             user: Some(user_token.user.clone().into()),
             access: Some(user_token.access_token()),
@@ -165,20 +163,20 @@ pub async fn refresh(
 pub async fn revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> Result<Response<pb::AuthAuditReply>, Status> {
+) -> MethodResponse<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTokenRevoke);
-        let res: Result<Option<Audit>, Status> = {
+        let res: Result<Option<Audit>, MethodError> = {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
+                    .map_err(MethodError::Unauthorised)?;
 
             // Unsafely decode token to get user identifier, used to read key for safe token decode.
             let (user_id, token_type) =
-                Jwt::decode_unsafe(&req.token, service.id).map_err(ApiError::BadRequest)?;
+                Jwt::decode_unsafe(&req.token, service.id).map_err(MethodError::BadRequest)?;
 
             // Token revoke requires token key type.
             // Do not check user, key is enabled or not revoked.
@@ -188,7 +186,7 @@ pub async fn revoke(
                 &mut audit,
                 user_id,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             let key = pattern::key_read_user_unchecked(
                 driver.as_ref().as_ref(),
                 &service,
@@ -196,13 +194,15 @@ pub async fn revoke(
                 &user,
                 KeyType::Token,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
             // Safely decode token with user key.
             let csrf_key = Jwt::decode_csrf_key(&service, &user, &key, token_type, &req.token)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             if let Some(csrf_key) = csrf_key {
-                driver.csrf_read(&csrf_key).map_err(ApiError::BadRequest)?;
+                driver
+                    .csrf_read(&csrf_key)
+                    .map_err(MethodError::BadRequest)?;
             }
 
             // Token revoked, disable and revoked linked key.
@@ -213,19 +213,19 @@ pub async fn revoke(
                     is_revoked: Some(true),
                     name: None,
                 })
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
 
             // Optionally create custom audit log.
             if let Some(x) = req.audit {
                 let audit = audit
                     .create(driver.as_ref().as_ref(), x, None, None)
-                    .map_err(ApiError::BadRequest)?;
+                    .map_err(MethodError::BadRequest)?;
                 Ok(Some(audit))
             } else {
                 Ok(None)
             }
         };
-        let audit = api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
         };

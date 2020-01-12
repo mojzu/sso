@@ -1,5 +1,5 @@
 use crate::{DriverError, DriverResult};
-use http01::{header, HeaderMap};
+use httpv01::{header, HeaderMap};
 use lettre::{
     smtp::authentication::{Credentials, Mechanism},
     ClientSecurity, ClientTlsParameters, SmtpClient,
@@ -62,6 +62,9 @@ pub struct ServerOptions {
     /// SMTP transport.
     smtp_transport: Option<ServerOptionsSmtp>,
     /// SMTP file transport.
+    ///
+    /// Writes emails to files in directory, if server settings
+    /// are defined this is ignored.
     smtp_file_transport: Option<String>,
     /// Github provider.
     github: Option<ServerOptionsProvider>,

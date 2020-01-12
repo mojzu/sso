@@ -41,15 +41,35 @@ pub enum MethodError {
     InternalServerError(#[fail(cause)] DriverError),
 }
 
-impl From<MethodError> for Status {
-    fn from(e: MethodError) -> Self {
-        match e {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct MethodErrorData {
+    code: u16,
+    message: String,
+}
+
+impl MethodError {
+    fn get_status(&self) -> Status {
+        match self {
             MethodError::BadRequest(e) => Status::invalid_argument(format!("{}", e)),
             MethodError::Unauthorised(e) => Status::unauthenticated(format!("{}", e)),
             MethodError::Forbidden(e) => Status::permission_denied(format!("{}", e)),
             MethodError::NotFound(e) => Status::not_found(format!("{}", e)),
             MethodError::InternalServerError(e) => Status::internal(format!("{}", e)),
         }
+    }
+
+    fn get_data(&self) -> MethodErrorData {
+        let e = self.get_status();
+        MethodErrorData {
+            code: e.code() as u16,
+            message: e.message().to_owned(),
+        }
+    }
+}
+
+impl From<MethodError> for Status {
+    fn from(e: MethodError) -> Self {
+        e.get_status()
     }
 }
 
@@ -99,22 +119,6 @@ impl<T> MethodRequest<T> {
 /// Method response wrapper type.
 pub type MethodResponse<T> = Result<Response<T>, MethodError>;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct MethodErrorData {
-    code: u16,
-    message: String,
-}
-
-impl From<MethodError> for MethodErrorData {
-    fn from(e: MethodError) -> Self {
-        let e: Status = e.into();
-        Self {
-            code: e.code() as u16,
-            message: e.message().to_owned(),
-        }
-    }
-}
-
 pub fn audit_result<T>(
     driver: &dyn Driver,
     audit: &AuditBuilder,
@@ -128,7 +132,7 @@ pub fn audit_result<T>(
             Ok(res)
         }
         Err(e) => {
-            let data: MethodErrorData = e.into();
+            let data = e.get_data();
             audit
                 .create_data(
                     driver,
@@ -150,7 +154,7 @@ pub fn audit_result_err<T>(
     match res {
         Ok(res) => Ok(res),
         Err(e) => {
-            let data: MethodErrorData = e.into();
+            let data = e.get_data();
             audit
                 .create_data(
                     driver,
@@ -177,7 +181,7 @@ pub fn audit_result_subject<T: AuditSubject>(
             Ok(res)
         }
         Err(e) => {
-            let data: MethodErrorData = e.into();
+            let data = e.get_data();
             audit
                 .create_data(
                     driver,
@@ -205,7 +209,7 @@ pub fn audit_result_diff<T: AuditSubject + AuditDiff>(
             Ok(n)
         }
         Err(e) => {
-            let data: MethodErrorData = e.into();
+            let data = e.get_data();
             audit
                 .create_data(
                     driver,

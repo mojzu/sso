@@ -1,10 +1,8 @@
-use crate::grpc::{validate, Server};
 use crate::{
-    api::{self, ApiError},
-    grpc::{pb, util::*},
+    grpc::{pb, util::*, validate, Server},
     *,
 };
-use tonic::{Response, Status};
+use tonic::Response;
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::AuthKeyRequest {
@@ -19,16 +17,16 @@ impl Validate for pb::AuthKeyRequest {
 pub async fn verify(
     server: &Server,
     request: MethodRequest<pb::AuthKeyRequest>,
-) -> Result<Response<pb::AuthKeyReply>, Status> {
+) -> MethodResponse<pb::AuthKeyReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthKeyVerify);
-        let res: Result<(User, KeyWithValue, Option<Audit>), Status> = {
+        let res: Result<(User, KeyWithValue, Option<Audit>), MethodError> = {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
+                    .map_err(MethodError::Unauthorised)?;
 
             // Key verify requires key key type.
             let key = pattern::key_read_user_value_checked(
@@ -38,27 +36,27 @@ pub async fn verify(
                 req.key,
                 KeyType::Key,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             let user = pattern::user_read_id_checked(
                 driver.as_ref().as_ref(),
                 Some(&service),
                 &mut audit,
                 key.user_id.unwrap(),
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
             // Key verified.
             // Optionally create custom audit log.
             if let Some(x) = req.audit {
                 let audit = audit
                     .create(driver.as_ref().as_ref(), x, None, None)
-                    .map_err(ApiError::BadRequest)?;
+                    .map_err(MethodError::BadRequest)?;
                 Ok((user, key, Some(audit)))
             } else {
                 Ok((user, key, None))
             }
         };
-        let (user, key, audit) = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let (user, key, audit) = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthKeyReply {
             user: Some(user.into()),
             key: Some(key.into()),
@@ -73,16 +71,16 @@ pub async fn verify(
 pub async fn revoke(
     server: &Server,
     request: MethodRequest<pb::AuthKeyRequest>,
-) -> Result<Response<pb::AuthAuditReply>, Status> {
+) -> MethodResponse<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthKeyRevoke);
-        let res: Result<Option<Audit>, Status> = {
+        let res: Result<Option<Audit>, MethodError> = {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
+                    .map_err(MethodError::Unauthorised)?;
 
             // Key revoke requires key key type.
             // Do not check key is enabled or not revoked.
@@ -93,7 +91,7 @@ pub async fn revoke(
                 req.key,
                 KeyType::Key,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
             // Disable and revoke key.
             driver
@@ -103,19 +101,19 @@ pub async fn revoke(
                     is_revoked: Some(true),
                     name: None,
                 })
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
 
             // Optionally create custom audit log.
             if let Some(x) = req.audit {
                 let audit = audit
                     .create(driver.as_ref().as_ref(), x, None, None)
-                    .map_err(ApiError::BadRequest)?;
+                    .map_err(MethodError::BadRequest)?;
                 Ok(Some(audit))
             } else {
                 Ok(None)
             }
         };
-        let audit = api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
         };

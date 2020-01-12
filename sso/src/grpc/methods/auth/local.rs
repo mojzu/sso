@@ -1,10 +1,8 @@
-use crate::grpc::{validate, Server};
 use crate::{
-    api::{self, ApiError, ApiResult},
-    grpc::{methods::auth::api_csrf_verify, pb, util::*},
+    grpc::{methods::auth::api_csrf_verify, pb, util::*, validate, Server},
     *,
 };
-use tonic::{Response, Status};
+use tonic::Response;
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::AuthLoginRequest {
@@ -19,7 +17,7 @@ impl Validate for pb::AuthLoginRequest {
 pub async fn login(
     server: &Server,
     request: MethodRequest<pb::AuthLoginRequest>,
-) -> Result<Response<pb::AuthLoginReply>, Status> {
+) -> MethodResponse<pb::AuthLoginReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -27,19 +25,19 @@ pub async fn login(
     let password_pwned_enabled = server.options().password_pwned_enabled();
     let access_token_expires = server.options().access_token_expires();
     let refresh_token_expires = server.options().refresh_token_expires();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalLogin);
         let password_meta = api::password_meta(
             client.as_ref(),
             password_pwned_enabled,
             Some(req.password.clone()),
         )
-        .map_err(ApiError::BadRequest)?;
+        .map_err(MethodError::BadRequest)?;
 
-        let res: Result<UserToken, Status> = {
+        let res: Result<UserToken, MethodError> = {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
+                    .map_err(MethodError::Unauthorised)?;
 
             // Login requires token key type.
             let user = pattern::user_read_email_checked(
@@ -48,7 +46,7 @@ pub async fn login(
                 &mut audit,
                 req.email,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             let key = pattern::key_read_user_checked(
                 driver.as_ref().as_ref(),
                 &service,
@@ -56,17 +54,18 @@ pub async fn login(
                 &user,
                 KeyType::Token,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
             // Forbidden if user password update required.
             if user.password_require_update {
-                let e: Status = ApiError::Forbidden(DriverError::UserPasswordUpdateRequired).into();
-                return Err(e);
+                return Err(MethodError::Forbidden(
+                    DriverError::UserPasswordUpdateRequired,
+                ));
             }
 
             // Check user password.
             user.password_check(&req.password)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
 
             // Encode user token.
             Jwt::encode_user_token(
@@ -77,10 +76,10 @@ pub async fn login(
                 access_token_expires,
                 refresh_token_expires,
             )
-            .map_err(ApiError::BadRequest)
-            .map_err::<Status, _>(Into::into)
+            .map_err(MethodError::BadRequest)
+            .map_err::<MethodError, _>(Into::into)
         };
-        let user_token = api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        let user_token = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthLoginReply {
             meta: Some(password_meta.into()),
             user: Some(user_token.user.clone().into()),
@@ -107,23 +106,23 @@ impl Validate for pb::AuthRegisterRequest {
 pub async fn register(
     server: &Server,
     request: MethodRequest<pb::AuthRegisterRequest>,
-) -> Result<Response<()>, Status> {
+) -> MethodResponse<()> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
     let email = server.smtp_email();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalRegister);
-        let res: Result<(), Status> = {
+        let res: Result<(), MethodError> = {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
+                    .map_err(MethodError::Unauthorised)?;
             // Bad request if service not allowed to register users.
             if !service.user_allow_register {
-                let e: tonic::Status =
-                    ApiError::BadRequest(DriverError::ServiceUserRegisterDisabled).into();
-                return Err(e);
+                return Err(MethodError::BadRequest(
+                    DriverError::ServiceUserRegisterDisabled,
+                ));
             }
             // Create user, is allowed to request password reset in case register token expires.
             // TODO(refactor): Support user for email already exists, add test for this.
@@ -137,12 +136,12 @@ pub async fn register(
             }
             let user = driver
                 .user_create(&user_create)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             // Create token key for user.
             let key_create = KeyCreate::user(true, KeyType::Token, &req.name, service.id, user.id);
             let key = driver
                 .key_create(&key_create)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             // Encode register token.
             let token = Jwt::encode_register_token(
                 driver.as_ref().as_ref(),
@@ -151,16 +150,16 @@ pub async fn register(
                 &key,
                 access_token_expires,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             // Send register email.
             let e = TemplateEmail::email_register(&service, &user, &token, audit.meta())
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             email(e)
                 .map_err::<DriverError, _>(Into::into)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             Ok(())
         };
-        api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        audit_result(driver.as_ref().as_ref(), &audit, res)?;
         Ok(())
     })
     .await?;
@@ -179,7 +178,7 @@ impl Validate for pb::AuthRegisterConfirmRequest {
 pub async fn register_confirm(
     server: &Server,
     request: MethodRequest<pb::AuthRegisterConfirmRequest>,
-) -> Result<Response<pb::AuthPasswordMetaReply>, Status> {
+) -> MethodResponse<pb::AuthPasswordMetaReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -187,28 +186,28 @@ pub async fn register_confirm(
     let password_pwned_enabled = server.options().password_pwned_enabled();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalRegisterConfirm);
         let password_meta = api::password_meta(
             client.as_ref(),
             password_pwned_enabled,
             req.password.clone(),
         )
-        .map_err(ApiError::BadRequest)?;
+        .map_err(MethodError::BadRequest)?;
 
-        let res: Result<(), Status> = {
+        let res: Result<(), MethodError> = {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
+                    .map_err(MethodError::Unauthorised)?;
             // Bad request if service not allowed to register users.
             if !service.user_allow_register {
-                let e: tonic::Status =
-                    ApiError::BadRequest(DriverError::ServiceUserRegisterDisabled).into();
-                return Err(e);
+                return Err(MethodError::BadRequest(
+                    DriverError::ServiceUserRegisterDisabled,
+                ));
             }
             // Unsafely decode token to get user identifier, used to read key for safe token decode.
             let (user_id, _) =
-                Jwt::decode_unsafe(&req.token, service.id).map_err(ApiError::BadRequest)?;
+                Jwt::decode_unsafe(&req.token, service.id).map_err(MethodError::BadRequest)?;
             // Register confirm requires token key type.
             let user = pattern::user_read_id_checked(
                 driver.as_ref().as_ref(),
@@ -216,7 +215,7 @@ pub async fn register_confirm(
                 &mut audit,
                 user_id,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             let key = pattern::key_read_user_checked(
                 driver.as_ref().as_ref(),
                 &service,
@@ -224,10 +223,10 @@ pub async fn register_confirm(
                 &user,
                 KeyType::Token,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             // Safely decode token with user key.
             let csrf_key = Jwt::decode_register_token(&service, &user, &key, &req.token)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             // Verify CSRF to prevent reuse.
             api_csrf_verify(driver.as_ref().as_ref(), &service, &csrf_key)?;
             // Encode revoke token.
@@ -238,27 +237,27 @@ pub async fn register_confirm(
                 &key,
                 revoke_token_expires,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             // Update user password and allow reset flag if provided.
             if let Some(password) = req.password {
                 let mut user_update =
-                    UserUpdate::new_password(user.id, password).map_err(ApiError::BadRequest)?;
+                    UserUpdate::new_password(user.id, password).map_err(MethodError::BadRequest)?;
                 if let Some(password_allow_reset) = req.password_allow_reset {
                     user_update = user_update.set_password_allow_reset(password_allow_reset);
                 }
                 driver
                     .user_update(&user_update)
-                    .map_err(ApiError::BadRequest)?;
+                    .map_err(MethodError::BadRequest)?;
             }
             // Send reset password confirm email.
             let e = TemplateEmail::email_register_confirm(&service, &user, &token, audit.meta())
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             email(e)
                 .map_err::<DriverError, _>(Into::into)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             Ok(())
         };
-        api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        audit_result(driver.as_ref().as_ref(), &audit, res)?;
         Ok(pb::AuthPasswordMetaReply {
             meta: Some(password_meta.into()),
         })
@@ -270,15 +269,15 @@ pub async fn register_confirm(
 pub async fn register_revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> Result<Response<pb::AuthAuditReply>, Status> {
+) -> MethodResponse<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalRegisterRevoke);
-        let res: Result<Option<Audit>, Status> =
+        let res: Result<Option<Audit>, MethodError> =
             { revoke_inner(driver.as_ref().as_ref(), &mut audit, auth, req) };
-        let audit = api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
         };
@@ -299,18 +298,18 @@ impl Validate for pb::AuthResetPasswordRequest {
 pub async fn reset_password(
     server: &Server,
     request: MethodRequest<pb::AuthResetPasswordRequest>,
-) -> Result<Response<()>, Status> {
+) -> MethodResponse<()> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
     let email = server.smtp_email();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPassword);
-        let res: Result<(), Status> = {
+        let res: Result<(), MethodError> = {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
+                    .map_err(MethodError::Unauthorised)?;
             // Reset password requires token key type.
             let user = pattern::user_read_email_checked(
                 driver.as_ref().as_ref(),
@@ -318,7 +317,7 @@ pub async fn reset_password(
                 &mut audit,
                 req.email,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             let key = pattern::key_read_user_checked(
                 driver.as_ref().as_ref(),
                 &service,
@@ -326,12 +325,12 @@ pub async fn reset_password(
                 &user,
                 KeyType::Token,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             // Bad request if user password reset is disabled.
             if !user.password_allow_reset {
-                let e: tonic::Status =
-                    ApiError::BadRequest(DriverError::UserResetPasswordDisabled).into();
-                return Err(e);
+                return Err(MethodError::BadRequest(
+                    DriverError::UserResetPasswordDisabled,
+                ));
             }
             // Encode reset token.
             let token = Jwt::encode_reset_password_token(
@@ -341,16 +340,16 @@ pub async fn reset_password(
                 &key,
                 access_token_expires,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             // Send reset password email.
             let e = TemplateEmail::email_reset_password(&service, &user, &token, audit.meta())
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             email(e)
                 .map_err::<DriverError, _>(Into::into)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             Ok(())
         };
-        api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        audit_result(driver.as_ref().as_ref(), &audit, res)?;
         // TODO(refactor): Fix this.
         // // Catch Err result so this function returns Ok to prevent the caller
         // // from inferring a users existence.
@@ -373,7 +372,7 @@ impl Validate for pb::AuthResetPasswordConfirmRequest {
 pub async fn reset_password_confirm(
     server: &Server,
     request: MethodRequest<pb::AuthResetPasswordConfirmRequest>,
-) -> Result<Response<pb::AuthPasswordMetaReply>, Status> {
+) -> MethodResponse<pb::AuthPasswordMetaReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -381,23 +380,23 @@ pub async fn reset_password_confirm(
     let password_pwned_enabled = server.options().password_pwned_enabled();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPasswordConfirm);
         let password_meta = api::password_meta(
             client.as_ref(),
             password_pwned_enabled,
             Some(req.password.clone()),
         )
-        .map_err(ApiError::BadRequest)?;
+        .map_err(MethodError::BadRequest)?;
 
-        let res: Result<(), Status> = {
+        let res: Result<(), MethodError> = {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
+                    .map_err(MethodError::Unauthorised)?;
 
             // Unsafely decode token to get user identifier, used to read key for safe token decode.
             let (user_id, _) =
-                Jwt::decode_unsafe(&req.token, service.id).map_err(ApiError::BadRequest)?;
+                Jwt::decode_unsafe(&req.token, service.id).map_err(MethodError::BadRequest)?;
 
             // Reset password confirm requires token key type.
             let user = pattern::user_read_id_checked(
@@ -406,7 +405,7 @@ pub async fn reset_password_confirm(
                 &mut audit,
                 user_id,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             let key = pattern::key_read_user_checked(
                 driver.as_ref().as_ref(),
                 &service,
@@ -414,17 +413,17 @@ pub async fn reset_password_confirm(
                 &user,
                 KeyType::Token,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
             // Bad request if user password reset is disabled.
             if !user.password_allow_reset {
-                let e = ApiError::BadRequest(DriverError::UserResetPasswordDisabled).into();
+                let e = MethodError::BadRequest(DriverError::UserResetPasswordDisabled).into();
                 return Err(e);
             }
 
             // Safely decode token with user key.
             let csrf_key = Jwt::decode_reset_password_token(&service, &user, &key, &req.token)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
 
             // Verify CSRF to prevent reuse.
             api_csrf_verify(driver.as_ref().as_ref(), &service, &csrf_key)?;
@@ -437,25 +436,25 @@ pub async fn reset_password_confirm(
                 &key,
                 revoke_token_expires,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
             // Update user password.
             let user_update =
-                UserUpdate::new_password(user.id, req.password).map_err(ApiError::BadRequest)?;
+                UserUpdate::new_password(user.id, req.password).map_err(MethodError::BadRequest)?;
             driver
                 .user_update(&user_update)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
 
             // Send reset password confirm email.
             let e =
                 TemplateEmail::email_reset_password_confirm(&service, &user, &token, audit.meta())
-                    .map_err(ApiError::BadRequest)?;
+                    .map_err(MethodError::BadRequest)?;
             email(e)
                 .map_err::<DriverError, _>(Into::into)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             Ok(())
         };
-        api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        audit_result(driver.as_ref().as_ref(), &audit, res)?;
         Ok(pb::AuthPasswordMetaReply {
             meta: Some(password_meta.into()),
         })
@@ -467,15 +466,15 @@ pub async fn reset_password_confirm(
 pub async fn reset_password_revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> Result<Response<pb::AuthAuditReply>, Status> {
+) -> MethodResponse<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPasswordRevoke);
-        let res: Result<Option<Audit>, Status> =
+        let res: Result<Option<Audit>, MethodError> =
             { revoke_inner(driver.as_ref().as_ref(), &mut audit, auth, req) };
-        let audit = api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
         };
@@ -498,26 +497,26 @@ impl Validate for pb::AuthUpdateEmailRequest {
 pub async fn update_email(
     server: &Server,
     request: MethodRequest<pb::AuthUpdateEmailRequest>,
-) -> Result<Response<()>, Status> {
+) -> MethodResponse<()> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdateEmail);
-        let res: Result<(), Status> = {
+        let res: Result<(), MethodError> = {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
+                    .map_err(MethodError::Unauthorised)?;
             // Update email requires token key type.
             let user = pattern::user_read_id_checked(
                 driver.as_ref().as_ref(),
                 Some(&service),
                 &mut audit,
-                string_to_uuid(req.user_id.clone())?,
+                string_to_uuid(req.user_id.clone()),
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             let key = pattern::key_read_user_checked(
                 driver.as_ref().as_ref(),
                 &service,
@@ -525,16 +524,16 @@ pub async fn update_email(
                 &user,
                 KeyType::Token,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             // Forbidden if user password update required.
             if user.password_require_update {
-                let e: tonic::Status =
-                    ApiError::Forbidden(DriverError::UserPasswordUpdateRequired).into();
-                return Err(e);
+                return Err(MethodError::Forbidden(
+                    DriverError::UserPasswordUpdateRequired,
+                ));
             }
             // Check user password.
             user.password_check(&req.password)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             // Encode revoke token.
             let token = Jwt::encode_revoke_token(
                 driver.as_ref().as_ref(),
@@ -543,19 +542,19 @@ pub async fn update_email(
                 &key,
                 revoke_token_expires,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             // Update user email.
             let old_email = user.email.to_owned();
             driver
                 .user_update(&UserUpdate::new_email(user.id, req.new_email))
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             let user = pattern::user_read_id_checked(
                 driver.as_ref().as_ref(),
                 Some(&service),
                 &mut audit,
-                string_to_uuid(req.user_id)?,
+                string_to_uuid(req.user_id),
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             // Send update email email.
             let e = TemplateEmail::email_update_email(
                 &service,
@@ -564,13 +563,13 @@ pub async fn update_email(
                 &token,
                 audit.meta(),
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             email(e)
                 .map_err::<DriverError, _>(Into::into)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             Ok(())
         };
-        api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        audit_result(driver.as_ref().as_ref(), &audit, res)?;
         Ok(())
     })
     .await?;
@@ -580,15 +579,15 @@ pub async fn update_email(
 pub async fn update_email_revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> Result<Response<pb::AuthAuditReply>, Status> {
+) -> MethodResponse<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdateEmailRevoke);
-        let res: Result<Option<Audit>, Status> =
+        let res: Result<Option<Audit>, MethodError> =
             { revoke_inner(driver.as_ref().as_ref(), &mut audit, auth, req) };
-        let audit = api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
         };
@@ -611,7 +610,7 @@ impl Validate for pb::AuthUpdatePasswordRequest {
 pub async fn update_password(
     server: &Server,
     request: MethodRequest<pb::AuthUpdatePasswordRequest>,
-) -> Result<Response<pb::AuthPasswordMetaReply>, Status> {
+) -> MethodResponse<pb::AuthPasswordMetaReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -619,27 +618,27 @@ pub async fn update_password(
     let password_pwned_enabled = server.options().password_pwned_enabled();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdatePassword);
         let password_meta = api::password_meta(
             client.as_ref(),
             password_pwned_enabled,
             Some(req.password.clone()),
         )
-        .map_err(ApiError::BadRequest)?;
+        .map_err(MethodError::BadRequest)?;
 
-        let res: Result<(), Status> = {
+        let res: Result<(), MethodError> = {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                    .map_err(ApiError::Unauthorised)?;
+                    .map_err(MethodError::Unauthorised)?;
             // Update password requires token key type.
             let user = pattern::user_read_id_checked(
                 driver.as_ref().as_ref(),
                 Some(&service),
                 &mut audit,
-                string_to_uuid(req.user_id.clone())?,
+                string_to_uuid(req.user_id.clone()),
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             let key = pattern::key_read_user_checked(
                 driver.as_ref().as_ref(),
                 &service,
@@ -647,11 +646,11 @@ pub async fn update_password(
                 &user,
                 KeyType::Token,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             // User is allowed to update password if `password_require_update` is true.
             // Check user password.
             user.password_check(&req.password)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             // Encode revoke token.
             let token = Jwt::encode_revoke_token(
                 driver.as_ref().as_ref(),
@@ -660,29 +659,29 @@ pub async fn update_password(
                 &key,
                 revoke_token_expires,
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             // Update user password.
             let user_update = UserUpdate::new_password(user.id, req.new_password)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             driver
                 .user_update(&user_update)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             let user = pattern::user_read_id_checked(
                 driver.as_ref().as_ref(),
                 Some(&service),
                 &mut audit,
-                string_to_uuid(req.user_id)?,
+                string_to_uuid(req.user_id),
             )
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
             // Send update password email.
             let e = TemplateEmail::email_update_password(&service, &user, &token, audit.meta())
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             email(e)
                 .map_err::<DriverError, _>(Into::into)
-                .map_err(ApiError::BadRequest)?;
+                .map_err(MethodError::BadRequest)?;
             Ok(())
         };
-        api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        audit_result(driver.as_ref().as_ref(), &audit, res)?;
         Ok(pb::AuthPasswordMetaReply {
             meta: Some(password_meta.into()),
         })
@@ -694,15 +693,15 @@ pub async fn update_password(
 pub async fn update_password_revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> Result<Response<pb::AuthAuditReply>, Status> {
+) -> MethodResponse<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdatePasswordRevoke);
-        let res: Result<Option<Audit>, Status> =
+        let res: Result<Option<Audit>, MethodError> =
             { revoke_inner(driver.as_ref().as_ref(), &mut audit, auth, req) };
-        let audit = api::result_audit(driver.as_ref().as_ref(), &audit, res)?;
+        let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
         };
@@ -717,27 +716,28 @@ fn revoke_inner(
     audit: &mut AuditBuilder,
     auth: Option<String>,
     req: pb::AuthTokenRequest,
-) -> ApiResult<Option<Audit>> {
-    let service =
-        pattern::key_service_authenticate(driver, audit, auth).map_err(ApiError::Unauthorised)?;
+) -> MethodResult<Option<Audit>> {
+    let service = pattern::key_service_authenticate(driver, audit, auth)
+        .map_err(MethodError::Unauthorised)?;
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
-    let (user_id, _) = Jwt::decode_unsafe(&req.token, service.id).map_err(ApiError::BadRequest)?;
+    let (user_id, _) =
+        Jwt::decode_unsafe(&req.token, service.id).map_err(MethodError::BadRequest)?;
     // Update email revoke requires token key type.
     // Do not check user, key is enabled or not revoked.
     let user = pattern::user_read_id_unchecked(driver, Some(&service), audit, user_id)
-        .map_err(ApiError::BadRequest)?;
+        .map_err(MethodError::BadRequest)?;
     let key = pattern::key_read_user_unchecked(driver, &service, audit, &user, KeyType::Token)
-        .map_err(ApiError::BadRequest)?;
+        .map_err(MethodError::BadRequest)?;
     // Safely decode token with user key.
     let csrf_key = Jwt::decode_revoke_token(&service, &user, &key, &req.token)
-        .map_err(ApiError::BadRequest)?;
+        .map_err(MethodError::BadRequest)?;
     // Verify CSRF to prevent reuse.
     api_csrf_verify(driver, &service, &csrf_key)?;
     // TODO(refactor): Rethink this behaviour?
     // Disable user and disable and revoke all keys associated with user.
     // driver
     //     .user_update(&user.id, &UserUpdate::default().set_is_enabled(false))
-    //     .map_err(ApiError::BadRequest)?;
+    //     .map_err(MethodError::BadRequest)?;
     // driver
     //     .key_update_many(
     //         &user.id,
@@ -747,12 +747,12 @@ fn revoke_inner(
     //             name: None,
     //         },
     //     )
-    //     .map_err(ApiError::BadRequest)?;
+    //     .map_err(MethodError::BadRequest)?;
     // Optionally create custom audit log.
     if let Some(x) = req.audit {
         let audit = audit
             .create(driver, x, None, None)
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
         Ok(Some(audit))
     } else {
         Ok(None)

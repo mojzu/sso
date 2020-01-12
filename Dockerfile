@@ -69,6 +69,8 @@ RUN wget -O pandoc.deb -q "$PANDOC_URL" \
 # Development Environment
 # -----------------------
 # This file is checked into Git and must not contain secrets!
+ENV RUST_BACKTRACE="1" \
+    RUST_LOG="info"
 
 # sso
 # # Sentry URL for logging integration.
@@ -86,8 +88,6 @@ ENV SSO_DATABASE_CONNECTIONS="10"
 #     SSO_SMTP_PORT="" \
 #     SSO_SMTP_USER="" \
 #     SSO_SMTP_PASSWORD=""
-# SMTP file transport configuration.
-ENV SSO_SMTP_FILE="/sso/target/smtp"
 # Password pwned integration enabled.
 ENV SSO_PASSWORD_PWNED="true"
 # # Github OAuth2 support.

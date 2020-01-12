@@ -1,25 +1,24 @@
 use crate::grpc::{validate, Server};
 use crate::{
-    api::{self},
     grpc::{pb, util::*},
     *,
 };
-use tonic::{Response, Status};
+use tonic::Response;
 use validator::{Validate, ValidationErrors};
 
 pub async fn oauth2_url(
     server: &Server,
     request: MethodRequest<()>,
-) -> Result<Response<pb::AuthOauth2UrlReply>, Status> {
+) -> MethodResponse<pb::AuthOauth2UrlReply> {
     let (audit_meta, auth, _) = request.into_inner();
 
     let driver = server.driver();
     let args = server.options().github_oauth2_args();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Url);
-        let res: Result<String, Status> =
+        let res: Result<String, MethodError> =
             { provider_github::oauth2_url(driver.as_ref().as_ref(), &mut audit, auth, &args) };
-        let url = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let url = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthOauth2UrlReply { url };
         Ok(reply)
     })
@@ -39,15 +38,15 @@ impl Validate for pb::AuthOauth2CallbackRequest {
 pub async fn oauth2_callback(
     server: &Server,
     request: MethodRequest<pb::AuthOauth2CallbackRequest>,
-) -> Result<Response<pb::AuthTokenReply>, Status> {
+) -> MethodResponse<pb::AuthTokenReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
     let client = server.client();
     let args = server.options().github_oauth2_args();
-    let reply = blocking::<_, Status, _>(move || {
+    let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Callback);
-        let res: Result<UserToken, Status> = {
+        let res: Result<UserToken, MethodError> = {
             provider_github::oauth2_callback(
                 driver.as_ref().as_ref(),
                 &mut audit,
@@ -57,7 +56,7 @@ pub async fn oauth2_callback(
                 client.as_ref(),
             )
         };
-        let user_token = api::result_audit_err(driver.as_ref().as_ref(), &audit, res)?;
+        let user_token = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthTokenReply {
             user: Some(user_token.user.clone().into()),
             access: Some(user_token.access_token()),
@@ -72,8 +71,10 @@ pub async fn oauth2_callback(
 
 mod provider_github {
     use crate::{
-        api::{ApiError, ApiResult},
-        grpc::{methods::auth::oauth2_login, pb, ServerOptionsProvider, ServerProviderOauth2Args},
+        grpc::{
+            methods::auth::oauth2_login, pb, util::*, ServerOptionsProvider,
+            ServerProviderOauth2Args,
+        },
         pattern::*,
         AuditBuilder, CsrfCreate, Driver, DriverError, DriverResult, Service, UserToken,
     };
@@ -89,12 +90,12 @@ mod provider_github {
         audit: &mut AuditBuilder,
         key_value: Option<String>,
         args: &ServerProviderOauth2Args,
-    ) -> ApiResult<String> {
-        let service =
-            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+    ) -> MethodResult<String> {
+        let service = key_service_authenticate(driver, audit, key_value)
+            .map_err(MethodError::Unauthorised)?;
 
         // Generate the authorisation URL to which we'll redirect the user.
-        let client = new_client(&service, &args.provider).map_err(ApiError::BadRequest)?;
+        let client = new_client(&service, &args.provider).map_err(MethodError::BadRequest)?;
         let (authorise_url, csrf_state) = client
             .authorize_url(CsrfToken::new_random)
             .add_scope(Scope::new("user:email".to_string()))
@@ -106,7 +107,7 @@ mod provider_github {
             CsrfCreate::new(csrf_key, csrf_key, args.access_token_expires, service.id);
         driver
             .csrf_create(&csrf_create)
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
         Ok(authorise_url.to_string())
     }
@@ -118,31 +119,32 @@ mod provider_github {
         args: &ServerProviderOauth2Args,
         request: pb::AuthOauth2CallbackRequest,
         client_sync: &SyncClient,
-    ) -> ApiResult<UserToken> {
-        let service =
-            key_service_authenticate(driver, audit, key_value).map_err(ApiError::Unauthorised)?;
+    ) -> MethodResult<UserToken> {
+        let service = key_service_authenticate(driver, audit, key_value)
+            .map_err(MethodError::Unauthorised)?;
 
         // Read the CSRF key using state value, rebuild code verifier from value.
         let csrf = driver
             .csrf_read(&request.state)
-            .map_err(ApiError::BadRequest)?
+            .map_err(MethodError::BadRequest)?
             .ok_or_else(|| DriverError::CsrfNotFoundOrUsed)
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
         // Exchange the code with a token.
-        let client = new_client(&service, &args.provider).map_err(ApiError::BadRequest)?;
+        let client = new_client(&service, &args.provider).map_err(MethodError::BadRequest)?;
         let code = AuthorizationCode::new(request.code);
         let token = client
             .exchange_code(code)
             .request(http_client)
             .map_err(|err| DriverError::Oauth2Request(err.into()))
-            .map_err(ApiError::BadRequest)?;
+            .map_err(MethodError::BadRequest)?;
 
         // Return access token value.
         let (service_id, access_token) =
             (csrf.service_id, token.access_token().secret().to_owned());
 
-        let user_email = api_user_email(client_sync, access_token).map_err(ApiError::BadRequest)?;
+        let user_email =
+            api_user_email(client_sync, access_token).map_err(MethodError::BadRequest)?;
         oauth2_login(
             driver,
             audit,
