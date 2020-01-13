@@ -19,12 +19,12 @@ pub async fn login(
     request: MethodRequest<pb::AuthLoginRequest>,
 ) -> MethodResponse<pb::AuthLoginReply> {
     let (audit_meta, auth, req) = request.into_inner();
-
     let driver = server.driver();
     let client = server.client();
     let password_pwned_enabled = server.options().password_pwned_enabled();
     let access_token_expires = server.options().access_token_expires();
     let refresh_token_expires = server.options().refresh_token_expires();
+
     let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalLogin);
         let password_meta = api::password_meta(
@@ -34,7 +34,7 @@ pub async fn login(
         )
         .map_err(MethodError::BadRequest)?;
 
-        let res: Result<UserToken, MethodError> = {
+        let blocking_inner = || {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
                     .map_err(MethodError::Unauthorised)?;
@@ -79,6 +79,7 @@ pub async fn login(
             .map_err(MethodError::BadRequest)
             .map_err::<MethodError, _>(Into::into)
         };
+        let res: Result<UserToken, MethodError> = blocking_inner();
         let user_token = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthLoginReply {
             meta: Some(password_meta.into()),
@@ -108,13 +109,13 @@ pub async fn register(
     request: MethodRequest<pb::AuthRegisterRequest>,
 ) -> MethodResponse<()> {
     let (audit_meta, auth, req) = request.into_inner();
-
     let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
     let email = server.smtp_email();
+
     let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalRegister);
-        let res: Result<(), MethodError> = {
+        let blocking_inner = || {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
                     .map_err(MethodError::Unauthorised)?;
@@ -159,8 +160,8 @@ pub async fn register(
                 .map_err(MethodError::BadRequest)?;
             Ok(())
         };
-        audit_result(driver.as_ref().as_ref(), &audit, res)?;
-        Ok(())
+        let res: Result<(), MethodError> = blocking_inner();
+        audit_result(driver.as_ref().as_ref(), &audit, res).or_else(|_| Ok(()))
     })
     .await?;
     Ok(Response::new(reply))

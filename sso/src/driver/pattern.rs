@@ -10,7 +10,6 @@ use std::{sync::mpsc, thread};
 use uuid::Uuid;
 
 // TODO(refactor): Improve usability, composability of pattern functions.
-// Should be reusable units of code commonly called into from api module.
 
 /// User header.
 #[derive(Debug, Clone)]

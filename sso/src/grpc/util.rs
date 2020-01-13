@@ -16,7 +16,6 @@ where
     T: Send + 'static,
     E: Send + 'static,
 {
-    // TODO(refactor): Improve error handling.
     let mut f = Some(f);
     let fut = async move { tokio_executor::blocking::run(move || (f.take().unwrap())()).await };
     Box::pin(fut)

@@ -43,6 +43,7 @@ const ENV_MICROSOFT_CLIENT_SECRET: &str = "SSO_MICROSOFT_CLIENT_SECRET";
 // TODO(refactor): TLS support, blocked on `ring-asm`.
 // <https://github.com/hyperium/tonic/blob/master/examples/src/tls/server.rs>
 // <https://github.com/smallstep/autocert>
+// <https://github.com/vivint-smarthome/rumqtt/tree/async-await>
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

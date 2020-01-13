@@ -4,6 +4,9 @@ use crate::{
 use jsonwebtoken::{dangerous_unsafe_decode, decode, encode, Header, Validation};
 use uuid::Uuid;
 
+// TODO(refactor): Refactor crypto.
+// <https://github.com/smallstep/cli>
+
 /// JSON web token maximum length.
 pub const JWT_MAX_LEN: usize = 1000;
 
