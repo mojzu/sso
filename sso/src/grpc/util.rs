@@ -145,12 +145,17 @@ pub fn audit_result<T>(
     }
 }
 
-pub fn audit_result_err<T>(
+pub fn audit_result_err<F, T>(
     driver: &dyn Driver,
-    audit: &AuditBuilder,
-    res: MethodResult<T>,
-) -> MethodResult<T> {
-    match res {
+    audit_meta: AuditMeta,
+    audit_type: AuditType,
+    f: F,
+) -> MethodResult<T>
+where
+    F: Fn(&dyn Driver, &mut AuditBuilder) -> MethodResult<T>,
+{
+    let mut audit = AuditBuilder::new(audit_meta, audit_type);
+    match f(driver, &mut audit) {
         Ok(res) => Ok(res),
         Err(e) => {
             let data = e.get_data();
@@ -166,6 +171,8 @@ pub fn audit_result_err<T>(
         }
     }
 }
+
+// TODO(refactor): Refactor other audit wrapper functions.
 
 pub fn audit_result_subject<T: AuditSubject>(
     driver: &dyn Driver,

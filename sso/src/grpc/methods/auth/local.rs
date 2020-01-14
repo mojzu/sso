@@ -115,6 +115,7 @@ pub async fn register(
 
     let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalRegister);
+
         let blocking_inner = || {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
@@ -161,6 +162,8 @@ pub async fn register(
             Ok(())
         };
         let res: Result<(), MethodError> = blocking_inner();
+        // Catch Err result so this function returns Ok to prevent the caller
+        // from inferring a users existence.
         audit_result(driver.as_ref().as_ref(), &audit, res).or_else(|_| Ok(()))
     })
     .await?;
@@ -196,7 +199,7 @@ pub async fn register_confirm(
         )
         .map_err(MethodError::BadRequest)?;
 
-        let res: Result<(), MethodError> = {
+        let blocking_inner = || {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
                     .map_err(MethodError::Unauthorised)?;
@@ -258,6 +261,7 @@ pub async fn register_confirm(
                 .map_err(MethodError::BadRequest)?;
             Ok(())
         };
+        let res: Result<(), MethodError> = blocking_inner();
         audit_result(driver.as_ref().as_ref(), &audit, res)?;
         Ok(pb::AuthPasswordMetaReply {
             meta: Some(password_meta.into()),
@@ -276,8 +280,9 @@ pub async fn register_revoke(
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalRegisterRevoke);
+
         let res: Result<Option<Audit>, MethodError> =
-            { revoke_inner(driver.as_ref().as_ref(), &mut audit, auth, req) };
+            revoke_inner(driver.as_ref().as_ref(), &mut audit, auth, req);
         let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
@@ -307,7 +312,8 @@ pub async fn reset_password(
     let email = server.smtp_email();
     let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPassword);
-        let res: Result<(), MethodError> = {
+
+        let blocking_inner = || {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
                     .map_err(MethodError::Unauthorised)?;
@@ -350,12 +356,10 @@ pub async fn reset_password(
                 .map_err(MethodError::BadRequest)?;
             Ok(())
         };
-        audit_result(driver.as_ref().as_ref(), &audit, res)?;
-        // TODO(refactor): Fix this.
-        // // Catch Err result so this function returns Ok to prevent the caller
-        // // from inferring a users existence.
-        // .or_else(|_e| Ok(()))?;
-        Ok(())
+        let res: Result<(), MethodError> = blocking_inner();
+        // Catch Err result so this function returns Ok to prevent the caller
+        // from inferring a users existence.
+        audit_result(driver.as_ref().as_ref(), &audit, res).or_else(|_| Ok(()))
     })
     .await?;
     Ok(Response::new(reply))
@@ -390,7 +394,7 @@ pub async fn reset_password_confirm(
         )
         .map_err(MethodError::BadRequest)?;
 
-        let res: Result<(), MethodError> = {
+        let blocking_inner = || {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
                     .map_err(MethodError::Unauthorised)?;
@@ -455,6 +459,7 @@ pub async fn reset_password_confirm(
                 .map_err(MethodError::BadRequest)?;
             Ok(())
         };
+        let res: Result<(), MethodError> = blocking_inner();
         audit_result(driver.as_ref().as_ref(), &audit, res)?;
         Ok(pb::AuthPasswordMetaReply {
             meta: Some(password_meta.into()),
@@ -473,8 +478,9 @@ pub async fn reset_password_revoke(
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalResetPasswordRevoke);
+
         let res: Result<Option<Audit>, MethodError> =
-            { revoke_inner(driver.as_ref().as_ref(), &mut audit, auth, req) };
+            revoke_inner(driver.as_ref().as_ref(), &mut audit, auth, req);
         let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
@@ -506,7 +512,8 @@ pub async fn update_email(
     let email = server.smtp_email();
     let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdateEmail);
-        let res: Result<(), MethodError> = {
+
+        let blocking_inner = || {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
                     .map_err(MethodError::Unauthorised)?;
@@ -570,6 +577,7 @@ pub async fn update_email(
                 .map_err(MethodError::BadRequest)?;
             Ok(())
         };
+        let res: Result<(), MethodError> = blocking_inner();
         audit_result(driver.as_ref().as_ref(), &audit, res)?;
         Ok(())
     })
@@ -586,8 +594,9 @@ pub async fn update_email_revoke(
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdateEmailRevoke);
+
         let res: Result<Option<Audit>, MethodError> =
-            { revoke_inner(driver.as_ref().as_ref(), &mut audit, auth, req) };
+            revoke_inner(driver.as_ref().as_ref(), &mut audit, auth, req);
         let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
@@ -628,7 +637,7 @@ pub async fn update_password(
         )
         .map_err(MethodError::BadRequest)?;
 
-        let res: Result<(), MethodError> = {
+        let blocking_inner = || {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
                     .map_err(MethodError::Unauthorised)?;
@@ -682,6 +691,8 @@ pub async fn update_password(
                 .map_err(MethodError::BadRequest)?;
             Ok(())
         };
+
+        let res: Result<(), MethodError> = blocking_inner();
         audit_result(driver.as_ref().as_ref(), &audit, res)?;
         Ok(pb::AuthPasswordMetaReply {
             meta: Some(password_meta.into()),
@@ -700,8 +711,9 @@ pub async fn update_password_revoke(
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthLocalUpdatePasswordRevoke);
+
         let res: Result<Option<Audit>, MethodError> =
-            { revoke_inner(driver.as_ref().as_ref(), &mut audit, auth, req) };
+            revoke_inner(driver.as_ref().as_ref(), &mut audit, auth, req);
         let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),

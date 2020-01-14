@@ -22,41 +22,43 @@ pub async fn verify(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthKeyVerify);
-        let res: Result<(User, KeyWithValue, Option<Audit>), MethodError> = {
-            let service =
-                pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+        let (user, key, audit) = audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::AuthKeyVerify,
+            |driver, audit| {
+                let service = pattern::key_service_authenticate2(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
-            // Key verify requires key key type.
-            let key = pattern::key_read_user_value_checked(
-                driver.as_ref().as_ref(),
-                &service,
-                &mut audit,
-                req.key,
-                KeyType::Key,
-            )
-            .map_err(MethodError::BadRequest)?;
-            let user = pattern::user_read_id_checked(
-                driver.as_ref().as_ref(),
-                Some(&service),
-                &mut audit,
-                key.user_id.unwrap(),
-            )
-            .map_err(MethodError::BadRequest)?;
+                // Key verify requires key key type.
+                let key = pattern::key_read_user_value_checked(
+                    driver,
+                    &service,
+                    audit,
+                    &req.key,
+                    KeyType::Key,
+                )
+                .map_err(MethodError::BadRequest)?;
+                let user = pattern::user_read_id_checked(
+                    driver,
+                    Some(&service),
+                    audit,
+                    key.user_id.unwrap(),
+                )
+                .map_err(MethodError::BadRequest)?;
 
-            // Key verified.
-            // Optionally create custom audit log.
-            if let Some(x) = req.audit {
-                let audit = audit
-                    .create(driver.as_ref().as_ref(), x, None, None)
-                    .map_err(MethodError::BadRequest)?;
-                Ok((user, key, Some(audit)))
-            } else {
-                Ok((user, key, None))
-            }
-        };
-        let (user, key, audit) = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
+                // Key verified.
+                // Optionally create custom audit log.
+                if let Some(x) = &req.audit {
+                    let audit = audit
+                        .create(driver, x, None, None)
+                        .map_err(MethodError::BadRequest)?;
+                    Ok((user, key, Some(audit)))
+                } else {
+                    Ok((user, key, None))
+                }
+            },
+        )?;
         let reply = pb::AuthKeyReply {
             user: Some(user.into()),
             key: Some(key.into()),
@@ -77,7 +79,8 @@ pub async fn revoke(
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
         let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthKeyRevoke);
-        let res: Result<Option<Audit>, MethodError> = {
+
+        let blocking_inner = || {
             let service =
                 pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
                     .map_err(MethodError::Unauthorised)?;
@@ -113,6 +116,7 @@ pub async fn revoke(
                 Ok(None)
             }
         };
+        let res: Result<Option<Audit>, MethodError> = blocking_inner();
         let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),

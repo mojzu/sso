@@ -29,31 +29,28 @@ pub async fn totp_verify(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTotp);
-        let res: Result<(), MethodError> = {
-            let service =
-                pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+        audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::AuthTotp,
+            |driver, audit| {
+                let service = pattern::key_service_authenticate2(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
-            // TOTP requires token key type.
-            let user = pattern::user_read_id_checked(
-                driver.as_ref().as_ref(),
-                Some(&service),
-                &mut audit,
-                string_to_uuid(req.user_id),
-            )
-            .map_err(MethodError::BadRequest)?;
-            let key = pattern::key_read_user_checked(
-                driver.as_ref().as_ref(),
-                &service,
-                &mut audit,
-                &user,
-                KeyType::Totp,
-            )
-            .map_err(MethodError::BadRequest)?;
-            // Verify TOTP code.
-            pattern::totp_verify(&key.value, &req.totp).map_err(MethodError::BadRequest)
-        };
-        audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
+                // TOTP requires token key type.
+                let user = pattern::user_read_id_checked(
+                    driver,
+                    Some(&service),
+                    audit,
+                    string_to_uuid(req.user_id.clone()),
+                )
+                .map_err(MethodError::BadRequest)?;
+                let key =
+                    pattern::key_read_user_checked(driver, &service, audit, &user, KeyType::Totp)
+                        .map_err(MethodError::BadRequest)?;
+                // Verify TOTP code.
+                pattern::totp_verify(&key.value, &req.totp).map_err(MethodError::BadRequest)
+            },
+        )?;
         let reply = pb::AuthAuditReply { audit: None };
         Ok(reply)
     })
@@ -77,18 +74,20 @@ pub async fn csrf_create(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthCsrfCreate);
-        let res: Result<Csrf, MethodError> = {
-            let service =
-                pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+        let data = audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::AuthCsrfCreate,
+            |driver, audit| {
+                let service = pattern::key_service_authenticate2(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
-            let expires_s = req.expires_s.unwrap_or(DEFAULT_CSRF_EXPIRES_S);
-            driver
-                .csrf_create(&CsrfCreate::generate(expires_s, service.id))
-                .map_err(MethodError::BadRequest)
-        };
-        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
+                let expires_s = req.expires_s.unwrap_or(DEFAULT_CSRF_EXPIRES_S);
+                driver
+                    .csrf_create(&CsrfCreate::generate(expires_s, service.id))
+                    .map_err(MethodError::BadRequest)
+            },
+        )?;
         let reply = pb::AuthCsrfCreateReply {
             csrf: Some(data.into()),
         };
@@ -115,15 +114,17 @@ pub async fn csrf_verify(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthCsrfVerify);
-        let res: Result<(), MethodError> = {
-            let service =
-                pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+        audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::AuthCsrfVerify,
+            |driver, audit| {
+                let service = pattern::key_service_authenticate2(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
-            api_csrf_verify(driver.as_ref().as_ref(), &service, &req.csrf)
-        };
-        audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
+                api_csrf_verify(driver, &service, &req.csrf)
+            },
+        )?;
         let reply = pb::AuthAuditReply { audit: None };
         Ok(reply)
     })

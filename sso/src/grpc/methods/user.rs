@@ -28,14 +28,17 @@ pub async fn list(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::UserList);
-        let res: Result<Vec<User>, MethodError> = {
-            let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        let data = audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::UserList,
+            |driver, audit| {
+                let _service = pattern::key_authenticate2(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            driver.user_list(&req).map_err(MethodError::BadRequest)
-        };
-        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
+                driver.user_list(&req).map_err(MethodError::BadRequest)
+            },
+        )?;
         let reply = pb::UserListReply {
             meta: Some(req.into()),
             data: data.into_iter().map::<pb::User, _>(|x| x.into()).collect(),
@@ -107,14 +110,17 @@ pub async fn read(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::UserRead);
-        let res: Result<User, MethodError> = {
-            let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        let data = audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::UserRead,
+            |driver, audit| {
+                let _service = pattern::key_authenticate2(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            read_inner(driver.as_ref().as_ref(), &req)
-        };
-        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
+                read_inner(driver, &req)
+            },
+        )?;
         let reply = pb::UserReadReply {
             data: Some(data.into()),
         };

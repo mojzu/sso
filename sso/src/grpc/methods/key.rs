@@ -27,17 +27,19 @@ pub async fn list(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyList);
-        let res: Result<Vec<Key>, MethodError> = {
-            let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        let data = audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::KeyList,
+            |driver, audit| {
+                let service = pattern::key_authenticate2(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            driver
-                .as_ref()
-                .key_list(&req, service.map(|s| s.id))
-                .map_err(MethodError::BadRequest)
-        };
-        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
+                driver
+                    .key_list(&req, service.map(|s| s.id))
+                    .map_err(MethodError::BadRequest)
+            },
+        )?;
         let reply = pb::KeyListReply {
             meta: Some(req.into()),
             data: data.into_iter().map::<pb::Key, _>(|x| x.into()).collect(),
@@ -142,14 +144,17 @@ pub async fn read(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyRead);
-        let res: Result<Key, MethodError> = {
-            let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        let data = audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::KeyRead,
+            |driver, audit| {
+                let service = pattern::key_authenticate2(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            read_inner(driver.as_ref().as_ref(), &req, service.as_ref())
-        };
-        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
+                read_inner(driver, &req, service.as_ref())
+            },
+        )?;
         let reply = pb::KeyReadReply {
             data: Some(data.into()),
         };

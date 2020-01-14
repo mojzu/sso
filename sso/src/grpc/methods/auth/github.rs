@@ -15,10 +15,12 @@ pub async fn oauth2_url(
     let driver = server.driver();
     let args = server.options().github_oauth2_args();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Url);
-        let res: Result<String, MethodError> =
-            { provider_github::oauth2_url(driver.as_ref().as_ref(), &mut audit, auth, &args) };
-        let url = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
+        let url = audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::AuthGithubOauth2Url,
+            |driver, audit| provider_github::oauth2_url(driver, audit, auth.as_ref(), &args),
+        )?;
         let reply = pb::AuthOauth2UrlReply { url };
         Ok(reply)
     })
@@ -45,18 +47,21 @@ pub async fn oauth2_callback(
     let client = server.client();
     let args = server.options().github_oauth2_args();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthGithubOauth2Callback);
-        let res: Result<UserToken, MethodError> = {
-            provider_github::oauth2_callback(
-                driver.as_ref().as_ref(),
-                &mut audit,
-                auth,
-                &args,
-                req,
-                client.as_ref(),
-            )
-        };
-        let user_token = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
+        let user_token = audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::AuthGithubOauth2Callback,
+            |driver, audit| {
+                provider_github::oauth2_callback(
+                    driver,
+                    audit,
+                    auth.as_ref(),
+                    &args,
+                    &req,
+                    client.as_ref(),
+                )
+            },
+        )?;
         let reply = pb::AuthTokenReply {
             user: Some(user_token.user.clone().into()),
             access: Some(user_token.access_token()),
@@ -88,10 +93,10 @@ mod provider_github {
     pub fn oauth2_url(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
-        key_value: Option<String>,
+        key_value: Option<&String>,
         args: &ServerProviderOauth2Args,
     ) -> MethodResult<String> {
-        let service = key_service_authenticate(driver, audit, key_value)
+        let service = key_service_authenticate2(driver, audit, key_value)
             .map_err(MethodError::Unauthorised)?;
 
         // Generate the authorisation URL to which we'll redirect the user.
@@ -115,12 +120,12 @@ mod provider_github {
     pub fn oauth2_callback(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
-        key_value: Option<String>,
+        key_value: Option<&String>,
         args: &ServerProviderOauth2Args,
-        request: pb::AuthOauth2CallbackRequest,
+        request: &pb::AuthOauth2CallbackRequest,
         client_sync: &SyncClient,
     ) -> MethodResult<UserToken> {
-        let service = key_service_authenticate(driver, audit, key_value)
+        let service = key_service_authenticate2(driver, audit, key_value)
             .map_err(MethodError::Unauthorised)?;
 
         // Read the CSRF key using state value, rebuild code verifier from value.
@@ -132,7 +137,7 @@ mod provider_github {
 
         // Exchange the code with a token.
         let client = new_client(&service, &args.provider).map_err(MethodError::BadRequest)?;
-        let code = AuthorizationCode::new(request.code);
+        let code = AuthorizationCode::new(request.code.clone());
         let token = client
             .exchange_code(code)
             .request(http_client)

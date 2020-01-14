@@ -127,6 +127,36 @@ pub fn key_authenticate(
     Ok(service)
 }
 
+pub fn key_root_authenticate2(
+    driver: &dyn Driver,
+    audit: &mut AuditBuilder,
+    key_value: Option<&String>,
+) -> DriverResult<()> {
+    // TODO(refactor): Refactor this out with method changes.
+    let key_value = key_value.map(|x| x.to_owned());
+    key_root_authenticate(driver, audit, key_value)
+}
+
+pub fn key_service_authenticate2(
+    driver: &dyn Driver,
+    audit: &mut AuditBuilder,
+    key_value: Option<&String>,
+) -> DriverResult<Service> {
+    // TODO(refactor): Refactor this out with method changes.
+    let key_value = key_value.map(|x| x.to_owned());
+    key_service_authenticate(driver, audit, key_value)
+}
+
+pub fn key_authenticate2(
+    driver: &dyn Driver,
+    audit: &mut AuditBuilder,
+    key_value: Option<&String>,
+) -> DriverResult<Option<Service>> {
+    // TODO(refactor): Refactor this out with method changes.
+    let key_value = key_value.map(|x| x.to_owned());
+    key_authenticate(driver, audit, key_value)
+}
+
 fn key_service_authenticate_try(
     driver: &dyn Driver,
     audit: &mut AuditBuilder,

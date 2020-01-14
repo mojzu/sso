@@ -25,14 +25,17 @@ pub async fn list(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceList);
-        let res: Result<Vec<Service>, MethodError> = {
-            pattern::key_root_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        let data = audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::ServiceList,
+            |driver, audit| {
+                pattern::key_root_authenticate2(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            driver.service_list(&req).map_err(MethodError::BadRequest)
-        };
-        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
+                driver.service_list(&req).map_err(MethodError::BadRequest)
+            },
+        )?;
         let reply = pb::ServiceListReply {
             meta: Some(req.into()),
             data: data
@@ -116,14 +119,17 @@ pub async fn read(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceRead);
-        let res: Result<Service, MethodError> = {
-            let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        let data = audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::ServiceRead,
+            |driver, audit| {
+                let service = pattern::key_authenticate2(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            read_inner(driver.as_ref().as_ref(), &req, service.map(|x| x.id))
-        };
-        let data = audit_result_err(driver.as_ref().as_ref(), &audit, res)?;
+                read_inner(driver, &req, service.map(|x| x.id))
+            },
+        )?;
         let reply = pb::ServiceReadReply {
             data: Some(data.into()),
         };

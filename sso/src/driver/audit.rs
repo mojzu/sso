@@ -367,14 +367,14 @@ impl AuditBuilder {
         driver.audit_create(&data)
     }
 
-    pub fn create2(&self, driver: &dyn Driver, create: AuditCreate) -> DriverResult<Audit> {
-        let data = AuditCreate::new(self.meta.clone(), create.type_)
-            .subject(create.subject)
-            .data(create.data)
+    pub fn create2(&self, driver: &dyn Driver, create: &AuditCreate) -> DriverResult<Audit> {
+        let data = AuditCreate::new(self.meta.clone(), create.type_.clone())
+            .subject(create.subject.clone())
+            .data(create.data.clone())
             .key_id(self.key)
             .service_id(self.service)
-            .user_id(create.user_id)
-            .user_key_id(create.user_key_id);
+            .user_id(create.user_id.clone())
+            .user_key_id(create.user_key_id.clone());
         driver.audit_create(&data)
     }
 
