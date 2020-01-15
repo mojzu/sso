@@ -33,7 +33,7 @@ pub async fn list(
             audit_meta,
             AuditType::UserList,
             |driver, audit| {
-                let _service = pattern::key_authenticate2(driver, audit, auth.as_ref())
+                let _service = pattern::key_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
                 driver.user_list(&req).map_err(MethodError::BadRequest)
@@ -73,17 +73,20 @@ pub async fn create(
     let client = server.client();
     let password_pwned_enabled = server.options().password_pwned_enabled();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::UserCreate);
         let password_meta = api::password_meta(client.as_ref(), password_pwned_enabled, password)
             .map_err(MethodError::BadRequest)?;
 
-        let res: Result<User, MethodError> = {
-            let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        let data = audit_result_subject(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::UserCreate,
+            |driver, audit| {
+                let _service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            driver.user_create(&req).map_err(MethodError::BadRequest)
-        };
-        let data = audit_result_subject(driver.as_ref().as_ref(), &audit, res)?;
+                driver.user_create(&req).map_err(MethodError::BadRequest)
+            },
+        )?;
         let reply = pb::UserCreateReply {
             meta: Some(password_meta.into()),
             data: Some(data.into()),
@@ -115,7 +118,7 @@ pub async fn read(
             audit_meta,
             AuditType::UserRead,
             |driver, audit| {
-                let _service = pattern::key_authenticate2(driver, audit, auth.as_ref())
+                let _service = pattern::key_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
                 read_inner(driver, &req)
@@ -149,18 +152,21 @@ pub async fn update(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::UserUpdate);
-        let res: Result<(User, User), MethodError> = {
-            let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        let data = audit_result_diff(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::UserUpdate,
+            |driver, audit| {
+                let _service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            let read = UserRead::Id(req.id);
-            let previous_user = read_inner(driver.as_ref().as_ref(), &read)?;
+                let read = UserRead::Id(req.id);
+                let previous_user = read_inner(driver, &read)?;
 
-            let user = driver.user_update(&req).map_err(MethodError::BadRequest)?;
-            Ok((previous_user, user))
-        };
-        let data = audit_result_diff(driver.as_ref().as_ref(), &audit, res)?;
+                let user = driver.user_update(&req).map_err(MethodError::BadRequest)?;
+                Ok((previous_user, user))
+            },
+        )?;
         let reply = pb::UserReadReply {
             data: Some(data.into()),
         };
@@ -175,18 +181,21 @@ pub async fn delete(server: &Server, request: MethodRequest<UserRead>) -> Method
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::UserDelete);
-        let res: Result<User, MethodError> = {
-            let _service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        audit_result_subject(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::UserDelete,
+            |driver, audit| {
+                let _service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            let user = read_inner(driver.as_ref().as_ref(), &req)?;
-            driver
-                .user_delete(&user.id)
-                .map_err(MethodError::BadRequest)
-                .map(|_| user)
-        };
-        audit_result_subject(driver.as_ref().as_ref(), &audit, res)?;
+                let user = read_inner(driver, &req)?;
+                driver
+                    .user_delete(&user.id)
+                    .map_err(MethodError::BadRequest)
+                    .map(|_| user)
+            },
+        )?;
         Ok(())
     })
     .await?;

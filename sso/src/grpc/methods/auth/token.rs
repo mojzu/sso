@@ -27,7 +27,7 @@ pub async fn verify(
             audit_meta,
             AuditType::AuthTokenVerify,
             |driver, audit| {
-                let service = pattern::key_service_authenticate2(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
@@ -90,7 +90,7 @@ pub async fn refresh(
             audit_meta,
             AuditType::AuthTokenRefresh,
             |driver, audit| {
-                let service = pattern::key_service_authenticate2(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
@@ -153,64 +153,61 @@ pub async fn revoke(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthTokenRevoke);
-        let res: Result<Option<Audit>, MethodError> = {
-            let service =
-                pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+        let audit = audit_result(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::AuthTokenRevoke,
+            |driver, audit| {
+                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
-            // Unsafely decode token to get user identifier, used to read key for safe token decode.
-            let (user_id, token_type) =
-                Jwt::decode_unsafe(&req.token, service.id).map_err(MethodError::BadRequest)?;
+                // Unsafely decode token to get user identifier, used to read key for safe token decode.
+                let (user_id, token_type) =
+                    Jwt::decode_unsafe(&req.token, service.id).map_err(MethodError::BadRequest)?;
 
-            // Token revoke requires token key type.
-            // Do not check user, key is enabled or not revoked.
-            let user = pattern::user_read_id_unchecked(
-                driver.as_ref().as_ref(),
-                Some(&service),
-                &mut audit,
-                user_id,
-            )
-            .map_err(MethodError::BadRequest)?;
-            let key = pattern::key_read_user_unchecked(
-                driver.as_ref().as_ref(),
-                &service,
-                &mut audit,
-                &user,
-                KeyType::Token,
-            )
-            .map_err(MethodError::BadRequest)?;
-
-            // Safely decode token with user key.
-            let csrf_key = Jwt::decode_csrf_key(&service, &user, &key, token_type, &req.token)
+                // Token revoke requires token key type.
+                // Do not check user, key is enabled or not revoked.
+                let user = pattern::user_read_id_unchecked(driver, Some(&service), audit, user_id)
+                    .map_err(MethodError::BadRequest)?;
+                let key = pattern::key_read_user_unchecked(
+                    driver,
+                    &service,
+                    audit,
+                    &user,
+                    KeyType::Token,
+                )
                 .map_err(MethodError::BadRequest)?;
-            if let Some(csrf_key) = csrf_key {
+
+                // Safely decode token with user key.
+                let csrf_key = Jwt::decode_csrf_key(&service, &user, &key, token_type, &req.token)
+                    .map_err(MethodError::BadRequest)?;
+                if let Some(csrf_key) = csrf_key {
+                    driver
+                        .csrf_read(&csrf_key)
+                        .map_err(MethodError::BadRequest)?;
+                }
+
+                // Token revoked, disable and revoked linked key.
                 driver
-                    .csrf_read(&csrf_key)
+                    .key_update(&KeyUpdate {
+                        id: key.id,
+                        is_enabled: Some(false),
+                        is_revoked: Some(true),
+                        name: None,
+                    })
                     .map_err(MethodError::BadRequest)?;
-            }
 
-            // Token revoked, disable and revoked linked key.
-            driver
-                .key_update(&KeyUpdate {
-                    id: key.id,
-                    is_enabled: Some(false),
-                    is_revoked: Some(true),
-                    name: None,
-                })
-                .map_err(MethodError::BadRequest)?;
-
-            // Optionally create custom audit log.
-            if let Some(x) = req.audit {
-                let audit = audit
-                    .create(driver.as_ref().as_ref(), x, None, None)
-                    .map_err(MethodError::BadRequest)?;
-                Ok(Some(audit))
-            } else {
-                Ok(None)
-            }
-        };
-        let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
+                // Optionally create custom audit log.
+                if let Some(x) = &req.audit {
+                    let audit = audit
+                        .create(driver, x, None, None)
+                        .map_err(MethodError::BadRequest)?;
+                    Ok(Some(audit))
+                } else {
+                    Ok(None)
+                }
+            },
+        )?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
         };

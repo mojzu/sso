@@ -86,7 +86,7 @@ mod provider_microsoft {
         key_value: Option<&String>,
         args: &ServerProviderOauth2Args,
     ) -> MethodResult<String> {
-        let service = key_service_authenticate2(driver, audit, key_value)
+        let service = key_service_authenticate(driver, audit, key_value)
             .map_err(MethodError::Unauthorised)?;
 
         // Microsoft Graph supports Proof Key for Code Exchange (PKCE - https://oauth.net/2/pkce/).
@@ -123,7 +123,7 @@ mod provider_microsoft {
         request: &pb::AuthOauth2CallbackRequest,
         client_sync: &SyncClient,
     ) -> MethodResult<UserToken> {
-        let service = key_service_authenticate2(driver, audit, key_value)
+        let service = key_service_authenticate(driver, audit, key_value)
             .map_err(MethodError::Unauthorised)?;
 
         // Read the CSRF key using state value, rebuild code verifier from value.
@@ -182,7 +182,7 @@ mod provider_microsoft {
         service: &Service,
         provider: &Option<ServerOptionsProvider>,
     ) -> DriverResult<BasicClient> {
-        // TODO(refactor): Create and keep client alive at startup.
+        // TODO(refactor): Create and keep client alive from startup.
         let (provider_microsoft_oauth2_url, provider) =
             match (&service.provider_microsoft_oauth2_url, provider) {
                 (Some(provider_microsoft_oauth2_url), Some(provider)) => {

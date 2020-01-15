@@ -34,7 +34,7 @@ pub async fn totp_verify(
             audit_meta,
             AuditType::AuthTotp,
             |driver, audit| {
-                let service = pattern::key_service_authenticate2(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
                 // TOTP requires token key type.
                 let user = pattern::user_read_id_checked(
@@ -79,7 +79,7 @@ pub async fn csrf_create(
             audit_meta,
             AuditType::AuthCsrfCreate,
             |driver, audit| {
-                let service = pattern::key_service_authenticate2(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
                 let expires_s = req.expires_s.unwrap_or(DEFAULT_CSRF_EXPIRES_S);
@@ -119,7 +119,7 @@ pub async fn csrf_verify(
             audit_meta,
             AuditType::AuthCsrfVerify,
             |driver, audit| {
-                let service = pattern::key_service_authenticate2(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
                 api_csrf_verify(driver, &service, &req.csrf)
@@ -132,7 +132,7 @@ pub async fn csrf_verify(
     Ok(Response::new(reply))
 }
 
-// TODO(refactor): Improve structure.
+// TODO(refactor): Improve code structure.
 fn api_csrf_verify(driver: &dyn Driver, service: &Service, csrf_key: &str) -> MethodResult<()> {
     driver
         .csrf_read(&csrf_key)
@@ -157,7 +157,7 @@ fn oauth2_login(
     }
 
     // OAuth2 login requires token key type.
-    let user = pattern::user_read_email_checked(driver, Some(&service), audit, email)
+    let user = pattern::user_read_email_checked(driver, Some(&service), audit, &email)
         .map_err(MethodError::BadRequest)?;
     let key = pattern::key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
         .map_err(MethodError::BadRequest)?;

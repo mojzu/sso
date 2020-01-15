@@ -32,7 +32,7 @@ pub async fn list(
             audit_meta,
             AuditType::KeyList,
             |driver, audit| {
-                let service = pattern::key_authenticate2(driver, audit, auth.as_ref())
+                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
                 driver
@@ -69,55 +69,58 @@ pub async fn create(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyCreate);
-        let res: Result<KeyWithValue, MethodError> = {
-            // If service ID is some, root key is required to create service keys.
-            match req.service_id {
-                Some(service_id) => {
-                    pattern::key_root_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                        .map_err(MethodError::Unauthorised)
-                        .and_then(|_| {
-                            match req.user_id {
-                                // User ID is defined, creating user key for service.
-                                Some(user_id) => driver.key_create(&KeyCreate::user(
-                                    req.is_enabled,
-                                    req.type_,
-                                    req.name,
-                                    service_id,
-                                    user_id,
-                                )),
-                                // Creating service key.
-                                None => driver.key_create(&KeyCreate::service(
-                                    req.is_enabled,
-                                    req.name,
-                                    service_id,
-                                )),
-                            }
-                            .map_err(MethodError::BadRequest)
-                        })
+        let data = audit_result_subject(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::KeyCreate,
+            |driver, audit| {
+                // If service ID is some, root key is required to create service keys.
+                match req.service_id {
+                    Some(service_id) => {
+                        pattern::key_root_authenticate(driver, audit, auth.as_ref())
+                            .map_err(MethodError::Unauthorised)
+                            .and_then(|_| {
+                                match req.user_id {
+                                    // User ID is defined, creating user key for service.
+                                    Some(user_id) => driver.key_create(&KeyCreate::user(
+                                        req.is_enabled,
+                                        req.type_,
+                                        &req.name,
+                                        service_id,
+                                        user_id,
+                                    )),
+                                    // Creating service key.
+                                    None => driver.key_create(&KeyCreate::service(
+                                        req.is_enabled,
+                                        &req.name,
+                                        service_id,
+                                    )),
+                                }
+                                .map_err(MethodError::BadRequest)
+                            })
+                    }
+                    None => {
+                        pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                            .map_err(MethodError::Unauthorised)
+                            .and_then(|service| {
+                                match req.user_id {
+                                    // User ID is defined, creating user key for service.
+                                    Some(user_id) => driver.key_create(&KeyCreate::user(
+                                        req.is_enabled,
+                                        req.type_,
+                                        &req.name,
+                                        service.id,
+                                        user_id,
+                                    )),
+                                    // Service cannot create service keys.
+                                    None => Err(DriverError::ServiceCannotCreateServiceKey),
+                                }
+                                .map_err(MethodError::BadRequest)
+                            })
+                    }
                 }
-                None => {
-                    pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                        .map_err(MethodError::Unauthorised)
-                        .and_then(|service| {
-                            match req.user_id {
-                                // User ID is defined, creating user key for service.
-                                Some(user_id) => driver.key_create(&KeyCreate::user(
-                                    req.is_enabled,
-                                    req.type_,
-                                    req.name,
-                                    service.id,
-                                    user_id,
-                                )),
-                                // Service cannot create service keys.
-                                None => Err(DriverError::ServiceCannotCreateServiceKey),
-                            }
-                            .map_err(MethodError::BadRequest)
-                        })
-                }
-            }
-        };
-        let data = audit_result_subject(driver.as_ref().as_ref(), &audit, res)?;
+            },
+        )?;
         let reply = pb::KeyCreateReply {
             data: Some(data.into()),
         };
@@ -149,7 +152,7 @@ pub async fn read(
             audit_meta,
             AuditType::KeyRead,
             |driver, audit| {
-                let service = pattern::key_authenticate2(driver, audit, auth.as_ref())
+                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
                 read_inner(driver, &req, service.as_ref())
@@ -181,24 +184,27 @@ pub async fn update(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyUpdate);
-        let res: Result<(Key, Key), MethodError> = {
-            let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        let data = audit_result_diff(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::KeyUpdate,
+            |driver, audit| {
+                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            let read = KeyRead::IdUser(req.id, None);
-            let previous_key = read_inner(driver.as_ref().as_ref(), &read, service.as_ref())?;
-            let key = driver
-                .key_update(&KeyUpdate {
-                    id: req.id,
-                    is_enabled: req.is_enabled,
-                    is_revoked: None,
-                    name: req.name,
-                })
-                .map_err(MethodError::BadRequest)?;
-            Ok((previous_key, key))
-        };
-        let data = audit_result_diff(driver.as_ref().as_ref(), &audit, res)?;
+                let read = KeyRead::IdUser(req.id, None);
+                let previous_key = read_inner(driver, &read, service.as_ref())?;
+                let key = driver
+                    .key_update(&KeyUpdate {
+                        id: req.id,
+                        is_enabled: req.is_enabled,
+                        is_revoked: None,
+                        name: req.name.clone(),
+                    })
+                    .map_err(MethodError::BadRequest)?;
+                Ok((previous_key, key))
+            },
+        )?;
         let reply = pb::KeyReadReply {
             data: Some(data.into()),
         };
@@ -213,18 +219,21 @@ pub async fn delete(server: &Server, request: MethodRequest<KeyRead>) -> MethodR
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::KeyDelete);
-        let res: Result<Key, MethodError> = {
-            let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        audit_result_subject(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::KeyDelete,
+            |driver, audit| {
+                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            let key = read_inner(driver.as_ref().as_ref(), &req, service.as_ref())?;
-            driver
-                .key_delete(&key.id)
-                .map_err(MethodError::BadRequest)
-                .map(|_| key)
-        };
-        audit_result_subject(driver.as_ref().as_ref(), &audit, res)?;
+                let key = read_inner(driver, &req, service.as_ref())?;
+                driver
+                    .key_delete(&key.id)
+                    .map_err(MethodError::BadRequest)
+                    .map(|_| key)
+            },
+        )?;
         Ok(())
     })
     .await?;

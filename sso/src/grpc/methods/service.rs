@@ -30,7 +30,7 @@ pub async fn list(
             audit_meta,
             AuditType::ServiceList,
             |driver, audit| {
-                pattern::key_root_authenticate2(driver, audit, auth.as_ref())
+                pattern::key_root_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
                 driver.service_list(&req).map_err(MethodError::BadRequest)
@@ -86,14 +86,17 @@ pub async fn create(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceCreate);
-        let res: Result<Service, MethodError> = {
-            pattern::key_root_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        let data = audit_result_subject(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::ServiceCreate,
+            |driver, audit| {
+                pattern::key_root_authenticate(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            driver.service_create(&req).map_err(MethodError::BadRequest)
-        };
-        let data = audit_result_subject(driver.as_ref().as_ref(), &audit, res)?;
+                driver.service_create(&req).map_err(MethodError::BadRequest)
+            },
+        )?;
         let reply = pb::ServiceReadReply {
             data: Some(data.into()),
         };
@@ -124,7 +127,7 @@ pub async fn read(
             audit_meta,
             AuditType::ServiceRead,
             |driver, audit| {
-                let service = pattern::key_authenticate2(driver, audit, auth.as_ref())
+                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
                 read_inner(driver, &req, service.map(|x| x.id))
@@ -177,20 +180,22 @@ pub async fn update(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceUpdate);
-        let res: Result<(Service, Service), MethodError> = {
-            let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        let data = audit_result_diff(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::ServiceUpdate,
+            |driver, audit| {
+                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            let read = ServiceRead::new(req.id);
-            let previous_service =
-                read_inner(driver.as_ref().as_ref(), &read, service.map(|x| x.id))?;
-            let service = driver
-                .service_update(&req)
-                .map_err(MethodError::BadRequest)?;
-            Ok((previous_service, service))
-        };
-        let data = audit_result_diff(driver.as_ref().as_ref(), &audit, res)?;
+                let read = ServiceRead::new(req.id);
+                let previous_service = read_inner(driver, &read, service.map(|x| x.id))?;
+                let service = driver
+                    .service_update(&req)
+                    .map_err(MethodError::BadRequest)?;
+                Ok((previous_service, service))
+            },
+        )?;
         let reply = pb::ServiceReadReply {
             data: Some(data.into()),
         };
@@ -205,18 +210,21 @@ pub async fn delete(server: &Server, request: MethodRequest<ServiceRead>) -> Met
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::ServiceDelete);
-        let res: Result<Service, MethodError> = {
-            let service = pattern::key_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
-                .map_err(MethodError::Unauthorised)?;
+        audit_result_subject(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::ServiceDelete,
+            |driver, audit| {
+                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
 
-            let service = read_inner(driver.as_ref().as_ref(), &req, service.map(|x| x.id))?;
-            driver
-                .service_delete(&service.id)
-                .map_err(MethodError::BadRequest)
-                .map(|_| service)
-        };
-        audit_result_subject(driver.as_ref().as_ref(), &audit, res)?;
+                let service = read_inner(driver, &req, service.map(|x| x.id))?;
+                driver
+                    .service_delete(&service.id)
+                    .map_err(MethodError::BadRequest)
+                    .map(|_| service)
+            },
+        )?;
         Ok(())
     })
     .await?;

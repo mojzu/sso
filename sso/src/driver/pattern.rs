@@ -74,11 +74,11 @@ pub fn totp_verify(key: &str, code: &str) -> DriverResult<()> {
 pub fn key_root_authenticate(
     driver: &dyn Driver,
     audit: &mut AuditBuilder,
-    key_value: Option<String>,
+    key_value: Option<&String>,
 ) -> DriverResult<()> {
     match key_value {
         Some(key_value) => {
-            let read = KeyRead::RootValue(key_value);
+            let read = KeyRead::RootValue(key_value.to_owned());
             driver
                 .key_read(&read, None)?
                 .ok_or_else(|| DriverError::KeyNotFound)
@@ -99,7 +99,7 @@ pub fn key_root_authenticate(
 pub fn key_service_authenticate(
     driver: &dyn Driver,
     audit: &mut AuditBuilder,
-    key_value: Option<String>,
+    key_value: Option<&String>,
 ) -> DriverResult<Service> {
     let service = key_service_authenticate_try(driver, audit, key_value)?;
     check_audit_user(driver, audit, &service)?;
@@ -113,7 +113,7 @@ pub fn key_service_authenticate(
 pub fn key_authenticate(
     driver: &dyn Driver,
     audit: &mut AuditBuilder,
-    key_value: Option<String>,
+    key_value: Option<&String>,
 ) -> DriverResult<Option<Service>> {
     let key_value_1 = key_value.to_owned();
 
@@ -127,44 +127,14 @@ pub fn key_authenticate(
     Ok(service)
 }
 
-pub fn key_root_authenticate2(
-    driver: &dyn Driver,
-    audit: &mut AuditBuilder,
-    key_value: Option<&String>,
-) -> DriverResult<()> {
-    // TODO(refactor): Refactor this out with method changes.
-    let key_value = key_value.map(|x| x.to_owned());
-    key_root_authenticate(driver, audit, key_value)
-}
-
-pub fn key_service_authenticate2(
-    driver: &dyn Driver,
-    audit: &mut AuditBuilder,
-    key_value: Option<&String>,
-) -> DriverResult<Service> {
-    // TODO(refactor): Refactor this out with method changes.
-    let key_value = key_value.map(|x| x.to_owned());
-    key_service_authenticate(driver, audit, key_value)
-}
-
-pub fn key_authenticate2(
-    driver: &dyn Driver,
-    audit: &mut AuditBuilder,
-    key_value: Option<&String>,
-) -> DriverResult<Option<Service>> {
-    // TODO(refactor): Refactor this out with method changes.
-    let key_value = key_value.map(|x| x.to_owned());
-    key_authenticate(driver, audit, key_value)
-}
-
 fn key_service_authenticate_try(
     driver: &dyn Driver,
     audit: &mut AuditBuilder,
-    key_value: Option<String>,
+    key_value: Option<&String>,
 ) -> DriverResult<Service> {
     match key_value {
         Some(key_value) => driver
-            .key_read(&KeyRead::ServiceValue(key_value), None)?
+            .key_read(&KeyRead::ServiceValue(key_value.to_owned()), None)?
             .ok_or_else(|| DriverError::KeyNotFound)
             .and_then(|key| {
                 audit.key(Some(&key));
@@ -263,9 +233,9 @@ pub fn user_read_email_checked(
     driver: &dyn Driver,
     _service_mask: Option<&Service>,
     audit: &mut AuditBuilder,
-    email: String,
+    email: &str,
 ) -> DriverResult<User> {
-    let read = UserRead::Email(email);
+    let read = UserRead::Email(email.to_owned());
     let user = driver
         .user_read(&read)?
         .ok_or_else(|| DriverError::UserNotFound)?;
@@ -354,7 +324,7 @@ pub fn key_read_user_value_unchecked(
     driver: &dyn Driver,
     service: &Service,
     audit: &mut AuditBuilder,
-    key: String,
+    key: &str,
     key_type: KeyType,
 ) -> DriverResult<KeyWithValue> {
     let key = driver

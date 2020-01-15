@@ -118,12 +118,17 @@ impl<T> MethodRequest<T> {
 /// Method response wrapper type.
 pub type MethodResponse<T> = Result<Response<T>, MethodError>;
 
-pub fn audit_result<T>(
+pub fn audit_result<F, T>(
     driver: &dyn Driver,
-    audit: &AuditBuilder,
-    res: MethodResult<T>,
-) -> MethodResult<T> {
-    match res {
+    audit_meta: AuditMeta,
+    audit_type: AuditType,
+    f: F,
+) -> MethodResult<T>
+where
+    F: Fn(&dyn Driver, &mut AuditBuilder) -> MethodResult<T>,
+{
+    let mut audit = AuditBuilder::new(audit_meta, audit_type);
+    match f(driver, &mut audit) {
         Ok(res) => {
             audit
                 .create_data::<bool>(driver, 0, None, None)
@@ -172,14 +177,18 @@ where
     }
 }
 
-// TODO(refactor): Refactor other audit wrapper functions.
-
-pub fn audit_result_subject<T: AuditSubject>(
+pub fn audit_result_subject<F, T>(
     driver: &dyn Driver,
-    audit: &AuditBuilder,
-    res: MethodResult<T>,
-) -> MethodResult<T> {
-    match res {
+    audit_meta: AuditMeta,
+    audit_type: AuditType,
+    f: F,
+) -> MethodResult<T>
+where
+    F: Fn(&dyn Driver, &mut AuditBuilder) -> MethodResult<T>,
+    T: AuditSubject,
+{
+    let mut audit = AuditBuilder::new(audit_meta, audit_type);
+    match f(driver, &mut audit) {
         Ok(res) => {
             audit
                 .create_data::<bool>(driver, 0, Some(res.subject()), None)
@@ -201,12 +210,18 @@ pub fn audit_result_subject<T: AuditSubject>(
     }
 }
 
-pub fn audit_result_diff<T: AuditSubject + AuditDiff>(
+pub fn audit_result_diff<F, T>(
     driver: &dyn Driver,
-    audit: &AuditBuilder,
-    res: MethodResult<(T, T)>,
-) -> MethodResult<T> {
-    match res {
+    audit_meta: AuditMeta,
+    audit_type: AuditType,
+    f: F,
+) -> MethodResult<T>
+where
+    F: Fn(&dyn Driver, &mut AuditBuilder) -> MethodResult<(T, T)>,
+    T: AuditSubject + AuditDiff,
+{
+    let mut audit = AuditBuilder::new(audit_meta, audit_type);
+    match f(driver, &mut audit) {
         Ok((p, n)) => {
             let diff = n.diff(&p);
             audit

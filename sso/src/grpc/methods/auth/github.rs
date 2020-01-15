@@ -96,7 +96,7 @@ mod provider_github {
         key_value: Option<&String>,
         args: &ServerProviderOauth2Args,
     ) -> MethodResult<String> {
-        let service = key_service_authenticate2(driver, audit, key_value)
+        let service = key_service_authenticate(driver, audit, key_value)
             .map_err(MethodError::Unauthorised)?;
 
         // Generate the authorisation URL to which we'll redirect the user.
@@ -125,7 +125,7 @@ mod provider_github {
         request: &pb::AuthOauth2CallbackRequest,
         client_sync: &SyncClient,
     ) -> MethodResult<UserToken> {
-        let service = key_service_authenticate2(driver, audit, key_value)
+        let service = key_service_authenticate(driver, audit, key_value)
             .map_err(MethodError::Unauthorised)?;
 
         // Read the CSRF key using state value, rebuild code verifier from value.

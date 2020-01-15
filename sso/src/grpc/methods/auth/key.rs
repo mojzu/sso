@@ -27,7 +27,7 @@ pub async fn verify(
             audit_meta,
             AuditType::AuthKeyVerify,
             |driver, audit| {
-                let service = pattern::key_service_authenticate2(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
                 // Key verify requires key key type.
@@ -78,46 +78,46 @@ pub async fn revoke(
 
     let driver = server.driver();
     let reply = blocking::<_, MethodError, _>(move || {
-        let mut audit = AuditBuilder::new(audit_meta, AuditType::AuthKeyRevoke);
-
-        let blocking_inner = || {
-            let service =
-                pattern::key_service_authenticate(driver.as_ref().as_ref(), &mut audit, auth)
+        let audit = audit_result(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::AuthKeyRevoke,
+            |driver, audit| {
+                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
 
-            // Key revoke requires key key type.
-            // Do not check key is enabled or not revoked.
-            let key = pattern::key_read_user_value_unchecked(
-                driver.as_ref().as_ref(),
-                &service,
-                &mut audit,
-                req.key,
-                KeyType::Key,
-            )
-            .map_err(MethodError::BadRequest)?;
-
-            // Disable and revoke key.
-            driver
-                .key_update(&KeyUpdate {
-                    id: key.id,
-                    is_enabled: Some(false),
-                    is_revoked: Some(true),
-                    name: None,
-                })
+                // Key revoke requires key key type.
+                // Do not check key is enabled or not revoked.
+                let key = pattern::key_read_user_value_unchecked(
+                    driver,
+                    &service,
+                    audit,
+                    &req.key,
+                    KeyType::Key,
+                )
                 .map_err(MethodError::BadRequest)?;
 
-            // Optionally create custom audit log.
-            if let Some(x) = req.audit {
-                let audit = audit
-                    .create(driver.as_ref().as_ref(), x, None, None)
+                // Disable and revoke key.
+                driver
+                    .key_update(&KeyUpdate {
+                        id: key.id,
+                        is_enabled: Some(false),
+                        is_revoked: Some(true),
+                        name: None,
+                    })
                     .map_err(MethodError::BadRequest)?;
-                Ok(Some(audit))
-            } else {
-                Ok(None)
-            }
-        };
-        let res: Result<Option<Audit>, MethodError> = blocking_inner();
-        let audit = audit_result(driver.as_ref().as_ref(), &audit, res)?;
+
+                // Optionally create custom audit log.
+                if let Some(x) = &req.audit {
+                    let audit = audit
+                        .create(driver, x, None, None)
+                        .map_err(MethodError::BadRequest)?;
+                    Ok(Some(audit))
+                } else {
+                    Ok(None)
+                }
+            },
+        )?;
         let reply = pb::AuthAuditReply {
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
         };
