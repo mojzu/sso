@@ -23,7 +23,7 @@ impl Validate for pb::UserListRequest {
 pub async fn list(
     server: &Server,
     request: MethodRequest<UserList>,
-) -> MethodResponse<pb::UserListReply> {
+) -> MethodResponse<pb::UserListReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -64,7 +64,7 @@ impl Validate for pb::UserCreateRequest {
 pub async fn create(
     server: &Server,
     request: MethodRequest<pb::UserCreateRequest>,
-) -> MethodResponse<pb::UserCreateReply> {
+) -> MethodResponse<pb::UserCreateReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
     let password = req.password.clone();
     let req: UserCreate = req.into();
@@ -108,7 +108,7 @@ impl Validate for pb::UserReadRequest {
 pub async fn read(
     server: &Server,
     request: MethodRequest<UserRead>,
-) -> MethodResponse<pb::UserReadReply> {
+) -> MethodResponse<pb::UserReadReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -147,7 +147,7 @@ impl Validate for pb::UserUpdateRequest {
 pub async fn update(
     server: &Server,
     request: MethodRequest<UserUpdate>,
-) -> MethodResponse<pb::UserReadReply> {
+) -> MethodResponse<pb::UserReadReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -176,7 +176,10 @@ pub async fn update(
     Ok(Response::new(reply))
 }
 
-pub async fn delete(server: &Server, request: MethodRequest<UserRead>) -> MethodResponse<()> {
+pub async fn delete(
+    server: &Server,
+    request: MethodRequest<UserRead>,
+) -> MethodResponse<(), MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();

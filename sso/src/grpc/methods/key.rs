@@ -22,7 +22,7 @@ impl Validate for pb::KeyListRequest {
 pub async fn list(
     server: &Server,
     request: MethodRequest<KeyList>,
-) -> MethodResponse<pb::KeyListReply> {
+) -> MethodResponse<pb::KeyListReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -64,7 +64,7 @@ impl Validate for pb::KeyCreateRequest {
 pub async fn create(
     server: &Server,
     request: MethodRequest<KeyCreate>,
-) -> MethodResponse<pb::KeyCreateReply> {
+) -> MethodResponse<pb::KeyCreateReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -142,7 +142,7 @@ impl Validate for pb::KeyReadRequest {
 pub async fn read(
     server: &Server,
     request: MethodRequest<KeyRead>,
-) -> MethodResponse<pb::KeyReadReply> {
+) -> MethodResponse<pb::KeyReadReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -179,7 +179,7 @@ impl Validate for pb::KeyUpdateRequest {
 pub async fn update(
     server: &Server,
     request: MethodRequest<KeyUpdate>,
-) -> MethodResponse<pb::KeyReadReply> {
+) -> MethodResponse<pb::KeyReadReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -214,7 +214,10 @@ pub async fn update(
     Ok(Response::new(reply))
 }
 
-pub async fn delete(server: &Server, request: MethodRequest<KeyRead>) -> MethodResponse<()> {
+pub async fn delete(
+    server: &Server,
+    request: MethodRequest<KeyRead>,
+) -> MethodResponse<(), MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();

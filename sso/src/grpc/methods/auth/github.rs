@@ -9,7 +9,7 @@ use validator::{Validate, ValidationErrors};
 pub async fn oauth2_url(
     server: &Server,
     request: MethodRequest<()>,
-) -> MethodResponse<pb::AuthOauth2UrlReply> {
+) -> MethodResponse<pb::AuthOauth2UrlReply, MethodError> {
     let (audit_meta, auth, _) = request.into_inner();
 
     let driver = server.driver();
@@ -40,7 +40,7 @@ impl Validate for pb::AuthOauth2CallbackRequest {
 pub async fn oauth2_callback(
     server: &Server,
     request: MethodRequest<pb::AuthOauth2CallbackRequest>,
-) -> MethodResponse<pb::AuthTokenReply> {
+) -> MethodResponse<pb::AuthTokenReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();

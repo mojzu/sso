@@ -20,7 +20,7 @@ impl Validate for pb::ServiceListRequest {
 pub async fn list(
     server: &Server,
     request: MethodRequest<ServiceList>,
-) -> MethodResponse<pb::ServiceListReply> {
+) -> MethodResponse<pb::ServiceListReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -81,7 +81,7 @@ impl Validate for pb::ServiceCreateRequest {
 pub async fn create(
     server: &Server,
     request: MethodRequest<ServiceCreate>,
-) -> MethodResponse<pb::ServiceReadReply> {
+) -> MethodResponse<pb::ServiceReadReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -117,7 +117,7 @@ impl Validate for pb::ServiceReadRequest {
 pub async fn read(
     server: &Server,
     request: MethodRequest<ServiceRead>,
-) -> MethodResponse<pb::ServiceReadReply> {
+) -> MethodResponse<pb::ServiceReadReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -175,7 +175,7 @@ impl Validate for pb::ServiceUpdateRequest {
 pub async fn update(
     server: &Server,
     request: MethodRequest<ServiceUpdate>,
-) -> MethodResponse<pb::ServiceReadReply> {
+) -> MethodResponse<pb::ServiceReadReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -205,7 +205,10 @@ pub async fn update(
     Ok(Response::new(reply))
 }
 
-pub async fn delete(server: &Server, request: MethodRequest<ServiceRead>) -> MethodResponse<()> {
+pub async fn delete(
+    server: &Server,
+    request: MethodRequest<ServiceRead>,
+) -> MethodResponse<(), MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();

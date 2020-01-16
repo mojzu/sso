@@ -24,7 +24,7 @@ impl Validate for pb::AuthTotpRequest {
 pub async fn totp_verify(
     server: &Server,
     request: MethodRequest<pb::AuthTotpRequest>,
-) -> MethodResponse<pb::AuthAuditReply> {
+) -> MethodResponse<pb::AuthAuditReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -69,7 +69,7 @@ impl Validate for pb::AuthCsrfCreateRequest {
 pub async fn csrf_create(
     server: &Server,
     request: MethodRequest<pb::AuthCsrfCreateRequest>,
-) -> MethodResponse<pb::AuthCsrfCreateReply> {
+) -> MethodResponse<pb::AuthCsrfCreateReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -109,7 +109,7 @@ impl Validate for pb::AuthCsrfVerifyRequest {
 pub async fn csrf_verify(
     server: &Server,
     request: MethodRequest<pb::AuthCsrfVerifyRequest>,
-) -> MethodResponse<pb::AuthAuditReply> {
+) -> MethodResponse<pb::AuthAuditReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();

@@ -17,7 +17,7 @@ impl Validate for pb::AuthLoginRequest {
 pub async fn login(
     server: &Server,
     request: MethodRequest<pb::AuthLoginRequest>,
-) -> MethodResponse<pb::AuthLoginReply> {
+) -> MethodResponse<pb::AuthLoginReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
     let driver = server.driver();
     let client = server.client();
@@ -98,7 +98,7 @@ impl Validate for pb::AuthRegisterRequest {
 pub async fn register(
     server: &Server,
     request: MethodRequest<pb::AuthRegisterRequest>,
-) -> MethodResponse<()> {
+) -> MethodResponse<(), MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
     let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
@@ -173,7 +173,7 @@ impl Validate for pb::AuthRegisterConfirmRequest {
 pub async fn register_confirm(
     server: &Server,
     request: MethodRequest<pb::AuthRegisterConfirmRequest>,
-) -> MethodResponse<pb::AuthPasswordMetaReply> {
+) -> MethodResponse<pb::AuthPasswordMetaReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -251,7 +251,7 @@ pub async fn register_confirm(
 pub async fn register_revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthAuditReply> {
+) -> MethodResponse<pb::AuthAuditReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -282,7 +282,7 @@ impl Validate for pb::AuthResetPasswordRequest {
 pub async fn reset_password(
     server: &Server,
     request: MethodRequest<pb::AuthResetPasswordRequest>,
-) -> MethodResponse<()> {
+) -> MethodResponse<(), MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -349,7 +349,7 @@ impl Validate for pb::AuthResetPasswordConfirmRequest {
 pub async fn reset_password_confirm(
     server: &Server,
     request: MethodRequest<pb::AuthResetPasswordConfirmRequest>,
-) -> MethodResponse<pb::AuthPasswordMetaReply> {
+) -> MethodResponse<pb::AuthPasswordMetaReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -429,7 +429,7 @@ pub async fn reset_password_confirm(
 pub async fn reset_password_revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthAuditReply> {
+) -> MethodResponse<pb::AuthAuditReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -462,7 +462,7 @@ impl Validate for pb::AuthUpdateEmailRequest {
 pub async fn update_email(
     server: &Server,
     request: MethodRequest<pb::AuthUpdateEmailRequest>,
-) -> MethodResponse<()> {
+) -> MethodResponse<(), MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -529,7 +529,7 @@ pub async fn update_email(
 pub async fn update_email_revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthAuditReply> {
+) -> MethodResponse<pb::AuthAuditReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -562,7 +562,7 @@ impl Validate for pb::AuthUpdatePasswordRequest {
 pub async fn update_password(
     server: &Server,
     request: MethodRequest<pb::AuthUpdatePasswordRequest>,
-) -> MethodResponse<pb::AuthPasswordMetaReply> {
+) -> MethodResponse<pb::AuthPasswordMetaReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -636,7 +636,7 @@ pub async fn update_password(
 pub async fn update_password_revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthAuditReply> {
+) -> MethodResponse<pb::AuthAuditReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();

@@ -17,7 +17,7 @@ impl Validate for pb::AuthTokenRequest {
 pub async fn verify(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthTokenVerifyReply> {
+) -> MethodResponse<pb::AuthTokenVerifyReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -78,7 +78,7 @@ pub async fn verify(
 pub async fn refresh(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthTokenReply> {
+) -> MethodResponse<pb::AuthTokenReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -148,7 +148,7 @@ pub async fn refresh(
 pub async fn revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthAuditReply> {
+) -> MethodResponse<pb::AuthAuditReply, MethodError> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();

@@ -1,6 +1,7 @@
 FROM sso-build:latest as build
 
 # Copy files and build binary.
+# TODO(refactor): Another build stage to reduce time taken.
 ADD . /sso/sso
 RUN cargo make release;
 

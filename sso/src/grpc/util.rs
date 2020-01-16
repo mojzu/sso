@@ -116,7 +116,7 @@ impl<T> MethodRequest<T> {
 }
 
 /// Method response wrapper type.
-pub type MethodResponse<T> = Result<Response<T>, MethodError>;
+pub type MethodResponse<T, E> = Result<Response<T>, E>;
 
 pub fn audit_result<F, T>(
     driver: &dyn Driver,
