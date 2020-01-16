@@ -4,6 +4,7 @@ use crate::{
 };
 use chrono::{DateTime, Utc};
 use core::pin::Pin;
+use std::convert::TryInto;
 use std::future::Future;
 use std::net::SocketAddr;
 use tonic::{metadata::MetadataMap, Request, Response, Status};
@@ -281,8 +282,8 @@ pub fn request_audit_auth(
 pub fn timestamp_opt_to_datetime_opt(ti: Option<prost_types::Timestamp>) -> Option<DateTime<Utc>> {
     match ti {
         Some(ti) => {
-            let st: Result<std::time::SystemTime, std::time::Duration> = ti.into();
-            let dt: DateTime<Utc> = st.unwrap().into();
+            let st: std::time::SystemTime = ti.try_into().unwrap();
+            let dt: DateTime<Utc> = st.into();
             Some(dt)
         }
         None => None,

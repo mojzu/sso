@@ -11,7 +11,7 @@ pub mod pb {
     tonic::include_proto!("sso");
 }
 
-pub use crate::grpc::{client::*, http::*, options::*};
+pub use crate::grpc::{client::*, http::*, options::*, pb::sso_server::SsoServer};
 
 use crate::*;
 use lettre::{file::FileTransport, SmtpClient, Transport};

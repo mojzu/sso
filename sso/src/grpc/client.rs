@@ -3,12 +3,12 @@ use crate::{
     grpc::pb::{self, sso_client::SsoClient},
     User,
 };
-use http::{HeaderValue, Uri};
+use http::Uri;
 use std::convert::TryInto;
 use std::fmt;
 use std::str::FromStr;
 use tokio::runtime::{Builder, Runtime};
-use tonic::{transport::Channel, Status};
+use tonic::{metadata::MetadataValue, transport::Endpoint, Request, Status};
 
 /// Split value of `Authorization` HTTP header into a type and value, where format is `VALUE` or `TYPE VALUE`.
 /// For example `abc123def456`, `key abc123def456` and `token abc123def456`.
@@ -38,23 +38,26 @@ impl SsoClient<tonic::transport::Channel> {
     pub async fn from_options(options: ClientOptions) -> Self {
         let authorisation = options.authorisation.to_owned();
         let user_authorisation = options.user_authorisation.to_owned();
-        let channel = Channel::builder(options.uri.clone())
-            .intercept_headers(move |headers| {
-                headers.insert(
-                    "Authorization",
-                    HeaderValue::from_str(authorisation.as_ref()).unwrap(),
+
+        let endpoint: Endpoint = options.uri.clone().into();
+        let channel = endpoint.connect().await.unwrap();
+
+        SsoClient::with_interceptor(channel, move |mut req: Request<()>| {
+            let meta = req.metadata_mut();
+
+            meta.insert(
+                "authorization",
+                MetadataValue::from_str(authorisation.as_ref()).unwrap(),
+            );
+            if let Some(user_authorisation) = &user_authorisation {
+                meta.insert(
+                    "user-authorization",
+                    MetadataValue::from_str(user_authorisation.as_ref()).unwrap(),
                 );
-                if let Some(user_authorisation) = &user_authorisation {
-                    headers.insert(
-                        "User-Authorization",
-                        HeaderValue::from_str(user_authorisation).unwrap(),
-                    );
-                }
-            })
-            .connect()
-            .await
-            .unwrap();
-        SsoClient::new(channel)
+            }
+
+            Ok(req)
+        })
     }
 
     /// Authenticate user using token or key, returns user if successful.
@@ -145,24 +148,26 @@ impl ClientBlocking {
 
         let authorisation = options.authorisation.to_owned();
         let user_authorisation = options.user_authorisation.to_owned();
-        let channel = rt.block_on(
-            Channel::builder(options.uri.clone())
-                .intercept_headers(move |headers| {
-                    headers.insert(
-                        "Authorization",
-                        HeaderValue::from_str(authorisation.as_ref()).unwrap(),
-                    );
-                    if let Some(user_authorisation) = &user_authorisation {
-                        headers.insert(
-                            "User-Authorization",
-                            HeaderValue::from_str(user_authorisation).unwrap(),
-                        );
-                    }
-                })
-                .connect(),
-        )?;
 
-        let client = SsoClient::new(channel);
+        let endpoint: Endpoint = options.uri.clone().into();
+        let channel = rt.block_on(endpoint.connect())?;
+
+        let client = SsoClient::with_interceptor(channel, move |mut req: Request<()>| {
+            let meta = req.metadata_mut();
+
+            meta.insert(
+                "authorization",
+                MetadataValue::from_str(authorisation.as_ref()).unwrap(),
+            );
+            if let Some(user_authorisation) = &user_authorisation {
+                meta.insert(
+                    "user-authorization",
+                    MetadataValue::from_str(user_authorisation.as_ref()).unwrap(),
+                );
+            }
+
+            Ok(req)
+        });
         Ok(Self { rt, client })
     }
 
