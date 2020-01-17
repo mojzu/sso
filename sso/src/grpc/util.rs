@@ -1182,6 +1182,16 @@ impl pb::AuditCreateRequest {
             user_key_id: None,
         }
     }
+
+    pub fn subject(mut self, subject: &str) -> Self {
+        self.subject = Some(subject.to_owned());
+        self
+    }
+
+    pub fn data(mut self, data: Option<prost_types::Struct>) -> Self {
+        self.data = data;
+        self
+    }
 }
 
 impl pb::ServiceListRequest {

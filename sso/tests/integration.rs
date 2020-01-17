@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate serde_json;
+
 mod support;
 
 use support::*;
@@ -8,8 +11,7 @@ use support::*;
 // Confirm reset password success.
 // User password is updated.
 // Cannot reuse token.
-// Register tests, multiple services, etc.
-// TODO(test): Test audit update append only.
+// TODO(test): Register tests, multiple services, etc.
 
 audit_integration_test!();
 auth_csrf_integration_test!();

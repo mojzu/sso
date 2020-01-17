@@ -2,7 +2,7 @@ UPDATE sso_audit
     SET "updated_at" = $2,
         "status_code" = COALESCE("status_code", $3),
         "subject" = COALESCE("subject", $4),
-        "data" = "data" || $5
+        "data" = $5 || "data"
     WHERE "id" = $1 AND CASE
         WHEN $6 IS NULL THEN TRUE
         ELSE "service_id" = $6

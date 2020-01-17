@@ -12,7 +12,7 @@ mod user;
 pub use chrono::Utc;
 pub use serde_json::Value;
 pub use sso::{
-    grpc::{pb, ClientBlocking, ClientOptions},
+    grpc::{pb, util, ClientBlocking, ClientOptions},
     AuditType, KeyType, KeyWithValue, Service, User, UserKey, UserToken, UserTokenAccess,
 };
 pub use uuid::Uuid;

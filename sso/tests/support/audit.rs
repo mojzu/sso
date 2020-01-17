@@ -364,5 +364,42 @@ macro_rules! audit_integration_test {
             assert_eq!(audit1.subject, None);
             assert_eq!(audit2.subject, Some("example".to_owned()));
         }
+
+        #[test]
+        #[ignore]
+        fn audit_update_append_only() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
+
+            let mut client = client_create(Some(&service_key.value));
+            let audit1 = client.audit_create(pb::AuditCreateRequest::new("update_test".to_owned()).subject("subject_test").data(
+                util::value_to_struct_opt(json!({ "key1": "foo" }))
+            ))
+                .unwrap()
+                .into_inner().data.unwrap();
+
+            let audit2 = client.audit_update(pb::AuditUpdateRequest {
+                id: audit1.id.clone(),
+                status_code: Some(200),
+                subject: Some("subject_overwrite".to_owned()),
+                data: util::value_to_struct_opt(json!({ "key1": "bar" })),
+            })
+            .unwrap()
+            .into_inner()
+            .data
+            .unwrap();
+            assert_eq!(audit1.id, audit2.id);
+            assert_eq!(audit1.service_id, Some(service.id));
+            assert_eq!(audit1.status_code, None);
+            assert_eq!(audit2.status_code, Some(200));
+            assert_eq!(audit1.subject.unwrap(), "subject_test");
+            assert_eq!(audit2.subject.unwrap(), "subject_test");
+            let data1 = util::struct_opt_to_value_opt(audit1.data).unwrap();
+            let key1 = data1["key1"].as_str().unwrap();
+            let data2 = util::struct_opt_to_value_opt(audit2.data).unwrap();
+            let key2 = data2["key1"].as_str().unwrap();
+            assert_eq!(key1, "foo");
+            assert_eq!(key2, "foo");
+        }
     };
 }
