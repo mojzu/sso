@@ -1,3 +1,4 @@
+//! Validation functions.
 use crate::{
     grpc::util::{MethodError, MethodResult},
     DriverError, KeyType, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES,

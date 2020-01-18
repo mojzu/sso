@@ -1,3 +1,4 @@
+//! Utility types and functions.
 use crate::{
     grpc::{self, pb},
     *,
@@ -7,7 +8,7 @@ use core::pin::Pin;
 use std::convert::TryInto;
 use std::future::Future;
 use std::net::SocketAddr;
-use tonic::{metadata::MetadataMap, Request, Response, Status};
+use tonic::{metadata::MetadataMap, Request, Status};
 use uuid::Uuid;
 
 /// Run a blocking closure on threadpool.
@@ -116,10 +117,7 @@ impl<T> MethodRequest<T> {
     }
 }
 
-/// Method response wrapper type.
-pub type MethodResponse<T, E> = Result<Response<T>, E>;
-
-pub fn audit_result<F, T>(
+pub(crate) fn audit_result<F, T>(
     driver: &dyn Driver,
     audit_meta: AuditMeta,
     audit_type: AuditType,
@@ -151,7 +149,7 @@ where
     }
 }
 
-pub fn audit_result_err<F, T>(
+pub(crate) fn audit_result_err<F, T>(
     driver: &dyn Driver,
     audit_meta: AuditMeta,
     audit_type: AuditType,
@@ -178,7 +176,7 @@ where
     }
 }
 
-pub fn audit_result_subject<F, T>(
+pub(crate) fn audit_result_subject<F, T>(
     driver: &dyn Driver,
     audit_meta: AuditMeta,
     audit_type: AuditType,
@@ -211,7 +209,7 @@ where
     }
 }
 
-pub fn audit_result_diff<F, T>(
+pub(crate) fn audit_result_diff<F, T>(
     driver: &dyn Driver,
     audit_meta: AuditMeta,
     audit_type: AuditType,
@@ -246,7 +244,7 @@ where
 }
 
 /// Get audit meta and authorisation header from request metadata.
-pub fn request_audit_auth(
+fn request_audit_auth(
     remote: Option<SocketAddr>,
     metadata: &MetadataMap,
 ) -> MethodResult<(AuditMeta, Option<String>)> {

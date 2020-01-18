@@ -1,4 +1,3 @@
-//! Blocking client.
 use crate::{
     grpc::pb::{self, sso_client::SsoClient},
     User,
@@ -95,8 +94,10 @@ impl SsoClient<tonic::transport::Channel> {
     }
 }
 
+/// gRPC asynchronous client.
 pub type Client = SsoClient<tonic::transport::Channel>;
 
+/// gRPC client options.
 #[derive(Debug, Clone)]
 pub struct ClientOptions {
     pub uri: Uri,
@@ -124,9 +125,7 @@ impl ClientOptions {
     }
 }
 
-// The order of the fields in this struct is important. The runtime must be the first field and the
-// client must be the last field so that when `ClientBlocking` is dropped the client is dropped
-// before the runtime. Not doing this will result in a deadlock when dropped.
+/// gRPC synchronous client.
 pub struct ClientBlocking {
     rt: Runtime,
     client: SsoClient<tonic::transport::Channel>,

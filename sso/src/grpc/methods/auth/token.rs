@@ -2,7 +2,6 @@ use crate::{
     grpc::{methods::auth::api_csrf_verify, pb, util::*, validate, Server},
     *,
 };
-use tonic::Response;
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::AuthTokenRequest {
@@ -17,11 +16,11 @@ impl Validate for pb::AuthTokenRequest {
 pub async fn verify(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthTokenVerifyReply, MethodError> {
+) -> MethodResult<pb::AuthTokenVerifyReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let (user, token, audit) = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -71,20 +70,19 @@ pub async fn verify(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 pub async fn refresh(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthTokenReply, MethodError> {
+) -> MethodResult<pb::AuthTokenReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
     let refresh_token_expires = server.options().refresh_token_expires();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let (user_token, audit) = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -141,18 +139,17 @@ pub async fn refresh(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 pub async fn revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthAuditReply, MethodError> {
+) -> MethodResult<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let audit = audit_result(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -213,6 +210,5 @@ pub async fn revoke(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }

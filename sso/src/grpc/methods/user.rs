@@ -2,7 +2,6 @@ use crate::{
     grpc::{pb, util::*, validate, Server},
     *,
 };
-use tonic::Response;
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::UserListRequest {
@@ -23,11 +22,11 @@ impl Validate for pb::UserListRequest {
 pub async fn list(
     server: &Server,
     request: MethodRequest<UserList>,
-) -> MethodResponse<pb::UserListReply, MethodError> {
+) -> MethodResult<pb::UserListReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -45,8 +44,7 @@ pub async fn list(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::UserCreateRequest {
@@ -64,7 +62,7 @@ impl Validate for pb::UserCreateRequest {
 pub async fn create(
     server: &Server,
     request: MethodRequest<pb::UserCreateRequest>,
-) -> MethodResponse<pb::UserCreateReply, MethodError> {
+) -> MethodResult<pb::UserCreateReply> {
     let (audit_meta, auth, req) = request.into_inner();
     let password = req.password.clone();
     let req: UserCreate = req.into();
@@ -72,7 +70,7 @@ pub async fn create(
     let driver = server.driver();
     let client = server.client();
     let password_pwned_enabled = server.options().password_pwned_enabled();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let password_meta = api::password_meta(client.as_ref(), password_pwned_enabled, password)
             .map_err(MethodError::BadRequest)?;
 
@@ -93,8 +91,7 @@ pub async fn create(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::UserReadRequest {
@@ -108,11 +105,11 @@ impl Validate for pb::UserReadRequest {
 pub async fn read(
     server: &Server,
     request: MethodRequest<UserRead>,
-) -> MethodResponse<pb::UserReadReply, MethodError> {
+) -> MethodResult<pb::UserReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -129,8 +126,7 @@ pub async fn read(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::UserUpdateRequest {
@@ -147,11 +143,11 @@ impl Validate for pb::UserUpdateRequest {
 pub async fn update(
     server: &Server,
     request: MethodRequest<UserUpdate>,
-) -> MethodResponse<pb::UserReadReply, MethodError> {
+) -> MethodResult<pb::UserReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let data = audit_result_diff(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -172,18 +168,14 @@ pub async fn update(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
-pub async fn delete(
-    server: &Server,
-    request: MethodRequest<UserRead>,
-) -> MethodResponse<(), MethodError> {
+pub async fn delete(server: &Server, request: MethodRequest<UserRead>) -> MethodResult<()> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         audit_result_subject(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -201,8 +193,7 @@ pub async fn delete(
         )?;
         Ok(())
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 fn read_inner(driver: &dyn Driver, read: &UserRead) -> MethodResult<User> {

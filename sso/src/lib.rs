@@ -52,6 +52,5 @@ macro_rules! impl_enum_to_from_string {
 }
 
 // TODO(refactor): 0.9.0 release.
-// Check manual and guides, update as needed.
-// Remove api module, make password pwned api client async.
-// Check tests and cleanup.
+// TODO(refactor): Check manual and guides, update as needed.
+// TODO(refactor): Remove api module, make password pwned api client async.

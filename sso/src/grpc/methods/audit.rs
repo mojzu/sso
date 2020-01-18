@@ -3,7 +3,6 @@ use crate::{
     *,
 };
 use chrono::Utc;
-use tonic::Response;
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::AuditListRequest {
@@ -46,11 +45,11 @@ impl From<pb::AuditListRequest> for AuditList {
 pub async fn list(
     server: &Server,
     request: MethodRequest<AuditList>,
-) -> MethodResponse<pb::AuditListReply, MethodError> {
+) -> MethodResult<pb::AuditListReply> {
     let (audit_meta, auth, req) = request.into_inner();
     let driver = server.driver();
 
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -70,8 +69,7 @@ pub async fn list(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::AuditCreateRequest {
@@ -88,7 +86,7 @@ impl Validate for pb::AuditCreateRequest {
 pub async fn create(
     server: &Server,
     request: MethodRequest<pb::AuditCreateRequest>,
-) -> MethodResponse<pb::AuditReadReply, MethodError> {
+) -> MethodResult<pb::AuditReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
     let data = struct_opt_to_value_opt(req.data);
     let req = AuditCreate::new(audit_meta.clone(), req.r#type)
@@ -96,9 +94,9 @@ pub async fn create(
         .data(data)
         .user_id(string_opt_to_uuid_opt(req.user_id))
         .user_key_id(string_opt_to_uuid_opt(req.user_key_id));
-
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+
+    blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -115,8 +113,7 @@ pub async fn create(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::AuditReadRequest {
@@ -131,11 +128,11 @@ impl Validate for pb::AuditReadRequest {
 pub async fn read(
     server: &Server,
     request: MethodRequest<AuditRead>,
-) -> MethodResponse<pb::AuditReadReply, MethodError> {
+) -> MethodResult<pb::AuditReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
-
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+
+    blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -155,8 +152,7 @@ pub async fn read(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::AuditUpdateRequest {
@@ -171,11 +167,11 @@ impl Validate for pb::AuditUpdateRequest {
 pub async fn update(
     server: &Server,
     request: MethodRequest<AuditUpdate>,
-) -> MethodResponse<pb::AuditReadReply, MethodError> {
+) -> MethodResult<pb::AuditReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
-
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+
+    blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -194,6 +190,5 @@ pub async fn update(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }

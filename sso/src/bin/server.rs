@@ -103,28 +103,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let sso = sso::grpc::Server::new(driver, options);
     let sso_ref = Arc::new(sso.clone());
 
-    let _grpc_sso = sso_ref.clone();
-    let svc = sso::grpc::SsoServer::with_interceptor(sso, move |req| {
-        // TODO(fix): Reimplement metrics collection.
-        // <https://github.com/hyperium/tonic/issues/242>
-        // .interceptor_fn(move |svc, req| {
-        //     let metrics = grpc_sso.metrics(req.uri().path());
-        //     let fut = svc.call(req);
-        //     async move {
-        //         match fut.await {
-        //             Ok(res) => {
-        //                 metrics.end(res.status().as_u16());
-        //                 Ok(res)
-        //             }
-        //             Err(e) => {
-        //                 metrics.end(1);
-        //                 Err(e)
-        //             }
-        //         }
-        //     }
-        // })
-        Ok(req)
-    });
+    let svc = sso::grpc::SsoServer::new(sso);
     let grpc = Server::builder().add_service(svc).serve(grpc_addr);
 
     let http_addr = "0.0.0.0:7043".parse()?;
@@ -133,7 +112,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let sso_ref = http_sso.clone();
         async {
             Ok::<_, hyper::Error>(hyper::service::service_fn(move |req| {
-                sso::grpc::http_response(sso_ref.driver(), req)
+                sso::grpc::http_server(sso_ref.driver(), req)
             }))
         }
     }));

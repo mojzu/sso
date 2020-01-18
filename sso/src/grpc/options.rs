@@ -7,7 +7,7 @@ use lettre::{
 use native_tls::{Protocol, TlsConnector};
 use reqwest::Client;
 
-/// Server provider options.
+/// gRPC server authentication provider options.
 #[derive(Debug, Clone)]
 pub struct ServerOptionsProvider {
     pub client_id: String,
@@ -24,7 +24,7 @@ impl ServerOptionsProvider {
     }
 }
 
-/// Server SMTP options.
+/// gRPC server SMTP transport options.
 #[derive(Debug, Clone)]
 pub struct ServerOptionsSmtp {
     host: String,
@@ -183,7 +183,7 @@ impl ServerOptions {
     }
 
     /// Returns provider GitHub OAuth2 common arguments.
-    pub fn github_oauth2_args(&self) -> ServerProviderOauth2Args {
+    pub(crate) fn github_oauth2_args(&self) -> ServerProviderOauth2Args {
         ServerProviderOauth2Args::new(
             self.github.clone(),
             self.access_token_expires(),
@@ -192,7 +192,7 @@ impl ServerOptions {
     }
 
     /// Returns provider Microsoft OAuth2 common arguments.
-    pub fn microsoft_oauth2_args(&self) -> ServerProviderOauth2Args {
+    pub(crate) fn microsoft_oauth2_args(&self) -> ServerProviderOauth2Args {
         ServerProviderOauth2Args::new(
             self.microsoft.clone(),
             self.access_token_expires(),
@@ -203,7 +203,7 @@ impl ServerOptions {
 
 /// Authentication provider OAuth2 common arguments.
 #[derive(Debug)]
-pub struct ServerProviderOauth2Args {
+pub(crate) struct ServerProviderOauth2Args {
     pub provider: Option<ServerOptionsProvider>,
     pub access_token_expires: i64,
     pub refresh_token_expires: i64,

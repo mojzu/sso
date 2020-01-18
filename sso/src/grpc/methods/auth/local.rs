@@ -2,7 +2,6 @@ use crate::{
     grpc::{methods::auth::api_csrf_verify, pb, util::*, validate, Server},
     *,
 };
-use tonic::Response;
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::AuthLoginRequest {
@@ -17,7 +16,7 @@ impl Validate for pb::AuthLoginRequest {
 pub async fn login(
     server: &Server,
     request: MethodRequest<pb::AuthLoginRequest>,
-) -> MethodResponse<pb::AuthLoginReply, MethodError> {
+) -> MethodResult<pb::AuthLoginReply> {
     let (audit_meta, auth, req) = request.into_inner();
     let driver = server.driver();
     let client = server.client();
@@ -25,7 +24,7 @@ pub async fn login(
     let access_token_expires = server.options().access_token_expires();
     let refresh_token_expires = server.options().refresh_token_expires();
 
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let password_meta = api::password_meta(
             client.as_ref(),
             password_pwned_enabled,
@@ -80,8 +79,7 @@ pub async fn login(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::AuthRegisterRequest {
@@ -98,13 +96,13 @@ impl Validate for pb::AuthRegisterRequest {
 pub async fn register(
     server: &Server,
     request: MethodRequest<pb::AuthRegisterRequest>,
-) -> MethodResponse<(), MethodError> {
+) -> MethodResult<()> {
     let (audit_meta, auth, req) = request.into_inner();
     let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
     let email = server.smtp_email();
 
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let template = audit_result(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -157,8 +155,7 @@ pub async fn register(
             Err(_e) => Ok(()),
         }
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::AuthRegisterConfirmRequest {
@@ -173,7 +170,7 @@ impl Validate for pb::AuthRegisterConfirmRequest {
 pub async fn register_confirm(
     server: &Server,
     request: MethodRequest<pb::AuthRegisterConfirmRequest>,
-) -> MethodResponse<pb::AuthPasswordMetaReply, MethodError> {
+) -> MethodResult<pb::AuthPasswordMetaReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -181,7 +178,7 @@ pub async fn register_confirm(
     let password_pwned_enabled = server.options().password_pwned_enabled();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let password_meta = api::password_meta(
             client.as_ref(),
             password_pwned_enabled,
@@ -244,18 +241,17 @@ pub async fn register_confirm(
             meta: Some(password_meta.into()),
         })
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 pub async fn register_revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthAuditReply, MethodError> {
+) -> MethodResult<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let audit = audit_result(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -267,8 +263,7 @@ pub async fn register_revoke(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::AuthResetPasswordRequest {
@@ -282,13 +277,13 @@ impl Validate for pb::AuthResetPasswordRequest {
 pub async fn reset_password(
     server: &Server,
     request: MethodRequest<pb::AuthResetPasswordRequest>,
-) -> MethodResponse<(), MethodError> {
+) -> MethodResult<()> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
     let email = server.smtp_email();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let template = audit_result(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -333,8 +328,7 @@ pub async fn reset_password(
             Err(_e) => Ok(()),
         }
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::AuthResetPasswordConfirmRequest {
@@ -349,7 +343,7 @@ impl Validate for pb::AuthResetPasswordConfirmRequest {
 pub async fn reset_password_confirm(
     server: &Server,
     request: MethodRequest<pb::AuthResetPasswordConfirmRequest>,
-) -> MethodResponse<pb::AuthPasswordMetaReply, MethodError> {
+) -> MethodResult<pb::AuthPasswordMetaReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -357,7 +351,7 @@ pub async fn reset_password_confirm(
     let password_pwned_enabled = server.options().password_pwned_enabled();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let password_meta = api::password_meta(
             client.as_ref(),
             password_pwned_enabled,
@@ -422,18 +416,17 @@ pub async fn reset_password_confirm(
             meta: Some(password_meta.into()),
         })
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 pub async fn reset_password_revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthAuditReply, MethodError> {
+) -> MethodResult<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let audit = audit_result(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -445,8 +438,7 @@ pub async fn reset_password_revoke(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::AuthUpdateEmailRequest {
@@ -462,13 +454,13 @@ impl Validate for pb::AuthUpdateEmailRequest {
 pub async fn update_email(
     server: &Server,
     request: MethodRequest<pb::AuthUpdateEmailRequest>,
-) -> MethodResponse<(), MethodError> {
+) -> MethodResult<()> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let template = audit_result(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -522,18 +514,17 @@ pub async fn update_email(
             .map_err(MethodError::BadRequest)?;
         Ok(())
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 pub async fn update_email_revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthAuditReply, MethodError> {
+) -> MethodResult<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let audit = audit_result(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -545,8 +536,7 @@ pub async fn update_email_revoke(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::AuthUpdatePasswordRequest {
@@ -562,7 +552,7 @@ impl Validate for pb::AuthUpdatePasswordRequest {
 pub async fn update_password(
     server: &Server,
     request: MethodRequest<pb::AuthUpdatePasswordRequest>,
-) -> MethodResponse<pb::AuthPasswordMetaReply, MethodError> {
+) -> MethodResult<pb::AuthPasswordMetaReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
@@ -570,7 +560,7 @@ pub async fn update_password(
     let password_pwned_enabled = server.options().password_pwned_enabled();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let password_meta = api::password_meta(
             client.as_ref(),
             password_pwned_enabled,
@@ -629,18 +619,17 @@ pub async fn update_password(
             meta: Some(password_meta.into()),
         })
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 pub async fn update_password_revoke(
     server: &Server,
     request: MethodRequest<pb::AuthTokenRequest>,
-) -> MethodResponse<pb::AuthAuditReply, MethodError> {
+) -> MethodResult<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let audit = audit_result(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -652,8 +641,7 @@ pub async fn update_password_revoke(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 fn revoke_inner(

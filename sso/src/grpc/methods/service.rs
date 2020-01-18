@@ -2,7 +2,6 @@ use crate::{
     grpc::{pb, util::*, validate, Server},
     *,
 };
-use tonic::Response;
 use uuid::Uuid;
 use validator::{Validate, ValidationErrors};
 
@@ -20,11 +19,11 @@ impl Validate for pb::ServiceListRequest {
 pub async fn list(
     server: &Server,
     request: MethodRequest<ServiceList>,
-) -> MethodResponse<pb::ServiceListReply, MethodError> {
+) -> MethodResult<pb::ServiceListReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -45,8 +44,7 @@ pub async fn list(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::ServiceCreateRequest {
@@ -81,11 +79,11 @@ impl Validate for pb::ServiceCreateRequest {
 pub async fn create(
     server: &Server,
     request: MethodRequest<ServiceCreate>,
-) -> MethodResponse<pb::ServiceReadReply, MethodError> {
+) -> MethodResult<pb::ServiceReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let data = audit_result_subject(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -102,8 +100,7 @@ pub async fn create(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::ServiceReadRequest {
@@ -117,11 +114,11 @@ impl Validate for pb::ServiceReadRequest {
 pub async fn read(
     server: &Server,
     request: MethodRequest<ServiceRead>,
-) -> MethodResponse<pb::ServiceReadReply, MethodError> {
+) -> MethodResult<pb::ServiceReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -138,8 +135,7 @@ pub async fn read(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::ServiceUpdateRequest {
@@ -175,11 +171,11 @@ impl Validate for pb::ServiceUpdateRequest {
 pub async fn update(
     server: &Server,
     request: MethodRequest<ServiceUpdate>,
-) -> MethodResponse<pb::ServiceReadReply, MethodError> {
+) -> MethodResult<pb::ServiceReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let data = audit_result_diff(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -201,18 +197,14 @@ pub async fn update(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
-pub async fn delete(
-    server: &Server,
-    request: MethodRequest<ServiceRead>,
-) -> MethodResponse<(), MethodError> {
+pub async fn delete(server: &Server, request: MethodRequest<ServiceRead>) -> MethodResult<()> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         audit_result_subject(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -230,8 +222,7 @@ pub async fn delete(
         )?;
         Ok(())
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 fn read_inner(

@@ -2,7 +2,6 @@ use crate::{
     grpc::{pb, util::*, validate, Server},
     *,
 };
-use tonic::Response;
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::AuthKeyRequest {
@@ -17,11 +16,11 @@ impl Validate for pb::AuthKeyRequest {
 pub async fn verify(
     server: &Server,
     request: MethodRequest<pb::AuthKeyRequest>,
-) -> MethodResponse<pb::AuthKeyReply, MethodError> {
+) -> MethodResult<pb::AuthKeyReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let (user, key, audit) = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -66,18 +65,17 @@ pub async fn verify(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 pub async fn revoke(
     server: &Server,
     request: MethodRequest<pb::AuthKeyRequest>,
-) -> MethodResponse<pb::AuthAuditReply, MethodError> {
+) -> MethodResult<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let audit = audit_result(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -123,6 +121,5 @@ pub async fn revoke(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }

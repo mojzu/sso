@@ -2,17 +2,16 @@ use crate::{
     grpc::{pb, util::*, Server},
     *,
 };
-use tonic::Response;
 
 pub async fn oauth2_url(
     server: &Server,
     request: MethodRequest<()>,
-) -> MethodResponse<pb::AuthOauth2UrlReply, MethodError> {
+) -> MethodResult<pb::AuthOauth2UrlReply> {
     let (audit_meta, auth, _) = request.into_inner();
 
     let driver = server.driver();
     let args = server.options().microsoft_oauth2_args();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let url = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -22,20 +21,19 @@ pub async fn oauth2_url(
         let reply = pb::AuthOauth2UrlReply { url };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 pub async fn oauth2_callback(
     server: &Server,
     request: MethodRequest<pb::AuthOauth2CallbackRequest>,
-) -> MethodResponse<pb::AuthTokenReply, MethodError> {
+) -> MethodResult<pb::AuthTokenReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
     let client = server.client();
     let args = server.options().microsoft_oauth2_args();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let user_token = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -59,8 +57,7 @@ pub async fn oauth2_callback(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 mod provider_microsoft {
@@ -80,7 +77,7 @@ mod provider_microsoft {
     use reqwest::Client as SyncClient;
     use url::Url;
 
-    pub fn oauth2_url(
+    pub(crate) fn oauth2_url(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<&String>,
@@ -115,7 +112,7 @@ mod provider_microsoft {
         Ok(authorize_url.to_string())
     }
 
-    pub fn oauth2_callback(
+    pub(crate) fn oauth2_callback(
         driver: &dyn Driver,
         audit: &mut AuditBuilder,
         key_value: Option<&String>,

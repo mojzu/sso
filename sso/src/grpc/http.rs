@@ -5,7 +5,8 @@ use std::sync::Arc;
 static NOT_FOUND: &[u8] = b"Not Found";
 static PONG: &[u8] = b"Pong";
 
-pub async fn http_response(
+/// HTTP server request handler for internal endpoints.
+pub async fn http_server(
     driver: Arc<Box<dyn Driver>>,
     req: Request<Body>,
 ) -> Result<Response<Body>, hyper::Error> {

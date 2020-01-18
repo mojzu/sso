@@ -8,7 +8,6 @@ use crate::{
     grpc::{pb, util::*, validate, Server},
     *,
 };
-use tonic::Response;
 use uuid::Uuid;
 use validator::{Validate, ValidationErrors};
 
@@ -24,11 +23,11 @@ impl Validate for pb::AuthTotpRequest {
 pub async fn totp_verify(
     server: &Server,
     request: MethodRequest<pb::AuthTotpRequest>,
-) -> MethodResponse<pb::AuthAuditReply, MethodError> {
+) -> MethodResult<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -54,8 +53,7 @@ pub async fn totp_verify(
         let reply = pb::AuthAuditReply { audit: None };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::AuthCsrfCreateRequest {
@@ -69,11 +67,11 @@ impl Validate for pb::AuthCsrfCreateRequest {
 pub async fn csrf_create(
     server: &Server,
     request: MethodRequest<pb::AuthCsrfCreateRequest>,
-) -> MethodResponse<pb::AuthCsrfCreateReply, MethodError> {
+) -> MethodResult<pb::AuthCsrfCreateReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -93,8 +91,7 @@ pub async fn csrf_create(
         };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 impl Validate for pb::AuthCsrfVerifyRequest {
@@ -109,11 +106,11 @@ impl Validate for pb::AuthCsrfVerifyRequest {
 pub async fn csrf_verify(
     server: &Server,
     request: MethodRequest<pb::AuthCsrfVerifyRequest>,
-) -> MethodResponse<pb::AuthAuditReply, MethodError> {
+) -> MethodResult<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    let reply = blocking::<_, MethodError, _>(move || {
+    blocking::<_, MethodError, _>(move || {
         audit_result_err(
             driver.as_ref().as_ref(),
             audit_meta,
@@ -128,8 +125,7 @@ pub async fn csrf_verify(
         let reply = pb::AuthAuditReply { audit: None };
         Ok(reply)
     })
-    .await?;
-    Ok(Response::new(reply))
+    .await
 }
 
 // TODO(refactor): Improve code structure.
