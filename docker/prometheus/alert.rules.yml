@@ -41,6 +41,7 @@ groups:
           summary: "high_audit_status_error: {{ $labels.job }} {{ $labels.instance }}"
           description: "Audit status error rate greater than 0.01/s (value: {{ $value }}/s, {{ $labels.type }}, {{ $labels.status }})."
 
+      # TODO(refactor): Update these for grpc_ metrics.
       # Alert if HTTP response errors with 4xx status code greater than 5%.
       - alert: sso_high_http_4xx_error
         expr: sum(rate(http_count{job="sso",status=~"^4.."}[5m])) / sum(rate(http_count[5m])) * 100 > 5

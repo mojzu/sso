@@ -40,6 +40,9 @@ pub enum MethodError {
 
     #[fail(display = "InternalServerError {}", _0)]
     InternalServerError(#[fail(cause)] DriverError),
+
+    #[fail(display = "Status {}", _0)]
+    Status(Status),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -49,14 +52,24 @@ struct MethodErrorData {
 }
 
 impl MethodError {
-    fn get_status(&self) -> Status {
+    pub fn get_status(&self) -> Status {
         match self {
             MethodError::BadRequest(e) => Status::invalid_argument(format!("{}", e)),
             MethodError::Unauthorised(e) => Status::unauthenticated(format!("{}", e)),
             MethodError::Forbidden(e) => Status::permission_denied(format!("{}", e)),
             MethodError::NotFound(e) => Status::not_found(format!("{}", e)),
             MethodError::InternalServerError(e) => Status::internal(format!("{}", e)),
+            MethodError::Status(e) => e.clone(),
         }
+    }
+
+    pub fn get_code(&self) -> u16 {
+        let e = self.get_status();
+        e.code() as u16
+    }
+
+    pub fn get_value(&self) -> serde_json::Value {
+        serde_json::to_value(self.get_data()).unwrap()
     }
 
     fn get_data(&self) -> MethodErrorData {
@@ -71,6 +84,12 @@ impl MethodError {
 impl From<MethodError> for Status {
     fn from(e: MethodError) -> Self {
         e.get_status()
+    }
+}
+
+impl From<Status> for MethodError {
+    fn from(e: Status) -> Self {
+        MethodError::Status(e)
     }
 }
 
@@ -114,6 +133,20 @@ impl<T> MethodRequest<T> {
 
     pub fn into_inner(self) -> (AuditMeta, Option<String>, T) {
         (self.audit, self.auth, self.message)
+    }
+}
+
+impl MethodRequest<serde_json::Value> {
+    pub fn from_struct(
+        request: Request<prost_types::Struct>,
+    ) -> MethodResult<MethodRequest<serde_json::Value>> {
+        let (audit, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
+        let message = struct_opt_to_value_opt(Some(request.into_inner())).unwrap();
+        Ok(MethodRequest {
+            audit,
+            auth,
+            message,
+        })
     }
 }
 

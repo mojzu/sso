@@ -25,17 +25,17 @@ pub const METRICS_AUDIT_COUNT_NAME: &str = "audit_count";
 /// Metrics audit count help.
 pub const METRICS_AUDIT_COUNT_HELP: &str = "Audit log counter";
 
-/// Metrics HTTP count name.
-pub const METRICS_HTTP_COUNT_NAME: &str = "http_count";
+/// Metrics gRPC count name.
+pub const METRICS_GRPC_COUNT_NAME: &str = "grpc_count";
 
-/// Metrics HTTP count help.
-pub const METRICS_HTTP_COUNT_HELP: &str = "HTTP request counter";
+/// Metrics gRPC count help.
+pub const METRICS_GRPC_COUNT_HELP: &str = "gRPC request counter";
 
-/// Metrics HTTP latency name.
-pub const METRICS_HTTP_LATENCY_NAME: &str = "http_latency";
+/// Metrics gRPC latency name.
+pub const METRICS_GRPC_LATENCY_NAME: &str = "grpc_latency";
 
-/// Metrics HTTP latency help.
-pub const METRICS_HTTP_LATENCY_HELP: &str = "HTTP request latency (ms)";
+/// Metrics gRPC latency help.
+pub const METRICS_GRPC_LATENCY_HELP: &str = "gRPC request latency (ms)";
 
 /// Metrics.
 pub struct Metrics {
@@ -44,8 +44,8 @@ pub struct Metrics {
     pub process_resident_memory: IntGauge,
     pub audit_from: DateTime<Utc>,
     pub audit_count: IntCounterVec,
-    pub http_count: IntCounterVec,
-    pub http_latency: HistogramVec,
+    pub grpc_count: IntCounterVec,
+    pub grpc_latency: HistogramVec,
 }
 
 impl fmt::Debug for Metrics {
@@ -74,12 +74,12 @@ lazy_static! {
         let audit_count_opts = Opts::new(METRICS_AUDIT_COUNT_NAME, METRICS_AUDIT_COUNT_HELP);
         let audit_count = IntCounterVec::new(audit_count_opts, &["type", "status"]).unwrap();
 
-        let http_count_opts = Opts::new(METRICS_HTTP_COUNT_NAME, METRICS_HTTP_COUNT_HELP);
-        let http_count = IntCounterVec::new(http_count_opts, &["path", "status"]).unwrap();
+        let grpc_count_opts = Opts::new(METRICS_GRPC_COUNT_NAME, METRICS_GRPC_COUNT_HELP);
+        let grpc_count = IntCounterVec::new(grpc_count_opts, &["path", "status"]).unwrap();
 
-        let http_latency_opts =
-            HistogramOpts::new(METRICS_HTTP_LATENCY_NAME, METRICS_HTTP_LATENCY_NAME);
-        let http_latency = HistogramVec::new(http_latency_opts, &["path"]).unwrap();
+        let grpc_latency_opts =
+            HistogramOpts::new(METRICS_GRPC_LATENCY_NAME, METRICS_GRPC_LATENCY_NAME);
+        let grpc_latency = HistogramVec::new(grpc_latency_opts, &["path"]).unwrap();
 
         registry
             .register(Box::new(process_cpu_usage.clone()))
@@ -88,8 +88,8 @@ lazy_static! {
             .register(Box::new(process_resident_memory.clone()))
             .unwrap();
         registry.register(Box::new(audit_count.clone())).unwrap();
-        registry.register(Box::new(http_count.clone())).unwrap();
-        registry.register(Box::new(http_latency.clone())).unwrap();
+        registry.register(Box::new(grpc_count.clone())).unwrap();
+        registry.register(Box::new(grpc_latency.clone())).unwrap();
 
         Mutex::new(Metrics {
             registry,
@@ -97,16 +97,16 @@ lazy_static! {
             process_resident_memory,
             audit_from: Utc::now(),
             audit_count,
-            http_count,
-            http_latency,
+            grpc_count,
+            grpc_latency,
         })
     };
 }
 
 impl Metrics {
-    pub fn http_metrics() -> (IntCounterVec, HistogramVec) {
+    pub fn grpc_metrics() -> (IntCounterVec, HistogramVec) {
         let metrics = METRICS.lock().unwrap();
-        (metrics.http_count.clone(), metrics.http_latency.clone())
+        (metrics.grpc_count.clone(), metrics.grpc_latency.clone())
     }
 
     pub fn read(driver: &dyn Driver, service: Option<&Service>) -> DriverResult<String> {

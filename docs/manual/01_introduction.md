@@ -30,20 +30,6 @@ User authentication methods are organised into **Provider** groups. Services are
 
 User authentication using unique email address and password.
 
-```
-POST /v1/auth/provider/local/login
-POST /v1/auth/provider/local/register
-POST /v1/auth/provider/local/register/confirm
-POST /v1/auth/provider/local/register/revoke
-POST /v1/auth/provider/local/reset-password
-POST /v1/auth/provider/local/reset-password/confirm
-POST /v1/auth/provider/local/reset-password/revoke
-POST /v1/auth/provider/local/update-email
-POST /v1/auth/provider/local/update-email/revoke
-POST /v1/auth/provider/local/update-password
-POST /v1/auth/provider/local/update-password/revoke
-```
-
 - User login returns access and refresh tokens.
 - User registration with email confirmation.
 - User password reset via email.
@@ -60,20 +46,12 @@ POST /v1/auth/provider/local/update-password/revoke
 
 User authentication using [GitHub OAuth2][github-oauth2].
 
-```
-GET,POST /v1/auth/provider/github/oauth2
-```
-
 - User login returns access and refresh tokens.
 - User key for service of `Token` type is required.
 
 #### Microsoft Provider
 
 User authentication using [Microsoft OAuth2][microsoft-oauth2].
-
-```
-GET,POST /v1/auth/provider/microsoft/oauth2
-```
 
 - User login returns access and refresh tokens.
 - User key for service of `Token` type is required.
@@ -82,11 +60,6 @@ GET,POST /v1/auth/provider/microsoft/oauth2
 
 Request authentication using an API key distributed by the service.
 
-```
-POST /v1/auth/key/verify
-POST /v1/auth/key/revoke
-```
-
 - User authenticates requests to a service using a unique, random key.
 - User key can be revoked, but is not time-limited.
 - User key for service of `Key` type is required.
@@ -94,12 +67,6 @@ POST /v1/auth/key/revoke
 #### Token
 
 Request authentication using access token returned by user authentication provider, for example local login.
-
-```
-POST /v1/auth/token/verify
-POST /v1/auth/token/refresh
-POST /v1/auth/token/revoke
-```
 
 - User authenticates requests to a service using a [JWT][jwt] access token.
 - User generates new access and refresh tokens using a [JWT][jwt] refresh token.
@@ -111,30 +78,17 @@ POST /v1/auth/token/revoke
 
 Request authentication using [TOTP][totp] code generated from a key distributed by the service.
 
-```
-POST /v1/auth/totp
-```
-
 - User key for service of `Totp` type is required.
 
 ### CSRF Tokens
 
 Services can use **sso** to create and verify single-use [CSRF tokens][csrf]
 
-```
-GET,POST /v1/auth/csrf
-```
-
 - If service uses cookies for authentication, these tokens are used in form templates to prevent CSRF attacks.
 
 ### Audit Logging
 
 All **sso** endpoint failures after input validation are audited. `POST`, `PATCH`, `DELETE` endpoint successes are also audited.
-
-```
-GET,POST /v1/audit
-GET,PATCH /v1/audit/$audit_id
-```
 
 - Services are able to read, create and update their own audit logs.
 - Audit logs are append only, logs can be created when requests are received and response data can be added when request handled.

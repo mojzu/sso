@@ -43,7 +43,7 @@ impl Server {
     pub fn new(driver: Box<dyn Driver>, options: ServerOptions) -> Self {
         let client = options.client().unwrap();
         let smtp_client = options.smtp_client().unwrap();
-        let (count, latency) = Metrics::http_metrics();
+        let (count, latency) = Metrics::grpc_metrics();
         Self {
             options,
             driver: Arc::new(driver),

@@ -106,8 +106,8 @@ pub enum DriverError {
     #[fail(display = "Locked {:?}", _0)]
     Locked(i32),
 
-    #[fail(display = "LockFn {}", _0)]
-    LockFn(String),
+    #[fail(display = "Message {}", _0)]
+    Message(String),
 
     #[fail(display = "DieselResult {}", _0)]
     DieselResult(#[fail(cause)] diesel::result::Error),
