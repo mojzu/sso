@@ -71,8 +71,9 @@ pub async fn create(
     let client = server.client();
     let password_pwned_enabled = server.options().password_pwned_enabled();
     blocking::<_, MethodError, _>(move || {
-        let password_meta = api::password_meta(client.as_ref(), password_pwned_enabled, password)
-            .map_err(MethodError::BadRequest)?;
+        let password_meta =
+            pattern::password_meta(client.as_ref(), password_pwned_enabled, password)
+                .map_err(MethodError::BadRequest)?;
 
         let data = audit_result_subject(
             driver.as_ref().as_ref(),

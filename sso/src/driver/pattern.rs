@@ -1,15 +1,15 @@
 //! # Pattern functions.
 use crate::{
     AuditBuilder, Driver, DriverError, DriverResult, Jwt, KeyRead, KeyType, KeyWithValue, Service,
-    ServiceRead, User, UserRead,
+    ServiceRead, User, UserPasswordMeta, UserRead,
 };
-use chrono::{Duration, Utc};
-use job_scheduler::{Job, JobScheduler};
 use libreauth::oath::TOTPBuilder;
-use std::{sync::mpsc, thread};
+use reqwest::Client;
+use sha1::{Digest, Sha1};
+use url::Url;
 use uuid::Uuid;
 
-// TODO(refactor): Improve usability, composability of pattern functions.
+// TODO(refactor2): Improve usability, composability of pattern functions.
 
 /// User header.
 #[derive(Debug, Clone)]
@@ -166,7 +166,7 @@ fn check_audit_user(
 ) -> DriverResult<()> {
     let user = audit.meta().user().cloned();
     match user {
-        // TODO(refactor): Duplicate authentication code with api module, refactor.
+        // TODO(refactor2): Duplicate authentication code with api module, refactor.
         Some(user) => match user {
             HeaderAuth::Key(key_value) => {
                 // Key verify requires key key type.
@@ -337,56 +337,78 @@ pub fn key_read_user_value_unchecked(
     Ok(key)
 }
 
-/// Audit log retention clean up task.
-pub fn task_audit_retention<'a>(driver: Box<dyn Driver>, audit_retention: Duration) -> Job<'a> {
-    Job::new("0 0 * * * *".parse().unwrap(), move || {
-        let created_at = Utc::now() - audit_retention;
-        if let Err(e) = driver.audit_delete(&created_at) {
-            warn!("{}", e);
-        }
-    })
-}
-
-/// Spawn a thread for background tasks with scheduler tick interval in milliseconds.
-/// Returns a thread join handle and sender half of a channel.
-/// Sending a message to the channel ends the thread, or thread ends if channel is disconnected.
-pub fn task_thread_start(
-    driver: Box<dyn Driver>,
-    tick_ms: u64,
-    audit_retention: &Duration,
-) -> (thread::JoinHandle<()>, mpsc::Sender<()>) {
-    let audit_retention = *audit_retention;
-    let (tx, rx) = mpsc::channel::<()>();
-
-    let thread_handle = thread::spawn(move || {
-        let mut sched = JobScheduler::new();
-        sched.add(task_audit_retention(driver.clone(), audit_retention));
-
-        loop {
-            sched.tick();
-
-            thread::sleep(std::time::Duration::from_millis(tick_ms));
-            match rx.try_recv() {
-                Ok(_) => {
-                    return;
+/// Password strength and pwned checks.
+///
+/// If password is empty, returns 0 for strength and true for pwned.
+/// If password is none, returns none for strength and pwned.
+pub fn password_meta(
+    client: &Client,
+    enabled: bool,
+    password: Option<String>,
+) -> DriverResult<UserPasswordMeta> {
+    match password.as_ref().map(|x| &**x) {
+        Some("") => Ok(UserPasswordMeta::invalid()),
+        Some(password) => {
+            let password_strength = match password_meta_strength(password) {
+                Ok(entropy) => Some(entropy.score()),
+                Err(err) => {
+                    warn!("{}", err);
+                    None
                 }
-                Err(e) => match e {
-                    mpsc::TryRecvError::Disconnected => {
-                        return;
-                    }
-                    mpsc::TryRecvError::Empty => {
-                        continue;
-                    }
-                },
-            }
+            };
+            let password_pwned = match password_meta_pwned(client, enabled, password) {
+                Ok(password_pwned) => Some(password_pwned),
+                Err(err) => {
+                    warn!("{}", err);
+                    None
+                }
+            };
+            Ok(UserPasswordMeta {
+                password_strength,
+                password_pwned,
+            })
         }
-    });
-
-    (thread_handle, tx)
+        None => Ok(UserPasswordMeta::default()),
+    }
 }
 
-/// Stop task thread using sender half of a channel.
-pub fn task_thread_stop(handle: thread::JoinHandle<()>, tx: mpsc::Sender<()>) {
-    tx.send(()).unwrap();
-    handle.join().unwrap();
+/// Returns password strength test performed by `zxcvbn`.
+/// <https://github.com/shssoichiro/zxcvbn-rs>
+fn password_meta_strength(password: &str) -> DriverResult<zxcvbn::Entropy> {
+    zxcvbn::zxcvbn(password, &[]).map_err(DriverError::Zxcvbn)
+}
+
+/// Returns true if password is present in `Pwned Passwords` index, else false.
+/// <https://haveibeenpwned.com/Passwords>
+fn password_meta_pwned(client: &Client, enabled: bool, password: &str) -> DriverResult<bool> {
+    if enabled {
+        // Make request to API using first 5 characters of SHA1 password hash.
+        let mut hash = Sha1::new();
+        hash.input(password);
+        let hash = format!("{:X}", hash.result());
+        let url = format!("https://api.pwnedpasswords.com/range/{:.5}", hash);
+
+        match Url::parse(&url).map_err(DriverError::UrlParse) {
+            Ok(url) => {
+                client
+                    .get(url)
+                    .send()
+                    .map_err(DriverError::Reqwest)
+                    .and_then(|res| res.error_for_status().map_err(DriverError::Reqwest))
+                    .and_then(|mut res| res.text().map_err(DriverError::Reqwest))
+                    .and_then(move |text| {
+                        // Compare suffix of hash to lines to determine if password is pwned.
+                        for line in text.lines() {
+                            if hash[5..] == line[..35] {
+                                return Ok(true);
+                            }
+                        }
+                        Ok(false)
+                    })
+            }
+            Err(e) => Err(e),
+        }
+    } else {
+        Err(DriverError::PwnedPasswordsDisabled)
+    }
 }

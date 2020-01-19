@@ -11,5 +11,10 @@ ENV DEBIAN_FRONTEND="noninteractive"
 EXPOSE 8042
 
 # Copy and start server binary.
-COPY --from=build /sso/sso_openapi/sso-openapi-server .
-ENTRYPOINT ["./sso-openapi-server"]
+COPY --from=build /sso/sso_openapi/sso-openapi .
+
+# Copy binaries.
+COPY --from=build /sso/sso_openapi/sso-openapi /usr/local/bin/sso-openapi
+RUN chmod +x /usr/local/bin/sso-openapi
+
+ENTRYPOINT ["sso-openapi"]

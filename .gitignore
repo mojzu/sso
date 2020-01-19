@@ -20,4 +20,4 @@
 *.pgdump
 
 # Ignore sso_openapi binary.
-/sso_openapi/sso-openapi-server
+/sso_openapi/sso-openapi

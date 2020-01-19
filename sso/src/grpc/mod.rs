@@ -192,14 +192,14 @@ impl ServerMetrics {
 impl pb::sso_server::Sso for Server {
     async fn ping(&self, _: tonic::Request<()>) -> Result<tonic::Response<String>, tonic::Status> {
         // Method implemented in HTTP server.
-        Err(tonic::Status::not_found(""))
+        Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
     }
     async fn metrics(
         &self,
         _: tonic::Request<()>,
     ) -> Result<tonic::Response<String>, tonic::Status> {
         // Method implemented in HTTP server.
-        Err(tonic::Status::not_found(""))
+        Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
     }
     async fn audit_list(
         &self,
@@ -340,6 +340,7 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<pb::AuthKeyReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_key_verify", request)?;
         self.post(metrics, methods::auth::key::verify(self, request).await)
+            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_key_revoke(
         &self,
@@ -347,6 +348,7 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_key_revoke", request)?;
         self.post(metrics, methods::auth::key::revoke(self, request).await)
+            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_token_verify(
         &self,
@@ -354,6 +356,7 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<pb::AuthTokenVerifyReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_token_verify", request)?;
         self.post(metrics, methods::auth::token::verify(self, request).await)
+            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_token_refresh(
         &self,
@@ -361,6 +364,7 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_token_refresh", request)?;
         self.post(metrics, methods::auth::token::refresh(self, request).await)
+            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_token_revoke(
         &self,
@@ -368,6 +372,7 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_token_revoke", request)?;
         self.post(metrics, methods::auth::token::revoke(self, request).await)
+            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_totp_verify(
         &self,
@@ -375,6 +380,7 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_totp_verify", request)?;
         self.post(metrics, methods::auth::totp_verify(self, request).await)
+            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_csrf_create(
         &self,
@@ -382,6 +388,7 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<pb::AuthCsrfCreateReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_csrf_create", request)?;
         self.post(metrics, methods::auth::csrf_create(self, request).await)
+            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_csrf_verify(
         &self,
@@ -389,6 +396,7 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_csrf_verify", request)?;
         self.post(metrics, methods::auth::csrf_verify(self, request).await)
+            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_local_login(
         &self,
@@ -396,6 +404,7 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<pb::AuthLoginReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_local_login", request)?;
         self.post(metrics, methods::auth::local::login(self, request).await)
+            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_local_register(
         &self,
@@ -403,6 +412,7 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<()>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_local_register", request)?;
         self.post(metrics, methods::auth::local::register(self, request).await)
+            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_local_register_confirm(
         &self,
@@ -413,6 +423,7 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::local::register_confirm(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_local_register_revoke(
         &self,
@@ -423,6 +434,7 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::local::register_revoke(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_local_reset_password(
         &self,
@@ -433,6 +445,7 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::local::reset_password(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_local_reset_password_confirm(
         &self,
@@ -443,6 +456,7 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::local::reset_password_confirm(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_local_reset_password_revoke(
         &self,
@@ -453,6 +467,7 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::local::reset_password_revoke(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_local_update_email(
         &self,
@@ -463,6 +478,7 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::local::update_email(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_local_update_email_revoke(
         &self,
@@ -473,6 +489,7 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::local::update_email_revoke(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_local_update_password(
         &self,
@@ -483,6 +500,7 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::local::update_password(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_local_update_password_revoke(
         &self,
@@ -493,6 +511,7 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::local::update_password_revoke(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_github_oauth2_url(
         &self,
@@ -503,6 +522,7 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::github::oauth2_url(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_github_oauth2_callback(
         &self,
@@ -513,6 +533,7 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::github::oauth2_callback(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_microsoft_oauth2_url(
         &self,
@@ -523,6 +544,7 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::microsoft::oauth2_url(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_microsoft_oauth2_callback(
         &self,
@@ -533,5 +555,6 @@ impl pb::sso_server::Sso for Server {
             metrics,
             methods::auth::microsoft::oauth2_callback(self, request).await,
         )
+        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
 }

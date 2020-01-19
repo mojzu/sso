@@ -10,6 +10,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::Unauthenticated);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -45,6 +46,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::Unauthenticated);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -55,6 +57,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthLoginRequest::new(INVALID_EMAIL, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_VALIDATION);
         }
 
         #[test]
@@ -66,6 +69,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthLoginRequest::new(&user_email, "");
             let res = client.auth_local_login(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_VALIDATION);
         }
 
         #[test]
@@ -79,6 +83,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -102,6 +107,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -125,6 +131,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -147,9 +154,10 @@ macro_rules! auth_local_integration_test {
             let _user_key =
                 user_key_create(&mut client, KEY_NAME, KeyType::Token, service.id, user);
 
-            let body = pb::AuthLoginRequest::new(&user_email, INVALID_PASSWORD);
+            let body = pb::AuthLoginRequest::new(&user_email, USER_WRONG_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -177,6 +185,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -201,6 +210,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -226,6 +236,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthLoginRequest::new(&user_email, USER_PASSWORD);
             let res = client.auth_local_login(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::PermissionDenied);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -260,12 +271,14 @@ macro_rules! auth_local_integration_test {
             let user_email = email_create();
 
             let body = pb::AuthRegisterRequest::new(USER_NAME, &user_email);
-            client.auth_local_register(body).unwrap();
+            let res = client.auth_local_register(body).unwrap_err();
+            assert_eq!(res.code(), tonic::Code::Unauthenticated);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
         #[ignore]
-        fn auth_local_register_ok_unauthorised_service_disabled() {
+        fn auth_local_register_unauthorised_service_disabled() {
             let mut client = client_create(None);
             let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
@@ -277,7 +290,9 @@ macro_rules! auth_local_integration_test {
             client.service_update(req).unwrap();
 
             let body = pb::AuthRegisterRequest::new(USER_NAME, &user_email);
-            client.auth_local_register(body).unwrap();
+            let res = client.auth_local_register(body).unwrap_err();
+            assert_eq!(res.code(), tonic::Code::Unauthenticated);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -289,6 +304,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthRegisterRequest::new("", &user_email);
             let res = client.auth_local_register(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_VALIDATION);
         }
 
         #[test]
@@ -299,11 +315,12 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthRegisterRequest::new(USER_NAME, INVALID_EMAIL);
             let res = client.auth_local_register(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_VALIDATION);
         }
 
         #[test]
         #[ignore]
-        fn auth_local_register_ok_unauthorised_service_register_disabled() {
+        fn auth_local_register_bad_request_service_register_disabled() {
             let mut client = client_create(None);
             let (service, service_key) = service_key_create(&mut client);
             let user_email = email_create();
@@ -315,7 +332,9 @@ macro_rules! auth_local_integration_test {
             client.service_update(req).unwrap();
 
             let body = pb::AuthRegisterRequest::new(USER_NAME, &user_email);
-            client.auth_local_register(body).unwrap();
+            let res = client.auth_local_register(body).unwrap_err();
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -330,6 +349,26 @@ macro_rules! auth_local_integration_test {
             req.id = service.id;
             req.user_allow_register = Some(true);
             client.service_update(req).unwrap();
+
+            let body = pb::AuthRegisterRequest::new(USER_NAME, &user_email);
+            client.auth_local_register(body).unwrap();
+        }
+
+        #[test]
+        #[ignore]
+        fn auth_local_register_user_exists_ok() {
+            let mut client = client_create(None);
+            let (service, service_key) = service_key_create(&mut client);
+            let user_email = email_create();
+
+            let mut client = client_create(Some(&service_key.value));
+            let mut req = pb::ServiceUpdateRequest::default();
+            req.id = service.id;
+            req.user_allow_register = Some(true);
+            client.service_update(req).unwrap();
+
+            let body = pb::AuthRegisterRequest::new(USER_NAME, &user_email);
+            client.auth_local_register(body).unwrap();
 
             let body = pb::AuthRegisterRequest::new(USER_NAME, &user_email);
             client.auth_local_register(body).unwrap();
@@ -355,6 +394,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthResetPasswordRequest::new(INVALID_EMAIL);
             let res = client.auth_local_reset_password(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_VALIDATION);
         }
 
         #[test]
@@ -477,6 +517,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthResetPasswordConfirmRequest::new(INVALID_KEY, USER_PASSWORD);
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::Unauthenticated);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -489,6 +530,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthResetPasswordConfirmRequest::new("", USER_PASSWORD);
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_VALIDATION);
         }
 
         #[test]
@@ -501,6 +543,7 @@ macro_rules! auth_local_integration_test {
             let body = pb::AuthResetPasswordConfirmRequest::new(INVALID_KEY, "");
             let res = client.auth_local_reset_password_confirm(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_VALIDATION);
         }
 
         #[test]
@@ -530,6 +573,7 @@ macro_rules! auth_local_integration_test {
             };
             let res = client.auth_local_update_email(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::PermissionDenied);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
     };
 }

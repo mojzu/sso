@@ -11,6 +11,17 @@ use std::net::SocketAddr;
 use tonic::{metadata::MetadataMap, Request, Status};
 use uuid::Uuid;
 
+/// Not found error message.
+pub const ERR_NOT_FOUND: &str = "NotFound";
+/// Authentication not found error message.
+pub const ERR_AUTH_NOT_FOUND: &str = "AuthNotFound";
+/// Authentication type not found error message.
+pub const ERR_AUTH_TYPE_NOT_FOUND: &str = "AuthTypeNotFound";
+/// Validation error message.
+pub const ERR_VALIDATION: &str = "ValidationError";
+/// Redacted error message.
+pub const ERR_REDACTED: &str = "RedactedError";
+
 /// Run a blocking closure on threadpool.
 pub fn blocking<T, E, F>(f: F) -> Pin<Box<dyn Future<Output = Result<T, E>> + Send>>
 where
@@ -54,11 +65,11 @@ struct MethodErrorData {
 impl MethodError {
     pub fn get_status(&self) -> Status {
         match self {
-            MethodError::BadRequest(e) => Status::invalid_argument(format!("{}", e)),
-            MethodError::Unauthorised(e) => Status::unauthenticated(format!("{}", e)),
-            MethodError::Forbidden(e) => Status::permission_denied(format!("{}", e)),
-            MethodError::NotFound(e) => Status::not_found(format!("{}", e)),
-            MethodError::InternalServerError(e) => Status::internal(format!("{}", e)),
+            MethodError::BadRequest(e) => Status::invalid_argument(self.driver_string(e)),
+            MethodError::Unauthorised(e) => Status::unauthenticated(self.driver_string(e)),
+            MethodError::Forbidden(e) => Status::permission_denied(self.driver_string(e)),
+            MethodError::NotFound(e) => Status::not_found(self.driver_string(e)),
+            MethodError::InternalServerError(e) => Status::internal(self.driver_string(e)),
             MethodError::Status(e) => e.clone(),
         }
     }
@@ -77,6 +88,13 @@ impl MethodError {
         MethodErrorData {
             code: e.code() as u16,
             message: e.message().to_owned(),
+        }
+    }
+
+    fn driver_string(&self, e: &DriverError) -> String {
+        match e {
+            DriverError::Validation(_e) => ERR_VALIDATION.to_owned(),
+            _ => e.to_string(),
         }
     }
 }
@@ -307,8 +325,8 @@ fn request_audit_auth(
     Ok((AuditMeta::new(user_agent, remote, forwarded, user), auth))
 }
 
-// TODO(refactor): Improve translation code between api/grpc.
-// TODO(refactor): Unwrap check and cleanup.
+// TODO(refactor2): Improve translation code between api/grpc.
+// TODO(refactor2): Unwrap check and cleanup.
 
 pub fn timestamp_opt_to_datetime_opt(ti: Option<prost_types::Timestamp>) -> Option<DateTime<Utc>> {
     match ti {
@@ -369,7 +387,7 @@ pub fn i32_vec_to_key_type_vec_opt(s: Vec<i32>) -> Option<Vec<KeyType>> {
     if s.is_empty() {
         None
     } else {
-        Some(s.into_iter().map(|s| KeyType::from_i32(s)).collect())
+        Some(s.into_iter().map(KeyType::from_i32).collect())
     }
 }
 
@@ -646,7 +664,7 @@ impl From<pb::ServiceCreateRequest> for ServiceCreate {
             name: r.name,
             url: r.url,
             user_allow_register: r.user_allow_register.unwrap_or(false),
-            user_email_text: r.user_email_text.unwrap_or("".to_owned()),
+            user_email_text: r.user_email_text.unwrap_or_else(|| "".to_owned()),
             provider_local_url: r.provider_local_url,
             provider_github_oauth2_url: r.provider_github_oauth2_url,
             provider_microsoft_oauth2_url: r.provider_microsoft_oauth2_url,
@@ -803,7 +821,7 @@ impl From<pb::UserUpdateRequest> for UserUpdate {
 impl From<UserList> for pb::UserListRequest {
     fn from(l: UserList) -> Self {
         let id = uuid_vec_opt_to_string_vec(l.filter.id);
-        let email = l.filter.email.unwrap_or(Vec::new());
+        let email = l.filter.email.unwrap_or_default();
         match l.query {
             UserListQuery::IdGt(gt) => Self {
                 gt: Some(uuid_to_string(gt)),
@@ -941,8 +959,8 @@ impl From<pb::AuditUpdateRequest> for AuditUpdate {
 impl From<AuditList> for pb::AuditListRequest {
     fn from(l: AuditList) -> Self {
         let id = uuid_vec_opt_to_string_vec(l.filter.id);
-        let type_ = l.filter.type_.unwrap_or(Vec::new());
-        let subject = l.filter.subject.unwrap_or(Vec::new());
+        let type_ = l.filter.type_.unwrap_or_default();
+        let subject = l.filter.subject.unwrap_or_default();
         let service_id = uuid_vec_opt_to_string_vec(l.filter.service_id);
         let user_id = uuid_vec_opt_to_string_vec(l.filter.user_id);
         match l.query {
@@ -1231,7 +1249,7 @@ impl pb::ServiceListRequest {
             gt: None,
             lt: None,
             limit: Some(limit),
-            id: id,
+            id,
             is_enabled: None,
         }
     }
@@ -1327,7 +1345,7 @@ impl pb::AuditListRequest {
             offset_id: None,
             id: Vec::new(),
             r#type: type_,
-            subject: subject,
+            subject,
             service_id: Vec::new(),
             user_id: Vec::new(),
         }
@@ -1347,7 +1365,7 @@ impl pb::UserUpdateRequest {
         }
     }
 
-    pub fn is_enabled(mut self, is_enabled: bool) -> Self {
+    pub fn set_is_enabled(mut self, is_enabled: bool) -> Self {
         self.is_enabled = Some(is_enabled);
         self
     }

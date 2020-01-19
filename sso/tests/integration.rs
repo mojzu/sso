@@ -11,7 +11,6 @@ use support::*;
 // Confirm reset password success.
 // User password is updated.
 // Cannot reuse token.
-// TODO(test): Register tests, multiple services, etc.
 
 audit_integration_test!();
 auth_csrf_integration_test!();

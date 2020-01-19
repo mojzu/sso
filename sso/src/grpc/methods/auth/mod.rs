@@ -128,7 +128,7 @@ pub async fn csrf_verify(
     .await
 }
 
-// TODO(refactor): Improve code structure.
+// TODO(refactor2): Improve code structure.
 fn api_csrf_verify(driver: &dyn Driver, service: &Service, csrf_key: &str) -> MethodResult<()> {
     driver
         .csrf_read(&csrf_key)

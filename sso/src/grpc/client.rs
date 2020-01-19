@@ -1,5 +1,8 @@
 use crate::{
-    grpc::pb::{self, sso_client::SsoClient},
+    grpc::{
+        pb::{self, sso_client::SsoClient},
+        util::*,
+    },
     User,
 };
 use http::Uri;
@@ -16,7 +19,7 @@ fn authorisation_type(type_value: String) -> Result<(String, String), Status> {
     let mut type_value = type_value.split_whitespace();
     let type_ = type_value.next();
     let type_: String = type_
-        .ok_or_else(|| Status::unauthenticated("AuthTypeNotFound"))?
+        .ok_or_else(|| Status::unauthenticated(ERR_AUTH_TYPE_NOT_FOUND))?
         .into();
 
     let value = type_value.next();
@@ -86,10 +89,10 @@ impl SsoClient<tonic::transport::Channel> {
                             .into_inner();
                         Ok((res.user.unwrap().try_into().unwrap(), res.audit))
                     }
-                    _ => Err(Status::unauthenticated("AuthTypeNotFound")),
+                    _ => Err(Status::unauthenticated(ERR_AUTH_TYPE_NOT_FOUND)),
                 }
             }
-            None => Err(Status::unauthenticated("AuthUndefined")),
+            None => Err(Status::unauthenticated(ERR_AUTH_NOT_FOUND)),
         }
     }
 }

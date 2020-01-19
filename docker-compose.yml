@@ -6,6 +6,7 @@ services:
   # <https://www.timescale.com/>
   postgres:
     build: docker/postgres
+    image: sso_postgres:latest
     restart: always
     network_mode: "host"
     environment:
@@ -18,6 +19,7 @@ services:
   # <https://prometheus.io/>
   prometheus:
     build: docker/prometheus
+    image: sso_prometheus:latest
     restart: always
     network_mode: "host"
     ports:
@@ -27,6 +29,7 @@ services:
   # <https://grpc.io/>
   sso_grpc:
     build: sso
+    image: sso_grpc:latest
     depends_on:
       - postgres
     restart: always
@@ -43,6 +46,7 @@ services:
   # <https://grpc-ecosystem.github.io/grpc-gateway/>
   sso_openapi:
     build: sso_openapi
+    image: sso_openapi:latest
     restart: always
     network_mode: "host"
     environment:

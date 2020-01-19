@@ -1,4 +1,4 @@
-# CLI
+## CLI
 
-TODO(docs): CLI documentation.
+TODO(docs): CLI guide.
 TODO(docs): Style improvements, PDF output.

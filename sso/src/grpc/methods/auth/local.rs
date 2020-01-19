@@ -25,7 +25,7 @@ pub async fn login(
     let refresh_token_expires = server.options().refresh_token_expires();
 
     blocking::<_, MethodError, _>(move || {
-        let password_meta = api::password_meta(
+        let password_meta = pattern::password_meta(
             client.as_ref(),
             password_pwned_enabled,
             Some(req.password.clone()),
@@ -116,25 +116,54 @@ pub async fn register(
                         DriverError::ServiceUserRegisterDisabled,
                     ));
                 }
-                // Create user, is allowed to request password reset in case register token expires.
-                // TODO(refactor): Support user for email already exists, add test for this.
-                let mut user_create =
-                    UserCreate::new(true, &req.name, &req.email).password_allow_reset(true);
-                if let Some(locale) = &req.locale {
-                    user_create = user_create.locale(locale);
-                }
-                if let Some(timezone) = &req.timezone {
-                    user_create = user_create.timezone(timezone);
-                }
+
+                // Get user by email if exists, else create now.
                 let user = driver
-                    .user_create(&user_create)
+                    .user_read(&UserRead::Email(req.email.to_owned()))
                     .map_err(MethodError::BadRequest)?;
-                // Create token key for user.
-                let key_create =
-                    KeyCreate::user(true, KeyType::Token, &req.name, service.id, user.id);
+                let user = match user {
+                    Some(user) => {
+                        // If user is disabled, reject this request.
+                        if !user.is_enabled {
+                            return Err(MethodError::BadRequest(DriverError::UserDisabled));
+                        }
+                        user
+                    }
+                    None => {
+                        // Create user, is allowed to request password reset in case register token expires.
+                        let mut user_create =
+                            UserCreate::new(true, &req.name, &req.email).password_allow_reset(true);
+                        if let Some(locale) = &req.locale {
+                            user_create = user_create.locale(locale);
+                        }
+                        if let Some(timezone) = &req.timezone {
+                            user_create = user_create.timezone(timezone);
+                        }
+                        driver
+                            .user_create(&user_create)
+                            .map_err(MethodError::BadRequest)?
+                    }
+                };
+                // Get key if exists, else create now.
+                // TODO(refactor2): If any key already exists for service, do not create one.
+                // TODO(refactor2): Add tests to check whether this flow can be used by used to access disabled user.
                 let key = driver
-                    .key_create(&key_create)
+                    .key_read(
+                        &KeyRead::user_id(service.id, user.id, true, false, KeyType::Token),
+                        None,
+                    )
                     .map_err(MethodError::BadRequest)?;
+                let key = match key {
+                    Some(key) => key,
+                    None => {
+                        // Create token key for user.
+                        let key_create =
+                            KeyCreate::user(true, KeyType::Token, &req.name, service.id, user.id);
+                        driver
+                            .key_create(&key_create)
+                            .map_err(MethodError::BadRequest)?
+                    }
+                };
                 // Encode register token.
                 let token =
                     Jwt::encode_register_token(driver, &service, &user, &key, access_token_expires)
@@ -143,17 +172,11 @@ pub async fn register(
                 TemplateEmail::email_register(&service, &user, &token, audit.meta())
                     .map_err(MethodError::BadRequest)
             },
-        );
-        // Catch Err result so this function returns Ok to prevent the caller
-        // from inferring a users existence.
-        match template {
-            Ok(template) => email(template)
-                .map_err::<DriverError, _>(Into::into)
-                .map_err(MethodError::BadRequest)
-                .or_else(|_| Ok(())),
-            // TODO(refactor): Warning logs here?
-            Err(_e) => Ok(()),
-        }
+        )?;
+        email(template)
+            .map_err::<DriverError, _>(Into::into)
+            .map_err(MethodError::BadRequest)?;
+        Ok(())
     })
     .await
 }
@@ -179,7 +202,7 @@ pub async fn register_confirm(
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
     blocking::<_, MethodError, _>(move || {
-        let password_meta = api::password_meta(
+        let password_meta = pattern::password_meta(
             client.as_ref(),
             password_pwned_enabled,
             req.password.clone(),
@@ -352,7 +375,7 @@ pub async fn reset_password_confirm(
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
     blocking::<_, MethodError, _>(move || {
-        let password_meta = api::password_meta(
+        let password_meta = pattern::password_meta(
             client.as_ref(),
             password_pwned_enabled,
             Some(req.password.clone()),
@@ -380,8 +403,9 @@ pub async fn reset_password_confirm(
 
                 // Bad request if user password reset is disabled.
                 if !user.password_allow_reset {
-                    let e = MethodError::BadRequest(DriverError::UserResetPasswordDisabled).into();
-                    return Err(e);
+                    return Err(MethodError::BadRequest(
+                        DriverError::UserResetPasswordDisabled,
+                    ));
                 }
 
                 // Safely decode token with user key.
@@ -561,7 +585,7 @@ pub async fn update_password(
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
     blocking::<_, MethodError, _>(move || {
-        let password_meta = api::password_meta(
+        let password_meta = pattern::password_meta(
             client.as_ref(),
             password_pwned_enabled,
             Some(req.password.clone()),
@@ -666,11 +690,11 @@ fn revoke_inner(
         .map_err(MethodError::BadRequest)?;
     // Verify CSRF to prevent reuse.
     api_csrf_verify(driver, &service, &csrf_key)?;
-    // TODO(refactor): Rethink this behaviour?
     // Disable user and disable and revoke all keys associated with user.
-    // driver
-    //     .user_update(&user.id, &UserUpdate::default().set_is_enabled(false))
-    //     .map_err(MethodError::BadRequest)?;
+    driver
+        .user_update(&&UserUpdate::new_id(user.id).set_is_enabled(false))
+        .map_err(MethodError::BadRequest)?;
+    // TODO(refactor2): Rethink this behaviour?
     // driver
     //     .key_update_many(
     //         &user.id,

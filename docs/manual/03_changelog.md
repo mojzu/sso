@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.9.0 (?)
+## 0.10.0 (?)
+
+## 0.9.0 (2020-01-19)
 
 ### Breaking
 
@@ -12,6 +14,11 @@
 - Added optional `subject` query parameter to audit read endpoint to mask by subject.
 - Added scheduled tasks for audit log retention support.
 - Added `auth/provider/local/register/revoke`, `auth/provider/local/reset-password/revoke` endpoints.
+
+### Removed
+
+- Removed `sysinfo` dependency, use `process` feature of prometheus crate for process metrics.
+- Removed `job_scheduler` dependency, moved retention task to cli.
 
 ## 0.8.0 (2019-11-03)
 

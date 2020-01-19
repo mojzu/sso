@@ -74,7 +74,7 @@ service Sso {
     // Ping server.
     //
     // Returns pong response for uptime tests. This endpoint is only available
-    // via the HTTP server port of `sso-grpc-server`. Authentication is not
+    // via the HTTP server port of `sso-grpc`. Authentication is not
     // required, this endpoint is intended for internal use only.
     rpc Ping (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (google.api.http) = {
@@ -89,7 +89,7 @@ service Sso {
     // Get server metrics.
     //
     // Returns metrics in Prometheus exposition format. This endpoint is only available
-    // via the HTTP server port of `sso-grpc-server`. Authentication is not
+    // via the HTTP server port of `sso-grpc`. Authentication is not
     // required, this endpoint is intended for internal use only.
     rpc Metrics (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (google.api.http) = {

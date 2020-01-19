@@ -1,4 +1,4 @@
-//! Library for binary application.
+//! Single Sign-On Library
 #![recursion_limit = "1024"]
 #![deny(missing_debug_implementations)]
 // TODO(docs): Require documentation, better library interface.
@@ -19,12 +19,10 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 
-pub mod api;
-mod cli;
 mod driver;
 pub mod grpc;
 
-pub use crate::{cli::*, driver::*};
+pub use crate::driver::*;
 
 /// Implement `to_string` and `from_string` on simple enums.
 ///
@@ -51,6 +49,4 @@ macro_rules! impl_enum_to_from_string {
     };
 }
 
-// TODO(refactor): 0.9.0 release.
-// TODO(refactor): Check manual and guides, update as needed.
-// TODO(refactor): Remove api module, make password pwned api client async.
+// TODO(refactor2): Check manual guides, update as needed.

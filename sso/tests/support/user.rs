@@ -347,7 +347,7 @@ macro_rules! user_integration_test {
             let user1 = user_create(&mut client, true, USER_NAME, &user_email);
 
             let user2 = client
-                .user_update(pb::UserUpdateRequest::new(user1.id.clone()).is_enabled(false))
+                .user_update(pb::UserUpdateRequest::new(user1.id.clone()).set_is_enabled(false))
                 .unwrap()
                 .into_inner()
                 .data
@@ -384,7 +384,7 @@ macro_rules! user_integration_test {
 
             let mut client = client_user_create(&service_key.value, &user1_key.value);
             let user2 = client
-                .user_update(pb::UserUpdateRequest::new(user1.id.clone()).is_enabled(false))
+                .user_update(pb::UserUpdateRequest::new(user1.id.clone()).set_is_enabled(false))
                 .unwrap()
                 .into_inner()
                 .data

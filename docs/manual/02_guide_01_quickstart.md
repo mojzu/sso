@@ -20,11 +20,17 @@ Start services.
 docker-compose up
 ```
 
-If successful `sso-grpc-server` is now available at `localhost:7042`, and `sso-openapi-server` is available at `localhost:8042`.
+If successful `sso-grpc` is now available at `localhost:7042`, and `sso-openapi` is available at `localhost:8042`.
 
 ```bash
 curl localhost:7043/ping
 # Pong
 curl localhost:8042/ping
-# {"code":5}
+# {"error":"NotFound","code":5,"message":"NotFound"}
+```
+
+The following guides depend on `sso-cli` and `curl`. `sso-cli` can be found inside the `sso_grpc` container using the command.
+
+```bash
+docker exec -it $container_id /bin/bash
 ```

@@ -21,7 +21,8 @@ pub const INVALID_EMAIL: &str = "invalid-email";
 pub const INVALID_PASSWORD: &str = "guests";
 pub const INVALID_KEY: &str = "af8731c10c739d8cce50ea556d0b1d77d3614fdc39";
 pub const USER_NAME: &str = "user-name";
-pub const USER_PASSWORD: &str = "user-name";
+pub const USER_PASSWORD: &str = "guestguest";
+pub const USER_WRONG_PASSWORD: &str = "guestguests";
 pub const KEY_NAME: &str = "key-name";
 pub const UUID_NIL: &str = "00000000-0000-0000-0000-000000000000";
 

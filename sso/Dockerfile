@@ -1,7 +1,6 @@
 FROM sso-build:latest as build
 
 # Copy files and build binary.
-# TODO(refactor): Another build stage to reduce time taken.
 ADD . /sso/sso
 RUN cargo make release;
 
@@ -20,6 +19,9 @@ RUN apt-get update \
     ca-certificates libpq-dev \
     && rm -rf /var/lib/apt/lists/*;
 
-# Copy and start server binary.
-COPY --from=build /sso/target/release/sso-grpc-server .
-ENTRYPOINT ["./sso-grpc-server"]
+# Copy binaries.
+COPY --from=build /sso/target/release/sso-grpc /usr/local/bin/sso-grpc
+COPY --from=build /sso/target/release/sso-cli /usr/local/bin/sso-cli
+RUN chmod +x /usr/local/bin/sso-grpc /usr/local/bin/sso-cli
+
+ENTRYPOINT ["sso-grpc"]

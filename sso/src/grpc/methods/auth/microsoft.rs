@@ -179,7 +179,7 @@ mod provider_microsoft {
         service: &Service,
         provider: &Option<ServerOptionsProvider>,
     ) -> DriverResult<BasicClient> {
-        // TODO(refactor): Create and keep client alive from startup.
+        // TODO(refactor2): Create and keep client alive from startup.
         let (provider_microsoft_oauth2_url, provider) =
             match (&service.provider_microsoft_oauth2_url, provider) {
                 (Some(provider_microsoft_oauth2_url), Some(provider)) => {

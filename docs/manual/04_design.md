@@ -22,11 +22,6 @@ TODO(feature): Handle changes to password hash version.
 TODO(feature): Option to enforce provider URLs HTTPS.
 TODO(feature): User last login, key last use information (calculate in SQL).
 TODO(feature): Login from unknown IP address warnings, SMS support?
-TODO(feature): Jsonwebtoken handling improvements.
-<https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html>
-TODO(feature): Support more process/other metrics, check units.
-<https://prometheus.io/docs/instrumenting/writing_clientlibs/#standard-and-runtime-collectors>
-<https://peteris.rocks/blog/htop/>
 TODO(feature): Service IP whitelist.
 TODO(feature): Service/user groups for segmentation.
 
@@ -88,7 +83,7 @@ TODO(test): More tests on preventing spoofing, elevation of privelege.
 
 - HTTP calls (except ping) require service key authentication.
 
-TODO(refactor): Service key authentication mechanism code is split across files, cleaner code.
+TODO(refactor2): Service key authentication mechanism code is split across files, cleaner code.
 
 ### 1.4.5
 
@@ -159,15 +154,13 @@ TODO(feature): Option to transmit audit logs, stdout/stderr to external service(
 
 TODO(docs): Evaluate data and identify/classify sensitive data.
 
-TODO(refactor): Audit log retention configuration.
-
 ### 1.9.1, 1.9.2
 
 - Connection to database, other services must be encrypted.
 
 TODO(docs): Mutual TLS encryption/authentication for postgres connection.
 
-TODO(refactor): Dependency updates, blocked on `jsonwebtoken`.
+TODO(refactor3): Dependency updates, blocked on `jsonwebtoken`.
 
 ### 1.10.1
 

@@ -118,7 +118,7 @@ impl ModelAudit {
     pub fn create(conn: &PgConnection, create: &AuditCreate) -> DriverResult<Audit> {
         let now = Utc::now();
         let id = Uuid::new_v4();
-        let data = create.data.clone().unwrap_or(json!({}));
+        let data = create.data.clone().unwrap_or_else(|| json!({}));
         let value = ModelAuditInsert {
             created_at: &now,
             updated_at: &now,
@@ -188,7 +188,7 @@ impl ModelAudit {
     ) -> DriverResult<Audit> {
         let now = Utc::now();
         let status_code = update.status_code.map(|x| x as i16);
-        let data = update.data.clone().unwrap_or(json!({}));
+        let data = update.data.clone().unwrap_or_else(|| json!({}));
         diesel::sql_query(include_str!("audit_update.sql"))
             .bind::<sql_types::Uuid, _>(&update.id)
             .bind::<sql_types::Timestamptz, _>(now)

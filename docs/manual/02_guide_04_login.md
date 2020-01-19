@@ -3,9 +3,8 @@
 Create service with key and start server.
 
 ```bash
-sso create-service-with-key $service_name $service_url \
+sso-cli create-service-with-key $service_name $service_url \
     --local-url $service_local_url
-sso start-server
 ```
 
 Service creates a user with password.
@@ -15,7 +14,7 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"is_enabled":true,"name":"$user_name","email":"$user_email","locale":"en","timezone":"Etc/UTC","password_allow_reset":true,"password_require_update":false,"password":"$user_password"}' \
-  $server_url/v1/user
+  localhost:8042/v1/user
 ```
 
 Service creates a key for user.
@@ -24,8 +23,8 @@ Service creates a key for user.
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"is_enabled":true,"type":"Token","name":"$key_name","user_id":"$user_id"}' \
-  $server_url/v1/key
+  --data '{"is_enabled":true,"type":"TOKEN","name":"$key_name","user_id":"$user_id"}' \
+  localhost:8042/v1/key
 ```
 
 User makes login request to service, service makes a login request.
@@ -35,7 +34,7 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"email":"$user_email","password":"$user_password"}' \
-  $server_url/v1/auth/provider/local/login
+  localhost:8042/v1/auth/provider/local/login
 ```
 
 Service receives token response, access token can be verified to authenticate requests.
@@ -45,7 +44,7 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"token":"$access_token"}' \
-  $server_url/v1/auth/token/verify
+  localhost:8042/v1/auth/token/verify
 ```
 
 Refresh token can be used to refresh token.
@@ -55,7 +54,7 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"token":"$refresh_token"}' \
-  $server_url/v1/auth/token/refresh
+  localhost:8042/v1/auth/token/refresh
 ```
 
 Access or refresh token can be revoked, this will disable the key created earlier and prevent verify and refresh.
@@ -65,5 +64,5 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"token":"$token"}' \
-  $server_url/v1/auth/token/revoke
+  localhost:8042/v1/auth/token/revoke
 ```

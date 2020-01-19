@@ -266,6 +266,20 @@ impl UserUpdate {
         }
     }
 
+    pub fn new_id(id: Uuid) -> Self {
+        Self {
+            id,
+            is_enabled: None,
+            name: None,
+            email: None,
+            locale: None,
+            timezone: None,
+            password_allow_reset: None,
+            password_require_update: None,
+            password_hash: None,
+        }
+    }
+
     /// Update user email.
     pub fn new_email<E>(id: Uuid, email: E) -> Self
     where

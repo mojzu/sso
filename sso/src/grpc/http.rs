@@ -2,7 +2,7 @@ use crate::{grpc::util::*, *};
 use hyper::{Body, Method, Request, Response, StatusCode};
 use std::sync::Arc;
 
-static NOT_FOUND: &[u8] = b"Not Found";
+static NOT_FOUND: &[u8] = b"NotFound";
 static PONG: &[u8] = b"Pong";
 
 /// HTTP server request handler for internal endpoints.
@@ -32,9 +32,10 @@ async fn metrics(
     _req: Request<Body>,
 ) -> Result<Response<Body>, hyper::Error> {
     let driver = driver.clone();
-    let s = blocking::<_, hyper::Error, _>(move || {
-        Ok(Metrics::read(driver.as_ref().as_ref(), None).unwrap())
-    })
-    .await?;
+    let s =
+        blocking::<_, hyper::Error, _>(
+            move || Ok(Metrics::read(driver.as_ref().as_ref()).unwrap()),
+        )
+        .await?;
     Ok(Response::new(Body::from(s)))
 }

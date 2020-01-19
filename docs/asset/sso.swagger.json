@@ -14,7 +14,7 @@
     "/metrics": {
       "get": {
         "summary": "Get server metrics.",
-        "description": "Returns metrics in Prometheus exposition format. This endpoint is only available\nvia the HTTP server port of `sso-grpc-server`. Authentication is not\nrequired, this endpoint is intended for internal use only.",
+        "description": "Returns metrics in Prometheus exposition format. This endpoint is only available\nvia the HTTP server port of `sso-grpc`. Authentication is not\nrequired, this endpoint is intended for internal use only.",
         "operationId": "Metrics",
         "responses": {
           "200": {
@@ -57,7 +57,7 @@
     "/ping": {
       "get": {
         "summary": "Ping server.",
-        "description": "Returns pong response for uptime tests. This endpoint is only available\nvia the HTTP server port of `sso-grpc-server`. Authentication is not\nrequired, this endpoint is intended for internal use only.",
+        "description": "Returns pong response for uptime tests. This endpoint is only available\nvia the HTTP server port of `sso-grpc`. Authentication is not\nrequired, this endpoint is intended for internal use only.",
         "operationId": "Ping",
         "responses": {
           "200": {

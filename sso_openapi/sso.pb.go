@@ -4000,13 +4000,13 @@ type SsoClient interface {
 	// Ping server.
 	//
 	// Returns pong response for uptime tests. This endpoint is only available
-	// via the HTTP server port of `sso-grpc-server`. Authentication is not
+	// via the HTTP server port of `sso-grpc`. Authentication is not
 	// required, this endpoint is intended for internal use only.
 	Ping(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*wrappers.StringValue, error)
 	// Get server metrics.
 	//
 	// Returns metrics in Prometheus exposition format. This endpoint is only available
-	// via the HTTP server port of `sso-grpc-server`. Authentication is not
+	// via the HTTP server port of `sso-grpc`. Authentication is not
 	// required, this endpoint is intended for internal use only.
 	Metrics(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*wrappers.StringValue, error)
 	// List audit logs.
@@ -4553,13 +4553,13 @@ type SsoServer interface {
 	// Ping server.
 	//
 	// Returns pong response for uptime tests. This endpoint is only available
-	// via the HTTP server port of `sso-grpc-server`. Authentication is not
+	// via the HTTP server port of `sso-grpc`. Authentication is not
 	// required, this endpoint is intended for internal use only.
 	Ping(context.Context, *empty.Empty) (*wrappers.StringValue, error)
 	// Get server metrics.
 	//
 	// Returns metrics in Prometheus exposition format. This endpoint is only available
-	// via the HTTP server port of `sso-grpc-server`. Authentication is not
+	// via the HTTP server port of `sso-grpc`. Authentication is not
 	// required, this endpoint is intended for internal use only.
 	Metrics(context.Context, *empty.Empty) (*wrappers.StringValue, error)
 	// List audit logs.

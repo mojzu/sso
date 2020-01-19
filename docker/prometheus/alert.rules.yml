@@ -11,29 +11,31 @@ groups:
           summary: "instance_down: {{ $labels.job }} {{ $labels.instance }}"
           description: "Instance unreachable for >1 minute."
 
-      # Alert if process cpu usage greater than 10%.
-      - alert: sso_high_process_cpu_usage
-        expr: process_cpu_usage{job="sso"} > 10
-        for: 1m
-        labels:
-          severity: warning
-        annotations:
-          summary: "high_process_cpu_usage: {{ $labels.job }} {{ $labels.instance }}"
-          description: "Process CPU usage greater than 10%.\nvalue: {{ $value }}%"
+      # TODO(refactor2): Alert for high CPU usage (seconds over time?).
+      # TODO(fix): Investigate possible memory leak from repeated integration tests.
+      # # Alert if process cpu usage greater than 10%.
+      # - alert: sso_high_process_cpu_usage
+      #   expr: process_cpu_usage{job="sso"} > 10
+      #   for: 1m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: "high_process_cpu_usage: {{ $labels.job }} {{ $labels.instance }}"
+      #     description: "Process CPU usage greater than 10%.\nvalue: {{ $value }}%"
 
-      # Alert if process memory usage greater than 500MB.
-      - alert: sso_high_process_memory_usage
-        expr: process_resident_memory{job="sso"} / 1024 / 1024 > 500
+      # Alert if resident process memory bytes greater than 500MB.
+      - alert: sso_high_process_resident_memory_bytes
+        expr: process_resident_memory_bytes{job="sso"} / 1024 / 1024 > 500
         for: 1m
         labels:
           severity: warning
         annotations:
-          summary: "high_process_memory_usage: {{ $labels.job }} {{ $labels.instance }}"
-          description: "Process memory usage greater than 500MB.\nvalue: {{ $value }}MB"
+          summary: "high_process_resident_memory_bytes: {{ $labels.job }} {{ $labels.instance }}"
+          description: "Process resident memory bytes greater than 500MB.\nvalue: {{ $value }}MB"
 
       # Alert if rate of audit status errors greater than 0.01/s.
       - alert: sso_high_audit_status_error
-        expr: rate(audit_count{job="sso",status!="200",status!="0"}[5m]) > 0.01
+        expr: rate(audit_count{job="sso",status!="0",status!=""}[5m]) > 0.01
         for: 1m
         labels:
           severity: warning
@@ -41,33 +43,22 @@ groups:
           summary: "high_audit_status_error: {{ $labels.job }} {{ $labels.instance }}"
           description: "Audit status error rate greater than 0.01/s (value: {{ $value }}/s, {{ $labels.type }}, {{ $labels.status }})."
 
-      # TODO(refactor): Update these for grpc_ metrics.
-      # Alert if HTTP response errors with 4xx status code greater than 5%.
-      - alert: sso_high_http_4xx_error
-        expr: sum(rate(http_count{job="sso",status=~"^4.."}[5m])) / sum(rate(http_count[5m])) * 100 > 5
+      # Alert if gRPC reply errors with >0 status code greater than 5%.
+      - alert: sso_high_grpc_error
+        expr: sum(rate(grpc_count{job="sso",status!="0"}[5m])) / sum(rate(grpc_count[5m])) * 100 > 5
         for: 1m
         labels:
           severity: warning
         annotations:
-          summary: "high_high_http_4xx_error: {{ $labels.job }} {{ $labels.instance }}"
-          description: "HTTP 4xx errors greater than 5%.\nvalue: {{ $value }}%\nlabels: {{ $labels }}"
-
-      # Alert if HTTP response errors with 5xx status code greater than 5%.
-      - alert: sso_high_http_5xx_error
-        expr: sum(rate(http_count{job="sso",status=~"^5.."}[5m])) / sum(rate(http_count[5m])) * 100 > 5
-        for: 1m
-        labels:
-          severity: warning
-        annotations:
-          summary: "high_high_http_5xx_error: {{ $labels.job }} {{ $labels.instance }}"
+          summary: "high_grpc_error: {{ $labels.job }} {{ $labels.instance }}"
           description: "HTTP 5xx errors greater than 5%.\nvalue: {{ $value }}%\nlabels: {{ $labels }}"
 
-      # Alert if mean HTTP response latency is greater than 100ms.
-      - alert: sso_high_http_latency
-        expr: (rate(http_latency_sum{job="sso"}[5m]) / rate(http_latency_count{job="sso"}[5m])) * 1000 > 100
+      # Alert if mean gRPC response latency is greater than 100ms.
+      - alert: sso_high_grpc_latency
+        expr: (rate(grpc_latency_sum{job="sso"}[5m]) / rate(grpc_latency_count{job="sso"}[5m])) * 1000 > 100
         for: 1m
         labels:
           severity: warning
         annotations:
-          summary: "high_http_latency: {{ $labels.job }} {{ $labels.instance }}"
-          description: "Mean HTTP response latency greater than 100ms (value: {{ $value }}ms)."
+          summary: "high_grpc_latency: {{ $labels.job }} {{ $labels.instance }}"
+          description: "Mean gRPC response latency greater than 100ms (value: {{ $value }}ms)."

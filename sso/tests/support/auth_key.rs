@@ -8,6 +8,7 @@ macro_rules! auth_key_integration_test {
             let body = pb::AuthKeyRequest::new(INVALID_KEY, None);
             let res = client.auth_key_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::Unauthenticated);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -20,6 +21,7 @@ macro_rules! auth_key_integration_test {
             let body = pb::AuthKeyRequest::new(INVALID_KEY, None);
             let res = client.auth_key_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -47,6 +49,7 @@ macro_rules! auth_key_integration_test {
             let body = pb::AuthKeyRequest::new(&user_key.value, None);
             let res = client.auth_key_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -59,6 +62,7 @@ macro_rules! auth_key_integration_test {
             let body = pb::AuthKeyRequest::new(&service_key.value, None);
             let res = client.auth_key_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -76,6 +80,7 @@ macro_rules! auth_key_integration_test {
             let body = pb::AuthKeyRequest::new(&user_key.value, None);
             let res = client.auth_key_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -101,6 +106,7 @@ macro_rules! auth_key_integration_test {
             let body = pb::AuthKeyRequest::new(INVALID_KEY, None);
             let res = client.auth_key_revoke(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::Unauthenticated);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -113,6 +119,7 @@ macro_rules! auth_key_integration_test {
             let body = pb::AuthKeyRequest::new(INVALID_KEY, None);
             let res = client.auth_key_revoke(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -140,6 +147,7 @@ macro_rules! auth_key_integration_test {
             let body = pb::AuthKeyRequest::new(&user_key.value, None);
             let res = client.auth_key_revoke(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -152,6 +160,7 @@ macro_rules! auth_key_integration_test {
             let body = pb::AuthKeyRequest::new(&service_key.value, None);
             let res = client.auth_key_revoke(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -169,6 +178,7 @@ macro_rules! auth_key_integration_test {
             let body = pb::AuthKeyRequest::new(&user_key.value, None);
             let res = client.auth_key_revoke(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
@@ -188,6 +198,7 @@ macro_rules! auth_key_integration_test {
             let body = pb::AuthKeyRequest::new(&user_key.value, None);
             let res = client.auth_key_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
     };
 }

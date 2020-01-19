@@ -70,8 +70,8 @@ Run development binaries.
 
 ```bash
 sso-build cargo make sso-cli -- $ARGS
-sso-build cargo make sso-grpc-server
-sso-build cargo make sso-openapi-server
+sso-build cargo make sso-grpc
+sso-build cargo make sso-openapi
 ```
 
 Run unit tests.

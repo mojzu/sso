@@ -1,4 +1,4 @@
-//! Binary application.
+//! Single Sign-On Command Line Interface
 #[macro_use]
 extern crate clap;
 #[macro_use]
@@ -6,7 +6,7 @@ extern crate log;
 
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
-use sso::{env, Cli, Driver, DriverPostgres, DriverResult};
+use sso::{env, Driver, DriverPostgres, DriverResult, KeyCreate, ServiceCreate};
 
 const CRATE_NAME: &str = crate_name!();
 const CRATE_VERSION: &str = crate_version!();
@@ -21,6 +21,7 @@ const ENV_DATABASE_URL: &str = "SSO_DATABASE_URL";
 
 const CMD_CREATE_ROOT_KEY: &str = "create-root-key";
 const CMD_CREATE_SERVICE_WITH_KEY: &str = "create-service-with-key";
+const CMD_TASK_RETENTION: &str = "task-retention";
 
 const ARG_NAME: &str = "NAME";
 const ARG_URL: &str = "URL";
@@ -29,12 +30,9 @@ const ARG_EMAIL_TEXT: &str = "EMAIL_TEXT";
 const ARG_LOCAL_URL: &str = "LOCAL_URL";
 const ARG_GITHUB_OAUTH2_URL: &str = "GITHUB_OAUTH2_URL";
 const ARG_MICROSOFT_OAUTH2_URL: &str = "MICROSOFT_OAUTH2_URL";
+const ARG_WEEKS: &str = "WEEKS";
 
 fn main() {
-    // Configure logging environment variables.
-    std::env::set_var("RUST_BACKTRACE", "1");
-    std::env::set_var("RUST_LOG", "info");
-
     // If SENTRY_URL is defined, enable logging and panic handler integration.
     let _guard = match std::env::var(ENV_SENTRY_URL) {
         Ok(sentry_url) => {
@@ -108,6 +106,17 @@ fn main() {
                         .takes_value(true)
                         .required(false),
                 ]),
+            SubCommand::with_name(CMD_TASK_RETENTION)
+                .version(CRATE_VERSION)
+                .about("Run retention task")
+                .author(CRATE_AUTHORS)
+                .arg(
+                    Arg::with_name(ARG_WEEKS)
+                        .long("weeks")
+                        .help("Weeks")
+                        .takes_value(true)
+                        .required(false),
+                ),
         ])
         .get_matches();
 
@@ -117,7 +126,8 @@ fn main() {
         match matches.subcommand() {
             (CMD_CREATE_ROOT_KEY, Some(submatches)) => {
                 let name = submatches.value_of(ARG_NAME).unwrap();
-                Cli::create_root_key(driver, name).map(|key| {
+                let create = KeyCreate::root(true, name);
+                driver.key_create(&create).map(|key| {
                     println!("{}", key);
                     0
                 })
@@ -130,19 +140,38 @@ fn main() {
                 let provider_local_url = submatches.value_of(ARG_LOCAL_URL);
                 let provider_github_oauth2_url = submatches.value_of(ARG_GITHUB_OAUTH2_URL);
                 let provider_microsoft_oauth2_url = submatches.value_of(ARG_MICROSOFT_OAUTH2_URL);
-                Cli::create_service_with_key(
-                    driver,
-                    name,
-                    url,
+
+                let user_allow_register = user_allow_register
+                    .unwrap_or("false")
+                    .parse::<bool>()
+                    .unwrap();
+                let service_create = ServiceCreate {
+                    is_enabled: true,
+                    name: name.to_owned(),
+                    url: url.to_owned(),
                     user_allow_register,
-                    user_email_text,
-                    provider_local_url,
-                    provider_github_oauth2_url,
-                    provider_microsoft_oauth2_url,
-                )
-                .map(|(service, key)| {
+                    user_email_text: user_email_text.unwrap_or("").to_owned(),
+                    provider_local_url: provider_local_url.map(|x| x.to_owned()),
+                    provider_github_oauth2_url: provider_github_oauth2_url.map(|x| x.to_owned()),
+                    provider_microsoft_oauth2_url: provider_microsoft_oauth2_url
+                        .map(|x| x.to_owned()),
+                };
+                let service = driver.service_create(&service_create)?;
+                let key_create = KeyCreate::service(true, name, service.id);
+                let key = driver.key_create(&key_create)?;
+                Ok((service, key)).map(|(service, key)| {
                     println!("{}", service);
                     println!("{}", key);
+                    0
+                })
+            }
+            (CMD_TASK_RETENTION, Some(submatches)) => {
+                let weeks = submatches.value_of(ARG_WEEKS).unwrap_or("12");
+                let weeks: i64 = weeks.parse().unwrap();
+                let audit_retention = chrono::Duration::weeks(weeks);
+                let created_at = chrono::Utc::now() - audit_retention;
+                driver.audit_delete(&created_at).map(|deleted| {
+                    println!("{}", deleted);
                     0
                 })
             }
