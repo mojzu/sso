@@ -49,4 +49,4 @@ macro_rules! impl_enum_to_from_string {
     };
 }
 
-// TODO(refactor2): Check manual guides, update as needed.
+// TODO(refactor1): Check manual guides, update as needed.

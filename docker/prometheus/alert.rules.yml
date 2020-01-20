@@ -13,6 +13,8 @@ groups:
 
       # TODO(refactor2): Alert for high CPU usage (seconds over time?).
       # TODO(fix): Investigate possible memory leak from repeated integration tests.
+      # # Appears related to which tests are run, larger memory increases with some tests.
+      # # Memory usage levels off around ~800MB, is this a leak?
       # # Alert if process cpu usage greater than 10%.
       # - alert: sso_high_process_cpu_usage
       #   expr: process_cpu_usage{job="sso"} > 10

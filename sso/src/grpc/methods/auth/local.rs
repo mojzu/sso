@@ -145,8 +145,8 @@ pub async fn register(
                     }
                 };
                 // Get key if exists, else create now.
-                // TODO(refactor2): If any key already exists for service, do not create one.
-                // TODO(refactor2): Add tests to check whether this flow can be used by used to access disabled user.
+                // TODO(refactor1): If any key already exists for service, do not create one.
+                // TODO(refactor1): Add tests to check whether this flow can be used by used to access disabled user.
                 let key = driver
                     .key_read(
                         &KeyRead::user_id(service.id, user.id, true, false, KeyType::Token),
@@ -692,9 +692,9 @@ fn revoke_inner(
     api_csrf_verify(driver, &service, &csrf_key)?;
     // Disable user and disable and revoke all keys associated with user.
     driver
-        .user_update(&&UserUpdate::new_id(user.id).set_is_enabled(false))
+        .user_update(&UserUpdate::new_id(user.id).set_is_enabled(false))
         .map_err(MethodError::BadRequest)?;
-    // TODO(refactor2): Rethink this behaviour?
+    // TODO(refactor1): Rethink this behaviour?
     // driver
     //     .key_update_many(
     //         &user.id,
