@@ -1084,8 +1084,8 @@ message AuthResetPasswordConfirmRequest {
 
 // Authentication update email request.
 message AuthUpdateEmailRequest {
-    // User UUID.
-    string user_id = 1;
+    // User email.
+    string email = 1;
     // User current password.
     string password = 2;
     // User new email address.
@@ -1094,8 +1094,8 @@ message AuthUpdateEmailRequest {
 
 // Authentication update password request.
 message AuthUpdatePasswordRequest {
-    // User UUID.
-    string user_id = 1;
+    // User email.
+    string email = 1;
     // User current password.
     string password = 2;
     // User new password.

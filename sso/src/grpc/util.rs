@@ -4,10 +4,9 @@ use crate::{
     *,
 };
 use chrono::{DateTime, Utc};
-use core::pin::Pin;
 use std::convert::TryInto;
-use std::future::Future;
 use std::net::SocketAddr;
+use tokio::task;
 use tonic::{metadata::MetadataMap, Request, Status};
 use uuid::Uuid;
 
@@ -23,15 +22,15 @@ pub const ERR_VALIDATION: &str = "ValidationError";
 pub const ERR_REDACTED: &str = "RedactedError";
 
 /// Run a blocking closure on threadpool.
-pub fn blocking<T, E, F>(f: F) -> Pin<Box<dyn Future<Output = Result<T, E>> + Send>>
+pub async fn blocking<T, E, F>(f: F) -> Result<T, E>
 where
     F: Send + FnOnce() -> Result<T, E> + 'static,
     T: Send + 'static,
     E: Send + 'static,
 {
-    let mut f = Some(f);
-    let fut = async move { tokio_executor::blocking::run(move || (f.take().unwrap())()).await };
-    Box::pin(fut)
+    task::spawn_blocking(move || f())
+        .await
+        .unwrap_or_else(|e| panic!("error running async task: {:?}", e))
 }
 
 /// Method errors.

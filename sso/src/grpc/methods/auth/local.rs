@@ -468,7 +468,7 @@ pub async fn reset_password_revoke(
 impl Validate for pb::AuthUpdateEmailRequest {
     fn validate(&self) -> Result<(), ValidationErrors> {
         validate::wrap(|e| {
-            validate::uuid(e, "user_id", &self.user_id);
+            validate::email(e, "email", &self.email);
             validate::password(e, "password", &self.password);
             validate::email(e, "new_email", &self.new_email);
         })
@@ -493,13 +493,9 @@ pub async fn update_email(
                 let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
                 // Update email requires token key type.
-                let user = pattern::user_read_id_checked(
-                    driver,
-                    Some(&service),
-                    audit,
-                    string_to_uuid(req.user_id.clone()),
-                )
-                .map_err(MethodError::BadRequest)?;
+                let user =
+                    pattern::user_read_email_checked(driver, Some(&service), audit, &req.email)
+                        .map_err(MethodError::BadRequest)?;
                 let key =
                     pattern::key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
                         .map_err(MethodError::BadRequest)?;
@@ -521,13 +517,9 @@ pub async fn update_email(
                 driver
                     .user_update(&UserUpdate::new_email(user.id, &req.new_email))
                     .map_err(MethodError::BadRequest)?;
-                let user = pattern::user_read_id_checked(
-                    driver,
-                    Some(&service),
-                    audit,
-                    string_to_uuid(req.user_id.to_owned()),
-                )
-                .map_err(MethodError::BadRequest)?;
+                let user =
+                    pattern::user_read_email_checked(driver, Some(&service), audit, &req.email)
+                        .map_err(MethodError::BadRequest)?;
                 // Send update email email.
                 TemplateEmail::email_update_email(&service, &user, &old_email, &token, audit.meta())
                     .map_err(MethodError::BadRequest)
@@ -566,7 +558,7 @@ pub async fn update_email_revoke(
 impl Validate for pb::AuthUpdatePasswordRequest {
     fn validate(&self) -> Result<(), ValidationErrors> {
         validate::wrap(|e| {
-            validate::uuid(e, "user_id", &self.user_id);
+            validate::email(e, "email", &self.email);
             validate::password(e, "password", &self.password);
             validate::password(e, "new_password", &self.new_password);
         })
@@ -600,13 +592,9 @@ pub async fn update_password(
                 let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
                     .map_err(MethodError::Unauthorised)?;
                 // Update password requires token key type.
-                let user = pattern::user_read_id_checked(
-                    driver,
-                    Some(&service),
-                    audit,
-                    string_to_uuid(req.user_id.clone()),
-                )
-                .map_err(MethodError::BadRequest)?;
+                let user =
+                    pattern::user_read_email_checked(driver, Some(&service), audit, &req.email)
+                        .map_err(MethodError::BadRequest)?;
                 let key =
                     pattern::key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
                         .map_err(MethodError::BadRequest)?;
@@ -624,13 +612,9 @@ pub async fn update_password(
                 driver
                     .user_update(&user_update)
                     .map_err(MethodError::BadRequest)?;
-                let user = pattern::user_read_id_checked(
-                    driver,
-                    Some(&service),
-                    audit,
-                    string_to_uuid(req.user_id.to_owned()),
-                )
-                .map_err(MethodError::BadRequest)?;
+                let user =
+                    pattern::user_read_email_checked(driver, Some(&service), audit, &req.email)
+                        .map_err(MethodError::BadRequest)?;
                 // Send update password email.
                 TemplateEmail::email_update_password(&service, &user, &token, audit.meta())
                     .map_err(MethodError::BadRequest)

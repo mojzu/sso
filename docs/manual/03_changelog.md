@@ -2,6 +2,14 @@
 
 ## 0.10.0 (?)
 
+### Changed
+
+-   Replaced `user_id` field with `email` field for user update email and password endpoints.
+
+### Fixed
+
+-   Replaced `tokio_executor::blocking` with `tokio::task::spawn_blocking`, reduces maximum memory use from ~800MB to ~200MB for repeated integration tests.
+
 ## 0.9.0 (2020-01-19)
 
 ### Breaking

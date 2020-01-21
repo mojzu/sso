@@ -12,9 +12,6 @@ groups:
           description: "Instance unreachable for >1 minute."
 
       # TODO(refactor2): Alert for high CPU usage (seconds over time?).
-      # TODO(fix): Investigate possible memory leak from repeated integration tests.
-      # # Appears related to which tests are run, larger memory increases with some tests.
-      # # Memory usage levels off around ~800MB, is this a leak?
       # # Alert if process cpu usage greater than 10%.
       # - alert: sso_high_process_cpu_usage
       #   expr: process_cpu_usage{job="sso"} > 10
@@ -47,7 +44,7 @@ groups:
 
       # Alert if gRPC reply errors with >0 status code greater than 5%.
       - alert: sso_high_grpc_error
-        expr: sum(rate(grpc_count{job="sso",status!="0"}[5m])) / sum(rate(grpc_count[5m])) * 100 > 5
+        expr: sum(rate(grpc_count{job="sso",status!="0"}[5m])) / sum(rate(grpc_count{job="sso"}[5m])) * 100 > 5
         for: 1m
         labels:
           severity: warning

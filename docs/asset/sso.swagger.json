@@ -3014,9 +3014,9 @@
     "ssoAuthUpdateEmailRequest": {
       "type": "object",
       "properties": {
-        "user_id": {
+        "email": {
           "type": "string",
-          "description": "User UUID."
+          "description": "User email."
         },
         "password": {
           "type": "string",
@@ -3032,9 +3032,9 @@
     "ssoAuthUpdatePasswordRequest": {
       "type": "object",
       "properties": {
-        "user_id": {
+        "email": {
           "type": "string",
-          "description": "User UUID."
+          "description": "User email."
         },
         "password": {
           "type": "string",

@@ -1,6 +1,6 @@
 ## Login
 
-Create service with key and start server.
+Create service with key.
 
 ```bash
 sso-cli create-service-with-key $service_name $service_url \

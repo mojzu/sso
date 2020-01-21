@@ -70,10 +70,8 @@ prost = "0.6.1"
 prost-derive = "0.6.1"
 prost-types = "0.6.1"
 tokio = { version = "0.2", features = ["rt-threaded", "time", "stream", "fs", "macros", "uds"] }
-tonic = "0.1.0"
+tonic = "0.1.1"
 tower-service = "0.3"
 
-tokio-executor = { version = "=0.2.0-alpha.6", features = ["blocking"] }
-
 [build-dependencies]
-tonic-build = "0.1.0"
+tonic-build = "0.1.1"

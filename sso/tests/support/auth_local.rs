@@ -567,7 +567,7 @@ macro_rules! auth_local_integration_test {
                 user_key_create(&mut client, KEY_NAME, KeyType::Token, service.id, user);
 
             let body = pb::AuthUpdateEmailRequest {
-                user_id: user.id,
+                email: user.email,
                 password: USER_PASSWORD.to_owned(),
                 new_email: email_create(),
             };
