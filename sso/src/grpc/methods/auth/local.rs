@@ -2,6 +2,7 @@ use crate::{
     grpc::{methods::auth::api_csrf_verify, pb, util::*, validate, Server},
     *,
 };
+use uuid::Uuid;
 use validator::{Validate, ValidationErrors};
 
 impl Validate for pb::AuthLoginRequest {
@@ -580,7 +581,7 @@ pub async fn update_password(
         let password_meta = pattern::password_meta(
             client.as_ref(),
             password_pwned_enabled,
-            Some(req.password.clone()),
+            Some(req.new_password.clone()),
         )
         .map_err(MethodError::BadRequest)?;
 
@@ -674,21 +675,24 @@ fn revoke_inner(
         .map_err(MethodError::BadRequest)?;
     // Verify CSRF to prevent reuse.
     api_csrf_verify(driver, &service, &csrf_key)?;
+
     // Disable user and disable and revoke all keys associated with user.
     driver
         .user_update(&UserUpdate::new_id(user.id).set_is_enabled(false))
         .map_err(MethodError::BadRequest)?;
-    // TODO(refactor1): Rethink this behaviour?
-    // driver
-    //     .key_update_many(
-    //         &user.id,
-    //         &KeyUpdate {
-    //             is_enabled: Some(false),
-    //             is_revoked: Some(true),
-    //             name: None,
-    //         },
-    //     )
-    //     .map_err(MethodError::BadRequest)?;
+    driver
+        .key_update_many(
+            &user.id,
+            &KeyUpdate {
+                // TODO(refactor2): Improve code structure.
+                // TODO(refactor2): Only revoke target key, disable others?
+                id: Uuid::nil(),
+                is_enabled: Some(false),
+                is_revoked: Some(true),
+                name: None,
+            },
+        )
+        .map_err(MethodError::BadRequest)?;
     // Optionally create custom audit log.
     if let Some(x) = &req.audit {
         let audit = audit

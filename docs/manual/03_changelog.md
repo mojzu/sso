@@ -9,6 +9,8 @@
 ### Fixed
 
 -   Replaced `tokio_executor::blocking` with `tokio::task::spawn_blocking`, reduces maximum memory use from ~800MB to ~200MB for repeated integration tests.
+-   Fixed revoke endpoints only disabled user, did not also disable and revoke keys.
+-   Fixed update password endpoint password meta is for existing password.
 
 ## 0.9.0 (2020-01-19)
 

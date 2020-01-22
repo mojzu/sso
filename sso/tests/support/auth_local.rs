@@ -266,7 +266,7 @@ macro_rules! auth_local_integration_test {
 
         #[test]
         #[ignore]
-        fn auth_local_register_ok_unauthorised() {
+        fn auth_local_register_unauthorised() {
             let mut client = client_create(Some(INVALID_KEY));
             let user_email = email_create();
 
@@ -574,6 +574,37 @@ macro_rules! auth_local_integration_test {
             let res = client.auth_local_update_email(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::PermissionDenied);
             assert_eq!(res.message(), util::ERR_REDACTED);
+        }
+
+        #[test]
+        #[ignore]
+        fn auth_local_update_password_unauthorised() {
+            let mut client = client_create(Some(INVALID_KEY));
+            let body = pb::AuthUpdatePasswordRequest {
+                email: String::from("test@test.com"),
+                password: String::from(USER_PASSWORD),
+                new_password: String::from(USER_PASSWORD),
+            };
+            let res = client.auth_local_update_password(body).unwrap_err();
+            assert_eq!(res.code(), tonic::Code::Unauthenticated);
+            assert_eq!(res.message(), util::ERR_REDACTED);
+        }
+
+        #[test]
+        #[ignore]
+        fn auth_local_update_password_bad_request_invalid_email() {
+            let mut client = client_create(None);
+            let (_service, service_key) = service_key_create(&mut client);
+
+            let mut client = client_create(Some(&service_key.value));
+            let body = pb::AuthUpdatePasswordRequest {
+                email: String::from(INVALID_EMAIL),
+                password: String::from(USER_PASSWORD),
+                new_password: String::from(USER_PASSWORD),
+            };
+            let res = client.auth_local_update_password(body).unwrap_err();
+            assert_eq!(res.code(), tonic::Code::InvalidArgument);
+            assert_eq!(res.message(), util::ERR_VALIDATION);
         }
     };
 }
