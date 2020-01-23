@@ -335,6 +335,9 @@ service Sso {
     // Login with email and password.
     //
     // Local provider login authentication.
+    //
+    // If users `password_require_update` flag is true, a permission denied (gRPC) or
+    // forbidden (HTTP) error code is returned.
     rpc AuthLocalLogin (AuthLoginRequest) returns (AuthLoginReply) {
         option (google.api.http) = {
             post: "/v1/auth/provider/local/login"

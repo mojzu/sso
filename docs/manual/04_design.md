@@ -83,7 +83,7 @@ TODO(test): More tests on preventing spoofing, elevation of privelege.
 
 - HTTP calls (except ping) require service key authentication.
 
-TODO(refactor2): Service key authentication mechanism code is split across files, cleaner code.
+TODO(refactor3): Service key authentication mechanism code is split across files, cleaner code.
 
 ### 1.4.5
 

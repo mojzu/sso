@@ -41,7 +41,7 @@ const ENV_GITHUB_CLIENT_SECRET: &str = "SSO_GITHUB_CLIENT_SECRET";
 const ENV_MICROSOFT_CLIENT_ID: &str = "SSO_MICROSOFT_CLIENT_ID";
 const ENV_MICROSOFT_CLIENT_SECRET: &str = "SSO_MICROSOFT_CLIENT_SECRET";
 
-// TODO(refactor2): TLS support, blocked on `ring-asm`.
+// TODO(refactor3): TLS support, blocked on `ring-asm`.
 // <https://github.com/hyperium/tonic/blob/master/examples/src/tls/server.rs>
 // <https://github.com/smallstep/autocert>
 // <https://github.com/vivint-smarthome/rumqtt/tree/async-await>

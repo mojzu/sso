@@ -200,7 +200,7 @@ pub fn totp(errors: &mut ValidationErrors, field: &'static str, value: &str) {
 }
 
 pub fn oauth2_token(errors: &mut ValidationErrors, field: &'static str, value: &str) {
-    // TODO(refactor): Improve validation here.
+    // TODO(refactor1): Improve validation here.
     if value.is_empty() || value.len() > TEXT_MAX_LEN {
         errors.add(field, ValidationError::new("oauth2_token_invalid"));
     }
