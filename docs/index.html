@@ -936,7 +936,8 @@ font-size: 16px;
 <ul>
 <li>Replaced <code>tokio_executor::blocking</code> with <code>tokio::task::spawn_blocking</code>, reduces maximum memory use from ~800MB to ~200MB for repeated integration tests.</li>
 <li>Fixed revoke endpoints only disabled user, did not also disable and revoke keys.</li>
-<li>Fixed update password endpoint password meta is for existing password.</li>
+<li>Fixed update password endpoint password meta is for current password.</li>
+<li>Fixed <code>text</code> validator rejects empty strings.</li>
 </ul>
 </section>
 </section>

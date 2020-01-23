@@ -29,8 +29,8 @@ pub async fn oauth2_url(
 impl Validate for pb::AuthOauth2CallbackRequest {
     fn validate(&self) -> Result<(), ValidationErrors> {
         validate::wrap(|e| {
-            validate::text(e, "code", &self.code);
-            validate::text(e, "state", &self.state);
+            validate::oauth2_token(e, "code", &self.code);
+            validate::oauth2_token(e, "state", &self.state);
         })
     }
 }

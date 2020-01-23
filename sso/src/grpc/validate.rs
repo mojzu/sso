@@ -182,7 +182,7 @@ pub fn key_type_vec(errors: &mut ValidationErrors, field: &'static str, value: &
 }
 
 pub fn text(errors: &mut ValidationErrors, field: &'static str, value: &str) {
-    if value.is_empty() || value.len() > TEXT_MAX_LEN {
+    if value.len() > TEXT_MAX_LEN {
         errors.add(field, ValidationError::new("text_invalid"));
     }
 }
@@ -196,6 +196,13 @@ pub fn text_opt(errors: &mut ValidationErrors, field: &'static str, value: Optio
 pub fn totp(errors: &mut ValidationErrors, field: &'static str, value: &str) {
     if value.is_empty() || value.len() > TOTP_MAX_LEN {
         errors.add(field, ValidationError::new("totp_invalid"));
+    }
+}
+
+pub fn oauth2_token(errors: &mut ValidationErrors, field: &'static str, value: &str) {
+    // TODO(refactor): Improve validation here.
+    if value.is_empty() || value.len() > TEXT_MAX_LEN {
+        errors.add(field, ValidationError::new("oauth2_token_invalid"));
     }
 }
 
