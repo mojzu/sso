@@ -299,6 +299,8 @@ impl UserUpdate {
     }
 
     /// Update user password.
+    ///
+    /// This also sets `password_require_update` to false.
     pub fn new_password<P>(id: Uuid, password: P) -> DriverResult<Self>
     where
         P: AsRef<str>,
@@ -311,7 +313,7 @@ impl UserUpdate {
             locale: None,
             timezone: None,
             password_allow_reset: None,
-            password_require_update: None,
+            password_require_update: Some(false),
             password_hash: Some(hash_password(password.as_ref())?),
         })
     }

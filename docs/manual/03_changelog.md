@@ -5,6 +5,7 @@
 ### Changed
 
 -   Replaced `user_id` field with `email` field for user update email and password endpoints.
+-   Manual updates.
 
 ### Fixed
 
@@ -12,6 +13,7 @@
 -   Fixed revoke endpoints only disabled user, did not also disable and revoke keys.
 -   Fixed update password endpoint password meta is for current password.
 -   Fixed `text` validator rejects empty strings.
+-   Fixed updating user password via update or reset password endpoints did not set `password_require_update` to false.
 
 ## 0.9.0 (2020-01-19)
 

@@ -10,8 +10,11 @@
 
 **sso-grpc** is a [gRPC][grpc] authentication server, with an [OpenAPI][openapi] version 2 proxy server **sso-openapi**. It is designed for use as a backend for other applications which must authenticate users and their requests, such as API servers.
 
-- [gRPC proto3 definition (sso.proto)](../sso/proto/sso.proto)
+- [sso (GitHub)][sso_github]
+- [sso (crates.io)][sso_crates_io]
 - [OpenAPI v2 specification (sso.swagger.json)](asset/sso.swagger.json)
+
+The following diagram is an overview of the authentication system.
 
 ![Overview of Authentication System](docs/asset/introduction.svg)
 
@@ -22,6 +25,16 @@
 5. A **User Key** is used to authenticate a user, and authenticate requests from the user to the service.
 
 In the diagram above, `Service A` can authenticate requests from `User 1` and `User 2`. `Service B` can authenticate requests from `User 2` and `User 3`.
+
+The following diagram shows how services and sso-grpc integrate to authenticate user requests.
+
+![User request verification](docs/asset/integration.svg)
+
+1. User with token or key acquired by authentication method sends HTTP request to service.
+2. Service sends HTTP request to sso with its own service key, and the users token or key.
+3. sso authenticates service using the service key, and verifies user token or key.
+4. If authenticated/verified, service handles request and sends HTTP response to user.
+5. User handles HTTP response.
 
 ## Features
 

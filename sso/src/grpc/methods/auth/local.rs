@@ -685,7 +685,6 @@ fn revoke_inner(
             &user.id,
             &KeyUpdate {
                 // TODO(refactor3): Improve code structure.
-                // TODO(refactor2): Only revoke target key, disable others?
                 id: Uuid::nil(),
                 is_enabled: Some(false),
                 is_revoked: Some(true),

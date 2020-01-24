@@ -33,3 +33,7 @@
 [csrf]: https://en.wikipedia.org/wiki/Cross-site_request_forgery
 [protocol-buffers]: https://developers.google.com/protocol-buffers/
 [grpc]: https://grpc.io/
+[webauthn]: https://webauthn.guide/
+[kubernetes]: https://kubernetes.io/
+[sso_crates_io]: https://crates.io/crates/sso
+[sso_github]: https://github.com/mojzu/sso
