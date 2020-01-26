@@ -58,3 +58,5 @@ curl --header "Content-Type: application/json" \
   --data '{"token":"$token"}' \
   localhost:8042/v1/auth/provider/local/update-email/revoke
 ```
+
+This will disable the user, and disable and revoke all user keys.

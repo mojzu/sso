@@ -75,15 +75,14 @@ ENV RUST_BACKTRACE="1" \
 # sso
 # # Sentry URL for logging integration.
 # ENV SSO_SENTRY_URL=""
-# Database connection URL.
-ENV SSO_DATABASE_URL="postgres://guest:guest@localhost:5432/sso"
-# Database number of connections.
-ENV SSO_DATABASE_CONNECTIONS="10"
-# # Server TLS configuration.
+# Database connection.
+ENV SSO_DATABASE_URL="postgres://guest:guest@localhost:5432/sso" \
+    SSO_DATABASE_CONNECTIONS="10"
+# # Server TLS.
 # ENV SSO_TLS_CERT_PEM="" \
 #     SSO_TLS_KEY_PEM="" \
 #     SSO_TLS_CLIENT_PEM=""
-# # SMTP server transport configuration.
+# # SMTP server transport.
 # ENV SSO_SMTP_HOST="" \
 #     SSO_SMTP_PORT="" \
 #     SSO_SMTP_USER="" \
@@ -96,7 +95,7 @@ ENV SSO_PASSWORD_PWNED="true"
 # # Microsoft OAuth2 support.
 # ENV SSO_MICROSOFT_CLIENT_ID="" \
 #     SSO_MICROSOFT_CLIENT_SECRET=""
-# OpenAPI gateway configuration.
+# gRPC server URL.
 ENV SSO_OPENAPI_GRPC_URL="localhost:7042"
 # Integration test variables.
 ENV SSO_TEST_URL="http://localhost:7042" \

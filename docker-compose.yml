@@ -24,7 +24,6 @@ services:
       - "9090:9090"
 
   # Sso gRPC service.
-  # <https://grpc.io/>
   sso_grpc:
     build: sso
     image: sso_grpc:latest
@@ -32,9 +31,10 @@ services:
       - postgres
     restart: always
     environment:
+      # Database connection.
       SSO_DATABASE_URL: "postgres://guest:guest@postgres:5432/sso"
       SSO_DATABASE_CONNECTIONS: "10"
-      # SMTP server transport configuration.
+      # SMTP server transport.
       # SSO_SMTP_HOST: ""
       # SSO_SMTP_PORT: ""
       # SSO_SMTP_USER: ""
@@ -44,13 +44,12 @@ services:
       - "7043:7043"
 
   # Sso OpenAPI gateway service.
-  # <https://github.com/grpc-ecosystem/grpc-gateway>
-  # <https://grpc-ecosystem.github.io/grpc-gateway/>
   sso_openapi:
     build: sso_openapi
     image: sso_openapi:latest
     restart: always
     environment:
+      # gRPC server URL.
       SSO_OPENAPI_GRPC_URL: "sso_grpc:7042"
     ports:
       - "8042:8042"
