@@ -8,7 +8,6 @@ services:
     build: docker/postgres
     image: sso_postgres:latest
     restart: always
-    network_mode: "host"
     environment:
       POSTGRES_USER: guest
       POSTGRES_PASSWORD: guest
@@ -21,7 +20,6 @@ services:
     build: docker/prometheus
     image: sso_prometheus:latest
     restart: always
-    network_mode: "host"
     ports:
       - "9090:9090"
 
@@ -33,10 +31,14 @@ services:
     depends_on:
       - postgres
     restart: always
-    network_mode: "host"
     environment:
-      SSO_DATABASE_URL: "postgres://guest:guest@localhost:5432/sso"
+      SSO_DATABASE_URL: "postgres://guest:guest@postgres:5432/sso"
       SSO_DATABASE_CONNECTIONS: "10"
+      # SMTP server transport configuration.
+      # SSO_SMTP_HOST: ""
+      # SSO_SMTP_PORT: ""
+      # SSO_SMTP_USER: ""
+      # SSO_SMTP_PASSWORD: ""
     ports:
       - "7042:7042"
       - "7043:7043"
@@ -48,8 +50,7 @@ services:
     build: sso_openapi
     image: sso_openapi:latest
     restart: always
-    network_mode: "host"
     environment:
-      SSO_OPENAPI_GRPC_URL: "localhost:7042"
+      SSO_OPENAPI_GRPC_URL: "sso_grpc:7042"
     ports:
       - "8042:8042"

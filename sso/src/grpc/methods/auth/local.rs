@@ -519,7 +519,7 @@ pub async fn update_email(
                     .user_update(&UserUpdate::new_email(user.id, &req.new_email))
                     .map_err(MethodError::BadRequest)?;
                 let user =
-                    pattern::user_read_email_checked(driver, Some(&service), audit, &req.email)
+                    pattern::user_read_email_checked(driver, Some(&service), audit, &req.new_email)
                         .map_err(MethodError::BadRequest)?;
                 // Send update email email.
                 TemplateEmail::email_update_email(&service, &user, &old_email, &token, audit.meta())

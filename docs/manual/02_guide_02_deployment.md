@@ -1,6 +1,6 @@
 ## Deployment
 
-- TODO(docs): How to deploy sso server, [Kubernetes][kubernetes].
+- TODO(docs): How to deploy server, [Kubernetes][kubernetes].
 
 ### Nginx
 

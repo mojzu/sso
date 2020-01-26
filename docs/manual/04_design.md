@@ -32,21 +32,21 @@ The OWASP Application Security Verification Standard is being used as a referenc
 
 ### 1.2.1
 
-- Binary sso and postgres must be run as unique or special low privilege operating system accounts.
+- Binaries must be run as unique or special low privilege operating system accounts.
 - TODO(docs): Systemd unit file examples, sso, postgres, nginx, etc.
 - TODO(docs): Kubernetes deployment examples.
 
 ### 1.2.2
 
 - HTTP calls (except ping) require service key authentication.
-- TODO(docs): Mutual TLS using rustls configuration and PKI for communication between sso and services.
+- TODO(docs): Mutual TLS using rustls configuration and PKI for communication between services.
 
 ### 1.2.3
 
-- Binary sso is designed to provide multiple authentication mechanisms, none of which have been vetted.
+- Server is designed to provide multiple authentication mechanisms, none of which have been vetted.
 - Relies on libraries which may be unvetted, e.g. libreauth, jsonwebtoken, rustls, etc.
 - What does strong authentication mean in this context?
-- One feature of sso is providing email/password login, which is probably not considered strong authentication.
+- One feature is providing email/password login, which is probably not considered strong authentication.
 - Audit logging and monitoring via prometheus.
 - TODO(feature): Audit logging and prometheus metrics improvements for detecting account abuse and breaches.
 
@@ -90,7 +90,7 @@ The OWASP Application Security Verification Standard is being used as a referenc
 
 ### 1.5.2
 
-- API for sso is JSON requests over HTTP so serialisation is required.
+- API is JSON requests over HTTP so serialisation is required.
 - Using [serde][serde] and [serde_qs][serde_qs] for serialisation and deserialisation.
 - TODO(test): Test requests with other/unknown content types are handled correctly.
 - TODO(feature): Flag(s) to require HTTPS to ensure all requests/responses are encrypted in transmit.

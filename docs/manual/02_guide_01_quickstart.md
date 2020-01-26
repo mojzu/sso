@@ -2,6 +2,12 @@
 
 ## Quickstart
 
+Install [Docker][docker] and [Docker Compose][docker-compose].
+
+- [Docker Desktop (Windows)][docker-desktop-install]
+- [Docker Engine (Ubuntu)][docker-engine-install]
+- [Docker Compose][docker-compose-install]
+
 Build the `sso-build` [Docker][docker] image.
 
 ```bash
@@ -22,15 +28,9 @@ docker-compose up
 
 If successful `sso-grpc` is now available at `localhost:7042`, and `sso-openapi` is available at `localhost:8042`.
 
-```bash
-curl localhost:7043/ping
-# Pong
-curl localhost:8042/ping
-# {"error":"NotFound","code":5,"message":"NotFound"}
-```
-
-The following guides depend on `sso-cli` and `curl`. `sso-cli` can be found inside the `sso_grpc` container using the command.
+The following guides depend on the `sso-cli` command, it can be found in the `sso_grpc` container with the command.
 
 ```bash
-docker exec -it $container_id /bin/bash
+docker exec -it sso_sso_grpc_1 /bin/bash
+# root:/# sso-cli --help
 ```
