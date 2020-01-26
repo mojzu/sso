@@ -28,11 +28,11 @@ pub const DEFAULT_LIMIT: i64 = 50;
 /// Default CSRF expires seconds.
 pub const DEFAULT_CSRF_EXPIRES_S: i64 = 1000;
 
-/// Authorisation header name.
-pub const HEADER_AUTHORISATION_NAME: &str = "Authorization";
+/// Authorisation header.
+pub const HEADER_AUTHORISATION: &str = "Authorization";
 
-/// User authorisation header name.
-pub const HEADER_USER_AUTHORISATION_NAME: &str = "User-Authorization";
+/// User authorisation header.
+pub const HEADER_USER_AUTHORISATION: &str = "User-Authorization";
 
 /// Driver closure function type.
 pub type DriverLockFn = Box<dyn FnOnce(&dyn DriverIf) -> DriverResult<bool>>;

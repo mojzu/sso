@@ -10,13 +10,14 @@ use uuid::Uuid;
 // <https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html>
 
 /// JSON web token maximum length.
-pub const JWT_MAX_LEN: usize = 1000;
+pub const MAX_JWT: usize = 1000;
 
 /// JSON web token claims types.
 #[derive(Debug)]
 pub enum JwtClaimsType {
     AccessToken,
     RefreshToken,
+    // TODO(refactor1): ExchangeToken type, instead of reusing refresh token.
     RegisterToken,
     ResetPasswordToken,
     RevokeToken,

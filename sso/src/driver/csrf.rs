@@ -5,7 +5,7 @@ use std::fmt;
 use uuid::Uuid;
 
 /// CSRF key size in bytes.
-pub const CSRF_KEY_BYTES: usize = 11;
+pub const BYTES_CSRF_KEY: usize = 11;
 
 /// CSRF.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -82,7 +82,7 @@ impl CsrfCreate {
 /// Generate new key from random bytes.
 fn key_generate() -> String {
     KeyBuilder::new()
-        .size(CSRF_KEY_BYTES)
+        .size(BYTES_CSRF_KEY)
         .generate()
         .as_base32()
 }

@@ -310,14 +310,14 @@ fn request_audit_auth(
         Some(value) => Some(value.to_str().unwrap().to_owned()),
         None => None,
     };
-    let user = match metadata.get(HEADER_USER_AUTHORISATION_NAME) {
+    let user = match metadata.get(HEADER_USER_AUTHORISATION) {
         Some(value) => {
             let u = value.to_str().unwrap();
             pattern::HeaderAuth::parse(u)
         }
         None => None,
     };
-    let auth = match metadata.get(HEADER_AUTHORISATION_NAME) {
+    let auth = match metadata.get(HEADER_AUTHORISATION) {
         Some(value) => Some(value.to_str().unwrap().to_owned()),
         None => None,
     };

@@ -9,7 +9,7 @@ use uuid::Uuid;
 // TODO(refactor3): Add name ge/le key, service list query options.
 
 /// Key value size in bytes.
-pub const KEY_VALUE_BYTES: usize = 21;
+pub const BYTES_KEY_VALUE: usize = 21;
 
 /// Key types.
 #[derive(Debug, Copy, PartialEq, Clone, Serialize, Deserialize)]
@@ -338,7 +338,7 @@ pub struct KeyUpdate {
 /// Generate new key value from random bytes.
 fn value_generate() -> String {
     KeyBuilder::new()
-        .size(KEY_VALUE_BYTES)
+        .size(BYTES_KEY_VALUE)
         .generate()
         .as_base32()
 }

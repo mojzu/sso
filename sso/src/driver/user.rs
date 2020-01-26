@@ -6,25 +6,28 @@ use std::fmt;
 use uuid::Uuid;
 
 /// Name maximum length.
-pub const NAME_MAX_LEN: usize = 100;
+pub const MAX_NAME: usize = 100;
 
 /// Text maximum length.
-pub const TEXT_MAX_LEN: usize = 1000;
+pub const MAX_TEXT: usize = 1000;
 
 /// TOTP code maximum length.
-pub const TOTP_MAX_LEN: usize = 10;
+pub const MAX_TOTP: usize = 10;
+
+/// OAuth2 code maximum length.
+pub const MAX_OAUTH2: usize = 1000;
 
 /// User locale maximum length.
-pub const USER_LOCALE_MAX_LEN: usize = 10;
+pub const MAX_USER_LOCALE: usize = 10;
 
 /// User default locale.
-pub const USER_DEFAULT_LOCALE: &str = "en";
+pub const DEFAULT_USER_LOCALE: &str = "en";
 
 /// User timezone maximum length.
-pub const USER_TIMEZONE_MAX_LEN: usize = 50;
+pub const MAX_USER_TIMEZONE: usize = 50;
 
 /// User default timezone.
-pub const USER_DEFAULT_TIMEZONE: &str = "Etc/UTC";
+pub const DEFAULT_USER_TIMEZONE: &str = "Etc/UTC";
 
 /// User password hash version.
 ///
@@ -32,10 +35,10 @@ pub const USER_DEFAULT_TIMEZONE: &str = "Etc/UTC";
 pub const USER_PASSWORD_HASH_VERSION: usize = 1;
 
 /// User password minimum length.
-pub const USER_PASSWORD_MIN_LEN: usize = 8;
+pub const MIN_USER_PASSWORD: usize = 8;
 
 /// User password maximum length.
-pub const USER_PASSWORD_MAX_LEN: usize = 128;
+pub const MAX_USER_PASSWORD: usize = 128;
 
 /// User.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -177,8 +180,8 @@ impl UserCreate {
             is_enabled,
             name: name.into(),
             email: email.into(),
-            locale: USER_DEFAULT_LOCALE.into(),
-            timezone: USER_DEFAULT_TIMEZONE.into(),
+            locale: DEFAULT_USER_LOCALE.into(),
+            timezone: DEFAULT_USER_TIMEZONE.into(),
             password_allow_reset: false,
             password_require_update: false,
             password_hash: None,
@@ -387,8 +390,8 @@ impl User {
 fn hash_password(password: &str) -> DriverResult<String> {
     let hasher = HashBuilder::new()
         .version(USER_PASSWORD_HASH_VERSION)
-        .min_len(USER_PASSWORD_MIN_LEN)
-        .max_len(USER_PASSWORD_MAX_LEN)
+        .min_len(MIN_USER_PASSWORD)
+        .max_len(MAX_USER_PASSWORD)
         .finalize()
         .map_err::<DriverError, _>(Into::into)?;
     hasher.hash(password).map_err::<DriverError, _>(Into::into)

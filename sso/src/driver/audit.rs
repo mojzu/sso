@@ -9,10 +9,10 @@ use std::fmt;
 use uuid::Uuid;
 
 /// Audit type maximum length.
-pub const AUDIT_TYPE_MAX_LEN: usize = 200;
+pub const MAX_AUDIT_TYPE: usize = 200;
 
 /// Audit subject maximum length.
-pub const AUDIT_SUBJECT_MAX_LEN: usize = 200;
+pub const MAX_AUDIT_SUBJECT: usize = 200;
 
 /// Audit types.
 #[derive(Debug, Copy, PartialEq, Clone, Serialize, Deserialize)]

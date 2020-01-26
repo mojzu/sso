@@ -1,9 +1,9 @@
 //! Validation functions.
 use crate::{
     grpc::util::{MethodError, MethodResult},
-    DriverError, KeyType, AUDIT_SUBJECT_MAX_LEN, AUDIT_TYPE_MAX_LEN, JWT_MAX_LEN, KEY_VALUE_BYTES,
-    NAME_MAX_LEN, TEXT_MAX_LEN, TOTP_MAX_LEN, USER_LOCALE_MAX_LEN, USER_PASSWORD_MAX_LEN,
-    USER_PASSWORD_MIN_LEN, USER_TIMEZONE_MAX_LEN,
+    DriverError, KeyType, BYTES_KEY_VALUE, MAX_AUDIT_SUBJECT, MAX_AUDIT_TYPE, MAX_JWT, MAX_NAME,
+    MAX_OAUTH2, MAX_TEXT, MAX_TOTP, MAX_USER_LOCALE, MAX_USER_PASSWORD, MAX_USER_TIMEZONE,
+    MIN_USER_PASSWORD,
 };
 use std::convert::TryInto;
 use uuid::Uuid;
@@ -34,7 +34,7 @@ pub fn url_opt(errors: &mut ValidationErrors, field: &'static str, value: Option
 }
 
 pub fn password(errors: &mut ValidationErrors, field: &'static str, value: &str) {
-    if value.len() < USER_PASSWORD_MIN_LEN || value.len() > USER_PASSWORD_MAX_LEN {
+    if value.len() < MIN_USER_PASSWORD || value.len() > MAX_USER_PASSWORD {
         errors.add(field, ValidationError::new("password_invalid"));
     }
 }
@@ -46,7 +46,7 @@ pub fn password_opt(errors: &mut ValidationErrors, field: &'static str, value: O
 }
 
 pub fn name(errors: &mut ValidationErrors, field: &'static str, value: &str) {
-    if value.is_empty() || value.len() > NAME_MAX_LEN {
+    if value.is_empty() || value.len() > MAX_NAME {
         errors.add(field, ValidationError::new("name_invalid"));
     }
 }
@@ -62,7 +62,7 @@ pub fn locale(errors: &mut ValidationErrors, field: &'static str, value: &str) {
 
     if let Err(_e) = value.parse::<LanguageIdentifier>() {
         errors.add(field, ValidationError::new("locale_invalid"));
-    } else if value.is_empty() || value.len() > USER_LOCALE_MAX_LEN {
+    } else if value.is_empty() || value.len() > MAX_USER_LOCALE {
         errors.add(field, ValidationError::new("locale_invalid"));
     }
 }
@@ -79,7 +79,7 @@ pub fn timezone(errors: &mut ValidationErrors, field: &'static str, value: &str)
 
     if let Err(_e) = Tz::from_str(value) {
         errors.add(field, ValidationError::new("timezone_invalid"));
-    } else if value.is_empty() || value.len() > USER_TIMEZONE_MAX_LEN {
+    } else if value.is_empty() || value.len() > MAX_USER_TIMEZONE {
         errors.add(field, ValidationError::new("timezone_invalid"));
     }
 }
@@ -91,19 +91,19 @@ pub fn timezone_opt(errors: &mut ValidationErrors, field: &'static str, value: O
 }
 
 pub fn token(errors: &mut ValidationErrors, field: &'static str, value: &str) {
-    if value.is_empty() || value.len() > JWT_MAX_LEN {
+    if value.is_empty() || value.len() > MAX_JWT {
         errors.add(field, ValidationError::new("token_invalid"));
     }
 }
 
 pub fn key(errors: &mut ValidationErrors, field: &'static str, value: &str) {
-    if value.is_empty() || value.len() > (KEY_VALUE_BYTES * 2) {
+    if value.is_empty() || value.len() > (BYTES_KEY_VALUE * 2) {
         errors.add(field, ValidationError::new("key_invalid"));
     }
 }
 
 pub fn audit_type(errors: &mut ValidationErrors, field: &'static str, value: &str) {
-    if value.is_empty() || value.len() > AUDIT_TYPE_MAX_LEN {
+    if value.is_empty() || value.len() > MAX_AUDIT_TYPE {
         errors.add(field, ValidationError::new("audit_type_invalid"));
     }
 }
@@ -151,7 +151,7 @@ pub fn uuid_vec(errors: &mut ValidationErrors, field: &'static str, value: &[Str
 }
 
 pub fn audit_subject(errors: &mut ValidationErrors, field: &'static str, value: &str) {
-    if value.is_empty() || value.len() > AUDIT_SUBJECT_MAX_LEN {
+    if value.is_empty() || value.len() > MAX_AUDIT_SUBJECT {
         errors.add(field, ValidationError::new("audit_subject_invalid"));
     }
 }
@@ -182,7 +182,7 @@ pub fn key_type_vec(errors: &mut ValidationErrors, field: &'static str, value: &
 }
 
 pub fn text(errors: &mut ValidationErrors, field: &'static str, value: &str) {
-    if value.len() > TEXT_MAX_LEN {
+    if value.len() > MAX_TEXT {
         errors.add(field, ValidationError::new("text_invalid"));
     }
 }
@@ -194,14 +194,13 @@ pub fn text_opt(errors: &mut ValidationErrors, field: &'static str, value: Optio
 }
 
 pub fn totp(errors: &mut ValidationErrors, field: &'static str, value: &str) {
-    if value.is_empty() || value.len() > TOTP_MAX_LEN {
+    if value.is_empty() || value.len() > MAX_TOTP {
         errors.add(field, ValidationError::new("totp_invalid"));
     }
 }
 
 pub fn oauth2_token(errors: &mut ValidationErrors, field: &'static str, value: &str) {
-    // TODO(refactor1): Improve validation here.
-    if value.is_empty() || value.len() > TEXT_MAX_LEN {
+    if value.is_empty() || value.len() > MAX_OAUTH2 {
         errors.add(field, ValidationError::new("oauth2_token_invalid"));
     }
 }

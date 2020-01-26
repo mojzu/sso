@@ -6,22 +6,22 @@ use prometheus::{
 use std::{fmt, sync::Mutex};
 
 /// Metrics audit count name.
-pub const METRICS_AUDIT_COUNT_NAME: &str = "audit_count";
+pub const METRICS_NAME_AUDIT_COUNT: &str = "audit_count";
 
 /// Metrics audit count help.
-pub const METRICS_AUDIT_COUNT_HELP: &str = "Audit log counter";
+pub const METRICS_HELP_AUDIT_COUNT: &str = "Audit log counter";
 
 /// Metrics gRPC count name.
-pub const METRICS_GRPC_COUNT_NAME: &str = "grpc_count";
+pub const METRICS_NAME_GRPC_COUNT: &str = "grpc_count";
 
 /// Metrics gRPC count help.
-pub const METRICS_GRPC_COUNT_HELP: &str = "gRPC request counter";
+pub const METRICS_HELP_GRPC_COUNT: &str = "gRPC request counter";
 
 /// Metrics gRPC latency name.
-pub const METRICS_GRPC_LATENCY_NAME: &str = "grpc_latency";
+pub const METRICS_NAME_GRPC_LATENCY: &str = "grpc_latency";
 
 /// Metrics gRPC latency help.
-pub const METRICS_GRPC_LATENCY_HELP: &str = "gRPC request latency (ms)";
+pub const METRICS_HELP_GRPC_LATENCY: &str = "gRPC request latency (ms)";
 
 /// Metrics.
 pub struct Metrics {
@@ -42,14 +42,14 @@ lazy_static! {
     static ref METRICS: Mutex<Metrics> = {
         let registry = Registry::new();
 
-        let audit_count_opts = Opts::new(METRICS_AUDIT_COUNT_NAME, METRICS_AUDIT_COUNT_HELP);
+        let audit_count_opts = Opts::new(METRICS_NAME_AUDIT_COUNT, METRICS_HELP_AUDIT_COUNT);
         let audit_count = IntCounterVec::new(audit_count_opts, &["type", "status"]).unwrap();
 
-        let grpc_count_opts = Opts::new(METRICS_GRPC_COUNT_NAME, METRICS_GRPC_COUNT_HELP);
+        let grpc_count_opts = Opts::new(METRICS_NAME_GRPC_COUNT, METRICS_HELP_GRPC_COUNT);
         let grpc_count = IntCounterVec::new(grpc_count_opts, &["path", "status"]).unwrap();
 
         let grpc_latency_opts =
-            HistogramOpts::new(METRICS_GRPC_LATENCY_NAME, METRICS_GRPC_LATENCY_NAME);
+            HistogramOpts::new(METRICS_NAME_GRPC_LATENCY, METRICS_HELP_GRPC_LATENCY);
         let grpc_latency = HistogramVec::new(grpc_latency_opts, &["path"]).unwrap();
 
         registry.register(Box::new(audit_count.clone())).unwrap();
