@@ -11,6 +11,7 @@ use support::*;
 // TODO(test): Confirm reset password success.
 // TODO(test): User password is updated.
 // TODO(test): Cannot reuse token.
+// TODO(test): Refresh token exchange between services.
 
 audit_integration_test!();
 auth_csrf_integration_test!();

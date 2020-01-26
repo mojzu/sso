@@ -355,6 +355,13 @@ impl ClientBlocking {
         self.rt.block_on(self.client.auth_token_revoke(request))
     }
 
+    pub fn auth_token_exchange(
+        &mut self,
+        request: impl tonic::IntoRequest<pb::AuthTokenRequest>,
+    ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
+        self.rt.block_on(self.client.auth_token_exchange(request))
+    }
+
     pub fn auth_totp_verify(
         &mut self,
         request: impl tonic::IntoRequest<pb::AuthTotpRequest>,

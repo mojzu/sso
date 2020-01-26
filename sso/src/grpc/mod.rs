@@ -374,6 +374,14 @@ impl pb::sso_server::Sso for Server {
         self.post(metrics, methods::auth::token::revoke(self, request).await)
             .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
+    async fn auth_token_exchange(
+        &self,
+        request: tonic::Request<pb::AuthTokenRequest>,
+    ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
+        let (metrics, request) = self.pre_validate("auth_token_exchange", request)?;
+        self.post(metrics, methods::auth::token::exchange(self, request).await)
+            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+    }
     async fn auth_totp_verify(
         &self,
         request: tonic::Request<pb::AuthTotpRequest>,

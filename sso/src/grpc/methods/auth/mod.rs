@@ -129,12 +129,15 @@ pub async fn csrf_verify(
 }
 
 // TODO(refactor3): Improve code structure.
-fn api_csrf_verify(driver: &dyn Driver, service: &Service, csrf_key: &str) -> MethodResult<()> {
+fn api_csrf_verify(driver: &dyn Driver, service: &Service, csrf_key: &str) -> MethodResult<Csrf> {
     driver
         .csrf_read(&csrf_key)
         .map_err(MethodError::BadRequest)?
         .ok_or_else(|| DriverError::CsrfNotFoundOrUsed)
-        .and_then(|csrf| csrf.check_service(service.id))
+        .and_then(|csrf| {
+            csrf.check_service(service.id)?;
+            Ok(csrf)
+        })
         .map_err(MethodError::BadRequest)
 }
 

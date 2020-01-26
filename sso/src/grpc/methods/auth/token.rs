@@ -184,7 +184,7 @@ pub async fn revoke(
                         .map_err(MethodError::BadRequest)?;
                 }
 
-                // Token revoked, disable and revoked linked key.
+                // Token revoked, disable and revoke linked key.
                 driver
                     .key_update(&KeyUpdate {
                         id: key.id,
@@ -206,6 +206,97 @@ pub async fn revoke(
             },
         )?;
         let reply = pb::AuthAuditReply {
+            audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
+        };
+        Ok(reply)
+    })
+    .await
+}
+
+pub async fn exchange(
+    server: &Server,
+    request: MethodRequest<pb::AuthTokenRequest>,
+) -> MethodResult<pb::AuthTokenReply> {
+    let (audit_meta, auth, req) = request.into_inner();
+
+    let driver = server.driver();
+    let access_token_expires = server.options().access_token_expires();
+    let refresh_token_expires = server.options().refresh_token_expires();
+    blocking::<_, MethodError, _>(move || {
+        let (user_token, audit) = audit_result_err(
+            driver.as_ref().as_ref(),
+            audit_meta,
+            AuditType::AuthTokenExchange,
+            |driver, audit| {
+                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                    .map_err(MethodError::Unauthorised)?;
+
+                // Unsafely decode token to get user identifier, used to read key for safe token decode.
+                let (user_id, source_service_id) =
+                    Jwt::decode_unsafe_service_id(&req.token, service.id)
+                        .map_err(MethodError::BadRequest)?;
+
+                // Read token source service.
+                let source_service = driver
+                    .service_read(&ServiceRead::new(source_service_id), None)
+                    .map_err(MethodError::BadRequest)?
+                    .ok_or_else(|| DriverError::ServiceNotFound)
+                    .map_err(MethodError::BadRequest)?;
+
+                // Token refresh requires token key type.
+                // Read user key for source service to safely decode token.
+                let user =
+                    pattern::user_read_id_checked(driver, Some(&source_service), audit, user_id)
+                        .map_err(MethodError::BadRequest)?;
+                let target_key =
+                    pattern::key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
+                        .map_err(MethodError::BadRequest)?;
+                let source_key = pattern::key_read_user_checked(
+                    driver,
+                    &source_service,
+                    audit,
+                    &user,
+                    KeyType::Token,
+                )
+                .map_err(MethodError::BadRequest)?;
+
+                // Safely decode token with user key.
+                let csrf_key =
+                    Jwt::decode_refresh_token(&source_service, &user, &source_key, &req.token)
+                        .map_err(MethodError::BadRequest)?;
+
+                // Verify CSRF, and recreate so source service can still reuse refresh token.
+                let csrf = api_csrf_verify(driver, &service, &csrf_key)?;
+                driver
+                    .csrf_create(&CsrfCreate::copy(csrf))
+                    .map_err(MethodError::BadRequest)?;
+
+                // Encode user token with target service key.
+                let user_token = Jwt::encode_user_token(
+                    driver,
+                    &service,
+                    user,
+                    &target_key,
+                    access_token_expires,
+                    refresh_token_expires,
+                )
+                .map_err(MethodError::BadRequest)?;
+
+                // Optionally create custom audit log.
+                if let Some(x) = &req.audit {
+                    let audit = audit
+                        .create(driver, x, None, None)
+                        .map_err(MethodError::BadRequest)?;
+                    Ok((user_token, Some(audit)))
+                } else {
+                    Ok((user_token, None))
+                }
+            },
+        )?;
+        let reply = pb::AuthTokenReply {
+            user: Some(user_token.user.clone().into()),
+            access: Some(user_token.access_token()),
+            refresh: Some(user_token.refresh_token()),
             audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
         };
         Ok(reply)

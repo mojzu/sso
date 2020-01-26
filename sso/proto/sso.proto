@@ -309,6 +309,17 @@ service Sso {
         };
     }
 
+    // Exchange user refresh token for user access and refresh tokens for another service.
+    //
+    // This does not prevent the original refresh token being reused. User must have a valid
+    // key for the target service.
+    rpc AuthTokenExchange (AuthTokenRequest) returns (AuthTokenReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/token/exchange"
+            body: "*"
+        };
+    }
+
     // Verify TOTP code.
     rpc AuthTotpVerify (AuthTotpRequest) returns (AuthAuditReply) {
         option (google.api.http) = {

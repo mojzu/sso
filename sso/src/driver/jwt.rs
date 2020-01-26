@@ -171,6 +171,20 @@ impl Jwt {
         Ok((sub, x_type))
     }
 
+    pub fn decode_unsafe_service_id(token: &str, service_id: Uuid) -> DriverResult<(Uuid, Uuid)> {
+        let claims: JwtClaims = dangerous_unsafe_decode(token)
+            .map_err(DriverError::Jsonwebtoken)?
+            .claims;
+
+        let iss = Uuid::parse_str(&claims.iss).map_err(DriverError::UuidParse)?;
+        if service_id == iss {
+            return Err(DriverError::JwtServiceMismatch);
+        }
+
+        let sub = Uuid::parse_str(&claims.sub).map_err(DriverError::UuidParse)?;
+        Ok((sub, iss))
+    }
+
     /// Build user token by encoding access and refresh tokens.
     pub fn encode_user_token(
         driver: &dyn Driver,

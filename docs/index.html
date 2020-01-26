@@ -361,11 +361,12 @@ font-size: 16px;
 <li><a href="#reset-password"><span class="toc-section-number">2.5</span> Reset Password</a></li>
 <li><a href="#update-email"><span class="toc-section-number">2.6</span> Update Email</a></li>
 <li><a href="#update-password"><span class="toc-section-number">2.7</span> Update Password</a></li>
-<li><a href="#api-key"><span class="toc-section-number">2.8</span> API Key</a></li>
-<li><a href="#oauth2-login"><span class="toc-section-number">2.9</span> OAuth2 Login</a></li>
-<li><a href="#csrf"><span class="toc-section-number">2.10</span> CSRF</a></li>
-<li><a href="#totp-1"><span class="toc-section-number">2.11</span> TOTP</a></li>
-<li><a href="#cli"><span class="toc-section-number">2.12</span> CLI</a></li>
+<li><a href="#exchange-token"><span class="toc-section-number">2.8</span> Exchange Token</a></li>
+<li><a href="#api-key"><span class="toc-section-number">2.9</span> API Key</a></li>
+<li><a href="#oauth2-login"><span class="toc-section-number">2.10</span> OAuth2 Login</a></li>
+<li><a href="#csrf"><span class="toc-section-number">2.11</span> CSRF</a></li>
+<li><a href="#totp-1"><span class="toc-section-number">2.12</span> TOTP</a></li>
+<li><a href="#cli"><span class="toc-section-number">2.13</span> CLI</a></li>
 </ul></li>
 <li><a href="#changelog"><span class="toc-section-number">3</span> Changelog</a>
 <ul>
@@ -743,8 +744,14 @@ font-size: 16px;
 <span id="cb34-5"><a href="#cb34-5"></a>  localhost:8042/v1/auth/provider/local/update-password/revoke</span></code></pre></div>
 <p>This will disable the user, and disable and revoke all user keys.</p>
 </section>
-<section id="api-key" data-number="2.8">
-<h2 data-number="2.8"><span class="header-section-number">2.8</span> API Key</h2>
+<section id="exchange-token" data-number="2.8">
+<h2 data-number="2.8"><span class="header-section-number">2.8</span> Exchange Token</h2>
+<ul>
+<li>TODO(docs): How to exchange refresh tokens for different services.</li>
+</ul>
+</section>
+<section id="api-key" data-number="2.9">
+<h2 data-number="2.9"><span class="header-section-number">2.9</span> API Key</h2>
 <p>Create service with key.</p>
 <div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1"></a><span class="ex">sso-cli</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span></span></code></pre></div>
 <p>Service creates a user without password.</p>
@@ -772,8 +779,8 @@ font-size: 16px;
 <span id="cb39-4"><a href="#cb39-4"></a>  --data <span class="st">&#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39;</span> \</span>
 <span id="cb39-5"><a href="#cb39-5"></a>  localhost:8042/v1/auth/key/revoke</span></code></pre></div>
 </section>
-<section id="oauth2-login" data-number="2.9">
-<h2 data-number="2.9"><span class="header-section-number">2.9</span> OAuth2 Login</h2>
+<section id="oauth2-login" data-number="2.10">
+<h2 data-number="2.10"><span class="header-section-number">2.10</span> OAuth2 Login</h2>
 <p><code>$server_url/v1/auth/provider/github/oauth2</code></p>
 <p>Create service with OAuth2 provider URL and key, and start server.</p>
 <div class="sourceCode" id="cb40"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1"></a><span class="ex">sso-cli</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span> \</span>
@@ -823,8 +830,8 @@ font-size: 16px;
 <span id="cb47-5"><a href="#cb47-5"></a>  localhost:8042/v1/auth/token/revoke</span></code></pre></div>
 <p>This will disable and revoke the user key created earlier.</p>
 </section>
-<section id="csrf" data-number="2.10">
-<h2 data-number="2.10"><span class="header-section-number">2.10</span> CSRF</h2>
+<section id="csrf" data-number="2.11">
+<h2 data-number="2.11"><span class="header-section-number">2.11</span> CSRF</h2>
 <p>Create service with key and start server.</p>
 <div class="sourceCode" id="cb48"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1"></a><span class="ex">sso</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span></span>
 <span id="cb48-2"><a href="#cb48-2"></a><span class="ex">sso</span> start-server</span></code></pre></div>
@@ -838,8 +845,8 @@ font-size: 16px;
 <span id="cb50-4"><a href="#cb50-4"></a>  --data <span class="st">&#39;{&quot;key&quot;:&quot;$csrf_key&quot;}&#39;</span> \</span>
 <span id="cb50-5"><a href="#cb50-5"></a>  <span class="va">$server_url</span>/v1/auth/csrf</span></code></pre></div>
 </section>
-<section id="totp-1" data-number="2.11">
-<h2 data-number="2.11"><span class="header-section-number">2.11</span> TOTP</h2>
+<section id="totp-1" data-number="2.12">
+<h2 data-number="2.12"><span class="header-section-number">2.12</span> TOTP</h2>
 <p>Create service with key and start server.</p>
 <div class="sourceCode" id="cb51"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb51-1"><a href="#cb51-1"></a><span class="ex">sso</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span></span>
 <span id="cb51-2"><a href="#cb51-2"></a><span class="ex">sso</span> start-server</span></code></pre></div>
@@ -879,8 +886,8 @@ font-size: 16px;
 <span id="cb55-4"><a href="#cb55-4"></a>  --data <span class="st">&#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39;</span> \</span>
 <span id="cb55-5"><a href="#cb55-5"></a>  <span class="va">$server_url</span>/v1/auth/key/revoke</span></code></pre></div>
 </section>
-<section id="cli" data-number="2.12">
-<h2 data-number="2.12"><span class="header-section-number">2.12</span> CLI</h2>
+<section id="cli" data-number="2.13">
+<h2 data-number="2.13"><span class="header-section-number">2.13</span> CLI</h2>
 <ul>
 <li>TODO(docs): CLI guide.</li>
 <li>TODO(docs): Style improvements, PDF output.</li>
@@ -891,15 +898,21 @@ font-size: 16px;
 <h1 data-number="3"><span class="header-section-number">3</span> Changelog</h1>
 <section id="section" data-number="3.1">
 <h2 data-number="3.1"><span class="header-section-number">3.1</span> 0.10.0 (?)</h2>
-<section id="changed" data-number="3.1.1">
-<h3 data-number="3.1.1"><span class="header-section-number">3.1.1</span> Changed</h3>
+<section id="added" data-number="3.1.1">
+<h3 data-number="3.1.1"><span class="header-section-number">3.1.1</span> Added</h3>
+<ul>
+<li>Added <code>/auth/token/exchange</code> endpoint.</li>
+</ul>
+</section>
+<section id="changed" data-number="3.1.2">
+<h3 data-number="3.1.2"><span class="header-section-number">3.1.2</span> Changed</h3>
 <ul>
 <li>Replaced <code>user_id</code> field with <code>email</code> field for user update email and password endpoints.</li>
 <li>Manual updates.</li>
 </ul>
 </section>
-<section id="fixed" data-number="3.1.2">
-<h3 data-number="3.1.2"><span class="header-section-number">3.1.2</span> Fixed</h3>
+<section id="fixed" data-number="3.1.3">
+<h3 data-number="3.1.3"><span class="header-section-number">3.1.3</span> Fixed</h3>
 <ul>
 <li>Replaced <code>tokio_executor::blocking</code> with <code>tokio::task::spawn_blocking</code>, reduces maximum memory use from ~800MB to ~200MB for repeated integration tests.</li>
 <li>Fixed revoke endpoints only disabled user, did not also disable and revoke keys.</li>
@@ -917,7 +930,7 @@ font-size: 16px;
 <li>Rewrite to use <code>tonic</code> gRPC server instead of <code>actix-web</code> HTTP server.</li>
 </ul>
 </section>
-<section id="added" data-number="3.2.2">
+<section id="added-1" data-number="3.2.2">
 <h3 data-number="3.2.2"><span class="header-section-number">3.2.2</span> Added</h3>
 <ul>
 <li>Added <code>compare_opt</code> function to AuditDiffBuilder.</li>
@@ -936,7 +949,7 @@ font-size: 16px;
 </section>
 <section id="section-2" data-number="3.3">
 <h2 data-number="3.3"><span class="header-section-number">3.3</span> 0.8.0 (2019-11-03)</h2>
-<section id="added-1" data-number="3.3.1">
+<section id="added-2" data-number="3.3.1">
 <h3 data-number="3.3.1"><span class="header-section-number">3.3.1</span> Added</h3>
 <ul>
 <li>Added <code>name_ge</code>, <code>name_le</code>, <code>offset_id</code> query parameters to user list route for sorting by name.</li>
@@ -972,7 +985,7 @@ font-size: 16px;
 </section>
 <section id="section-3" data-number="3.4">
 <h2 data-number="3.4"><span class="header-section-number">3.4</span> 0.7.0 (2019-10-19)</h2>
-<section id="added-2" data-number="3.4.1">
+<section id="added-3" data-number="3.4.1">
 <h3 data-number="3.4.1"><span class="header-section-number">3.4.1</span> Added</h3>
 <ul>
 <li>Added <code>Debug</code> trait implementations for public types.</li>
@@ -1027,7 +1040,7 @@ font-size: 16px;
 </section>
 <section id="section-5" data-number="3.6">
 <h2 data-number="3.6"><span class="header-section-number">3.6</span> 0.5.0 (2019-10-05)</h2>
-<section id="added-3" data-number="3.6.1">
+<section id="added-4" data-number="3.6.1">
 <h3 data-number="3.6.1"><span class="header-section-number">3.6.1</span> Added</h3>
 <ul>
 <li>Added TOTP validation route.</li>
@@ -1049,7 +1062,7 @@ font-size: 16px;
 </section>
 <section id="section-6" data-number="3.7">
 <h2 data-number="3.7"><span class="header-section-number">3.7</span> 0.4.0 (2019-09-09)</h2>
-<section id="added-4" data-number="3.7.1">
+<section id="added-5" data-number="3.7.1">
 <h3 data-number="3.7.1"><span class="header-section-number">3.7.1</span> Added</h3>
 <ul>
 <li>Added some process metrics to Prometheus integration.</li>
@@ -1076,7 +1089,7 @@ font-size: 16px;
 </section>
 <section id="section-7" data-number="3.8">
 <h2 data-number="3.8"><span class="header-section-number">3.8</span> 0.3.0 (2019-08-03)</h2>
-<section id="added-5" data-number="3.8.1">
+<section id="added-6" data-number="3.8.1">
 <h3 data-number="3.8.1"><span class="header-section-number">3.8.1</span> Added</h3>
 <ul>
 <li>Improved email templates, removed template parameters from routes.</li>
@@ -1111,7 +1124,7 @@ font-size: 16px;
 </section>
 <section id="section-8" data-number="3.9">
 <h2 data-number="3.9"><span class="header-section-number">3.9</span> 0.2.0 (2019-07-07)</h2>
-<section id="added-6" data-number="3.9.1">
+<section id="added-7" data-number="3.9.1">
 <h3 data-number="3.9.1"><span class="header-section-number">3.9.1</span> Added</h3>
 <ul>
 <li>Added audit logging to authentication routes.</li>
@@ -1148,7 +1161,7 @@ font-size: 16px;
 </section>
 <section id="section-9" data-number="3.10">
 <h2 data-number="3.10"><span class="header-section-number">3.10</span> 0.1.0 (2019-05-16)</h2>
-<section id="added-7" data-number="3.10.1">
+<section id="added-8" data-number="3.10.1">
 <h3 data-number="3.10.1"><span class="header-section-number">3.10.1</span> Added</h3>
 <ul>
 <li>First version.</li>

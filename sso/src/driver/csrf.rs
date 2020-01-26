@@ -54,6 +54,16 @@ impl CsrfCreate {
         Self::new(&key, &key, ttl_s, service_id)
     }
 
+    /// Copy from CSRF token.
+    pub fn copy(csrf: Csrf) -> Self {
+        Self {
+            key: csrf.key,
+            value: csrf.value,
+            ttl: csrf.ttl,
+            service_id: csrf.service_id,
+        }
+    }
+
     /// Create CSRF token with time to live in seconds. Key must be unique.
     pub fn new<K, V>(key: K, value: V, ttl_s: i64, service_id: Uuid) -> Self
     where

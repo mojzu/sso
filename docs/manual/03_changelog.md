@@ -2,6 +2,10 @@
 
 ## 0.10.0 (?)
 
+### Added
+
+-   Added `/auth/token/exchange` endpoint.
+
 ### Changed
 
 -   Replaced `user_id` field with `email` field for user update email and password endpoints.

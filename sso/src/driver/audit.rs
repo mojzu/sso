@@ -58,6 +58,7 @@ pub enum AuditType {
     AuthTokenVerify,
     AuthTokenRefresh,
     AuthTokenRevoke,
+    AuthTokenExchange,
     AuthTotp,
     AuthCsrfCreate,
     AuthCsrfVerify,

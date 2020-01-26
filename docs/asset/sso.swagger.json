@@ -684,7 +684,7 @@
     "/v1/auth/provider/local/login": {
       "post": {
         "summary": "Login with email and password.",
-        "description": "Local provider login authentication.",
+        "description": "Local provider login authentication.\n\nIf users `password_require_update` flag is true, a permission denied (gRPC) or\nforbidden (HTTP) error code is returned.",
         "operationId": "AuthLocalLogin",
         "responses": {
           "200": {
@@ -1335,6 +1335,58 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/ssoAuthOauth2CallbackRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Sso"
+        ]
+      }
+    },
+    "/v1/auth/token/exchange": {
+      "post": {
+        "summary": "Exchange user refresh token for user access and refresh tokens for another service.",
+        "description": "This does not prevent the original refresh token being reused. User must have a valid\nkey for the target service.",
+        "operationId": "AuthTokenExchange",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenReply"
+            }
+          },
+          "400": {
+            "description": "Returned when the request is invalid.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "401": {
+            "description": "Returned when the request is not authenticated.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "403": {
+            "description": "Returned when the request is not permitted.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          },
+          "404": {
+            "description": "Returned when the requested resource does not exist.",
+            "schema": {
+              "$ref": "#/definitions/ssoErrorReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
             }
           }
         ],
