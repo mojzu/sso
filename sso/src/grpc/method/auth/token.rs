@@ -1,5 +1,5 @@
 use crate::{
-    grpc::{methods::auth::api_csrf_verify, pb, util::*, validate, Server},
+    grpc::{method::auth::api_csrf_verify, pb, util::*, validate, Server},
     *,
 };
 use validator::{Validate, ValidationErrors};

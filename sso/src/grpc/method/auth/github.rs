@@ -74,7 +74,7 @@ pub async fn oauth2_callback(
 mod provider_github {
     use crate::{
         grpc::{
-            methods::auth::oauth2_login, pb, util::*, ServerOptionsProvider,
+            method::auth::oauth2_login, pb, util::*, ServerOptionsProvider,
             ServerProviderOauth2Args,
         },
         pattern::*,

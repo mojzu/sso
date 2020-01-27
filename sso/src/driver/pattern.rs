@@ -9,7 +9,7 @@ use sha1::{Digest, Sha1};
 use url::Url;
 use uuid::Uuid;
 
-// TODO(refactor3): Improve usability, composability of pattern functions.
+// TODO(3,refactor): Improve usability, composability of pattern functions.
 
 /// User header.
 #[derive(Debug, Clone)]
@@ -166,7 +166,7 @@ fn check_audit_user(
 ) -> DriverResult<()> {
     let user = audit.meta().user().cloned();
     match user {
-        // TODO(refactor3): Duplicate authentication code with api module, refactor.
+        // TODO(3,refactor): Duplicate authentication code with api module, refactor.
         Some(user) => match user {
             HeaderAuth::Key(key_value) => {
                 // Key verify requires key key type.

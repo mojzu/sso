@@ -63,7 +63,7 @@ pub async fn oauth2_callback(
 mod provider_microsoft {
     use crate::{
         grpc::{
-            methods::auth::oauth2_login, pb, util::*, ServerOptionsProvider,
+            method::auth::oauth2_login, pb, util::*, ServerOptionsProvider,
             ServerProviderOauth2Args,
         },
         pattern::*,
@@ -179,7 +179,7 @@ mod provider_microsoft {
         service: &Service,
         provider: &Option<ServerOptionsProvider>,
     ) -> DriverResult<BasicClient> {
-        // TODO(refactor1): Create and keep client alive from startup.
+        // TODO(1,refactor): Create and keep client alive from startup.
         let (provider_microsoft_oauth2_url, provider) =
             match (&service.provider_microsoft_oauth2_url, provider) {
                 (Some(provider_microsoft_oauth2_url), Some(provider)) => {

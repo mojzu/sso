@@ -1,5 +1,5 @@
 use crate::{
-    grpc::{methods::auth::api_csrf_verify, pb, util::*, validate, Server},
+    grpc::{method::auth::api_csrf_verify, pb, util::*, validate, Server},
     *,
 };
 use uuid::Uuid;
@@ -146,8 +146,8 @@ pub async fn register(
                     }
                 };
                 // Get key if exists, else create now.
-                // TODO(refactor1): If any key already exists for service, do not create one.
-                // TODO(refactor1): Add tests to check whether this flow can be used by used to access disabled user.
+                // TODO(1,refactor): If any key already exists for service, do not create one.
+                // TODO(1,refactor): Add tests to check whether this flow can be used by used to access disabled user.
                 let key = driver
                     .key_read(
                         &KeyRead::user_id(service.id, user.id, true, false, KeyType::Token),
@@ -684,7 +684,7 @@ fn revoke_inner(
         .key_update_many(
             &user.id,
             &KeyUpdate {
-                // TODO(refactor3): Improve code structure.
+                // TODO(3,refactor): Improve code structure.
                 id: Uuid::nil(),
                 is_enabled: Some(false),
                 is_revoked: Some(true),

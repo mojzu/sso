@@ -41,7 +41,7 @@ const ENV_GITHUB_CLIENT_SECRET: &str = "SSO_GITHUB_CLIENT_SECRET";
 const ENV_MICROSOFT_CLIENT_ID: &str = "SSO_MICROSOFT_CLIENT_ID";
 const ENV_MICROSOFT_CLIENT_SECRET: &str = "SSO_MICROSOFT_CLIENT_SECRET";
 
-// TODO(refactor3): TLS support, blocked on `ring-asm`.
+// TODO(3,refactor): TLS support, blocked on `ring-asm`.
 // <https://github.com/hyperium/tonic/blob/master/examples/src/tls/server.rs>
 // <https://github.com/smallstep/autocert>
 // <https://github.com/vivint-smarthome/rumqtt/tree/async-await>
@@ -49,7 +49,7 @@ const ENV_MICROSOFT_CLIENT_SECRET: &str = "SSO_MICROSOFT_CLIENT_SECRET";
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // If SENTRY_URL is defined, enable logging and panic handler integration.
-    // TODO(refactor2): Log in JSON, use fluentd to forward to Sentry.
+    // TODO(1,refactor): Log in JSON, use fluentd to forward to Sentry.
     let _guard = match std::env::var(ENV_SENTRY_URL) {
         Ok(sentry_url) => {
             let guard = sentry::init(sentry_url);

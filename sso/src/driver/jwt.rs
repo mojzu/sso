@@ -4,9 +4,9 @@ use crate::{
 use jsonwebtoken::{dangerous_unsafe_decode, decode, encode, Header, Validation};
 use uuid::Uuid;
 
-// TODO(refactor2): Refactor crypto.
+// TODO(2,refactor): Refactor crypto.
 // <https://github.com/smallstep/cli>
-// TODO(refactor2): Jsonwebtoken handling improvements.
+// TODO(2,refactor): Jsonwebtoken handling improvements.
 // <https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html>
 
 /// JSON web token maximum length.
@@ -17,7 +17,7 @@ pub const MAX_JWT: usize = 1000;
 pub enum JwtClaimsType {
     AccessToken,
     RefreshToken,
-    // TODO(refactor1): ExchangeToken type, instead of reusing refresh token.
+    // TODO(1,refactor): ExchangeToken type, instead of reusing refresh token.
     RegisterToken,
     ResetPasswordToken,
     RevokeToken,

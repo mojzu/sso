@@ -76,7 +76,7 @@ The OWASP Application Security Verification Standard is being used as a referenc
 ### 1.4.4
 
 - HTTP calls (except ping) require service key authentication.
-- TODO(refactor3): Service key authentication mechanism code is split across files, cleaner code.
+- TODO(3,refactor): Service key authentication mechanism code is split across files, cleaner code.
 
 ### 1.4.5
 
@@ -132,7 +132,7 @@ The OWASP Application Security Verification Standard is being used as a referenc
 - Stdout/stderr logging is not consistent.
 - Audit logs are saved to table, not transmitted to a remote system.
 - Stdout/stderr logging is not transmitted to a remote system,
-- TODO(feature): Option to transmit audit logs, stdout/stderr to external service(s).
+- TODO(1,refactor): Option to transmit audit logs, stdout/stderr to fluentd.
 
 ### 1.8.1, 1.8.2
 
@@ -143,7 +143,7 @@ The OWASP Application Security Verification Standard is being used as a referenc
 
 - Connection to database, other services must be encrypted.
 - TODO(docs): Mutual TLS encryption/authentication for postgres connection.
-- TODO(refactor3): Dependency updates, blocked on `jsonwebtoken`.
+- TODO(3,refactor): Dependency updates, blocked on `jsonwebtoken`.
 
 ### 1.10.1
 
