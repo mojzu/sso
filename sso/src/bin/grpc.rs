@@ -5,7 +5,7 @@ extern crate log;
 use futures_util::future::join;
 use hyper::service::{make_service_fn, service_fn};
 use sentry::integrations::log::LoggerOptions;
-use sso::{env, Driver, DriverPostgres};
+use sso::{env, Postgres};
 use std::{fs::create_dir_all, sync::Arc};
 use tonic::transport::Server;
 
@@ -70,9 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Setup database connection.
     let database_url = env::string(ENV_DATABASE_URL).unwrap();
     let database_connections = env::value_opt::<u32>(ENV_DATABASE_CONNECTIONS).unwrap();
-    let driver = DriverPostgres::initialise(&database_url, database_connections)
-        .unwrap()
-        .box_clone();
+    let driver = Postgres::initialise(&database_url, database_connections).unwrap();
 
     let password_pwned = env::value_opt::<bool>(ENV_PASSWORD_PWNED)
         .unwrap()

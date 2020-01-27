@@ -27,7 +27,7 @@ pub async fn list(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::KeyList,
             |driver, audit| {
@@ -68,7 +68,7 @@ pub async fn create(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_subject(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::KeyCreate,
             |driver, audit| {
@@ -145,7 +145,7 @@ pub async fn read(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::KeyRead,
             |driver, audit| {
@@ -181,7 +181,7 @@ pub async fn update(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_diff(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::KeyUpdate,
             |driver, audit| {
@@ -215,7 +215,7 @@ pub async fn delete(server: &Server, request: MethodRequest<KeyRead>) -> MethodR
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         audit_result_subject(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::KeyDelete,
             |driver, audit| {
@@ -234,7 +234,7 @@ pub async fn delete(server: &Server, request: MethodRequest<KeyRead>) -> MethodR
     .await
 }
 
-fn read_inner(driver: &dyn Driver, read: &KeyRead, service: Option<&Service>) -> MethodResult<Key> {
+fn read_inner(driver: &Postgres, read: &KeyRead, service: Option<&Service>) -> MethodResult<Key> {
     driver
         .key_read(&read, service.map(|x| x.id))
         .map_err(MethodError::BadRequest)?

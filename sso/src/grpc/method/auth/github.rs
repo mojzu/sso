@@ -15,7 +15,7 @@ pub async fn oauth2_url(
     let args = server.options().github_oauth2_args();
     blocking::<_, MethodError, _>(move || {
         let url = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthGithubOauth2Url,
             |driver, audit| provider_github::oauth2_url(driver, audit, auth.as_ref(), &args),
@@ -46,7 +46,7 @@ pub async fn oauth2_callback(
     let args = server.options().github_oauth2_args();
     blocking::<_, MethodError, _>(move || {
         let user_token = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthGithubOauth2Callback,
             |driver, audit| {
@@ -78,7 +78,7 @@ mod provider_github {
             ServerProviderOauth2Args,
         },
         pattern::*,
-        AuditBuilder, CsrfCreate, Driver, DriverError, DriverResult, Service, UserToken,
+        AuditBuilder, CsrfCreate, DriverError, DriverResult, Postgres, Service, UserToken,
     };
     use oauth2::{
         basic::BasicClient, reqwest::http_client, AuthUrl, AuthorizationCode, ClientId,
@@ -88,7 +88,7 @@ mod provider_github {
     use url::Url;
 
     pub(crate) fn oauth2_url(
-        driver: &dyn Driver,
+        driver: &Postgres,
         audit: &mut AuditBuilder,
         key_value: Option<&String>,
         args: &ServerProviderOauth2Args,
@@ -115,7 +115,7 @@ mod provider_github {
     }
 
     pub(crate) fn oauth2_callback(
-        driver: &dyn Driver,
+        driver: &Postgres,
         audit: &mut AuditBuilder,
         key_value: Option<&String>,
         args: &ServerProviderOauth2Args,

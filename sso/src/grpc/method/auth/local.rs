@@ -34,7 +34,7 @@ pub async fn login(
         .map_err(MethodError::BadRequest)?;
 
         let user_token = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalLogin,
             |driver, audit| {
@@ -105,7 +105,7 @@ pub async fn register(
 
     blocking::<_, MethodError, _>(move || {
         let template = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalRegister,
             |driver, audit| {
@@ -211,7 +211,7 @@ pub async fn register_confirm(
         .map_err(MethodError::BadRequest)?;
 
         let template = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalRegisterConfirm,
             |driver, audit| {
@@ -277,7 +277,7 @@ pub async fn register_revoke(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let audit = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalRegisterRevoke,
             |driver, audit| revoke_inner(driver, audit, auth.as_ref(), &req),
@@ -309,7 +309,7 @@ pub async fn reset_password(
     let email = server.smtp_email();
     blocking::<_, MethodError, _>(move || {
         let template = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalResetPassword,
             |driver, audit| {
@@ -384,7 +384,7 @@ pub async fn reset_password_confirm(
         .map_err(MethodError::BadRequest)?;
 
         let template = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalResetPasswordConfirm,
             |driver, audit| {
@@ -453,7 +453,7 @@ pub async fn reset_password_revoke(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let audit = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalResetPasswordRevoke,
             |driver, audit| revoke_inner(driver, audit, auth.as_ref(), &req),
@@ -487,7 +487,7 @@ pub async fn update_email(
     let email = server.smtp_email();
     blocking::<_, MethodError, _>(move || {
         let template = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalUpdateEmail,
             |driver, audit| {
@@ -543,7 +543,7 @@ pub async fn update_email_revoke(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let audit = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalUpdateEmailRevoke,
             |driver, audit| revoke_inner(driver, audit, auth.as_ref(), &req),
@@ -586,7 +586,7 @@ pub async fn update_password(
         .map_err(MethodError::BadRequest)?;
 
         let template = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalUpdatePassword,
             |driver, audit| {
@@ -640,7 +640,7 @@ pub async fn update_password_revoke(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let audit = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalUpdatePasswordRevoke,
             |driver, audit| revoke_inner(driver, audit, auth.as_ref(), &req),
@@ -654,7 +654,7 @@ pub async fn update_password_revoke(
 }
 
 fn revoke_inner(
-    driver: &dyn Driver,
+    driver: &Postgres,
     audit: &mut AuditBuilder,
     auth: Option<&String>,
     req: &pb::AuthTokenRequest,

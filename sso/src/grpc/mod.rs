@@ -25,7 +25,7 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct Server {
     options: ServerOptions,
-    driver: Arc<Box<dyn Driver>>,
+    driver: Arc<Postgres>,
     client: Arc<reqwest::Client>,
     smtp_client: Arc<Option<SmtpClient>>,
     count: IntCounterVec,
@@ -40,7 +40,7 @@ impl fmt::Debug for Server {
 
 impl Server {
     /// Returns new `Server`.
-    pub fn new(driver: Box<dyn Driver>, options: ServerOptions) -> Self {
+    pub fn new(driver: Postgres, options: ServerOptions) -> Self {
         let client = options.client().unwrap();
         let smtp_client = options.smtp_client().unwrap();
         let (count, latency) = Metrics::grpc_metrics();
@@ -60,7 +60,7 @@ impl Server {
     }
 
     /// Returns reference to driver.
-    pub fn driver(&self) -> Arc<Box<dyn Driver>> {
+    pub fn driver(&self) -> Arc<Postgres> {
         self.driver.clone()
     }
 

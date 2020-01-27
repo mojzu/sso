@@ -1,5 +1,5 @@
 use crate::{
-    CsrfCreate, Driver, DriverError, DriverResult, KeyWithValue, Service, User, UserToken,
+    CsrfCreate, DriverError, DriverResult, KeyWithValue, Postgres, Service, User, UserToken,
 };
 use jsonwebtoken::{dangerous_unsafe_decode, decode, encode, Header, Validation};
 use uuid::Uuid;
@@ -188,7 +188,7 @@ impl Jwt {
 
     /// Build user token by encoding access and refresh tokens.
     pub fn encode_user_token(
-        driver: &dyn Driver,
+        driver: &Postgres,
         service: &Service,
         user: User,
         key: &KeyWithValue,
@@ -221,7 +221,7 @@ impl Jwt {
     }
 
     pub fn encode_register_token(
-        driver: &dyn Driver,
+        driver: &Postgres,
         service: &Service,
         user: &User,
         key: &KeyWithValue,
@@ -259,7 +259,7 @@ impl Jwt {
     }
 
     pub fn encode_reset_password_token(
-        driver: &dyn Driver,
+        driver: &Postgres,
         service: &Service,
         user: &User,
         key: &KeyWithValue,
@@ -297,7 +297,7 @@ impl Jwt {
     }
 
     pub fn encode_revoke_token(
-        driver: &dyn Driver,
+        driver: &Postgres,
         service: &Service,
         user: &User,
         key: &KeyWithValue,

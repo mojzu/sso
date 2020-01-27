@@ -25,7 +25,7 @@ pub async fn list(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::ServiceList,
             |driver, audit| {
@@ -85,7 +85,7 @@ pub async fn create(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_subject(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::ServiceCreate,
             |driver, audit| {
@@ -120,7 +120,7 @@ pub async fn read(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::ServiceRead,
             |driver, audit| {
@@ -177,7 +177,7 @@ pub async fn update(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_diff(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::ServiceUpdate,
             |driver, audit| {
@@ -206,7 +206,7 @@ pub async fn delete(server: &Server, request: MethodRequest<ServiceRead>) -> Met
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         audit_result_subject(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::ServiceDelete,
             |driver, audit| {
@@ -226,7 +226,7 @@ pub async fn delete(server: &Server, request: MethodRequest<ServiceRead>) -> Met
 }
 
 fn read_inner(
-    driver: &dyn Driver,
+    driver: &Postgres,
     read: &ServiceRead,
     service_id: Option<Uuid>,
 ) -> MethodResult<Service> {

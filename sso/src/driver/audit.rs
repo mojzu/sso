@@ -1,5 +1,5 @@
 use crate::{
-    impl_enum_to_from_string, pattern::HeaderAuth, Driver, DriverResult, KeyWithValue, Service,
+    impl_enum_to_from_string, pattern::HeaderAuth, DriverResult, KeyWithValue, Postgres, Service,
     User,
 };
 use chrono::{DateTime, Utc};
@@ -350,7 +350,7 @@ impl AuditBuilder {
     /// Create audit log from parameters.
     pub fn create<T>(
         &self,
-        driver: &dyn Driver,
+        driver: &Postgres,
         type_: T,
         subject: Option<String>,
         data: Option<Value>,
@@ -368,7 +368,7 @@ impl AuditBuilder {
         driver.audit_create(&data)
     }
 
-    pub fn create2(&self, driver: &dyn Driver, create: &AuditCreate) -> DriverResult<Audit> {
+    pub fn create2(&self, driver: &Postgres, create: &AuditCreate) -> DriverResult<Audit> {
         let data = AuditCreate::new(self.meta.clone(), create.type_.clone())
             .subject(create.subject.clone())
             .data(create.data.clone())
@@ -382,7 +382,7 @@ impl AuditBuilder {
     /// Create audit log with data.
     pub fn create_data<S: Serialize>(
         &self,
-        driver: &dyn Driver,
+        driver: &Postgres,
         status_code: u16,
         subject: Option<String>,
         data: Option<S>,

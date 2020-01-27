@@ -29,7 +29,7 @@ pub async fn totp_verify(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthTotp,
             |driver, audit| {
@@ -73,7 +73,7 @@ pub async fn csrf_create(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthCsrfCreate,
             |driver, audit| {
@@ -112,7 +112,7 @@ pub async fn csrf_verify(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthCsrfVerify,
             |driver, audit| {
@@ -129,7 +129,7 @@ pub async fn csrf_verify(
 }
 
 // TODO(3,refactor): Improve code structure.
-fn api_csrf_verify(driver: &dyn Driver, service: &Service, csrf_key: &str) -> MethodResult<Csrf> {
+fn api_csrf_verify(driver: &Postgres, service: &Service, csrf_key: &str) -> MethodResult<Csrf> {
     driver
         .csrf_read(&csrf_key)
         .map_err(MethodError::BadRequest)?
@@ -142,7 +142,7 @@ fn api_csrf_verify(driver: &dyn Driver, service: &Service, csrf_key: &str) -> Me
 }
 
 fn oauth2_login(
-    driver: &dyn Driver,
+    driver: &Postgres,
     audit: &mut AuditBuilder,
     service: &Service,
     service_id: Uuid,

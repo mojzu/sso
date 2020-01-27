@@ -6,7 +6,7 @@ extern crate log;
 
 use clap::{App, Arg, SubCommand};
 use sentry::integrations::log::LoggerOptions;
-use sso::{env, Driver, DriverPostgres, DriverResult, KeyCreate, ServiceCreate};
+use sso::{env, DriverResult, KeyCreate, Postgres, ServiceCreate};
 
 const CRATE_NAME: &str = crate_name!();
 const CRATE_VERSION: &str = crate_version!();
@@ -192,10 +192,8 @@ fn main() {
     }
 }
 
-fn configure() -> DriverResult<Box<dyn Driver>> {
+fn configure() -> DriverResult<Postgres> {
     let database_url = env::string(ENV_DATABASE_URL)?;
-    let driver = DriverPostgres::initialise(&database_url, Some(1))
-        .unwrap()
-        .box_clone();
+    let driver = Postgres::initialise(&database_url, Some(1)).unwrap();
     Ok(driver)
 }

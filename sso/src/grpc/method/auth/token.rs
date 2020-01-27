@@ -22,7 +22,7 @@ pub async fn verify(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let (user, token, audit) = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthTokenVerify,
             |driver, audit| {
@@ -84,7 +84,7 @@ pub async fn refresh(
     let refresh_token_expires = server.options().refresh_token_expires();
     blocking::<_, MethodError, _>(move || {
         let (user_token, audit) = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthTokenRefresh,
             |driver, audit| {
@@ -151,7 +151,7 @@ pub async fn revoke(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let audit = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthTokenRevoke,
             |driver, audit| {
@@ -224,7 +224,7 @@ pub async fn exchange(
     let refresh_token_expires = server.options().refresh_token_expires();
     blocking::<_, MethodError, _>(move || {
         let (user_token, audit) = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthTokenExchange,
             |driver, audit| {

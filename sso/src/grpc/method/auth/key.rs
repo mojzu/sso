@@ -22,7 +22,7 @@ pub async fn verify(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let (user, key, audit) = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthKeyVerify,
             |driver, audit| {
@@ -77,7 +77,7 @@ pub async fn revoke(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let audit = audit_result(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuthKeyRevoke,
             |driver, audit| {

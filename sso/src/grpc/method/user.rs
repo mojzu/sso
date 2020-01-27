@@ -28,7 +28,7 @@ pub async fn list(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::UserList,
             |driver, audit| {
@@ -76,7 +76,7 @@ pub async fn create(
                 .map_err(MethodError::BadRequest)?;
 
         let data = audit_result_subject(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::UserCreate,
             |driver, audit| {
@@ -112,7 +112,7 @@ pub async fn read(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::UserRead,
             |driver, audit| {
@@ -150,7 +150,7 @@ pub async fn update(
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_diff(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::UserUpdate,
             |driver, audit| {
@@ -178,7 +178,7 @@ pub async fn delete(server: &Server, request: MethodRequest<UserRead>) -> Method
     let driver = server.driver();
     blocking::<_, MethodError, _>(move || {
         audit_result_subject(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::UserDelete,
             |driver, audit| {
@@ -197,7 +197,7 @@ pub async fn delete(server: &Server, request: MethodRequest<UserRead>) -> Method
     .await
 }
 
-fn read_inner(driver: &dyn Driver, read: &UserRead) -> MethodResult<User> {
+fn read_inner(driver: &Postgres, read: &UserRead) -> MethodResult<User> {
     driver
         .user_read(read)
         .map_err(MethodError::BadRequest)?

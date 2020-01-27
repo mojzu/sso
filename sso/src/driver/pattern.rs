@@ -1,7 +1,7 @@
 //! # Pattern functions.
 use crate::{
-    AuditBuilder, Driver, DriverError, DriverResult, Jwt, KeyRead, KeyType, KeyWithValue, Service,
-    ServiceRead, User, UserPasswordMeta, UserRead,
+    AuditBuilder, DriverError, DriverResult, Jwt, KeyRead, KeyType, KeyWithValue, Postgres,
+    Service, ServiceRead, User, UserPasswordMeta, UserRead,
 };
 use libreauth::oath::TOTPBuilder;
 use reqwest::Client;
@@ -72,7 +72,7 @@ pub fn totp_verify(key: &str, code: &str) -> DriverResult<()> {
 
 /// Authenticate root key.
 pub fn key_root_authenticate(
-    driver: &dyn Driver,
+    driver: &Postgres,
     audit: &mut AuditBuilder,
     key_value: Option<&String>,
 ) -> DriverResult<()> {
@@ -97,7 +97,7 @@ pub fn key_root_authenticate(
 /// If audit meta user is some, this function will also verify
 /// the user key or token to authenticate this request.
 pub fn key_service_authenticate(
-    driver: &dyn Driver,
+    driver: &Postgres,
     audit: &mut AuditBuilder,
     key_value: Option<&String>,
 ) -> DriverResult<Service> {
@@ -111,7 +111,7 @@ pub fn key_service_authenticate(
 /// If audit meta user is some, this function will also verify
 /// the user key or token to authenticate this request.
 pub fn key_authenticate(
-    driver: &dyn Driver,
+    driver: &Postgres,
     audit: &mut AuditBuilder,
     key_value: Option<&String>,
 ) -> DriverResult<Option<Service>> {
@@ -128,7 +128,7 @@ pub fn key_authenticate(
 }
 
 fn key_service_authenticate_try(
-    driver: &dyn Driver,
+    driver: &Postgres,
     audit: &mut AuditBuilder,
     key_value: Option<&String>,
 ) -> DriverResult<Service> {
@@ -147,7 +147,7 @@ fn key_service_authenticate_try(
 }
 
 fn key_service_authenticate_inner(
-    driver: &dyn Driver,
+    driver: &Postgres,
     audit: &mut AuditBuilder,
     service_id: Uuid,
 ) -> DriverResult<Service> {
@@ -160,7 +160,7 @@ fn key_service_authenticate_inner(
 }
 
 fn check_audit_user(
-    driver: &dyn Driver,
+    driver: &Postgres,
     audit: &mut AuditBuilder,
     service: &Service,
 ) -> DriverResult<()> {
@@ -195,7 +195,7 @@ fn check_audit_user(
 /// Read user by ID.
 /// Checks user is enabled, returns bad request if disabled.
 pub fn user_read_id_checked(
-    driver: &dyn Driver,
+    driver: &Postgres,
     _service_mask: Option<&Service>,
     audit: &mut AuditBuilder,
     id: Uuid,
@@ -214,7 +214,7 @@ pub fn user_read_id_checked(
 /// Unchecked read user by ID.
 /// Does not check user is enabled.
 pub fn user_read_id_unchecked(
-    driver: &dyn Driver,
+    driver: &Postgres,
     _service_mask: Option<&Service>,
     audit: &mut AuditBuilder,
     id: Uuid,
@@ -230,7 +230,7 @@ pub fn user_read_id_unchecked(
 /// Read user by email address.
 /// Also checks user is enabled, returns bad request if disabled.
 pub fn user_read_email_checked(
-    driver: &dyn Driver,
+    driver: &Postgres,
     _service_mask: Option<&Service>,
     audit: &mut AuditBuilder,
     email: &str,
@@ -249,7 +249,7 @@ pub fn user_read_email_checked(
 /// Read key by user reference and key type.
 /// Also checks key is enabled and not revoked, returns bad request if disabled.
 pub fn key_read_user_checked(
-    driver: &dyn Driver,
+    driver: &Postgres,
     service: &Service,
     audit: &mut AuditBuilder,
     user: &User,
@@ -274,7 +274,7 @@ pub fn key_read_user_checked(
 /// Unchecked read key by user reference.
 /// Does not check key is enabled or not revoked.
 pub fn key_read_user_unchecked(
-    driver: &dyn Driver,
+    driver: &Postgres,
     service: &Service,
     audit: &mut AuditBuilder,
     user: &User,
@@ -293,7 +293,7 @@ pub fn key_read_user_unchecked(
 /// Read key by user value.
 /// Also checks key is enabled and not revoked, returns bad request if disabled.
 pub fn key_read_user_value_checked<K>(
-    driver: &dyn Driver,
+    driver: &Postgres,
     service: &Service,
     audit: &mut AuditBuilder,
     key: K,
@@ -321,7 +321,7 @@ where
 /// Unchecked read key by user value.
 /// Does not check key is enabled and not revoked.
 pub fn key_read_user_value_unchecked(
-    driver: &dyn Driver,
+    driver: &Postgres,
     service: &Service,
     audit: &mut AuditBuilder,
     key: &str,

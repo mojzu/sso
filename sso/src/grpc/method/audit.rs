@@ -51,7 +51,7 @@ pub async fn list(
 
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuditList,
             |driver, audit| {
@@ -98,7 +98,7 @@ pub async fn create(
 
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuditCreate,
             |driver, audit| {
@@ -134,7 +134,7 @@ pub async fn read(
 
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuditRead,
             |driver, audit| {
@@ -173,7 +173,7 @@ pub async fn update(
 
     blocking::<_, MethodError, _>(move || {
         let data = audit_result_err(
-            driver.as_ref().as_ref(),
+            driver.as_ref(),
             audit_meta,
             AuditType::AuditUpdate,
             |driver, audit| {

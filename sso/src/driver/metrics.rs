@@ -1,4 +1,4 @@
-use crate::{Driver, DriverResult};
+use crate::{DriverResult, Postgres};
 use chrono::{DateTime, Utc};
 use prometheus::{
     Encoder, HistogramOpts, HistogramVec, IntCounterVec, Opts, Registry, TextEncoder,
@@ -72,7 +72,7 @@ impl Metrics {
         (metrics.grpc_count.clone(), metrics.grpc_latency.clone())
     }
 
-    pub fn read(driver: &dyn Driver) -> DriverResult<String> {
+    pub fn read(driver: &Postgres) -> DriverResult<String> {
         let mut metrics = METRICS.lock().unwrap();
         let audit_metrics = driver.audit_read_metrics(&metrics.audit_from, None)?;
 

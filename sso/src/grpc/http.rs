@@ -7,7 +7,7 @@ static PONG: &[u8] = b"Pong";
 
 /// HTTP server request handler for internal endpoints.
 pub async fn http_server(
-    driver: Arc<Box<dyn Driver>>,
+    driver: Arc<Postgres>,
     req: Request<Body>,
 ) -> Result<Response<Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
@@ -28,14 +28,11 @@ async fn ping(_req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
 }
 
 async fn metrics(
-    driver: Arc<Box<dyn Driver>>,
+    driver: Arc<Postgres>,
     _req: Request<Body>,
 ) -> Result<Response<Body>, hyper::Error> {
     let driver = driver.clone();
     let s =
-        blocking::<_, hyper::Error, _>(
-            move || Ok(Metrics::read(driver.as_ref().as_ref()).unwrap()),
-        )
-        .await?;
+        blocking::<_, hyper::Error, _>(move || Ok(Metrics::read(driver.as_ref()).unwrap())).await?;
     Ok(Response::new(Body::from(s)))
 }

@@ -168,13 +168,13 @@ impl MethodRequest<serde_json::Value> {
 }
 
 pub(crate) fn audit_result<F, T>(
-    driver: &dyn Driver,
+    driver: &Postgres,
     audit_meta: AuditMeta,
     audit_type: AuditType,
     f: F,
 ) -> MethodResult<T>
 where
-    F: Fn(&dyn Driver, &mut AuditBuilder) -> MethodResult<T>,
+    F: Fn(&Postgres, &mut AuditBuilder) -> MethodResult<T>,
 {
     let mut audit = AuditBuilder::new(audit_meta, audit_type);
     match f(driver, &mut audit) {
@@ -200,13 +200,13 @@ where
 }
 
 pub(crate) fn audit_result_err<F, T>(
-    driver: &dyn Driver,
+    driver: &Postgres,
     audit_meta: AuditMeta,
     audit_type: AuditType,
     f: F,
 ) -> MethodResult<T>
 where
-    F: Fn(&dyn Driver, &mut AuditBuilder) -> MethodResult<T>,
+    F: Fn(&Postgres, &mut AuditBuilder) -> MethodResult<T>,
 {
     let mut audit = AuditBuilder::new(audit_meta, audit_type);
     match f(driver, &mut audit) {
@@ -227,13 +227,13 @@ where
 }
 
 pub(crate) fn audit_result_subject<F, T>(
-    driver: &dyn Driver,
+    driver: &Postgres,
     audit_meta: AuditMeta,
     audit_type: AuditType,
     f: F,
 ) -> MethodResult<T>
 where
-    F: Fn(&dyn Driver, &mut AuditBuilder) -> MethodResult<T>,
+    F: Fn(&Postgres, &mut AuditBuilder) -> MethodResult<T>,
     T: AuditSubject,
 {
     let mut audit = AuditBuilder::new(audit_meta, audit_type);
@@ -260,13 +260,13 @@ where
 }
 
 pub(crate) fn audit_result_diff<F, T>(
-    driver: &dyn Driver,
+    driver: &Postgres,
     audit_meta: AuditMeta,
     audit_type: AuditType,
     f: F,
 ) -> MethodResult<T>
 where
-    F: Fn(&dyn Driver, &mut AuditBuilder) -> MethodResult<(T, T)>,
+    F: Fn(&Postgres, &mut AuditBuilder) -> MethodResult<(T, T)>,
     T: AuditSubject + AuditDiff,
 {
     let mut audit = AuditBuilder::new(audit_meta, audit_type);
