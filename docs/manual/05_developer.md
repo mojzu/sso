@@ -6,8 +6,6 @@ A [Docker][docker] image contains the development tools, build it with the comma
 docker build --tag "sso-build:latest" .
 ```
 
-https://github.com/flamegraph-rs/flamegraph
-
 Development tools are run with the command.
 
 ```bash
@@ -119,3 +117,5 @@ cargo install --force --path sso
 ```
 
 [To publish crate(s)][cargo-publishing].
+
+- TODO(feature): https://github.com/flamegraph-rs/flamegraph
