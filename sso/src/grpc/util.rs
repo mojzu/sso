@@ -33,6 +33,15 @@ where
         .unwrap_or_else(|e| panic!("error running async task: {:?}", e))
 }
 
+/// Run a blocking closure on threadpool from a handler method.
+pub async fn method_blocking<T, F>(f: F) -> MethodResult<T>
+where
+    F: Send + FnOnce() -> MethodResult<T> + 'static,
+    T: Send + 'static,
+{
+    blocking::<T, MethodError, _>(f).await
+}
+
 /// Method errors.
 #[derive(Debug, Fail)]
 pub enum MethodError {

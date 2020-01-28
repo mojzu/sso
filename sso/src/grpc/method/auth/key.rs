@@ -18,10 +18,10 @@ pub async fn verify(
     request: MethodRequest<pb::AuthKeyRequest>,
 ) -> MethodResult<pb::AuthKeyReply> {
     let (audit_meta, auth, req) = request.into_inner();
-
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let (user, key, audit) = audit_result_err(
+
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthKeyVerify,
@@ -57,15 +57,15 @@ pub async fn verify(
                     Ok((user, key, None))
                 }
             },
-        )?;
-        let reply = pb::AuthKeyReply {
-            user: Some(user.into()),
-            key: Some(key.into()),
-            audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|(user, key, audit)| pb::AuthKeyReply {
+        user: Some(user.into()),
+        key: Some(key.into()),
+        audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
+    })
 }
 
 pub async fn revoke(
@@ -73,10 +73,10 @@ pub async fn revoke(
     request: MethodRequest<pb::AuthKeyRequest>,
 ) -> MethodResult<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
-
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let audit = audit_result(
+
+    method_blocking(move || {
+        audit_result(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthKeyRevoke,
@@ -115,11 +115,11 @@ pub async fn revoke(
                     Ok(None)
                 }
             },
-        )?;
-        let reply = pb::AuthAuditReply {
-            audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|audit| pb::AuthAuditReply {
+        audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
+    })
 }

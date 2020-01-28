@@ -8,20 +8,20 @@ pub async fn oauth2_url(
     request: MethodRequest<()>,
 ) -> MethodResult<pb::AuthOauth2UrlReply> {
     let (audit_meta, auth, _) = request.into_inner();
-
     let driver = server.driver();
     let args = server.options().microsoft_oauth2_args();
-    blocking::<_, MethodError, _>(move || {
-        let url = audit_result_err(
+
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthMicrosoftOauth2Url,
             |driver, audit| provider_microsoft::oauth2_url(driver, audit, auth.as_ref(), &args),
-        )?;
-        let reply = pb::AuthOauth2UrlReply { url };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|url| pb::AuthOauth2UrlReply { url })
 }
 
 pub async fn oauth2_callback(
@@ -29,12 +29,12 @@ pub async fn oauth2_callback(
     request: MethodRequest<pb::AuthOauth2CallbackRequest>,
 ) -> MethodResult<pb::AuthTokenReply> {
     let (audit_meta, auth, req) = request.into_inner();
-
     let driver = server.driver();
     let client = server.client();
     let args = server.options().microsoft_oauth2_args();
-    blocking::<_, MethodError, _>(move || {
-        let user_token = audit_result_err(
+
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthMicrosoftOauth2Callback,
@@ -48,16 +48,16 @@ pub async fn oauth2_callback(
                     client.as_ref(),
                 )
             },
-        )?;
-        let reply = pb::AuthTokenReply {
-            user: Some(user_token.user.clone().into()),
-            access: Some(user_token.access_token()),
-            refresh: Some(user_token.refresh_token()),
-            audit: None,
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|user_token| pb::AuthTokenReply {
+        user: Some(user_token.user.clone().into()),
+        access: Some(user_token.access_token()),
+        refresh: Some(user_token.refresh_token()),
+        audit: None,
+    })
 }
 
 mod provider_microsoft {

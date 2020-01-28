@@ -49,7 +49,7 @@ pub async fn list(
     let (audit_meta, auth, req) = request.into_inner();
     let driver = server.driver();
 
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         let data = audit_result_err(
             driver.as_ref(),
             audit_meta,
@@ -63,13 +63,13 @@ pub async fn list(
                     .map_err(MethodError::BadRequest)
             },
         )?;
-        let reply = pb::AuditListReply {
-            meta: Some(req.into()),
-            data: data.into_iter().map::<pb::Audit, _>(|x| x.into()).collect(),
-        };
-        Ok(reply)
+        Ok((data, req))
     })
     .await
+    .map(|(data, req)| pb::AuditListReply {
+        meta: Some(req.into()),
+        data: data.into_iter().map::<pb::Audit, _>(|x| x.into()).collect(),
+    })
 }
 
 impl Validate for pb::AuditCreateRequest {
@@ -96,8 +96,8 @@ pub async fn create(
         .user_key_id(string_opt_to_uuid_opt(req.user_key_id));
     let driver = server.driver();
 
-    blocking::<_, MethodError, _>(move || {
-        let data = audit_result_err(
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuditCreate,
@@ -107,13 +107,13 @@ pub async fn create(
 
                 audit.create2(driver, &req).map_err(MethodError::BadRequest)
             },
-        )?;
-        let reply = pb::AuditReadReply {
-            data: Some(data.into()),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|data| pb::AuditReadReply {
+        data: Some(data.into()),
+    })
 }
 
 impl Validate for pb::AuditReadRequest {
@@ -132,8 +132,8 @@ pub async fn read(
     let (audit_meta, auth, req) = request.into_inner();
     let driver = server.driver();
 
-    blocking::<_, MethodError, _>(move || {
-        let data = audit_result_err(
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuditRead,
@@ -146,13 +146,13 @@ pub async fn read(
                     .map_err(MethodError::BadRequest)?
                     .ok_or_else(|| MethodError::NotFound(DriverError::AuditNotFound))
             },
-        )?;
-        let reply = pb::AuditReadReply {
-            data: Some(data.into()),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|data| pb::AuditReadReply {
+        data: Some(data.into()),
+    })
 }
 
 impl Validate for pb::AuditUpdateRequest {
@@ -171,8 +171,8 @@ pub async fn update(
     let (audit_meta, auth, req) = request.into_inner();
     let driver = server.driver();
 
-    blocking::<_, MethodError, _>(move || {
-        let data = audit_result_err(
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuditUpdate,
@@ -184,11 +184,11 @@ pub async fn update(
                     .audit_update(&req, service.map(|x| x.id))
                     .map_err(MethodError::BadRequest)
             },
-        )?;
-        let reply = pb::AuditReadReply {
-            data: Some(data.into()),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|data| pb::AuditReadReply {
+        data: Some(data.into()),
+    })
 }
