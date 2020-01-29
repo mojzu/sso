@@ -20,8 +20,8 @@ pub async fn verify(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let (user, token, audit) = audit_result_err(
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthTokenVerify,
@@ -62,15 +62,15 @@ pub async fn verify(
                     Ok((user, user_token, None))
                 }
             },
-        )?;
-        let reply = pb::AuthTokenVerifyReply {
-            user: Some(user.into()),
-            access: Some(token.into()),
-            audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|(user, token, audit)| pb::AuthTokenVerifyReply {
+        user: Some(user.into()),
+        access: Some(token.into()),
+        audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
+    })
 }
 
 pub async fn refresh(
@@ -82,8 +82,8 @@ pub async fn refresh(
     let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
     let refresh_token_expires = server.options().refresh_token_expires();
-    blocking::<_, MethodError, _>(move || {
-        let (user_token, audit) = audit_result_err(
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthTokenRefresh,
@@ -130,16 +130,16 @@ pub async fn refresh(
                     Ok((user_token, None))
                 }
             },
-        )?;
-        let reply = pb::AuthTokenReply {
-            user: Some(user_token.user.clone().into()),
-            access: Some(user_token.access_token()),
-            refresh: Some(user_token.refresh_token()),
-            audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|(user_token, audit)| pb::AuthTokenReply {
+        user: Some(user_token.user.clone().into()),
+        access: Some(user_token.access_token()),
+        refresh: Some(user_token.refresh_token()),
+        audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
+    })
 }
 
 pub async fn revoke(
@@ -149,8 +149,8 @@ pub async fn revoke(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let audit = audit_result(
+    method_blocking(move || {
+        audit_result(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthTokenRevoke,
@@ -204,13 +204,13 @@ pub async fn revoke(
                     Ok(None)
                 }
             },
-        )?;
-        let reply = pb::AuthAuditReply {
-            audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|audit| pb::AuthAuditReply {
+        audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
+    })
 }
 
 pub async fn exchange(
@@ -222,8 +222,8 @@ pub async fn exchange(
     let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
     let refresh_token_expires = server.options().refresh_token_expires();
-    blocking::<_, MethodError, _>(move || {
-        let (user_token, audit) = audit_result_err(
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthTokenExchange,
@@ -292,14 +292,14 @@ pub async fn exchange(
                     Ok((user_token, None))
                 }
             },
-        )?;
-        let reply = pb::AuthTokenReply {
-            user: Some(user_token.user.clone().into()),
-            access: Some(user_token.access_token()),
-            refresh: Some(user_token.refresh_token()),
-            audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|(user_token, audit)| pb::AuthTokenReply {
+        user: Some(user_token.user.clone().into()),
+        access: Some(user_token.access_token()),
+        refresh: Some(user_token.refresh_token()),
+        audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
+    })
 }

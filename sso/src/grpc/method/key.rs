@@ -25,7 +25,7 @@ pub async fn list(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         let data = audit_result_err(
             driver.as_ref(),
             audit_meta,
@@ -39,13 +39,13 @@ pub async fn list(
                     .map_err(MethodError::BadRequest)
             },
         )?;
-        let reply = pb::KeyListReply {
-            meta: Some(req.into()),
-            data: data.into_iter().map::<pb::Key, _>(|x| x.into()).collect(),
-        };
-        Ok(reply)
+        Ok((req, data))
     })
     .await
+    .map(|(req, data)| pb::KeyListReply {
+        meta: Some(req.into()),
+        data: data.into_iter().map::<pb::Key, _>(|x| x.into()).collect(),
+    })
 }
 
 impl Validate for pb::KeyCreateRequest {
@@ -66,8 +66,8 @@ pub async fn create(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let data = audit_result_subject(
+    method_blocking(move || {
+        audit_result_subject(
             driver.as_ref(),
             audit_meta,
             AuditType::KeyCreate,
@@ -118,13 +118,13 @@ pub async fn create(
                     }
                 }
             },
-        )?;
-        let reply = pb::KeyCreateReply {
-            data: Some(data.into()),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|data| pb::KeyCreateReply {
+        data: Some(data.into()),
+    })
 }
 
 impl Validate for pb::KeyReadRequest {
@@ -143,8 +143,8 @@ pub async fn read(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let data = audit_result_err(
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::KeyRead,
@@ -154,13 +154,13 @@ pub async fn read(
 
                 read_inner(driver, &req, service.as_ref())
             },
-        )?;
-        let reply = pb::KeyReadReply {
-            data: Some(data.into()),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|data| pb::KeyReadReply {
+        data: Some(data.into()),
+    })
 }
 
 impl Validate for pb::KeyUpdateRequest {
@@ -179,8 +179,8 @@ pub async fn update(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let data = audit_result_diff(
+    method_blocking(move || {
+        audit_result_diff(
             driver.as_ref(),
             audit_meta,
             AuditType::KeyUpdate,
@@ -200,20 +200,20 @@ pub async fn update(
                     .map_err(MethodError::BadRequest)?;
                 Ok((previous_key, key))
             },
-        )?;
-        let reply = pb::KeyReadReply {
-            data: Some(data.into()),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|data| pb::KeyReadReply {
+        data: Some(data.into()),
+    })
 }
 
 pub async fn delete(server: &Server, request: MethodRequest<KeyRead>) -> MethodResult<()> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         audit_result_subject(
             driver.as_ref(),
             audit_meta,
@@ -228,10 +228,11 @@ pub async fn delete(server: &Server, request: MethodRequest<KeyRead>) -> MethodR
                     .map_err(MethodError::BadRequest)
                     .map(|_| key)
             },
-        )?;
-        Ok(())
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|_data| ())
 }
 
 fn read_inner(driver: &Postgres, read: &KeyRead, service: Option<&Service>) -> MethodResult<Key> {

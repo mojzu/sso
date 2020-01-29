@@ -33,13 +33,22 @@ where
         .unwrap_or_else(|e| panic!("error running async task: {:?}", e))
 }
 
-/// Run a blocking closure on threadpool from a handler method.
+/// Run a blocking closure on threadpool from a gRPC handler method.
 pub async fn method_blocking<T, F>(f: F) -> MethodResult<T>
 where
     F: Send + FnOnce() -> MethodResult<T> + 'static,
     T: Send + 'static,
 {
     blocking::<T, MethodError, _>(f).await
+}
+
+/// Run a blocking closure on threadpool from a hyper handler method.
+pub async fn hyper_blocking<T, F>(f: F) -> Result<T, hyper::Error>
+where
+    F: Send + FnOnce() -> Result<T, hyper::Error> + 'static,
+    T: Send + 'static,
+{
+    blocking::<T, hyper::Error, _>(f).await
 }
 
 /// Method errors.

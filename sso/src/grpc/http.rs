@@ -32,7 +32,6 @@ async fn metrics(
     _req: Request<Body>,
 ) -> Result<Response<Body>, hyper::Error> {
     let driver = driver.clone();
-    let s =
-        blocking::<_, hyper::Error, _>(move || Ok(Metrics::read(driver.as_ref()).unwrap())).await?;
+    let s = hyper_blocking(move || Ok(Metrics::read(driver.as_ref()).unwrap())).await?;
     Ok(Response::new(Body::from(s)))
 }

@@ -25,7 +25,7 @@ pub async fn login(
     let access_token_expires = server.options().access_token_expires();
     let refresh_token_expires = server.options().refresh_token_expires();
 
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         let password_meta = pattern::password_meta(
             client.as_ref(),
             password_pwned_enabled,
@@ -72,15 +72,15 @@ pub async fn login(
                 .map_err(MethodError::BadRequest)
             },
         )?;
-        let reply = pb::AuthLoginReply {
-            meta: Some(password_meta.into()),
-            user: Some(user_token.user.clone().into()),
-            access: Some(user_token.access_token()),
-            refresh: Some(user_token.refresh_token()),
-        };
-        Ok(reply)
+        Ok((password_meta, user_token))
     })
     .await
+    .map(|(password_meta, user_token)| pb::AuthLoginReply {
+        meta: Some(password_meta.into()),
+        user: Some(user_token.user.clone().into()),
+        access: Some(user_token.access_token()),
+        refresh: Some(user_token.refresh_token()),
+    })
 }
 
 impl Validate for pb::AuthRegisterRequest {
@@ -103,7 +103,7 @@ pub async fn register(
     let access_token_expires = server.options().access_token_expires();
     let email = server.smtp_email();
 
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         let template = audit_result(
             driver.as_ref(),
             audit_meta,
@@ -202,7 +202,7 @@ pub async fn register_confirm(
     let password_pwned_enabled = server.options().password_pwned_enabled();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         let password_meta = pattern::password_meta(
             client.as_ref(),
             password_pwned_enabled,
@@ -260,12 +260,12 @@ pub async fn register_confirm(
         email(template)
             .map_err::<DriverError, _>(Into::into)
             .map_err(MethodError::BadRequest)?;
-
-        Ok(pb::AuthPasswordMetaReply {
-            meta: Some(password_meta.into()),
-        })
+        Ok(password_meta)
     })
     .await
+    .map(|password_meta| pb::AuthPasswordMetaReply {
+        meta: Some(password_meta.into()),
+    })
 }
 
 pub async fn register_revoke(
@@ -275,19 +275,19 @@ pub async fn register_revoke(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let audit = audit_result(
+    method_blocking(move || {
+        audit_result(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalRegisterRevoke,
             |driver, audit| revoke_inner(driver, audit, auth.as_ref(), &req),
-        )?;
-        let reply = pb::AuthAuditReply {
-            audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|audit| pb::AuthAuditReply {
+        audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
+    })
 }
 
 impl Validate for pb::AuthResetPasswordRequest {
@@ -303,11 +303,11 @@ pub async fn reset_password(
     request: MethodRequest<pb::AuthResetPasswordRequest>,
 ) -> MethodResult<()> {
     let (audit_meta, auth, req) = request.into_inner();
-
     let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
     let email = server.smtp_email();
-    blocking::<_, MethodError, _>(move || {
+
+    method_blocking(move || {
         let template = audit_result(
             driver.as_ref(),
             audit_meta,
@@ -375,7 +375,7 @@ pub async fn reset_password_confirm(
     let password_pwned_enabled = server.options().password_pwned_enabled();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         let password_meta = pattern::password_meta(
             client.as_ref(),
             password_pwned_enabled,
@@ -436,12 +436,12 @@ pub async fn reset_password_confirm(
         email(template)
             .map_err::<DriverError, _>(Into::into)
             .map_err(MethodError::BadRequest)?;
-
-        Ok(pb::AuthPasswordMetaReply {
-            meta: Some(password_meta.into()),
-        })
+        Ok(password_meta)
     })
     .await
+    .map(|password_meta| pb::AuthPasswordMetaReply {
+        meta: Some(password_meta.into()),
+    })
 }
 
 pub async fn reset_password_revoke(
@@ -451,19 +451,19 @@ pub async fn reset_password_revoke(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let audit = audit_result(
+    method_blocking(move || {
+        audit_result(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalResetPasswordRevoke,
             |driver, audit| revoke_inner(driver, audit, auth.as_ref(), &req),
-        )?;
-        let reply = pb::AuthAuditReply {
-            audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|audit| pb::AuthAuditReply {
+        audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
+    })
 }
 
 impl Validate for pb::AuthUpdateEmailRequest {
@@ -485,7 +485,7 @@ pub async fn update_email(
     let driver = server.driver();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         let template = audit_result(
             driver.as_ref(),
             audit_meta,
@@ -541,19 +541,19 @@ pub async fn update_email_revoke(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let audit = audit_result(
+    method_blocking(move || {
+        audit_result(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalUpdateEmailRevoke,
             |driver, audit| revoke_inner(driver, audit, auth.as_ref(), &req),
-        )?;
-        let reply = pb::AuthAuditReply {
-            audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|audit| pb::AuthAuditReply {
+        audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
+    })
 }
 
 impl Validate for pb::AuthUpdatePasswordRequest {
@@ -577,7 +577,7 @@ pub async fn update_password(
     let password_pwned_enabled = server.options().password_pwned_enabled();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         let password_meta = pattern::password_meta(
             client.as_ref(),
             password_pwned_enabled,
@@ -624,11 +624,12 @@ pub async fn update_password(
         email(template)
             .map_err::<DriverError, _>(Into::into)
             .map_err(MethodError::BadRequest)?;
-        Ok(pb::AuthPasswordMetaReply {
-            meta: Some(password_meta.into()),
-        })
+        Ok(password_meta)
     })
     .await
+    .map(|password_meta| pb::AuthPasswordMetaReply {
+        meta: Some(password_meta.into()),
+    })
 }
 
 pub async fn update_password_revoke(
@@ -638,19 +639,19 @@ pub async fn update_password_revoke(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let audit = audit_result(
+    method_blocking(move || {
+        audit_result(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalUpdatePasswordRevoke,
             |driver, audit| revoke_inner(driver, audit, auth.as_ref(), &req),
-        )?;
-        let reply = pb::AuthAuditReply {
-            audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|audit| pb::AuthAuditReply {
+        audit: uuid_opt_to_string_opt(audit.map(|x| x.id)),
+    })
 }
 
 fn revoke_inner(

@@ -27,7 +27,7 @@ pub async fn totp_verify(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
@@ -49,11 +49,11 @@ pub async fn totp_verify(
                 // Verify TOTP code.
                 pattern::totp_verify(&key.value, &req.totp).map_err(MethodError::BadRequest)
             },
-        )?;
-        let reply = pb::AuthAuditReply { audit: None };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|_data| pb::AuthAuditReply { audit: None })
 }
 
 impl Validate for pb::AuthCsrfCreateRequest {
@@ -71,8 +71,8 @@ pub async fn csrf_create(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let data = audit_result_err(
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthCsrfCreate,
@@ -85,13 +85,13 @@ pub async fn csrf_create(
                     .csrf_create(&CsrfCreate::generate(expires_s, service.id))
                     .map_err(MethodError::BadRequest)
             },
-        )?;
-        let reply = pb::AuthCsrfCreateReply {
-            csrf: Some(data.into()),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|data| pb::AuthCsrfCreateReply {
+        csrf: Some(data.into()),
+    })
 }
 
 impl Validate for pb::AuthCsrfVerifyRequest {
@@ -110,7 +110,7 @@ pub async fn csrf_verify(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
@@ -121,11 +121,11 @@ pub async fn csrf_verify(
 
                 api_csrf_verify(driver, &service, &req.csrf)
             },
-        )?;
-        let reply = pb::AuthAuditReply { audit: None };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|_data| pb::AuthAuditReply { audit: None })
 }
 
 // TODO(3,refactor): Improve code structure.

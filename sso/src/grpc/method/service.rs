@@ -23,7 +23,7 @@ pub async fn list(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         let data = audit_result_err(
             driver.as_ref(),
             audit_meta,
@@ -35,16 +35,16 @@ pub async fn list(
                 driver.service_list(&req).map_err(MethodError::BadRequest)
             },
         )?;
-        let reply = pb::ServiceListReply {
-            meta: Some(req.into()),
-            data: data
-                .into_iter()
-                .map::<pb::Service, _>(|x| x.into())
-                .collect(),
-        };
-        Ok(reply)
+        Ok((req, data))
     })
     .await
+    .map(|(req, data)| pb::ServiceListReply {
+        meta: Some(req.into()),
+        data: data
+            .into_iter()
+            .map::<pb::Service, _>(|x| x.into())
+            .collect(),
+    })
 }
 
 impl Validate for pb::ServiceCreateRequest {
@@ -83,8 +83,8 @@ pub async fn create(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let data = audit_result_subject(
+    method_blocking(move || {
+        audit_result_subject(
             driver.as_ref(),
             audit_meta,
             AuditType::ServiceCreate,
@@ -94,13 +94,13 @@ pub async fn create(
 
                 driver.service_create(&req).map_err(MethodError::BadRequest)
             },
-        )?;
-        let reply = pb::ServiceReadReply {
-            data: Some(data.into()),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|data| pb::ServiceReadReply {
+        data: Some(data.into()),
+    })
 }
 
 impl Validate for pb::ServiceReadRequest {
@@ -118,8 +118,8 @@ pub async fn read(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let data = audit_result_err(
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::ServiceRead,
@@ -129,13 +129,13 @@ pub async fn read(
 
                 read_inner(driver, &req, service.map(|x| x.id))
             },
-        )?;
-        let reply = pb::ServiceReadReply {
-            data: Some(data.into()),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|data| pb::ServiceReadReply {
+        data: Some(data.into()),
+    })
 }
 
 impl Validate for pb::ServiceUpdateRequest {
@@ -175,8 +175,8 @@ pub async fn update(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let data = audit_result_diff(
+    method_blocking(move || {
+        audit_result_diff(
             driver.as_ref(),
             audit_meta,
             AuditType::ServiceUpdate,
@@ -191,20 +191,20 @@ pub async fn update(
                     .map_err(MethodError::BadRequest)?;
                 Ok((previous_service, service))
             },
-        )?;
-        let reply = pb::ServiceReadReply {
-            data: Some(data.into()),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|data| pb::ServiceReadReply {
+        data: Some(data.into()),
+    })
 }
 
 pub async fn delete(server: &Server, request: MethodRequest<ServiceRead>) -> MethodResult<()> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         audit_result_subject(
             driver.as_ref(),
             audit_meta,
@@ -219,10 +219,11 @@ pub async fn delete(server: &Server, request: MethodRequest<ServiceRead>) -> Met
                     .map_err(MethodError::BadRequest)
                     .map(|_| service)
             },
-        )?;
-        Ok(())
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|_data| ())
 }
 
 fn read_inner(

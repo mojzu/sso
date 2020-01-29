@@ -26,7 +26,7 @@ pub async fn list(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         let data = audit_result_err(
             driver.as_ref(),
             audit_meta,
@@ -38,13 +38,13 @@ pub async fn list(
                 driver.user_list(&req).map_err(MethodError::BadRequest)
             },
         )?;
-        let reply = pb::UserListReply {
-            meta: Some(req.into()),
-            data: data.into_iter().map::<pb::User, _>(|x| x.into()).collect(),
-        };
-        Ok(reply)
+        Ok((req, data))
     })
     .await
+    .map(|(req, data)| pb::UserListReply {
+        meta: Some(req.into()),
+        data: data.into_iter().map::<pb::User, _>(|x| x.into()).collect(),
+    })
 }
 
 impl Validate for pb::UserCreateRequest {
@@ -70,7 +70,7 @@ pub async fn create(
     let driver = server.driver();
     let client = server.client();
     let password_pwned_enabled = server.options().password_pwned_enabled();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         let password_meta =
             pattern::password_meta(client.as_ref(), password_pwned_enabled, password)
                 .map_err(MethodError::BadRequest)?;
@@ -86,13 +86,13 @@ pub async fn create(
                 driver.user_create(&req).map_err(MethodError::BadRequest)
             },
         )?;
-        let reply = pb::UserCreateReply {
-            meta: Some(password_meta.into()),
-            data: Some(data.into()),
-        };
-        Ok(reply)
+        Ok((password_meta, data))
     })
     .await
+    .map(|(password_meta, data)| pb::UserCreateReply {
+        meta: Some(password_meta.into()),
+        data: Some(data.into()),
+    })
 }
 
 impl Validate for pb::UserReadRequest {
@@ -110,8 +110,8 @@ pub async fn read(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let data = audit_result_err(
+    method_blocking(move || {
+        audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::UserRead,
@@ -121,13 +121,13 @@ pub async fn read(
 
                 read_inner(driver, &req)
             },
-        )?;
-        let reply = pb::UserReadReply {
-            data: Some(data.into()),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|data| pb::UserReadReply {
+        data: Some(data.into()),
+    })
 }
 
 impl Validate for pb::UserUpdateRequest {
@@ -148,8 +148,8 @@ pub async fn update(
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
-        let data = audit_result_diff(
+    method_blocking(move || {
+        audit_result_diff(
             driver.as_ref(),
             audit_meta,
             AuditType::UserUpdate,
@@ -163,20 +163,20 @@ pub async fn update(
                 let user = driver.user_update(&req).map_err(MethodError::BadRequest)?;
                 Ok((previous_user, user))
             },
-        )?;
-        let reply = pb::UserReadReply {
-            data: Some(data.into()),
-        };
-        Ok(reply)
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|data| pb::UserReadReply {
+        data: Some(data.into()),
+    })
 }
 
 pub async fn delete(server: &Server, request: MethodRequest<UserRead>) -> MethodResult<()> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    blocking::<_, MethodError, _>(move || {
+    method_blocking(move || {
         audit_result_subject(
             driver.as_ref(),
             audit_meta,
@@ -191,10 +191,11 @@ pub async fn delete(server: &Server, request: MethodRequest<UserRead>) -> Method
                     .map_err(MethodError::BadRequest)
                     .map(|_| user)
             },
-        )?;
-        Ok(())
+        )
+        .map_err(Into::into)
     })
     .await
+    .map(|_data| ())
 }
 
 fn read_inner(driver: &Postgres, read: &UserRead) -> MethodResult<User> {
