@@ -1,3 +1,6 @@
+# ```shell
+# docker build --tag "sso-build:latest" .
+# ```
 FROM debian:10.2
 ENV DEBIAN_FRONTEND="noninteractive"
 
