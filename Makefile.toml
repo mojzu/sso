@@ -34,20 +34,20 @@ script = [
 workspace = false
 script = [
     "(cd sso && cargo build)",
-    "/sso/target/debug/sso-cli ${@}"
+    "/build/target/debug/sso-cli ${@}"
 ]
 
 [tasks.sso-grpc]
 workspace = false
 script = [
     "(cd sso && cargo build)",
-    "/sso/target/debug/sso-grpc"
+    "/build/target/debug/sso-grpc"
 ]
 
 [tasks.sso-openapi]
 workspace = false
 script = [
-    "/sso/sso_openapi/sso-openapi"
+    "/build/sso_openapi/sso-openapi"
 ]
 dependencies = ["openapi-bin"]
 
