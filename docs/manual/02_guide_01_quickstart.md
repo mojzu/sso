@@ -14,10 +14,11 @@ Build the `sso/build` [Docker][docker] image.
 docker build --tag "sso/build:latest" .
 ```
 
-Build [Docker Compose][docker-compose] service images.
+Build [Docker Compose][docker-compose] service images and create network.
 
 ```bash
 docker-compose build
+docker network create compose
 ```
 
 Start services.
