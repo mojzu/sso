@@ -1,3 +1,12 @@
+# ```shell
+# # Build all services.
+# docker-compose build
+# # Start services.
+# docker-compose up postgres sso-grpc sso-openapi sso-nginx
+# # Stop/destroy services.
+# docker-compose stop
+# docker-compose destroy
+# ```
 version: "3"
 
 services:
@@ -6,7 +15,7 @@ services:
   # <https://www.timescale.com/>
   postgres:
     build: docker/postgres
-    image: sso_postgres:latest
+    image: sso/postgres:latest
     restart: always
     environment:
       POSTGRES_USER: guest
@@ -18,19 +27,21 @@ services:
   # <https://prometheus.io/>
   prometheus:
     build: docker/prometheus
-    image: sso_prometheus:latest
+    image: sso/prometheus:latest
     restart: always
     ports:
       - "9090:9090"
 
   # Sso gRPC service.
-  sso_grpc:
-    build: sso
-    image: sso_grpc:latest
+  sso-grpc:
+    build: docker/sso-grpc
+    image: sso/grpc:latest
     depends_on:
       - postgres
     restart: always
     environment:
+      RUST_BACKTRACE: "1"
+      RUST_LOG: "info"
       # Database connection.
       SSO_DATABASE_URL: "postgres://guest:guest@postgres:5432/sso"
       SSO_DATABASE_CONNECTIONS: "10"
@@ -44,12 +55,26 @@ services:
       - "7043:7043"
 
   # Sso OpenAPI gateway service.
-  sso_openapi:
-    build: sso_openapi
-    image: sso_openapi:latest
+  sso-openapi:
+    build: docker/sso-openapi
+    image: sso/openapi:latest
     restart: always
     environment:
       # gRPC server URL.
-      SSO_OPENAPI_GRPC_URL: "sso_grpc:7042"
+      SSO_OPENAPI_GRPC_URL: "sso-grpc:7042"
     ports:
       - "8042:8042"
+
+  # Sso nginx service.
+  # <https://www.nginx.com/>
+  sso-nginx:
+    build: docker/sso-nginx
+    image: sso/nginx:latest
+    restart: always
+    ports:
+      - "8080:80"
+
+networks:
+  default:
+    external:
+      name: compose

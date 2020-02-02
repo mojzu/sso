@@ -16,4 +16,4 @@ scrape_configs:
 
   - job_name: "sso"
     static_configs:
-      - targets: ["sso_grpc:7043"]
+      - targets: ["sso-grpc:7043"]

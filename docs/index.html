@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="Sam Ward" />
-  <title>sso 0.9.0</title>
+  <title>sso 0.10.0</title>
   <style>
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
@@ -342,7 +342,7 @@ font-size: 16px;
 <div id="toc">
 <div class="toc">
 <header id="title-block-header">
-<h1 class="title">sso 0.9.0</h1>
+<h1 class="title">sso 0.10.0</h1>
 <p class="author">Sam Ward</p>
 </header>
 <nav id="TOC" role="doc-toc">
@@ -527,15 +527,15 @@ font-size: 16px;
 <li><a href="https://docs.docker.com/install/linux/docker-ce/ubuntu/">Docker Engine (Ubuntu)</a></li>
 <li><a href="https://docs.docker.com/compose/install/">Docker Compose</a></li>
 </ul>
-<p>Build the <code>sso-build</code> <a href="https://docs.docker.com/install/">Docker</a> image.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso-build:latest&quot;</span> .</span></code></pre></div>
+<p>Build the <code>sso/build</code> <a href="https://docs.docker.com/install/">Docker</a> image.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso/build:latest&quot;</span> .</span></code></pre></div>
 <p>Build <a href="https://docs.docker.com/compose/">Docker Compose</a> service images.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1"></a><span class="ex">docker-compose</span> build</span></code></pre></div>
 <p>Start services.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="ex">docker-compose</span> up</span></code></pre></div>
 <p>If successful <code>sso-grpc</code> is now available at <code>localhost:7042</code>, and <code>sso-openapi</code> is available at <code>localhost:8042</code>.</p>
 <p>The following guides depend on the <code>sso-cli</code> command, it can be found in the <code>sso_grpc</code> container with the command.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="ex">docker</span> exec -it sso_sso_grpc_1 /bin/bash</span>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="ex">docker</span> exec -it sso_sso-grpc_1 /bin/bash</span>
 <span id="cb4-2"><a href="#cb4-2"></a><span class="co"># root:/# sso-cli --help</span></span></code></pre></div>
 </section>
 <section id="deployment" data-number="2.2">
@@ -747,7 +747,7 @@ font-size: 16px;
 <section id="exchange-token" data-number="2.8">
 <h2 data-number="2.8"><span class="header-section-number">2.8</span> Exchange Token</h2>
 <ul>
-<li>TODO(docs): How to exchange refresh tokens for different services.</li>
+<li>TODO(1,docs): How to exchange refresh tokens for different services.</li>
 </ul>
 </section>
 <section id="api-key" data-number="2.9">
@@ -1263,7 +1263,7 @@ font-size: 16px;
 <h3 data-number="4.3.8"><span class="header-section-number">4.3.8</span> 1.4.4</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
-<li>TODO(refactor3): Service key authentication mechanism code is split across files, cleaner code.</li>
+<li>TODO(3,refactor): Service key authentication mechanism code is split across files, cleaner code.</li>
 </ul>
 </section>
 <section id="section-18" data-number="4.3.9">
@@ -1339,7 +1339,7 @@ font-size: 16px;
 <li>Stdout/stderr logging is not consistent.</li>
 <li>Audit logs are saved to table, not transmitted to a remote system.</li>
 <li>Stdout/stderr logging is not transmitted to a remote system,</li>
-<li>TODO(feature): Option to transmit audit logs, stdout/stderr to external service(s).</li>
+<li>TODO(1,refactor): Option to transmit audit logs, stdout/stderr to fluentd.</li>
 </ul>
 </section>
 <section id="section-28" data-number="4.3.19">
@@ -1354,7 +1354,7 @@ font-size: 16px;
 <ul>
 <li>Connection to database, other services must be encrypted.</li>
 <li>TODO(docs): Mutual TLS encryption/authentication for postgres connection.</li>
-<li>TODO(refactor3): Dependency updates, blocked on <code>jsonwebtoken</code>.</li>
+<li>TODO(3,refactor): Dependency updates, blocked on <code>jsonwebtoken</code>.</li>
 </ul>
 </section>
 <section id="section-30" data-number="4.3.21">
@@ -1435,6 +1435,9 @@ font-size: 16px;
 <p>Install crate locally.</p>
 <div class="sourceCode" id="cb73"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb73-1"><a href="#cb73-1"></a><span class="ex">cargo</span> install --force --path sso</span></code></pre></div>
 <p><a href="https://doc.rust-lang.org/cargo/reference/publishing.html">To publish crate(s)</a>.</p>
+<ul>
+<li>TODO(feature): https://github.com/flamegraph-rs/flamegraph</li>
+</ul>
 </section>
 </div>
 </div>

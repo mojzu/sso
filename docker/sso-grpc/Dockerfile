@@ -1,7 +1,6 @@
-FROM sso-build:latest as build
+FROM sso/build:latest as build
 
-# Copy files and build binary.
-ADD . /sso/sso
+# Build binary.
 RUN cargo make release;
 
 FROM debian:10.2
@@ -20,8 +19,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*;
 
 # Copy binaries.
-COPY --from=build /sso/target/release/sso-grpc /usr/local/bin/sso-grpc
-COPY --from=build /sso/target/release/sso-cli /usr/local/bin/sso-cli
+COPY --from=build /build/target/release/sso-grpc /usr/local/bin/sso-grpc
+COPY --from=build /build/target/release/sso-cli /usr/local/bin/sso-cli
 RUN chmod +x /usr/local/bin/sso-grpc /usr/local/bin/sso-cli
 
 ENTRYPOINT ["sso-grpc"]

@@ -1,7 +1,6 @@
-FROM sso-build:latest as build
+FROM sso/build:latest as build
 
-# Copy files and build binary.
-ADD . /sso/sso_openapi
+# Build binary.
 RUN cargo make openapi-bin;
 
 FROM debian:10.2
@@ -11,10 +10,10 @@ ENV DEBIAN_FRONTEND="noninteractive"
 EXPOSE 8042
 
 # Copy and start server binary.
-COPY --from=build /sso/sso_openapi/sso-openapi .
+COPY --from=build /build/sso_openapi/sso-openapi .
 
 # Copy binaries.
-COPY --from=build /sso/sso_openapi/sso-openapi /usr/local/bin/sso-openapi
+COPY --from=build /build/sso_openapi/sso-openapi /usr/local/bin/sso-openapi
 RUN chmod +x /usr/local/bin/sso-openapi
 
 ENTRYPOINT ["sso-openapi"]
