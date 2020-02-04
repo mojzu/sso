@@ -1,4 +1,4 @@
-# ```shell
+# ```bash
 # # Build image.
 # docker build --tag "sso/build:latest" .
 # # Create network.

@@ -1,4 +1,4 @@
-# ```shell
+# ```bash
 # # Build all services.
 # docker-compose build
 # # Start services.
