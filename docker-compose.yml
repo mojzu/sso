@@ -10,9 +10,8 @@
 version: "3"
 
 services:
-  # PostgreSQL with TimescaleDB extension service.
+  # PostgreSQL service.
   # <https://www.postgresql.org/>
-  # <https://www.timescale.com/>
   postgres:
     build: docker/postgres
     image: sso/postgres:latest

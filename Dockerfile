@@ -116,7 +116,7 @@ ENV SSO_PASSWORD_PWNED="true"
 ENV SSO_OPENAPI_GRPC_URL="sso-grpc:7042"
 # Integration test variables.
 ENV SSO_TEST_URL="http://sso-grpc:7042" \
-    SSO_TEST_KEY="TCE67KTNSWVMQQCIJ4EDSA6GAM4NBPE2IU"
+    SSO_TEST_KEY="AADW24BM66GYAVOKAS4BJASSYXGUDTXLQY"
 
 # Copy project files and set working directory.
 # These are required for docker-compose service builds.

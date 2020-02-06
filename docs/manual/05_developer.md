@@ -6,25 +6,41 @@ A [Docker][docker] image contains the development tools, build it with the comma
 docker build --tag "sso-build:latest" .
 ```
 
+Create a network for containers.
+
+```bash
+docker network create compose
+```
+
 Development tools are run with the command.
 
 ```bash
-docker run --rm --user $(id -u):$(id -g) --network host -v "$(pwd):/sso" -t sso-build:latest $ARGS
+docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v "$(pwd):/build" sso/build:latest $ARGS
 ```
 
 Create an alias on Linux for the above with the command.
 
 ```bash
-alias sso-build='docker run -it --rm --init --user $(id -u):$(id -g) --network host -v "$(pwd):/sso" -t sso-build:latest'
+alias sso-build='docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v "$(pwd):/build" sso/build:latest'
 ```
 
-Environment variables are configured in `Dockerfile`.
+Development environment variables are configured in `Dockerfile`.
 
 Services are run using [Docker Compose][docker-compose], start them with the command.
 
 ```bash
 docker-compose build
 docker-compose up
+```
+
+Create an alias on Linux to run `sso-build` container with a hostname, this allows you to replace compose services during development without using host networking mode.
+
+```bash
+sso-build-host() {
+    local host="$1"
+    shift 1
+    docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v "$(pwd):/build" --hostname $host --name $host sso/build:latest "$@"
+}
 ```
 
 Stop and destroy services with the commands.
@@ -119,3 +135,24 @@ cargo install --force --path sso
 [To publish crate(s)][cargo-publishing].
 
 - TODO(feature): https://github.com/flamegraph-rs/flamegraph
+
+## Minikube
+
+Create a [Minikube][minikube] instance.
+
+```bash
+minikube start --vm-driver=virtualbox
+minikube status
+minikube stop
+minikube delete
+minikube dashboard
+minikube ip
+```
+
+(Re)build all Docker images and load images into Minikube.
+
+```bash
+docker build --tag "sso-build:latest" .
+docker-compose build --parallel
+(cd kubernetes/minikube/docker && bash build.sh)
+```

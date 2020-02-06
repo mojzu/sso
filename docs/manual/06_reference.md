@@ -44,3 +44,4 @@
 [docker-engine-install]: https://docs.docker.com/install/linux/docker-ce/ubuntu/
 [docker-compose-install]: https://docs.docker.com/compose/install/
 [kubernetes]: https://kubernetes.io/
+[minikube]: https://kubernetes.io/docs/tasks/tools/install-minikube/

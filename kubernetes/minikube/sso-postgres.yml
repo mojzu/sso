@@ -1,0 +1,79 @@
+# ```bash
+# kubectl apply -f sso-postgres.yml
+# ```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sso-postgres-secret
+  labels:
+    sso.target: sso-postgres
+type: Opaque
+data:
+  postgres-db: c3Nv
+  postgres-user: c3Nv
+  postgres-password: WW5TeXhGcURaeWRzb2htRTdBNDdIYkdta3hzMGZRRTNmSnlsSEU3NlNlWlVFcnVBTEg1YzkwUkFyVzF6Q2F5
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sso-postgres
+  labels:
+    sso.target: sso-postgres
+spec:
+  serviceName: sso-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      sso.target: sso-postgres
+  template:
+    metadata:
+      labels:
+        sso.target: sso-postgres
+    spec:
+      containers:
+        - name: sso-postgres-container
+          image: sso/postgres-minikube:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: sso-postgres-secret
+                  key: postgres-db
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sso-postgres-secret
+                  key: postgres-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sso-postgres-secret
+                  key: postgres-password
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: sso-postgres-volume
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: sso-postgres-volume
+      spec:
+        accessModes: ["ReadWriteMany"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sso-postgres-service
+  labels:
+    sso.target: sso-postgres
+spec:
+  selector:
+    sso.target: sso-postgres
+  ports:
+    - port: 5432
+      name: postgres
+  clusterIP: None

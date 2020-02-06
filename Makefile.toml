@@ -21,13 +21,13 @@ script = [
 [tasks.postgres-reset]
 workspace = false
 script = [
-    "(cd sso && DATABASE_URL=\"postgres://guest:guest@localhost:5432/sso\" diesel database reset)",
+    "(cd sso && DATABASE_URL=\"postgres://guest:guest@postgres:5432/sso\" diesel database reset)",
 ]
 
 [tasks.postgres-migration]
 workspace = false
 script = [
-    "(cd sso && DATABASE_URL=\"postgres://guest:guest@localhost:5432/sso\" diesel migration generate ${@})",
+    "(cd sso && DATABASE_URL=\"postgres://guest:guest@postgres:5432/sso\" diesel migration generate ${@})",
 ]
 
 [tasks.sso-cli]
