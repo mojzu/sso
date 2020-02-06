@@ -3989,11 +3989,11 @@ var fileDescriptor_37aabceb39ca51ce = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // SsoClient is the client API for Sso service.
 //
@@ -4155,10 +4155,10 @@ type SsoClient interface {
 }
 
 type ssoClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewSsoClient(cc *grpc.ClientConn) SsoClient {
+func NewSsoClient(cc grpc.ClientConnInterface) SsoClient {
 	return &ssoClient{cc}
 }
 
