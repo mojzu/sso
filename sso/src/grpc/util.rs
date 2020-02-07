@@ -458,17 +458,19 @@ fn struct_kind_to_value(s: prost_types::value::Kind) -> serde_json::Value {
     }
 }
 
-pub fn struct_opt_to_value_opt(s: Option<prost_types::Struct>) -> Option<serde_json::Value> {
+pub fn struct_to_value(s: prost_types::Struct) -> serde_json::Value {
     let mut m = serde_json::Map::default();
-    match s {
-        Some(s) => {
-            for (key, value) in s.fields {
-                if let Some(kind) = value.kind {
-                    m.insert(key, struct_kind_to_value(kind));
-                }
-            }
-            Some(serde_json::Value::Object(m))
+    for (key, value) in s.fields {
+        if let Some(kind) = value.kind {
+            m.insert(key, struct_kind_to_value(kind));
         }
+    }
+    serde_json::Value::Object(m)
+}
+
+pub fn struct_opt_to_value_opt(s: Option<prost_types::Struct>) -> Option<serde_json::Value> {
+    match s {
+        Some(s) => Some(struct_to_value(s)),
         None => None,
     }
 }

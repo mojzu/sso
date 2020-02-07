@@ -18,7 +18,7 @@ pub use sso::{
 pub use uuid::Uuid;
 
 pub const INVALID_EMAIL: &str = "invalid-email";
-pub const INVALID_PASSWORD: &str = "guests";
+// pub const INVALID_PASSWORD: &str = "guests";
 pub const INVALID_KEY: &str = "af8731c10c739d8cce50ea556d0b1d77d3614fdc39";
 pub const USER_NAME: &str = "user-name";
 pub const USER_PASSWORD: &str = "guestguest";
