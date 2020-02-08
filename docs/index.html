@@ -387,7 +387,10 @@ font-size: 16px;
 <li><a href="#possible-features"><span class="toc-section-number">4.2</span> Possible Features</a></li>
 <li><a href="#owasp-asvs"><span class="toc-section-number">4.3</span> OWASP: ASVS</a></li>
 </ul></li>
-<li><a href="#developer"><span class="toc-section-number">5</span> Developer</a></li>
+<li><a href="#developer"><span class="toc-section-number">5</span> Developer</a>
+<ul>
+<li><a href="#minikube"><span class="toc-section-number">5.1</span> Minikube</a></li>
+</ul></li>
 </ul>
 </nav>
 </div>
@@ -529,8 +532,9 @@ font-size: 16px;
 </ul>
 <p>Build the <code>sso/build</code> <a href="https://docs.docker.com/install/">Docker</a> image.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso/build:latest&quot;</span> .</span></code></pre></div>
-<p>Build <a href="https://docs.docker.com/compose/">Docker Compose</a> service images.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1"></a><span class="ex">docker-compose</span> build</span></code></pre></div>
+<p>Build <a href="https://docs.docker.com/compose/">Docker Compose</a> service images and create network.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1"></a><span class="ex">docker-compose</span> build</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="ex">docker</span> network create compose</span></code></pre></div>
 <p>Start services.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="ex">docker-compose</span> up</span></code></pre></div>
 <p>If successful <code>sso-grpc</code> is now available at <code>localhost:7042</code>, and <code>sso-openapi</code> is available at <code>localhost:8042</code>.</p>
@@ -907,6 +911,7 @@ font-size: 16px;
 <section id="changed" data-number="3.1.2">
 <h3 data-number="3.1.2"><span class="header-section-number">3.1.2</span> Changed</h3>
 <ul>
+<li>Updated crate dependencies.</li>
 <li>Replaced <code>user_id</code> field with <code>email</code> field for user update email and password endpoints.</li>
 <li>Manual updates.</li>
 </ul>
@@ -1393,51 +1398,73 @@ font-size: 16px;
 <h1 data-number="5"><span class="header-section-number">5</span> Developer</h1>
 <p>A <a href="https://docs.docker.com/install/">Docker</a> image contains the development tools, build it with the command.</p>
 <div class="sourceCode" id="cb56"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso-build:latest&quot;</span> .</span></code></pre></div>
+<p>Create a network for containers.</p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb57-1"><a href="#cb57-1"></a><span class="ex">docker</span> network create compose</span></code></pre></div>
 <p>Development tools are run with the command.</p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb57-1"><a href="#cb57-1"></a><span class="ex">docker</span> run --rm --user <span class="va">$(</span><span class="fu">id</span> -u<span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> -g<span class="va">)</span> --network host -v <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">:/sso&quot;</span> -t sso-build:latest <span class="va">$ARGS</span></span></code></pre></div>
+<div class="sourceCode" id="cb58"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb58-1"><a href="#cb58-1"></a><span class="ex">docker</span> run --rm -it --init --user <span class="va">$(</span><span class="fu">id</span> -u<span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> -g<span class="va">)</span> --network compose -v <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">:/build&quot;</span> sso/build:latest <span class="va">$ARGS</span></span></code></pre></div>
 <p>Create an alias on Linux for the above with the command.</p>
-<div class="sourceCode" id="cb58"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb58-1"><a href="#cb58-1"></a><span class="bu">alias</span> sso-build=<span class="st">&#39;docker run -it --rm --init --user $(id -u):$(id -g) --network host -v &quot;$(pwd):/sso&quot; -t sso-build:latest&#39;</span></span></code></pre></div>
-<p>Environment variables are configured in <code>Dockerfile</code>.</p>
+<div class="sourceCode" id="cb59"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb59-1"><a href="#cb59-1"></a><span class="bu">alias</span> sso-build=<span class="st">&#39;docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v &quot;$(pwd):/build&quot; sso/build:latest&#39;</span></span></code></pre></div>
+<p>Development environment variables are configured in <code>Dockerfile</code>.</p>
 <p>Services are run using <a href="https://docs.docker.com/compose/">Docker Compose</a>, start them with the command.</p>
-<div class="sourceCode" id="cb59"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb59-1"><a href="#cb59-1"></a><span class="ex">docker-compose</span> build</span>
-<span id="cb59-2"><a href="#cb59-2"></a><span class="ex">docker-compose</span> up</span></code></pre></div>
+<div class="sourceCode" id="cb60"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb60-1"><a href="#cb60-1"></a><span class="ex">docker-compose</span> build</span>
+<span id="cb60-2"><a href="#cb60-2"></a><span class="ex">docker-compose</span> up</span></code></pre></div>
+<p>Create an alias on Linux to run <code>sso-build</code> container with a hostname, this allows you to replace compose services during development without using host networking mode.</p>
+<div class="sourceCode" id="cb61"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb61-1"><a href="#cb61-1"></a><span class="fu">sso-build-host()</span> <span class="kw">{</span></span>
+<span id="cb61-2"><a href="#cb61-2"></a>    <span class="bu">local</span> <span class="va">host=</span><span class="st">&quot;</span><span class="va">$1</span><span class="st">&quot;</span></span>
+<span id="cb61-3"><a href="#cb61-3"></a>    <span class="bu">shift</span> 1</span>
+<span id="cb61-4"><a href="#cb61-4"></a>    <span class="ex">docker</span> run --rm -it --init --user <span class="va">$(</span><span class="fu">id</span> -u<span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> -g<span class="va">)</span> --network compose -v <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">:/build&quot;</span> --hostname <span class="va">$host</span> --name <span class="va">$host</span> sso/build:latest <span class="st">&quot;</span><span class="va">$@</span><span class="st">&quot;</span></span>
+<span id="cb61-5"><a href="#cb61-5"></a><span class="kw">}</span></span></code></pre></div>
 <p>Stop and destroy services with the commands.</p>
-<div class="sourceCode" id="cb60"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb60-1"><a href="#cb60-1"></a><span class="ex">docker-compose</span> stop</span>
-<span id="cb60-2"><a href="#cb60-2"></a><span class="ex">docker-compose</span> down</span></code></pre></div>
+<div class="sourceCode" id="cb62"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb62-1"><a href="#cb62-1"></a><span class="ex">docker-compose</span> stop</span>
+<span id="cb62-2"><a href="#cb62-2"></a><span class="ex">docker-compose</span> down</span></code></pre></div>
 <p>Create backup of <code>sso</code> database in <code>postgres</code> service. This backup will be restored automatically when the <code>postgres</code> service is rebuilt.</p>
-<div class="sourceCode" id="cb61"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb61-1"><a href="#cb61-1"></a><span class="ex">docker</span> exec sso_postgres_1 pg_dump -U guest --format=custom sso <span class="op">&gt;</span> docker/postgres/pgdump/sso.pgdump</span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb63-1"><a href="#cb63-1"></a><span class="ex">docker</span> exec sso_postgres_1 pg_dump -U guest --format=custom sso <span class="op">&gt;</span> docker/postgres/pgdump/sso.pgdump</span></code></pre></div>
 <p>Reset database and create new <a href="https://www.postgresql.org/">PostgreSQL</a> database migrations with <a href="http://diesel.rs/">Diesel</a>. These commands expect <code>postgres</code> service is running.</p>
-<div class="sourceCode" id="cb62"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb62-1"><a href="#cb62-1"></a><span class="ex">sso-build</span> cargo make postgres-reset</span>
-<span id="cb62-2"><a href="#cb62-2"></a><span class="ex">sso-build</span> cargo make postgres-migration <span class="va">$migration_name</span></span></code></pre></div>
+<div class="sourceCode" id="cb64"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb64-1"><a href="#cb64-1"></a><span class="ex">sso-build</span> cargo make postgres-reset</span>
+<span id="cb64-2"><a href="#cb64-2"></a><span class="ex">sso-build</span> cargo make postgres-migration <span class="va">$migration_name</span></span></code></pre></div>
 <p>Check source code using <a href="https://github.com/rust-lang/rust-clippy">clippy</a>.</p>
-<div class="sourceCode" id="cb63"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb63-1"><a href="#cb63-1"></a><span class="ex">sso-build</span> cargo make clippy</span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb65-1"><a href="#cb65-1"></a><span class="ex">sso-build</span> cargo make clippy</span></code></pre></div>
 <p>Audit crate dependencies.</p>
-<div class="sourceCode" id="cb64"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb64-1"><a href="#cb64-1"></a><span class="ex">sso-build</span> cargo make audit</span></code></pre></div>
+<div class="sourceCode" id="cb66"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb66-1"><a href="#cb66-1"></a><span class="ex">sso-build</span> cargo make audit</span></code></pre></div>
 <p>Build libraries and binaries.</p>
-<div class="sourceCode" id="cb65"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb65-1"><a href="#cb65-1"></a><span class="ex">sso-build</span> cargo make build</span>
-<span id="cb65-2"><a href="#cb65-2"></a><span class="ex">sso-build</span> cargo make release</span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb67-1"><a href="#cb67-1"></a><span class="ex">sso-build</span> cargo make build</span>
+<span id="cb67-2"><a href="#cb67-2"></a><span class="ex">sso-build</span> cargo make release</span></code></pre></div>
 <p>Run development binaries.</p>
-<div class="sourceCode" id="cb66"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb66-1"><a href="#cb66-1"></a><span class="ex">sso-build</span> cargo make sso-cli -- <span class="va">$ARGS</span></span>
-<span id="cb66-2"><a href="#cb66-2"></a><span class="ex">sso-build</span> cargo make sso-grpc</span>
-<span id="cb66-3"><a href="#cb66-3"></a><span class="ex">sso-build</span> cargo make sso-openapi</span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb68-1"><a href="#cb68-1"></a><span class="ex">sso-build</span> cargo make sso-cli -- <span class="va">$ARGS</span></span>
+<span id="cb68-2"><a href="#cb68-2"></a><span class="ex">sso-build</span> cargo make sso-grpc</span>
+<span id="cb68-3"><a href="#cb68-3"></a><span class="ex">sso-build</span> cargo make sso-openapi</span></code></pre></div>
 <p>Run unit tests.</p>
-<div class="sourceCode" id="cb67"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb67-1"><a href="#cb67-1"></a><span class="ex">sso-build</span> cargo make test</span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb69-1"><a href="#cb69-1"></a><span class="ex">sso-build</span> cargo make test</span></code></pre></div>
 <p>Run integration tests. This expects <code>sso_grpc</code> service is running.</p>
-<div class="sourceCode" id="cb68"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb68-1"><a href="#cb68-1"></a><span class="ex">sso-build</span> cargo make test-integration</span></code></pre></div>
+<div class="sourceCode" id="cb70"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb70-1"><a href="#cb70-1"></a><span class="ex">sso-build</span> cargo make test-integration</span></code></pre></div>
 <p>Compile <a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a> for <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> gateway server.</p>
-<div class="sourceCode" id="cb69"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb69-1"><a href="#cb69-1"></a><span class="ex">sso-build</span> cargo make openapi-protoc</span></code></pre></div>
+<div class="sourceCode" id="cb71"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb71-1"><a href="#cb71-1"></a><span class="ex">sso-build</span> cargo make openapi-protoc</span></code></pre></div>
 <p>Build <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> gateway server.</p>
-<div class="sourceCode" id="cb70"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb70-1"><a href="#cb70-1"></a><span class="ex">sso-build</span> cargo make openapi-bin</span></code></pre></div>
+<div class="sourceCode" id="cb72"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb72-1"><a href="#cb72-1"></a><span class="ex">sso-build</span> cargo make openapi-bin</span></code></pre></div>
 <p>This manual is written in <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Markdown</a> and converted into other formats using <a href="https://pandoc.org/">Pandoc</a>. Build the HTML manual.</p>
-<div class="sourceCode" id="cb71"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb71-1"><a href="#cb71-1"></a><span class="ex">sso-build</span> cargo make manual</span></code></pre></div>
+<div class="sourceCode" id="cb73"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb73-1"><a href="#cb73-1"></a><span class="ex">sso-build</span> cargo make manual</span></code></pre></div>
 <p>Build crate documentation.</p>
-<div class="sourceCode" id="cb72"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb72-1"><a href="#cb72-1"></a><span class="ex">sso-build</span> cargo make doc</span></code></pre></div>
+<div class="sourceCode" id="cb74"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb74-1"><a href="#cb74-1"></a><span class="ex">sso-build</span> cargo make doc</span></code></pre></div>
 <p>Install crate locally.</p>
-<div class="sourceCode" id="cb73"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb73-1"><a href="#cb73-1"></a><span class="ex">cargo</span> install --force --path sso</span></code></pre></div>
+<div class="sourceCode" id="cb75"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb75-1"><a href="#cb75-1"></a><span class="ex">cargo</span> install --force --path sso</span></code></pre></div>
 <p><a href="https://doc.rust-lang.org/cargo/reference/publishing.html">To publish crate(s)</a>.</p>
 <ul>
 <li>TODO(feature): https://github.com/flamegraph-rs/flamegraph</li>
 </ul>
+<section id="minikube" data-number="5.1">
+<h2 data-number="5.1"><span class="header-section-number">5.1</span> Minikube</h2>
+<p>Create a <a href="https://kubernetes.io/docs/tasks/tools/install-minikube/">Minikube</a> instance.</p>
+<div class="sourceCode" id="cb76"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb76-1"><a href="#cb76-1"></a><span class="ex">minikube</span> start --vm-driver=virtualbox</span>
+<span id="cb76-2"><a href="#cb76-2"></a><span class="ex">minikube</span> status</span>
+<span id="cb76-3"><a href="#cb76-3"></a><span class="ex">minikube</span> stop</span>
+<span id="cb76-4"><a href="#cb76-4"></a><span class="ex">minikube</span> delete</span>
+<span id="cb76-5"><a href="#cb76-5"></a><span class="ex">minikube</span> dashboard</span>
+<span id="cb76-6"><a href="#cb76-6"></a><span class="ex">minikube</span> ip</span></code></pre></div>
+<p>(Re)build all Docker images and load images into Minikube.</p>
+<div class="sourceCode" id="cb77"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb77-1"><a href="#cb77-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso-build:latest&quot;</span> .</span>
+<span id="cb77-2"><a href="#cb77-2"></a><span class="ex">docker-compose</span> build --parallel</span>
+<span id="cb77-3"><a href="#cb77-3"></a><span class="kw">(</span><span class="bu">cd</span> kubernetes/minikube/docker <span class="kw">&amp;&amp;</span> <span class="fu">bash</span> build.sh<span class="kw">)</span></span></code></pre></div>
+</section>
 </section>
 </div>
 </div>

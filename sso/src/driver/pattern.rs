@@ -341,7 +341,7 @@ pub fn key_read_user_value_unchecked(
 ///
 /// If password is empty, returns 0 for strength and true for pwned.
 /// If password is none, returns none for strength and pwned.
-pub fn password_meta(
+pub async fn password_meta(
     client: &Client,
     enabled: bool,
     password: Option<String>,
@@ -356,7 +356,7 @@ pub fn password_meta(
                     None
                 }
             };
-            let password_pwned = match password_meta_pwned(client, enabled, password) {
+            let password_pwned = match password_meta_pwned(client, enabled, password).await {
                 Ok(password_pwned) => Some(password_pwned),
                 Err(err) => {
                     warn!("{}", err);
@@ -380,7 +380,7 @@ fn password_meta_strength(password: &str) -> DriverResult<zxcvbn::Entropy> {
 
 /// Returns true if password is present in `Pwned Passwords` index, else false.
 /// <https://haveibeenpwned.com/Passwords>
-fn password_meta_pwned(client: &Client, enabled: bool, password: &str) -> DriverResult<bool> {
+async fn password_meta_pwned(client: &Client, enabled: bool, password: &str) -> DriverResult<bool> {
     if enabled {
         // Make request to API using first 5 characters of SHA1 password hash.
         let mut hash = Sha1::new();
@@ -390,21 +390,17 @@ fn password_meta_pwned(client: &Client, enabled: bool, password: &str) -> Driver
 
         match Url::parse(&url).map_err(DriverError::UrlParse) {
             Ok(url) => {
-                client
-                    .get(url)
-                    .send()
-                    .map_err(DriverError::Reqwest)
-                    .and_then(|res| res.error_for_status().map_err(DriverError::Reqwest))
-                    .and_then(|mut res| res.text().map_err(DriverError::Reqwest))
-                    .and_then(move |text| {
-                        // Compare suffix of hash to lines to determine if password is pwned.
-                        for line in text.lines() {
-                            if hash[5..] == line[..35] {
-                                return Ok(true);
-                            }
-                        }
-                        Ok(false)
-                    })
+                let res = client.get(url).send().await.map_err(DriverError::Reqwest)?;
+                let res = res.error_for_status().map_err(DriverError::Reqwest)?;
+                let text = res.text().await.map_err(DriverError::Reqwest)?;
+
+                // Compare suffix of hash to lines to determine if password is pwned.
+                for line in text.lines() {
+                    if hash[5..] == line[..35] {
+                        return Ok(true);
+                    }
+                }
+                Ok(false)
             }
             Err(e) => Err(e),
         }

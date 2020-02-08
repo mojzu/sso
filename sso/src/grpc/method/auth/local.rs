@@ -19,20 +19,21 @@ pub async fn login(
     request: MethodRequest<pb::AuthLoginRequest>,
 ) -> MethodResult<pb::AuthLoginReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let driver = server.driver();
+
     let client = server.client();
     let password_pwned_enabled = server.options().password_pwned_enabled();
+    let password_meta = pattern::password_meta(
+        client.as_ref(),
+        password_pwned_enabled,
+        Some(req.password.clone()),
+    )
+    .await
+    .map_err(MethodError::BadRequest)?;
+
+    let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
     let refresh_token_expires = server.options().refresh_token_expires();
-
     method_blocking(move || {
-        let password_meta = pattern::password_meta(
-            client.as_ref(),
-            password_pwned_enabled,
-            Some(req.password.clone()),
-        )
-        .map_err(MethodError::BadRequest)?;
-
         let user_token = audit_result(
             driver.as_ref(),
             audit_meta,
@@ -197,19 +198,20 @@ pub async fn register_confirm(
 ) -> MethodResult<pb::AuthPasswordMetaReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = server.driver();
     let client = server.client();
     let password_pwned_enabled = server.options().password_pwned_enabled();
+    let password_meta = pattern::password_meta(
+        client.as_ref(),
+        password_pwned_enabled,
+        req.password.clone(),
+    )
+    .await
+    .map_err(MethodError::BadRequest)?;
+
+    let driver = server.driver();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
     method_blocking(move || {
-        let password_meta = pattern::password_meta(
-            client.as_ref(),
-            password_pwned_enabled,
-            req.password.clone(),
-        )
-        .map_err(MethodError::BadRequest)?;
-
         let template = audit_result(
             driver.as_ref(),
             audit_meta,
@@ -370,19 +372,20 @@ pub async fn reset_password_confirm(
 ) -> MethodResult<pb::AuthPasswordMetaReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = server.driver();
     let client = server.client();
     let password_pwned_enabled = server.options().password_pwned_enabled();
+    let password_meta = pattern::password_meta(
+        client.as_ref(),
+        password_pwned_enabled,
+        Some(req.password.clone()),
+    )
+    .await
+    .map_err(MethodError::BadRequest)?;
+
+    let driver = server.driver();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
     method_blocking(move || {
-        let password_meta = pattern::password_meta(
-            client.as_ref(),
-            password_pwned_enabled,
-            Some(req.password.clone()),
-        )
-        .map_err(MethodError::BadRequest)?;
-
         let template = audit_result(
             driver.as_ref(),
             audit_meta,
@@ -572,19 +575,20 @@ pub async fn update_password(
 ) -> MethodResult<pb::AuthPasswordMetaReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
-    let driver = server.driver();
     let client = server.client();
     let password_pwned_enabled = server.options().password_pwned_enabled();
+    let password_meta = pattern::password_meta(
+        client.as_ref(),
+        password_pwned_enabled,
+        Some(req.new_password.clone()),
+    )
+    .await
+    .map_err(MethodError::BadRequest)?;
+
+    let driver = server.driver();
     let revoke_token_expires = server.options().revoke_token_expires();
     let email = server.smtp_email();
     method_blocking(move || {
-        let password_meta = pattern::password_meta(
-            client.as_ref(),
-            password_pwned_enabled,
-            Some(req.new_password.clone()),
-        )
-        .map_err(MethodError::BadRequest)?;
-
         let template = audit_result(
             driver.as_ref(),
             audit_meta,

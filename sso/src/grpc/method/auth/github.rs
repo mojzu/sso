@@ -1,6 +1,6 @@
 use crate::grpc::{validate, Server};
 use crate::{
-    grpc::{pb, util::*},
+    grpc::{method::auth::oauth2_login, pb, util::*},
     *,
 };
 use validator::{Validate, ValidationErrors};
@@ -40,27 +40,47 @@ pub async fn oauth2_callback(
     request: MethodRequest<pb::AuthOauth2CallbackRequest>,
 ) -> MethodResult<pb::AuthTokenReply> {
     let (audit_meta, auth, req) = request.into_inner();
-    let driver = server.driver();
-    let client = server.client();
-    let args = server.options().github_oauth2_args();
 
+    let driver = server.driver();
+    let args = server.options().github_oauth2_args();
+    let audit_meta1 = audit_meta.clone();
+    let (service, service_id, access_token) = method_blocking(move || {
+        audit_result_err(
+            driver.as_ref(),
+            audit_meta1,
+            AuditType::AuthGithubOauth2Callback,
+            |driver, audit| {
+                provider_github::oauth2_callback(driver, audit, auth.as_ref(), &args, &req)
+            },
+        )
+        .map_err(Into::into)
+    })
+    .await?;
+
+    let client = server.client();
+    let user_email = provider_github::api_user_email(&client, access_token)
+        .await
+        .map_err(MethodError::BadRequest)?;
+
+    let driver = server.driver();
+    let args = server.options().github_oauth2_args();
     method_blocking(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthGithubOauth2Callback,
             |driver, audit| {
-                provider_github::oauth2_callback(
+                oauth2_login(
                     driver,
                     audit,
-                    auth.as_ref(),
-                    &args,
-                    &req,
-                    client.as_ref(),
+                    &service,
+                    service_id,
+                    user_email.clone(),
+                    args.access_token_expires,
+                    args.refresh_token_expires,
                 )
             },
         )
-        .map_err(Into::into)
     })
     .await
     .map(|user_token| pb::AuthTokenReply {
@@ -73,19 +93,16 @@ pub async fn oauth2_callback(
 
 mod provider_github {
     use crate::{
-        grpc::{
-            method::auth::oauth2_login, pb, util::*, ServerOptionsProvider,
-            ServerProviderOauth2Args,
-        },
+        grpc::{pb, util::*, ServerOptionsProvider, ServerProviderOauth2Args},
         pattern::*,
-        AuditBuilder, CsrfCreate, DriverError, DriverResult, Postgres, Service, UserToken,
+        AuditBuilder, CsrfCreate, DriverError, DriverResult, Postgres, Service,
     };
     use oauth2::{
         basic::BasicClient, reqwest::http_client, AuthUrl, AuthorizationCode, ClientId,
         ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
     };
-    use reqwest::Client as SyncClient;
-    use url::Url;
+    use reqwest::Client;
+    use uuid::Uuid;
 
     pub(crate) fn oauth2_url(
         driver: &Postgres,
@@ -120,8 +137,7 @@ mod provider_github {
         key_value: Option<&String>,
         args: &ServerProviderOauth2Args,
         request: &pb::AuthOauth2CallbackRequest,
-        client_sync: &SyncClient,
-    ) -> MethodResult<UserToken> {
+    ) -> MethodResult<(Service, Uuid, String)> {
         let service = key_service_authenticate(driver, audit, key_value)
             .map_err(MethodError::Unauthorised)?;
 
@@ -145,34 +161,31 @@ mod provider_github {
         let (service_id, access_token) =
             (csrf.service_id, token.access_token().secret().to_owned());
 
-        let user_email =
-            api_user_email(client_sync, access_token).map_err(MethodError::BadRequest)?;
-        oauth2_login(
-            driver,
-            audit,
-            &service,
-            service_id,
-            user_email,
-            args.access_token_expires,
-            args.refresh_token_expires,
-        )
+        Ok((service, service_id, access_token))
     }
 
-    fn api_user_email(client: &SyncClient, access_token: String) -> DriverResult<String> {
+    pub(crate) async fn api_user_email(
+        client: &Client,
+        access_token: String,
+    ) -> DriverResult<String> {
         #[derive(Debug, Serialize, Deserialize)]
         struct GithubUser {
             email: String,
         }
 
         let authorisation = format!("token {}", access_token);
-        client
+        let res = client
             .get("https://api.github.com/user")
             .header("authorization", authorisation)
             .send()
-            .and_then(|res| res.error_for_status())
-            .and_then(|mut res| res.json::<GithubUser>())
-            .map_err(DriverError::Reqwest)
-            .map(|res| res.email)
+            .await
+            .map_err(DriverError::Reqwest)?;
+        let res = res.error_for_status().map_err(DriverError::Reqwest)?;
+        let res = res
+            .json::<GithubUser>()
+            .await
+            .map_err(DriverError::Reqwest)?;
+        Ok(res.email)
     }
 
     fn new_client(
@@ -190,21 +203,19 @@ mod provider_github {
         let new_client_id = ClientId::new(provider.client_id.to_owned());
         let new_client_secret = ClientSecret::new(provider.client_secret.to_owned());
 
-        let auth_url = Url::parse("https://github.com/login/oauth/authorize")
-            .map_err(DriverError::UrlParse)?;
-        let auth_url = AuthUrl::new(auth_url);
-        let token_url = Url::parse("https://github.com/login/oauth/access_token")
-            .map_err(DriverError::UrlParse)?;
-        let token_url = TokenUrl::new(token_url);
+        let auth_url = AuthUrl::new("https://github.com/login/oauth/authorize".to_string())
+            .expect("Invalid authorisation endpoint URL");
+        let token_url = TokenUrl::new("https://github.com/login/oauth/access_token".to_string())
+            .expect("Invalid token endpoint URL");
 
-        let redirect_url =
-            Url::parse(&provider_github_oauth2_url).map_err(DriverError::UrlParse)?;
         Ok(BasicClient::new(
             new_client_id,
             Some(new_client_secret),
             auth_url,
             Some(token_url),
         )
-        .set_redirect_url(RedirectUrl::new(redirect_url)))
+        .set_redirect_url(
+            RedirectUrl::new(provider_github_oauth2_url.to_string()).expect("Invalid redirect URL"),
+        ))
     }
 }

@@ -41,7 +41,7 @@ pub const MIN_USER_PASSWORD: usize = 8;
 pub const MAX_USER_PASSWORD: usize = 128;
 
 /// User.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct User {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -53,7 +53,6 @@ pub struct User {
     pub timezone: String,
     pub password_allow_reset: bool,
     pub password_require_update: bool,
-    #[serde(skip)]
     pub password_hash: Option<String>,
 }
 
@@ -105,7 +104,7 @@ impl AuditDiff for User {
 }
 
 /// User password metadata.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct UserPasswordMeta {
     pub password_strength: Option<u8>,
     pub password_pwned: Option<bool>,
@@ -333,7 +332,7 @@ impl UserUpdate {
 }
 
 /// User token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct UserToken {
     pub user: User,
     pub access_token: String,
@@ -343,7 +342,7 @@ pub struct UserToken {
 }
 
 /// User access token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct UserTokenAccess {
     pub user: User,
     pub access_token: String,
@@ -351,7 +350,7 @@ pub struct UserTokenAccess {
 }
 
 /// User key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct UserKey {
     pub user: User,
     pub key: String,

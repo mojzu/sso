@@ -7,7 +7,7 @@ use url::Url;
 use uuid::Uuid;
 
 /// Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct Service {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

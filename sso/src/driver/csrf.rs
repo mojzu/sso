@@ -8,7 +8,7 @@ use uuid::Uuid;
 pub const BYTES_CSRF_KEY: usize = 11;
 
 /// CSRF.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct Csrf {
     pub created_at: DateTime<Utc>,
     pub key: String,

@@ -1,7 +1,9 @@
 use crate::{
     CsrfCreate, DriverError, DriverResult, KeyWithValue, Postgres, Service, User, UserToken,
 };
-use jsonwebtoken::{dangerous_unsafe_decode, decode, encode, Header, Validation};
+use jsonwebtoken::{
+    dangerous_unsafe_decode, decode, encode, DecodingKey, EncodingKey, Header, Validation,
+};
 use uuid::Uuid;
 
 // TODO(2,refactor): Refactor crypto.
@@ -116,8 +118,12 @@ impl Jwt {
         exp: i64,
     ) -> DriverResult<(String, i64)> {
         let claims = JwtClaims::new(service_id.to_string(), user_id.to_string(), exp, x_type);
-        let token = encode(&Header::default(), &claims, key_value.as_bytes())
-            .map_err(DriverError::Jsonwebtoken)?;
+        let token = encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(key_value.as_bytes()),
+        )
+        .map_err(DriverError::Jsonwebtoken)?;
         Ok((token, claims.exp))
     }
 
@@ -137,8 +143,12 @@ impl Jwt {
             x_type,
             x_csrf,
         );
-        let token = encode(&Header::default(), &claims, key_value.as_bytes())
-            .map_err(DriverError::Jsonwebtoken)?;
+        let token = encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(key_value.as_bytes()),
+        )
+        .map_err(DriverError::Jsonwebtoken)?;
         Ok((token, claims.exp))
     }
 
@@ -393,8 +403,12 @@ impl Jwt {
         token: &str,
     ) -> DriverResult<JwtClaims> {
         let validation = JwtClaims::validation(service_id.to_string(), user_id.to_string());
-        let data = decode::<JwtClaims>(token, key_value.as_bytes(), &validation)
-            .map_err(DriverError::Jsonwebtoken)?;
+        let data = decode::<JwtClaims>(
+            token,
+            &DecodingKey::from_secret(key_value.as_bytes()),
+            &validation,
+        )
+        .map_err(DriverError::Jsonwebtoken)?;
         if data.claims.x_type != x_type.to_i64() {
             return Err(DriverError::JwtClaimsTypeMismatch);
         }

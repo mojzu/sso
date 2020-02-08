@@ -46,7 +46,7 @@ impl TryFrom<i32> for KeyType {
 }
 
 /// Key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct Key {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -98,7 +98,7 @@ impl AuditDiff for Key {
 ///
 /// This is split from `Key` to make value private except when created
 /// or read internally.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct KeyWithValue {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

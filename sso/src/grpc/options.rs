@@ -1,5 +1,5 @@
 use crate::{DriverError, DriverResult};
-use httpv01::{header, HeaderMap};
+use http::{header, HeaderMap};
 use lettre::{
     smtp::authentication::{Credentials, Mechanism},
     ClientSecurity, ClientTlsParameters, SmtpClient,
@@ -115,7 +115,7 @@ impl ServerOptions {
         self
     }
 
-    /// Returns synchronous reqwest `Client` built from options.
+    /// Returns asynchronous reqwest `Client` built from options.
     pub fn client(&self) -> DriverResult<Client> {
         let mut headers = HeaderMap::new();
         headers.insert(header::USER_AGENT, self.user_agent.parse().unwrap());

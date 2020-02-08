@@ -67,7 +67,7 @@ pub enum AuditType {
 impl_enum_to_from_string!(AuditType, "sso:");
 
 /// Audit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct Audit {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -76,7 +76,6 @@ pub struct Audit {
     pub remote: String,
     pub forwarded: Option<String>,
     pub status_code: Option<u16>,
-    #[serde(rename = "type")]
     pub type_: String,
     pub subject: Option<String>,
     pub data: Value,

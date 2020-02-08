@@ -67,14 +67,14 @@ pub async fn create(
     let password = req.password.clone();
     let req: UserCreate = req.into();
 
-    let driver = server.driver();
     let client = server.client();
     let password_pwned_enabled = server.options().password_pwned_enabled();
-    method_blocking(move || {
-        let password_meta =
-            pattern::password_meta(client.as_ref(), password_pwned_enabled, password)
-                .map_err(MethodError::BadRequest)?;
+    let password_meta = pattern::password_meta(client.as_ref(), password_pwned_enabled, password)
+        .await
+        .map_err(MethodError::BadRequest)?;
 
+    let driver = server.driver();
+    method_blocking(move || {
         let data = audit_result_subject(
             driver.as_ref(),
             audit_meta,
