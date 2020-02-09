@@ -60,7 +60,7 @@ services:
     restart: always
     environment:
       # gRPC server URL.
-      SSO_OPENAPI_GRPC_URL: "sso-grpc:7042"
+      SSO_GRPC_URL: "sso-grpc:7042"
     ports:
       - "8042:8042"
 

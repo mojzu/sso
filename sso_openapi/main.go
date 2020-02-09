@@ -14,7 +14,7 @@ import (
 var (
 	// command-line options:
 	// gRPC server endpoint
-	grpcServerEndpoint = flag.String("grpc-server-url", os.Getenv("SSO_OPENAPI_GRPC_URL"), "gRPC server URL")
+	grpcServerEndpoint = flag.String("grpc-server-url", os.Getenv("SSO_GRPC_URL"), "gRPC server URL")
 )
 
 func run() error {
