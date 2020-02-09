@@ -544,15 +544,16 @@ font-size: 16px;
 </section>
 <section id="deployment" data-number="2.2">
 <h2 data-number="2.2"><span class="header-section-number">2.2</span> Deployment</h2>
-<ul>
-<li>TODO(docs): How to deploy server, <a href="https://kubernetes.io/">Kubernetes</a>.</li>
-</ul>
-<section id="nginx" data-number="2.2.1">
-<h3 data-number="2.2.1"><span class="header-section-number">2.2.1</span> Nginx</h3>
+<section id="kubernetes" data-number="2.2.1">
+<h3 data-number="2.2.1"><span class="header-section-number">2.2.1</span> Kubernetes</h3>
+<p>Example <a href="https://kubernetes.io/">Kubernetes</a> configuration files can be found in the <code>kubernetes</code> directory of the repository.</p>
+</section>
+<section id="nginx" data-number="2.2.2">
+<h3 data-number="2.2.2"><span class="header-section-number">2.2.2</span> Nginx</h3>
 <p>Example <a href="https://www.nginx.com/">nginx</a> configuration can be found in the <code>docker/nginx</code> directory of the repository.</p>
 </section>
-<section id="prometheus" data-number="2.2.2">
-<h3 data-number="2.2.2"><span class="header-section-number">2.2.2</span> Prometheus</h3>
+<section id="prometheus" data-number="2.2.3">
+<h3 data-number="2.2.3"><span class="header-section-number">2.2.3</span> Prometheus</h3>
 <p>Example <a href="https://prometheus.io/">Prometheus</a> configuration and alerting rules can be found in the <code>docker/prometheus</code> directory of the repository.</p>
 </section>
 </section>
@@ -625,7 +626,7 @@ font-size: 16px;
 <span id="cb15-3"><a href="#cb15-3"></a>  --request POST \</span>
 <span id="cb15-4"><a href="#cb15-4"></a>  --data <span class="st">&#39;{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39;</span> \</span>
 <span id="cb15-5"><a href="#cb15-5"></a>  <span class="va">$server_url</span>/v1/auth/provider/local/login</span></code></pre></div>
-<p>TODO(docs): Revoke email documentation.</p>
+<p>TODO(sam,docs): Revoke email documentation.</p>
 </section>
 <section id="reset-password" data-number="2.5">
 <h2 data-number="2.5"><span class="header-section-number">2.5</span> Reset Password</h2>
@@ -751,7 +752,7 @@ font-size: 16px;
 <section id="exchange-token" data-number="2.8">
 <h2 data-number="2.8"><span class="header-section-number">2.8</span> Exchange Token</h2>
 <ul>
-<li>TODO(1,docs): How to exchange refresh tokens for different services.</li>
+<li>TODO(sam,docs): How to exchange refresh tokens for different services.</li>
 </ul>
 </section>
 <section id="api-key" data-number="2.9">
@@ -893,8 +894,8 @@ font-size: 16px;
 <section id="cli" data-number="2.13">
 <h2 data-number="2.13"><span class="header-section-number">2.13</span> CLI</h2>
 <ul>
-<li>TODO(docs): CLI guide.</li>
-<li>TODO(docs): Style improvements, PDF output.</li>
+<li>TODO(sam,docs): CLI guide.</li>
+<li>TODO(sam,docs): Style improvements, PDF output.</li>
 </ul>
 </section>
 </section>
@@ -912,6 +913,7 @@ font-size: 16px;
 <h3 data-number="3.1.2"><span class="header-section-number">3.1.2</span> Changed</h3>
 <ul>
 <li>Updated crate dependencies.</li>
+<li>Logging now defaults to single line JSON objects.</li>
 <li>Replaced <code>user_id</code> field with <code>email</code> field for user update email and password endpoints.</li>
 <li>Manual updates.</li>
 </ul>
@@ -1188,19 +1190,19 @@ font-size: 16px;
 <section id="possible-features" data-number="4.2">
 <h2 data-number="4.2"><span class="header-section-number">4.2</span> Possible Features</h2>
 <ul>
-<li>TODO(feature): User sessions route for active tokens/keys.</li>
-<li>TODO(feature): Support more OAuth2 providers.</li>
-<li>TODO(feature): <a href="https://webauthn.guide/">Webauthn</a> support (libreauth?).</li>
-<li>TODO(feature): Configurable canary routes.</li>
-<li>TODO(feature): Improved public library API interface (gui service as example?).</li>
-<li>TODO(feature): Email translation/formatting using user locale and timezone.</li>
-<li>TODO(feature): Handle changes to password hash version.</li>
-<li>TODO(feature): Option to enforce provider URLs HTTPS.</li>
-<li>TODO(feature): User last login, key last use information (calculate in SQL).</li>
-<li>TODO(feature): Login from unknown IP address warnings, SMS support?</li>
-<li>TODO(feature): Service IP whitelist.</li>
-<li>TODO(feature): Service/user groups for segmentation.</li>
-<li>TODO(feature): Password update cannot set same password.</li>
+<li>TODO(sam,feature): User sessions route for active tokens/keys.</li>
+<li>TODO(sam,feature): Support more OAuth2 providers.</li>
+<li>TODO(sam,feature): <a href="https://webauthn.guide/">Webauthn</a> support (libreauth?).</li>
+<li>TODO(sam,feature): Configurable canary routes.</li>
+<li>TODO(sam,feature): Improved public library API interface (gui service as example?).</li>
+<li>TODO(sam,feature): Email translation/formatting using user locale and timezone.</li>
+<li>TODO(sam,feature): Handle changes to password hash version.</li>
+<li>TODO(sam,feature): Option to enforce provider URLs HTTPS.</li>
+<li>TODO(sam,feature): User last login, key last use information (calculate in SQL).</li>
+<li>TODO(sam,feature): Login from unknown IP address warnings, SMS support?</li>
+<li>TODO(sam,feature): Service IP whitelist.</li>
+<li>TODO(sam,feature): Service/user groups for segmentation.</li>
+<li>TODO(sam,feature): Password update cannot set same password.</li>
 </ul>
 </section>
 <section id="owasp-asvs" data-number="4.3">
@@ -1211,15 +1213,15 @@ font-size: 16px;
 <h3 data-number="4.3.1"><span class="header-section-number">4.3.1</span> 1.2.1</h3>
 <ul>
 <li>Binaries must be run as unique or special low privilege operating system accounts.</li>
-<li>TODO(docs): Systemd unit file examples, sso, postgres, nginx, etc.</li>
-<li>TODO(docs): Kubernetes deployment examples.</li>
+<li>TODO(sam,docs): Systemd unit file examples, sso, postgres, nginx, etc.</li>
+<li>TODO(sam,docs): Kubernetes deployment examples.</li>
 </ul>
 </section>
 <section id="section-11" data-number="4.3.2">
 <h3 data-number="4.3.2"><span class="header-section-number">4.3.2</span> 1.2.2</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
-<li>TODO(docs): Mutual TLS using rustls configuration and PKI for communication between services.</li>
+<li>TODO(sam,docs): Mutual TLS using rustls configuration and PKI for communication between services.</li>
 </ul>
 </section>
 <section id="section-12" data-number="4.3.3">
@@ -1230,7 +1232,7 @@ font-size: 16px;
 <li>What does strong authentication mean in this context?</li>
 <li>One feature is providing email/password login, which is probably not considered strong authentication.</li>
 <li>Audit logging and monitoring via prometheus.</li>
-<li>TODO(feature): Audit logging and prometheus metrics improvements for detecting account abuse and breaches.</li>
+<li>TODO(sam,feature): Audit logging and prometheus metrics improvements for detecting account abuse and breaches.</li>
 </ul>
 </section>
 <section id="section-13" data-number="4.3.4">
@@ -1238,7 +1240,7 @@ font-size: 16px;
 <ul>
 <li>All authentication pathways are designed to be as strong as that pathway can be.</li>
 <li>For example, email password resets are supported which are probably not considered strong.</li>
-<li>TODO(feature): More opt-ins for pathway branches that may be weak, for example ability to reset passwords by email.</li>
+<li>TODO(sam,feature): More opt-ins for pathway branches that may be weak, for example ability to reset passwords by email.</li>
 </ul>
 </section>
 <section id="section-14" data-number="4.3.5">
@@ -1254,35 +1256,35 @@ font-size: 16px;
 <li>Access controls are designed for many services and many users, where users have access to one or more services.</li>
 <li>All registered services can read all registered users, other services and keys belonging to them are hidden.</li>
 <li>Registered services may implement more complex access controls for their own data.</li>
-<li>TODO(test): More tests for data access, is service data masked correctly.</li>
+<li>TODO(sam,test): More tests for data access, is service data masked correctly.</li>
 </ul>
 </section>
 <section id="section-16" data-number="4.3.7">
 <h3 data-number="4.3.7"><span class="header-section-number">4.3.7</span> 1.4.3</h3>
 <ul>
 <li>Verify enforcement of principle of least privelege, requires more integration tests.</li>
-<li>TODO(test): More tests on preventing spoofing, elevation of privelege.</li>
+<li>TODO(sam,test): More tests on preventing spoofing, elevation of privelege.</li>
 </ul>
 </section>
 <section id="section-17" data-number="4.3.8">
 <h3 data-number="4.3.8"><span class="header-section-number">4.3.8</span> 1.4.4</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
-<li>TODO(3,refactor): Service key authentication mechanism code is split across files, cleaner code.</li>
+<li>TODO(sam,refactor): Service key authentication mechanism code is split across files, cleaner code.</li>
 </ul>
 </section>
 <section id="section-18" data-number="4.3.9">
 <h3 data-number="4.3.9"><span class="header-section-number">4.3.9</span> 1.4.5</h3>
 <ul>
 <li>This crate provides user authentication, not access control, is this out of scope?</li>
-<li>TODO(feature): Structured data for users, may require access controls.</li>
+<li>TODO(sam,feature): Structured data for users, may require access controls.</li>
 </ul>
 </section>
 <section id="section-19" data-number="4.3.10">
 <h3 data-number="4.3.10"><span class="header-section-number">4.3.10</span> 1.5.1</h3>
 <ul>
 <li>Terms of service columns and user accepted columns, handle changes to terms.</li>
-<li>TODO(docs): GDPR and other data protection compliance research.</li>
+<li>TODO(sam,docs): GDPR and other data protection compliance research.</li>
 </ul>
 </section>
 <section id="section-20" data-number="4.3.11">
@@ -1290,8 +1292,8 @@ font-size: 16px;
 <ul>
 <li>API is JSON requests over HTTP so serialisation is required.</li>
 <li>Using <a href="https://github.com/serde-rs/serde">serde</a> and <a href="https://github.com/samscott89/serde_qs">serde_qs</a> for serialisation and deserialisation.</li>
-<li>TODO(test): Test requests with other/unknown content types are handled correctly.</li>
-<li>TODO(feature): Flag(s) to require HTTPS to ensure all requests/responses are encrypted in transmit.</li>
+<li>TODO(sam,test): Test requests with other/unknown content types are handled correctly.</li>
+<li>TODO(sam,feature): Flag(s) to require HTTPS to ensure all requests/responses are encrypted in transmit.</li>
 </ul>
 </section>
 <section id="section-21" data-number="4.3.12">
@@ -1299,7 +1301,7 @@ font-size: 16px;
 <ul>
 <li>Input validation is enforced at a trusted enforcement point (the server).</li>
 <li>Using <a href="https://github.com/Keats/validator">validator</a> for input validation.</li>
-<li>TODO(test): More input tests including unicode passwords, bad strings, etc.</li>
+<li>TODO(sam,test): More input tests including unicode passwords, bad strings, etc.</li>
 </ul>
 </section>
 <section id="section-22" data-number="4.3.13">
@@ -1314,7 +1316,7 @@ font-size: 16px;
 <li>Key values are used for <a href="https://jwt.io/">JWT</a> cryptographic encoding and decoding.</li>
 <li>Key values are only returned to service or user on creation.</li>
 <li>Keys can be disabled and/or revoked to prevent use.</li>
-<li>TODO(docs): Check this meets key management standard NIST SP 800-57.</li>
+<li>TODO(sam,docs): Check this meets key management standard NIST SP 800-57.</li>
 </ul>
 </section>
 <section id="section-24" data-number="4.3.15">
@@ -1344,36 +1346,36 @@ font-size: 16px;
 <li>Stdout/stderr logging is not consistent.</li>
 <li>Audit logs are saved to table, not transmitted to a remote system.</li>
 <li>Stdout/stderr logging is not transmitted to a remote system,</li>
-<li>TODO(1,refactor): Option to transmit audit logs, stdout/stderr to fluentd.</li>
+<li>TODO(sam,refactor): Option to transmit audit logs, stdout/stderr to fluentd.</li>
 </ul>
 </section>
 <section id="section-28" data-number="4.3.19">
 <h3 data-number="4.3.19"><span class="header-section-number">4.3.19</span> 1.8.1, 1.8.2</h3>
 <ul>
 <li>Sensitive data is not identified or classified into protection levels.</li>
-<li>TODO(docs): Evaluate data and identify/classify sensitive data.</li>
+<li>TODO(sam,docs): Evaluate data and identify/classify sensitive data.</li>
 </ul>
 </section>
 <section id="section-29" data-number="4.3.20">
 <h3 data-number="4.3.20"><span class="header-section-number">4.3.20</span> 1.9.1, 1.9.2</h3>
 <ul>
 <li>Connection to database, other services must be encrypted.</li>
-<li>TODO(docs): Mutual TLS encryption/authentication for postgres connection.</li>
-<li>TODO(3,refactor): Dependency updates, blocked on <code>jsonwebtoken</code>.</li>
+<li>TODO(sam,docs): Mutual TLS encryption/authentication for postgres connection.</li>
+<li>TODO(sam,refactor): Dependency updates, blocked on <code>jsonwebtoken</code>.</li>
 </ul>
 </section>
 <section id="section-30" data-number="4.3.21">
 <h3 data-number="4.3.21"><span class="header-section-number">4.3.21</span> 1.10.1</h3>
 <ul>
 <li>Git and GitHub used for source code control, no formal commit procedure.</li>
-<li>TODO(docs): Some kind of formalised procedures around source code changes.</li>
+<li>TODO(sam,docs): Some kind of formalised procedures around source code changes.</li>
 </ul>
 </section>
 <section id="section-31" data-number="4.3.22">
 <h3 data-number="4.3.22"><span class="header-section-number">4.3.22</span> 1.11.1</h3>
 <ul>
 <li>Little documentation and definitions of application components, out of date.</li>
-<li>TODO(docs): Up to date documentation and definitions of application components, diagrams.</li>
+<li>TODO(sam,docs): Up to date documentation and definitions of application components, diagrams.</li>
 </ul>
 </section>
 <section id="section-32" data-number="4.3.23">
@@ -1382,7 +1384,7 @@ font-size: 16px;
 <li>No unsynchronised state shared between high-value business logic flows.</li>
 <li>All code should be threadsafe (no use of unsafe).</li>
 <li>I don’t think there is any but probably needs more thorough check, including dependencies.</li>
-<li>TODO(feature): Constant time responses for authentication endpoints to resist timing attacks.</li>
+<li>TODO(sam,feature): Constant time responses for authentication endpoints to resist timing attacks.</li>
 </ul>
 </section>
 <section id="section-33" data-number="4.3.24">
@@ -1397,7 +1399,7 @@ font-size: 16px;
 <section id="developer" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Developer</h1>
 <p>A <a href="https://docs.docker.com/install/">Docker</a> image contains the development tools, build it with the command.</p>
-<div class="sourceCode" id="cb56"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso-build:latest&quot;</span> .</span></code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso/build:latest&quot;</span> .</span></code></pre></div>
 <p>Create a network for containers.</p>
 <div class="sourceCode" id="cb57"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb57-1"><a href="#cb57-1"></a><span class="ex">docker</span> network create compose</span></code></pre></div>
 <p>Development tools are run with the command.</p>
@@ -1449,7 +1451,7 @@ font-size: 16px;
 <div class="sourceCode" id="cb75"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb75-1"><a href="#cb75-1"></a><span class="ex">cargo</span> install --force --path sso</span></code></pre></div>
 <p><a href="https://doc.rust-lang.org/cargo/reference/publishing.html">To publish crate(s)</a>.</p>
 <ul>
-<li>TODO(feature): https://github.com/flamegraph-rs/flamegraph</li>
+<li>TODO(sam,feature): https://github.com/flamegraph-rs/flamegraph</li>
 </ul>
 <section id="minikube" data-number="5.1">
 <h2 data-number="5.1"><span class="header-section-number">5.1</span> Minikube</h2>

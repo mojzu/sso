@@ -33,7 +33,7 @@ chrono = { version = "0.4.10", features = ["serde"] }
 chrono-tz = "0.5.1"
 diesel = { version = "1.4.3", features = ["postgres", "r2d2", "chrono", "serde_json", "uuidv07"] }
 diesel_migrations = { version = "1.4.0", features = ["postgres"] }
-env_logger = "0.7.1"
+env_logger = "0.6.2"
 failure = "0.1.6"
 handlebars = "2.0.4"
 jsonwebtoken = "7.0.1"

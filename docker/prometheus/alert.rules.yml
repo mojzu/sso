@@ -11,7 +11,7 @@ groups:
           summary: "instance_down: {{ $labels.job }} {{ $labels.instance }}"
           description: "Instance unreachable for >1 minute."
 
-      # TODO(docs): Alert for high CPU usage (seconds over time, how to get maximum?).
+      # TODO(sam,docs): Alert for high CPU usage (seconds over time, how to get maximum?).
       # # Alert if process cpu usage greater than 10%.
       # - alert: sso_high_process_cpu_usage
       #   expr: process_cpu_usage{job="sso"} > 10

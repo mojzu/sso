@@ -1,6 +1,8 @@
 ## Deployment
 
-- TODO(docs): How to deploy server, [Kubernetes][kubernetes].
+### Kubernetes
+
+Example [Kubernetes][kubernetes] configuration files can be found in the `kubernetes` directory of the repository.
 
 ### Nginx
 

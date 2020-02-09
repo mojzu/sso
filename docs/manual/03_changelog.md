@@ -9,6 +9,7 @@
 ### Changed
 
 -   Updated crate dependencies.
+-   Logging now defaults to single line JSON objects.
 -   Replaced `user_id` field with `email` field for user update email and password endpoints.
 -   Manual updates.
 

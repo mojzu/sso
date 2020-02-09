@@ -1,23 +1,31 @@
-//! Single Sign-On Command Line Interface
+//! # Single Sign-On (Command Line Interface)
+//!
+//! ## Environment Variables
+//!
+//! ### SSO_SENTRY_DSN
+//!
+//! Sentry DSN for logging, error handling integration, optional.
+//!
+//! ### SSO_LOG_PRETTY
+//!
+//! Format logs as multi-line JSON, optional, defaults to false.
+//!
+//! ### SSO_DATABASE_URL
+//!
+//! Database connection URL, required.
+//!
 #[macro_use]
 extern crate clap;
 #[macro_use]
 extern crate log;
 
 use clap::{App, Arg, SubCommand};
-use sentry::integrations::log::LoggerOptions;
-use sso::{env, DriverResult, KeyCreate, Postgres, ServiceCreate};
+use sso::{env, log_init, DriverResult, KeyCreate, Postgres, ServiceCreate};
 
 const CRATE_NAME: &str = crate_name!();
 const CRATE_VERSION: &str = crate_version!();
 const CRATE_DESCRIPTION: &str = crate_description!();
 const CRATE_AUTHORS: &str = "Sam Ward <git@mojzu.net>";
-
-/// Sentry URL for logging integration.
-const ENV_SENTRY_URL: &str = "SSO_SENTRY_URL";
-
-/// Database connection URL.
-const ENV_DATABASE_URL: &str = "SSO_DATABASE_URL";
 
 const CMD_CREATE_ROOT_KEY: &str = "create-root-key";
 const CMD_CREATE_SERVICE_WITH_KEY: &str = "create-service-with-key";
@@ -33,23 +41,8 @@ const ARG_MICROSOFT_OAUTH2_URL: &str = "MICROSOFT_OAUTH2_URL";
 const ARG_WEEKS: &str = "WEEKS";
 
 fn main() {
-    // If SENTRY_URL is defined, enable logging and panic handler integration.
-    let _guard = match std::env::var(ENV_SENTRY_URL) {
-        Ok(sentry_url) => {
-            let guard = sentry::init(sentry_url);
-            let mut options = LoggerOptions::default();
-            options.emit_warning_events = true;
-
-            sentry::integrations::env_logger::init(None, options);
-            sentry::integrations::panic::register_panic_handler();
-            Some(guard)
-        }
-        Err(e) => {
-            env_logger::init();
-            warn!("SENTRY_URL is undefined, integration is disabled ({})", e);
-            None
-        }
-    };
+    // Logging, error handling.
+    let _guard = log_init("SSO_SENTRY_DSN", "SSO_LOG_PRETTY");
 
     // Command line argument parser.
     let matches = App::new(CRATE_NAME)
@@ -128,7 +121,7 @@ fn main() {
                 let name = submatches.value_of(ARG_NAME).unwrap();
                 let create = KeyCreate::root(true, name);
                 driver.key_create(&create).map(|key| {
-                    println!("{}", key);
+                    info!("{}", key);
                     0
                 })
             }
@@ -160,8 +153,8 @@ fn main() {
                 let key_create = KeyCreate::service(true, name, service.id);
                 let key = driver.key_create(&key_create)?;
                 Ok((service, key)).map(|(service, key)| {
-                    println!("{}", service);
-                    println!("{}", key);
+                    info!("{}", service);
+                    info!("{}", key);
                     0
                 })
             }
@@ -171,12 +164,12 @@ fn main() {
                 let audit_retention = chrono::Duration::weeks(weeks);
                 let created_at = chrono::Utc::now() - audit_retention;
                 driver.audit_delete(&created_at).map(|deleted| {
-                    println!("{}", deleted);
+                    info!("{}", deleted);
                     0
                 })
             }
             _ => {
-                println!("{}", matches.usage());
+                info!("{}", matches.usage());
                 Ok(1)
             }
         }
@@ -193,7 +186,7 @@ fn main() {
 }
 
 fn configure() -> DriverResult<Postgres> {
-    let database_url = env::string(ENV_DATABASE_URL)?;
+    let database_url = env::string("SSO_DATABASE_URL")?;
     let driver = Postgres::initialise(&database_url, Some(1)).unwrap();
     Ok(driver)
 }

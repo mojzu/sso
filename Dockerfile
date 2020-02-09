@@ -90,8 +90,9 @@ ENV RUST_BACKTRACE="1" \
     RUST_LOG="info,sso=debug"
 
 # sso
-# # Sentry URL for logging integration.
-# ENV SSO_SENTRY_URL=""
+# # Sentry DSN for logging integration.
+# ENV SSO_SENTRY_DSN=""
+ENV SSO_LOG_PRETTY="true"
 # Database connection.
 ENV SSO_DATABASE_URL="postgres://guest:guest@postgres:5432/sso" \
     SSO_DATABASE_CONNECTIONS="10"

@@ -342,8 +342,8 @@ fn request_audit_auth(
     Ok((AuditMeta::new(user_agent, remote, forwarded, user), auth))
 }
 
-// TODO(2,refactor): Improve translation code between api/grpc.
-// TODO(2,refactor): Unwrap check and cleanup.
+// TODO(sam,refactor): Improve translation code between api/grpc.
+// TODO(sam,refactor): Unwrap check and cleanup.
 
 pub fn timestamp_opt_to_datetime_opt(ti: Option<prost_types::Timestamp>) -> Option<DateTime<Utc>> {
     match ti {

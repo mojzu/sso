@@ -147,8 +147,8 @@ pub async fn register(
                     }
                 };
                 // Get key if exists, else create now.
-                // TODO(1,refactor): If any key already exists for service, do not create one.
-                // TODO(1,refactor): Add tests to check whether this flow can be used by used to access disabled user.
+                // TODO(sam,refactor): If any key already exists for service, do not create one.
+                // TODO(sam,refactor): Add tests to check whether this flow can be used by used to access disabled user.
                 let key = driver
                     .key_read(
                         &KeyRead::user_id(service.id, user.id, true, false, KeyType::Token),
@@ -689,7 +689,7 @@ fn revoke_inner(
         .key_update_many(
             &user.id,
             &KeyUpdate {
-                // TODO(3,refactor): Improve code structure.
+                // TODO(sam,refactor): Improve code structure.
                 id: Uuid::nil(),
                 is_enabled: Some(false),
                 is_revoked: Some(true),

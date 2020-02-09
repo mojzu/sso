@@ -6,9 +6,9 @@ use jsonwebtoken::{
 };
 use uuid::Uuid;
 
-// TODO(2,refactor): Refactor crypto.
+// TODO(sam,refactor): Refactor JWT/other crypto?
 // <https://github.com/smallstep/cli>
-// TODO(2,refactor): Jsonwebtoken handling improvements.
+// TODO(sam,refactor): Jsonwebtoken handling improvements.
 // <https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html>
 
 /// JSON web token maximum length.
@@ -19,7 +19,7 @@ pub const MAX_JWT: usize = 1000;
 pub enum JwtClaimsType {
     AccessToken,
     RefreshToken,
-    // TODO(1,refactor): ExchangeToken type, instead of reusing refresh token.
+    // TODO(sam,refactor): ExchangeToken type, instead of reusing refresh token.
     RegisterToken,
     ResetPasswordToken,
     RevokeToken,

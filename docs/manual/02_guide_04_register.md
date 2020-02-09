@@ -42,4 +42,4 @@ curl --header "Content-Type: application/json" \
   $server_url/v1/auth/provider/local/login
 ```
 
-TODO(docs): Revoke email documentation.
+TODO(sam,docs): Revoke email documentation.

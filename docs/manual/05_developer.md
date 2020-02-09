@@ -3,7 +3,7 @@
 A [Docker][docker] image contains the development tools, build it with the command.
 
 ```bash
-docker build --tag "sso-build:latest" .
+docker build --tag "sso/build:latest" .
 ```
 
 Create a network for containers.
@@ -134,7 +134,7 @@ cargo install --force --path sso
 
 [To publish crate(s)][cargo-publishing].
 
-- TODO(feature): https://github.com/flamegraph-rs/flamegraph
+- TODO(sam,feature): https://github.com/flamegraph-rs/flamegraph
 
 ## Minikube
 

@@ -1,4 +1,4 @@
 ## CLI
 
-- TODO(docs): CLI guide.
-- TODO(docs): Style improvements, PDF output.
+- TODO(sam,docs): CLI guide.
+- TODO(sam,docs): Style improvements, PDF output.

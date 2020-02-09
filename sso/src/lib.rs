@@ -1,7 +1,7 @@
-//! Single Sign-On Library
+//! # Single Sign-On (Library)
 #![recursion_limit = "1024"]
 #![deny(missing_debug_implementations)]
-// TODO(docs): Require documentation, better library interface.
+// TODO(sam,docs): Require documentation, better library interface, embeddable?
 // #![deny(missing_docs)]
 
 #[macro_use]
@@ -23,6 +23,9 @@ mod driver;
 pub mod grpc;
 
 pub use crate::driver::*;
+
+use sentry::integrations::log::LoggerOptions;
+use std::io::Write;
 
 /// Implement `to_string` and `from_string` on simple enums.
 ///
@@ -49,4 +52,66 @@ macro_rules! impl_enum_to_from_string {
     };
 }
 
-// TODO(1,refactor): Check manual guides, update as needed.
+/// Initialise logging.
+///
+/// Sentry integration is enabled if `sentry_dsn_name` environment variable is defined.
+/// Logs are formatted as single line JSON objects by defaullt, for integration with
+/// fluentd. Logs are formatted as coloured, multi-line JSON objects if `pretty_name`
+/// environment variable is set to `true`.
+pub fn log_init<S, P>(
+    sentry_dsn_name: S,
+    pretty_name: P,
+) -> Option<sentry::internals::ClientInitGuard>
+where
+    S: AsRef<str>,
+    P: AsRef<str>,
+{
+    let pretty = env::value_opt::<bool>(pretty_name.as_ref())
+        .expect("Failed to read environment variable.")
+        .unwrap_or(false);
+
+    let mut builder = env_logger::Builder::from_default_env();
+    builder.format(move |buf, record| {
+        let out = json!({
+            "time": chrono::Utc::now().to_rfc3339(),
+            "level": record.level().to_string(),
+            "target": record.target(),
+            "module_path": record.module_path(),
+            "file": record.file(),
+            "line": record.line(),
+            "message": record.args(),
+        });
+        let out = if pretty {
+            serde_json::to_string_pretty(&out)
+        } else {
+            serde_json::to_string(&out)
+        }
+        .expect("Failed to serialise log.");
+
+        if pretty {
+            let style = buf.default_level_style(record.level());
+            writeln!(buf, "{}", style.value(out))
+        } else {
+            writeln!(buf, "{}", out)
+        }
+    });
+
+    match env::string_opt(sentry_dsn_name.as_ref()) {
+        Some(sentry_dsn) => {
+            let guard = sentry::init(sentry_dsn);
+            let mut options = LoggerOptions::default();
+            options.emit_warning_events = true;
+
+            sentry::integrations::env_logger::init(Some(builder.build()), options);
+            sentry::integrations::panic::register_panic_handler();
+            Some(guard)
+        }
+        None => {
+            builder.init();
+            warn!("Sentry DSN is undefined, integration is disabled.");
+            None
+        }
+    }
+}
+
+// TODO(sam,refactor): Check manual guides, update as needed.

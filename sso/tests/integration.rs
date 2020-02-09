@@ -5,13 +5,13 @@ mod support;
 
 use support::*;
 
-// TODO(test): Test TLS functionality.
-// TODO(test): Password reset tests, use lettre file transport.
-// TODO(test): Service 2 cannot confirm reset password.
-// TODO(test): Confirm reset password success.
-// TODO(test): User password is updated.
-// TODO(test): Cannot reuse token.
-// TODO(1,test): Refresh token exchange between services.
+// TODO(sam,test): Test TLS functionality.
+// TODO(sam,test): Password reset tests, use lettre file transport.
+// TODO(sam,test): Service 2 cannot confirm reset password.
+// TODO(sam,test): Confirm reset password success.
+// TODO(sam,test): User password is updated.
+// TODO(sam,test): Cannot reuse token.
+// TODO(sam,test): Refresh token exchange between services.
 
 audit_integration_test!();
 auth_csrf_integration_test!();

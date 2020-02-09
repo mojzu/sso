@@ -1,21 +1,64 @@
-//! Single Sign-On gRPC Server
-#[macro_use]
-extern crate log;
-
+//! # Single Sign-On (gRPC Server)
+//!
+//! ## Environment Variables
+//!
+//! ### SSO_SENTRY_DSN
+//!
+//! Sentry DSN for logging, error handling integration, optional.
+//!
+//! ### SSO_LOG_PRETTY
+//!
+//! Format logs as multi-line JSON, optional, defaults to false.
+//!
+//! ### SSO_DATABASE_URL
+//!
+//! Database connection URL, required.
+//!
+//! ### SSO_DATABASE_CONNECTIONS
+//!
+//! Database connections, required.
+//!
+//! ### SSO_PASSWORD_PWNED
+//!
+//! Password pwned integration enabled, optional, defaults to false.
+//!
+//! ### SSO_SMTP_HOST
+//!
+//! SMTP server host, optional.
+//!
+//! ### SSO_SMTP_PORT
+//!
+//! SMTP server port, optional.
+//!
+//! ### SSO_SMTP_USER
+//!
+//! SMTP server user, optional.
+//!
+//! ### SSO_SMTP_PASSWORD
+//!
+//! SMTP server password, optional.
+//!
+//! ### SSO_GITHUB_CLIENT_ID
+//!
+//! GitHub OAuth2 provider client ID, optional.
+//!
+//! ### SSO_GITHUB_CLIENT_SECRET
+//!
+//! GitHub OAuth2 provider client secret, optional.
+//!
+//! ### SSO_MICROSOFT_CLIENT_ID
+//!
+//! Microsoft OAuth2 provider client ID, optional.
+//!
+//! ### SSO_MICROSOFT_CLIENT_SECRET
+//!
+//! Microsoft OAuth2 provider client secret, optional.
+//!
 use futures_util::future::join;
 use hyper::service::{make_service_fn, service_fn};
-use sentry::integrations::log::LoggerOptions;
-use sso::{env, Postgres};
+use sso::{env, log_init, Postgres};
 use std::{fs::create_dir_all, sync::Arc};
 use tonic::transport::Server;
-
-/// Sentry URL for logging integration.
-const ENV_SENTRY_URL: &str = "SSO_SENTRY_URL";
-
-/// Database connection URL.
-const ENV_DATABASE_URL: &str = "SSO_DATABASE_URL";
-/// Database connection.
-const ENV_DATABASE_CONNECTIONS: &str = "SSO_DATABASE_CONNECTIONS";
 
 // /// Server TLS certificate file.
 // const ENV_TLS_CERT_PEM: &str = "SSO_TLS_CERT_PEM";
@@ -24,66 +67,33 @@ const ENV_DATABASE_CONNECTIONS: &str = "SSO_DATABASE_CONNECTIONS";
 // /// Server mutual TLS client file.
 // const ENV_TLS_CLIENT_PEM: &str = "SSO_TLS_CLIENT_PEM";
 
-/// SMTP server, optional.
-const ENV_SMTP_HOST: &str = "SSO_SMTP_HOST";
-const ENV_SMTP_PORT: &str = "SSO_SMTP_PORT";
-const ENV_SMTP_USER: &str = "SSO_SMTP_USER";
-const ENV_SMTP_PASSWORD: &str = "SSO_SMTP_PASSWORD";
-
-/// Password pwned integration enabled, optional.
-const ENV_PASSWORD_PWNED: &str = "SSO_PASSWORD_PWNED";
-
-/// GitHub OAuth2 provider, optional.
-const ENV_GITHUB_CLIENT_ID: &str = "SSO_GITHUB_CLIENT_ID";
-const ENV_GITHUB_CLIENT_SECRET: &str = "SSO_GITHUB_CLIENT_SECRET";
-
-/// Microsoft OAuth2 provider, optional.
-const ENV_MICROSOFT_CLIENT_ID: &str = "SSO_MICROSOFT_CLIENT_ID";
-const ENV_MICROSOFT_CLIENT_SECRET: &str = "SSO_MICROSOFT_CLIENT_SECRET";
-
-// TODO(3,refactor): TLS support, blocked on `ring-asm`.
+// TODO(sam,refactor): TLS support, blocked on `ring-asm`.
 // <https://github.com/hyperium/tonic/blob/master/examples/src/tls/server.rs>
 // <https://github.com/smallstep/autocert>
-// <https://github.com/vivint-smarthome/rumqtt/tree/async-await>
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // If SENTRY_URL is defined, enable logging and panic handler integration.
-    // TODO(1,refactor): Log in JSON, use fluentd to forward to Sentry.
-    let _guard = match std::env::var(ENV_SENTRY_URL) {
-        Ok(sentry_url) => {
-            let guard = sentry::init(sentry_url);
-            let mut options = LoggerOptions::default();
-            options.emit_warning_events = true;
+    // Logging, error handling.
+    let _guard = log_init("SSO_SENTRY_DSN", "SSO_LOG_PRETTY");
 
-            sentry::integrations::env_logger::init(None, options);
-            sentry::integrations::panic::register_panic_handler();
-            Some(guard)
-        }
-        Err(e) => {
-            env_logger::init();
-            warn!("SENTRY_URL is undefined, integration is disabled ({})", e);
-            None
-        }
-    };
-
-    // Setup database connection.
-    let database_url = env::string(ENV_DATABASE_URL).unwrap();
-    let database_connections = env::value_opt::<u32>(ENV_DATABASE_CONNECTIONS).unwrap();
+    // Database connection.
+    // TODO(sam,refactor): Improve initialisation code, expect, etc.
+    let database_url = env::string("SSO_DATABASE_URL").unwrap();
+    let database_connections = env::value_opt::<u32>("SSO_DATABASE_CONNECTIONS").unwrap();
     let driver = Postgres::initialise(&database_url, database_connections).unwrap();
 
-    let password_pwned = env::value_opt::<bool>(ENV_PASSWORD_PWNED)
+    let password_pwned = env::value_opt::<bool>("SSO_PASSWORD_PWNED")
         .unwrap()
         .unwrap_or(false);
-    let github_oauth2 = env::oauth2(ENV_GITHUB_CLIENT_ID, ENV_GITHUB_CLIENT_SECRET).unwrap();
+    let github_oauth2 = env::oauth2("SSO_GITHUB_CLIENT_ID", "SSO_GITHUB_CLIENT_SECRET").unwrap();
     let microsoft_oauth2 =
-        env::oauth2(ENV_MICROSOFT_CLIENT_ID, ENV_MICROSOFT_CLIENT_SECRET).unwrap();
+        env::oauth2("SSO_MICROSOFT_CLIENT_ID", "SSO_MICROSOFT_CLIENT_SECRET").unwrap();
 
     let smtp = env::smtp(
-        ENV_SMTP_HOST,
-        ENV_SMTP_PORT,
-        ENV_SMTP_USER,
-        ENV_SMTP_PASSWORD,
+        "SSO_SMTP_HOST",
+        "SSO_SMTP_PORT",
+        "SSO_SMTP_USER",
+        "SSO_SMTP_PASSWORD",
     )
     .unwrap();
     // Create directory for SMTP file transport if other variables are undefined.
