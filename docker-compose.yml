@@ -33,8 +33,8 @@ services:
 
   # Sso gRPC service.
   sso-grpc:
-    build: docker/sso-grpc
-    image: sso/grpc:latest
+    build: docker/sso
+    image: sso:latest
     depends_on:
       - postgres
     restart: always
@@ -49,18 +49,20 @@ services:
       # SSO_SMTP_PORT: ""
       # SSO_SMTP_USER: ""
       # SSO_SMTP_PASSWORD: ""
+    entrypoint: ["sso-grpc"]
     ports:
       - "7042:7042"
       - "7043:7043"
 
   # Sso OpenAPI gateway service.
   sso-openapi:
-    build: docker/sso-openapi
-    image: sso/openapi:latest
+    build: docker/sso
+    image: sso:latest
     restart: always
     environment:
       # gRPC server URL.
       SSO_GRPC_URL: "sso-grpc:7042"
+    entrypoint: ["sso-openapi"]
     ports:
       - "8042:8042"
 

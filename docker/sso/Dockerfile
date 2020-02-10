@@ -1,16 +1,20 @@
 FROM sso/build:latest as build
 
-# Build binary.
-RUN cargo make release;
+# Build binaries.
+RUN cargo make release && \
+    cargo make openapi-bin;
 
 FROM debian:10.2
 ENV DEBIAN_FRONTEND="noninteractive"
 
-# gRPC server port.
+# gRPC server gRPC port.
 EXPOSE 7042
 
-# HTTP server port.
+# gRPC server HTTP port.
 EXPOSE 7043
+
+# OpenAPI server HTTP port.
+EXPOSE 8042
 
 # Install dependencies.
 RUN apt-get update \
@@ -21,6 +25,10 @@ RUN apt-get update \
 # Copy binaries.
 COPY --from=build /build/target/release/sso-grpc /usr/local/bin/sso-grpc
 COPY --from=build /build/target/release/sso-cli /usr/local/bin/sso-cli
-RUN chmod +x /usr/local/bin/sso-grpc /usr/local/bin/sso-cli
+COPY --from=build /build/sso_openapi/sso-openapi /usr/local/bin/sso-openapi
+RUN chmod +x /usr/local/bin/sso-grpc \
+    /usr/local/bin/sso-cli \
+    /usr/local/bin/sso-openapi;
 
+# Default entrypoint.
 ENTRYPOINT ["sso-grpc"]
