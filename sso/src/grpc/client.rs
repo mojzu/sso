@@ -42,7 +42,10 @@ impl SsoClient<tonic::transport::Channel> {
         let user_authorisation = options.user_authorisation.to_owned();
 
         let endpoint: Endpoint = options.uri.clone().into();
-        let channel = endpoint.connect().await.unwrap();
+        let channel = endpoint
+            .connect()
+            .await
+            .expect("Sso client connectioned failed.");
 
         SsoClient::with_interceptor(channel, move |mut req: Request<()>| {
             let meta = req.metadata_mut();
