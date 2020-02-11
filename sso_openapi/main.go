@@ -5,6 +5,7 @@ import (
 	"golang.org/x/net/context" // Use "golang.org/x/net/context" for Golang version <= 1.6
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/golang/glog"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -32,7 +33,32 @@ func run() error {
 	}
 
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
-	return http.ListenAndServe(":8042", mux)
+	return http.ListenAndServe(":8042", allowCORS(mux))
+}
+
+// TODO(sam,refactor): Check if headers can be overwritten at proxy level, or env var for configuration.
+func allowCORS(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if origin := r.Header.Get("Origin"); origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			if r.Method == "OPTIONS" {
+				// && r.Header.Get("Access-Control-Request-Method") != ""
+				preflightHandler(w, r)
+				return
+			}
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+// TODO(sam,refactor): Check preflight headers are correct for gateway.
+func preflightHandler(w http.ResponseWriter, r *http.Request) {
+	headers := []string{"Content-Type", "Accept", "Authorization"}
+	w.Header().Set("Access-Control-Allow-Headers", strings.Join(headers, ","))
+	methods := []string{"GET", "POST", "PATCH", "DELETE"}
+	w.Header().Set("Access-Control-Allow-Methods", strings.Join(methods, ","))
+	glog.Infof("preflight request for %s", r.URL.Path)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func main() {

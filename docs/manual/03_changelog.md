@@ -5,6 +5,7 @@
 ### Added
 
 -   Added `/auth/token/exchange` endpoint.
+-   Added built-in CORS support to `sso-openapi`.
 
 ### Changed
 
