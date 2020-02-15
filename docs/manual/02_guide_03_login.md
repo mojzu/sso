@@ -14,7 +14,7 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"is_enabled":true,"name":"$user_name","email":"$user_email","locale":"en","timezone":"Etc/UTC","password_allow_reset":true,"password_require_update":false,"password":"$user_password"}' \
-  sso.localhost/v1/user
+  sso.localhost/api/v1/user
 ```
 
 Service creates a key for user.
@@ -24,7 +24,7 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"is_enabled":true,"type":"TOKEN","name":"$key_name","user_id":"$user_id"}' \
-  sso.localhost/v1/key
+  sso.localhost/api/v1/key
 ```
 
 User makes login request to service, service makes a login request.
@@ -34,7 +34,7 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"email":"$user_email","password":"$user_password"}' \
-  sso.localhost/v1/auth/provider/local/login
+  sso.localhost/api/v1/auth/provider/local/login
 ```
 
 Service receives token response, access token can be verified to authenticate requests.
@@ -44,7 +44,7 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"token":"$access_token"}' \
-  sso.localhost/v1/auth/token/verify
+  sso.localhost/api/v1/auth/token/verify
 ```
 
 Refresh token can be used to refresh token.
@@ -54,7 +54,7 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"token":"$refresh_token"}' \
-  sso.localhost/v1/auth/token/refresh
+  sso.localhost/api/v1/auth/token/refresh
 ```
 
 Access or refresh token can be revoked, this will disable the key created earlier and prevent verify and refresh.
@@ -64,5 +64,5 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"token":"$token"}' \
-  sso.localhost/v1/auth/token/revoke
+  sso.localhost/api/v1/auth/token/revoke
 ```

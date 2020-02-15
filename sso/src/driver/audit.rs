@@ -237,7 +237,7 @@ pub struct AuditUpdate {
 
 /// Audit metadata.
 ///
-/// HTTP request information.
+/// Request information collected from headers or other sources.
 #[derive(Debug, Clone)]
 pub struct AuditMeta {
     user_agent: String,

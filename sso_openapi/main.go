@@ -51,9 +51,8 @@ func allowCORS(h http.Handler) http.Handler {
 	})
 }
 
-// TODO(sam,refactor): Check preflight headers are correct for gateway.
 func preflightHandler(w http.ResponseWriter, r *http.Request) {
-	headers := []string{"Content-Type", "Accept", "Authorization"}
+	headers := []string{"User-Agent", "Content-Type", "Accept", "Authorization"}
 	w.Header().Set("Access-Control-Allow-Headers", strings.Join(headers, ","))
 	methods := []string{"GET", "POST", "PATCH", "DELETE"}
 	w.Header().Set("Access-Control-Allow-Methods", strings.Join(methods, ","))

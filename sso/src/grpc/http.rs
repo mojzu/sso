@@ -47,8 +47,8 @@ async fn traefik_self(
     info!("traefik_self {:?}", req.headers());
     let res = Response::builder()
         .status(StatusCode::OK)
-        .header("X-Sso-Key-Id", "key-id-test")
-        .header("X-Sso-Service-Id", "service-id-test")
+        .header("Grpc-Metadata-Sso-Key-Id", "key-id-test")
+        .header("Grpc-Metadata-Sso-Service-Id", "service-id-test")
         .body(Body::empty())
         .unwrap();
     Ok(res)
@@ -61,8 +61,8 @@ async fn traefik_service(
     info!("traefik_service {:?}", req.headers());
     let res = Response::builder()
         .status(StatusCode::OK)
-        .header("X-Sso-Key-Id", "key-id-test")
-        .header("X-Sso-User-Id", "user-id-test")
+        .header("Grpc-Metadata-Sso-Key-Id", "key-id-test")
+        .header("Grpc-Metadata-Sso-User-Id", "user-id-test")
         .body(Body::empty())
         .unwrap();
     Ok(res)

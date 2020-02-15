@@ -11,7 +11,7 @@
 # ```
 version: "3"
 
-# TODO(sam,docs): CORS headers and other security headers checks (sso-openapi).
+# TODO(sam,docs): CORS and other security headers checks.
 # https://www.owasp.org/index.php/OWASP_Secure_Headers_Project
 # Rate limiting, TLS/HTTPS support.
 
@@ -61,14 +61,13 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.sso-grpc.loadbalancer.server.scheme=h2c"
       - "traefik.http.services.sso-grpc.loadbalancer.server.port=7042"
-      - "traefik.http.middlewares.sso-grpc-prefix.stripprefix.prefixes=/grpc"
       - "traefik.http.middlewares.sso-grpc-auth.forwardauth.address=http://sso-grpc:7043/hook/traefik/self"
       - "traefik.http.middlewares.sso-grpc-auth.forwardauth.trustForwardHeader=true"
-      - "traefik.http.middlewares.sso-grpc-auth.forwardauth.authResponseHeaders=X-Sso-Key-Id,X-Sso-Service-Id"
+      - "traefik.http.middlewares.sso-grpc-auth.forwardauth.authResponseHeaders=Grpc-Metadata-Sso-Key-Id,Grpc-Metadata-Sso-Service-Id"
       - "traefik.http.routers.sso-grpc.service=sso-grpc"
       - "traefik.http.routers.sso-grpc.entrypoints=http"
-      - "traefik.http.routers.sso-grpc.rule=Host(`sso.localhost`) && PathPrefix(`/grpc`)"
-      - "traefik.http.routers.sso-grpc.middlewares=sso-grpc-prefix,sso-grpc-auth"
+      - "traefik.http.routers.sso-grpc.rule=Host(`sso.localhost`)"
+      - "traefik.http.routers.sso-grpc.middlewares=sso-grpc-auth"
 
   # Sso OpenAPI server.
   sso-openapi:
@@ -85,7 +84,7 @@ services:
       - "traefik.http.middlewares.sso-openapi-prefix.stripprefix.prefixes=/api"
       - "traefik.http.middlewares.sso-openapi-auth.forwardauth.address=http://sso-grpc:7043/hook/traefik/self"
       - "traefik.http.middlewares.sso-openapi-auth.forwardauth.trustForwardHeader=true"
-      - "traefik.http.middlewares.sso-openapi-auth.forwardauth.authResponseHeaders=X-Sso-Key-Id,X-Sso-Service-Id"
+      - "traefik.http.middlewares.sso-openapi-auth.forwardauth.authResponseHeaders=Grpc-Metadata-Sso-Key-Id,Grpc-Metadata-Sso-Service-Id"
       - "traefik.http.routers.sso-openapi.service=sso-openapi"
       - "traefik.http.routers.sso-openapi.entrypoints=http"
       - "traefik.http.routers.sso-openapi.rule=Host(`sso.localhost`) && PathPrefix(`/api`)"

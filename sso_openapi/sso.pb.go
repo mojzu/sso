@@ -4027,8 +4027,8 @@ type SsoClient interface {
 	// - `Authorization`: Key value.
 	//
 	// Response headers.
-	// - `X-Sso-Key-Id`: ID of key in request.
-	// - `X-Sso-Service-Id`: ID of service which owns key, or not defined if key is a root key.
+	// - `Grpc-Metadata-Sso-Key-Id`: ID of key in request.
+	// - `Grpc-Metadata-Sso-Service-Id`: ID of service which owns key, or not defined if key is a root key.
 	HookTraefikSelf(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Traefik forward authentication hook for services.
 	//
@@ -4043,8 +4043,8 @@ type SsoClient interface {
 	// - `Authorization`: Key value.
 	//
 	// Response headers.
-	// - `X-Sso-Key-Id`: ID of key in request or of key used to generate token.
-	// - `X-Sso-User-Id`: ID of user which owns key.
+	// - `Grpc-Metadata-Sso-Key-Id`: ID of key in request or of key used to generate token.
+	// - `Grpc-Metadata-Sso-User-Id`: ID of user which owns key.
 	HookTraefikService(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*empty.Empty, error)
 	// List audit logs.
 	//
@@ -4647,8 +4647,8 @@ type SsoServer interface {
 	// - `Authorization`: Key value.
 	//
 	// Response headers.
-	// - `X-Sso-Key-Id`: ID of key in request.
-	// - `X-Sso-Service-Id`: ID of service which owns key, or not defined if key is a root key.
+	// - `Grpc-Metadata-Sso-Key-Id`: ID of key in request.
+	// - `Grpc-Metadata-Sso-Service-Id`: ID of service which owns key, or not defined if key is a root key.
 	HookTraefikSelf(context.Context, *empty.Empty) (*empty.Empty, error)
 	// Traefik forward authentication hook for services.
 	//
@@ -4663,8 +4663,8 @@ type SsoServer interface {
 	// - `Authorization`: Key value.
 	//
 	// Response headers.
-	// - `X-Sso-Key-Id`: ID of key in request or of key used to generate token.
-	// - `X-Sso-User-Id`: ID of user which owns key.
+	// - `Grpc-Metadata-Sso-Key-Id`: ID of key in request or of key used to generate token.
+	// - `Grpc-Metadata-Sso-User-Id`: ID of user which owns key.
 	HookTraefikService(context.Context, *empty.Empty) (*empty.Empty, error)
 	// List audit logs.
 	//

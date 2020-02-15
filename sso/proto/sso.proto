@@ -112,10 +112,12 @@ service Sso {
     //
     // Request headers.
     // - `Authorization`: Key value.
+    // - `User-Authorization`: Optional key or token value.
     //
     // Response headers.
-    // - `X-Sso-Key-Id`: ID of key in request.
-    // - `X-Sso-Service-Id`: ID of service which owns key, or not defined if key is a root key.
+    // - `Grpc-Metadata-Sso-Key-Id`: ID of key in request.
+    // - `Grpc-Metadata-Sso-Service-Id`: ID of service which owns key, or not defined if key is a root key.
+    // - `Grpc-Metadata-Sso-User-Id`: ID of user which owns key or not defined if user authorisation header not present.
     rpc HookTraefikSelf (google.protobuf.Empty) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             get: "/hook/traefik/self"
@@ -132,11 +134,11 @@ service Sso {
     // is not required, this endpoint is intended for internal use only.
     //
     // Request headers.
-    // - `Authorization`: Key value.
+    // - `Authorization`: Key or token value.
     //
     // Response headers.
-    // - `X-Sso-Key-Id`: ID of key in request or of key used to generate token.
-    // - `X-Sso-User-Id`: ID of user which owns key.
+    // - `Grpc-Metadata-Sso-Key-Id`: ID of key in request or of key used to generate token.
+    // - `Grpc-Metadata-Sso-User-Id`: ID of user which owns key.
     rpc HookTraefikService (google.protobuf.Empty) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             get: "/hook/traefik/service"
