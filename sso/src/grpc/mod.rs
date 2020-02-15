@@ -201,6 +201,20 @@ impl pb::sso_server::Sso for Server {
         // Method implemented in HTTP server.
         Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
     }
+    async fn hook_traefik_self(
+        &self,
+        _: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        // Method implemented in HTTP server.
+        Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
+    }
+    async fn hook_traefik_service(
+        &self,
+        _: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        // Method implemented in HTTP server.
+        Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
+    }
     async fn audit_list(
         &self,
         request: tonic::Request<pb::AuditListRequest>,

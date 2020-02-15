@@ -33,7 +33,7 @@ The OWASP Application Security Verification Standard is being used as a referenc
 ### 1.2.1
 
 - Binaries must be run as unique or special low privilege operating system accounts.
-- TODO(sam,docs): Systemd unit file examples, sso, postgres, nginx, etc.
+- TODO(sam,docs): Systemd unit file examples, sso, postgres, etc.
 - TODO(sam,docs): Kubernetes deployment examples.
 
 ### 1.2.2

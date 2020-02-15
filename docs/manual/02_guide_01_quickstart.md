@@ -27,11 +27,17 @@ Start services.
 docker-compose up
 ```
 
-If successful `sso-grpc` is now available at `localhost:7042`, and `sso-openapi` is available at `localhost:8042`.
+If successful `sso-grpc` is now available at `sso.localhost/grpc`, and `sso-openapi` is available at `sso.localhost/api`.
 
 The following guides depend on the `sso-cli` command, it can be found in the `sso_grpc` container with the command.
 
 ```bash
 docker exec -it sso_sso-grpc_1 /bin/bash
 # root:/# sso-cli --help
+```
+
+Services can be destroyed with the command.
+
+```bash
+docker-compose down
 ```

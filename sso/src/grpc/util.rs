@@ -316,6 +316,9 @@ fn request_audit_auth(
     remote: Option<SocketAddr>,
     metadata: &MetadataMap,
 ) -> MethodResult<(AuditMeta, Option<String>)> {
+    // TODO(sam,refactor): Remove this when testing done.
+    info!("request_audit_auth {:?}", metadata);
+
     let user_agent = match metadata.get("user-agent") {
         Some(value) => value.to_str().unwrap().to_owned(),
         None => String::from("none"),

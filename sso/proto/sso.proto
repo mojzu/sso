@@ -101,6 +101,48 @@ service Sso {
         };
     }
 
+    // Traefik forward authentication hook for self.
+    //
+    // Determines whether request was made with a service or root key, if key
+    // is present and valid will set headers on the response. If key is not present
+    // or invalid this will return an unauthorised response.
+    //
+    // This endpoint is only available via the HTTP server port of `sso-grpc`. Authentication
+    // is not required, this endpoint is intended for internal use only.
+    //
+    // Request headers.
+    // - `Authorization`: Key value.
+    //
+    // Response headers.
+    // - `X-Sso-Key-Id`: ID of key in request.
+    // - `X-Sso-Service-Id`: ID of service which owns key, or not defined if key is a root key.
+    rpc HookTraefikSelf (google.protobuf.Empty) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            get: "/hook/traefik/self"
+        };
+    }
+
+    // Traefik forward authentication hook for services.
+    //
+    // Determines whether request was made with a user key or token, if user key or token
+    // is present and valid will set headers on the response. If user key or token is not present
+    // or invalid this will return an unauthorised response.
+    //
+    // This endpoint is only available via the HTTP server port of `sso-grpc`. Authentication
+    // is not required, this endpoint is intended for internal use only.
+    //
+    // Request headers.
+    // - `Authorization`: Key value.
+    //
+    // Response headers.
+    // - `X-Sso-Key-Id`: ID of key in request or of key used to generate token.
+    // - `X-Sso-User-Id`: ID of user which owns key.
+    rpc HookTraefikService (google.protobuf.Empty) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            get: "/hook/traefik/service"
+        };
+    }
+
     // List audit logs.
     //
     // All fields are optional.

@@ -1,20 +1,25 @@
 # ```bash
 # # Build all services.
 # docker-compose build
+#
 # # Start services.
-# docker-compose up postgres sso-grpc sso-openapi sso-nginx
+# docker-compose up [$service]
+#
 # # Stop/destroy services.
 # docker-compose stop
-# docker-compose destroy
+# docker-compose down
 # ```
 version: "3"
 
+# TODO(sam,docs): CORS headers and other security headers checks (sso-openapi).
+# https://www.owasp.org/index.php/OWASP_Secure_Headers_Project
+# Rate limiting, TLS/HTTPS support.
+
 services:
-  # PostgreSQL service.
+  # PostgreSQL.
   # <https://www.postgresql.org/>
   postgres:
     build: docker/postgres
-    image: sso/postgres:latest
     restart: always
     environment:
       POSTGRES_USER: guest
@@ -22,16 +27,18 @@ services:
     ports:
       - "5432:5432"
 
-  # Prometheus service.
+  # Prometheus.
   # <https://prometheus.io/>
   prometheus:
     build: docker/prometheus
-    image: sso/prometheus:latest
     restart: always
-    ports:
-      - "9090:9090"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+      - "traefik.http.routers.prometheus.entrypoints=http"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
 
-  # Sso gRPC service.
+  # Sso gRPC server.
   sso-grpc:
     build: docker/sso
     image: sso:latest
@@ -50,11 +57,20 @@ services:
       # SSO_SMTP_USER: ""
       # SSO_SMTP_PASSWORD: ""
     entrypoint: ["sso-grpc"]
-    ports:
-      - "7042:7042"
-      - "7043:7043"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.sso-grpc.loadbalancer.server.scheme=h2c"
+      - "traefik.http.services.sso-grpc.loadbalancer.server.port=7042"
+      - "traefik.http.middlewares.sso-grpc-prefix.stripprefix.prefixes=/grpc"
+      - "traefik.http.middlewares.sso-grpc-auth.forwardauth.address=http://sso-grpc:7043/hook/traefik/self"
+      - "traefik.http.middlewares.sso-grpc-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.sso-grpc-auth.forwardauth.authResponseHeaders=X-Sso-Key-Id,X-Sso-Service-Id"
+      - "traefik.http.routers.sso-grpc.service=sso-grpc"
+      - "traefik.http.routers.sso-grpc.entrypoints=http"
+      - "traefik.http.routers.sso-grpc.rule=Host(`sso.localhost`) && PathPrefix(`/grpc`)"
+      - "traefik.http.routers.sso-grpc.middlewares=sso-grpc-prefix,sso-grpc-auth"
 
-  # Sso OpenAPI gateway service.
+  # Sso OpenAPI server.
   sso-openapi:
     build: docker/sso
     image: sso:latest
@@ -63,17 +79,36 @@ services:
       # gRPC server URL.
       SSO_GRPC_URL: "sso-grpc:7042"
     entrypoint: ["sso-openapi"]
-    ports:
-      - "8042:8042"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.sso-openapi.loadbalancer.server.port=8042"
+      - "traefik.http.middlewares.sso-openapi-prefix.stripprefix.prefixes=/api"
+      - "traefik.http.middlewares.sso-openapi-auth.forwardauth.address=http://sso-grpc:7043/hook/traefik/self"
+      - "traefik.http.middlewares.sso-openapi-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.sso-openapi-auth.forwardauth.authResponseHeaders=X-Sso-Key-Id,X-Sso-Service-Id"
+      - "traefik.http.routers.sso-openapi.service=sso-openapi"
+      - "traefik.http.routers.sso-openapi.entrypoints=http"
+      - "traefik.http.routers.sso-openapi.rule=Host(`sso.localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.sso-openapi.middlewares=sso-openapi-prefix,sso-openapi-auth"
 
-  # Sso nginx service.
-  # <https://www.nginx.com/>
-  sso-nginx:
-    build: docker/sso-nginx
-    image: sso/nginx:latest
+  # Traefik.
+  # <https://docs.traefik.io/>
+  traefik:
+    image: traefik:latest
     restart: always
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=compose"
+      - "--entrypoints.http.address=:80"
+      - "--metrics.prometheus"
+      - "--accessLog"
     ports:
-      - "8080:80"
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
 networks:
   default:

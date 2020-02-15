@@ -13,6 +13,8 @@ pub async fn http_server(
     match (req.method(), req.uri().path()) {
         (&Method::GET, "/ping") => ping(req).await,
         (&Method::GET, "/metrics") => metrics(driver, req).await,
+        (&Method::GET, "/hook/traefik/self") => traefik_self(driver, req).await,
+        (&Method::GET, "/hook/traefik/service") => traefik_service(driver, req).await,
         _ => {
             // Return 404 not found response.
             Ok(Response::builder()
@@ -34,4 +36,34 @@ async fn metrics(
     let driver = driver.clone();
     let s = hyper_blocking(move || Ok(Metrics::read(driver.as_ref()).unwrap())).await?;
     Ok(Response::new(Body::from(s)))
+}
+
+// TODO(sam,feature): Traefik integration, optional flag, example for service integration.
+
+async fn traefik_self(
+    _driver: Arc<Postgres>,
+    req: Request<Body>,
+) -> Result<Response<Body>, hyper::Error> {
+    info!("traefik_self {:?}", req.headers());
+    let res = Response::builder()
+        .status(StatusCode::OK)
+        .header("X-Sso-Key-Id", "key-id-test")
+        .header("X-Sso-Service-Id", "service-id-test")
+        .body(Body::empty())
+        .unwrap();
+    Ok(res)
+}
+
+async fn traefik_service(
+    _driver: Arc<Postgres>,
+    req: Request<Body>,
+) -> Result<Response<Body>, hyper::Error> {
+    info!("traefik_service {:?}", req.headers());
+    let res = Response::builder()
+        .status(StatusCode::OK)
+        .header("X-Sso-Key-Id", "key-id-test")
+        .header("X-Sso-User-Id", "user-id-test")
+        .body(Body::empty())
+        .unwrap();
+    Ok(res)
 }
