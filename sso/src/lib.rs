@@ -1,8 +1,6 @@
 //! # Single Sign-On (Library)
 #![recursion_limit = "1024"]
 #![deny(missing_debug_implementations)]
-// TODO(sam,docs): Require documentation, better library interface, embeddable?
-// #![deny(missing_docs)]
 
 #[macro_use]
 extern crate diesel;
@@ -113,5 +111,3 @@ where
         }
     }
 }
-
-// TODO(sam,refactor): Check manual guides, update as needed.

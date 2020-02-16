@@ -10,13 +10,13 @@
 //!
 //! Format logs as multi-line JSON, optional, defaults to false.
 //!
-//! ### SSO_DATABASE_URL
+//! ### SSO_POSTGRES_URL
 //!
-//! Database connection URL, required.
+//! Postgres connection URL, required.
 //!
-//! ### SSO_DATABASE_CONNECTIONS
+//! ### SSO_POSTGRES_CONNECTIONS
 //!
-//! Database connections, required.
+//! Postgres connections, required.
 //!
 //! ### SSO_PWNED_PASSWORDS
 //!
@@ -67,27 +67,13 @@ use sso::{env, log_init, Postgres};
 use std::{fs::create_dir_all, sync::Arc};
 use tonic::transport::Server;
 
-// /// Server TLS certificate file.
-// const ENV_TLS_CERT_PEM: &str = "SSO_TLS_CERT_PEM";
-// /// Server TLS key file.
-// const ENV_TLS_KEY_PEM: &str = "SSO_TLS_KEY_PEM";
-// /// Server mutual TLS client file.
-// const ENV_TLS_CLIENT_PEM: &str = "SSO_TLS_CLIENT_PEM";
-
-// TODO(sam,refactor): TLS support, blocked on `ring-asm`.
-// <https://github.com/hyperium/tonic/blob/master/examples/src/tls/server.rs>
-// <https://github.com/smallstep/autocert>
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Logging, error handling.
     let _guard = log_init("SSO_SENTRY_DSN", "SSO_LOG_PRETTY");
 
-    // Database connection.
-    // TODO(sam,refactor): Improve initialisation code, expect, etc.
-    let database_url = env::string("SSO_DATABASE_URL").unwrap();
-    let database_connections = env::value_opt::<u32>("SSO_DATABASE_CONNECTIONS").unwrap();
-    let driver = Postgres::initialise(&database_url, database_connections).unwrap();
+    // Postgres connection.
+    let driver = Postgres::from_env("SSO_POSTGRES_URL", "SSO_POSTGRES_CONNECTIONS");
 
     let pwned_passwords_enabled = env::value_opt::<bool>("SSO_PWNED_PASSWORDS")
         .unwrap()
@@ -139,6 +125,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
     };
 
+    // Wait to exit gracefully.
     let (grpc, http) = join(grpc, http).await;
     grpc?;
     http?;

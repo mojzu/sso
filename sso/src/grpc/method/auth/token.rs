@@ -266,7 +266,7 @@ pub async fn exchange(
                         .map_err(MethodError::BadRequest)?;
 
                 // Verify CSRF, and recreate so source service can still reuse refresh token.
-                let csrf = api_csrf_verify(driver, &service, &csrf_key)?;
+                let csrf = api_csrf_verify(driver, &source_service, &csrf_key)?;
                 driver
                     .csrf_create(&CsrfCreate::copy(csrf))
                     .map_err(MethodError::BadRequest)?;

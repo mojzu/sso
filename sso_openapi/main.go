@@ -36,7 +36,6 @@ func run() error {
 	return http.ListenAndServe(":8042", allowCORS(mux))
 }
 
-// TODO(sam,refactor): Check if headers can be overwritten at proxy level, or env var for configuration.
 func allowCORS(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if origin := r.Header.Get("Origin"); origin != "" {

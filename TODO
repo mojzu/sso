@@ -1,0 +1,88 @@
+Todo:
+  Todo:
+    ☐ @high Server and client TLS support.
+        https://github.com/hyperium/tonic/blob/master/examples/src/tls/server.rs
+        https://github.com/smallstep/autocert
+    ☐ @low Handle more audit headers.
+        x-forwarded-host, x-forwarded-uri, x-real-ip.
+    ☐ @low JWT handling improvements, refactoring.
+        https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html
+        https://github.com/smallstep/cli
+    ☐ @low Improve service list query options.
+        Name ge/le options
+    ☐ @low Improve usability, composability of pattern functions, reduce duplicate authentication code.
+        Diesel async?
+        https://github.com/diesel-rs/diesel/issues/2084
+        Improve translation code between driver/grpc, unwrap check and cleanup.
+        Improve code structure, driver/grpc interfaces (reduce repetition).
+        Authentication mechanism code is split across files, cleaner code.
+    ☐ @high Sso async client configurable headers per request for upstream use.
+        Keep channel in server and use with_interceptor?
+    ☐ @high Check, test and refactor register and register confirm implementation.
+        If any key already exists for service, do not create one.
+        Add tests to check whether this flow can be used by used to access disabled user.
+    ☐ @high When revoking token, also revoke other user token keys (may have been exchanged).
+    ☐ @high OpenAPI gateway CORS headers, check if override at proxy level works.
+        Environment variable for allow origin header?
+
+  Documentation:
+    ☐ Check CORS and other security headers using OWASP secure headers project.
+    ☐ Traefik rate limiting, TLS/HTTPS support.
+    ☐ Prometheus alert rule for high CPU usage.
+        How to get maximum for seconds over time?
+    ☐ Manual guides check and other documentation, update where required.
+    ☐ Manual revoke email update guide.
+    ☐ Manual CLI guide, improved CLI commands.
+    ☐ Manual style improvements, PDF output?
+    ☐ Systemd unit file examples, sso, postgres, etc.
+    ☐ Kubernetes deployment examples.
+    ☐ Mutual TLS using rustls configuration and PKI for communication between services.
+    ☐ Check this meets key management standard NIST SP 800-57.
+    ☐ Evaluate data and identify/classify sensitive data.
+    ☐ Mutual TLS encryption/authentication for postgres connection.
+    ☐ Some kind of formalised procedures around source code changes.
+    ☐ Up to date documentation and definitions of application components, diagrams.
+
+  Test:
+    ☐ Test TLS functionality.
+    ☐ Password reset tests using lettre file transport (or write as .json?).
+        Service 2 cannot confirm reset password.
+        Confirm reset password success.
+        User password is updated.
+        Cannot reuse token.
+    ☐ Exchange refresh token between services tests.
+    ☐ Traefik forward auth integration tests.
+    ☐ Test structural improvements, style update, benchmarks/profiling?
+    ☐ More tests for data access, is service data masked correctly.
+    ☐ More tests on preventing spoofing, elevation of privelege.
+    ☐ Test requests with other/unknown content types are handled correctly.
+    ☐ More input tests including unicode passwords, bad strings, etc.
+
+  Developer:
+    ☐ Try flamegraph for profiling.
+        https://github.com/flamegraph-rs/flamegraph
+    ☐ Better library interface, require documentation, embeddable service?
+        #![deny(missing_docs)]
+    ☐ Further OWASP ASVS reading and notes, current notes out of date.
+    ☐ Improve binaries main code, remove or replace unwrap.
+
+  Features:
+    ☐ User sessions route for active tokens/keys.
+    ☐ Support more OAuth2 providers.
+    ☐ Webauthn support (libreauth?).
+    ☐ Configurable canary routes.
+    ☐ Improved public library API interface (gui service as example?).
+    ☐ Email translation/formatting using user locale and timezone.
+    ☐ Handle changes to password hash version.
+    ☐ Option to enforce provider URLs HTTPS.
+    ☐ User last login, key last use information (calculate in SQL).
+    ☐ Login from unknown IP address warnings, SMS support?
+    ☐ Service IP whitelist.
+    ☐ Service/user groups for segmentation.
+    ☐ Password update cannot set same password.
+    ☐ Audit logging and prometheus metrics improvements for detecting account abuse and breaches.
+    ☐ More opt-ins for pathway branches that may be weak, for example ability to reset passwords by email.
+    ☐ Structured data for users, may require access controls.
+    ☐ GDPR and other data protection compliance research.
+    ☐ Flag(s) to require HTTPS to ensure all requests/responses are encrypted in transmit.
+    ☐ Constant time responses for authentication endpoints to resist timing attacks.

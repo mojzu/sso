@@ -128,7 +128,6 @@ pub async fn csrf_verify(
     .map(|_data| pb::AuthAuditReply { audit: None })
 }
 
-// TODO(sam,refactor): Improve code structure.
 fn api_csrf_verify(driver: &Postgres, service: &Service, csrf_key: &str) -> MethodResult<Csrf> {
     driver
         .csrf_read(&csrf_key)

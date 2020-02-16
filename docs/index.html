@@ -384,8 +384,7 @@ font-size: 16px;
 <li><a href="#design"><span class="toc-section-number">4</span> Design</a>
 <ul>
 <li><a href="#dependencies"><span class="toc-section-number">4.1</span> Dependencies</a></li>
-<li><a href="#possible-features"><span class="toc-section-number">4.2</span> Possible Features</a></li>
-<li><a href="#owasp-asvs"><span class="toc-section-number">4.3</span> OWASP: ASVS</a></li>
+<li><a href="#owasp-asvs"><span class="toc-section-number">4.2</span> OWASP: ASVS</a></li>
 </ul></li>
 <li><a href="#developer"><span class="toc-section-number">5</span> Developer</a>
 <ul>
@@ -537,7 +536,7 @@ font-size: 16px;
 <span id="cb2-2"><a href="#cb2-2"></a><span class="ex">docker</span> network create compose</span></code></pre></div>
 <p>Start services.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="ex">docker-compose</span> up</span></code></pre></div>
-<p>If successful <code>sso-grpc</code> is now available at <code>sso.localhost/grpc</code>, and <code>sso-openapi</code> is available at <code>sso.localhost/api</code>.</p>
+<p>If successful <code>sso-grpc</code> is now available at <code>sso.localhost</code>, and <code>sso-openapi</code> is available at <code>sso.localhost/api</code>.</p>
 <p>The following guides depend on the <code>sso-cli</code> command, it can be found in the <code>sso_grpc</code> container with the command.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="ex">docker</span> exec -it sso_sso-grpc_1 /bin/bash</span>
 <span id="cb4-2"><a href="#cb4-2"></a><span class="co"># root:/# sso-cli --help</span></span></code></pre></div>
@@ -565,37 +564,37 @@ font-size: 16px;
 <span id="cb7-2"><a href="#cb7-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
 <span id="cb7-3"><a href="#cb7-3"></a>  --request POST \</span>
 <span id="cb7-4"><a href="#cb7-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;locale&quot;:&quot;en&quot;,&quot;timezone&quot;:&quot;Etc/UTC&quot;,&quot;password_allow_reset&quot;:true,&quot;password_require_update&quot;:false,&quot;password&quot;:&quot;$user_password&quot;}&#39;</span> \</span>
-<span id="cb7-5"><a href="#cb7-5"></a>  sso.localhost/v1/user</span></code></pre></div>
+<span id="cb7-5"><a href="#cb7-5"></a>  sso.localhost/api/v1/user</span></code></pre></div>
 <p>Service creates a key for user.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
 <span id="cb8-2"><a href="#cb8-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
 <span id="cb8-3"><a href="#cb8-3"></a>  --request POST \</span>
 <span id="cb8-4"><a href="#cb8-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;TOKEN&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39;</span> \</span>
-<span id="cb8-5"><a href="#cb8-5"></a>  sso.localhost/v1/key</span></code></pre></div>
+<span id="cb8-5"><a href="#cb8-5"></a>  sso.localhost/api/v1/key</span></code></pre></div>
 <p>User makes login request to service, service makes a login request.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
 <span id="cb9-2"><a href="#cb9-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
 <span id="cb9-3"><a href="#cb9-3"></a>  --request POST \</span>
 <span id="cb9-4"><a href="#cb9-4"></a>  --data <span class="st">&#39;{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39;</span> \</span>
-<span id="cb9-5"><a href="#cb9-5"></a>  sso.localhost/v1/auth/provider/local/login</span></code></pre></div>
+<span id="cb9-5"><a href="#cb9-5"></a>  sso.localhost/api/v1/auth/provider/local/login</span></code></pre></div>
 <p>Service receives token response, access token can be verified to authenticate requests.</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
 <span id="cb10-2"><a href="#cb10-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
 <span id="cb10-3"><a href="#cb10-3"></a>  --request POST \</span>
 <span id="cb10-4"><a href="#cb10-4"></a>  --data <span class="st">&#39;{&quot;token&quot;:&quot;$access_token&quot;}&#39;</span> \</span>
-<span id="cb10-5"><a href="#cb10-5"></a>  sso.localhost/v1/auth/token/verify</span></code></pre></div>
+<span id="cb10-5"><a href="#cb10-5"></a>  sso.localhost/api/v1/auth/token/verify</span></code></pre></div>
 <p>Refresh token can be used to refresh token.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
 <span id="cb11-2"><a href="#cb11-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
 <span id="cb11-3"><a href="#cb11-3"></a>  --request POST \</span>
 <span id="cb11-4"><a href="#cb11-4"></a>  --data <span class="st">&#39;{&quot;token&quot;:&quot;$refresh_token&quot;}&#39;</span> \</span>
-<span id="cb11-5"><a href="#cb11-5"></a>  sso.localhost/v1/auth/token/refresh</span></code></pre></div>
+<span id="cb11-5"><a href="#cb11-5"></a>  sso.localhost/api/v1/auth/token/refresh</span></code></pre></div>
 <p>Access or refresh token can be revoked, this will disable the key created earlier and prevent verify and refresh.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
 <span id="cb12-2"><a href="#cb12-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
 <span id="cb12-3"><a href="#cb12-3"></a>  --request POST \</span>
 <span id="cb12-4"><a href="#cb12-4"></a>  --data <span class="st">&#39;{&quot;token&quot;:&quot;$token&quot;}&#39;</span> \</span>
-<span id="cb12-5"><a href="#cb12-5"></a>  sso.localhost/v1/auth/token/revoke</span></code></pre></div>
+<span id="cb12-5"><a href="#cb12-5"></a>  sso.localhost/api/v1/auth/token/revoke</span></code></pre></div>
 </section>
 <section id="register" data-number="2.4">
 <h2 data-number="2.4"><span class="header-section-number">2.4</span> Register</h2>
@@ -624,7 +623,6 @@ font-size: 16px;
 <span id="cb16-3"><a href="#cb16-3"></a>  --request POST \</span>
 <span id="cb16-4"><a href="#cb16-4"></a>  --data <span class="st">&#39;{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39;</span> \</span>
 <span id="cb16-5"><a href="#cb16-5"></a>  <span class="va">$server_url</span>/v1/auth/provider/local/login</span></code></pre></div>
-<p>TODO(sam,docs): Revoke email documentation.</p>
 </section>
 <section id="reset-password" data-number="2.5">
 <h2 data-number="2.5"><span class="header-section-number">2.5</span> Reset Password</h2>
@@ -749,122 +747,160 @@ font-size: 16px;
 </section>
 <section id="exchange-token" data-number="2.8">
 <h2 data-number="2.8"><span class="header-section-number">2.8</span> Exchange Token</h2>
-<ul>
-<li>TODO(sam,docs): How to exchange refresh tokens for different services.</li>
-</ul>
+<p>Create services 1 and 2 with keys.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1"></a><span class="ex">sso-cli</span> create-service-with-key <span class="va">$service_name2</span> <span class="va">$service_url2</span> \</span>
+<span id="cb36-2"><a href="#cb36-2"></a>    --local-url <span class="va">$service_local_url2</span></span>
+<span id="cb36-3"><a href="#cb36-3"></a><span class="ex">sso-cli</span> create-service-with-key <span class="va">$service_name2</span> <span class="va">$service_url2</span> \</span>
+<span id="cb36-4"><a href="#cb36-4"></a>    --local-url <span class="va">$service_local_url2</span></span></code></pre></div>
+<p>Service 1 creates a user with password.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb37-2"><a href="#cb37-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key1</span><span class="st">&quot;</span> \</span>
+<span id="cb37-3"><a href="#cb37-3"></a>  --request POST \</span>
+<span id="cb37-4"><a href="#cb37-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;locale&quot;:&quot;en&quot;,&quot;timezone&quot;:&quot;Etc/UTC&quot;,&quot;password_allow_reset&quot;:true,&quot;password_require_update&quot;:false,&quot;password&quot;:&quot;$user_password&quot;}&#39;</span> \</span>
+<span id="cb37-5"><a href="#cb37-5"></a>  sso.localhost/api/v1/user</span></code></pre></div>
+<p>Services 1 and 2 create keys for user.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb38-2"><a href="#cb38-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key1</span><span class="st">&quot;</span> \</span>
+<span id="cb38-3"><a href="#cb38-3"></a>  --request POST \</span>
+<span id="cb38-4"><a href="#cb38-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;TOKEN&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39;</span> \</span>
+<span id="cb38-5"><a href="#cb38-5"></a>  sso.localhost/api/v1/key</span>
+<span id="cb38-6"><a href="#cb38-6"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb38-7"><a href="#cb38-7"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key2</span><span class="st">&quot;</span> \</span>
+<span id="cb38-8"><a href="#cb38-8"></a>  --request POST \</span>
+<span id="cb38-9"><a href="#cb38-9"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;TOKEN&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39;</span> \</span>
+<span id="cb38-10"><a href="#cb38-10"></a>  sso.localhost/api/v1/key</span></code></pre></div>
+<p>User makes login request to service 1, service 1 makes a login request.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb39-2"><a href="#cb39-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key1</span><span class="st">&quot;</span> \</span>
+<span id="cb39-3"><a href="#cb39-3"></a>  --request POST \</span>
+<span id="cb39-4"><a href="#cb39-4"></a>  --data <span class="st">&#39;{&quot;email&quot;:&quot;$user_email&quot;,&quot;password&quot;:&quot;$user_password&quot;}&#39;</span> \</span>
+<span id="cb39-5"><a href="#cb39-5"></a>  sso.localhost/api/v1/auth/provider/local/login</span></code></pre></div>
+<p>Service 1 receives access and refresh token response, sends service 2 copy of refresh token via query parameter.</p>
+<p>Service 2 receives refresh token and makes exchange token request.</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb40-2"><a href="#cb40-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key2</span><span class="st">&quot;</span> \</span>
+<span id="cb40-3"><a href="#cb40-3"></a>  --request POST \</span>
+<span id="cb40-4"><a href="#cb40-4"></a>  --data <span class="st">&#39;{&quot;token&quot;:&quot;$refresh_token&quot;}&#39;</span> \</span>
+<span id="cb40-5"><a href="#cb40-5"></a>  sso.localhost/api/v1/auth/token/exchange</span></code></pre></div>
+<p>Service 2 receives access and refresh token response, access token can be verified to authenticate requests.</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb41-1"><a href="#cb41-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb41-2"><a href="#cb41-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key2</span><span class="st">&quot;</span> \</span>
+<span id="cb41-3"><a href="#cb41-3"></a>  --request POST \</span>
+<span id="cb41-4"><a href="#cb41-4"></a>  --data <span class="st">&#39;{&quot;token&quot;:&quot;$access_token&quot;}&#39;</span> \</span>
+<span id="cb41-5"><a href="#cb41-5"></a>  sso.localhost/api/v1/auth/token/verify</span></code></pre></div>
 </section>
 <section id="api-key" data-number="2.9">
 <h2 data-number="2.9"><span class="header-section-number">2.9</span> API Key</h2>
 <p>Create service with key.</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1"></a><span class="ex">sso-cli</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span></span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb42-1"><a href="#cb42-1"></a><span class="ex">sso-cli</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span></span></code></pre></div>
 <p>Service creates a user without password.</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb37-2"><a href="#cb37-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb37-3"><a href="#cb37-3"></a>  --request POST \</span>
-<span id="cb37-4"><a href="#cb37-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}&#39;</span> \</span>
-<span id="cb37-5"><a href="#cb37-5"></a>  localhost:8042/v1/user</span></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb43-1"><a href="#cb43-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb43-2"><a href="#cb43-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb43-3"><a href="#cb43-3"></a>  --request POST \</span>
+<span id="cb43-4"><a href="#cb43-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;}&#39;</span> \</span>
+<span id="cb43-5"><a href="#cb43-5"></a>  localhost:8042/v1/user</span></code></pre></div>
 <p>Service creates a key for user.</p>
-<div class="sourceCode" id="cb38"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb38-2"><a href="#cb38-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb38-3"><a href="#cb38-3"></a>  --request POST \</span>
-<span id="cb38-4"><a href="#cb38-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;Key&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39;</span> \</span>
-<span id="cb38-5"><a href="#cb38-5"></a>  localhost:8042/v1/key</span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb44-2"><a href="#cb44-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb44-3"><a href="#cb44-3"></a>  --request POST \</span>
+<span id="cb44-4"><a href="#cb44-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;Key&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39;</span> \</span>
+<span id="cb44-5"><a href="#cb44-5"></a>  localhost:8042/v1/key</span></code></pre></div>
 <p>User makes requests to service with key value, key can be verified to authenticate requests.</p>
-<div class="sourceCode" id="cb39"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb39-2"><a href="#cb39-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb39-3"><a href="#cb39-3"></a>  --request POST \</span>
-<span id="cb39-4"><a href="#cb39-4"></a>  --data <span class="st">&#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39;</span> \</span>
-<span id="cb39-5"><a href="#cb39-5"></a>  localhost:8042/v1/auth/key/verify</span></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb45-2"><a href="#cb45-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb45-3"><a href="#cb45-3"></a>  --request POST \</span>
+<span id="cb45-4"><a href="#cb45-4"></a>  --data <span class="st">&#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39;</span> \</span>
+<span id="cb45-5"><a href="#cb45-5"></a>  localhost:8042/v1/auth/key/verify</span></code></pre></div>
 <p>Key can be revoked, this will disable and revoke the key created earlier and prevent verification.</p>
-<div class="sourceCode" id="cb40"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb40-2"><a href="#cb40-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb40-3"><a href="#cb40-3"></a>  --request POST \</span>
-<span id="cb40-4"><a href="#cb40-4"></a>  --data <span class="st">&#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39;</span> \</span>
-<span id="cb40-5"><a href="#cb40-5"></a>  localhost:8042/v1/auth/key/revoke</span></code></pre></div>
+<div class="sourceCode" id="cb46"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb46-2"><a href="#cb46-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb46-3"><a href="#cb46-3"></a>  --request POST \</span>
+<span id="cb46-4"><a href="#cb46-4"></a>  --data <span class="st">&#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39;</span> \</span>
+<span id="cb46-5"><a href="#cb46-5"></a>  localhost:8042/v1/auth/key/revoke</span></code></pre></div>
 </section>
 <section id="oauth2-login" data-number="2.10">
 <h2 data-number="2.10"><span class="header-section-number">2.10</span> OAuth2 Login</h2>
 <p><code>$server_url/v1/auth/provider/github/oauth2</code></p>
 <p>Create service with OAuth2 provider URL and key, and start server.</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb41-1"><a href="#cb41-1"></a><span class="ex">sso-cli</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span> \</span>
-<span id="cb41-2"><a href="#cb41-2"></a>    [--github-oauth2-url <span class="va">$service_github_oauth2_url</span>] \</span>
-<span id="cb41-3"><a href="#cb41-3"></a>    [--microsoft-oauth2-url <span class="va">$service_microsoft_oauth2_url</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1"></a><span class="ex">sso-cli</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span> \</span>
+<span id="cb47-2"><a href="#cb47-2"></a>    [--github-oauth2-url <span class="va">$service_github_oauth2_url</span>] \</span>
+<span id="cb47-3"><a href="#cb47-3"></a>    [--microsoft-oauth2-url <span class="va">$service_microsoft_oauth2_url</span>]</span></code></pre></div>
 <p>Service creates a user with email address matching OAuth2 provider.</p>
-<div class="sourceCode" id="cb42"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb42-1"><a href="#cb42-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb42-2"><a href="#cb42-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb42-3"><a href="#cb42-3"></a>  --request POST \</span>
-<span id="cb42-4"><a href="#cb42-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;locale&quot;:&quot;en&quot;,&quot;timezone&quot;:&quot;Etc/UTC&quot;}&#39;</span> \</span>
-<span id="cb42-5"><a href="#cb42-5"></a>  localhost:8042/v1/user</span></code></pre></div>
-<p>Service creates a key for user.</p>
-<div class="sourceCode" id="cb43"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb43-1"><a href="#cb43-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb43-2"><a href="#cb43-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb43-3"><a href="#cb43-3"></a>  --request POST \</span>
-<span id="cb43-4"><a href="#cb43-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;TOKEN&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39;</span> \</span>
-<span id="cb43-5"><a href="#cb43-5"></a>  localhost:8042/v1/key</span></code></pre></div>
-<p>User makes OAuth2 login request to service, service requests a redirect URL for OAuth2 provider, supported providers are <code>github</code>, <code>microsoft</code>.</p>
-<div class="sourceCode" id="cb44"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb44-2"><a href="#cb44-2"></a>  localhost:8042/v1/auth/provider/<span class="va">$oauth2_provider</span>/oauth2</span></code></pre></div>
-<p>Service redirects user to returned URL, OAuth2 provider authentication occurs.</p>
-<p>If successful, OAuth2 provider redirects user to <code>$service_$provider_oauth2_url?code=$code&amp;state=$state</code>. Service receives query parameters for callback.</p>
-<div class="sourceCode" id="cb45"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb45-2"><a href="#cb45-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb45-3"><a href="#cb45-3"></a>  --request POST \</span>
-<span id="cb45-4"><a href="#cb45-4"></a>  --data <span class="st">&#39;{&quot;code&quot;:&quot;$code&quot;,&quot;state&quot;:&quot;$state&quot;}&#39;</span> \</span>
-<span id="cb45-5"><a href="#cb45-5"></a>  localhost:8042/v1/auth/provider/<span class="va">$oauth2_provider</span>/oauth2</span></code></pre></div>
-<p>Query parameters are exchanged for API access token, authenticated email address is requested from OAuth2 provider APIs.</p>
-<p>If authenticated email returned by API matches a user email address, and user has key for specified service, a user token is produced and the user is redirected to <code>$service_url?access_token=$token&amp;refresh_token=$token</code>.</p>
-<p>Service receives access token and refresh token via query parameters. Service can verify access token to authenticate requests.</p>
-<div class="sourceCode" id="cb46"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb46-2"><a href="#cb46-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb46-3"><a href="#cb46-3"></a>  --request POST \</span>
-<span id="cb46-4"><a href="#cb46-4"></a>  --data <span class="st">&#39;{&quot;token&quot;:&quot;$access_token&quot;}&#39;</span> \</span>
-<span id="cb46-5"><a href="#cb46-5"></a>  localhost:8042/v1/auth/token/verify</span></code></pre></div>
-<p>Refresh token can be used to refresh token.</p>
-<div class="sourceCode" id="cb47"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb47-2"><a href="#cb47-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb47-3"><a href="#cb47-3"></a>  --request POST \</span>
-<span id="cb47-4"><a href="#cb47-4"></a>  --data <span class="st">&#39;{&quot;token&quot;:&quot;$refresh_token&quot;}&#39;</span> \</span>
-<span id="cb47-5"><a href="#cb47-5"></a>  localhost:8042/v1/auth/token/refresh</span></code></pre></div>
-<p>Access or refresh token can be revoked.</p>
 <div class="sourceCode" id="cb48"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
 <span id="cb48-2"><a href="#cb48-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
 <span id="cb48-3"><a href="#cb48-3"></a>  --request POST \</span>
-<span id="cb48-4"><a href="#cb48-4"></a>  --data <span class="st">&#39;{&quot;token&quot;:&quot;$token&quot;}&#39;</span> \</span>
-<span id="cb48-5"><a href="#cb48-5"></a>  localhost:8042/v1/auth/token/revoke</span></code></pre></div>
+<span id="cb48-4"><a href="#cb48-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;locale&quot;:&quot;en&quot;,&quot;timezone&quot;:&quot;Etc/UTC&quot;}&#39;</span> \</span>
+<span id="cb48-5"><a href="#cb48-5"></a>  localhost:8042/v1/user</span></code></pre></div>
+<p>Service creates a key for user.</p>
+<div class="sourceCode" id="cb49"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb49-1"><a href="#cb49-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb49-2"><a href="#cb49-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb49-3"><a href="#cb49-3"></a>  --request POST \</span>
+<span id="cb49-4"><a href="#cb49-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;type&quot;:&quot;TOKEN&quot;,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39;</span> \</span>
+<span id="cb49-5"><a href="#cb49-5"></a>  localhost:8042/v1/key</span></code></pre></div>
+<p>User makes OAuth2 login request to service, service requests a redirect URL for OAuth2 provider, supported providers are <code>github</code>, <code>microsoft</code>.</p>
+<div class="sourceCode" id="cb50"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb50-1"><a href="#cb50-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb50-2"><a href="#cb50-2"></a>  localhost:8042/v1/auth/provider/<span class="va">$oauth2_provider</span>/oauth2</span></code></pre></div>
+<p>Service redirects user to returned URL, OAuth2 provider authentication occurs.</p>
+<p>If successful, OAuth2 provider redirects user to <code>$service_$provider_oauth2_url?code=$code&amp;state=$state</code>. Service receives query parameters for callback.</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb51-1"><a href="#cb51-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb51-2"><a href="#cb51-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb51-3"><a href="#cb51-3"></a>  --request POST \</span>
+<span id="cb51-4"><a href="#cb51-4"></a>  --data <span class="st">&#39;{&quot;code&quot;:&quot;$code&quot;,&quot;state&quot;:&quot;$state&quot;}&#39;</span> \</span>
+<span id="cb51-5"><a href="#cb51-5"></a>  localhost:8042/v1/auth/provider/<span class="va">$oauth2_provider</span>/oauth2</span></code></pre></div>
+<p>Query parameters are exchanged for API access token, authenticated email address is requested from OAuth2 provider APIs.</p>
+<p>If authenticated email returned by API matches a user email address, and user has key for specified service, a user token is produced and the user is redirected to <code>$service_url?access_token=$token&amp;refresh_token=$token</code>.</p>
+<p>Service receives access token and refresh token via query parameters. Service can verify access token to authenticate requests.</p>
+<div class="sourceCode" id="cb52"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb52-1"><a href="#cb52-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb52-2"><a href="#cb52-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb52-3"><a href="#cb52-3"></a>  --request POST \</span>
+<span id="cb52-4"><a href="#cb52-4"></a>  --data <span class="st">&#39;{&quot;token&quot;:&quot;$access_token&quot;}&#39;</span> \</span>
+<span id="cb52-5"><a href="#cb52-5"></a>  localhost:8042/v1/auth/token/verify</span></code></pre></div>
+<p>Refresh token can be used to refresh token.</p>
+<div class="sourceCode" id="cb53"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb53-1"><a href="#cb53-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb53-2"><a href="#cb53-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb53-3"><a href="#cb53-3"></a>  --request POST \</span>
+<span id="cb53-4"><a href="#cb53-4"></a>  --data <span class="st">&#39;{&quot;token&quot;:&quot;$refresh_token&quot;}&#39;</span> \</span>
+<span id="cb53-5"><a href="#cb53-5"></a>  localhost:8042/v1/auth/token/refresh</span></code></pre></div>
+<p>Access or refresh token can be revoked.</p>
+<div class="sourceCode" id="cb54"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb54-1"><a href="#cb54-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb54-2"><a href="#cb54-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb54-3"><a href="#cb54-3"></a>  --request POST \</span>
+<span id="cb54-4"><a href="#cb54-4"></a>  --data <span class="st">&#39;{&quot;token&quot;:&quot;$token&quot;}&#39;</span> \</span>
+<span id="cb54-5"><a href="#cb54-5"></a>  localhost:8042/v1/auth/token/revoke</span></code></pre></div>
 <p>This will disable and revoke the user key created earlier.</p>
 </section>
 <section id="csrf" data-number="2.11">
 <h2 data-number="2.11"><span class="header-section-number">2.11</span> CSRF</h2>
 <p>Create service with key and start server.</p>
-<div class="sourceCode" id="cb49"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb49-1"><a href="#cb49-1"></a><span class="ex">sso</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span></span>
-<span id="cb49-2"><a href="#cb49-2"></a><span class="ex">sso</span> start-server</span></code></pre></div>
+<div class="sourceCode" id="cb55"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb55-1"><a href="#cb55-1"></a><span class="ex">sso</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span></span>
+<span id="cb55-2"><a href="#cb55-2"></a><span class="ex">sso</span> start-server</span></code></pre></div>
 <p>Service creates a CSRF token.</p>
-<div class="sourceCode" id="cb50"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb50-1"><a href="#cb50-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb50-2"><a href="#cb50-2"></a>  <span class="va">$server_url</span>/v1/auth/csrf</span></code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb56-2"><a href="#cb56-2"></a>  <span class="va">$server_url</span>/v1/auth/csrf</span></code></pre></div>
 <p>Service verifies CSRF token.</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb51-1"><a href="#cb51-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb51-2"><a href="#cb51-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb51-3"><a href="#cb51-3"></a>  --request POST \</span>
-<span id="cb51-4"><a href="#cb51-4"></a>  --data <span class="st">&#39;{&quot;key&quot;:&quot;$csrf_key&quot;}&#39;</span> \</span>
-<span id="cb51-5"><a href="#cb51-5"></a>  <span class="va">$server_url</span>/v1/auth/csrf</span></code></pre></div>
+<div class="sourceCode" id="cb57"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb57-1"><a href="#cb57-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb57-2"><a href="#cb57-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb57-3"><a href="#cb57-3"></a>  --request POST \</span>
+<span id="cb57-4"><a href="#cb57-4"></a>  --data <span class="st">&#39;{&quot;key&quot;:&quot;$csrf_key&quot;}&#39;</span> \</span>
+<span id="cb57-5"><a href="#cb57-5"></a>  <span class="va">$server_url</span>/v1/auth/csrf</span></code></pre></div>
 </section>
 <section id="totp-1" data-number="2.12">
 <h2 data-number="2.12"><span class="header-section-number">2.12</span> TOTP</h2>
 <p>Create service with key and start server.</p>
-<div class="sourceCode" id="cb52"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb52-1"><a href="#cb52-1"></a><span class="ex">sso</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span></span>
-<span id="cb52-2"><a href="#cb52-2"></a><span class="ex">sso</span> start-server</span></code></pre></div>
+<div class="sourceCode" id="cb58"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb58-1"><a href="#cb58-1"></a><span class="ex">sso</span> create-service-with-key <span class="va">$service_name</span> <span class="va">$service_url</span></span>
+<span id="cb58-2"><a href="#cb58-2"></a><span class="ex">sso</span> start-server</span></code></pre></div>
 <p>Service creates a user (password optional).</p>
-<div class="sourceCode" id="cb53"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb53-1"><a href="#cb53-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb53-2"><a href="#cb53-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb53-3"><a href="#cb53-3"></a>  --request POST \</span>
-<span id="cb53-4"><a href="#cb53-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;locale&quot;:&quot;$user_locale&quot;,&quot;timezone&quot;:&quot;$user_timezone&quot;}&#39;</span> \</span>
-<span id="cb53-5"><a href="#cb53-5"></a>  <span class="va">$server_url</span>/v1/user</span></code></pre></div>
+<div class="sourceCode" id="cb59"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb59-1"><a href="#cb59-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb59-2"><a href="#cb59-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb59-3"><a href="#cb59-3"></a>  --request POST \</span>
+<span id="cb59-4"><a href="#cb59-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;name&quot;:&quot;$user_name&quot;,&quot;email&quot;:&quot;$user_email&quot;,&quot;locale&quot;:&quot;$user_locale&quot;,&quot;timezone&quot;:&quot;$user_timezone&quot;}&#39;</span> \</span>
+<span id="cb59-5"><a href="#cb59-5"></a>  <span class="va">$server_url</span>/v1/user</span></code></pre></div>
 <p>Service creates a TOTP key for user.</p>
-<div class="sourceCode" id="cb54"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb54-1"><a href="#cb54-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb54-2"><a href="#cb54-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb54-3"><a href="#cb54-3"></a>  --request POST \</span>
-<span id="cb54-4"><a href="#cb54-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;allow_key&quot;:false,&quot;allow_token&quot;:false,&quot;allow_totp&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39;</span> \</span>
-<span id="cb54-5"><a href="#cb54-5"></a>  <span class="va">$server_url</span>/v1/key</span></code></pre></div>
+<div class="sourceCode" id="cb60"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb60-1"><a href="#cb60-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb60-2"><a href="#cb60-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb60-3"><a href="#cb60-3"></a>  --request POST \</span>
+<span id="cb60-4"><a href="#cb60-4"></a>  --data <span class="st">&#39;{&quot;is_enabled&quot;:true,&quot;allow_key&quot;:false,&quot;allow_token&quot;:false,&quot;allow_totp&quot;:true,&quot;name&quot;:&quot;$key_name&quot;,&quot;user_id&quot;:&quot;$user_id&quot;}&#39;</span> \</span>
+<span id="cb60-5"><a href="#cb60-5"></a>  <span class="va">$server_url</span>/v1/key</span></code></pre></div>
 <p>Generate QR code using the tool: <a href="https://freeotp.github.io/qrcode.html" class="uri">https://freeotp.github.io/qrcode.html</a></p>
 <ul>
 <li>Issuer: sso</li>
@@ -877,24 +913,20 @@ font-size: 16px;
 </ul>
 <p>Import the QR code into the application: <a href="https://freeotp.github.io/" class="uri">https://freeotp.github.io/</a></p>
 <p>User makes request to service with TOTP code, service verifies TOTP code.</p>
-<div class="sourceCode" id="cb55"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb55-1"><a href="#cb55-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb55-2"><a href="#cb55-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb55-3"><a href="#cb55-3"></a>  --request POST \</span>
-<span id="cb55-4"><a href="#cb55-4"></a>  --data <span class="st">&#39;{&quot;user_id&quot;:&quot;$user_id&quot;,&quot;totp&quot;:&quot;$totp_code&quot;}&#39;</span> \</span>
-<span id="cb55-5"><a href="#cb55-5"></a>  <span class="va">$server_url</span>/v1/auth/totp</span></code></pre></div>
+<div class="sourceCode" id="cb61"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb61-1"><a href="#cb61-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb61-2"><a href="#cb61-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb61-3"><a href="#cb61-3"></a>  --request POST \</span>
+<span id="cb61-4"><a href="#cb61-4"></a>  --data <span class="st">&#39;{&quot;user_id&quot;:&quot;$user_id&quot;,&quot;totp&quot;:&quot;$totp_code&quot;}&#39;</span> \</span>
+<span id="cb61-5"><a href="#cb61-5"></a>  <span class="va">$server_url</span>/v1/auth/totp</span></code></pre></div>
 <p>Key can be revoked, this will disable the key created earlier and prevent TOTP verification.</p>
-<div class="sourceCode" id="cb56"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
-<span id="cb56-2"><a href="#cb56-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
-<span id="cb56-3"><a href="#cb56-3"></a>  --request POST \</span>
-<span id="cb56-4"><a href="#cb56-4"></a>  --data <span class="st">&#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39;</span> \</span>
-<span id="cb56-5"><a href="#cb56-5"></a>  <span class="va">$server_url</span>/v1/auth/key/revoke</span></code></pre></div>
+<div class="sourceCode" id="cb62"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb62-1"><a href="#cb62-1"></a><span class="ex">curl</span> --header <span class="st">&quot;Content-Type: application/json&quot;</span> \</span>
+<span id="cb62-2"><a href="#cb62-2"></a>  --header <span class="st">&quot;Authorization: </span><span class="va">$service_key</span><span class="st">&quot;</span> \</span>
+<span id="cb62-3"><a href="#cb62-3"></a>  --request POST \</span>
+<span id="cb62-4"><a href="#cb62-4"></a>  --data <span class="st">&#39;{&quot;key&quot;:&quot;$user_key&quot;}&#39;</span> \</span>
+<span id="cb62-5"><a href="#cb62-5"></a>  <span class="va">$server_url</span>/v1/auth/key/revoke</span></code></pre></div>
 </section>
 <section id="cli" data-number="2.13">
 <h2 data-number="2.13"><span class="header-section-number">2.13</span> CLI</h2>
-<ul>
-<li>TODO(sam,docs): CLI guide.</li>
-<li>TODO(sam,docs): Style improvements, PDF output.</li>
-</ul>
 </section>
 </section>
 <section id="changelog" data-number="3">
@@ -906,6 +938,7 @@ font-size: 16px;
 <ul>
 <li>Added <code>/auth/token/exchange</code> endpoint.</li>
 <li>Added built-in CORS support to <code>sso-openapi</code>.</li>
+<li>Added optional Traefik forward authentication integration.</li>
 </ul>
 </section>
 <section id="changed" data-number="3.1.2">
@@ -1186,208 +1219,169 @@ font-size: 16px;
 <li><a href="https://github.com/ramosbugs/oauth2-rs">oauth2-rs</a></li>
 </ul>
 </section>
-<section id="possible-features" data-number="4.2">
-<h2 data-number="4.2"><span class="header-section-number">4.2</span> Possible Features</h2>
-<ul>
-<li>TODO(sam,feature): User sessions route for active tokens/keys.</li>
-<li>TODO(sam,feature): Support more OAuth2 providers.</li>
-<li>TODO(sam,feature): <a href="https://webauthn.guide/">Webauthn</a> support (libreauth?).</li>
-<li>TODO(sam,feature): Configurable canary routes.</li>
-<li>TODO(sam,feature): Improved public library API interface (gui service as example?).</li>
-<li>TODO(sam,feature): Email translation/formatting using user locale and timezone.</li>
-<li>TODO(sam,feature): Handle changes to password hash version.</li>
-<li>TODO(sam,feature): Option to enforce provider URLs HTTPS.</li>
-<li>TODO(sam,feature): User last login, key last use information (calculate in SQL).</li>
-<li>TODO(sam,feature): Login from unknown IP address warnings, SMS support?</li>
-<li>TODO(sam,feature): Service IP whitelist.</li>
-<li>TODO(sam,feature): Service/user groups for segmentation.</li>
-<li>TODO(sam,feature): Password update cannot set same password.</li>
-</ul>
-</section>
-<section id="owasp-asvs" data-number="4.3">
-<h2 data-number="4.3"><span class="header-section-number">4.3</span> OWASP: ASVS</h2>
+<section id="owasp-asvs" data-number="4.2">
+<h2 data-number="4.2"><span class="header-section-number">4.2</span> OWASP: ASVS</h2>
 <p><a href="https://www.owasp.org/index.php/Category:OWASP_Application_Security_Verification_Standard_Project">OWASP ASVS</a></p>
 <p>The OWASP Application Security Verification Standard is being used as a reference to improve this application. These are some development and design notes based on requirements from the 4.0 version of the ASVS standard. This is a self-evaluation and should be viewed skeptically.</p>
-<section id="section-10" data-number="4.3.1">
-<h3 data-number="4.3.1"><span class="header-section-number">4.3.1</span> 1.2.1</h3>
+<section id="section-10" data-number="4.2.1">
+<h3 data-number="4.2.1"><span class="header-section-number">4.2.1</span> 1.2.1</h3>
 <ul>
 <li>Binaries must be run as unique or special low privilege operating system accounts.</li>
-<li>TODO(sam,docs): Systemd unit file examples, sso, postgres, etc.</li>
-<li>TODO(sam,docs): Kubernetes deployment examples.</li>
 </ul>
 </section>
-<section id="section-11" data-number="4.3.2">
-<h3 data-number="4.3.2"><span class="header-section-number">4.3.2</span> 1.2.2</h3>
+<section id="section-11" data-number="4.2.2">
+<h3 data-number="4.2.2"><span class="header-section-number">4.2.2</span> 1.2.2</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
-<li>TODO(sam,docs): Mutual TLS using rustls configuration and PKI for communication between services.</li>
 </ul>
 </section>
-<section id="section-12" data-number="4.3.3">
-<h3 data-number="4.3.3"><span class="header-section-number">4.3.3</span> 1.2.3</h3>
+<section id="section-12" data-number="4.2.3">
+<h3 data-number="4.2.3"><span class="header-section-number">4.2.3</span> 1.2.3</h3>
 <ul>
 <li>Server is designed to provide multiple authentication mechanisms, none of which have been vetted.</li>
 <li>Relies on libraries which may be unvetted, e.g. libreauth, jsonwebtoken, rustls, etc.</li>
 <li>What does strong authentication mean in this context?</li>
 <li>One feature is providing email/password login, which is probably not considered strong authentication.</li>
 <li>Audit logging and monitoring via prometheus.</li>
-<li>TODO(sam,feature): Audit logging and prometheus metrics improvements for detecting account abuse and breaches.</li>
 </ul>
 </section>
-<section id="section-13" data-number="4.3.4">
-<h3 data-number="4.3.4"><span class="header-section-number">4.3.4</span> 1.2.4</h3>
+<section id="section-13" data-number="4.2.4">
+<h3 data-number="4.2.4"><span class="header-section-number">4.2.4</span> 1.2.4</h3>
 <ul>
 <li>All authentication pathways are designed to be as strong as that pathway can be.</li>
 <li>For example, email password resets are supported which are probably not considered strong.</li>
-<li>TODO(sam,feature): More opt-ins for pathway branches that may be weak, for example ability to reset passwords by email.</li>
 </ul>
 </section>
-<section id="section-14" data-number="4.3.5">
-<h3 data-number="4.3.5"><span class="header-section-number">4.3.5</span> 1.4.1</h3>
+<section id="section-14" data-number="4.2.5">
+<h3 data-number="4.2.5"><span class="header-section-number">4.2.5</span> 1.4.1</h3>
 <ul>
 <li>All access controls are enforced at a trusted enforcement point (the server).</li>
 <li>Registered services must implement their own access controls for their own data.</li>
 </ul>
 </section>
-<section id="section-15" data-number="4.3.6">
-<h3 data-number="4.3.6"><span class="header-section-number">4.3.6</span> 1.4.2</h3>
+<section id="section-15" data-number="4.2.6">
+<h3 data-number="4.2.6"><span class="header-section-number">4.2.6</span> 1.4.2</h3>
 <ul>
 <li>Access controls are designed for many services and many users, where users have access to one or more services.</li>
 <li>All registered services can read all registered users, other services and keys belonging to them are hidden.</li>
 <li>Registered services may implement more complex access controls for their own data.</li>
-<li>TODO(sam,test): More tests for data access, is service data masked correctly.</li>
 </ul>
 </section>
-<section id="section-16" data-number="4.3.7">
-<h3 data-number="4.3.7"><span class="header-section-number">4.3.7</span> 1.4.3</h3>
+<section id="section-16" data-number="4.2.7">
+<h3 data-number="4.2.7"><span class="header-section-number">4.2.7</span> 1.4.3</h3>
 <ul>
 <li>Verify enforcement of principle of least privelege, requires more integration tests.</li>
-<li>TODO(sam,test): More tests on preventing spoofing, elevation of privelege.</li>
 </ul>
 </section>
-<section id="section-17" data-number="4.3.8">
-<h3 data-number="4.3.8"><span class="header-section-number">4.3.8</span> 1.4.4</h3>
+<section id="section-17" data-number="4.2.8">
+<h3 data-number="4.2.8"><span class="header-section-number">4.2.8</span> 1.4.4</h3>
 <ul>
 <li>HTTP calls (except ping) require service key authentication.</li>
-<li>TODO(sam,refactor): Service key authentication mechanism code is split across files, cleaner code.</li>
 </ul>
 </section>
-<section id="section-18" data-number="4.3.9">
-<h3 data-number="4.3.9"><span class="header-section-number">4.3.9</span> 1.4.5</h3>
+<section id="section-18" data-number="4.2.9">
+<h3 data-number="4.2.9"><span class="header-section-number">4.2.9</span> 1.4.5</h3>
 <ul>
 <li>This crate provides user authentication, not access control, is this out of scope?</li>
-<li>TODO(sam,feature): Structured data for users, may require access controls.</li>
 </ul>
 </section>
-<section id="section-19" data-number="4.3.10">
-<h3 data-number="4.3.10"><span class="header-section-number">4.3.10</span> 1.5.1</h3>
+<section id="section-19" data-number="4.2.10">
+<h3 data-number="4.2.10"><span class="header-section-number">4.2.10</span> 1.5.1</h3>
 <ul>
 <li>Terms of service columns and user accepted columns, handle changes to terms.</li>
-<li>TODO(sam,docs): GDPR and other data protection compliance research.</li>
 </ul>
 </section>
-<section id="section-20" data-number="4.3.11">
-<h3 data-number="4.3.11"><span class="header-section-number">4.3.11</span> 1.5.2</h3>
+<section id="section-20" data-number="4.2.11">
+<h3 data-number="4.2.11"><span class="header-section-number">4.2.11</span> 1.5.2</h3>
 <ul>
 <li>API is JSON requests over HTTP so serialisation is required.</li>
 <li>Using <a href="https://github.com/serde-rs/serde">serde</a> and <a href="https://github.com/samscott89/serde_qs">serde_qs</a> for serialisation and deserialisation.</li>
-<li>TODO(sam,test): Test requests with other/unknown content types are handled correctly.</li>
-<li>TODO(sam,feature): Flag(s) to require HTTPS to ensure all requests/responses are encrypted in transmit.</li>
 </ul>
 </section>
-<section id="section-21" data-number="4.3.12">
-<h3 data-number="4.3.12"><span class="header-section-number">4.3.12</span> 1.5.3</h3>
+<section id="section-21" data-number="4.2.12">
+<h3 data-number="4.2.12"><span class="header-section-number">4.2.12</span> 1.5.3</h3>
 <ul>
 <li>Input validation is enforced at a trusted enforcement point (the server).</li>
 <li>Using <a href="https://github.com/Keats/validator">validator</a> for input validation.</li>
-<li>TODO(sam,test): More input tests including unicode passwords, bad strings, etc.</li>
 </ul>
 </section>
-<section id="section-22" data-number="4.3.13">
-<h3 data-number="4.3.13"><span class="header-section-number">4.3.13</span> 1.5.4</h3>
+<section id="section-22" data-number="4.2.13">
+<h3 data-number="4.2.13"><span class="header-section-number">4.2.13</span> 1.5.4</h3>
 <ul>
 <li>All output encoding is <a href="https://en.wikipedia.org/wiki/UTF-8">UTF-8</a>.</li>
 </ul>
 </section>
-<section id="section-23" data-number="4.3.14">
-<h3 data-number="4.3.14"><span class="header-section-number">4.3.14</span> 1.6.1</h3>
+<section id="section-23" data-number="4.2.14">
+<h3 data-number="4.2.14"><span class="header-section-number">4.2.14</span> 1.6.1</h3>
 <ul>
 <li>Key values are used for <a href="https://jwt.io/">JWT</a> cryptographic encoding and decoding.</li>
 <li>Key values are only returned to service or user on creation.</li>
 <li>Keys can be disabled and/or revoked to prevent use.</li>
-<li>TODO(sam,docs): Check this meets key management standard NIST SP 800-57.</li>
 </ul>
 </section>
-<section id="section-24" data-number="4.3.15">
-<h3 data-number="4.3.15"><span class="header-section-number">4.3.15</span> 1.6.2</h3>
+<section id="section-24" data-number="4.2.15">
+<h3 data-number="4.2.15"><span class="header-section-number">4.2.15</span> 1.6.2</h3>
 <ul>
 <li>Cannot verify that services protect created key values.</li>
 </ul>
 </section>
-<section id="section-25" data-number="4.3.16">
-<h3 data-number="4.3.16"><span class="header-section-number">4.3.16</span> 1.6.3</h3>
+<section id="section-25" data-number="4.2.16">
+<h3 data-number="4.2.16"><span class="header-section-number">4.2.16</span> 1.6.3</h3>
 <ul>
 <li>No hard-coded keys or passwords, all keys and passwords can be replaced.</li>
 </ul>
 </section>
-<section id="section-26" data-number="4.3.17">
-<h3 data-number="4.3.17"><span class="header-section-number">4.3.17</span> 1.6.4</h3>
+<section id="section-26" data-number="4.2.17">
+<h3 data-number="4.2.17"><span class="header-section-number">4.2.17</span> 1.6.4</h3>
 <ul>
 <li>API key support is clear-text equivalent.</li>
 <li>Authentication via API key is probably not considered low risk secret.</li>
 <li>Keys can be disabled/revoked to mitigate breaches, but this is not a solution.</li>
 </ul>
 </section>
-<section id="section-27" data-number="4.3.18">
-<h3 data-number="4.3.18"><span class="header-section-number">4.3.18</span> 1.7.1, 1.7.2</h3>
+<section id="section-27" data-number="4.2.18">
+<h3 data-number="4.2.18"><span class="header-section-number">4.2.18</span> 1.7.1, 1.7.2</h3>
 <ul>
 <li>Audit log format is common and used when making calls via API.</li>
 <li>Stdout/stderr logging is not consistent.</li>
 <li>Audit logs are saved to table, not transmitted to a remote system.</li>
 <li>Stdout/stderr logging is not transmitted to a remote system,</li>
-<li>TODO(sam,refactor): Option to transmit audit logs, stdout/stderr to fluentd.</li>
 </ul>
 </section>
-<section id="section-28" data-number="4.3.19">
-<h3 data-number="4.3.19"><span class="header-section-number">4.3.19</span> 1.8.1, 1.8.2</h3>
+<section id="section-28" data-number="4.2.19">
+<h3 data-number="4.2.19"><span class="header-section-number">4.2.19</span> 1.8.1, 1.8.2</h3>
 <ul>
 <li>Sensitive data is not identified or classified into protection levels.</li>
-<li>TODO(sam,docs): Evaluate data and identify/classify sensitive data.</li>
 </ul>
 </section>
-<section id="section-29" data-number="4.3.20">
-<h3 data-number="4.3.20"><span class="header-section-number">4.3.20</span> 1.9.1, 1.9.2</h3>
+<section id="section-29" data-number="4.2.20">
+<h3 data-number="4.2.20"><span class="header-section-number">4.2.20</span> 1.9.1, 1.9.2</h3>
 <ul>
 <li>Connection to database, other services must be encrypted.</li>
-<li>TODO(sam,docs): Mutual TLS encryption/authentication for postgres connection.</li>
-<li>TODO(sam,refactor): Dependency updates, blocked on <code>jsonwebtoken</code>.</li>
 </ul>
 </section>
-<section id="section-30" data-number="4.3.21">
-<h3 data-number="4.3.21"><span class="header-section-number">4.3.21</span> 1.10.1</h3>
+<section id="section-30" data-number="4.2.21">
+<h3 data-number="4.2.21"><span class="header-section-number">4.2.21</span> 1.10.1</h3>
 <ul>
 <li>Git and GitHub used for source code control, no formal commit procedure.</li>
-<li>TODO(sam,docs): Some kind of formalised procedures around source code changes.</li>
 </ul>
 </section>
-<section id="section-31" data-number="4.3.22">
-<h3 data-number="4.3.22"><span class="header-section-number">4.3.22</span> 1.11.1</h3>
+<section id="section-31" data-number="4.2.22">
+<h3 data-number="4.2.22"><span class="header-section-number">4.2.22</span> 1.11.1</h3>
 <ul>
 <li>Little documentation and definitions of application components, out of date.</li>
-<li>TODO(sam,docs): Up to date documentation and definitions of application components, diagrams.</li>
 </ul>
 </section>
-<section id="section-32" data-number="4.3.23">
-<h3 data-number="4.3.23"><span class="header-section-number">4.3.23</span> 1.11.2, 1.11.3</h3>
+<section id="section-32" data-number="4.2.23">
+<h3 data-number="4.2.23"><span class="header-section-number">4.2.23</span> 1.11.2, 1.11.3</h3>
 <ul>
 <li>No unsynchronised state shared between high-value business logic flows.</li>
 <li>All code should be threadsafe (no use of unsafe).</li>
 <li>I don’t think there is any but probably needs more thorough check, including dependencies.</li>
-<li>TODO(sam,feature): Constant time responses for authentication endpoints to resist timing attacks.</li>
 </ul>
 </section>
-<section id="section-33" data-number="4.3.24">
-<h3 data-number="4.3.24"><span class="header-section-number">4.3.24</span> 1.12.1, 1.12.2</h3>
+<section id="section-33" data-number="4.2.24">
+<h3 data-number="4.2.24"><span class="header-section-number">4.2.24</span> 1.12.1, 1.12.2</h3>
 <ul>
 <li>No user uploaded files, if feature added in future files will be stored as binary blobs in database.</li>
 <li>Serve files as octet stream downloads if added.</li>
@@ -1398,73 +1392,70 @@ font-size: 16px;
 <section id="developer" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Developer</h1>
 <p>A <a href="https://docs.docker.com/install/">Docker</a> image contains the development tools, build it with the command.</p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb57-1"><a href="#cb57-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso/build:latest&quot;</span> .</span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb63-1"><a href="#cb63-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso/build:latest&quot;</span> .</span></code></pre></div>
 <p>Create a network for containers.</p>
-<div class="sourceCode" id="cb58"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb58-1"><a href="#cb58-1"></a><span class="ex">docker</span> network create compose</span></code></pre></div>
+<div class="sourceCode" id="cb64"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb64-1"><a href="#cb64-1"></a><span class="ex">docker</span> network create compose</span></code></pre></div>
 <p>Development tools are run with the command.</p>
-<div class="sourceCode" id="cb59"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb59-1"><a href="#cb59-1"></a><span class="ex">docker</span> run --rm -it --init --user <span class="va">$(</span><span class="fu">id</span> -u<span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> -g<span class="va">)</span> --network compose -v <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">:/build&quot;</span> sso/build:latest <span class="va">$ARGS</span></span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb65-1"><a href="#cb65-1"></a><span class="ex">docker</span> run --rm -it --init --user <span class="va">$(</span><span class="fu">id</span> -u<span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> -g<span class="va">)</span> --network compose -v <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">:/build&quot;</span> sso/build:latest <span class="va">$ARGS</span></span></code></pre></div>
 <p>Create an alias on Linux for the above with the command.</p>
-<div class="sourceCode" id="cb60"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb60-1"><a href="#cb60-1"></a><span class="bu">alias</span> sso-build=<span class="st">&#39;docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v &quot;$(pwd):/build&quot; sso/build:latest&#39;</span></span></code></pre></div>
+<div class="sourceCode" id="cb66"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb66-1"><a href="#cb66-1"></a><span class="bu">alias</span> sso-build=<span class="st">&#39;docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v &quot;$(pwd):/build&quot; sso/build:latest&#39;</span></span></code></pre></div>
 <p>Development environment variables are configured in <code>Dockerfile</code>.</p>
 <p>Services are run using <a href="https://docs.docker.com/compose/">Docker Compose</a>, start them with the command.</p>
-<div class="sourceCode" id="cb61"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb61-1"><a href="#cb61-1"></a><span class="ex">docker-compose</span> build</span>
-<span id="cb61-2"><a href="#cb61-2"></a><span class="ex">docker-compose</span> up</span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb67-1"><a href="#cb67-1"></a><span class="ex">docker-compose</span> build</span>
+<span id="cb67-2"><a href="#cb67-2"></a><span class="ex">docker-compose</span> up</span></code></pre></div>
 <p>Create an alias on Linux to run <code>sso-build</code> container with a hostname, this allows you to replace compose services during development without using host networking mode.</p>
-<div class="sourceCode" id="cb62"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb62-1"><a href="#cb62-1"></a><span class="fu">sso-build-host()</span> <span class="kw">{</span></span>
-<span id="cb62-2"><a href="#cb62-2"></a>    <span class="bu">local</span> <span class="va">host=</span><span class="st">&quot;</span><span class="va">$1</span><span class="st">&quot;</span></span>
-<span id="cb62-3"><a href="#cb62-3"></a>    <span class="bu">shift</span> 1</span>
-<span id="cb62-4"><a href="#cb62-4"></a>    <span class="ex">docker</span> run --rm -it --init --user <span class="va">$(</span><span class="fu">id</span> -u<span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> -g<span class="va">)</span> --network compose -v <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">:/build&quot;</span> --hostname <span class="va">$host</span> --name <span class="va">$host</span> sso/build:latest <span class="st">&quot;</span><span class="va">$@</span><span class="st">&quot;</span></span>
-<span id="cb62-5"><a href="#cb62-5"></a><span class="kw">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb68-1"><a href="#cb68-1"></a><span class="fu">sso-build-host()</span> <span class="kw">{</span></span>
+<span id="cb68-2"><a href="#cb68-2"></a>    <span class="bu">local</span> <span class="va">host=</span><span class="st">&quot;</span><span class="va">$1</span><span class="st">&quot;</span></span>
+<span id="cb68-3"><a href="#cb68-3"></a>    <span class="bu">shift</span> 1</span>
+<span id="cb68-4"><a href="#cb68-4"></a>    <span class="ex">docker</span> run --rm -it --init --user <span class="va">$(</span><span class="fu">id</span> -u<span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> -g<span class="va">)</span> --network compose -v <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">:/build&quot;</span> --hostname <span class="va">$host</span> --name <span class="va">$host</span> sso/build:latest <span class="st">&quot;</span><span class="va">$@</span><span class="st">&quot;</span></span>
+<span id="cb68-5"><a href="#cb68-5"></a><span class="kw">}</span></span></code></pre></div>
 <p>Stop and destroy services with the commands.</p>
-<div class="sourceCode" id="cb63"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb63-1"><a href="#cb63-1"></a><span class="ex">docker-compose</span> stop</span>
-<span id="cb63-2"><a href="#cb63-2"></a><span class="ex">docker-compose</span> down</span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb69-1"><a href="#cb69-1"></a><span class="ex">docker-compose</span> stop</span>
+<span id="cb69-2"><a href="#cb69-2"></a><span class="ex">docker-compose</span> down</span></code></pre></div>
 <p>Create backup of <code>sso</code> database in <code>postgres</code> service. This backup will be restored automatically when the <code>postgres</code> service is rebuilt.</p>
-<div class="sourceCode" id="cb64"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb64-1"><a href="#cb64-1"></a><span class="ex">docker</span> exec sso_postgres_1 pg_dump -U guest --format=custom sso <span class="op">&gt;</span> docker/postgres/pgdump/sso.pgdump</span></code></pre></div>
+<div class="sourceCode" id="cb70"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb70-1"><a href="#cb70-1"></a><span class="ex">docker</span> exec sso_postgres_1 pg_dump -U guest --format=custom sso <span class="op">&gt;</span> docker/postgres/pgdump/sso.pgdump</span></code></pre></div>
 <p>Reset database and create new <a href="https://www.postgresql.org/">PostgreSQL</a> database migrations with <a href="http://diesel.rs/">Diesel</a>. These commands expect <code>postgres</code> service is running.</p>
-<div class="sourceCode" id="cb65"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb65-1"><a href="#cb65-1"></a><span class="ex">sso-build</span> cargo make postgres-reset</span>
-<span id="cb65-2"><a href="#cb65-2"></a><span class="ex">sso-build</span> cargo make postgres-migration <span class="va">$migration_name</span></span></code></pre></div>
+<div class="sourceCode" id="cb71"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb71-1"><a href="#cb71-1"></a><span class="ex">sso-build</span> cargo make postgres-reset</span>
+<span id="cb71-2"><a href="#cb71-2"></a><span class="ex">sso-build</span> cargo make postgres-migration <span class="va">$migration_name</span></span></code></pre></div>
 <p>Check source code using <a href="https://github.com/rust-lang/rust-clippy">clippy</a>.</p>
-<div class="sourceCode" id="cb66"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb66-1"><a href="#cb66-1"></a><span class="ex">sso-build</span> cargo make clippy</span></code></pre></div>
+<div class="sourceCode" id="cb72"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb72-1"><a href="#cb72-1"></a><span class="ex">sso-build</span> cargo make clippy</span></code></pre></div>
 <p>Audit crate dependencies.</p>
-<div class="sourceCode" id="cb67"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb67-1"><a href="#cb67-1"></a><span class="ex">sso-build</span> cargo make audit</span></code></pre></div>
+<div class="sourceCode" id="cb73"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb73-1"><a href="#cb73-1"></a><span class="ex">sso-build</span> cargo make audit</span></code></pre></div>
 <p>Build libraries and binaries.</p>
-<div class="sourceCode" id="cb68"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb68-1"><a href="#cb68-1"></a><span class="ex">sso-build</span> cargo make build</span>
-<span id="cb68-2"><a href="#cb68-2"></a><span class="ex">sso-build</span> cargo make release</span></code></pre></div>
+<div class="sourceCode" id="cb74"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb74-1"><a href="#cb74-1"></a><span class="ex">sso-build</span> cargo make build</span>
+<span id="cb74-2"><a href="#cb74-2"></a><span class="ex">sso-build</span> cargo make release</span></code></pre></div>
 <p>Run development binaries.</p>
-<div class="sourceCode" id="cb69"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb69-1"><a href="#cb69-1"></a><span class="ex">sso-build</span> cargo make sso-cli -- <span class="va">$ARGS</span></span>
-<span id="cb69-2"><a href="#cb69-2"></a><span class="ex">sso-build</span> cargo make sso-grpc</span>
-<span id="cb69-3"><a href="#cb69-3"></a><span class="ex">sso-build</span> cargo make sso-openapi</span></code></pre></div>
+<div class="sourceCode" id="cb75"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb75-1"><a href="#cb75-1"></a><span class="ex">sso-build</span> cargo make sso-cli -- <span class="va">$ARGS</span></span>
+<span id="cb75-2"><a href="#cb75-2"></a><span class="ex">sso-build</span> cargo make sso-grpc</span>
+<span id="cb75-3"><a href="#cb75-3"></a><span class="ex">sso-build</span> cargo make sso-openapi</span></code></pre></div>
 <p>Run unit tests.</p>
-<div class="sourceCode" id="cb70"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb70-1"><a href="#cb70-1"></a><span class="ex">sso-build</span> cargo make test</span></code></pre></div>
+<div class="sourceCode" id="cb76"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb76-1"><a href="#cb76-1"></a><span class="ex">sso-build</span> cargo make test</span></code></pre></div>
 <p>Run integration tests. This expects <code>sso_grpc</code> service is running.</p>
-<div class="sourceCode" id="cb71"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb71-1"><a href="#cb71-1"></a><span class="ex">sso-build</span> cargo make test-integration</span></code></pre></div>
+<div class="sourceCode" id="cb77"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb77-1"><a href="#cb77-1"></a><span class="ex">sso-build</span> cargo make test-integration</span></code></pre></div>
 <p>Compile <a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a> for <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> gateway server.</p>
-<div class="sourceCode" id="cb72"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb72-1"><a href="#cb72-1"></a><span class="ex">sso-build</span> cargo make openapi-protoc</span></code></pre></div>
+<div class="sourceCode" id="cb78"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb78-1"><a href="#cb78-1"></a><span class="ex">sso-build</span> cargo make openapi-protoc</span></code></pre></div>
 <p>Build <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> gateway server.</p>
-<div class="sourceCode" id="cb73"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb73-1"><a href="#cb73-1"></a><span class="ex">sso-build</span> cargo make openapi-bin</span></code></pre></div>
+<div class="sourceCode" id="cb79"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb79-1"><a href="#cb79-1"></a><span class="ex">sso-build</span> cargo make openapi-bin</span></code></pre></div>
 <p>This manual is written in <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Markdown</a> and converted into other formats using <a href="https://pandoc.org/">Pandoc</a>. Build the HTML manual.</p>
-<div class="sourceCode" id="cb74"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb74-1"><a href="#cb74-1"></a><span class="ex">sso-build</span> cargo make manual</span></code></pre></div>
+<div class="sourceCode" id="cb80"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb80-1"><a href="#cb80-1"></a><span class="ex">sso-build</span> cargo make manual</span></code></pre></div>
 <p>Build crate documentation.</p>
-<div class="sourceCode" id="cb75"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb75-1"><a href="#cb75-1"></a><span class="ex">sso-build</span> cargo make doc</span></code></pre></div>
+<div class="sourceCode" id="cb81"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb81-1"><a href="#cb81-1"></a><span class="ex">sso-build</span> cargo make doc</span></code></pre></div>
 <p>Install crate locally.</p>
-<div class="sourceCode" id="cb76"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb76-1"><a href="#cb76-1"></a><span class="ex">cargo</span> install --force --path sso</span></code></pre></div>
+<div class="sourceCode" id="cb82"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb82-1"><a href="#cb82-1"></a><span class="ex">cargo</span> install --force --path sso</span></code></pre></div>
 <p><a href="https://doc.rust-lang.org/cargo/reference/publishing.html">To publish crate(s)</a>.</p>
-<ul>
-<li>TODO(sam,feature): https://github.com/flamegraph-rs/flamegraph</li>
-</ul>
 <section id="minikube" data-number="5.1">
 <h2 data-number="5.1"><span class="header-section-number">5.1</span> Minikube</h2>
 <p>Create a <a href="https://kubernetes.io/docs/tasks/tools/install-minikube/">Minikube</a> instance.</p>
-<div class="sourceCode" id="cb77"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb77-1"><a href="#cb77-1"></a><span class="ex">minikube</span> start --vm-driver=virtualbox</span>
-<span id="cb77-2"><a href="#cb77-2"></a><span class="ex">minikube</span> status</span>
-<span id="cb77-3"><a href="#cb77-3"></a><span class="ex">minikube</span> stop</span>
-<span id="cb77-4"><a href="#cb77-4"></a><span class="ex">minikube</span> delete</span>
-<span id="cb77-5"><a href="#cb77-5"></a><span class="ex">minikube</span> dashboard</span>
-<span id="cb77-6"><a href="#cb77-6"></a><span class="ex">minikube</span> ip</span></code></pre></div>
+<div class="sourceCode" id="cb83"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb83-1"><a href="#cb83-1"></a><span class="ex">minikube</span> start --vm-driver=virtualbox</span>
+<span id="cb83-2"><a href="#cb83-2"></a><span class="ex">minikube</span> status</span>
+<span id="cb83-3"><a href="#cb83-3"></a><span class="ex">minikube</span> stop</span>
+<span id="cb83-4"><a href="#cb83-4"></a><span class="ex">minikube</span> delete</span>
+<span id="cb83-5"><a href="#cb83-5"></a><span class="ex">minikube</span> dashboard</span>
+<span id="cb83-6"><a href="#cb83-6"></a><span class="ex">minikube</span> ip</span></code></pre></div>
 <p>(Re)build all Docker images and load images into Minikube.</p>
-<div class="sourceCode" id="cb78"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb78-1"><a href="#cb78-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso-build:latest&quot;</span> .</span>
-<span id="cb78-2"><a href="#cb78-2"></a><span class="ex">docker-compose</span> build --parallel</span>
-<span id="cb78-3"><a href="#cb78-3"></a><span class="kw">(</span><span class="bu">cd</span> kubernetes/minikube/docker <span class="kw">&amp;&amp;</span> <span class="fu">bash</span> build.sh<span class="kw">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb84"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb84-1"><a href="#cb84-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso-build:latest&quot;</span> .</span>
+<span id="cb84-2"><a href="#cb84-2"></a><span class="ex">docker-compose</span> build --parallel</span>
+<span id="cb84-3"><a href="#cb84-3"></a><span class="kw">(</span><span class="bu">cd</span> kubernetes/minikube/docker <span class="kw">&amp;&amp;</span> <span class="fu">bash</span> build.sh<span class="kw">)</span></span></code></pre></div>
 </section>
 </section>
 </div>

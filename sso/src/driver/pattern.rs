@@ -9,8 +9,6 @@ use sha1::{Digest, Sha1};
 use url::Url;
 use uuid::Uuid;
 
-// TODO(sam,refactor): Improve usability, composability of pattern functions, diesel async?
-
 /// Verify TOTP code using key.
 pub fn totp_verify(key: &str, code: &str) -> DriverResult<()> {
     let totp = TOTPBuilder::new()
@@ -184,7 +182,6 @@ fn check_audit_user(
 ) -> DriverResult<()> {
     let user = audit.meta().user().cloned();
     match user {
-        // TODO(sam,refactor): Duplicate authentication code with api module, refactor.
         Some(user) => match user {
             HeaderAuthType::Key(key_value) => {
                 // Key verify requires key key type.

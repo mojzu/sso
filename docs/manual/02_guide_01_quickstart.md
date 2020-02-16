@@ -27,7 +27,7 @@ Start services.
 docker-compose up
 ```
 
-If successful `sso-grpc` is now available at `sso.localhost/grpc`, and `sso-openapi` is available at `sso.localhost/api`.
+If successful `sso-grpc` is now available at `sso.localhost`, and `sso-openapi` is available at `sso.localhost/api`.
 
 The following guides depend on the `sso-cli` command, it can be found in the `sso_grpc` container with the command.
 

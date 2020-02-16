@@ -10,9 +10,9 @@
 //!
 //! Format logs as multi-line JSON, optional, defaults to false.
 //!
-//! ### SSO_DATABASE_URL
+//! ### SSO_POSTGRES_URL
 //!
-//! Database connection URL, required.
+//! Postgres connection URL, required.
 //!
 #[macro_use]
 extern crate clap;
@@ -186,7 +186,7 @@ fn main() {
 }
 
 fn configure() -> DriverResult<Postgres> {
-    let database_url = env::string("SSO_DATABASE_URL")?;
+    let database_url = env::string("SSO_POSTGRES_URL")?;
     let driver = Postgres::initialise(&database_url, Some(1)).unwrap();
     Ok(driver)
 }

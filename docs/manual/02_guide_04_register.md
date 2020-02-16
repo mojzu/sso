@@ -41,5 +41,3 @@ curl --header "Content-Type: application/json" \
   --data '{"email":"$user_email","password":"$user_password"}' \
   $server_url/v1/auth/provider/local/login
 ```
-
-TODO(sam,docs): Revoke email documentation.

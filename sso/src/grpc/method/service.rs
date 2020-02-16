@@ -5,8 +5,6 @@ use crate::{
 use uuid::Uuid;
 use validator::{Validate, ValidationErrors};
 
-// TODO(sam,feature): Root keys require user authorisation header for auditing.
-
 impl Validate for pb::ServiceListRequest {
     fn validate(&self) -> Result<(), ValidationErrors> {
         validate::wrap(|e| {

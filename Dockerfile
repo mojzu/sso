@@ -1,8 +1,10 @@
 # ```bash
 # # Build image.
 # docker build --tag "sso/build:latest" .
+#
 # # Create network.
 # docker network create compose
+#
 # # Add to `~/.bashrc`.
 # alias sso-build='docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v "$(pwd):/build" sso/build:latest'
 # sso-build-host() {
@@ -93,9 +95,9 @@ ENV RUST_BACKTRACE="1" \
 # # Sentry DSN for logging integration.
 # ENV SSO_SENTRY_DSN=""
 ENV SSO_LOG_PRETTY="true"
-# Database connection.
-ENV SSO_DATABASE_URL="postgres://guest:guest@postgres:5432/sso" \
-    SSO_DATABASE_CONNECTIONS="10"
+# Postgres connection.
+ENV SSO_POSTGRES_URL="postgres://guest:guest@postgres:5432/sso" \
+    SSO_POSTGRES_CONNECTIONS="10"
 # # Server TLS.
 # ENV SSO_TLS_CERT_PEM="" \
 #     SSO_TLS_KEY_PEM="" \

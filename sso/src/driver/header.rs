@@ -230,7 +230,6 @@ impl HeaderAuth {
     }
 
     pub fn from_header_map(map: &HeaderMap<HeaderValue>, traefik_enabled: bool) -> Self {
-        // TODO(sam,refactor): Other headers: x-forwarded-host, x-forwarded-uri, x-real-ip.
         if traefik_enabled {
             Self::Traefik(HeaderAuthTraefik {
                 key_id: header_sso_key_id(map),

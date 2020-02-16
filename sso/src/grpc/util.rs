@@ -332,9 +332,6 @@ fn request_audit_auth(
     ))
 }
 
-// TODO(sam,refactor): Improve translation code between api/grpc.
-// TODO(sam,refactor): Unwrap check and cleanup.
-
 pub fn timestamp_opt_to_datetime_opt(ti: Option<prost_types::Timestamp>) -> Option<DateTime<Utc>> {
     match ti {
         Some(ti) => {

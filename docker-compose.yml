@@ -11,10 +11,6 @@
 # ```
 version: "3"
 
-# TODO(sam,docs): CORS and other security headers checks.
-# https://www.owasp.org/index.php/OWASP_Secure_Headers_Project
-# Rate limiting, TLS/HTTPS support.
-
 services:
   # PostgreSQL.
   # <https://www.postgresql.org/>
@@ -48,9 +44,9 @@ services:
     environment:
       RUST_BACKTRACE: "1"
       RUST_LOG: "info"
-      # Database connection.
-      SSO_DATABASE_URL: "postgres://guest:guest@postgres:5432/sso"
-      SSO_DATABASE_CONNECTIONS: "10"
+      # Postgres connection.
+      SSO_POSTGRES_URL: "postgres://guest:guest@postgres:5432/sso"
+      SSO_POSTGRES_CONNECTIONS: "10"
       # # SMTP server transport.
       # SSO_SMTP_HOST: ""
       # SSO_SMTP_PORT: ""

@@ -134,8 +134,6 @@ cargo install --force --path sso
 
 [To publish crate(s)][cargo-publishing].
 
-- TODO(sam,feature): https://github.com/flamegraph-rs/flamegraph
-
 ## Minikube
 
 Create a [Minikube][minikube] instance.

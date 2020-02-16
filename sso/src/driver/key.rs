@@ -6,8 +6,6 @@ use std::convert::TryFrom;
 use std::fmt;
 use uuid::Uuid;
 
-// TODO(sam,refactor): Add name ge/le key, service list query options.
-
 /// Key value size in bytes.
 pub const BYTES_KEY_VALUE: usize = 21;
 

@@ -3,7 +3,10 @@ mod model;
 mod schema;
 
 use crate::{
-    driver::postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
+    driver::{
+        env,
+        postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
+    },
     Audit, AuditCreate, AuditList, AuditRead, AuditUpdate, Csrf, CsrfCreate, DriverError,
     DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate, KeyWithValue, Service,
     ServiceCreate, ServiceList, ServiceRead, ServiceUpdate, User, UserCreate, UserList, UserRead,
@@ -35,16 +38,28 @@ pub type PostgresLockFn = Box<dyn FnOnce(&PgConnection) -> DriverResult<bool>>;
 
 impl Postgres {
     /// Initialise driver with connection URL and number of pooled connections.
-    pub fn initialise(database_url: &str, max_connections: Option<u32>) -> DriverResult<Self> {
-        let manager = ConnectionManager::<PgConnection>::new(database_url);
+    pub fn initialise(url: &str, connections: Option<u32>) -> DriverResult<Self> {
+        let manager = ConnectionManager::<PgConnection>::new(url);
         let mut pool = r2d2::Pool::builder();
-        if let Some(max_connections) = max_connections {
-            pool = pool.max_size(max_connections);
+        if let Some(connections) = connections {
+            pool = pool.max_size(connections);
         }
         let pool = pool.build(manager).map_err(DriverError::R2d2)?;
         let driver = Postgres { pool };
         driver.run_migrations()?;
         Ok(driver)
+    }
+
+    pub fn from_env<U, M>(url_name: U, connections_name: M) -> Self
+    where
+        U: AsRef<str>,
+        M: AsRef<str>,
+    {
+        let url = env::string(url_name.as_ref())
+            .expect("Failed to read postgres URL environment variable.");
+        let connections = env::value_opt::<u32>(connections_name.as_ref())
+            .expect("Failed to read postgres connections environment variable.");
+        Self::initialise(&url, connections).expect("Failed to initialise postgres connection.")
     }
 
     fn conn(&self) -> DriverResult<PooledConnection> {
