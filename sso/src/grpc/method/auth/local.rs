@@ -21,14 +21,11 @@ pub async fn login(
     let (audit_meta, auth, req) = request.into_inner();
 
     let client = server.client();
-    let password_pwned_enabled = server.options().password_pwned_enabled();
-    let password_meta = pattern::password_meta(
-        client.as_ref(),
-        password_pwned_enabled,
-        Some(req.password.clone()),
-    )
-    .await
-    .map_err(MethodError::BadRequest)?;
+    let pwned_passwords = server.options().pwned_passwords_enabled();
+    let password_meta =
+        pattern::password_meta(client.as_ref(), pwned_passwords, Some(req.password.clone()))
+            .await
+            .map_err(MethodError::BadRequest)?;
 
     let driver = server.driver();
     let access_token_expires = server.options().access_token_expires();
@@ -199,14 +196,11 @@ pub async fn register_confirm(
     let (audit_meta, auth, req) = request.into_inner();
 
     let client = server.client();
-    let password_pwned_enabled = server.options().password_pwned_enabled();
-    let password_meta = pattern::password_meta(
-        client.as_ref(),
-        password_pwned_enabled,
-        req.password.clone(),
-    )
-    .await
-    .map_err(MethodError::BadRequest)?;
+    let pwned_passwords = server.options().pwned_passwords_enabled();
+    let password_meta =
+        pattern::password_meta(client.as_ref(), pwned_passwords, req.password.clone())
+            .await
+            .map_err(MethodError::BadRequest)?;
 
     let driver = server.driver();
     let revoke_token_expires = server.options().revoke_token_expires();
@@ -373,14 +367,11 @@ pub async fn reset_password_confirm(
     let (audit_meta, auth, req) = request.into_inner();
 
     let client = server.client();
-    let password_pwned_enabled = server.options().password_pwned_enabled();
-    let password_meta = pattern::password_meta(
-        client.as_ref(),
-        password_pwned_enabled,
-        Some(req.password.clone()),
-    )
-    .await
-    .map_err(MethodError::BadRequest)?;
+    let pwned_passwords = server.options().pwned_passwords_enabled();
+    let password_meta =
+        pattern::password_meta(client.as_ref(), pwned_passwords, Some(req.password.clone()))
+            .await
+            .map_err(MethodError::BadRequest)?;
 
     let driver = server.driver();
     let revoke_token_expires = server.options().revoke_token_expires();
@@ -576,10 +567,10 @@ pub async fn update_password(
     let (audit_meta, auth, req) = request.into_inner();
 
     let client = server.client();
-    let password_pwned_enabled = server.options().password_pwned_enabled();
+    let pwned_passwords = server.options().pwned_passwords_enabled();
     let password_meta = pattern::password_meta(
         client.as_ref(),
-        password_pwned_enabled,
+        pwned_passwords,
         Some(req.new_password.clone()),
     )
     .await

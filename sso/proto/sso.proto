@@ -117,6 +117,7 @@ service Sso {
     // Response headers.
     // - `Grpc-Metadata-Sso-Key-Id`: ID of key in request.
     // - `Grpc-Metadata-Sso-Service-Id`: ID of service which owns key, or not defined if key is a root key.
+    // - `Grpc-Metadata-Sso-User-Key-Id`: ID of user key or token or not defined if user authorisation header not present.
     // - `Grpc-Metadata-Sso-User-Id`: ID of user which owns key or not defined if user authorisation header not present.
     rpc HookTraefikSelf (google.protobuf.Empty) returns (google.protobuf.Empty) {
         option (google.api.http) = {

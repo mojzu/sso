@@ -18,6 +18,7 @@ pub const MAX_AUDIT_SUBJECT: usize = 200;
 #[derive(Debug, Copy, PartialEq, Clone, Serialize, Deserialize)]
 pub enum AuditType {
     Metrics,
+    Traefik,
     AuditList,
     AuditCreate,
     AuditRead,
@@ -344,6 +345,22 @@ impl AuditBuilder {
     /// Get reference to metadata.
     pub fn meta(&self) -> &AuditMeta {
         &self.meta
+    }
+
+    pub fn get_key_id(&self) -> Option<Uuid> {
+        self.key
+    }
+
+    pub fn get_service_id(&self) -> Option<Uuid> {
+        self.service
+    }
+
+    pub fn get_user_id(&self) -> Option<Uuid> {
+        self.user
+    }
+
+    pub fn get_user_key_id(&self) -> Option<Uuid> {
+        self.user_key
     }
 
     /// Create audit log from parameters.

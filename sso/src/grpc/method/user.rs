@@ -68,8 +68,8 @@ pub async fn create(
     let req: UserCreate = req.into();
 
     let client = server.client();
-    let password_pwned_enabled = server.options().password_pwned_enabled();
-    let password_meta = pattern::password_meta(client.as_ref(), password_pwned_enabled, password)
+    let pwned_passwords = server.options().pwned_passwords_enabled();
+    let password_meta = pattern::password_meta(client.as_ref(), pwned_passwords, password)
         .await
         .map_err(MethodError::BadRequest)?;
 

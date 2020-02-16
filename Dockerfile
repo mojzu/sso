@@ -105,8 +105,10 @@ ENV SSO_DATABASE_URL="postgres://guest:guest@postgres:5432/sso" \
 #     SSO_SMTP_PORT="" \
 #     SSO_SMTP_USER="" \
 #     SSO_SMTP_PASSWORD=""
-# Password pwned integration enabled.
-ENV SSO_PASSWORD_PWNED="true"
+# Pwned Passwords integration.
+ENV SSO_PWNED_PASSWORDS="true"
+# Traefik forward authentication integration.
+ENV SSO_TRAEFIK="true"
 # # Github OAuth2 support.
 # ENV SSO_GITHUB_CLIENT_ID="" \
 #     SSO_GITHUB_CLIENT_SECRET=""

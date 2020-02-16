@@ -18,9 +18,13 @@
 //!
 //! Database connections, required.
 //!
-//! ### SSO_PASSWORD_PWNED
+//! ### SSO_PWNED_PASSWORDS
 //!
-//! Password pwned integration enabled, optional, defaults to false.
+//! Pwned Passwords integration enabled, optional, defaults to false.
+//!
+//! ### SSO_TRAEFIK
+//!
+//! Traefik forward authentcation integration enabled, optional, defaults to false.
 //!
 //! ### SSO_SMTP_HOST
 //!
@@ -55,7 +59,10 @@
 //! Microsoft OAuth2 provider client secret, optional.
 //!
 use futures_util::future::join;
-use hyper::service::{make_service_fn, service_fn};
+use hyper::{
+    server::conn::AddrStream,
+    service::{make_service_fn, service_fn},
+};
 use sso::{env, log_init, Postgres};
 use std::{fs::create_dir_all, sync::Arc};
 use tonic::transport::Server;
@@ -82,7 +89,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let database_connections = env::value_opt::<u32>("SSO_DATABASE_CONNECTIONS").unwrap();
     let driver = Postgres::initialise(&database_url, database_connections).unwrap();
 
-    let password_pwned = env::value_opt::<bool>("SSO_PASSWORD_PWNED")
+    let pwned_passwords_enabled = env::value_opt::<bool>("SSO_PWNED_PASSWORDS")
+        .unwrap()
+        .unwrap_or(false);
+    let traefik_enabled = env::value_opt::<bool>("SSO_TRAEFIK")
         .unwrap()
         .unwrap_or(false);
     let github_oauth2 = env::oauth2("SSO_GITHUB_CLIENT_ID", "SSO_GITHUB_CLIENT_SECRET").unwrap();
@@ -100,7 +110,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let smtp_file = "./tmp".to_owned();
     create_dir_all(&smtp_file)?;
 
-    let options = sso::grpc::ServerOptions::new("sso", password_pwned)
+    let options = sso::grpc::ServerOptions::new("sso", pwned_passwords_enabled, traefik_enabled)
         .smtp_transport(smtp)
         .smtp_file_transport(Some(smtp_file))
         .github(github_oauth2)
@@ -118,11 +128,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // HTTP server.
     let http = {
         let addr = "0.0.0.0:7043".parse()?;
-        hyper::Server::bind(&addr).serve(make_service_fn(move |_| {
+        hyper::Server::bind(&addr).serve(make_service_fn(move |socket: &AddrStream| {
             let sso_ref = sso_ref.clone();
-            async {
+            let remote_addr = socket.remote_addr();
+            async move {
                 Ok::<_, hyper::Error>(service_fn(move |req| {
-                    sso::grpc::http_server(sso_ref.driver(), req)
+                    sso::grpc::http_server(sso_ref.driver(), traefik_enabled, req, remote_addr)
                 }))
             }
         }))

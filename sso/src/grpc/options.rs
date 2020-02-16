@@ -52,7 +52,9 @@ pub struct ServerOptions {
     user_agent: String,
     /// Enable Pwned Passwords API to check passwords.
     /// API keys may be required in the future to use this API.
-    password_pwned_enabled: bool,
+    pwned_passwords_enabled: bool,
+    /// Enabled Traefik forward authentication.
+    traefik_enabled: bool,
     /// Access token expiry time in seconds.
     access_token_expires: i64,
     /// Refresh token expiry time in seconds.
@@ -74,13 +76,14 @@ pub struct ServerOptions {
 
 impl ServerOptions {
     /// Returns new `ServerOptions`.
-    pub fn new<UA>(user_agent: UA, password_pwned_enabled: bool) -> Self
+    pub fn new<UA>(user_agent: UA, pwned_passwords_enabled: bool, traefik_enabled: bool) -> Self
     where
         UA: Into<String>,
     {
         Self {
             user_agent: user_agent.into(),
-            password_pwned_enabled,
+            pwned_passwords_enabled,
+            traefik_enabled,
             access_token_expires: 3_600,
             refresh_token_expires: 86_400,
             revoke_token_expires: 604_800,
@@ -126,9 +129,14 @@ impl ServerOptions {
             .map_err(DriverError::Reqwest)
     }
 
-    /// Returns password pwned enabled flag.
-    pub fn password_pwned_enabled(&self) -> bool {
-        self.password_pwned_enabled
+    /// Returns Pwned Passwords integration enabled flag.
+    pub fn pwned_passwords_enabled(&self) -> bool {
+        self.pwned_passwords_enabled
+    }
+
+    /// Returns Traefik integration enabled flag.
+    pub fn traefik_enabled(&self) -> bool {
+        self.traefik_enabled
     }
 
     /// Returns access token expiry value.

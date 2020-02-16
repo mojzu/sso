@@ -51,11 +51,21 @@ services:
       # Database connection.
       SSO_DATABASE_URL: "postgres://guest:guest@postgres:5432/sso"
       SSO_DATABASE_CONNECTIONS: "10"
-      # SMTP server transport.
+      # # SMTP server transport.
       # SSO_SMTP_HOST: ""
       # SSO_SMTP_PORT: ""
       # SSO_SMTP_USER: ""
       # SSO_SMTP_PASSWORD: ""
+      # Pwned Passwords integration.
+      SSO_PWNED_PASSWORDS: "true"
+      # Traefik forward authentication integration.
+      SSO_TRAEFIK: "true"
+      # # Github OAuth2 support.
+      # SSO_GITHUB_CLIENT_ID: ""
+      # SSO_GITHUB_CLIENT_SECRET: ""
+      # # Microsoft OAuth2 support.
+      # SSO_MICROSOFT_CLIENT_ID: ""
+      # SSO_MICROSOFT_CLIENT_SECRET: ""
     entrypoint: ["sso-grpc"]
     labels:
       - "traefik.enable=true"
@@ -63,7 +73,7 @@ services:
       - "traefik.http.services.sso-grpc.loadbalancer.server.port=7042"
       - "traefik.http.middlewares.sso-grpc-auth.forwardauth.address=http://sso-grpc:7043/hook/traefik/self"
       - "traefik.http.middlewares.sso-grpc-auth.forwardauth.trustForwardHeader=true"
-      - "traefik.http.middlewares.sso-grpc-auth.forwardauth.authResponseHeaders=Grpc-Metadata-Sso-Key-Id,Grpc-Metadata-Sso-Service-Id"
+      - "traefik.http.middlewares.sso-grpc-auth.forwardauth.authResponseHeaders=Grpc-Metadata-Sso-Key-Id,Grpc-Metadata-Sso-Service-Id,Grpc-Metadata-Sso-User-Key-Id,Grpc-Metadata-Sso-User-Id"
       - "traefik.http.routers.sso-grpc.service=sso-grpc"
       - "traefik.http.routers.sso-grpc.entrypoints=http"
       - "traefik.http.routers.sso-grpc.rule=Host(`sso.localhost`)"
@@ -84,7 +94,7 @@ services:
       - "traefik.http.middlewares.sso-openapi-prefix.stripprefix.prefixes=/api"
       - "traefik.http.middlewares.sso-openapi-auth.forwardauth.address=http://sso-grpc:7043/hook/traefik/self"
       - "traefik.http.middlewares.sso-openapi-auth.forwardauth.trustForwardHeader=true"
-      - "traefik.http.middlewares.sso-openapi-auth.forwardauth.authResponseHeaders=Grpc-Metadata-Sso-Key-Id,Grpc-Metadata-Sso-Service-Id"
+      - "traefik.http.middlewares.sso-openapi-auth.forwardauth.authResponseHeaders=Grpc-Metadata-Sso-Key-Id,Grpc-Metadata-Sso-Service-Id,Grpc-Metadata-Sso-User-Key-Id,Grpc-Metadata-Sso-User-Id"
       - "traefik.http.routers.sso-openapi.service=sso-openapi"
       - "traefik.http.routers.sso-openapi.entrypoints=http"
       - "traefik.http.routers.sso-openapi.rule=Host(`sso.localhost`) && PathPrefix(`/api`)"
