@@ -226,7 +226,9 @@ impl ModelKey {
     ) -> DriverResult<Option<KeyWithValue>> {
         match read {
             KeyRead::IdUser(id, user_id) => Self::read_by_id(conn, id, &service_id, user_id),
+            KeyRead::RootId(id) => Self::read_by_root_id(conn, *id),
             KeyRead::RootValue(value) => Self::read_by_root_value(conn, value),
+            KeyRead::ServiceId(service_id, id) => Self::read_by_service_id(conn, *service_id, *id),
             KeyRead::ServiceValue(value) => Self::read_by_service_value(conn, value),
             KeyRead::UserId(r) => Self::read_by_user_id(conn, r),
             KeyRead::UserValue(r) => Self::read_by_user_value(conn, r),
@@ -313,12 +315,44 @@ impl ModelKey {
             .map(|x| x.map(Into::into))
     }
 
+    fn read_by_root_id(conn: &PgConnection, id: Uuid) -> DriverResult<Option<KeyWithValue>> {
+        sso_key::table
+            .filter(
+                sso_key::dsl::id
+                    .eq(id)
+                    .and(sso_key::dsl::service_id.is_null())
+                    .and(sso_key::dsl::user_id.is_null()),
+            )
+            .get_result::<ModelKey>(conn)
+            .optional()
+            .map_err(Into::into)
+            .map(|x| x.map(Into::into))
+    }
+
     fn read_by_root_value(conn: &PgConnection, value: &str) -> DriverResult<Option<KeyWithValue>> {
         sso_key::table
             .filter(
                 sso_key::dsl::value
                     .eq(value)
                     .and(sso_key::dsl::service_id.is_null())
+                    .and(sso_key::dsl::user_id.is_null()),
+            )
+            .get_result::<ModelKey>(conn)
+            .optional()
+            .map_err(Into::into)
+            .map(|x| x.map(Into::into))
+    }
+
+    fn read_by_service_id(
+        conn: &PgConnection,
+        service_id: Uuid,
+        id: Uuid,
+    ) -> DriverResult<Option<KeyWithValue>> {
+        sso_key::table
+            .filter(
+                sso_key::dsl::id
+                    .eq(id)
+                    .and(sso_key::dsl::service_id.eq(service_id))
                     .and(sso_key::dsl::user_id.is_null()),
             )
             .get_result::<ModelKey>(conn)

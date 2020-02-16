@@ -26,7 +26,7 @@ pub async fn verify(
             audit_meta,
             AuditType::AuthTokenVerify,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
@@ -88,7 +88,7 @@ pub async fn refresh(
             audit_meta,
             AuditType::AuthTokenRefresh,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
@@ -155,7 +155,7 @@ pub async fn revoke(
             audit_meta,
             AuditType::AuthTokenRevoke,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
@@ -228,7 +228,7 @@ pub async fn exchange(
             audit_meta,
             AuditType::AuthTokenExchange,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.

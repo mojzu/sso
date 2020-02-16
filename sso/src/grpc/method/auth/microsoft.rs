@@ -16,7 +16,7 @@ pub async fn oauth2_url(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthMicrosoftOauth2Url,
-            |driver, audit| provider_microsoft::oauth2_url(driver, audit, auth.as_ref(), &args),
+            |driver, audit| provider_microsoft::oauth2_url(driver, audit, &auth, &args),
         )
         .map_err(Into::into)
     })
@@ -38,9 +38,7 @@ pub async fn oauth2_callback(
             driver.as_ref(),
             audit_meta1,
             AuditType::AuthMicrosoftOauth2Callback,
-            |driver, audit| {
-                provider_microsoft::oauth2_callback(driver, audit, auth.as_ref(), &args, &req)
-            },
+            |driver, audit| provider_microsoft::oauth2_callback(driver, audit, &auth, &args, &req),
         )
         .map_err(Into::into)
     })
@@ -84,7 +82,8 @@ mod provider_microsoft {
     use crate::{
         grpc::{pb, util::*, ServerOptionsProvider, ServerProviderOauth2Args},
         pattern::*,
-        AuditBuilder, CsrfCreate, DriverError, DriverResult, Postgres, Service,
+        AuditBuilder, CsrfCreate, DriverError, DriverResult, HeaderAuth, Postgres, Service,
+        HEADER_AUTHORISATION,
     };
     use oauth2::{
         basic::BasicClient, reqwest::http_client, AuthType, AuthUrl, AuthorizationCode, ClientId,
@@ -97,11 +96,11 @@ mod provider_microsoft {
     pub(crate) fn oauth2_url(
         driver: &Postgres,
         audit: &mut AuditBuilder,
-        key_value: Option<&String>,
+        auth: &HeaderAuth,
         args: &ServerProviderOauth2Args,
     ) -> MethodResult<String> {
-        let service = key_service_authenticate(driver, audit, key_value)
-            .map_err(MethodError::Unauthorised)?;
+        let service =
+            key_service_authenticate(driver, audit, auth).map_err(MethodError::Unauthorised)?;
 
         // Microsoft Graph supports Proof Key for Code Exchange (PKCE - https://oauth.net/2/pkce/).
         // Create a PKCE code verifier and SHA-256 encode it as a code challenge.
@@ -132,12 +131,12 @@ mod provider_microsoft {
     pub(crate) fn oauth2_callback(
         driver: &Postgres,
         audit: &mut AuditBuilder,
-        key_value: Option<&String>,
+        auth: &HeaderAuth,
         args: &ServerProviderOauth2Args,
         request: &pb::AuthOauth2CallbackRequest,
     ) -> MethodResult<(Service, Uuid, String)> {
-        let service = key_service_authenticate(driver, audit, key_value)
-            .map_err(MethodError::Unauthorised)?;
+        let service =
+            key_service_authenticate(driver, audit, auth).map_err(MethodError::Unauthorised)?;
 
         // Read the CSRF key using state value, rebuild code verifier from value.
         let csrf = driver
@@ -176,7 +175,7 @@ mod provider_microsoft {
         let authorisation = format!("Bearer {}", access_token);
         let res = client
             .get("https://graph.microsoft.com/v1.0/me")
-            .header("authorization", authorisation)
+            .header(HEADER_AUTHORISATION, authorisation)
             .send()
             .await
             .map_err(DriverError::Reqwest)?;

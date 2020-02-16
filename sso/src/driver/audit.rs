@@ -1,8 +1,9 @@
 use crate::{
-    impl_enum_to_from_string, pattern::HeaderAuth, DriverResult, KeyWithValue, Postgres, Service,
+    driver::header::*, impl_enum_to_from_string, DriverResult, KeyWithValue, Postgres, Service,
     User,
 };
 use chrono::{DateTime, Utc};
+use http::{HeaderMap, HeaderValue};
 use serde::ser::Serialize;
 use serde_json::Value;
 use std::fmt;
@@ -244,7 +245,7 @@ pub struct AuditMeta {
     user_agent: String,
     remote: String,
     forwarded: Option<String>,
-    user: Option<HeaderAuth>,
+    user: Option<HeaderAuthType>,
 }
 
 impl AuditMeta {
@@ -253,7 +254,7 @@ impl AuditMeta {
         user_agent: U,
         remote: R,
         forwarded: Option<String>,
-        user: Option<HeaderAuth>,
+        user: Option<HeaderAuthType>,
     ) -> Self
     where
         U: Into<String>,
@@ -265,6 +266,17 @@ impl AuditMeta {
             forwarded,
             user,
         }
+    }
+
+    /// Create audit metadata from header map.
+    pub fn from_header_map<R>(map: &HeaderMap<HeaderValue>, remote: R) -> Self
+    where
+        R: Into<String>,
+    {
+        let user_agent = header_user_agent(map);
+        let forwarded = header_x_forwarded_for(map);
+        let user_authorisation = header_user_authorisation(map);
+        Self::new(user_agent, remote, forwarded, user_authorisation)
     }
 
     /// User agent string reference.
@@ -283,13 +295,13 @@ impl AuditMeta {
     }
 
     /// User authorisation optional reference.
-    pub fn user(&self) -> Option<&HeaderAuth> {
+    pub fn user(&self) -> Option<&HeaderAuthType> {
         self.user.as_ref()
     }
 }
 
 /// Audit log builder pattern.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AuditBuilder {
     meta: AuditMeta,
     type_: AuditType,

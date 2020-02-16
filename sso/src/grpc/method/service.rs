@@ -5,6 +5,8 @@ use crate::{
 use uuid::Uuid;
 use validator::{Validate, ValidationErrors};
 
+// TODO(sam,feature): Root keys require user authorisation header for auditing.
+
 impl Validate for pb::ServiceListRequest {
     fn validate(&self) -> Result<(), ValidationErrors> {
         validate::wrap(|e| {
@@ -29,7 +31,7 @@ pub async fn list(
             audit_meta,
             AuditType::ServiceList,
             |driver, audit| {
-                pattern::key_root_authenticate(driver, audit, auth.as_ref())
+                pattern::key_root_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 driver.service_list(&req).map_err(MethodError::BadRequest)
@@ -89,7 +91,7 @@ pub async fn create(
             audit_meta,
             AuditType::ServiceCreate,
             |driver, audit| {
-                pattern::key_root_authenticate(driver, audit, auth.as_ref())
+                pattern::key_root_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 driver.service_create(&req).map_err(MethodError::BadRequest)
@@ -124,7 +126,7 @@ pub async fn read(
             audit_meta,
             AuditType::ServiceRead,
             |driver, audit| {
-                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 read_inner(driver, &req, service.map(|x| x.id))
@@ -181,7 +183,7 @@ pub async fn update(
             audit_meta,
             AuditType::ServiceUpdate,
             |driver, audit| {
-                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 let read = ServiceRead::new(req.id);
@@ -210,7 +212,7 @@ pub async fn delete(server: &Server, request: MethodRequest<ServiceRead>) -> Met
             audit_meta,
             AuditType::ServiceDelete,
             |driver, audit| {
-                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 let service = read_inner(driver, &req, service.map(|x| x.id))?;

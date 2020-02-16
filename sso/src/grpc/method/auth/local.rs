@@ -36,7 +36,7 @@ pub async fn login(
             audit_meta,
             AuditType::AuthLocalLogin,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 // Login requires token key type.
@@ -107,7 +107,7 @@ pub async fn register(
             audit_meta,
             AuditType::AuthLocalRegister,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
                 // Bad request if service not allowed to register users.
                 if !service.user_allow_register {
@@ -211,7 +211,7 @@ pub async fn register_confirm(
             audit_meta,
             AuditType::AuthLocalRegisterConfirm,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
                 // Bad request if service not allowed to register users.
                 if !service.user_allow_register {
@@ -276,7 +276,7 @@ pub async fn register_revoke(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalRegisterRevoke,
-            |driver, audit| revoke_inner(driver, audit, auth.as_ref(), &req),
+            |driver, audit| revoke_inner(driver, audit, &auth, &req),
         )
         .map_err(Into::into)
     })
@@ -309,7 +309,7 @@ pub async fn reset_password(
             audit_meta,
             AuditType::AuthLocalResetPassword,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
                 // Reset password requires token key type.
                 let user =
@@ -382,7 +382,7 @@ pub async fn reset_password_confirm(
             audit_meta,
             AuditType::AuthLocalResetPasswordConfirm,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
@@ -450,7 +450,7 @@ pub async fn reset_password_revoke(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalResetPasswordRevoke,
-            |driver, audit| revoke_inner(driver, audit, auth.as_ref(), &req),
+            |driver, audit| revoke_inner(driver, audit, &auth, &req),
         )
         .map_err(Into::into)
     })
@@ -485,7 +485,7 @@ pub async fn update_email(
             audit_meta,
             AuditType::AuthLocalUpdateEmail,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
                 // Update email requires token key type.
                 let user =
@@ -540,7 +540,7 @@ pub async fn update_email_revoke(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalUpdateEmailRevoke,
-            |driver, audit| revoke_inner(driver, audit, auth.as_ref(), &req),
+            |driver, audit| revoke_inner(driver, audit, &auth, &req),
         )
         .map_err(Into::into)
     })
@@ -585,7 +585,7 @@ pub async fn update_password(
             audit_meta,
             AuditType::AuthLocalUpdatePassword,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
                 // Update password requires token key type.
                 let user =
@@ -639,7 +639,7 @@ pub async fn update_password_revoke(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthLocalUpdatePasswordRevoke,
-            |driver, audit| revoke_inner(driver, audit, auth.as_ref(), &req),
+            |driver, audit| revoke_inner(driver, audit, &auth, &req),
         )
         .map_err(Into::into)
     })
@@ -652,7 +652,7 @@ pub async fn update_password_revoke(
 fn revoke_inner(
     driver: &Postgres,
     audit: &mut AuditBuilder,
-    auth: Option<&String>,
+    auth: &HeaderAuth,
     req: &pb::AuthTokenRequest,
 ) -> MethodResult<Option<Audit>> {
     let service = pattern::key_service_authenticate(driver, audit, auth)

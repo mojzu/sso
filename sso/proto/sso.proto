@@ -107,15 +107,15 @@ service Sso {
     // is present and valid will set headers on the response. If key is not present
     // or invalid this will return an unauthorised response.
     //
-    // This endpoint is only available via the HTTP server port of `sso-grpc`. Authentication
-    // is not required, this endpoint is intended for internal use only.
+    // This endpoint is only available via the HTTP server port of `sso-grpc`.
+    // This endpoint is intended for internal use only.
     //
     // Request headers.
-    // - `Authorization`: Key value.
+    // - `Authorization`: Service key value.
     // - `User-Authorization`: Optional key or token value.
     //
     // Response headers.
-    // - `Grpc-Metadata-Sso-Key-Id`: ID of key in request.
+    // - `Grpc-Metadata-Sso-Key-Id`: ID of service key in request.
     // - `Grpc-Metadata-Sso-Service-Id`: ID of service which owns key, or not defined if key is a root key.
     // - `Grpc-Metadata-Sso-User-Key-Id`: ID of user key or token or not defined if user authorisation header not present.
     // - `Grpc-Metadata-Sso-User-Id`: ID of user which owns key or not defined if user authorisation header not present.
@@ -131,14 +131,17 @@ service Sso {
     // is present and valid will set headers on the response. If user key or token is not present
     // or invalid this will return an unauthorised response.
     //
-    // This endpoint is only available via the HTTP server port of `sso-grpc`. Authentication
-    // is not required, this endpoint is intended for internal use only.
+    // This endpoint is only available via the HTTP server port of `sso-grpc`.
+    // This endpoint is intended for internal use only.
     //
     // Request headers.
-    // - `Authorization`: Key or token value.
+    // - `Authorization`: User key or token value.
+    // - `Service-Authorization`: Required service key value.
     //
     // Response headers.
-    // - `Grpc-Metadata-Sso-Key-Id`: ID of key in request or of key used to generate token.
+    // - `Grpc-Metadata-Sso-Key-Id`: ID of service key in request.
+    // - `Grpc-Metadata-Sso-Service-Id`: ID of service which owns key.
+    // - `Grpc-Metadata-Sso-User-Key-Id`: ID of user key in request or of key used to generate token.
     // - `Grpc-Metadata-Sso-User-Id`: ID of user which owns key.
     rpc HookTraefikService (google.protobuf.Empty) returns (google.protobuf.Empty) {
         option (google.api.http) = {

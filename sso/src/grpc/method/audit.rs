@@ -55,7 +55,7 @@ pub async fn list(
             audit_meta,
             AuditType::AuditList,
             |driver, audit| {
-                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 driver
@@ -102,7 +102,7 @@ pub async fn create(
             audit_meta,
             AuditType::AuditCreate,
             |driver, audit| {
-                let _service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                let _service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 audit.create2(driver, &req).map_err(MethodError::BadRequest)
@@ -138,7 +138,7 @@ pub async fn read(
             audit_meta,
             AuditType::AuditRead,
             |driver, audit| {
-                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 driver
@@ -177,7 +177,7 @@ pub async fn update(
             audit_meta,
             AuditType::AuditUpdate,
             |driver, audit| {
-                let service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 driver

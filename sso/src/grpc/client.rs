@@ -3,7 +3,7 @@ use crate::{
         pb::{self, sso_client::SsoClient},
         util::*,
     },
-    User,
+    HeaderAuth, HeaderAuthType, User,
 };
 use http::Uri;
 use std::convert::TryInto;
@@ -11,24 +11,6 @@ use std::fmt;
 use std::str::FromStr;
 use tokio::runtime::{Builder, Runtime};
 use tonic::{metadata::MetadataValue, transport::Endpoint, Request, Status};
-
-/// Split value of `Authorization` HTTP header into a type and value, where format is `VALUE` or `TYPE VALUE`.
-/// For example `abc123def456`, `key abc123def456` and `token abc123def456`.
-/// Without a type `key` is assumed and returned.
-fn authorisation_type(type_value: String) -> Result<(String, String), Status> {
-    let mut type_value = type_value.split_whitespace();
-    let type_ = type_value.next();
-    let type_: String = type_
-        .ok_or_else(|| Status::unauthenticated(ERR_AUTH_TYPE_NOT_FOUND))?
-        .into();
-
-    let value = type_value.next();
-    if let Some(value) = value {
-        Ok((type_, value.into()))
-    } else {
-        Ok(("key".to_owned(), type_))
-    }
-}
 
 impl fmt::Debug for SsoClient<tonic::transport::Channel> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -65,37 +47,53 @@ impl SsoClient<tonic::transport::Channel> {
         })
     }
 
-    /// Authenticate user using token or key, returns user if successful.
+    /// Authenticate user using headers, returns user if successful.
     pub async fn authenticate(
         &mut self,
-        key_or_token: Option<String>,
+        auth: HeaderAuth,
         audit: Option<String>,
     ) -> Result<(User, Option<String>), Status> {
-        match key_or_token {
-            Some(key_or_token) => {
-                let (type_, value) = authorisation_type(key_or_token)?;
-                match type_.as_ref() {
-                    "key" => {
-                        let res = self
-                            .auth_key_verify(pb::AuthKeyRequest { key: value, audit })
-                            .await?
-                            .into_inner();
-                        Ok((res.user.unwrap().try_into().unwrap(), res.audit))
-                    }
-                    "token" => {
-                        let res = self
-                            .auth_token_verify(pb::AuthTokenRequest {
-                                token: value,
-                                audit,
-                            })
-                            .await?
-                            .into_inner();
-                        Ok((res.user.unwrap().try_into().unwrap(), res.audit))
-                    }
-                    _ => Err(Status::unauthenticated(ERR_AUTH_TYPE_NOT_FOUND)),
+        match auth {
+            HeaderAuth::Traefik(x) => match (x.user_key_id, x.user_id) {
+                (Some(user_key_id), Some(user_id)) => {
+                    let res = self
+                        .user_read(pb::UserReadRequest::from_uuid(user_id))
+                        .await?
+                        .into_inner();
+                    let user = res.data.unwrap();
+
+                    let audit = if let Some(audit) = audit {
+                        let mut req = pb::AuditCreateRequest::default();
+                        req.r#type = audit;
+                        req.user_id = Some(uuid_to_string(user_id));
+                        req.user_key_id = Some(uuid_to_string(user_key_id));
+                        let res = self.audit_create(req).await?.into_inner();
+                        Some(res.data.unwrap().id)
+                    } else {
+                        None
+                    };
+
+                    Ok((user.try_into().unwrap(), audit))
                 }
-            }
-            None => Err(Status::unauthenticated(ERR_AUTH_NOT_FOUND)),
+                _ => Err(Status::unauthenticated(ERR_AUTH_NOT_FOUND)),
+            },
+            HeaderAuth::Header(x) => match x {
+                HeaderAuthType::Key(x) => {
+                    let res = self
+                        .auth_key_verify(pb::AuthKeyRequest { key: x, audit })
+                        .await?
+                        .into_inner();
+                    Ok((res.user.unwrap().try_into().unwrap(), res.audit))
+                }
+                HeaderAuthType::Token(x) => {
+                    let res = self
+                        .auth_token_verify(pb::AuthTokenRequest { token: x, audit })
+                        .await?
+                        .into_inner();
+                    Ok((res.user.unwrap().try_into().unwrap(), res.audit))
+                }
+            },
+            HeaderAuth::None => Err(Status::unauthenticated(ERR_AUTH_NOT_FOUND)),
         }
     }
 }
@@ -502,31 +500,5 @@ impl ClientBlocking {
     ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
         self.rt
             .block_on(self.client.auth_microsoft_oauth2_callback(request))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn splits_authorisation_type_none() {
-        let (type_, value) = authorisation_type("abcdefg".to_owned()).unwrap();
-        assert_eq!(type_, "key");
-        assert_eq!(value, "abcdefg");
-    }
-
-    #[test]
-    fn splits_authorisation_type_key() {
-        let (type_, value) = authorisation_type("key abcdefg".to_owned()).unwrap();
-        assert_eq!(type_, "key");
-        assert_eq!(value, "abcdefg");
-    }
-
-    #[test]
-    fn splits_authorisation_type_token() {
-        let (type_, value) = authorisation_type("token abcdefg".to_owned()).unwrap();
-        assert_eq!(type_, "token");
-        assert_eq!(value, "abcdefg");
     }
 }

@@ -18,7 +18,7 @@ pub async fn oauth2_url(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthGithubOauth2Url,
-            |driver, audit| provider_github::oauth2_url(driver, audit, auth.as_ref(), &args),
+            |driver, audit| provider_github::oauth2_url(driver, audit, &auth, &args),
         )
         .map_err(Into::into)
     })
@@ -49,9 +49,7 @@ pub async fn oauth2_callback(
             driver.as_ref(),
             audit_meta1,
             AuditType::AuthGithubOauth2Callback,
-            |driver, audit| {
-                provider_github::oauth2_callback(driver, audit, auth.as_ref(), &args, &req)
-            },
+            |driver, audit| provider_github::oauth2_callback(driver, audit, &auth, &args, &req),
         )
         .map_err(Into::into)
     })
@@ -95,7 +93,8 @@ mod provider_github {
     use crate::{
         grpc::{pb, util::*, ServerOptionsProvider, ServerProviderOauth2Args},
         pattern::*,
-        AuditBuilder, CsrfCreate, DriverError, DriverResult, Postgres, Service,
+        AuditBuilder, CsrfCreate, DriverError, DriverResult, HeaderAuth, Postgres, Service,
+        HEADER_AUTHORISATION,
     };
     use oauth2::{
         basic::BasicClient, reqwest::http_client, AuthUrl, AuthorizationCode, ClientId,
@@ -107,11 +106,11 @@ mod provider_github {
     pub(crate) fn oauth2_url(
         driver: &Postgres,
         audit: &mut AuditBuilder,
-        key_value: Option<&String>,
+        auth: &HeaderAuth,
         args: &ServerProviderOauth2Args,
     ) -> MethodResult<String> {
-        let service = key_service_authenticate(driver, audit, key_value)
-            .map_err(MethodError::Unauthorised)?;
+        let service =
+            key_service_authenticate(driver, audit, auth).map_err(MethodError::Unauthorised)?;
 
         // Generate the authorisation URL to which we'll redirect the user.
         let client = new_client(&service, &args.provider).map_err(MethodError::BadRequest)?;
@@ -134,12 +133,12 @@ mod provider_github {
     pub(crate) fn oauth2_callback(
         driver: &Postgres,
         audit: &mut AuditBuilder,
-        key_value: Option<&String>,
+        auth: &HeaderAuth,
         args: &ServerProviderOauth2Args,
         request: &pb::AuthOauth2CallbackRequest,
     ) -> MethodResult<(Service, Uuid, String)> {
-        let service = key_service_authenticate(driver, audit, key_value)
-            .map_err(MethodError::Unauthorised)?;
+        let service =
+            key_service_authenticate(driver, audit, auth).map_err(MethodError::Unauthorised)?;
 
         // Read the CSRF key using state value, rebuild code verifier from value.
         let csrf = driver
@@ -176,7 +175,7 @@ mod provider_github {
         let authorisation = format!("token {}", access_token);
         let res = client
             .get("https://api.github.com/user")
-            .header("authorization", authorisation)
+            .header(HEADER_AUTHORISATION, authorisation)
             .send()
             .await
             .map_err(DriverError::Reqwest)?;

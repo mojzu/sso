@@ -32,7 +32,7 @@ pub async fn list(
             audit_meta,
             AuditType::UserList,
             |driver, audit| {
-                let _service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                let _service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 driver.user_list(&req).map_err(MethodError::BadRequest)
@@ -80,7 +80,7 @@ pub async fn create(
             audit_meta,
             AuditType::UserCreate,
             |driver, audit| {
-                let _service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                let _service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 driver.user_create(&req).map_err(MethodError::BadRequest)
@@ -116,7 +116,7 @@ pub async fn read(
             audit_meta,
             AuditType::UserRead,
             |driver, audit| {
-                let _service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                let _service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 read_inner(driver, &req)
@@ -154,7 +154,7 @@ pub async fn update(
             audit_meta,
             AuditType::UserUpdate,
             |driver, audit| {
-                let _service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                let _service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 let read = UserRead::Id(req.id);
@@ -182,7 +182,7 @@ pub async fn delete(server: &Server, request: MethodRequest<UserRead>) -> Method
             audit_meta,
             AuditType::UserDelete,
             |driver, audit| {
-                let _service = pattern::key_authenticate(driver, audit, auth.as_ref())
+                let _service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 let user = read_inner(driver, &req)?;

@@ -178,12 +178,6 @@ pub enum DriverError {
     #[fail(display = "Metrics")]
     Metrics,
 
-    #[fail(display = "HttpHeader")]
-    HttpHeader,
-
-    #[fail(display = "ActixWebBlockingCancelled")]
-    ActixWebBlockingCancelled,
-
     #[fail(display = "Validation {}", _0)]
     Validation(#[fail(cause)] validator::ValidationErrors),
 }

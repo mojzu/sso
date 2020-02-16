@@ -135,17 +135,18 @@ pub type MethodResult<T> = Result<T, MethodError>;
 #[derive(Debug)]
 pub struct MethodRequest<T> {
     audit: AuditMeta,
-    auth: Option<String>,
+    auth: HeaderAuth,
     message: T,
 }
 
 impl<T> MethodRequest<T> {
-    pub fn from_request<R>(request: Request<R>) -> MethodResult<Self>
+    pub fn from_request<R>(request: Request<R>, traefik_enabled: bool) -> MethodResult<Self>
     where
         R: validator::Validate,
         T: From<R>,
     {
-        let (audit, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
+        let (audit, auth) =
+            request_audit_auth(request.remote_addr(), request.metadata(), traefik_enabled)?;
         let message = grpc::validate::validate(request.into_inner())?;
         Ok(MethodRequest {
             audit,
@@ -154,11 +155,12 @@ impl<T> MethodRequest<T> {
         })
     }
 
-    pub fn from_unit(request: Request<()>) -> MethodResult<Self>
+    pub fn from_unit(request: Request<()>, traefik_enabled: bool) -> MethodResult<Self>
     where
         T: Default,
     {
-        let (audit, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
+        let (audit, auth) =
+            request_audit_auth(request.remote_addr(), request.metadata(), traefik_enabled)?;
         Ok(MethodRequest {
             audit,
             auth,
@@ -166,7 +168,7 @@ impl<T> MethodRequest<T> {
         })
     }
 
-    pub fn into_inner(self) -> (AuditMeta, Option<String>, T) {
+    pub fn into_inner(self) -> (AuditMeta, HeaderAuth, T) {
         (self.audit, self.auth, self.message)
     }
 }
@@ -174,8 +176,10 @@ impl<T> MethodRequest<T> {
 impl MethodRequest<serde_json::Value> {
     pub fn from_struct(
         request: Request<prost_types::Struct>,
+        traefik_enabled: bool,
     ) -> MethodResult<MethodRequest<serde_json::Value>> {
-        let (audit, auth) = request_audit_auth(request.remote_addr(), request.metadata())?;
+        let (audit, auth) =
+            request_audit_auth(request.remote_addr(), request.metadata(), traefik_enabled)?;
         let message = struct_opt_to_value_opt(Some(request.into_inner())).unwrap();
         Ok(MethodRequest {
             audit,
@@ -311,38 +315,21 @@ where
     }
 }
 
-/// Get audit meta and authorisation header from request metadata.
+/// Get audit meta and authorisation data from request metadata.
 fn request_audit_auth(
     remote: Option<SocketAddr>,
     metadata: &MetadataMap,
-) -> MethodResult<(AuditMeta, Option<String>)> {
-    // TODO(sam,refactor): Remove this when testing done.
-    info!("request_audit_auth {:?}", metadata);
-
-    let user_agent = match metadata.get("user-agent") {
-        Some(value) => value.to_str().unwrap().to_owned(),
-        None => String::from("none"),
-    };
+    traefik_enabled: bool,
+) -> MethodResult<(AuditMeta, HeaderAuth)> {
     let remote = match remote {
         Some(remote) => format!("{}", remote),
-        None => String::from("unknown"),
+        None => String::from(""),
     };
-    let forwarded = match metadata.get("x-forwarded-for") {
-        Some(value) => Some(value.to_str().unwrap().to_owned()),
-        None => None,
-    };
-    let user = match metadata.get(HEADER_USER_AUTHORISATION) {
-        Some(value) => {
-            let u = value.to_str().unwrap();
-            pattern::HeaderAuth::parse(u)
-        }
-        None => None,
-    };
-    let auth = match metadata.get(HEADER_AUTHORISATION) {
-        Some(value) => Some(value.to_str().unwrap().to_owned()),
-        None => None,
-    };
-    Ok((AuditMeta::new(user_agent, remote, forwarded, user), auth))
+    let header_map = metadata.clone().into_headers();
+    Ok((
+        AuditMeta::from_header_map(&header_map, remote),
+        HeaderAuth::from_header_map(&header_map, traefik_enabled),
+    ))
 }
 
 // TODO(sam,refactor): Improve translation code between api/grpc.
@@ -817,6 +804,14 @@ impl From<pb::UserCreateRequest> for UserCreate {
                 .unwrap();
         }
         create
+    }
+}
+
+impl pb::UserReadRequest {
+    pub fn from_uuid(u: Uuid) -> Self {
+        Self {
+            id: uuid_to_string(u),
+        }
     }
 }
 

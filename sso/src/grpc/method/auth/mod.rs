@@ -33,7 +33,7 @@ pub async fn totp_verify(
             audit_meta,
             AuditType::AuthTotp,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
                 // TOTP requires token key type.
                 let user = pattern::user_read_id_checked(
@@ -77,7 +77,7 @@ pub async fn csrf_create(
             audit_meta,
             AuditType::AuthCsrfCreate,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 let expires_s = req.expires_s.unwrap_or(DEFAULT_CSRF_EXPIRES_S);
@@ -116,7 +116,7 @@ pub async fn csrf_verify(
             audit_meta,
             AuditType::AuthCsrfVerify,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 api_csrf_verify(driver, &service, &req.csrf)

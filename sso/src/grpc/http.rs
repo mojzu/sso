@@ -20,10 +20,7 @@ pub async fn http_server(
                 traefik_self(driver, req, remote).await
             } else {
                 // Return 401 unauthorised response.
-                Ok(Response::builder()
-                    .status(StatusCode::UNAUTHORIZED)
-                    .body(Body::empty())
-                    .unwrap())
+                Ok(response_unauthorised())
             }
         }
         (&Method::GET, "/hook/traefik/service") => {
@@ -31,10 +28,7 @@ pub async fn http_server(
                 traefik_service(driver, req, remote).await
             } else {
                 // Return 401 unauthorised response.
-                Ok(Response::builder()
-                    .status(StatusCode::UNAUTHORIZED)
-                    .body(Body::empty())
-                    .unwrap())
+                Ok(response_unauthorised())
             }
         }
         _ => {
@@ -60,113 +54,94 @@ async fn metrics(
     Ok(Response::new(Body::from(s)))
 }
 
-// TODO(sam,feature): Traefik integration, example for service integration.
-// Other headers: x-forwarded-host, x-forwarded-uri, x-real-ip.
-
 async fn traefik_self(
     driver: Arc<Postgres>,
     req: Request<Body>,
     remote: SocketAddr,
 ) -> Result<Response<Body>, hyper::Error> {
-    // Authorization
-    let authorisation = if let Some(x) = req.headers().get(HEADER_AUTHORISATION) {
-        match x.to_str() {
-            Ok(x) => pattern::HeaderAuth::parse_key(x),
-            Err(_e) => None,
-        }
-    } else {
-        None
-    };
-    // User-Authorization
-    let user_authorisation = if let Some(x) = req.headers().get(HEADER_USER_AUTHORISATION) {
-        match x.to_str() {
-            Ok(x) => pattern::HeaderAuth::parse(x),
-            Err(_e) => None,
-        }
-    } else {
-        None
-    };
-    // User-Agent
-    let user_agent = if let Some(x) = req.headers().get("user-agent") {
-        match x.to_str() {
-            Ok(x) => x,
-            Err(_e) => "none",
-        }
-    } else {
-        "none"
-    };
-    // X-Forwarded-For
-    let forwarded = if let Some(x) = req.headers().get("x-forwarded-for") {
-        match x.to_str() {
-            Ok(x) => Some(x.to_owned()),
-            Err(_e) => None,
-        }
-    } else {
-        None
-    };
     let remote = format!("{}", remote);
     let (audit_meta, auth) = (
-        AuditMeta::new(user_agent, remote, forwarded, user_authorisation),
-        authorisation,
+        AuditMeta::from_header_map(req.headers(), remote),
+        HeaderAuth::from_header_map(req.headers(), false),
     );
 
     let driver = driver.clone();
-    let data = blocking::<_, MethodError, _>(move || {
+    let audit_builder = blocking::<_, MethodError, _>(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::Traefik,
             |driver, audit| {
-                pattern::key_authenticate(driver, audit, auth.as_ref())
+                pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
-                Ok((
-                    audit.get_key_id(),
-                    audit.get_service_id(),
-                    audit.get_user_key_id(),
-                    audit.get_user_id(),
-                ))
+                Ok(audit.clone())
             },
         )
     })
     .await;
 
-    let res = match data {
-        Ok((key_id, service_id, user_key_id, user_id)) => {
-            let mut builder = Response::builder().status(StatusCode::OK);
-            if let Some(key_id) = key_id {
-                builder = builder.header("Grpc-Metadata-Sso-Key-Id", key_id.to_string());
-            }
-            if let Some(service_id) = service_id {
-                builder = builder.header("Grpc-Metadata-Sso-Service-Id", service_id.to_string());
-            }
-            if let Some(user_key_id) = user_key_id {
-                builder = builder.header("Grpc-Metadata-Sso-User-Key-Id", user_key_id.to_string());
-            }
-            if let Some(user_id) = user_id {
-                builder = builder.header("Grpc-Metadata-Sso-User-Id", user_id.to_string());
-            }
-
-            builder.body(Body::empty()).unwrap()
-        }
-        Err(_e) => Response::builder()
-            .status(StatusCode::UNAUTHORIZED)
-            .body(Body::empty())
-            .unwrap(),
-    };
-    Ok(res)
+    Ok(match audit_builder {
+        Ok(audit) => response_from_audit_builder(audit),
+        Err(_e) => response_unauthorised(),
+    })
 }
 
 async fn traefik_service(
-    _driver: Arc<Postgres>,
+    driver: Arc<Postgres>,
     req: Request<Body>,
-    _remote: SocketAddr,
+    remote: SocketAddr,
 ) -> Result<Response<Body>, hyper::Error> {
-    info!("traefik_service {:?}", req.headers());
-    let res = Response::builder()
-        .status(StatusCode::OK)
-        .header("Grpc-Metadata-Sso-Key-Id", "key-id-test")
-        .header("Grpc-Metadata-Sso-User-Id", "user-id-test")
+    let remote = format!("{}", remote);
+    let (audit_meta, auth) = (
+        AuditMeta::from_header_map(req.headers(), remote),
+        HeaderAuth::from_header_map(req.headers(), false),
+    );
+    let service_key = header_service_authorisation(req.headers());
+
+    let driver = driver.clone();
+    let audit_builder = blocking::<_, MethodError, _>(move || {
+        audit_result_err(
+            driver.as_ref(),
+            audit_meta,
+            AuditType::Traefik,
+            |driver, audit| {
+                pattern::user_key_token_authenticate(driver, audit, &auth, service_key.clone())
+                    .map_err(MethodError::Unauthorised)?;
+                Ok(audit.clone())
+            },
+        )
+    })
+    .await;
+
+    Ok(match audit_builder {
+        Ok(audit) => response_from_audit_builder(audit),
+        Err(_e) => response_unauthorised(),
+    })
+}
+
+fn response_unauthorised() -> Response<Body> {
+    Response::builder()
+        .status(StatusCode::UNAUTHORIZED)
         .body(Body::empty())
-        .unwrap();
-    Ok(res)
+        .unwrap()
+}
+
+fn response_from_audit_builder(audit: AuditBuilder) -> Response<Body> {
+    let mut builder = Response::builder().status(StatusCode::OK);
+    if let Some(key_id) = audit.get_key_id() {
+        builder = builder.header(HEADER_GRPC_METADATA_SSO_KEY_ID, key_id.to_string());
+    }
+    if let Some(service_id) = audit.get_service_id() {
+        builder = builder.header(HEADER_GRPC_METADATA_SSO_SERVICE_ID, service_id.to_string());
+    }
+    if let Some(user_key_id) = audit.get_user_key_id() {
+        builder = builder.header(
+            HEADER_GRPC_METADATA_SSO_USER_KEY_ID,
+            user_key_id.to_string(),
+        );
+    }
+    if let Some(user_id) = audit.get_user_id() {
+        builder = builder.header(HEADER_GRPC_METADATA_SSO_USER_ID, user_id.to_string());
+    }
+    builder.body(Body::empty()).unwrap()
 }

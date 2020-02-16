@@ -26,7 +26,7 @@ pub async fn verify(
             audit_meta,
             AuditType::AuthKeyVerify,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 // Key verify requires key key type.
@@ -81,7 +81,7 @@ pub async fn revoke(
             audit_meta,
             AuditType::AuthKeyRevoke,
             |driver, audit| {
-                let service = pattern::key_service_authenticate(driver, audit, auth.as_ref())
+                let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
                 // Key revoke requires key key type.

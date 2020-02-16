@@ -1,7 +1,7 @@
 //! # Pattern functions.
 use crate::{
-    AuditBuilder, DriverError, DriverResult, Jwt, KeyRead, KeyType, KeyWithValue, Postgres,
-    Service, ServiceRead, User, UserPasswordMeta, UserRead,
+    AuditBuilder, DriverError, DriverResult, HeaderAuth, HeaderAuthType, Jwt, KeyRead, KeyType,
+    KeyWithValue, Postgres, Service, ServiceRead, User, UserPasswordMeta, UserRead,
 };
 use libreauth::oath::TOTPBuilder;
 use reqwest::Client;
@@ -10,51 +10,6 @@ use url::Url;
 use uuid::Uuid;
 
 // TODO(sam,refactor): Improve usability, composability of pattern functions, diesel async?
-
-/// User header.
-#[derive(Debug, Clone)]
-pub enum HeaderAuth {
-    Key(String),
-    Token(String),
-}
-
-impl HeaderAuth {
-    /// Parse header value, returns key value.
-    /// Formats: `$KEY`, `key $KEY`, `Bearer $KEY`
-    pub fn parse_key(value: &str) -> Option<String> {
-        let value = value.to_owned();
-        if value.starts_with("key ") || value.starts_with("Bearer ") {
-            let parts: Vec<&str> = value.split_whitespace().collect();
-            if parts.len() > 1 {
-                let value = parts[1].trim().to_owned();
-                Some(value)
-            } else {
-                None
-            }
-        } else {
-            Some(value)
-        }
-    }
-
-    /// Parse header value, extract key or token.
-    /// Formats: `$KEY`, `key $KEY`, `token $TOKEN`
-    pub fn parse(value: &str) -> Option<Self> {
-        let mut type_value = value.split_whitespace();
-        let type_ = match type_value.next() {
-            Some(type_) => type_,
-            None => return None,
-        };
-
-        Some(match type_value.next() {
-            Some(value) => match type_ {
-                "token" => Self::Token(value.to_owned()),
-                "key" => Self::Key(value.to_owned()),
-                _ => Self::Key(value.to_owned()),
-            },
-            None => Self::Key(type_.to_owned()),
-        })
-    }
-}
 
 /// Verify TOTP code using key.
 pub fn totp_verify(key: &str, code: &str) -> DriverResult<()> {
@@ -74,22 +29,29 @@ pub fn totp_verify(key: &str, code: &str) -> DriverResult<()> {
 pub fn key_root_authenticate(
     driver: &Postgres,
     audit: &mut AuditBuilder,
-    key_value: Option<&String>,
+    auth: &HeaderAuth,
 ) -> DriverResult<()> {
-    match key_value {
-        Some(key_value) => {
-            let read = KeyRead::RootValue(key_value.to_owned());
-            driver
-                .key_read(&read, None)?
-                .ok_or_else(|| DriverError::KeyNotFound)
-                .map(|key| {
-                    audit.key(Some(&key));
-                    key
-                })
-                .map(|_key| ())
-        }
-        None => Err(DriverError::KeyUndefined),
-    }
+    let key = match auth {
+        HeaderAuth::Traefik(x) => match x.key_id {
+            Some(key_id) => {
+                let key = driver.key_read(&KeyRead::RootId(key_id), None)?;
+                Ok(key)
+            }
+            None => Err(DriverError::KeyUndefined),
+        },
+        HeaderAuth::Header(x) => match x {
+            HeaderAuthType::Key(x) => {
+                let key = driver.key_read(&KeyRead::RootValue(x.to_owned()), None)?;
+                Ok(key)
+            }
+            _ => Err(DriverError::KeyUndefined),
+        },
+        HeaderAuth::None => Err(DriverError::KeyUndefined),
+    }?;
+    key.ok_or_else(|| DriverError::KeyNotFound).map(|key| {
+        audit.key(Some(&key));
+        ()
+    })
 }
 
 /// Authenticate service key.
@@ -99,11 +61,57 @@ pub fn key_root_authenticate(
 pub fn key_service_authenticate(
     driver: &Postgres,
     audit: &mut AuditBuilder,
-    key_value: Option<&String>,
+    auth: &HeaderAuth,
 ) -> DriverResult<Service> {
-    let service = key_service_authenticate_try(driver, audit, key_value)?;
+    let service = key_service_authenticate_try(driver, audit, auth)?;
     check_audit_user(driver, audit, &service)?;
     Ok(service)
+}
+
+pub fn user_key_token_authenticate(
+    driver: &Postgres,
+    audit: &mut AuditBuilder,
+    user_auth: &HeaderAuth,
+    service_key: Option<String>,
+) -> DriverResult<User> {
+    match service_key {
+        Some(service_key) => {
+            let service_auth = HeaderAuth::Header(HeaderAuthType::Key(service_key));
+            let service = key_service_authenticate(driver, audit, &service_auth)?;
+
+            match user_auth {
+                HeaderAuth::Header(x) => match x {
+                    HeaderAuthType::Key(x) => {
+                        // Key verify requires key key type.
+                        let key =
+                            key_read_user_value_checked(driver, &service, audit, x, KeyType::Key)?;
+                        let user = user_read_id_checked(
+                            driver,
+                            Some(&service),
+                            audit,
+                            key.user_id.unwrap(),
+                        )?;
+                        Ok(user)
+                    }
+                    HeaderAuthType::Token(x) => {
+                        // Unsafely decode token to get user identifier, used to read key for safe token decode.
+                        let (user_id, _) = Jwt::decode_unsafe(x, service.id)?;
+
+                        // Token verify requires token key type.
+                        let user = user_read_id_checked(driver, Some(&service), audit, user_id)?;
+                        let key =
+                            key_read_user_checked(driver, &service, audit, &user, KeyType::Token)?;
+
+                        // Safely decode token with user key.
+                        Jwt::decode_access_token(&service, &user, &key, x)?;
+                        Ok(user)
+                    }
+                },
+                _ => Err(DriverError::KeyUndefined),
+            }
+        }
+        None => Err(DriverError::KeyUndefined),
+    }
 }
 
 /// Authenticate service or root key.
@@ -113,37 +121,47 @@ pub fn key_service_authenticate(
 pub fn key_authenticate(
     driver: &Postgres,
     audit: &mut AuditBuilder,
-    key_value: Option<&String>,
+    auth: &HeaderAuth,
 ) -> DriverResult<Option<Service>> {
-    let key_value_1 = key_value.to_owned();
-
-    let service = key_service_authenticate_try(driver, audit, key_value)
+    let service = key_service_authenticate_try(driver, audit, auth)
         .and_then(|service| {
             check_audit_user(driver, audit, &service)?;
             Ok(service)
         })
         .map(Some)
-        .or_else(|_err| key_root_authenticate(driver, audit, key_value_1).map(|_| None))?;
+        .or_else(|_err| key_root_authenticate(driver, audit, auth).map(|_| None))?;
     Ok(service)
 }
 
 fn key_service_authenticate_try(
     driver: &Postgres,
     audit: &mut AuditBuilder,
-    key_value: Option<&String>,
+    auth: &HeaderAuth,
 ) -> DriverResult<Service> {
-    match key_value {
-        Some(key_value) => driver
-            .key_read(&KeyRead::ServiceValue(key_value.to_owned()), None)?
-            .ok_or_else(|| DriverError::KeyNotFound)
-            .and_then(|key| {
-                audit.key(Some(&key));
-                key.service_id
-                    .ok_or_else(|| DriverError::KeyServiceUndefined)
-            })
-            .and_then(|service_id| key_service_authenticate_inner(driver, audit, service_id)),
-        None => Err(DriverError::KeyUndefined),
-    }
+    let key = match auth {
+        HeaderAuth::Traefik(x) => match (x.key_id, x.service_id) {
+            (Some(key_id), Some(service_id)) => {
+                let key = driver.key_read(&KeyRead::ServiceId(service_id, key_id), None)?;
+                Ok(key)
+            }
+            _ => Err(DriverError::KeyUndefined),
+        },
+        HeaderAuth::Header(x) => match x {
+            HeaderAuthType::Key(x) => {
+                let key = driver.key_read(&KeyRead::ServiceValue(x.to_owned()), None)?;
+                Ok(key)
+            }
+            _ => Err(DriverError::KeyUndefined),
+        },
+        HeaderAuth::None => Err(DriverError::KeyUndefined),
+    }?;
+    key.ok_or_else(|| DriverError::KeyNotFound)
+        .and_then(|key| {
+            audit.key(Some(&key));
+            key.service_id
+                .ok_or_else(|| DriverError::KeyServiceUndefined)
+        })
+        .and_then(|service_id| key_service_authenticate_inner(driver, audit, service_id))
 }
 
 fn key_service_authenticate_inner(
@@ -168,14 +186,14 @@ fn check_audit_user(
     match user {
         // TODO(sam,refactor): Duplicate authentication code with api module, refactor.
         Some(user) => match user {
-            HeaderAuth::Key(key_value) => {
+            HeaderAuthType::Key(key_value) => {
                 // Key verify requires key key type.
                 let key =
                     key_read_user_value_checked(driver, &service, audit, key_value, KeyType::Key)?;
                 user_read_id_checked(driver, Some(&service), audit, key.user_id.unwrap())?;
                 Ok(())
             }
-            HeaderAuth::Token(token) => {
+            HeaderAuthType::Token(token) => {
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
                 let (user_id, _) = Jwt::decode_unsafe(&token, service.id)?;
 

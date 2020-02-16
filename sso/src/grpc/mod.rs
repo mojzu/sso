@@ -117,7 +117,10 @@ impl Server {
         req: tonic::Request<()>,
     ) -> Result<(ServerMetrics, util::MethodRequest<()>), tonic::Status> {
         let metrics = ServerMetrics::start(path, &self.count, &self.latency);
-        Ok((metrics, util::MethodRequest::from_unit(req)?))
+        Ok((
+            metrics,
+            util::MethodRequest::from_unit(req, self.options().traefik_enabled())?,
+        ))
     }
 
     fn pre_validate<R, T>(
@@ -130,7 +133,10 @@ impl Server {
         T: From<R>,
     {
         let metrics = ServerMetrics::start(path, &self.count, &self.latency);
-        Ok((metrics, util::MethodRequest::from_request(req)?))
+        Ok((
+            metrics,
+            util::MethodRequest::from_request(req, self.options().traefik_enabled())?,
+        ))
     }
 
     fn post<T, E>(
