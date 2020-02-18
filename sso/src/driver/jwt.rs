@@ -6,20 +6,26 @@ use jsonwebtoken::{
 };
 use uuid::Uuid;
 
-/// JSON web token maximum length.
+/// JSON web token maximum length validation.
 pub const MAX_JWT: usize = 1000;
 
 /// JSON web token claims types.
 #[derive(Debug)]
 pub enum JwtClaimsType {
+    /// Access tokens used to verify user access to a service.
     AccessToken,
+    /// Refresh tokens used to refresh user access tokens.
     RefreshToken,
+    /// Register tokens used to verify user registration.
     RegisterToken,
+    /// Reset password tokens used to verify user password resets.
     ResetPasswordToken,
+    /// Revoke tokens used to revoke user tokens and keys.
     RevokeToken,
 }
 
 impl JwtClaimsType {
+    /// Returns i64 representation of claims type.
     pub fn to_i64(&self) -> i64 {
         match self {
             JwtClaimsType::AccessToken => 0,
@@ -30,6 +36,7 @@ impl JwtClaimsType {
         }
     }
 
+    /// Returns claims type or error if not valid.
     pub fn from_i64(value: i64) -> DriverResult<Self> {
         match value {
             0 => Ok(JwtClaimsType::AccessToken),
@@ -42,20 +49,24 @@ impl JwtClaimsType {
     }
 }
 
+/// JSON web token claims.
 #[derive(Debug, Serialize, Deserialize)]
 struct JwtClaims {
     iss: String,
     sub: String,
     exp: i64,
+    #[serde(rename = "x-type")]
     x_type: i64,
+    #[serde(rename = "x-csrf")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     x_csrf: Option<String>,
 }
 
 impl JwtClaims {
-    pub fn new<T1, T2>(iss: T1, sub: T2, exp: i64, x_type: JwtClaimsType) -> Self
+    pub fn new<IS, SU>(iss: IS, sub: SU, exp: i64, x_type: JwtClaimsType) -> Self
     where
-        T1: Into<String>,
-        T2: Into<String>,
+        IS: Into<String>,
+        SU: Into<String>,
     {
         let dt = chrono::Utc::now();
         let exp = dt.timestamp() + exp;
@@ -68,27 +79,27 @@ impl JwtClaims {
         }
     }
 
-    pub fn new_csrf<T1, T2, T3>(
-        iss: T1,
-        sub: T2,
+    pub fn new_csrf<IS, SU, CS>(
+        iss: IS,
+        sub: SU,
         exp: i64,
         x_type: JwtClaimsType,
-        x_csrf: T3,
+        x_csrf: CS,
     ) -> Self
     where
-        T1: Into<String>,
-        T2: Into<String>,
-        T3: Into<String>,
+        IS: Into<String>,
+        SU: Into<String>,
+        CS: Into<String>,
     {
         let mut claims = JwtClaims::new(iss, sub, exp, x_type);
         claims.x_csrf = Some(x_csrf.into());
         claims
     }
 
-    pub fn validation<T1, T2>(iss: T1, sub: T2) -> Validation
+    pub fn validation<IS, SU>(iss: IS, sub: SU) -> Validation
     where
-        T1: Into<String>,
-        T2: Into<String>,
+        IS: Into<String>,
+        SU: Into<String>,
     {
         Validation {
             iss: Some(iss.into()),

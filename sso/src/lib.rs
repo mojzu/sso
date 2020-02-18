@@ -50,7 +50,7 @@ macro_rules! impl_enum_to_from_string {
     };
 }
 
-/// Initialise logging.
+/// Initialise logging from named environment variables.
 ///
 /// Sentry integration is enabled if `sentry_dsn_name` environment variable is defined.
 /// Logs are formatted as single line JSON objects by defaullt, for integration with

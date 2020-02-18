@@ -13,7 +13,7 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"is_enabled":true,"name":"$user_name","email":"$user_email"}' \
-  localhost:8042/v1/user
+  sso.localhost/api/v1/user
 ```
 
 Service creates a key for user.
@@ -22,8 +22,8 @@ Service creates a key for user.
 curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
-  --data '{"is_enabled":true,"type":"Key","name":"$key_name","user_id":"$user_id"}' \
-  localhost:8042/v1/key
+  --data '{"is_enabled":true,"type":"KEY","name":"$key_name","user_id":"$user_id"}' \
+  sso.localhost/api/v1/key
 ```
 
 User makes requests to service with key value, key can be verified to authenticate requests.
@@ -33,7 +33,7 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"key":"$user_key"}' \
-  localhost:8042/v1/auth/key/verify
+  sso.localhost/api/v1/auth/key/verify
 ```
 
 Key can be revoked, this will disable and revoke the key created earlier and prevent verification.
@@ -43,5 +43,5 @@ curl --header "Content-Type: application/json" \
   --header "Authorization: $service_key" \
   --request POST \
   --data '{"key":"$user_key"}' \
-  localhost:8042/v1/auth/key/revoke
+  sso.localhost/api/v1/auth/key/revoke
 ```

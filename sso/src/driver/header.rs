@@ -1,13 +1,13 @@
 use http::{HeaderMap, HeaderValue};
 use uuid::Uuid;
 
-/// Authorisation header.
+/// Authorization header.
 pub const HEADER_AUTHORISATION: &str = "Authorization";
 
-/// User authorisation header.
+/// User-Authorization header.
 pub const HEADER_USER_AUTHORISATION: &str = "User-Authorization";
 
-/// Service authorisation header.
+/// Service-Authorization header.
 pub const HEADER_SERVICE_AUTHORISATION: &str = "Service-Authorization";
 
 /// User-Agent header.
@@ -40,7 +40,7 @@ pub const HEADER_SSO_USER_KEY_ID: &str = "Sso-User-Key-Id";
 /// Sso-User-Id header.
 pub const HEADER_SSO_USER_ID: &str = "Sso-User-Id";
 
-/// Extract Authorization header string.
+/// Returns Authorization header string.
 pub fn header_authorisation(map: &HeaderMap<HeaderValue>) -> Option<String> {
     if let Some(x) = map.get(HEADER_AUTHORISATION) {
         match x.to_str() {
@@ -52,7 +52,7 @@ pub fn header_authorisation(map: &HeaderMap<HeaderValue>) -> Option<String> {
     }
 }
 
-/// Extract User-Authorization header string.
+/// Returns User-Authorization header string.
 pub fn header_user_authorisation(map: &HeaderMap<HeaderValue>) -> Option<HeaderAuthType> {
     if let Some(x) = map.get(HEADER_USER_AUTHORISATION) {
         match x.to_str() {
@@ -64,7 +64,7 @@ pub fn header_user_authorisation(map: &HeaderMap<HeaderValue>) -> Option<HeaderA
     }
 }
 
-/// Extract Service-Authorization header string.
+/// Returns Service-Authorization header string.
 pub fn header_service_authorisation(map: &HeaderMap<HeaderValue>) -> Option<String> {
     if let Some(x) = map.get(HEADER_SERVICE_AUTHORISATION) {
         match x.to_str() {
@@ -76,7 +76,7 @@ pub fn header_service_authorisation(map: &HeaderMap<HeaderValue>) -> Option<Stri
     }
 }
 
-/// Extract User-Agent header string.
+/// Returns User-Agent header string.
 pub fn header_user_agent(map: &HeaderMap<HeaderValue>) -> String {
     if let Some(x) = map.get(HEADER_USER_AGENT) {
         match x.to_str() {
@@ -88,7 +88,7 @@ pub fn header_user_agent(map: &HeaderMap<HeaderValue>) -> String {
     }
 }
 
-/// Extract X-Forwarded-For header string.
+/// Returns X-Forwarded-For header string.
 pub fn header_x_forwarded_for(map: &HeaderMap<HeaderValue>) -> Option<String> {
     if let Some(x) = map.get(HEADER_X_FORWARDED_FOR) {
         match x.to_str() {
@@ -100,6 +100,7 @@ pub fn header_x_forwarded_for(map: &HeaderMap<HeaderValue>) -> Option<String> {
     }
 }
 
+/// Returns Sso-Key-Id header string.
 pub fn header_sso_key_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
     if let Some(x) = map
         .get(HEADER_SSO_KEY_ID)
@@ -117,6 +118,7 @@ pub fn header_sso_key_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
     }
 }
 
+/// Returns Sso-Service-Id header string.
 pub fn header_sso_service_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
     if let Some(x) = map
         .get(HEADER_SSO_SERVICE_ID)
@@ -134,6 +136,7 @@ pub fn header_sso_service_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
     }
 }
 
+/// Returns Sso-User-Key-Id header string.
 pub fn header_sso_user_key_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
     if let Some(x) = map
         .get(HEADER_SSO_USER_KEY_ID)
@@ -151,6 +154,7 @@ pub fn header_sso_user_key_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
     }
 }
 
+/// Returns Sso-User-Id header string.
 pub fn header_sso_user_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
     if let Some(x) = map
         .get(HEADER_SSO_USER_ID)
