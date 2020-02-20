@@ -925,8 +925,8 @@ impl From<UserPasswordMeta> for pb::AuthPasswordMeta {
     }
 }
 
-impl From<Csrf> for pb::Csrf {
-    fn from(r: Csrf) -> Self {
+impl From<csrf::Csrf> for pb::Csrf {
+    fn from(r: csrf::Csrf) -> Self {
         Self {
             created_at: datetime_to_timestamp_opt(r.created_at),
             key: r.key,

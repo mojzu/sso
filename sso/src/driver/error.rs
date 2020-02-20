@@ -67,17 +67,14 @@ pub enum DriverError {
     #[fail(display = "UserPasswordUndefined")]
     UserPasswordUndefined,
 
-    #[fail(display = "JwtClaimsTypeInvalid")]
-    JwtClaimsTypeInvalid,
+    #[fail(display = "JwtTypeInvalid")]
+    JwtTypeInvalid,
+
+    #[fail(display = "JwtTypeMismatch")]
+    JwtTypeMismatch,
 
     #[fail(display = "JwtServiceMismatch")]
     JwtServiceMismatch,
-
-    #[fail(display = "JwtClaimsTypeMismatch")]
-    JwtClaimsTypeMismatch,
-
-    #[fail(display = "JwtInvalidOrExpired")]
-    JwtInvalidOrExpired,
 
     #[fail(display = "CsrfNotFoundOrUsed")]
     CsrfNotFoundOrUsed,

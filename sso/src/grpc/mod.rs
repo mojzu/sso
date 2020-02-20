@@ -1,4 +1,4 @@
-//! gRPC server and clients.
+//! gRPC Server, Clients
 mod client;
 mod http;
 mod method;
@@ -392,14 +392,6 @@ impl pb::sso_server::Sso for Server {
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_token_revoke", request)?;
         self.post(metrics, method::auth::token::revoke(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_token_exchange(
-        &self,
-        request: tonic::Request<pb::AuthTokenRequest>,
-    ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_token_exchange", request)?;
-        self.post(metrics, method::auth::token::exchange(self, request).await)
             .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
     async fn auth_totp_verify(

@@ -1,6 +1,6 @@
 use crate::{
-    grpc::{method::auth::api_csrf_verify, pb, util::*, validate, Server},
-    *,
+    grpc::{pb, util::*, validate, Server},
+    jwt, *,
 };
 use uuid::Uuid;
 use validator::{Validate, ValidationErrors};
@@ -59,7 +59,7 @@ pub async fn login(
                     .map_err(MethodError::BadRequest)?;
 
                 // Encode user token.
-                Jwt::encode_user_token(
+                jwt::encode_user(
                     driver,
                     &service,
                     user,
@@ -163,7 +163,7 @@ pub async fn register(
                 };
                 // Encode register token.
                 let token =
-                    Jwt::encode_register_token(driver, &service, &user, &key, access_token_expires)
+                    jwt::encode_register(driver, &service, &user, &key, access_token_expires)
                         .map_err(MethodError::BadRequest)?;
                 // Send register email.
                 TemplateEmail::email_register(&service, &user, &token, audit.meta())
@@ -217,24 +217,26 @@ pub async fn register_confirm(
                         DriverError::ServiceUserRegisterDisabled,
                     ));
                 }
+
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
-                let (user_id, _) =
-                    Jwt::decode_unsafe(&req.token, service.id).map_err(MethodError::BadRequest)?;
+                let (user_id, _) = jwt::decode_unsafe_user(&req.token, service.id)
+                    .map_err(MethodError::BadRequest)?;
+
                 // Register confirm requires token key type.
                 let user = pattern::user_read_id_checked(driver, Some(&service), audit, user_id)
                     .map_err(MethodError::BadRequest)?;
                 let key =
                     pattern::key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
                         .map_err(MethodError::BadRequest)?;
+
                 // Safely decode token with user key.
-                let csrf_key = Jwt::decode_register_token(&service, &user, &key, &req.token)
+                jwt::decode_register(driver, &service, &user, &key, &req.token)
                     .map_err(MethodError::BadRequest)?;
-                // Verify CSRF to prevent reuse.
-                api_csrf_verify(driver, &service, &csrf_key)?;
+
                 // Encode revoke token.
-                let token =
-                    Jwt::encode_revoke_token(driver, &service, &user, &key, revoke_token_expires)
-                        .map_err(MethodError::BadRequest)?;
+                let token = jwt::encode_revoke(driver, &service, &user, &key, revoke_token_expires)
+                    .map_err(MethodError::BadRequest)?;
+
                 // Update user password and allow reset flag if provided.
                 if let Some(password) = &req.password {
                     let mut user_update = UserUpdate::new_password(user.id, password)
@@ -309,6 +311,7 @@ pub async fn reset_password(
             |driver, audit| {
                 let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
+
                 // Reset password requires token key type.
                 let user =
                     pattern::user_read_email_checked(driver, Some(&service), audit, &req.email)
@@ -316,21 +319,18 @@ pub async fn reset_password(
                 let key =
                     pattern::key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
                         .map_err(MethodError::BadRequest)?;
+
                 // Bad request if user password reset is disabled.
                 if !user.password_allow_reset {
                     return Err(MethodError::BadRequest(
                         DriverError::UserResetPasswordDisabled,
                     ));
                 }
+
                 // Encode reset token.
-                let token = Jwt::encode_reset_password_token(
-                    driver,
-                    &service,
-                    &user,
-                    &key,
-                    access_token_expires,
-                )
-                .map_err(MethodError::BadRequest)?;
+                let token =
+                    jwt::encode_reset_password(driver, &service, &user, &key, access_token_expires)
+                        .map_err(MethodError::BadRequest)?;
                 // Send reset password email.
                 TemplateEmail::email_reset_password(&service, &user, &token, audit.meta())
                     .map_err(MethodError::BadRequest)
@@ -384,8 +384,8 @@ pub async fn reset_password_confirm(
                     .map_err(MethodError::Unauthorised)?;
 
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
-                let (user_id, _) =
-                    Jwt::decode_unsafe(&req.token, service.id).map_err(MethodError::BadRequest)?;
+                let (user_id, _) = jwt::decode_unsafe_user(&req.token, service.id)
+                    .map_err(MethodError::BadRequest)?;
 
                 // Reset password confirm requires token key type.
                 let user = pattern::user_read_id_checked(driver, Some(&service), audit, user_id)
@@ -402,16 +402,12 @@ pub async fn reset_password_confirm(
                 }
 
                 // Safely decode token with user key.
-                let csrf_key = Jwt::decode_reset_password_token(&service, &user, &key, &req.token)
+                jwt::decode_reset_password(driver, &service, &user, &key, &req.token)
                     .map_err(MethodError::BadRequest)?;
 
-                // Verify CSRF to prevent reuse.
-                api_csrf_verify(driver, &service, &csrf_key)?;
-
                 // Encode revoke token.
-                let token =
-                    Jwt::encode_revoke_token(driver, &service, &user, &key, revoke_token_expires)
-                        .map_err(MethodError::BadRequest)?;
+                let token = jwt::encode_revoke(driver, &service, &user, &key, revoke_token_expires)
+                    .map_err(MethodError::BadRequest)?;
 
                 // Update user password.
                 let user_update = UserUpdate::new_password(user.id, &req.password)
@@ -485,6 +481,7 @@ pub async fn update_email(
             |driver, audit| {
                 let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
+
                 // Update email requires token key type.
                 let user =
                     pattern::user_read_email_checked(driver, Some(&service), audit, &req.email)
@@ -492,6 +489,7 @@ pub async fn update_email(
                 let key =
                     pattern::key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
                         .map_err(MethodError::BadRequest)?;
+
                 // Forbidden if user password update required.
                 if user.password_require_update {
                     return Err(MethodError::Forbidden(
@@ -502,9 +500,9 @@ pub async fn update_email(
                 user.password_check(&req.password)
                     .map_err(MethodError::BadRequest)?;
                 // Encode revoke token.
-                let token =
-                    Jwt::encode_revoke_token(driver, &service, &user, &key, revoke_token_expires)
-                        .map_err(MethodError::BadRequest)?;
+                let token = jwt::encode_revoke(driver, &service, &user, &key, revoke_token_expires)
+                    .map_err(MethodError::BadRequest)?;
+
                 // Update user email.
                 let old_email = user.email.to_owned();
                 driver
@@ -585,6 +583,7 @@ pub async fn update_password(
             |driver, audit| {
                 let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
+
                 // Update password requires token key type.
                 let user =
                     pattern::user_read_email_checked(driver, Some(&service), audit, &req.email)
@@ -592,14 +591,16 @@ pub async fn update_password(
                 let key =
                     pattern::key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
                         .map_err(MethodError::BadRequest)?;
+
                 // User is allowed to update password if `password_require_update` is true.
                 // Check user password.
                 user.password_check(&req.password)
                     .map_err(MethodError::BadRequest)?;
+
                 // Encode revoke token.
-                let token =
-                    Jwt::encode_revoke_token(driver, &service, &user, &key, revoke_token_expires)
-                        .map_err(MethodError::BadRequest)?;
+                let token = jwt::encode_revoke(driver, &service, &user, &key, revoke_token_expires)
+                    .map_err(MethodError::BadRequest)?;
+
                 // Update user password.
                 let user_update = UserUpdate::new_password(user.id, &req.new_password)
                     .map_err(MethodError::BadRequest)?;
@@ -609,6 +610,7 @@ pub async fn update_password(
                 let user =
                     pattern::user_read_email_checked(driver, Some(&service), audit, &req.email)
                         .map_err(MethodError::BadRequest)?;
+
                 // Send update password email.
                 TemplateEmail::email_update_password(&service, &user, &token, audit.meta())
                     .map_err(MethodError::BadRequest)
@@ -655,20 +657,21 @@ fn revoke_inner(
 ) -> MethodResult<Option<Audit>> {
     let service = pattern::key_service_authenticate(driver, audit, auth)
         .map_err(MethodError::Unauthorised)?;
+
     // Unsafely decode token to get user identifier, used to read key for safe token decode.
     let (user_id, _) =
-        Jwt::decode_unsafe(&req.token, service.id).map_err(MethodError::BadRequest)?;
+        jwt::decode_unsafe_user(&req.token, service.id).map_err(MethodError::BadRequest)?;
+
     // Update email revoke requires token key type.
     // Do not check user, key is enabled or not revoked.
     let user = pattern::user_read_id_unchecked(driver, Some(&service), audit, user_id)
         .map_err(MethodError::BadRequest)?;
     let key = pattern::key_read_user_unchecked(driver, &service, audit, &user, KeyType::Token)
         .map_err(MethodError::BadRequest)?;
+
     // Safely decode token with user key.
-    let csrf_key = Jwt::decode_revoke_token(&service, &user, &key, &req.token)
+    jwt::decode_revoke(driver, &service, &user, &key, &req.token)
         .map_err(MethodError::BadRequest)?;
-    // Verify CSRF to prevent reuse.
-    api_csrf_verify(driver, &service, &csrf_key)?;
 
     // Disable user and disable and revoke all keys associated with user.
     driver

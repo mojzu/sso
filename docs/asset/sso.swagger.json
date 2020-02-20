@@ -14,7 +14,7 @@
     "/hook/traefik/self": {
       "get": {
         "summary": "Traefik forward authentication hook for self.",
-        "description": "Determines whether request was made with a service or root key, if key\nis present and valid will set headers on the response. If key is not present\nor invalid this will return an unauthorised response.\n\nThis endpoint is only available via the HTTP server port of `sso-grpc`. Authentication\nis not required, this endpoint is intended for internal use only.\n\nRequest headers.\n- `Authorization`: Key value.\n\nResponse headers.\n- `Grpc-Metadata-Sso-Key-Id`: ID of key in request.\n- `Grpc-Metadata-Sso-Service-Id`: ID of service which owns key, or not defined if key is a root key.",
+        "description": "Determines whether request was made with a service or root key, if key\nis present and valid will set headers on the response. If key is not present\nor invalid this will return an unauthorised response.\n\nThis endpoint is only available via the HTTP server port of `sso-grpc`.\nThis endpoint is intended for internal use only.\n\nRequest headers.\n- `Authorization`: Service key value.\n- `User-Authorization`: Optional key or token value.\n\nResponse headers.\n- `Grpc-Metadata-Sso-Key-Id`: ID of service key in request.\n- `Grpc-Metadata-Sso-Service-Id`: ID of service which owns key, or not defined if key is a root key.\n- `Grpc-Metadata-Sso-User-Key-Id`: ID of user key or token or not defined if user authorisation header not present.\n- `Grpc-Metadata-Sso-User-Id`: ID of user which owns key or not defined if user authorisation header not present.",
         "operationId": "HookTraefikSelf",
         "responses": {
           "200": {
@@ -62,7 +62,7 @@
     "/hook/traefik/service": {
       "get": {
         "summary": "Traefik forward authentication hook for services.",
-        "description": "Determines whether request was made with a user key or token, if user key or token\nis present and valid will set headers on the response. If user key or token is not present\nor invalid this will return an unauthorised response.\n\nThis endpoint is only available via the HTTP server port of `sso-grpc`. Authentication\nis not required, this endpoint is intended for internal use only.\n\nRequest headers.\n- `Authorization`: Key value.\n\nResponse headers.\n- `Grpc-Metadata-Sso-Key-Id`: ID of key in request or of key used to generate token.\n- `Grpc-Metadata-Sso-User-Id`: ID of user which owns key.",
+        "description": "Determines whether request was made with a user key or token, if user key or token\nis present and valid will set headers on the response. If user key or token is not present\nor invalid this will return an unauthorised response.\n\nThis endpoint is only available via the HTTP server port of `sso-grpc`.\nThis endpoint is intended for internal use only.\n\nRequest headers.\n- `Authorization`: User key or token value.\n- `Service-Authorization`: Required service key value.\n\nResponse headers.\n- `Grpc-Metadata-Sso-Key-Id`: ID of service key in request.\n- `Grpc-Metadata-Sso-Service-Id`: ID of service which owns key.\n- `Grpc-Metadata-Sso-User-Key-Id`: ID of user key in request or of key used to generate token.\n- `Grpc-Metadata-Sso-User-Id`: ID of user which owns key.",
         "operationId": "HookTraefikService",
         "responses": {
           "200": {
@@ -1581,64 +1581,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/ssoAuthOauth2CallbackRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Sso"
-        ]
-      }
-    },
-    "/v1/auth/token/exchange": {
-      "post": {
-        "summary": "Exchange user refresh token for user access and refresh tokens for another service.",
-        "description": "This does not prevent the original refresh token being reused. User must have a valid\nkey for the target service.",
-        "operationId": "AuthTokenExchange",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/ssoAuthTokenReply"
-            }
-          },
-          "400": {
-            "description": "Returned when the request is invalid.",
-            "schema": {
-              "$ref": "#/definitions/ssoErrorReply"
-            }
-          },
-          "401": {
-            "description": "Returned when the request is not authenticated.",
-            "schema": {
-              "$ref": "#/definitions/ssoErrorReply"
-            }
-          },
-          "403": {
-            "description": "Returned when the request is not permitted.",
-            "schema": {
-              "$ref": "#/definitions/ssoErrorReply"
-            }
-          },
-          "404": {
-            "description": "Returned when the requested resource does not exist.",
-            "schema": {
-              "$ref": "#/definitions/ssoErrorReply"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/ssoAuthTokenRequest"
             }
           }
         ],

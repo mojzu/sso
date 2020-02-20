@@ -1,6 +1,6 @@
 //! # Pattern functions.
 use crate::{
-    AuditBuilder, DriverError, DriverResult, HeaderAuth, HeaderAuthType, Jwt, KeyRead, KeyType,
+    jwt, AuditBuilder, DriverError, DriverResult, HeaderAuth, HeaderAuthType, KeyRead, KeyType,
     KeyWithValue, Postgres, Service, ServiceRead, User, UserPasswordMeta, UserRead,
 };
 use libreauth::oath::TOTPBuilder;
@@ -93,7 +93,7 @@ pub fn user_key_token_authenticate(
                     }
                     HeaderAuthType::Token(x) => {
                         // Unsafely decode token to get user identifier, used to read key for safe token decode.
-                        let (user_id, _) = Jwt::decode_unsafe(x, service.id)?;
+                        let (user_id, _) = jwt::decode_unsafe_user(x, service.id)?;
 
                         // Token verify requires token key type.
                         let user = user_read_id_checked(driver, Some(&service), audit, user_id)?;
@@ -101,7 +101,7 @@ pub fn user_key_token_authenticate(
                             key_read_user_checked(driver, &service, audit, &user, KeyType::Token)?;
 
                         // Safely decode token with user key.
-                        Jwt::decode_access_token(&service, &user, &key, x)?;
+                        jwt::decode_access(&service, &user, &key, x)?;
                         Ok(user)
                     }
                 },
@@ -192,14 +192,14 @@ fn check_audit_user(
             }
             HeaderAuthType::Token(token) => {
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
-                let (user_id, _) = Jwt::decode_unsafe(&token, service.id)?;
+                let (user_id, _) = jwt::decode_unsafe_user(&token, service.id)?;
 
                 // Token verify requires token key type.
                 let user = user_read_id_checked(driver, Some(&service), audit, user_id)?;
                 let key = key_read_user_checked(driver, &service, audit, &user, KeyType::Token)?;
 
                 // Safely decode token with user key.
-                Jwt::decode_access_token(&service, &user, &key, &token)?;
+                jwt::decode_access(&service, &user, &key, &token)?;
                 Ok(())
             }
         },

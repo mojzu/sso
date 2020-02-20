@@ -5,6 +5,7 @@ pub mod microsoft;
 pub mod token;
 
 use crate::{
+    csrf,
     grpc::{pb, util::*, validate, Server},
     *,
 };
@@ -82,7 +83,7 @@ pub async fn csrf_create(
 
                 let expires_s = req.expires_s.unwrap_or(DEFAULT_CSRF_EXPIRES_S);
                 driver
-                    .csrf_create(&CsrfCreate::generate(expires_s, service.id))
+                    .csrf_create(&csrf::CsrfCreate::generate(expires_s, service.id))
                     .map_err(MethodError::BadRequest)
             },
         )
@@ -119,25 +120,14 @@ pub async fn csrf_verify(
                 let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
-                api_csrf_verify(driver, &service, &req.csrf)
+                csrf::verify(driver, service.id, Some(req.csrf.clone()))
+                    .map_err(MethodError::BadRequest)
             },
         )
         .map_err(Into::into)
     })
     .await
     .map(|_data| pb::AuthAuditReply { audit: None })
-}
-
-fn api_csrf_verify(driver: &Postgres, service: &Service, csrf_key: &str) -> MethodResult<Csrf> {
-    driver
-        .csrf_read(&csrf_key)
-        .map_err(MethodError::BadRequest)?
-        .ok_or_else(|| DriverError::CsrfNotFoundOrUsed)
-        .and_then(|csrf| {
-            csrf.check_service(service.id)?;
-            Ok(csrf)
-        })
-        .map_err(MethodError::BadRequest)
 }
 
 fn oauth2_login(
@@ -161,7 +151,7 @@ fn oauth2_login(
         .map_err(MethodError::BadRequest)?;
 
     // Encode user token.
-    Jwt::encode_user_token(
+    jwt::encode_user(
         driver,
         &service,
         user,

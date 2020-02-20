@@ -1,13 +1,15 @@
 //! Validation functions.
 use crate::{
     grpc::util::{MethodError, MethodResult},
-    DriverError, KeyType, BYTES_KEY_VALUE, MAX_AUDIT_SUBJECT, MAX_AUDIT_TYPE, MAX_JWT, MAX_NAME,
-    MAX_OAUTH2, MAX_TEXT, MAX_TOTP, MAX_USER_LOCALE, MAX_USER_PASSWORD, MAX_USER_TIMEZONE,
-    MIN_USER_PASSWORD,
+    DriverError, KeyType, BYTES_KEY_VALUE, MAX_AUDIT_SUBJECT, MAX_AUDIT_TYPE, MAX_NAME, MAX_OAUTH2,
+    MAX_TEXT, MAX_TOTP, MAX_USER_LOCALE, MAX_USER_PASSWORD, MAX_USER_TIMEZONE, MIN_USER_PASSWORD,
 };
 use std::convert::TryInto;
 use uuid::Uuid;
 use validator::{Validate, ValidationError, ValidationErrors};
+
+/// JSON web token maximum length validation.
+pub const MAX_JWT: usize = 1000;
 
 pub fn email(errors: &mut ValidationErrors, field: &'static str, value: &str) {
     if !validator::validate_email(value) {

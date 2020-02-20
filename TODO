@@ -21,7 +21,6 @@ Todo:
     ☐ @high Check, test and refactor register and register confirm implementation.
         If any key already exists for service, do not create one.
         Add tests to check whether this flow can be used by used to access disabled user.
-    ☐ @high When revoking token, also revoke other user token keys (may have been exchanged).
     ☐ @high OpenAPI gateway CORS headers, check if override at proxy level works.
         Environment variable for allow origin header?
 
@@ -50,7 +49,6 @@ Todo:
         Confirm reset password success.
         User password is updated.
         Cannot reuse token.
-    ☐ Exchange refresh token between services tests.
     ☐ Traefik forward auth integration tests.
     ☐ Test structural improvements, style update, benchmarks/profiling?
     ☐ More tests for data access, is service data masked correctly.

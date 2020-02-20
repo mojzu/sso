@@ -4,7 +4,6 @@
 
 ### Added
 
--   Added `/auth/token/exchange` endpoint.
 -   Added built-in CORS support to `sso-openapi`.
 -   Added optional Traefik forward authentication integration.
 

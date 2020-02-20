@@ -1,4 +1,8 @@
-use crate::{driver::postgres::schema::sso_csrf, Csrf, CsrfCreate, DriverResult};
+use crate::{
+    csrf::{Csrf, CsrfCreate},
+    driver::postgres::schema::sso_csrf,
+    DriverResult,
+};
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, PgConnection};
 use uuid::Uuid;

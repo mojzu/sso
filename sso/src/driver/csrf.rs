@@ -1,4 +1,5 @@
-use crate::{DriverError, DriverResult};
+//! # CSRF Tokens
+use crate::{DriverError, DriverResult, Postgres};
 use chrono::{DateTime, Duration, Utc};
 use libreauth::key::KeyBuilder;
 use std::fmt;
@@ -85,4 +86,16 @@ fn key_generate() -> String {
         .size(BYTES_CSRF_KEY)
         .generate()
         .as_base32()
+}
+
+/// Verify a CSRF key.
+pub fn verify(driver: &Postgres, service_id: Uuid, csrf_key: Option<String>) -> DriverResult<Csrf> {
+    let csrf_key = csrf_key.ok_or_else(|| DriverError::CsrfNotFoundOrUsed)?;
+    driver
+        .csrf_read(&csrf_key)?
+        .ok_or_else(|| DriverError::CsrfNotFoundOrUsed)
+        .and_then(|csrf| {
+            csrf.check_service(service_id)?;
+            Ok(csrf)
+        })
 }

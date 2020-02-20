@@ -1,4 +1,4 @@
-//! # Environment functions.
+//! # Environment Variables
 use crate::{
     grpc::{ServerOptionsProvider, ServerOptionsSmtp},
     DriverError, DriverResult,

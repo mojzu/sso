@@ -91,9 +91,10 @@ pub async fn oauth2_callback(
 
 mod provider_github {
     use crate::{
+        csrf,
         grpc::{pb, util::*, ServerOptionsProvider, ServerProviderOauth2Args},
         pattern::*,
-        AuditBuilder, CsrfCreate, DriverError, DriverResult, HeaderAuth, Postgres, Service,
+        AuditBuilder, DriverError, DriverResult, HeaderAuth, Postgres, Service,
         HEADER_AUTHORISATION,
     };
     use oauth2::{
@@ -122,7 +123,7 @@ mod provider_github {
         // Save the state and code verifier secrets as a CSRF key, value.
         let csrf_key = csrf_state.secret();
         let csrf_create =
-            CsrfCreate::new(csrf_key, csrf_key, args.access_token_expires, service.id);
+            csrf::CsrfCreate::new(csrf_key, csrf_key, args.access_token_expires, service.id);
         driver
             .csrf_create(&csrf_create)
             .map_err(MethodError::BadRequest)?;
