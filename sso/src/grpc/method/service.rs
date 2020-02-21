@@ -29,10 +29,12 @@ pub async fn list(
             audit_meta,
             AuditType::ServiceList,
             |driver, audit| {
-                pattern::key_root_authenticate(driver, audit, &auth)
+                let service = pattern::key_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
-                driver.service_list(&req).map_err(MethodError::BadRequest)
+                driver
+                    .service_list(&req, service.map(|x| x.id))
+                    .map_err(MethodError::BadRequest)
             },
         )?;
         Ok((req, data))

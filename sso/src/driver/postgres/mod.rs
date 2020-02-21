@@ -233,9 +233,13 @@ impl Postgres {
     // -----------------
 
     /// List services.
-    pub fn service_list(&self, list: &ServiceList) -> DriverResult<Vec<Service>> {
+    pub fn service_list(
+        &self,
+        list: &ServiceList,
+        service_id: Option<Uuid>,
+    ) -> DriverResult<Vec<Service>> {
         let conn = self.conn()?;
-        ModelService::list(&conn, list)
+        ModelService::list(&conn, list, service_id)
     }
 
     /// Create service.
