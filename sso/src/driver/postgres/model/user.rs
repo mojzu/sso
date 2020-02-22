@@ -1,6 +1,6 @@
 use crate::{
-    driver::postgres::schema::sso_user, DriverError, DriverResult, User, UserCreate, UserList,
-    UserListFilter, UserListQuery, UserRead, UserUpdate,
+    schema::sso_user, DriverError, DriverResult, User, UserCreate, UserList, UserListFilter,
+    UserListQuery, UserRead, UserUpdate,
 };
 use chrono::{DateTime, Utc};
 use diesel::{pg::Pg, prelude::*};

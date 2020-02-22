@@ -1,6 +1,6 @@
 use crate::{
-    driver::postgres::schema::sso_service, DriverResult, Service, ServiceCreate, ServiceList,
-    ServiceListQuery, ServiceRead, ServiceUpdate,
+    schema::sso_service, DriverResult, Service, ServiceCreate, ServiceList, ServiceListQuery,
+    ServiceRead, ServiceUpdate,
 };
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;

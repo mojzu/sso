@@ -1,12 +1,10 @@
 mod diesel_admin;
 mod model;
-mod schema;
 
 use crate::{
-    csrf::{Csrf, CsrfCreate},
     driver::{
         env,
-        postgres::model::{ModelAudit, ModelCsrf, ModelKey, ModelService, ModelUser},
+        postgres::model::{ModelAudit, ModelKey, ModelService, ModelUser},
     },
     Audit, AuditCreate, AuditList, AuditRead, AuditUpdate, DriverError, DriverResult, Key,
     KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate, KeyWithValue, Service, ServiceCreate,
@@ -62,7 +60,7 @@ impl Postgres {
         Self::initialise(&url, connections).expect("Failed to initialise postgres connection.")
     }
 
-    fn conn(&self) -> DriverResult<PooledConnection> {
+    pub fn conn(&self) -> DriverResult<PooledConnection> {
         self.pool.get().map_err(DriverError::R2d2)
     }
 
@@ -157,22 +155,6 @@ impl Postgres {
     pub fn audit_delete(&self, created_at: &DateTime<Utc>) -> DriverResult<usize> {
         let conn = self.conn()?;
         ModelAudit::delete(&conn, created_at)
-    }
-
-    // --------------
-    // CSRF Functions
-    // --------------
-
-    /// Create CSRF token.
-    pub fn csrf_create(&self, create: &CsrfCreate) -> DriverResult<Csrf> {
-        let conn = self.conn()?;
-        ModelCsrf::create(&conn, create)
-    }
-
-    /// Read CSRF token. CSRF token is deleted after one read.
-    pub fn csrf_read(&self, key: &str) -> DriverResult<Option<Csrf>> {
-        let conn = self.conn()?;
-        ModelCsrf::read(&conn, key)
     }
 
     // -------------

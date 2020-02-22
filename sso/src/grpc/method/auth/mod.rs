@@ -5,7 +5,6 @@ pub mod microsoft;
 pub mod token;
 
 use crate::{
-    csrf,
     grpc::{pb, util::*, validate, Server},
     *,
 };
@@ -82,8 +81,8 @@ pub async fn csrf_create(
                     .map_err(MethodError::Unauthorised)?;
 
                 let expires_s = req.expires_s.unwrap_or(DEFAULT_CSRF_EXPIRES_S);
-                driver
-                    .csrf_create(&csrf::CsrfCreate::generate(expires_s, service.id))
+                let conn = driver.conn().map_err(MethodError::BadRequest)?;
+                Csrf::create(&conn, &CsrfCreate::generate(expires_s, service.id))
                     .map_err(MethodError::BadRequest)
             },
         )
@@ -120,7 +119,8 @@ pub async fn csrf_verify(
                 let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(MethodError::Unauthorised)?;
 
-                csrf::verify(driver, service.id, Some(req.csrf.clone()))
+                let conn = driver.conn().map_err(MethodError::BadRequest)?;
+                Csrf::verify(&conn, service.id, Some(req.csrf.clone()))
                     .map_err(MethodError::BadRequest)
             },
         )
@@ -151,8 +151,9 @@ fn oauth2_login(
         .map_err(MethodError::BadRequest)?;
 
     // Encode user token.
-    jwt::encode_user(
-        driver,
+    let conn = driver.conn().map_err(MethodError::BadRequest)?;
+    Jwt::encode_user(
+        &conn,
         &service,
         user,
         &key,

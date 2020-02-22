@@ -80,10 +80,9 @@ pub async fn oauth2_callback(
 
 mod provider_microsoft {
     use crate::{
-        csrf,
         grpc::{pb, util::*, ServerOptionsProvider, ServerProviderOauth2Args},
         pattern::*,
-        AuditBuilder, DriverError, DriverResult, HeaderAuth, Postgres, Service,
+        AuditBuilder, Csrf, CsrfCreate, DriverError, DriverResult, HeaderAuth, Postgres, Service,
         HEADER_AUTHORISATION,
     };
     use oauth2::{
@@ -120,11 +119,12 @@ mod provider_microsoft {
         // Save the state and code verifier secrets as a CSRF key, value.
         let csrf_key = csrf_state.secret();
         let csrf_value = pkce_code_verifier.secret();
-        let csrf_create =
-            csrf::CsrfCreate::new(csrf_key, csrf_value, args.access_token_expires, service.id);
-        driver
-            .csrf_create(&csrf_create)
-            .map_err(MethodError::BadRequest)?;
+        let conn = driver.conn().map_err(MethodError::BadRequest)?;
+        Csrf::create(
+            &conn,
+            &CsrfCreate::new(csrf_key, csrf_value, args.access_token_expires, service.id),
+        )
+        .map_err(MethodError::BadRequest)?;
 
         Ok(authorize_url.to_string())
     }
@@ -140,8 +140,8 @@ mod provider_microsoft {
             key_service_authenticate(driver, audit, auth).map_err(MethodError::Unauthorised)?;
 
         // Read the CSRF key using state value, rebuild code verifier from value.
-        let csrf = driver
-            .csrf_read(&request.state)
+        let conn = driver.conn().map_err(MethodError::BadRequest)?;
+        let csrf = Csrf::read(&conn, &request.state)
             .map_err(MethodError::BadRequest)?
             .ok_or_else(|| DriverError::CsrfNotFoundOrUsed)
             .map_err(MethodError::BadRequest)?;
@@ -149,7 +149,7 @@ mod provider_microsoft {
         // Exchange the code with a token.
         let client = new_client(&service, &args.provider).map_err(MethodError::BadRequest)?;
         let code = AuthorizationCode::new(request.code.clone());
-        let pkce_code_verifier = PkceCodeVerifier::new(csrf.value);
+        let pkce_code_verifier = PkceCodeVerifier::new(csrf.value().to_owned());
         let token = client
             .exchange_code(code)
             .set_pkce_verifier(pkce_code_verifier)
@@ -159,7 +159,7 @@ mod provider_microsoft {
 
         // Return access token value.
         let (service_id, access_token) =
-            (csrf.service_id, token.access_token().secret().to_owned());
+            (csrf.service_id(), token.access_token().secret().to_owned());
 
         Ok((service, service_id, access_token))
     }

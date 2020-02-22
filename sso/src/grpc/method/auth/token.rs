@@ -1,6 +1,6 @@
 use crate::{
     grpc::{pb, util::*, validate, Server},
-    jwt, *,
+    Jwt, *,
 };
 use validator::{Validate, ValidationErrors};
 
@@ -30,7 +30,7 @@ pub async fn verify(
                     .map_err(MethodError::Unauthorised)?;
 
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
-                let (user_id, _) = jwt::decode_unsafe_user(&req.token, service.id)
+                let (user_id, _) = Jwt::decode_unsafe_user(&req.token, service.id)
                     .map_err(MethodError::BadRequest)?;
 
                 // Token verify requires token key type.
@@ -41,7 +41,7 @@ pub async fn verify(
                         .map_err(MethodError::BadRequest)?;
 
                 // Safely decode token with user key.
-                let access_token_expires = jwt::decode_access(&service, &user, &key, &req.token)
+                let access_token_expires = Jwt::decode_access(&service, &user, &key, &req.token)
                     .map_err(MethodError::BadRequest)?;
 
                 // Token verified.
@@ -91,7 +91,7 @@ pub async fn refresh(
                     .map_err(MethodError::Unauthorised)?;
 
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
-                let (user_id, _) = jwt::decode_unsafe_user(&req.token, service.id)
+                let (user_id, _) = Jwt::decode_unsafe_user(&req.token, service.id)
                     .map_err(MethodError::BadRequest)?;
 
                 // Token refresh requires token key type.
@@ -102,12 +102,13 @@ pub async fn refresh(
                         .map_err(MethodError::BadRequest)?;
 
                 // Safely decode token with user key.
-                jwt::decode_refresh(driver, &service, &user, &key, &req.token)
+                let conn = driver.conn().map_err(MethodError::BadRequest)?;
+                Jwt::decode_refresh(&conn, &service, &user, &key, &req.token)
                     .map_err(MethodError::BadRequest)?;
 
                 // Encode user token.
-                let user_token = jwt::encode_user(
-                    driver,
+                let user_token = Jwt::encode_user(
+                    &conn,
                     &service,
                     user,
                     &key,
@@ -155,7 +156,7 @@ pub async fn revoke(
                     .map_err(MethodError::Unauthorised)?;
 
                 // Unsafely decode token to get user identifier, used to read key for safe token decode.
-                let (user_id, token_type) = jwt::decode_unsafe_user(&req.token, service.id)
+                let (user_id, token_type) = Jwt::decode_unsafe_user(&req.token, service.id)
                     .map_err(MethodError::BadRequest)?;
 
                 // Token revoke requires token key type.
@@ -172,7 +173,8 @@ pub async fn revoke(
                 .map_err(MethodError::BadRequest)?;
 
                 // Safely decode token with user key.
-                jwt::decode_csrf(driver, &service, &user, &key, token_type, &req.token)
+                let conn = driver.conn().map_err(MethodError::BadRequest)?;
+                Jwt::decode_csrf(&conn, &service, &user, &key, token_type, &req.token)
                     .map_err(MethodError::BadRequest)?;
 
                 // Token revoked, disable and revoke linked key.

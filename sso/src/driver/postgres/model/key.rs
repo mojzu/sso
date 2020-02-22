@@ -1,8 +1,6 @@
 use crate::{
-    driver::postgres::{
-        model::{ModelService, ModelUser},
-        schema::sso_key,
-    },
+    driver::postgres::model::{ModelService, ModelUser},
+    schema::sso_key,
     DriverError, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyListQuery, KeyRead,
     KeyReadUserId, KeyReadUserValue, KeyType, KeyUpdate, KeyWithValue, ServiceRead, UserRead,
 };

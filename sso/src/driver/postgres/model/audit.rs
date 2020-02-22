@@ -1,6 +1,6 @@
 use crate::{
-    driver::postgres::schema::sso_audit, Audit, AuditCreate, AuditList, AuditListFilter,
-    AuditListQuery, AuditRead, AuditUpdate, DriverError, DriverResult,
+    schema::sso_audit, Audit, AuditCreate, AuditList, AuditListFilter, AuditListQuery, AuditRead,
+    AuditUpdate, DriverError, DriverResult,
 };
 use chrono::{DateTime, Utc};
 use diesel::{pg::Pg, prelude::*, sql_types};

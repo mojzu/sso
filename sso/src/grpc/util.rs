@@ -925,18 +925,6 @@ impl From<UserPasswordMeta> for pb::AuthPasswordMeta {
     }
 }
 
-impl From<csrf::Csrf> for pb::Csrf {
-    fn from(r: csrf::Csrf) -> Self {
-        Self {
-            created_at: datetime_to_timestamp_opt(r.created_at),
-            key: r.key,
-            value: r.value,
-            ttl: datetime_to_timestamp_opt(r.ttl),
-            service_id: Some(uuid_to_string(r.service_id)),
-        }
-    }
-}
-
 impl UserToken {
     pub fn access_token(&self) -> pb::AuthToken {
         pb::AuthToken {
