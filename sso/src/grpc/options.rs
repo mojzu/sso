@@ -1,4 +1,4 @@
-use crate::{DriverError, DriverResult};
+use crate::{DriverError, DriverResult, Env};
 use http::{header, HeaderMap};
 use lettre::{
     smtp::authentication::{Credentials, Mechanism},
@@ -6,6 +6,7 @@ use lettre::{
 };
 use native_tls::{Protocol, TlsConnector};
 use reqwest::Client;
+use std::fs::create_dir_all;
 
 /// gRPC server authentication provider options.
 #[derive(Debug, Clone)]
@@ -75,7 +76,7 @@ pub struct ServerOptions {
 }
 
 impl ServerOptions {
-    /// Returns new `ServerOptions`.
+    /// Returns new server options.
     pub fn new<UA>(user_agent: UA, pwned_passwords_enabled: bool, traefik_enabled: bool) -> Self
     where
         UA: Into<String>,
@@ -94,10 +95,59 @@ impl ServerOptions {
         }
     }
 
+    pub fn from_env<T: AsRef<str>>(
+        user_agent_name: T,
+        pwned_passwords_enabled_name: T,
+        traefik_enabled_name: T,
+    ) -> Self {
+        let user_agent = Env::string_opt(user_agent_name.as_ref()).unwrap_or("sso".to_owned());
+        let pwned_passwords_enabled = Env::value_opt::<bool>(pwned_passwords_enabled_name.as_ref())
+            .expect("Failed to read Pwned Passwords enabled environment variable.")
+            .unwrap_or(false);
+        let traefik_enabled = Env::value_opt::<bool>(traefik_enabled_name.as_ref())
+            .expect("Failed to read Traefik enabled environment variable.")
+            .unwrap_or(false);
+
+        Self::new(user_agent, pwned_passwords_enabled, traefik_enabled)
+    }
+
     /// Set SMTP transport options.
     pub fn smtp_transport(mut self, smtp_transport: Option<ServerOptionsSmtp>) -> Self {
         self.smtp_transport = smtp_transport;
         self
+    }
+
+    /// Read SMTP environment variables into options.
+    ///
+    /// If no variables are defined, returns None. Else all variables
+    /// are required and an error message logged for each missing variable.
+    pub fn smtp_transport_from_env<T: AsRef<str>>(
+        self,
+        host_name: T,
+        port_name: T,
+        user_name: T,
+        password_name: T,
+    ) -> Self {
+        let transport = if Env::has_any_name(&[
+            host_name.as_ref(),
+            port_name.as_ref(),
+            user_name.as_ref(),
+            password_name.as_ref(),
+        ]) {
+            let host = Env::string(host_name.as_ref())
+                .expect("Failed to read SMTP host environment variable.");
+            let port = Env::value::<u16>(port_name.as_ref())
+                .expect("Failed to read SMTP port environment variable.");
+            let user = Env::string(user_name.as_ref())
+                .expect("Failed to read SMTP user environment variable.");
+            let password = Env::string(password_name.as_ref())
+                .expect("Failed to read SMTP password environment variable.");
+
+            Some(ServerOptionsSmtp::new(host, port, user, password))
+        } else {
+            None
+        };
+        self.smtp_transport(transport)
     }
 
     /// Set SMTP file transport.
@@ -106,16 +156,66 @@ impl ServerOptions {
         self
     }
 
+    // Create directory for SMTP file transport.
+    pub fn smtp_file_transport_from_env<T: AsRef<str>>(self, file_name: T) -> Self {
+        let transport =
+            Env::string(file_name.as_ref()).expect("Failed to read SMTP file environment variable");
+        create_dir_all(&transport).expect("Failed to create SMTP file transport directory");
+        self.smtp_file_transport(Some(transport))
+    }
+
     /// Set Github provider.
     pub fn github(mut self, github: Option<ServerOptionsProvider>) -> Self {
         self.github = github;
         self
     }
 
+    /// Read OAuth2 environment variables into options.
+    ///
+    /// If no variables are defined, returns None. Else all variables
+    /// are required and an error message logged for each missing variable.
+    pub fn github_from_env<T: AsRef<str>>(self, client_id_name: T, client_secret_name: T) -> Self {
+        let provider = if Env::has_any_name(&[client_id_name.as_ref(), client_secret_name.as_ref()])
+        {
+            let client_id = Env::string(client_id_name.as_ref())
+                .expect("Failed to read Github client ID environment variable");
+            let client_secret = Env::string(client_secret_name.as_ref())
+                .expect("Failed to read Github client secret environment variable");
+
+            Some(ServerOptionsProvider::new(client_id, client_secret))
+        } else {
+            None
+        };
+        self.github(provider)
+    }
+
     /// Set Microsoft provider.
     pub fn microsoft(mut self, microsoft: Option<ServerOptionsProvider>) -> Self {
         self.microsoft = microsoft;
         self
+    }
+
+    /// Read OAuth2 environment variables into options.
+    ///
+    /// If no variables are defined, returns None. Else all variables
+    /// are required and an error message logged for each missing variable.
+    pub fn microsoft_from_env<T: AsRef<str>>(
+        self,
+        client_id_name: T,
+        client_secret_name: T,
+    ) -> Self {
+        let provider = if Env::has_any_name(&[client_id_name.as_ref(), client_secret_name.as_ref()])
+        {
+            let client_id = Env::string(client_id_name.as_ref())
+                .expect("Failed to read Microsoft client ID environment variable");
+            let client_secret = Env::string(client_secret_name.as_ref())
+                .expect("Failed to read Microsoft client secret environment variable");
+
+            Some(ServerOptionsProvider::new(client_id, client_secret))
+        } else {
+            None
+        };
+        self.microsoft(provider)
     }
 
     /// Returns asynchronous reqwest `Client` built from options.

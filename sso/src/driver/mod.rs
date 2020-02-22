@@ -1,5 +1,4 @@
 mod audit;
-pub mod env;
 mod error;
 mod header;
 mod key;

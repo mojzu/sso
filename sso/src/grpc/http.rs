@@ -120,8 +120,11 @@ async fn traefik_service(
 }
 
 fn response_unauthorised() -> Response<Body> {
+    let grpc_status = format!("{}", tonic::Code::Unauthenticated as u8);
     Response::builder()
         .status(StatusCode::UNAUTHORIZED)
+        .header("Grpc-Status", grpc_status)
+        .header("Grpc-Message", ERR_REDACTED)
         .body(Body::empty())
         .unwrap()
 }

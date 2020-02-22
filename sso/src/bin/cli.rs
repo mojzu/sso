@@ -14,13 +14,17 @@
 //!
 //! Postgres connection URL, required.
 //!
+//! ### SSO_POSTGRES_CONNECTIONS
+//!
+//! Postgres connections, optional.
+//!
 #[macro_use]
 extern crate clap;
 #[macro_use]
 extern crate log;
 
 use clap::{App, Arg, SubCommand};
-use sso::{env, log_init, DriverResult, KeyCreate, Postgres, ServiceCreate};
+use sso::{log_init, KeyCreate, Postgres, ServiceCreate};
 
 const CRATE_NAME: &str = crate_name!();
 const CRATE_VERSION: &str = crate_version!();
@@ -114,14 +118,15 @@ fn main() {
         .get_matches();
 
     // Build driver from environment variables.
-    let result = configure().and_then(|driver| {
+    let driver = Postgres::from_env("SSO_POSTGRES_URL", "SSO_POSTGRES_CONNECTIONS");
+    let result = Ok(driver).and_then(|driver| {
         // Call library functions with command line arguments.
         match matches.subcommand() {
             (CMD_CREATE_ROOT_KEY, Some(submatches)) => {
                 let name = submatches.value_of(ARG_NAME).unwrap();
                 let create = KeyCreate::root(true, name);
                 driver.key_create(&create).map(|key| {
-                    info!("{}", key);
+                    println!("{}", key);
                     0
                 })
             }
@@ -153,8 +158,8 @@ fn main() {
                 let key_create = KeyCreate::service(true, name, service.id);
                 let key = driver.key_create(&key_create)?;
                 Ok((service, key)).map(|(service, key)| {
-                    info!("{}", service);
-                    info!("{}", key);
+                    println!("{}", service);
+                    println!("{}", key);
                     0
                 })
             }
@@ -164,12 +169,12 @@ fn main() {
                 let audit_retention = chrono::Duration::weeks(weeks);
                 let created_at = chrono::Utc::now() - audit_retention;
                 driver.audit_delete(&created_at).map(|deleted| {
-                    info!("{}", deleted);
+                    println!("{}", deleted);
                     0
                 })
             }
             _ => {
-                info!("{}", matches.usage());
+                println!("{}", matches.usage());
                 Ok(1)
             }
         }
@@ -183,10 +188,4 @@ fn main() {
             std::process::exit(1);
         }
     }
-}
-
-fn configure() -> DriverResult<Postgres> {
-    let database_url = env::string("SSO_POSTGRES_URL")?;
-    let driver = Postgres::initialise(&database_url, Some(1)).unwrap();
-    Ok(driver)
 }

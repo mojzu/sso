@@ -22,6 +22,8 @@ Todo:
         Add tests to check whether this flow can be used by used to access disabled user.
     ☐ @high OpenAPI gateway CORS headers, check if override at proxy level works.
         Environment variable for allow origin header?
+    ☐ Service flags to allow access to endpoints.
+        Trusted vs untrusted services?
 
   Documentation:
     ☐ Check CORS and other security headers using OWASP secure headers project.
@@ -61,25 +63,26 @@ Todo:
     ☐ Better library interface, require documentation, embeddable service? @started(20-02-22)
         #![deny(missing_docs)]
     ☐ Further OWASP ASVS reading and notes, current notes out of date.
-    ☐ Improve binaries main code, remove or replace unwrap.
 
   Features:
+    ☐ Handle changes to password hash version.
+    ☐ Service IP whitelist.
+    ☐ Option to enforce provider URLs HTTPS.
+        Make this mandatory, how would development work?
+        Flag(s) to require HTTPS to ensure all requests/responses are encrypted in transit?
+    ☐ Password update cannot set same password.
+    ☐ User last login, key last use information (calculate in SQL).
     ☐ User sessions route for active tokens/keys.
+    ☐ Email translation/formatting using user locale and timezone, better templates.
+    ☐ Audit logging and prometheus metrics improvements for detecting account abuse and breaches.
+        Prometheus integration for rule alerts? Emails to user.
     ☐ Support more OAuth2 providers.
     ☐ Webauthn support (libreauth?).
     ☐ Configurable canary routes.
     ☐ Improved public library API interface (gui service as example?).
-    ☐ Email translation/formatting using user locale and timezone.
-    ☐ Handle changes to password hash version.
-    ☐ Option to enforce provider URLs HTTPS.
-    ☐ User last login, key last use information (calculate in SQL).
     ☐ Login from unknown IP address warnings, SMS support?
-    ☐ Service IP whitelist.
     ☐ Service/user groups for segmentation.
-    ☐ Password update cannot set same password.
-    ☐ Audit logging and prometheus metrics improvements for detecting account abuse and breaches.
     ☐ More opt-ins for pathway branches that may be weak, for example ability to reset passwords by email.
     ☐ Structured data for users, may require access controls.
     ☐ GDPR and other data protection compliance research.
-    ☐ Flag(s) to require HTTPS to ensure all requests/responses are encrypted in transmit.
     ☐ Constant time responses for authentication endpoints to resist timing attacks.

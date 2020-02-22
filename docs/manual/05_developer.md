@@ -43,6 +43,15 @@ sso-build-host() {
 }
 ```
 
+To use the `sso-cli` command you can access the `sso-grpc` container.
+
+```bash
+docker exec -it sso_sso-grpc_1 /bin/bash
+sso-cli --help
+sso-cli create-root-key root
+sso-cli sso-cli create-service-with-key test test.localhost --allow-register true --local-url test.localhost/auth/provider/local
+```
+
 Stop and destroy services with the commands.
 
 ```bash
@@ -96,10 +105,11 @@ Run unit tests.
 sso-build cargo make test
 ```
 
-Run integration tests. This expects `sso_grpc` service is running.
+Run integration tests. This expects `sso-grpc` service is running and `SSO_TEST_URL` and `SSO_TEST_KEY` environment variables are defined. Where URL is the address of the gRPC server and key is a root key value returned by `sso-cli`.
 
 ```bash
 sso-build cargo make test-integration
+for i in {1..50}; do sso-build cargo make test-integration; done
 ```
 
 Compile [Protocol Buffers][protocol-buffers] for [OpenAPI][openapi] gateway server.

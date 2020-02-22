@@ -110,7 +110,7 @@ ENV SSO_POSTGRES_URL="postgres://guest:guest@postgres:5432/sso" \
 # Pwned Passwords integration.
 ENV SSO_PWNED_PASSWORDS="true"
 # Traefik forward authentication integration.
-ENV SSO_TRAEFIK="true"
+ENV SSO_TRAEFIK="false"
 # # Github OAuth2 support.
 # ENV SSO_GITHUB_CLIENT_ID="" \
 #     SSO_GITHUB_CLIENT_SECRET=""
@@ -120,8 +120,8 @@ ENV SSO_TRAEFIK="true"
 # gRPC server URL.
 ENV SSO_GRPC_URL="sso-grpc:7042"
 # Integration test variables.
-ENV SSO_TEST_URL="http://sso-grpc:7042" \
-    SSO_TEST_KEY="AADW24BM66GYAVOKAS4BJASSYXGUDTXLQY"
+ENV SSO_TEST_URL="http://traefik:80" \
+    SSO_TEST_KEY="UAMK24IW72UTDXZUY45MIPBPDRPIARQR6M"
 
 # Copy project files and set working directory.
 # These are required for docker-compose service builds.

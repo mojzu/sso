@@ -16,7 +16,11 @@
 //!
 //! ### SSO_POSTGRES_CONNECTIONS
 //!
-//! Postgres connections, required.
+//! Postgres connections, optional.
+//!
+//! ### SSO_USER_AGENT
+//!
+//! HTTP client user agent header, optional, defaults to `sso`.
 //!
 //! ### SSO_PWNED_PASSWORDS
 //!
@@ -42,6 +46,10 @@
 //!
 //! SMTP server password, optional.
 //!
+//! ### SSO_SMTP_FILE
+//!
+//! SMTP file transport directory path, optional, defaults to `./tmp`.
+//!
 //! ### SSO_GITHUB_CLIENT_ID
 //!
 //! GitHub OAuth2 provider client ID, optional.
@@ -63,8 +71,8 @@ use hyper::{
     server::conn::AddrStream,
     service::{make_service_fn, service_fn},
 };
-use sso::{env, log_init, Postgres};
-use std::{fs::create_dir_all, sync::Arc};
+use sso::{log_init, Postgres};
+use std::sync::Arc;
 use tonic::transport::Server;
 
 #[tokio::main]
@@ -75,32 +83,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Postgres connection.
     let driver = Postgres::from_env("SSO_POSTGRES_URL", "SSO_POSTGRES_CONNECTIONS");
 
-    let pwned_passwords_enabled = env::value_opt::<bool>("SSO_PWNED_PASSWORDS")
-        .unwrap()
-        .unwrap_or(false);
-    let traefik_enabled = env::value_opt::<bool>("SSO_TRAEFIK")
-        .unwrap()
-        .unwrap_or(false);
-    let github_oauth2 = env::oauth2("SSO_GITHUB_CLIENT_ID", "SSO_GITHUB_CLIENT_SECRET").unwrap();
-    let microsoft_oauth2 =
-        env::oauth2("SSO_MICROSOFT_CLIENT_ID", "SSO_MICROSOFT_CLIENT_SECRET").unwrap();
+    // gRPC server options.
+    let options =
+        sso::grpc::ServerOptions::from_env("SSO_USER_AGENT", "SSO_PWNED_PASSWORDS", "SSO_TRAEFIK")
+            .smtp_transport_from_env(
+                "SSO_SMTP_HOST",
+                "SSO_SMTP_PORT",
+                "SSO_SMTP_USER",
+                "SSO_SMTP_PASSWORD",
+            )
+            .smtp_file_transport_from_env("SSO_SMTP_FILE")
+            .github_from_env("SSO_GITHUB_CLIENT_ID", "SSO_GITHUB_CLIENT_SECRET")
+            .microsoft_from_env("SSO_MICROSOFT_CLIENT_ID", "SSO_MICROSOFT_CLIENT_SECRET");
+    let traefik_enabled = options.traefik_enabled();
 
-    let smtp = env::smtp(
-        "SSO_SMTP_HOST",
-        "SSO_SMTP_PORT",
-        "SSO_SMTP_USER",
-        "SSO_SMTP_PASSWORD",
-    )
-    .unwrap();
-    // Create directory for SMTP file transport if other variables are undefined.
-    let smtp_file = "./tmp".to_owned();
-    create_dir_all(&smtp_file)?;
-
-    let options = sso::grpc::ServerOptions::new("sso", pwned_passwords_enabled, traefik_enabled)
-        .smtp_transport(smtp)
-        .smtp_file_transport(Some(smtp_file))
-        .github(github_oauth2)
-        .microsoft(microsoft_oauth2);
     let sso = sso::grpc::Server::new(driver, options);
     let sso_ref = Arc::new(sso.clone());
 

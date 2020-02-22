@@ -19,12 +19,13 @@ extern crate serde_json;
 
 mod csrf;
 mod driver;
+mod env;
 pub mod grpc;
 mod jwt;
 mod schema;
 
 pub use crate::driver::*;
-pub use crate::{csrf::*, jwt::*};
+pub use crate::{csrf::*, env::*, jwt::*};
 
 use sentry::integrations::log::LoggerOptions;
 use std::io::Write;
@@ -60,15 +61,11 @@ macro_rules! impl_enum_to_from_string {
 /// Logs are formatted as single line JSON objects by defaullt, for integration with
 /// fluentd. Logs are formatted as coloured, multi-line JSON objects if `pretty_name`
 /// environment variable is set to `true`.
-pub fn log_init<S, P>(
-    sentry_dsn_name: S,
-    pretty_name: P,
-) -> Option<sentry::internals::ClientInitGuard>
+pub fn log_init<T>(sentry_dsn_name: T, pretty_name: T) -> Option<sentry::internals::ClientInitGuard>
 where
-    S: AsRef<str>,
-    P: AsRef<str>,
+    T: AsRef<str>,
 {
-    let pretty = env::value_opt::<bool>(pretty_name.as_ref())
+    let pretty = Env::value_opt::<bool>(pretty_name.as_ref())
         .expect("Failed to read environment variable.")
         .unwrap_or(false);
 
@@ -98,7 +95,7 @@ where
         }
     });
 
-    match env::string_opt(sentry_dsn_name.as_ref()) {
+    match Env::string_opt(sentry_dsn_name.as_ref()) {
         Some(sentry_dsn) => {
             let guard = sentry::init(sentry_dsn);
             let mut options = LoggerOptions::default();

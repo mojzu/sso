@@ -2,11 +2,8 @@ mod diesel_admin;
 mod model;
 
 use crate::{
-    driver::{
-        env,
-        postgres::model::{ModelAudit, ModelKey, ModelService, ModelUser},
-    },
-    Audit, AuditCreate, AuditList, AuditRead, AuditUpdate, DriverError, DriverResult, Key,
+    driver::postgres::model::{ModelAudit, ModelKey, ModelService, ModelUser},
+    Audit, AuditCreate, AuditList, AuditRead, AuditUpdate, DriverError, DriverResult, Env, Key,
     KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate, KeyWithValue, Service, ServiceCreate,
     ServiceList, ServiceRead, ServiceUpdate, User, UserCreate, UserList, UserRead, UserUpdate,
 };
@@ -48,14 +45,13 @@ impl Postgres {
         Ok(driver)
     }
 
-    pub fn from_env<U, M>(url_name: U, connections_name: M) -> Self
+    pub fn from_env<T>(url_name: T, connections_name: T) -> Self
     where
-        U: AsRef<str>,
-        M: AsRef<str>,
+        T: AsRef<str>,
     {
-        let url = env::string(url_name.as_ref())
+        let url = Env::string(url_name.as_ref())
             .expect("Failed to read postgres URL environment variable.");
-        let connections = env::value_opt::<u32>(connections_name.as_ref())
+        let connections = Env::value_opt::<u32>(connections_name.as_ref())
             .expect("Failed to read postgres connections environment variable.");
         Self::initialise(&url, connections).expect("Failed to initialise postgres connection.")
     }

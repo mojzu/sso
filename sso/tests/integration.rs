@@ -27,7 +27,7 @@ fn ping_not_found() {
 #[test]
 #[ignore]
 fn metrics_not_found() {
-    let mut client = client_create(Some(INVALID_KEY));
+    let mut client = client_create(None);
     let res = client.metrics(()).unwrap_err();
     assert_eq!(res.code(), tonic::Code::NotFound);
 }

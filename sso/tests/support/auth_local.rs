@@ -381,7 +381,9 @@ macro_rules! auth_local_integration_test {
             let user_email = email_create();
 
             let body = pb::AuthResetPasswordRequest::new(&user_email);
-            client.auth_local_reset_password(body).unwrap();
+            let res = client.auth_local_reset_password(body).unwrap_err();
+            assert_eq!(res.code(), tonic::Code::Unauthenticated);
+            assert_eq!(res.message(), util::ERR_REDACTED);
         }
 
         #[test]
