@@ -11,10 +11,7 @@ mod user;
 
 pub use chrono::Utc;
 pub use serde_json::Value;
-pub use sso::{
-    pb, AuditType, GrpcClientBlocking, GrpcClientOptions, KeyType, KeyWithValue, Service, User,
-    UserKey, UserToken, UserTokenAccess,
-};
+pub use sso::*;
 pub use uuid::Uuid;
 
 pub const INVALID_EMAIL: &str = "invalid-email";
@@ -36,22 +33,28 @@ fn env_test_sso_key() -> String {
 
 pub fn client_create(key: Option<&str>) -> GrpcClientBlocking {
     match key {
-        Some(key) => GrpcClientBlocking::connect(
-            &GrpcClientOptions::new(env_test_sso_url()).authorisation(key),
+        Some(key) => GrpcClientBlocking::new(
+            env_test_sso_url(),
+            GrpcClientChannelTls::default(),
+            &GrpcClientOptions::default().authorisation(key),
         )
         .unwrap(),
-        None => GrpcClientBlocking::connect(
-            &GrpcClientOptions::new(env_test_sso_url()).authorisation(env_test_sso_key()),
+        None => GrpcClientBlocking::new(
+            env_test_sso_url(),
+            GrpcClientChannelTls::default(),
+            &GrpcClientOptions::default().authorisation(env_test_sso_key()),
         )
         .unwrap(),
     }
 }
 
 pub fn client_user_create(key: &str, user_key: &str) -> GrpcClientBlocking {
-    GrpcClientBlocking::connect(
-        &GrpcClientOptions::new(env_test_sso_url())
+    GrpcClientBlocking::new(
+        env_test_sso_url(),
+        GrpcClientChannelTls::default(),
+        &GrpcClientOptions::default()
             .authorisation(key)
-            .user_authorisation(Some(user_key.to_owned())),
+            .user_authorisation(user_key),
     )
     .unwrap()
 }

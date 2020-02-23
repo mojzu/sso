@@ -8,7 +8,7 @@ macro_rules! auth_csrf_integration_test {
             let body = pb::AuthCsrfCreateRequest::new(500);
             let res = client.auth_csrf_create(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::Unauthenticated);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]

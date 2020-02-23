@@ -8,7 +8,7 @@ macro_rules! auth_token_integration_test {
             let body = pb::AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::Unauthenticated);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]
@@ -21,7 +21,7 @@ macro_rules! auth_token_integration_test {
             let body = pb::AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]
@@ -50,7 +50,7 @@ macro_rules! auth_token_integration_test {
             let body = pb::AuthTokenRequest::new(&user_token.access.unwrap().token, None);
             let res = client.auth_token_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]
@@ -85,7 +85,7 @@ macro_rules! auth_token_integration_test {
             let body = pb::AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_refresh(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::Unauthenticated);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]
@@ -98,7 +98,7 @@ macro_rules! auth_token_integration_test {
             let body = pb::AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_refresh(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]
@@ -127,7 +127,7 @@ macro_rules! auth_token_integration_test {
             let body = pb::AuthTokenRequest::new(&user_token.refresh.unwrap().token, None);
             let res = client.auth_token_refresh(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]
@@ -159,7 +159,7 @@ macro_rules! auth_token_integration_test {
             let body = pb::AuthTokenRequest::new(&user_token.refresh.unwrap().token, None);
             let res = client.auth_token_refresh(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]
@@ -196,7 +196,7 @@ macro_rules! auth_token_integration_test {
             let body = pb::AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_revoke(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::Unauthenticated);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]
@@ -209,7 +209,7 @@ macro_rules! auth_token_integration_test {
             let body = pb::AuthTokenRequest::new(INVALID_KEY, None);
             let res = client.auth_token_revoke(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]
@@ -238,7 +238,7 @@ macro_rules! auth_token_integration_test {
             let body = pb::AuthTokenRequest::new(&user_token.refresh.unwrap().token, None);
             let res = client.auth_token_revoke(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]
@@ -270,7 +270,7 @@ macro_rules! auth_token_integration_test {
             let body = pb::AuthTokenRequest::new(&token_access.token, None);
             let res = client.auth_token_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
     };
 }

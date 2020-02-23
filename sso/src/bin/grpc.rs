@@ -30,6 +30,18 @@
 //!
 //! Traefik forward authentcation integration enabled, optional, defaults to false.
 //!
+//! ### SSO_TLS_CERT
+//!
+//! Path to TLS certificate in PEM format, optional.
+//!
+//! ### SSO_TLS_KEY
+//!
+//! Path to TLS key in PEM format, optional.
+//!
+//! ### SSO_TLS_CLIENT_CA_CERT
+//!
+//! Path to TLS client CA certificate in PEM format, optional.
+//!
 //! ### SSO_SMTP_HOST
 //!
 //! SMTP server host, optional.
@@ -75,12 +87,14 @@ use hyper::{
     service::{make_service_fn, service_fn},
 };
 use sso::{log_init, GrpcServer, GrpcServerOptions, HttpServer, Postgres};
-use std::{sync::Arc, io};
+use std::sync::Arc;
 use tonic::transport::Server;
 
-async fn signal_terminate() -> io::Result<()> {
-    tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())?.recv().await;
-    Ok(())
+async fn signal_terminate() {
+    tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+        .expect("Graceful shutdown failure.")
+        .recv()
+        .await;
 }
 
 #[tokio::main]
@@ -94,6 +108,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // gRPC, HTTP server options.
     let grpc_options =
         GrpcServerOptions::from_env("SSO_USER_AGENT", "SSO_PWNED_PASSWORDS", "SSO_TRAEFIK")
+            .tls_from_env("SSO_TLS_CERT", "SSO_TLS_KEY", "SSO_TLS_CLIENT_CA_CERT")
             .smtp_transport_from_env(
                 "SSO_SMTP_HOST",
                 "SSO_SMTP_PORT",
@@ -103,6 +118,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .smtp_file_transport_from_env("SSO_SMTP_FILE")
             .github_from_env("SSO_GITHUB_CLIENT_ID", "SSO_GITHUB_CLIENT_SECRET")
             .microsoft_from_env("SSO_MICROSOFT_CLIENT_ID", "SSO_MICROSOFT_CLIENT_SECRET");
+    let grpc_tls_config = grpc_options.tls_config();
     let http_options = Arc::new(grpc_options.clone());
 
     let sso = GrpcServer::new(driver, grpc_options);
@@ -112,13 +128,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let grpc = {
         let addr = "0.0.0.0:7042".parse()?;
         info!("Listening on grpc://{}", addr);
-        Server::builder()
+        let mut builder = if let Some(tls_config) = grpc_tls_config {
+            Server::builder().tls_config(tls_config)
+        } else {
+            Server::builder()
+        };
+        builder
             .add_service(sso.service())
-            .serve_with_shutdown(addr, async {
-                signal_terminate()
-                    .await
-                    .expect("Graceful shutdown failure.");
-            })
+            .serve_with_shutdown(addr, signal_terminate())
     };
 
     // HTTP server.
@@ -136,11 +153,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }))
                 }
             }));
-        server.with_graceful_shutdown(async {
-            signal_terminate()
-                .await
-                .expect("Graceful shutdown failure.");
-        })
+        server.with_graceful_shutdown(signal_terminate())
     };
 
     // Wait to exit gracefully.

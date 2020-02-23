@@ -15,6 +15,8 @@ pub const ERR_AUTH_TYPE_NOT_FOUND: &str = "AuthTypeNotFound";
 pub const ERR_VALIDATION: &str = "ValidationError";
 /// Redacted error message.
 pub const ERR_REDACTED: &str = "RedactedError";
+/// Invalid metadata error message.
+pub const ERR_INVALID_METADATA: &str = "InvalidMetadata";
 
 /// Run a blocking closure on threadpool.
 pub async fn blocking<T, E, F>(f: F) -> Result<T, E>

@@ -66,11 +66,11 @@ http = "0.2"
 http-body = "0.3.1"
 hyper = "0.13"
 prost = "0.6.1"
-prost-derive = "0.6.1"
-prost-types = "0.6.1"
+prost-derive = "0.6"
+prost-types = "0.6"
 tokio = { version = "0.2", features = ["rt-threaded", "time", "stream", "signal", "fs", "macros", "uds"] }
-tonic = "0.1.1"
+tonic = { version = "0.1", features = ["tls"] }
 tower-service = "0.3"
 
 [build-dependencies]
-tonic-build = "0.1.1"
+tonic-build = "0.1"

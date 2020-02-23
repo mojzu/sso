@@ -8,7 +8,7 @@ macro_rules! auth_totp_integration_test {
             let body = pb::AuthTotpRequest::new(UUID_NIL, "123456");
             let res = client.auth_totp_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::Unauthenticated);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]
@@ -21,7 +21,7 @@ macro_rules! auth_totp_integration_test {
             let body = pb::AuthTotpRequest::new(UUID_NIL, "");
             let res = client.auth_totp_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
-            assert_eq!(res.message(), util::ERR_VALIDATION);
+            assert_eq!(res.message(), ERR_VALIDATION);
         }
 
         #[test]
@@ -51,7 +51,7 @@ macro_rules! auth_totp_integration_test {
             let body = pb::AuthTotpRequest::new(user.id, totp.generate());
             let res = client.auth_totp_verify(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::InvalidArgument);
-            assert_eq!(res.message(), util::ERR_REDACTED);
+            assert_eq!(res.message(), ERR_REDACTED);
         }
 
         #[test]

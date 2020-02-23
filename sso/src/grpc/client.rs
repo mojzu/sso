@@ -3,56 +3,229 @@ use crate::{
         pb::{self, sso_client::SsoClient},
         util::*,
     },
-    HeaderAuth, HeaderAuthType, User,
+    *,
 };
 use http::Uri;
-use std::convert::TryInto;
-use std::fmt;
-use std::str::FromStr;
+use std::{fmt, fs, str::FromStr};
 use tokio::runtime::{Builder, Runtime};
-use tonic::{metadata::MetadataValue, transport::Endpoint, Request, Status};
+use tonic::{
+    metadata::MetadataValue,
+    transport::{Certificate, Channel, ClientTlsConfig, Endpoint, Identity},
+    Request, Status,
+};
 
-impl fmt::Debug for SsoClient<tonic::transport::Channel> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "SsoClient {{ }}")
+/// gRPC client channel TLS options.
+#[derive(Debug, Clone)]
+pub struct GrpcClientChannelTls {
+    domain: Option<String>,
+    cert: Option<Certificate>,
+    identity: Option<Identity>,
+}
+
+impl Default for GrpcClientChannelTls {
+    fn default() -> Self {
+        Self {
+            domain: None,
+            cert: None,
+            identity: None,
+        }
     }
 }
 
-impl SsoClient<tonic::transport::Channel> {
-    pub async fn from_options(options: GrpcClientOptions) -> Self {
-        let authorisation = options.authorisation.to_owned();
-        let user_authorisation = options.user_authorisation.to_owned();
+impl GrpcClientChannelTls {
+    /// Construct gRPC client channel TLS options from named environment variables.
+    pub fn from_env<T: AsRef<str>>(
+        domain_name: T,
+        ca_cert_name: T,
+        client_cert_name: T,
+        client_key_name: T,
+    ) -> Self {
+        let domain = Env::string_opt(domain_name.as_ref());
+        let cert = match Env::string_opt(ca_cert_name.as_ref()) {
+            Some(ca_cert) => {
+                let ca_cert = fs::read(&ca_cert).expect("Failed to read TLS CA certificate file.");
+                Some(Certificate::from_pem(ca_cert))
+            }
+            None => None,
+        };
+        let identity = if Env::has_any_name(&[client_cert_name.as_ref(), client_key_name.as_ref()])
+        {
+            let client_cert = Env::string(client_cert_name.as_ref())
+                .expect("Failed to read TLS client certificate environment variable.");
+            let client_cert =
+                fs::read(&client_cert).expect("Failed to read TLS client certificate file.");
+            let client_key = Env::string(client_key_name.as_ref())
+                .expect("Failed to read TLS client key environment variable.");
+            let client_key = fs::read(&client_key).expect("Failed to read TLS client key file.");
+            Some(Identity::from_pem(client_cert, client_key))
+        } else {
+            None
+        };
+        Self {
+            domain,
+            cert,
+            identity,
+        }
+    }
 
-        let endpoint: Endpoint = options.uri.clone().into();
-        let channel = endpoint
+    /// Return client TLS configuration if any TLS settings are defined.
+    fn config(&self) -> Option<ClientTlsConfig> {
+        let mut x = ClientTlsConfig::new();
+        let mut tls_configured = false;
+        if let Some(domain) = self.domain.as_ref() {
+            x = x.domain_name(domain);
+            tls_configured = true;
+        }
+        if let Some(cert) = self.cert.as_ref() {
+            x = x.ca_certificate(cert.clone());
+            tls_configured = true;
+        }
+        if let Some(identity) = self.identity.as_ref() {
+            x = x.identity(identity.clone());
+            tls_configured = true;
+        }
+        if tls_configured {
+            Some(x)
+        } else {
+            None
+        }
+    }
+}
+
+/// gRPC client channel.
+#[derive(Debug, Clone)]
+pub struct GrpcClientChannel {
+    inner: Channel,
+}
+
+impl GrpcClientChannel {
+    /// Returns new gRPC client channel.
+    pub async fn new<T: AsRef<str>>(uri: T, tls: GrpcClientChannelTls) -> DriverResult<Self> {
+        let uri = Uri::from_str(uri.as_ref()).map_err(DriverError::HttpUri)?;
+        let endpoint: Endpoint = uri.into();
+        let endpoint = if let Some(tls_config) = tls.config() {
+            endpoint.tls_config(tls_config)
+        } else {
+            endpoint
+        };
+        let inner = endpoint
             .connect()
             .await
-            .expect("Sso client connectioned failed.");
+            .map_err(DriverError::TonicTransport)?;
+        Ok(Self { inner })
+    }
 
-        SsoClient::with_interceptor(channel, move |mut req: Request<()>| {
-            let meta = req.metadata_mut();
+    /// Construct gRPC client channel from named environment variables.
+    pub async fn from_env<T: AsRef<str>>(
+        uri_name: T,
+        domain_name: T,
+        ca_cert_name: T,
+        client_cert_name: T,
+        client_key_name: T,
+    ) -> DriverResult<Self> {
+        let uri = Env::string(uri_name.as_ref())
+            .expect("Failed to read client URI environment variable.");
+        let tls = GrpcClientChannelTls::from_env(
+            domain_name,
+            ca_cert_name,
+            client_cert_name,
+            client_key_name,
+        );
+        Self::new(uri, tls).await
+    }
 
+    /// Returns clone of tonic channel.
+    pub fn channel(&self) -> Channel {
+        self.inner.clone()
+    }
+}
+
+/// gRPC client options.
+#[derive(Debug, Clone)]
+pub struct GrpcClientOptions {
+    pub authorisation: Option<String>,
+    pub user_authorisation: Option<String>,
+}
+
+impl Default for GrpcClientOptions {
+    fn default() -> Self {
+        Self {
+            authorisation: None,
+            user_authorisation: None,
+        }
+    }
+}
+
+impl GrpcClientOptions {
+    pub fn authorisation<T, TS>(mut self, authorisation: T) -> Self
+    where
+        T: Into<Option<TS>>,
+        TS: Into<String>,
+    {
+        self.authorisation = authorisation.into().map(|x| x.into());
+        self
+    }
+
+    pub fn user_authorisation<T, TS>(mut self, user_authorisation: T) -> Self
+    where
+        T: Into<Option<TS>>,
+        TS: Into<String>,
+    {
+        self.user_authorisation = user_authorisation.into().map(|x| x.into());
+        self
+    }
+
+    fn interceptor(&self, mut req: Request<()>) -> Result<Request<()>, Status> {
+        let meta = req.metadata_mut();
+
+        if let Some(authorisation) = self.authorisation.as_ref() {
             meta.insert(
-                "authorization",
-                MetadataValue::from_str(authorisation.as_ref()).unwrap(),
+                HEADER_AUTHORISATION,
+                MetadataValue::from_str(authorisation)
+                    .map_err(|_e| Status::invalid_argument(ERR_INVALID_METADATA))?,
             );
-            if let Some(user_authorisation) = &user_authorisation {
-                meta.insert(
-                    "user-authorization",
-                    MetadataValue::from_str(user_authorisation.as_ref()).unwrap(),
-                );
-            }
+        }
+        if let Some(user_authorisation) = self.user_authorisation.as_ref() {
+            meta.insert(
+                HEADER_USER_AUTHORISATION,
+                MetadataValue::from_str(user_authorisation)
+                    .map_err(|_e| Status::invalid_argument(ERR_INVALID_METADATA))?,
+            );
+        }
 
-            Ok(req)
+        Ok(req)
+    }
+}
+
+/// gRPC asynchronous client.
+pub type GrpcClient = SsoClient<Channel>;
+
+impl fmt::Debug for SsoClient<Channel> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "GrpcClient {{ }}")
+    }
+}
+
+impl SsoClient<Channel> {
+    /// Returns new gRPC asynchronous client.
+    pub fn from_channel(channel: &GrpcClientChannel, options: GrpcClientOptions) -> Self {
+        SsoClient::with_interceptor(channel.channel(), move |req: Request<()>| {
+            options.interceptor(req)
         })
     }
 
     /// Authenticate user using headers, returns user if successful.
-    pub async fn authenticate(
+    /// If audit type argument is some, audit log ID is also returned.
+    pub async fn authenticate<T, TS>(
         &mut self,
         auth: HeaderAuth,
-        audit: Option<String>,
-    ) -> Result<(User, Option<String>), Status> {
+        audit: T,
+    ) -> Result<(User, Option<String>), Status>
+    where
+        T: Into<Option<TS>>,
+        TS: Into<String>,
+    {
+        let audit: Option<String> = audit.into().map(|x| x.into());
         match auth {
             HeaderAuth::Traefik(x) => match (x.user_key_id, x.user_id) {
                 (Some(user_key_id), Some(user_id)) => {
@@ -60,7 +233,7 @@ impl SsoClient<tonic::transport::Channel> {
                         .user_read(pb::UserReadRequest::from_uuid(user_id))
                         .await?
                         .into_inner();
-                    let user = res.data.unwrap();
+                    let user = res.data.expect("User is none.");
 
                     let audit = if let Some(audit) = audit {
                         let mut req = pb::AuditCreateRequest::default();
@@ -68,12 +241,12 @@ impl SsoClient<tonic::transport::Channel> {
                         req.user_id = Some(pb::uuid_to_string(user_id));
                         req.user_key_id = Some(pb::uuid_to_string(user_key_id));
                         let res = self.audit_create(req).await?.into_inner();
-                        Some(res.data.unwrap().id)
+                        Some(res.data.expect("Audit log is none.").id)
                     } else {
                         None
                     };
 
-                    Ok((user.try_into().unwrap(), audit))
+                    Ok((user.into(), audit))
                 }
                 _ => Err(Status::unauthenticated(ERR_AUTH_NOT_FOUND)),
             },
@@ -83,14 +256,14 @@ impl SsoClient<tonic::transport::Channel> {
                         .auth_key_verify(pb::AuthKeyRequest { key: x, audit })
                         .await?
                         .into_inner();
-                    Ok((res.user.unwrap().try_into().unwrap(), res.audit))
+                    Ok((res.user.expect("User is none.").into(), res.audit))
                 }
                 HeaderAuthType::Token(x) => {
                     let res = self
                         .auth_token_verify(pb::AuthTokenRequest { token: x, audit })
                         .await?
                         .into_inner();
-                    Ok((res.user.unwrap().try_into().unwrap(), res.audit))
+                    Ok((res.user.expect("User is none.").into(), res.audit))
                 }
             },
             HeaderAuth::None => Err(Status::unauthenticated(ERR_AUTH_NOT_FOUND)),
@@ -98,80 +271,62 @@ impl SsoClient<tonic::transport::Channel> {
     }
 }
 
-/// gRPC asynchronous client.
-pub type GrpcClient = SsoClient<tonic::transport::Channel>;
-
-/// gRPC client options.
-#[derive(Debug, Clone)]
-pub struct GrpcClientOptions {
-    pub uri: Uri,
-    pub authorisation: String,
-    pub user_authorisation: Option<String>,
-}
-
-impl GrpcClientOptions {
-    pub fn new<U: AsRef<str>>(uri: U) -> Self {
-        Self {
-            uri: Uri::from_str(uri.as_ref()).unwrap(),
-            authorisation: String::from(""),
-            user_authorisation: None,
-        }
-    }
-
-    pub fn authorisation<A: Into<String>>(mut self, authorisation: A) -> Self {
-        self.authorisation = authorisation.into();
-        self
-    }
-
-    pub fn user_authorisation(mut self, user_authorisation: Option<String>) -> Self {
-        self.user_authorisation = user_authorisation;
-        self
-    }
-}
-
 /// gRPC synchronous client.
 pub struct GrpcClientBlocking {
     rt: Runtime,
-    client: SsoClient<tonic::transport::Channel>,
+    channel: GrpcClientChannel,
+    client: SsoClient<Channel>,
 }
 
 impl fmt::Debug for GrpcClientBlocking {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "GrpcClientBlocking {{ rt: {:?}, client }}", self.rt)
+        write!(
+            f,
+            "GrpcClientBlocking {{ rt: {:?}, channel: {:?}, client }}",
+            self.rt, self.channel
+        )
     }
 }
 
 impl GrpcClientBlocking {
-    pub fn connect(options: &GrpcClientOptions) -> Result<Self, tonic::transport::Error> {
+    /// Returns new gRPC synchronous client.
+    pub fn new<T: AsRef<str>>(
+        uri: T,
+        tls: GrpcClientChannelTls,
+        options: &GrpcClientOptions,
+    ) -> DriverResult<Self> {
         let mut rt = Builder::new()
             .basic_scheduler()
             .enable_all()
             .build()
-            .unwrap();
+            .expect("Failed to build runtime.");
 
-        let authorisation = options.authorisation.to_owned();
-        let user_authorisation = options.user_authorisation.to_owned();
+        let channel = rt.block_on(GrpcClientChannel::new(uri, tls))?;
 
-        let endpoint: Endpoint = options.uri.clone().into();
-        let channel = rt.block_on(endpoint.connect())?;
-
-        let client = SsoClient::with_interceptor(channel, move |mut req: Request<()>| {
-            let meta = req.metadata_mut();
-
-            meta.insert(
-                "authorization",
-                MetadataValue::from_str(authorisation.as_ref()).unwrap(),
-            );
-            if let Some(user_authorisation) = &user_authorisation {
-                meta.insert(
-                    "user-authorization",
-                    MetadataValue::from_str(user_authorisation.as_ref()).unwrap(),
-                );
-            }
-
-            Ok(req)
+        let options = options.clone();
+        let client = SsoClient::with_interceptor(channel.channel(), move |req: Request<()>| {
+            options.interceptor(req)
         });
-        Ok(Self { rt, client })
+
+        Ok(Self {
+            rt,
+            channel,
+            client,
+        })
+    }
+
+    /// Authenticate user using headers, returns user if successful.
+    /// If audit type argument is some, audit log ID is also returned.
+    pub async fn authenticate<T, TS>(
+        &mut self,
+        auth: HeaderAuth,
+        audit: T,
+    ) -> Result<(User, Option<String>), Status>
+    where
+        T: Into<Option<TS>>,
+        TS: Into<String>,
+    {
+        self.rt.block_on(self.client.authenticate(auth, audit))
     }
 
     pub fn ping(

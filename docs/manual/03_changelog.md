@@ -4,6 +4,7 @@
 
 ### Added
 
+-   Added server and client TLS support.
 -   Added built-in CORS support to `sso-openapi`.
 -   Added optional Traefik forward authentication integration.
 

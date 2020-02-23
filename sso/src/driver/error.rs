@@ -177,6 +177,12 @@ pub enum DriverError {
 
     #[fail(display = "Validation {}", _0)]
     Validation(#[fail(cause)] validator::ValidationErrors),
+
+    #[fail(display = "TonicTransport {}", _0)]
+    TonicTransport(#[fail(cause)] tonic::transport::Error),
+
+    #[fail(display = "HttpUri {}", _0)]
+    HttpUri(#[fail(cause)] http::uri::InvalidUri),
 }
 
 impl From<libreauth::pass::ErrorCode> for DriverError {

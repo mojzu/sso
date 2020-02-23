@@ -2,43 +2,43 @@ use http::{HeaderMap, HeaderValue};
 use uuid::Uuid;
 
 /// Authorization header.
-pub const HEADER_AUTHORISATION: &str = "Authorization";
+pub const HEADER_AUTHORISATION: &str = "authorization";
 
 /// User-Authorization header.
-pub const HEADER_USER_AUTHORISATION: &str = "User-Authorization";
+pub const HEADER_USER_AUTHORISATION: &str = "user-authorization";
 
 /// Service-Authorization header.
-pub const HEADER_SERVICE_AUTHORISATION: &str = "Service-Authorization";
+pub const HEADER_SERVICE_AUTHORISATION: &str = "service-authorization";
 
 /// User-Agent header.
-pub const HEADER_USER_AGENT: &str = "User-Agent";
+pub const HEADER_USER_AGENT: &str = "user-agent";
 
 /// X-Forwarded-For header.
-pub const HEADER_X_FORWARDED_FOR: &str = "X-Forwarded-For";
+pub const HEADER_X_FORWARDED_FOR: &str = "x-forwarded-for";
 
 /// Grpc-Metadata-Sso-Key-Id header.
-pub const HEADER_GRPC_METADATA_SSO_KEY_ID: &str = "Grpc-Metadata-Sso-Key-Id";
+pub const HEADER_GRPC_METADATA_SSO_KEY_ID: &str = "grpc-metadata-sso-key-id";
 
 /// Grpc-Metadata-Sso-Service-Id header.
-pub const HEADER_GRPC_METADATA_SSO_SERVICE_ID: &str = "Grpc-Metadata-Sso-Service-Id";
+pub const HEADER_GRPC_METADATA_SSO_SERVICE_ID: &str = "grpc-metadata-sso-service-id";
 
 /// Grpc-Metadata-Sso-User-Key-Id header.
-pub const HEADER_GRPC_METADATA_SSO_USER_KEY_ID: &str = "Grpc-Metadata-Sso-User-Key-Id";
+pub const HEADER_GRPC_METADATA_SSO_USER_KEY_ID: &str = "grpc-metadata-sso-user-key-id";
 
 /// Grpc-Metadata-Sso-User-Id header.
-pub const HEADER_GRPC_METADATA_SSO_USER_ID: &str = "Grpc-Metadata-Sso-User-Id";
+pub const HEADER_GRPC_METADATA_SSO_USER_ID: &str = "grpc-metadata-sso-user-id";
 
 /// Sso-Key-Id header.
-pub const HEADER_SSO_KEY_ID: &str = "Sso-Key-Id";
+pub const HEADER_SSO_KEY_ID: &str = "sso-key-id";
 
 /// Sso-Service-Id header.
-pub const HEADER_SSO_SERVICE_ID: &str = "Sso-Service-Id";
+pub const HEADER_SSO_SERVICE_ID: &str = "sso-service-id";
 
 /// Sso-User-Key-Id header.
-pub const HEADER_SSO_USER_KEY_ID: &str = "Sso-User-Key-Id";
+pub const HEADER_SSO_USER_KEY_ID: &str = "sso-user-key-id";
 
 /// Sso-User-Id header.
-pub const HEADER_SSO_USER_ID: &str = "Sso-User-Id";
+pub const HEADER_SSO_USER_ID: &str = "sso-user-id";
 
 /// Returns Authorization header string.
 pub fn header_authorisation(map: &HeaderMap<HeaderValue>) -> Option<String> {

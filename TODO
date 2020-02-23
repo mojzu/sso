@@ -1,8 +1,5 @@
 Todo:
   Todo:
-    ☐ @high Server and client TLS support.
-        https://github.com/hyperium/tonic/blob/master/examples/src/tls/server.rs
-        https://github.com/smallstep/autocert
     ☐ @low Handle more audit headers.
         x-forwarded-host, x-forwarded-uri, x-real-ip.
     ☐ @low JWT handling improvements.
@@ -15,20 +12,22 @@ Todo:
         Improve translation code between driver/grpc, unwrap check and cleanup.
         Improve code structure, driver/grpc interfaces (reduce repetition).
         Authentication mechanism code is split across files, cleaner code.
-    ☐ @high Sso async client configurable headers per request for upstream use.
-        Keep channel in server and use with_interceptor?
     ☐ @high Check, test and refactor register and register confirm implementation.
         If any key already exists for service, do not create one.
         Add tests to check whether this flow can be used by used to access disabled user.
     ☐ @high OpenAPI gateway CORS headers, check if override at proxy level works.
         Environment variable for allow origin header?
         Graceful shutdown for server support, exit code is 2, should be 0.
-    ☐ Service flags to allow access to endpoints.
+    ☐ @low Service flags to allow access to endpoints.
         Trusted vs untrusted services?
+    ☐ @high Crate dependency upgrades.
+    ✔ Server and client TLS support.
+    ✔ Sso async client configurable headers per client for upstream use.
 
   Documentation:
     ☐ Check CORS and other security headers using OWASP secure headers project.
     ☐ Traefik rate limiting, forward auth, TLS/HTTPS support.
+        https://github.com/smallstep/autocert
     ☐ Prometheus alert rule for high CPU usage.
         How to get maximum for seconds over time?
     ☐ Manual guides check and other documentation, update where required.
@@ -64,6 +63,7 @@ Todo:
     ☐ Better library interface, require documentation, embeddable service?
         #![deny(missing_docs)]
     ☐ Further OWASP ASVS reading and notes, current notes out of date.
+    ✔ Improve binaries main code, remove or replace unwrap.
 
   Features:
     ☐ Handle changes to password hash version.

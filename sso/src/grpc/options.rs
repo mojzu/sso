@@ -6,7 +6,8 @@ use lettre::{
 };
 use native_tls::{Protocol, TlsConnector};
 use reqwest::Client;
-use std::fs::create_dir_all;
+use std::fs;
+use tonic::transport::{Certificate, Identity, ServerTlsConfig};
 
 /// gRPC server authentication provider options.
 #[derive(Debug, Clone)]
@@ -46,9 +47,27 @@ impl GrpcServerOptionsSmtp {
     }
 }
 
+/// gRPC server TLS options.
+#[derive(Debug, Clone)]
+pub struct GrpcServerOptionsTls {
+    identity: Option<Identity>,
+    client_ca_root: Option<Certificate>,
+}
+
+impl Default for GrpcServerOptionsTls {
+    fn default() -> Self {
+        Self {
+            identity: None,
+            client_ca_root: None,
+        }
+    }
+}
+
 /// gRPC server options.
 #[derive(Debug, Clone)]
 pub struct GrpcServerOptions {
+    /// TLS configuration.
+    tls: GrpcServerOptionsTls,
     /// User agent for outgoing HTTP requests.
     user_agent: String,
     /// Enable Pwned Passwords API to check passwords.
@@ -82,6 +101,7 @@ impl GrpcServerOptions {
         UA: Into<String>,
     {
         Self {
+            tls: GrpcServerOptionsTls::default(),
             user_agent: user_agent.into(),
             pwned_passwords_enabled,
             traefik_enabled,
@@ -109,6 +129,38 @@ impl GrpcServerOptions {
             .unwrap_or(false);
 
         Self::new(user_agent, pwned_passwords_enabled, traefik_enabled)
+    }
+
+    pub fn tls_from_env<T: AsRef<str>>(
+        mut self,
+        cert_name: T,
+        key_name: T,
+        client_ca_name: T,
+    ) -> Self {
+        let identity = if Env::has_any_name(&[cert_name.as_ref(), key_name.as_ref()]) {
+            let cert = Env::string(cert_name.as_ref())
+                .expect("Failed to read TLS certificate environment variable.");
+            let cert = fs::read(&cert).expect("Failed to read TLS certificate file.");
+            let key = Env::string(key_name.as_ref())
+                .expect("Failed to read TLS key environment variable.");
+            let key = fs::read(&key).expect("Failed to read TLS key file.");
+            Some(Identity::from_pem(cert, key))
+        } else {
+            None
+        };
+        let client_ca_root = match Env::string_opt(client_ca_name.as_ref()) {
+            Some(client_ca) => {
+                let client_ca =
+                    fs::read(&client_ca).expect("Failed to read TLS client CA certificate file.");
+                Some(Certificate::from_pem(client_ca))
+            }
+            None => None,
+        };
+        self.tls = GrpcServerOptionsTls {
+            identity,
+            client_ca_root,
+        };
+        self
     }
 
     /// Set SMTP transport options.
@@ -159,7 +211,7 @@ impl GrpcServerOptions {
     // Create directory for SMTP file transport.
     pub fn smtp_file_transport_from_env<T: AsRef<str>>(self, file_name: T) -> Self {
         let transport = Env::string_opt(file_name.as_ref()).unwrap_or("./tmp".to_string());
-        create_dir_all(&transport).expect("Failed to create SMTP file transport directory");
+        fs::create_dir_all(&transport).expect("Failed to create SMTP file transport directory");
         self.smtp_file_transport(Some(transport))
     }
 
@@ -215,6 +267,25 @@ impl GrpcServerOptions {
             None
         };
         self.microsoft(provider)
+    }
+
+    /// Return server TLS configuration if any TLS settings are defined.
+    pub fn tls_config(&self) -> Option<ServerTlsConfig> {
+        let mut x = ServerTlsConfig::new();
+        let mut tls_configured = false;
+        if let Some(identity) = self.tls.identity.as_ref() {
+            x = x.identity(identity.clone());
+            tls_configured = true;
+        }
+        if let Some(client_ca_root) = self.tls.client_ca_root.as_ref() {
+            x = x.client_ca_root(client_ca_root.clone());
+            tls_configured = true;
+        }
+        if tls_configured {
+            Some(x)
+        } else {
+            None
+        }
     }
 
     /// Returns asynchronous reqwest `Client` built from options.
