@@ -1,8 +1,4 @@
-use crate::{
-    grpc::{pb, util},
-    schema::sso_csrf,
-    DriverError, DriverResult,
-};
+use crate::{grpc::pb, schema::sso_csrf, DriverError, DriverResult};
 use chrono::{DateTime, Duration, Utc};
 use diesel::{prelude::*, PgConnection};
 use libreauth::key::KeyBuilder;
@@ -117,11 +113,11 @@ impl fmt::Display for Csrf {
 impl From<Csrf> for pb::Csrf {
     fn from(r: Csrf) -> Self {
         Self {
-            created_at: util::datetime_to_timestamp_opt(r.created_at),
+            created_at: pb::datetime_to_timestamp_opt(r.created_at),
             key: r.key,
             value: r.value,
-            ttl: util::datetime_to_timestamp_opt(r.ttl),
-            service_id: Some(util::uuid_to_string(r.service_id)),
+            ttl: pb::datetime_to_timestamp_opt(r.ttl),
+            service_id: Some(pb::uuid_to_string(r.service_id)),
         }
     }
 }

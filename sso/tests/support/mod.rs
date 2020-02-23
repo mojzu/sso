@@ -12,8 +12,8 @@ mod user;
 pub use chrono::Utc;
 pub use serde_json::Value;
 pub use sso::{
-    grpc::{pb, util, ClientBlocking, ClientOptions},
-    AuditType, KeyType, KeyWithValue, Service, User, UserKey, UserToken, UserTokenAccess,
+    pb, AuditType, GrpcClientBlocking, GrpcClientOptions, KeyType, KeyWithValue, Service, User,
+    UserKey, UserToken, UserTokenAccess,
 };
 pub use uuid::Uuid;
 
@@ -34,22 +34,22 @@ fn env_test_sso_key() -> String {
     std::env::var("SSO_TEST_KEY").expect("SSO_TEST_KEY is undefined, integration test disabled")
 }
 
-pub fn client_create(key: Option<&str>) -> ClientBlocking {
+pub fn client_create(key: Option<&str>) -> GrpcClientBlocking {
     match key {
-        Some(key) => {
-            ClientBlocking::connect(&ClientOptions::new(env_test_sso_url()).authorisation(key))
-                .unwrap()
-        }
-        None => ClientBlocking::connect(
-            &ClientOptions::new(env_test_sso_url()).authorisation(env_test_sso_key()),
+        Some(key) => GrpcClientBlocking::connect(
+            &GrpcClientOptions::new(env_test_sso_url()).authorisation(key),
+        )
+        .unwrap(),
+        None => GrpcClientBlocking::connect(
+            &GrpcClientOptions::new(env_test_sso_url()).authorisation(env_test_sso_key()),
         )
         .unwrap(),
     }
 }
 
-pub fn client_user_create(key: &str, user_key: &str) -> ClientBlocking {
-    ClientBlocking::connect(
-        &ClientOptions::new(env_test_sso_url())
+pub fn client_user_create(key: &str, user_key: &str) -> GrpcClientBlocking {
+    GrpcClientBlocking::connect(
+        &GrpcClientOptions::new(env_test_sso_url())
             .authorisation(key)
             .user_authorisation(Some(user_key.to_owned())),
     )
@@ -61,7 +61,7 @@ pub fn email_create() -> String {
     format!("{}@test.com", random)
 }
 
-pub fn service_key_create(client: &mut ClientBlocking) -> (pb::Service, pb::KeyWithValue) {
+pub fn service_key_create(client: &mut GrpcClientBlocking) -> (pb::Service, pb::KeyWithValue) {
     let body = pb::ServiceCreateRequest::new(true, "test", "http://localhost")
         .provider_local_url("http://localhost")
         .provider_github_oauth2_url("http://localhost")
@@ -84,7 +84,7 @@ pub fn service_key_create(client: &mut ClientBlocking) -> (pb::Service, pb::KeyW
 }
 
 pub fn user_create(
-    client: &mut ClientBlocking,
+    client: &mut GrpcClientBlocking,
     is_enabled: bool,
     name: &str,
     email: &str,
@@ -102,7 +102,7 @@ pub fn user_create(
 }
 
 pub fn user_create_with_password(
-    client: &mut ClientBlocking,
+    client: &mut GrpcClientBlocking,
     is_enabled: bool,
     name: &str,
     email: &str,
@@ -127,7 +127,7 @@ pub fn user_create_with_password(
 }
 
 pub fn user_key_create(
-    client: &mut ClientBlocking,
+    client: &mut GrpcClientBlocking,
     name: &str,
     type_: KeyType,
     service_id: String,
@@ -142,7 +142,7 @@ pub fn user_key_create(
     (user, key)
 }
 
-pub fn user_key_verify(client: &mut ClientBlocking, key: &pb::KeyWithValue) -> pb::Key {
+pub fn user_key_verify(client: &mut GrpcClientBlocking, key: &pb::KeyWithValue) -> pb::Key {
     let body = pb::AuthKeyRequest::new(&key.value, None);
     let verify = client.auth_key_verify(body).unwrap().into_inner();
     let user = verify.user.unwrap();
@@ -151,13 +151,16 @@ pub fn user_key_verify(client: &mut ClientBlocking, key: &pb::KeyWithValue) -> p
     key
 }
 
-pub fn user_key_verify_bad_request(client: &mut ClientBlocking, key: &str) {
+pub fn user_key_verify_bad_request(client: &mut GrpcClientBlocking, key: &str) {
     let body = pb::AuthKeyRequest::new(key, None);
     let err = client.auth_key_verify(body).unwrap_err();
     assert_eq!(err.code(), tonic::Code::InvalidArgument);
 }
 
-pub fn user_token_verify(client: &mut ClientBlocking, token: &pb::AuthLoginReply) -> pb::AuthToken {
+pub fn user_token_verify(
+    client: &mut GrpcClientBlocking,
+    token: &pb::AuthLoginReply,
+) -> pb::AuthToken {
     let body = pb::AuthTokenRequest::new(&token.access.as_ref().unwrap().token, None);
     let verify = client.auth_token_verify(body).unwrap().into_inner();
     let user = verify.user.unwrap();
@@ -172,7 +175,7 @@ pub fn user_token_verify(client: &mut ClientBlocking, token: &pb::AuthLoginReply
 }
 
 pub fn user_token_refresh(
-    client: &mut ClientBlocking,
+    client: &mut GrpcClientBlocking,
     token: &pb::AuthLoginReply,
 ) -> pb::AuthTokenReply {
     std::thread::sleep(std::time::Duration::from_secs(1));
@@ -202,7 +205,7 @@ pub fn user_token_refresh(
 }
 
 pub fn auth_local_login(
-    client: &mut ClientBlocking,
+    client: &mut GrpcClientBlocking,
     user_id: &str,
     email: &str,
     password: &str,

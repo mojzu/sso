@@ -19,7 +19,7 @@ impl fmt::Debug for SsoClient<tonic::transport::Channel> {
 }
 
 impl SsoClient<tonic::transport::Channel> {
-    pub async fn from_options(options: ClientOptions) -> Self {
+    pub async fn from_options(options: GrpcClientOptions) -> Self {
         let authorisation = options.authorisation.to_owned();
         let user_authorisation = options.user_authorisation.to_owned();
 
@@ -65,8 +65,8 @@ impl SsoClient<tonic::transport::Channel> {
                     let audit = if let Some(audit) = audit {
                         let mut req = pb::AuditCreateRequest::default();
                         req.r#type = audit;
-                        req.user_id = Some(uuid_to_string(user_id));
-                        req.user_key_id = Some(uuid_to_string(user_key_id));
+                        req.user_id = Some(pb::uuid_to_string(user_id));
+                        req.user_key_id = Some(pb::uuid_to_string(user_key_id));
                         let res = self.audit_create(req).await?.into_inner();
                         Some(res.data.unwrap().id)
                     } else {
@@ -99,17 +99,17 @@ impl SsoClient<tonic::transport::Channel> {
 }
 
 /// gRPC asynchronous client.
-pub type Client = SsoClient<tonic::transport::Channel>;
+pub type GrpcClient = SsoClient<tonic::transport::Channel>;
 
 /// gRPC client options.
 #[derive(Debug, Clone)]
-pub struct ClientOptions {
+pub struct GrpcClientOptions {
     pub uri: Uri,
     pub authorisation: String,
     pub user_authorisation: Option<String>,
 }
 
-impl ClientOptions {
+impl GrpcClientOptions {
     pub fn new<U: AsRef<str>>(uri: U) -> Self {
         Self {
             uri: Uri::from_str(uri.as_ref()).unwrap(),
@@ -130,19 +130,19 @@ impl ClientOptions {
 }
 
 /// gRPC synchronous client.
-pub struct ClientBlocking {
+pub struct GrpcClientBlocking {
     rt: Runtime,
     client: SsoClient<tonic::transport::Channel>,
 }
 
-impl fmt::Debug for ClientBlocking {
+impl fmt::Debug for GrpcClientBlocking {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ClientBlocking {{ rt: {:?}, client }}", self.rt)
+        write!(f, "GrpcClientBlocking {{ rt: {:?}, client }}", self.rt)
     }
 }
 
-impl ClientBlocking {
-    pub fn connect(options: &ClientOptions) -> Result<Self, tonic::transport::Error> {
+impl GrpcClientBlocking {
+    pub fn connect(options: &GrpcClientOptions) -> Result<Self, tonic::transport::Error> {
         let mut rt = Builder::new()
             .basic_scheduler()
             .enable_all()

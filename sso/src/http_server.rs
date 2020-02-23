@@ -1,42 +1,48 @@
-use crate::{grpc::util::*, *};
+use crate::*;
 use hyper::{Body, Method, Request, Response, StatusCode};
 use std::{net::SocketAddr, sync::Arc};
 
 static NOT_FOUND: &[u8] = b"NotFound";
 static PONG: &[u8] = b"Pong";
 
-/// HTTP server request handler for internal endpoints.
-pub async fn http_server(
-    driver: Arc<Postgres>,
-    traefik_enabled: bool,
-    req: Request<Body>,
-    remote: SocketAddr,
-) -> Result<Response<Body>, hyper::Error> {
-    match (req.method(), req.uri().path()) {
-        (&Method::GET, "/ping") => ping(req).await,
-        (&Method::GET, "/metrics") => metrics(driver, req).await,
-        (&Method::GET, "/hook/traefik/self") => {
-            if traefik_enabled {
-                traefik_self(driver, req, remote).await
-            } else {
-                // Return 401 unauthorised response.
-                Ok(response_unauthorised())
+/// HTTP server.
+#[derive(Debug)]
+pub struct HttpServer;
+
+impl HttpServer {
+    /// Request handler for internal endpoints.
+    pub async fn handler(
+        options: Arc<GrpcServerOptions>,
+        driver: Arc<Postgres>,
+        remote: SocketAddr,
+        req: Request<Body>,
+    ) -> Result<Response<Body>, hyper::Error> {
+        match (req.method(), req.uri().path()) {
+            (&Method::GET, "/ping") => ping(req).await,
+            (&Method::GET, "/metrics") => metrics(driver, req).await,
+            (&Method::GET, "/hook/traefik/self") => {
+                if options.traefik_enabled() {
+                    traefik_self(driver, req, remote).await
+                } else {
+                    // Return 401 unauthorised response.
+                    Ok(response_unauthorised())
+                }
             }
-        }
-        (&Method::GET, "/hook/traefik/service") => {
-            if traefik_enabled {
-                traefik_service(driver, req, remote).await
-            } else {
-                // Return 401 unauthorised response.
-                Ok(response_unauthorised())
+            (&Method::GET, "/hook/traefik/service") => {
+                if options.traefik_enabled() {
+                    traefik_service(driver, req, remote).await
+                } else {
+                    // Return 401 unauthorised response.
+                    Ok(response_unauthorised())
+                }
             }
-        }
-        _ => {
-            // Return 404 not found response.
-            Ok(Response::builder()
-                .status(StatusCode::NOT_FOUND)
-                .body(NOT_FOUND.into())
-                .unwrap())
+            _ => {
+                // Return 404 not found response.
+                Ok(Response::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .body(NOT_FOUND.into())
+                    .unwrap())
+            }
         }
     }
 }
@@ -50,7 +56,7 @@ async fn metrics(
     _req: Request<Body>,
 ) -> Result<Response<Body>, hyper::Error> {
     let driver = driver.clone();
-    let s = hyper_blocking(move || Ok(Metrics::read(driver.as_ref()).unwrap())).await?;
+    let s = blocking_hyper(move || Ok(Metrics::read(driver.as_ref()).unwrap())).await?;
     Ok(Response::new(Body::from(s)))
 }
 
@@ -66,14 +72,14 @@ async fn traefik_self(
     );
 
     let driver = driver.clone();
-    let audit_builder = blocking::<_, MethodError, _>(move || {
+    let audit_builder = blocking_method(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::Traefik,
             |driver, audit| {
                 pattern::key_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
                 Ok(audit.clone())
             },
         )
@@ -99,14 +105,14 @@ async fn traefik_service(
     let service_key = header_service_authorisation(req.headers());
 
     let driver = driver.clone();
-    let audit_builder = blocking::<_, MethodError, _>(move || {
+    let audit_builder = blocking_method(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::Traefik,
             |driver, audit| {
                 pattern::user_key_token_authenticate(driver, audit, &auth, service_key.clone())
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
                 Ok(audit.clone())
             },
         )

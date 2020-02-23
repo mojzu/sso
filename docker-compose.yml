@@ -52,6 +52,8 @@ services:
       # SSO_SMTP_PORT: ""
       # SSO_SMTP_USER: ""
       # SSO_SMTP_PASSWORD: ""
+      # SMTP file transport.
+      SSO_SMTP_FILE: "./tmp"
       # Pwned Passwords integration.
       SSO_PWNED_PASSWORDS: "true"
       # Traefik forward authentication integration.

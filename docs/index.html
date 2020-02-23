@@ -902,6 +902,8 @@ font-size: 16px;
 <li>Logging now defaults to single line JSON objects.</li>
 <li>Replaced <code>user_id</code> field with <code>email</code> field for user update email and password endpoints.</li>
 <li>Manual updates.</li>
+<li>Services can use list services endpoint to list only themselves.</li>
+<li>Refactoring for improved library interface.</li>
 </ul>
 </section>
 <section id="fixed" data-number="3.1.3">
@@ -1363,53 +1365,59 @@ font-size: 16px;
 <span id="cb62-3"><a href="#cb62-3"></a>    <span class="bu">shift</span> 1</span>
 <span id="cb62-4"><a href="#cb62-4"></a>    <span class="ex">docker</span> run --rm -it --init --user <span class="va">$(</span><span class="fu">id</span> -u<span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> -g<span class="va">)</span> --network compose -v <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">:/build&quot;</span> --hostname <span class="va">$host</span> --name <span class="va">$host</span> sso/build:latest <span class="st">&quot;</span><span class="va">$@</span><span class="st">&quot;</span></span>
 <span id="cb62-5"><a href="#cb62-5"></a><span class="kw">}</span></span></code></pre></div>
+<p>To use the <code>sso-cli</code> command you can access the <code>sso-grpc</code> container.</p>
+<div class="sourceCode" id="cb63"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb63-1"><a href="#cb63-1"></a><span class="ex">docker</span> exec -it sso_sso-grpc_1 /bin/bash</span>
+<span id="cb63-2"><a href="#cb63-2"></a><span class="ex">sso-cli</span> --help</span>
+<span id="cb63-3"><a href="#cb63-3"></a><span class="ex">sso-cli</span> create-root-key root</span>
+<span id="cb63-4"><a href="#cb63-4"></a><span class="ex">sso-cli</span> sso-cli create-service-with-key test test.localhost --allow-register true --local-url test.localhost/auth/provider/local</span></code></pre></div>
 <p>Stop and destroy services with the commands.</p>
-<div class="sourceCode" id="cb63"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb63-1"><a href="#cb63-1"></a><span class="ex">docker-compose</span> stop</span>
-<span id="cb63-2"><a href="#cb63-2"></a><span class="ex">docker-compose</span> down</span></code></pre></div>
+<div class="sourceCode" id="cb64"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb64-1"><a href="#cb64-1"></a><span class="ex">docker-compose</span> stop</span>
+<span id="cb64-2"><a href="#cb64-2"></a><span class="ex">docker-compose</span> down</span></code></pre></div>
 <p>Create backup of <code>sso</code> database in <code>postgres</code> service. This backup will be restored automatically when the <code>postgres</code> service is rebuilt.</p>
-<div class="sourceCode" id="cb64"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb64-1"><a href="#cb64-1"></a><span class="ex">docker</span> exec sso_postgres_1 pg_dump -U guest --format=custom sso <span class="op">&gt;</span> docker/postgres/pgdump/sso.pgdump</span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb65-1"><a href="#cb65-1"></a><span class="ex">docker</span> exec sso_postgres_1 pg_dump -U guest --format=custom sso <span class="op">&gt;</span> docker/postgres/pgdump/sso.pgdump</span></code></pre></div>
 <p>Reset database and create new <a href="https://www.postgresql.org/">PostgreSQL</a> database migrations with <a href="http://diesel.rs/">Diesel</a>. These commands expect <code>postgres</code> service is running.</p>
-<div class="sourceCode" id="cb65"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb65-1"><a href="#cb65-1"></a><span class="ex">sso-build</span> cargo make postgres-reset</span>
-<span id="cb65-2"><a href="#cb65-2"></a><span class="ex">sso-build</span> cargo make postgres-migration <span class="va">$migration_name</span></span></code></pre></div>
+<div class="sourceCode" id="cb66"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb66-1"><a href="#cb66-1"></a><span class="ex">sso-build</span> cargo make postgres-reset</span>
+<span id="cb66-2"><a href="#cb66-2"></a><span class="ex">sso-build</span> cargo make postgres-migration <span class="va">$migration_name</span></span></code></pre></div>
 <p>Check source code using <a href="https://github.com/rust-lang/rust-clippy">clippy</a>.</p>
-<div class="sourceCode" id="cb66"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb66-1"><a href="#cb66-1"></a><span class="ex">sso-build</span> cargo make clippy</span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb67-1"><a href="#cb67-1"></a><span class="ex">sso-build</span> cargo make clippy</span></code></pre></div>
 <p>Audit crate dependencies.</p>
-<div class="sourceCode" id="cb67"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb67-1"><a href="#cb67-1"></a><span class="ex">sso-build</span> cargo make audit</span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb68-1"><a href="#cb68-1"></a><span class="ex">sso-build</span> cargo make audit</span></code></pre></div>
 <p>Build libraries and binaries.</p>
-<div class="sourceCode" id="cb68"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb68-1"><a href="#cb68-1"></a><span class="ex">sso-build</span> cargo make build</span>
-<span id="cb68-2"><a href="#cb68-2"></a><span class="ex">sso-build</span> cargo make release</span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb69-1"><a href="#cb69-1"></a><span class="ex">sso-build</span> cargo make build</span>
+<span id="cb69-2"><a href="#cb69-2"></a><span class="ex">sso-build</span> cargo make release</span></code></pre></div>
 <p>Run development binaries.</p>
-<div class="sourceCode" id="cb69"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb69-1"><a href="#cb69-1"></a><span class="ex">sso-build</span> cargo make sso-cli -- <span class="va">$ARGS</span></span>
-<span id="cb69-2"><a href="#cb69-2"></a><span class="ex">sso-build</span> cargo make sso-grpc</span>
-<span id="cb69-3"><a href="#cb69-3"></a><span class="ex">sso-build</span> cargo make sso-openapi</span></code></pre></div>
+<div class="sourceCode" id="cb70"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb70-1"><a href="#cb70-1"></a><span class="ex">sso-build</span> cargo make sso-cli -- <span class="va">$ARGS</span></span>
+<span id="cb70-2"><a href="#cb70-2"></a><span class="ex">sso-build</span> cargo make sso-grpc</span>
+<span id="cb70-3"><a href="#cb70-3"></a><span class="ex">sso-build</span> cargo make sso-openapi</span></code></pre></div>
 <p>Run unit tests.</p>
-<div class="sourceCode" id="cb70"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb70-1"><a href="#cb70-1"></a><span class="ex">sso-build</span> cargo make test</span></code></pre></div>
-<p>Run integration tests. This expects <code>sso_grpc</code> service is running.</p>
-<div class="sourceCode" id="cb71"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb71-1"><a href="#cb71-1"></a><span class="ex">sso-build</span> cargo make test-integration</span></code></pre></div>
+<div class="sourceCode" id="cb71"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb71-1"><a href="#cb71-1"></a><span class="ex">sso-build</span> cargo make test</span></code></pre></div>
+<p>Run integration tests. This expects <code>sso-grpc</code> service is running and <code>SSO_TEST_URL</code> and <code>SSO_TEST_KEY</code> environment variables are defined. Where URL is the address of the gRPC server and key is a root key value returned by <code>sso-cli</code>.</p>
+<div class="sourceCode" id="cb72"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb72-1"><a href="#cb72-1"></a><span class="ex">sso-build</span> cargo make test-integration</span>
+<span id="cb72-2"><a href="#cb72-2"></a><span class="kw">for</span> <span class="ex">i</span> in <span class="dt">{1..50}</span><span class="kw">;</span> <span class="kw">do</span> <span class="ex">sso-build</span> cargo make test-integration<span class="kw">;</span> <span class="kw">done</span></span></code></pre></div>
 <p>Compile <a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a> for <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> gateway server.</p>
-<div class="sourceCode" id="cb72"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb72-1"><a href="#cb72-1"></a><span class="ex">sso-build</span> cargo make openapi-protoc</span></code></pre></div>
+<div class="sourceCode" id="cb73"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb73-1"><a href="#cb73-1"></a><span class="ex">sso-build</span> cargo make openapi-protoc</span></code></pre></div>
 <p>Build <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> gateway server.</p>
-<div class="sourceCode" id="cb73"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb73-1"><a href="#cb73-1"></a><span class="ex">sso-build</span> cargo make openapi-bin</span></code></pre></div>
+<div class="sourceCode" id="cb74"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb74-1"><a href="#cb74-1"></a><span class="ex">sso-build</span> cargo make openapi-bin</span></code></pre></div>
 <p>This manual is written in <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Markdown</a> and converted into other formats using <a href="https://pandoc.org/">Pandoc</a>. Build the HTML manual.</p>
-<div class="sourceCode" id="cb74"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb74-1"><a href="#cb74-1"></a><span class="ex">sso-build</span> cargo make manual</span></code></pre></div>
+<div class="sourceCode" id="cb75"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb75-1"><a href="#cb75-1"></a><span class="ex">sso-build</span> cargo make manual</span></code></pre></div>
 <p>Build crate documentation.</p>
-<div class="sourceCode" id="cb75"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb75-1"><a href="#cb75-1"></a><span class="ex">sso-build</span> cargo make doc</span></code></pre></div>
+<div class="sourceCode" id="cb76"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb76-1"><a href="#cb76-1"></a><span class="ex">sso-build</span> cargo make doc</span></code></pre></div>
 <p>Install crate locally.</p>
-<div class="sourceCode" id="cb76"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb76-1"><a href="#cb76-1"></a><span class="ex">cargo</span> install --force --path sso</span></code></pre></div>
+<div class="sourceCode" id="cb77"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb77-1"><a href="#cb77-1"></a><span class="ex">cargo</span> install --force --path sso</span></code></pre></div>
 <p><a href="https://doc.rust-lang.org/cargo/reference/publishing.html">To publish crate(s)</a>.</p>
 <section id="minikube" data-number="5.1">
 <h2 data-number="5.1"><span class="header-section-number">5.1</span> Minikube</h2>
 <p>Create a <a href="https://kubernetes.io/docs/tasks/tools/install-minikube/">Minikube</a> instance.</p>
-<div class="sourceCode" id="cb77"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb77-1"><a href="#cb77-1"></a><span class="ex">minikube</span> start --vm-driver=virtualbox</span>
-<span id="cb77-2"><a href="#cb77-2"></a><span class="ex">minikube</span> status</span>
-<span id="cb77-3"><a href="#cb77-3"></a><span class="ex">minikube</span> stop</span>
-<span id="cb77-4"><a href="#cb77-4"></a><span class="ex">minikube</span> delete</span>
-<span id="cb77-5"><a href="#cb77-5"></a><span class="ex">minikube</span> dashboard</span>
-<span id="cb77-6"><a href="#cb77-6"></a><span class="ex">minikube</span> ip</span></code></pre></div>
+<div class="sourceCode" id="cb78"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb78-1"><a href="#cb78-1"></a><span class="ex">minikube</span> start --vm-driver=virtualbox</span>
+<span id="cb78-2"><a href="#cb78-2"></a><span class="ex">minikube</span> status</span>
+<span id="cb78-3"><a href="#cb78-3"></a><span class="ex">minikube</span> stop</span>
+<span id="cb78-4"><a href="#cb78-4"></a><span class="ex">minikube</span> delete</span>
+<span id="cb78-5"><a href="#cb78-5"></a><span class="ex">minikube</span> dashboard</span>
+<span id="cb78-6"><a href="#cb78-6"></a><span class="ex">minikube</span> ip</span></code></pre></div>
 <p>(Re)build all Docker images and load images into Minikube.</p>
-<div class="sourceCode" id="cb78"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb78-1"><a href="#cb78-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso-build:latest&quot;</span> .</span>
-<span id="cb78-2"><a href="#cb78-2"></a><span class="ex">docker-compose</span> build --parallel</span>
-<span id="cb78-3"><a href="#cb78-3"></a><span class="kw">(</span><span class="bu">cd</span> kubernetes/minikube/docker <span class="kw">&amp;&amp;</span> <span class="fu">bash</span> build.sh<span class="kw">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb79"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb79-1"><a href="#cb79-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso-build:latest&quot;</span> .</span>
+<span id="cb79-2"><a href="#cb79-2"></a><span class="ex">docker-compose</span> build --parallel</span>
+<span id="cb79-3"><a href="#cb79-3"></a><span class="kw">(</span><span class="bu">cd</span> kubernetes/minikube/docker <span class="kw">&amp;&amp;</span> <span class="fu">bash</span> build.sh<span class="kw">)</span></span></code></pre></div>
 </section>
 </section>
 </div>

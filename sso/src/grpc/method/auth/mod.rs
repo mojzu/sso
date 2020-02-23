@@ -5,49 +5,48 @@ pub mod microsoft;
 pub mod token;
 
 use crate::{
-    grpc::{pb, util::*, validate, Server},
+    grpc::{pb, util::*, GrpcServer},
     *,
 };
 use uuid::Uuid;
-use validator::{Validate, ValidationErrors};
 
-impl Validate for pb::AuthTotpRequest {
-    fn validate(&self) -> Result<(), ValidationErrors> {
-        validate::wrap(|e| {
-            validate::uuid(e, "user_id", &self.user_id);
-            validate::totp(e, "totp", &self.totp);
+impl validator::Validate for pb::AuthTotpRequest {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        Validate::wrap(|e| {
+            Validate::uuid(e, "user_id", &self.user_id);
+            Validate::totp(e, "totp", &self.totp);
         })
     }
 }
 
 pub async fn totp_verify(
-    server: &Server,
-    request: MethodRequest<pb::AuthTotpRequest>,
-) -> MethodResult<pb::AuthAuditReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<pb::AuthTotpRequest>,
+) -> GrpcMethodResult<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthTotp,
             |driver, audit| {
                 let service = pattern::key_service_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
                 // TOTP requires token key type.
                 let user = pattern::user_read_id_checked(
                     driver,
                     Some(&service),
                     audit,
-                    string_to_uuid(req.user_id.clone()),
+                    pb::string_to_uuid(req.user_id.clone()),
                 )
-                .map_err(MethodError::BadRequest)?;
+                .map_err(GrpcMethodError::BadRequest)?;
                 let key =
                     pattern::key_read_user_checked(driver, &service, audit, &user, KeyType::Totp)
-                        .map_err(MethodError::BadRequest)?;
+                        .map_err(GrpcMethodError::BadRequest)?;
                 // Verify TOTP code.
-                pattern::totp_verify(&key.value, &req.totp).map_err(MethodError::BadRequest)
+                pattern::totp_verify(&key.value, &req.totp).map_err(GrpcMethodError::BadRequest)
             },
         )
         .map_err(Into::into)
@@ -56,34 +55,34 @@ pub async fn totp_verify(
     .map(|_data| pb::AuthAuditReply { audit: None })
 }
 
-impl Validate for pb::AuthCsrfCreateRequest {
-    fn validate(&self) -> Result<(), ValidationErrors> {
-        validate::wrap(|e| {
-            validate::csrf_expires_s_opt(e, "expires_s", self.expires_s);
+impl validator::Validate for pb::AuthCsrfCreateRequest {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        Validate::wrap(|e| {
+            Validate::csrf_expires_s_opt(e, "expires_s", self.expires_s);
         })
     }
 }
 
 pub async fn csrf_create(
-    server: &Server,
-    request: MethodRequest<pb::AuthCsrfCreateRequest>,
-) -> MethodResult<pb::AuthCsrfCreateReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<pb::AuthCsrfCreateRequest>,
+) -> GrpcMethodResult<pb::AuthCsrfCreateReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthCsrfCreate,
             |driver, audit| {
                 let service = pattern::key_service_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
 
                 let expires_s = req.expires_s.unwrap_or(DEFAULT_CSRF_EXPIRES_S);
-                let conn = driver.conn().map_err(MethodError::BadRequest)?;
+                let conn = driver.conn().map_err(GrpcMethodError::BadRequest)?;
                 Csrf::create(&conn, &CsrfCreate::generate(expires_s, service.id))
-                    .map_err(MethodError::BadRequest)
+                    .map_err(GrpcMethodError::BadRequest)
             },
         )
         .map_err(Into::into)
@@ -94,34 +93,34 @@ pub async fn csrf_create(
     })
 }
 
-impl Validate for pb::AuthCsrfVerifyRequest {
-    fn validate(&self) -> Result<(), ValidationErrors> {
-        validate::wrap(|e| {
-            validate::csrf_token(e, "csrf", &self.csrf);
-            validate::audit_type_opt(e, "audit", self.audit.as_ref().map(|x| &**x))
+impl validator::Validate for pb::AuthCsrfVerifyRequest {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        Validate::wrap(|e| {
+            Validate::csrf_token(e, "csrf", &self.csrf);
+            Validate::audit_type_opt(e, "audit", self.audit.as_ref().map(|x| &**x))
         })
     }
 }
 
 pub async fn csrf_verify(
-    server: &Server,
-    request: MethodRequest<pb::AuthCsrfVerifyRequest>,
-) -> MethodResult<pb::AuthAuditReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<pb::AuthCsrfVerifyRequest>,
+) -> GrpcMethodResult<pb::AuthAuditReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::AuthCsrfVerify,
             |driver, audit| {
                 let service = pattern::key_service_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
 
-                let conn = driver.conn().map_err(MethodError::BadRequest)?;
+                let conn = driver.conn().map_err(GrpcMethodError::BadRequest)?;
                 Csrf::verify(&conn, service.id, Some(req.csrf.clone()))
-                    .map_err(MethodError::BadRequest)
+                    .map_err(GrpcMethodError::BadRequest)
             },
         )
         .map_err(Into::into)
@@ -138,20 +137,22 @@ fn oauth2_login(
     email: String,
     access_token_expires: i64,
     refresh_token_expires: i64,
-) -> MethodResult<UserToken> {
+) -> GrpcMethodResult<UserToken> {
     // Check service making url and callback requests match.
     if service.id != service_id {
-        return Err(MethodError::BadRequest(DriverError::CsrfServiceMismatch));
+        return Err(GrpcMethodError::BadRequest(
+            DriverError::CsrfServiceMismatch,
+        ));
     }
 
     // OAuth2 login requires token key type.
     let user = pattern::user_read_email_checked(driver, Some(&service), audit, &email)
-        .map_err(MethodError::BadRequest)?;
+        .map_err(GrpcMethodError::BadRequest)?;
     let key = pattern::key_read_user_checked(driver, &service, audit, &user, KeyType::Token)
-        .map_err(MethodError::BadRequest)?;
+        .map_err(GrpcMethodError::BadRequest)?;
 
     // Encode user token.
-    let conn = driver.conn().map_err(MethodError::BadRequest)?;
+    let conn = driver.conn().map_err(GrpcMethodError::BadRequest)?;
     Jwt::encode_user(
         &conn,
         &service,
@@ -160,5 +161,5 @@ fn oauth2_login(
         access_token_expires,
         refresh_token_expires,
     )
-    .map_err(MethodError::BadRequest)
+    .map_err(GrpcMethodError::BadRequest)
 }

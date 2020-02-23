@@ -107,6 +107,8 @@ ENV SSO_POSTGRES_URL="postgres://guest:guest@postgres:5432/sso" \
 #     SSO_SMTP_PORT="" \
 #     SSO_SMTP_USER="" \
 #     SSO_SMTP_PASSWORD=""
+# SMTP file transport.
+ENV SSO_SMTP_FILE="./tmp"
 # Pwned Passwords integration.
 ENV SSO_PWNED_PASSWORDS="true"
 # Traefik forward authentication integration.

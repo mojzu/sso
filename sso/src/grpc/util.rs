@@ -1,10 +1,5 @@
 //! Utility types and functions.
-use crate::{
-    grpc::{self, pb},
-    *,
-};
-use chrono::{DateTime, Utc};
-use std::convert::TryInto;
+use crate::{grpc::pb, *};
 use std::net::SocketAddr;
 use tokio::task;
 use tonic::{metadata::MetadataMap, Request, Status};
@@ -34,16 +29,16 @@ where
 }
 
 /// Run a blocking closure on threadpool from a gRPC handler method.
-pub async fn method_blocking<T, F>(f: F) -> MethodResult<T>
+pub async fn blocking_method<T, F>(f: F) -> GrpcMethodResult<T>
 where
-    F: Send + FnOnce() -> MethodResult<T> + 'static,
+    F: Send + FnOnce() -> GrpcMethodResult<T> + 'static,
     T: Send + 'static,
 {
-    blocking::<T, MethodError, _>(f).await
+    blocking::<T, GrpcMethodError, _>(f).await
 }
 
 /// Run a blocking closure on threadpool from a hyper handler method.
-pub async fn hyper_blocking<T, F>(f: F) -> Result<T, hyper::Error>
+pub async fn blocking_hyper<T, F>(f: F) -> Result<T, hyper::Error>
 where
     F: Send + FnOnce() -> Result<T, hyper::Error> + 'static,
     T: Send + 'static,
@@ -53,7 +48,7 @@ where
 
 /// Method errors.
 #[derive(Debug, Fail)]
-pub enum MethodError {
+pub enum GrpcMethodError {
     #[fail(display = "BadRequest {}", _0)]
     BadRequest(#[fail(cause)] DriverError),
 
@@ -74,20 +69,20 @@ pub enum MethodError {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct MethodErrorData {
+struct GrpcMethodErrorData {
     code: u16,
     message: String,
 }
 
-impl MethodError {
+impl GrpcMethodError {
     pub fn get_status(&self) -> Status {
         match self {
-            MethodError::BadRequest(e) => Status::invalid_argument(self.driver_string(e)),
-            MethodError::Unauthorised(e) => Status::unauthenticated(self.driver_string(e)),
-            MethodError::Forbidden(e) => Status::permission_denied(self.driver_string(e)),
-            MethodError::NotFound(e) => Status::not_found(self.driver_string(e)),
-            MethodError::InternalServerError(e) => Status::internal(self.driver_string(e)),
-            MethodError::Status(e) => e.clone(),
+            GrpcMethodError::BadRequest(e) => Status::invalid_argument(self.driver_string(e)),
+            GrpcMethodError::Unauthorised(e) => Status::unauthenticated(self.driver_string(e)),
+            GrpcMethodError::Forbidden(e) => Status::permission_denied(self.driver_string(e)),
+            GrpcMethodError::NotFound(e) => Status::not_found(self.driver_string(e)),
+            GrpcMethodError::InternalServerError(e) => Status::internal(self.driver_string(e)),
+            GrpcMethodError::Status(e) => e.clone(),
         }
     }
 
@@ -100,9 +95,9 @@ impl MethodError {
         serde_json::to_value(self.get_data()).unwrap()
     }
 
-    fn get_data(&self) -> MethodErrorData {
+    fn get_data(&self) -> GrpcMethodErrorData {
         let e = self.get_status();
-        MethodErrorData {
+        GrpcMethodErrorData {
             code: e.code() as u16,
             message: e.message().to_owned(),
         }
@@ -116,52 +111,53 @@ impl MethodError {
     }
 }
 
-impl From<MethodError> for Status {
-    fn from(e: MethodError) -> Self {
+impl From<GrpcMethodError> for Status {
+    fn from(e: GrpcMethodError) -> Self {
         e.get_status()
     }
 }
 
-impl From<Status> for MethodError {
+impl From<Status> for GrpcMethodError {
     fn from(e: Status) -> Self {
-        MethodError::Status(e)
+        GrpcMethodError::Status(e)
     }
 }
 
 /// Method result wrapper type.
-pub type MethodResult<T> = Result<T, MethodError>;
+pub type GrpcMethodResult<T> = Result<T, GrpcMethodError>;
 
 /// Request message with extracted metadata.
 #[derive(Debug)]
-pub struct MethodRequest<T> {
+pub struct GrpcMethodRequest<T> {
     audit: AuditMeta,
     auth: HeaderAuth,
     message: T,
 }
 
-impl<T> MethodRequest<T> {
-    pub fn from_request<R>(request: Request<R>, traefik_enabled: bool) -> MethodResult<Self>
+impl<T> GrpcMethodRequest<T> {
+    pub fn from_request<R>(request: Request<R>, traefik_enabled: bool) -> GrpcMethodResult<Self>
     where
         R: validator::Validate,
         T: From<R>,
     {
         let (audit, auth) =
             request_audit_auth(request.remote_addr(), request.metadata(), traefik_enabled)?;
-        let message = grpc::validate::validate(request.into_inner())?;
-        Ok(MethodRequest {
+        let message =
+            Validate::validate(request.into_inner()).map_err(GrpcMethodError::BadRequest)?;
+        Ok(GrpcMethodRequest {
             audit,
             auth,
             message: message.into(),
         })
     }
 
-    pub fn from_unit(request: Request<()>, traefik_enabled: bool) -> MethodResult<Self>
+    pub fn from_unit(request: Request<()>, traefik_enabled: bool) -> GrpcMethodResult<Self>
     where
         T: Default,
     {
         let (audit, auth) =
             request_audit_auth(request.remote_addr(), request.metadata(), traefik_enabled)?;
-        Ok(MethodRequest {
+        Ok(GrpcMethodRequest {
             audit,
             auth,
             message: T::default(),
@@ -173,15 +169,15 @@ impl<T> MethodRequest<T> {
     }
 }
 
-impl MethodRequest<serde_json::Value> {
+impl GrpcMethodRequest<serde_json::Value> {
     pub fn from_struct(
         request: Request<prost_types::Struct>,
         traefik_enabled: bool,
-    ) -> MethodResult<MethodRequest<serde_json::Value>> {
+    ) -> GrpcMethodResult<GrpcMethodRequest<serde_json::Value>> {
         let (audit, auth) =
             request_audit_auth(request.remote_addr(), request.metadata(), traefik_enabled)?;
-        let message = struct_opt_to_value_opt(Some(request.into_inner())).unwrap();
-        Ok(MethodRequest {
+        let message = pb::struct_opt_to_value_opt(Some(request.into_inner())).unwrap();
+        Ok(GrpcMethodRequest {
             audit,
             auth,
             message,
@@ -194,16 +190,16 @@ pub(crate) fn audit_result<F, T>(
     audit_meta: AuditMeta,
     audit_type: AuditType,
     f: F,
-) -> MethodResult<T>
+) -> GrpcMethodResult<T>
 where
-    F: Fn(&Postgres, &mut AuditBuilder) -> MethodResult<T>,
+    F: Fn(&Postgres, &mut AuditBuilder) -> GrpcMethodResult<T>,
 {
     let mut audit = AuditBuilder::new(audit_meta, audit_type);
     match f(driver, &mut audit) {
         Ok(res) => {
             audit
                 .create_data::<bool>(driver, 0, None, None)
-                .map_err(MethodError::InternalServerError)?;
+                .map_err(GrpcMethodError::InternalServerError)?;
             Ok(res)
         }
         Err(e) => {
@@ -215,7 +211,7 @@ where
                     None,
                     Some(AuditDiffBuilder::typed_data("error", data)),
                 )
-                .map_err(MethodError::InternalServerError)?;
+                .map_err(GrpcMethodError::InternalServerError)?;
             Err(e)
         }
     }
@@ -226,9 +222,9 @@ pub(crate) fn audit_result_err<F, T>(
     audit_meta: AuditMeta,
     audit_type: AuditType,
     f: F,
-) -> MethodResult<T>
+) -> GrpcMethodResult<T>
 where
-    F: Fn(&Postgres, &mut AuditBuilder) -> MethodResult<T>,
+    F: Fn(&Postgres, &mut AuditBuilder) -> GrpcMethodResult<T>,
 {
     let mut audit = AuditBuilder::new(audit_meta, audit_type);
     match f(driver, &mut audit) {
@@ -242,7 +238,7 @@ where
                     None,
                     Some(AuditDiffBuilder::typed_data("error", data)),
                 )
-                .map_err(MethodError::InternalServerError)?;
+                .map_err(GrpcMethodError::InternalServerError)?;
             Err(e)
         }
     }
@@ -253,9 +249,9 @@ pub(crate) fn audit_result_subject<F, T>(
     audit_meta: AuditMeta,
     audit_type: AuditType,
     f: F,
-) -> MethodResult<T>
+) -> GrpcMethodResult<T>
 where
-    F: Fn(&Postgres, &mut AuditBuilder) -> MethodResult<T>,
+    F: Fn(&Postgres, &mut AuditBuilder) -> GrpcMethodResult<T>,
     T: AuditSubject,
 {
     let mut audit = AuditBuilder::new(audit_meta, audit_type);
@@ -263,7 +259,7 @@ where
         Ok(res) => {
             audit
                 .create_data::<bool>(driver, 0, Some(res.subject()), None)
-                .map_err(MethodError::InternalServerError)?;
+                .map_err(GrpcMethodError::InternalServerError)?;
             Ok(res)
         }
         Err(e) => {
@@ -275,7 +271,7 @@ where
                     None,
                     Some(AuditDiffBuilder::typed_data("error", data)),
                 )
-                .map_err(MethodError::InternalServerError)?;
+                .map_err(GrpcMethodError::InternalServerError)?;
             Err(e)
         }
     }
@@ -286,9 +282,9 @@ pub(crate) fn audit_result_diff<F, T>(
     audit_meta: AuditMeta,
     audit_type: AuditType,
     f: F,
-) -> MethodResult<T>
+) -> GrpcMethodResult<T>
 where
-    F: Fn(&Postgres, &mut AuditBuilder) -> MethodResult<(T, T)>,
+    F: Fn(&Postgres, &mut AuditBuilder) -> GrpcMethodResult<(T, T)>,
     T: AuditSubject + AuditDiff,
 {
     let mut audit = AuditBuilder::new(audit_meta, audit_type);
@@ -297,7 +293,7 @@ where
             let diff = n.diff(&p);
             audit
                 .create_data(driver, 0, Some(n.subject()), Some(diff))
-                .map_err(MethodError::InternalServerError)?;
+                .map_err(GrpcMethodError::InternalServerError)?;
             Ok(n)
         }
         Err(e) => {
@@ -309,7 +305,7 @@ where
                     None,
                     Some(AuditDiffBuilder::typed_data("error", data)),
                 )
-                .map_err(MethodError::InternalServerError)?;
+                .map_err(GrpcMethodError::InternalServerError)?;
             Err(e)
         }
     }
@@ -320,7 +316,7 @@ fn request_audit_auth(
     remote: Option<SocketAddr>,
     metadata: &MetadataMap,
     traefik_enabled: bool,
-) -> MethodResult<(AuditMeta, HeaderAuth)> {
+) -> GrpcMethodResult<(AuditMeta, HeaderAuth)> {
     let remote = match remote {
         Some(remote) => format!("{}", remote),
         None => String::from(""),
@@ -332,178 +328,11 @@ fn request_audit_auth(
     ))
 }
 
-pub fn timestamp_opt_to_datetime_opt(ti: Option<prost_types::Timestamp>) -> Option<DateTime<Utc>> {
-    match ti {
-        Some(ti) => {
-            let st: std::time::SystemTime = ti.try_into().unwrap();
-            let dt: DateTime<Utc> = st.into();
-            Some(dt)
-        }
-        None => None,
-    }
-}
-
-pub fn timestamp_opt_to_datetime(ti: Option<prost_types::Timestamp>) -> DateTime<Utc> {
-    timestamp_opt_to_datetime_opt(ti).unwrap()
-}
-
-pub fn datetime_to_timestamp_opt(dt: DateTime<Utc>) -> Option<prost_types::Timestamp> {
-    let st: std::time::SystemTime = dt.into();
-    let ti: prost_types::Timestamp = st.into();
-    Some(ti)
-}
-
-pub fn string_to_uuid(s: String) -> Uuid {
-    Uuid::parse_str(s.as_ref()).unwrap()
-}
-
-pub fn string_opt_to_uuid_opt(s: Option<String>) -> Option<Uuid> {
-    match s {
-        Some(s) => {
-            let u: Uuid = Uuid::parse_str(s.as_ref()).unwrap();
-            Some(u)
-        }
-        None => None,
-    }
-}
-
-pub fn string_vec_to_uuid_vec_opt(s: Vec<String>) -> Option<Vec<Uuid>> {
-    if s.is_empty() {
-        None
-    } else {
-        Some(
-            s.into_iter()
-                .map(|s| Uuid::parse_str(s.as_ref()).unwrap())
-                .collect(),
-        )
-    }
-}
-
-pub fn string_vec_to_string_vec_opt(s: Vec<String>) -> Option<Vec<String>> {
-    if s.is_empty() {
-        None
-    } else {
-        Some(s)
-    }
-}
-
-pub fn i32_vec_to_key_type_vec_opt(s: Vec<i32>) -> Option<Vec<KeyType>> {
-    if s.is_empty() {
-        None
-    } else {
-        Some(s.into_iter().map(KeyType::from_i32).collect())
-    }
-}
-
-pub fn key_type_vec_opt_to_i32_vec(s: Option<Vec<KeyType>>) -> Vec<i32> {
-    match s {
-        Some(s) => s.into_iter().map(|x| x as i32).collect(),
-        None => Vec::new(),
-    }
-}
-
-pub fn uuid_to_string(u: Uuid) -> String {
-    format!("{}", u)
-}
-
-pub fn uuid_opt_to_string_opt(u: Option<Uuid>) -> Option<String> {
-    match u {
-        Some(u) => Some(uuid_to_string(u)),
-        None => None,
-    }
-}
-
-pub fn uuid_vec_opt_to_string_vec(u: Option<Vec<Uuid>>) -> Vec<String> {
-    match u {
-        Some(u) => u
-            .into_iter()
-            .map::<String, _>(|x| format!("{}", x))
-            .collect(),
-        None => Vec::new(),
-    }
-}
-
-fn struct_kind_to_value(s: prost_types::value::Kind) -> serde_json::Value {
-    match s {
-        prost_types::value::Kind::NullValue(_x) => serde_json::Value::Null,
-        prost_types::value::Kind::NumberValue(x) => {
-            let n = serde_json::Number::from_f64(x);
-            serde_json::Value::Number(n.unwrap())
-        }
-        prost_types::value::Kind::StringValue(x) => serde_json::Value::String(x),
-        prost_types::value::Kind::BoolValue(x) => serde_json::Value::Bool(x),
-        prost_types::value::Kind::StructValue(x) => struct_opt_to_value_opt(Some(x)).unwrap(),
-        prost_types::value::Kind::ListValue(x) => {
-            let mut v = Vec::new();
-            for value in x.values {
-                if let Some(kind) = value.kind {
-                    v.push(struct_kind_to_value(kind))
-                }
-            }
-            serde_json::Value::Array(v)
-        }
-    }
-}
-
-pub fn struct_to_value(s: prost_types::Struct) -> serde_json::Value {
-    let mut m = serde_json::Map::default();
-    for (key, value) in s.fields {
-        if let Some(kind) = value.kind {
-            m.insert(key, struct_kind_to_value(kind));
-        }
-    }
-    serde_json::Value::Object(m)
-}
-
-pub fn struct_opt_to_value_opt(s: Option<prost_types::Struct>) -> Option<serde_json::Value> {
-    match s {
-        Some(s) => Some(struct_to_value(s)),
-        None => None,
-    }
-}
-
-fn value_to_struct_value(value: serde_json::Value) -> prost_types::Value {
-    let kind: prost_types::value::Kind = match value {
-        serde_json::Value::Null => prost_types::value::Kind::NullValue(0),
-        serde_json::Value::Bool(x) => prost_types::value::Kind::BoolValue(x),
-        serde_json::Value::Number(x) => prost_types::value::Kind::NumberValue(x.as_f64().unwrap()),
-        serde_json::Value::String(x) => prost_types::value::Kind::StringValue(x),
-        serde_json::Value::Array(x) => {
-            let mut v = Vec::new();
-            for value in x {
-                v.push(value_to_struct_value(value));
-            }
-            prost_types::value::Kind::ListValue(prost_types::ListValue { values: v })
-        }
-        serde_json::Value::Object(x) => {
-            let mut fields = std::collections::BTreeMap::new();
-            for (key, value) in x {
-                fields.insert(key, value_to_struct_value(value));
-            }
-            prost_types::value::Kind::StructValue(prost_types::Struct { fields })
-        }
-    };
-    prost_types::Value { kind: Some(kind) }
-}
-
-pub fn value_to_struct_opt(s: serde_json::Value) -> Option<prost_types::Struct> {
-    let mut fields = std::collections::BTreeMap::new();
-    match s {
-        serde_json::Value::Object(x) => {
-            for (key, value) in x {
-                fields.insert(key, value_to_struct_value(value));
-            }
-            Some(prost_types::Struct { fields })
-        }
-        _ => None,
-    }
-}
-
 impl From<pb::KeyListRequest> for KeyList {
     fn from(r: pb::KeyListRequest) -> Self {
         let limit = r.limit.unwrap_or(DEFAULT_LIMIT);
-        let gt = string_opt_to_uuid_opt(r.gt);
-        let lt = string_opt_to_uuid_opt(r.lt);
+        let gt = pb::string_opt_to_uuid_opt(r.gt);
+        let lt = pb::string_opt_to_uuid_opt(r.lt);
         let query = match (gt, lt) {
             (Some(gt), Some(_lt)) => KeyListQuery::IdGt(gt),
             (Some(gt), None) => KeyListQuery::IdGt(gt),
@@ -511,12 +340,12 @@ impl From<pb::KeyListRequest> for KeyList {
             (None, None) => KeyListQuery::Limit,
         };
         let filter = KeyListFilter {
-            id: string_vec_to_uuid_vec_opt(r.id),
+            id: pb::string_vec_to_uuid_vec_opt(r.id),
             is_enabled: r.is_enabled,
             is_revoked: r.is_revoked,
-            type_: i32_vec_to_key_type_vec_opt(r.r#type),
-            service_id: string_vec_to_uuid_vec_opt(r.service_id),
-            user_id: string_vec_to_uuid_vec_opt(r.user_id),
+            type_: pb::i32_vec_to_key_type_vec_opt(r.r#type),
+            service_id: pb::string_vec_to_uuid_vec_opt(r.service_id),
+            user_id: pb::string_vec_to_uuid_vec_opt(r.user_id),
             limit,
         };
         KeyList { query, filter }
@@ -525,12 +354,12 @@ impl From<pb::KeyListRequest> for KeyList {
 
 impl From<KeyList> for pb::KeyListRequest {
     fn from(l: KeyList) -> Self {
-        let id = uuid_vec_opt_to_string_vec(l.filter.id);
+        let id = pb::uuid_vec_opt_to_string_vec(l.filter.id);
         let is_enabled = l.filter.is_enabled;
         let is_revoked = l.filter.is_revoked;
-        let type_ = key_type_vec_opt_to_i32_vec(l.filter.type_);
-        let service_id = uuid_vec_opt_to_string_vec(l.filter.service_id);
-        let user_id = uuid_vec_opt_to_string_vec(l.filter.user_id);
+        let type_ = pb::key_type_vec_opt_to_i32_vec(l.filter.type_);
+        let service_id = pb::uuid_vec_opt_to_string_vec(l.filter.service_id);
+        let user_id = pb::uuid_vec_opt_to_string_vec(l.filter.user_id);
         let limit = l.filter.limit;
         match l.query {
             KeyListQuery::Limit => Self {
@@ -545,7 +374,7 @@ impl From<KeyList> for pb::KeyListRequest {
                 user_id,
             },
             KeyListQuery::IdGt(gt) => Self {
-                gt: Some(uuid_to_string(gt)),
+                gt: Some(pb::uuid_to_string(gt)),
                 lt: None,
                 limit: Some(limit),
                 id,
@@ -557,7 +386,7 @@ impl From<KeyList> for pb::KeyListRequest {
             },
             KeyListQuery::IdLt(lt) => Self {
                 gt: None,
-                lt: Some(uuid_to_string(lt)),
+                lt: Some(pb::uuid_to_string(lt)),
                 limit: Some(limit),
                 id,
                 is_enabled,
@@ -573,15 +402,15 @@ impl From<KeyList> for pb::KeyListRequest {
 impl From<Key> for pb::Key {
     fn from(r: Key) -> Self {
         Self {
-            created_at: datetime_to_timestamp_opt(r.created_at),
-            updated_at: datetime_to_timestamp_opt(r.updated_at),
-            id: uuid_to_string(r.id),
+            created_at: pb::datetime_to_timestamp_opt(r.created_at),
+            updated_at: pb::datetime_to_timestamp_opt(r.updated_at),
+            id: pb::uuid_to_string(r.id),
             is_enabled: r.is_enabled,
             is_revoked: r.is_revoked,
             r#type: r.type_ as i32,
             name: r.name,
-            service_id: uuid_opt_to_string_opt(r.service_id),
-            user_id: uuid_opt_to_string_opt(r.user_id),
+            service_id: pb::uuid_opt_to_string_opt(r.service_id),
+            user_id: pb::uuid_opt_to_string_opt(r.user_id),
         }
     }
 }
@@ -589,15 +418,15 @@ impl From<Key> for pb::Key {
 impl From<KeyWithValue> for pb::Key {
     fn from(r: KeyWithValue) -> Self {
         Self {
-            created_at: datetime_to_timestamp_opt(r.created_at),
-            updated_at: datetime_to_timestamp_opt(r.updated_at),
-            id: uuid_to_string(r.id),
+            created_at: pb::datetime_to_timestamp_opt(r.created_at),
+            updated_at: pb::datetime_to_timestamp_opt(r.updated_at),
+            id: pb::uuid_to_string(r.id),
             is_enabled: r.is_enabled,
             is_revoked: r.is_revoked,
             r#type: r.type_ as i32,
             name: r.name,
-            service_id: uuid_opt_to_string_opt(r.service_id),
-            user_id: uuid_opt_to_string_opt(r.user_id),
+            service_id: pb::uuid_opt_to_string_opt(r.service_id),
+            user_id: pb::uuid_opt_to_string_opt(r.user_id),
         }
     }
 }
@@ -610,8 +439,8 @@ impl From<pb::KeyCreateRequest> for KeyCreate {
             type_: KeyType::from_i32(r.r#type),
             name: r.name,
             value: "".to_owned(),
-            service_id: string_opt_to_uuid_opt(r.service_id),
-            user_id: string_opt_to_uuid_opt(r.user_id),
+            service_id: pb::string_opt_to_uuid_opt(r.service_id),
+            user_id: pb::string_opt_to_uuid_opt(r.user_id),
         }
     }
 }
@@ -628,14 +457,17 @@ impl From<KeyWithValue> for pb::KeyWithValue {
 
 impl From<pb::KeyReadRequest> for KeyRead {
     fn from(r: pb::KeyReadRequest) -> Self {
-        Self::IdUser(string_to_uuid(r.id), string_opt_to_uuid_opt(r.user_id))
+        Self::IdUser(
+            pb::string_to_uuid(r.id),
+            pb::string_opt_to_uuid_opt(r.user_id),
+        )
     }
 }
 
 impl From<pb::KeyUpdateRequest> for KeyUpdate {
     fn from(r: pb::KeyUpdateRequest) -> Self {
         Self {
-            id: string_to_uuid(r.id),
+            id: pb::string_to_uuid(r.id),
             is_enabled: r.is_enabled,
             is_revoked: None,
             name: r.name,
@@ -646,8 +478,8 @@ impl From<pb::KeyUpdateRequest> for KeyUpdate {
 impl From<pb::ServiceListRequest> for ServiceList {
     fn from(r: pb::ServiceListRequest) -> Self {
         let limit = r.limit.unwrap_or(DEFAULT_LIMIT);
-        let gt = string_opt_to_uuid_opt(r.gt);
-        let lt = string_opt_to_uuid_opt(r.lt);
+        let gt = pb::string_opt_to_uuid_opt(r.gt);
+        let lt = pb::string_opt_to_uuid_opt(r.lt);
         let query = match (gt, lt) {
             (Some(gt), Some(_lt)) => ServiceListQuery::IdGt(gt),
             (Some(gt), None) => ServiceListQuery::IdGt(gt),
@@ -655,7 +487,7 @@ impl From<pb::ServiceListRequest> for ServiceList {
             (None, None) => ServiceListQuery::Limit,
         };
         let filter = ServiceListFilter {
-            id: string_vec_to_uuid_vec_opt(r.id),
+            id: pb::string_vec_to_uuid_vec_opt(r.id),
             is_enabled: r.is_enabled,
             limit,
         };
@@ -681,7 +513,7 @@ impl From<pb::ServiceCreateRequest> for ServiceCreate {
 impl From<pb::ServiceReadRequest> for ServiceRead {
     fn from(r: pb::ServiceReadRequest) -> Self {
         Self {
-            id: string_to_uuid(r.id),
+            id: pb::string_to_uuid(r.id),
         }
     }
 }
@@ -689,7 +521,7 @@ impl From<pb::ServiceReadRequest> for ServiceRead {
 impl From<pb::ServiceUpdateRequest> for ServiceUpdate {
     fn from(r: pb::ServiceUpdateRequest) -> Self {
         Self {
-            id: string_to_uuid(r.id),
+            id: pb::string_to_uuid(r.id),
             is_enabled: r.is_enabled,
             name: r.name,
             url: r.url,
@@ -704,7 +536,7 @@ impl From<pb::ServiceUpdateRequest> for ServiceUpdate {
 
 impl From<ServiceList> for pb::ServiceListRequest {
     fn from(l: ServiceList) -> Self {
-        let id = uuid_vec_opt_to_string_vec(l.filter.id);
+        let id = pb::uuid_vec_opt_to_string_vec(l.filter.id);
         let is_enabled = l.filter.is_enabled;
         let limit = l.filter.limit;
         match l.query {
@@ -716,7 +548,7 @@ impl From<ServiceList> for pb::ServiceListRequest {
                 is_enabled,
             },
             ServiceListQuery::IdGt(gt) => Self {
-                gt: Some(uuid_to_string(gt)),
+                gt: Some(pb::uuid_to_string(gt)),
                 lt: None,
                 limit: Some(limit),
                 id,
@@ -724,7 +556,7 @@ impl From<ServiceList> for pb::ServiceListRequest {
             },
             ServiceListQuery::IdLt(lt) => Self {
                 gt: None,
-                lt: Some(uuid_to_string(lt)),
+                lt: Some(pb::uuid_to_string(lt)),
                 limit: Some(limit),
                 id,
                 is_enabled,
@@ -736,9 +568,9 @@ impl From<ServiceList> for pb::ServiceListRequest {
 impl From<Service> for pb::Service {
     fn from(r: Service) -> Self {
         Self {
-            created_at: datetime_to_timestamp_opt(r.created_at),
-            updated_at: datetime_to_timestamp_opt(r.updated_at),
-            id: uuid_to_string(r.id),
+            created_at: pb::datetime_to_timestamp_opt(r.created_at),
+            updated_at: pb::datetime_to_timestamp_opt(r.updated_at),
+            id: pb::uuid_to_string(r.id),
             is_enabled: r.is_enabled,
             name: r.name,
             url: r.url,
@@ -763,9 +595,9 @@ impl From<UserTokenAccess> for pb::AuthToken {
 impl From<pb::UserListRequest> for UserList {
     fn from(r: pb::UserListRequest) -> Self {
         let limit = r.limit.unwrap_or(DEFAULT_LIMIT);
-        let gt = string_opt_to_uuid_opt(r.gt);
-        let lt = string_opt_to_uuid_opt(r.lt);
-        let offset_id = string_opt_to_uuid_opt(r.offset_id);
+        let gt = pb::string_opt_to_uuid_opt(r.gt);
+        let lt = pb::string_opt_to_uuid_opt(r.lt);
+        let offset_id = pb::string_opt_to_uuid_opt(r.offset_id);
         let query = match (gt, lt, r.name_ge, r.name_le) {
             (Some(gt), _, _, _) => UserListQuery::IdGt(gt),
             (_, Some(lt), _, _) => UserListQuery::IdLt(lt),
@@ -774,8 +606,8 @@ impl From<pb::UserListRequest> for UserList {
             (_, _, _, _) => UserListQuery::IdGt(Uuid::nil()),
         };
         let filter = UserListFilter {
-            id: string_vec_to_uuid_vec_opt(r.id),
-            email: string_vec_to_string_vec_opt(r.email),
+            id: pb::string_vec_to_uuid_vec_opt(r.id),
+            email: pb::string_vec_to_string_vec_opt(r.email),
             limit,
         };
         Self { query, filter }
@@ -807,21 +639,21 @@ impl From<pb::UserCreateRequest> for UserCreate {
 impl pb::UserReadRequest {
     pub fn from_uuid(u: Uuid) -> Self {
         Self {
-            id: uuid_to_string(u),
+            id: pb::uuid_to_string(u),
         }
     }
 }
 
 impl From<pb::UserReadRequest> for UserRead {
     fn from(r: pb::UserReadRequest) -> Self {
-        Self::Id(string_to_uuid(r.id))
+        Self::Id(pb::string_to_uuid(r.id))
     }
 }
 
 impl From<pb::UserUpdateRequest> for UserUpdate {
     fn from(r: pb::UserUpdateRequest) -> Self {
         Self::new(
-            string_to_uuid(r.id),
+            pb::string_to_uuid(r.id),
             r.is_enabled,
             r.name,
             r.locale,
@@ -834,11 +666,11 @@ impl From<pb::UserUpdateRequest> for UserUpdate {
 
 impl From<UserList> for pb::UserListRequest {
     fn from(l: UserList) -> Self {
-        let id = uuid_vec_opt_to_string_vec(l.filter.id);
+        let id = pb::uuid_vec_opt_to_string_vec(l.filter.id);
         let email = l.filter.email.unwrap_or_default();
         match l.query {
             UserListQuery::IdGt(gt) => Self {
-                gt: Some(uuid_to_string(gt)),
+                gt: Some(pb::uuid_to_string(gt)),
                 lt: None,
                 name_ge: None,
                 name_le: None,
@@ -849,7 +681,7 @@ impl From<UserList> for pb::UserListRequest {
             },
             UserListQuery::IdLt(lt) => Self {
                 gt: None,
-                lt: Some(uuid_to_string(lt)),
+                lt: Some(pb::uuid_to_string(lt)),
                 name_ge: None,
                 name_le: None,
                 limit: Some(l.filter.limit),
@@ -863,7 +695,7 @@ impl From<UserList> for pb::UserListRequest {
                 name_ge: Some(name_ge),
                 name_le: None,
                 limit: Some(l.filter.limit),
-                offset_id: uuid_opt_to_string_opt(offset_id),
+                offset_id: pb::uuid_opt_to_string_opt(offset_id),
                 id,
                 email,
             },
@@ -873,7 +705,7 @@ impl From<UserList> for pb::UserListRequest {
                 name_ge: None,
                 name_le: Some(name_le),
                 limit: Some(l.filter.limit),
-                offset_id: uuid_opt_to_string_opt(offset_id),
+                offset_id: pb::uuid_opt_to_string_opt(offset_id),
                 id,
                 email,
             },
@@ -884,9 +716,9 @@ impl From<UserList> for pb::UserListRequest {
 impl From<User> for pb::User {
     fn from(r: User) -> Self {
         Self {
-            created_at: datetime_to_timestamp_opt(r.created_at),
-            updated_at: datetime_to_timestamp_opt(r.updated_at),
-            id: uuid_to_string(r.id),
+            created_at: pb::datetime_to_timestamp_opt(r.created_at),
+            updated_at: pb::datetime_to_timestamp_opt(r.updated_at),
+            id: pb::uuid_to_string(r.id),
             is_enabled: r.is_enabled,
             name: r.name,
             email: r.email,
@@ -901,9 +733,9 @@ impl From<User> for pb::User {
 impl From<pb::User> for User {
     fn from(r: pb::User) -> Self {
         Self {
-            created_at: timestamp_opt_to_datetime(r.created_at),
-            updated_at: timestamp_opt_to_datetime(r.updated_at),
-            id: string_to_uuid(r.id),
+            created_at: pb::timestamp_opt_to_datetime(r.created_at),
+            updated_at: pb::timestamp_opt_to_datetime(r.updated_at),
+            id: pb::string_to_uuid(r.id),
             is_enabled: r.is_enabled,
             name: r.name,
             email: r.email,
@@ -943,34 +775,34 @@ impl UserToken {
 
 impl From<pb::AuditReadRequest> for AuditRead {
     fn from(r: pb::AuditReadRequest) -> Self {
-        Self::new(string_to_uuid(r.id)).subject(r.subject)
+        Self::new(pb::string_to_uuid(r.id)).subject(r.subject)
     }
 }
 
 impl From<pb::AuditUpdateRequest> for AuditUpdate {
     fn from(r: pb::AuditUpdateRequest) -> Self {
         Self {
-            id: string_to_uuid(r.id),
+            id: pb::string_to_uuid(r.id),
             status_code: r.status_code.map(|x| x as u16),
             subject: r.subject,
-            data: struct_opt_to_value_opt(r.data),
+            data: pb::struct_opt_to_value_opt(r.data),
         }
     }
 }
 
 impl From<AuditList> for pb::AuditListRequest {
     fn from(l: AuditList) -> Self {
-        let id = uuid_vec_opt_to_string_vec(l.filter.id);
+        let id = pb::uuid_vec_opt_to_string_vec(l.filter.id);
         let type_ = l.filter.type_.unwrap_or_default();
         let subject = l.filter.subject.unwrap_or_default();
-        let service_id = uuid_vec_opt_to_string_vec(l.filter.service_id);
-        let user_id = uuid_vec_opt_to_string_vec(l.filter.user_id);
+        let service_id = pb::uuid_vec_opt_to_string_vec(l.filter.service_id);
+        let user_id = pb::uuid_vec_opt_to_string_vec(l.filter.user_id);
         match l.query {
             AuditListQuery::CreatedLe(le, limit, offset_id) => Self {
                 ge: None,
-                le: datetime_to_timestamp_opt(le),
+                le: pb::datetime_to_timestamp_opt(le),
                 limit: Some(limit),
-                offset_id: uuid_opt_to_string_opt(offset_id),
+                offset_id: pb::uuid_opt_to_string_opt(offset_id),
                 id,
                 r#type: type_,
                 subject,
@@ -978,10 +810,10 @@ impl From<AuditList> for pb::AuditListRequest {
                 user_id,
             },
             AuditListQuery::CreatedGe(ge, limit, offset_id) => Self {
-                ge: datetime_to_timestamp_opt(ge),
+                ge: pb::datetime_to_timestamp_opt(ge),
                 le: None,
                 limit: Some(limit),
-                offset_id: uuid_opt_to_string_opt(offset_id),
+                offset_id: pb::uuid_opt_to_string_opt(offset_id),
                 id,
                 r#type: type_,
                 subject,
@@ -989,10 +821,10 @@ impl From<AuditList> for pb::AuditListRequest {
                 user_id,
             },
             AuditListQuery::CreatedLeAndGe(le, ge, limit, offset_id) => Self {
-                ge: datetime_to_timestamp_opt(ge),
-                le: datetime_to_timestamp_opt(le),
+                ge: pb::datetime_to_timestamp_opt(ge),
+                le: pb::datetime_to_timestamp_opt(le),
                 limit: Some(limit),
-                offset_id: uuid_opt_to_string_opt(offset_id),
+                offset_id: pb::uuid_opt_to_string_opt(offset_id),
                 id,
                 r#type: type_,
                 subject,
@@ -1006,20 +838,20 @@ impl From<AuditList> for pb::AuditListRequest {
 impl From<Audit> for pb::Audit {
     fn from(r: Audit) -> Self {
         Self {
-            created_at: datetime_to_timestamp_opt(r.created_at),
-            updated_at: datetime_to_timestamp_opt(r.updated_at),
-            id: uuid_to_string(r.id),
+            created_at: pb::datetime_to_timestamp_opt(r.created_at),
+            updated_at: pb::datetime_to_timestamp_opt(r.updated_at),
+            id: pb::uuid_to_string(r.id),
             user_agent: r.user_agent,
             remote: r.remote,
             forwarded: r.forwarded,
             status_code: r.status_code.map(|x| x as u32),
             r#type: r.type_,
             subject: r.subject,
-            data: value_to_struct_opt(r.data),
-            key_id: uuid_opt_to_string_opt(r.key_id),
-            service_id: uuid_opt_to_string_opt(r.service_id),
-            user_id: uuid_opt_to_string_opt(r.user_id),
-            user_key_id: uuid_opt_to_string_opt(r.user_key_id),
+            data: pb::value_to_struct_opt(r.data),
+            key_id: pb::uuid_opt_to_string_opt(r.key_id),
+            service_id: pb::uuid_opt_to_string_opt(r.service_id),
+            user_id: pb::uuid_opt_to_string_opt(r.user_id),
+            user_key_id: pb::uuid_opt_to_string_opt(r.user_key_id),
         }
     }
 }

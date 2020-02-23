@@ -1,42 +1,41 @@
 use crate::{
-    grpc::{pb, util::*, validate, Server},
+    grpc::{pb, util::*, GrpcServer},
     *,
 };
-use validator::{Validate, ValidationErrors};
 
-impl Validate for pb::KeyListRequest {
-    fn validate(&self) -> Result<(), ValidationErrors> {
-        validate::wrap(|e| {
-            validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
-            validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
-            validate::limit_opt(e, "limit", self.limit);
-            validate::uuid_vec(e, "id", &self.id);
-            validate::key_type_vec(e, "type", &self.r#type);
-            validate::uuid_vec(e, "service_id", &self.service_id);
-            validate::uuid_vec(e, "user_id", &self.user_id);
+impl validator::Validate for pb::KeyListRequest {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        Validate::wrap(|e| {
+            Validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
+            Validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
+            Validate::limit_opt(e, "limit", self.limit);
+            Validate::uuid_vec(e, "id", &self.id);
+            Validate::key_type_vec(e, "type", &self.r#type);
+            Validate::uuid_vec(e, "service_id", &self.service_id);
+            Validate::uuid_vec(e, "user_id", &self.user_id);
         })
     }
 }
 
 pub async fn list(
-    server: &Server,
-    request: MethodRequest<KeyList>,
-) -> MethodResult<pb::KeyListReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<KeyList>,
+) -> GrpcMethodResult<pb::KeyListReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         let data = audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::KeyList,
             |driver, audit| {
                 let service = pattern::key_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
 
                 driver
                     .key_list(&req, service.map(|s| s.id))
-                    .map_err(MethodError::BadRequest)
+                    .map_err(GrpcMethodError::BadRequest)
             },
         )?;
         Ok((req, data))
@@ -48,25 +47,25 @@ pub async fn list(
     })
 }
 
-impl Validate for pb::KeyCreateRequest {
-    fn validate(&self) -> Result<(), ValidationErrors> {
-        validate::wrap(|e| {
-            validate::key_type(e, "type", self.r#type);
-            validate::name(e, "name", &self.name);
-            validate::uuid_opt(e, "service_id", self.service_id.as_ref().map(|x| &**x));
-            validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
+impl validator::Validate for pb::KeyCreateRequest {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        Validate::wrap(|e| {
+            Validate::key_type(e, "type", self.r#type);
+            Validate::name(e, "name", &self.name);
+            Validate::uuid_opt(e, "service_id", self.service_id.as_ref().map(|x| &**x));
+            Validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
         })
     }
 }
 
 pub async fn create(
-    server: &Server,
-    request: MethodRequest<KeyCreate>,
-) -> MethodResult<pb::KeyCreateReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<KeyCreate>,
+) -> GrpcMethodResult<pb::KeyCreateReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         audit_result_subject(
             driver.as_ref(),
             audit_meta,
@@ -76,7 +75,7 @@ pub async fn create(
                 match req.service_id {
                     Some(service_id) => {
                         pattern::key_root_authenticate(driver, audit, &auth)
-                            .map_err(MethodError::Unauthorised)
+                            .map_err(GrpcMethodError::Unauthorised)
                             .and_then(|_| {
                                 match req.user_id {
                                     // User ID is defined, creating user key for service.
@@ -94,12 +93,12 @@ pub async fn create(
                                         service_id,
                                     )),
                                 }
-                                .map_err(MethodError::BadRequest)
+                                .map_err(GrpcMethodError::BadRequest)
                             })
                     }
                     None => {
                         pattern::key_service_authenticate(driver, audit, &auth)
-                            .map_err(MethodError::Unauthorised)
+                            .map_err(GrpcMethodError::Unauthorised)
                             .and_then(|service| {
                                 match req.user_id {
                                     // User ID is defined, creating user key for service.
@@ -113,7 +112,7 @@ pub async fn create(
                                     // Service cannot create service keys.
                                     None => Err(DriverError::ServiceCannotCreateServiceKey),
                                 }
-                                .map_err(MethodError::BadRequest)
+                                .map_err(GrpcMethodError::BadRequest)
                             })
                     }
                 }
@@ -127,30 +126,30 @@ pub async fn create(
     })
 }
 
-impl Validate for pb::KeyReadRequest {
-    fn validate(&self) -> Result<(), ValidationErrors> {
-        validate::wrap(|e| {
-            validate::uuid(e, "id", &self.id);
-            validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
+impl validator::Validate for pb::KeyReadRequest {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        Validate::wrap(|e| {
+            Validate::uuid(e, "id", &self.id);
+            Validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
         })
     }
 }
 
 pub async fn read(
-    server: &Server,
-    request: MethodRequest<KeyRead>,
-) -> MethodResult<pb::KeyReadReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<KeyRead>,
+) -> GrpcMethodResult<pb::KeyReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::KeyRead,
             |driver, audit| {
                 let service = pattern::key_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
 
                 read_inner(driver, &req, service.as_ref())
             },
@@ -163,30 +162,30 @@ pub async fn read(
     })
 }
 
-impl Validate for pb::KeyUpdateRequest {
-    fn validate(&self) -> Result<(), ValidationErrors> {
-        validate::wrap(|e| {
-            validate::uuid(e, "id", &self.id);
-            validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
+impl validator::Validate for pb::KeyUpdateRequest {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        Validate::wrap(|e| {
+            Validate::uuid(e, "id", &self.id);
+            Validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
         })
     }
 }
 
 pub async fn update(
-    server: &Server,
-    request: MethodRequest<KeyUpdate>,
-) -> MethodResult<pb::KeyReadReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<KeyUpdate>,
+) -> GrpcMethodResult<pb::KeyReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         audit_result_diff(
             driver.as_ref(),
             audit_meta,
             AuditType::KeyUpdate,
             |driver, audit| {
                 let service = pattern::key_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
 
                 let read = KeyRead::IdUser(req.id, None);
                 let previous_key = read_inner(driver, &read, service.as_ref())?;
@@ -197,7 +196,7 @@ pub async fn update(
                         is_revoked: None,
                         name: req.name.clone(),
                     })
-                    .map_err(MethodError::BadRequest)?;
+                    .map_err(GrpcMethodError::BadRequest)?;
                 Ok((previous_key, key))
             },
         )
@@ -209,23 +208,26 @@ pub async fn update(
     })
 }
 
-pub async fn delete(server: &Server, request: MethodRequest<KeyRead>) -> MethodResult<()> {
+pub async fn delete(
+    server: &GrpcServer,
+    request: GrpcMethodRequest<KeyRead>,
+) -> GrpcMethodResult<()> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         audit_result_subject(
             driver.as_ref(),
             audit_meta,
             AuditType::KeyDelete,
             |driver, audit| {
                 let service = pattern::key_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
 
                 let key = read_inner(driver, &req, service.as_ref())?;
                 driver
                     .key_delete(&key.id)
-                    .map_err(MethodError::BadRequest)
+                    .map_err(GrpcMethodError::BadRequest)
                     .map(|_| key)
             },
         )
@@ -235,10 +237,14 @@ pub async fn delete(server: &Server, request: MethodRequest<KeyRead>) -> MethodR
     .map(|_data| ())
 }
 
-fn read_inner(driver: &Postgres, read: &KeyRead, service: Option<&Service>) -> MethodResult<Key> {
+fn read_inner(
+    driver: &Postgres,
+    read: &KeyRead,
+    service: Option<&Service>,
+) -> GrpcMethodResult<Key> {
     driver
         .key_read(&read, service.map(|x| x.id))
-        .map_err(MethodError::BadRequest)?
-        .ok_or_else(|| MethodError::NotFound(DriverError::KeyNotFound))
+        .map_err(GrpcMethodError::BadRequest)?
+        .ok_or_else(|| GrpcMethodError::NotFound(DriverError::KeyNotFound))
         .map(|x| x.into())
 }

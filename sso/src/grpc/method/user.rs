@@ -1,41 +1,40 @@
 use crate::{
-    grpc::{pb, util::*, validate, Server},
+    grpc::{pb, util::*, GrpcServer},
     *,
 };
-use validator::{Validate, ValidationErrors};
 
-impl Validate for pb::UserListRequest {
-    fn validate(&self) -> Result<(), ValidationErrors> {
-        validate::wrap(|e| {
-            validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
-            validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
-            validate::name_opt(e, "name_ge", self.name_ge.as_ref().map(|x| &**x));
-            validate::name_opt(e, "name_le", self.name_le.as_ref().map(|x| &**x));
-            validate::limit_opt(e, "limit", self.limit);
-            validate::uuid_opt(e, "offset_id", self.offset_id.as_ref().map(|x| &**x));
-            validate::uuid_vec(e, "id", &self.id);
-            validate::email_vec(e, "email", &self.email);
+impl validator::Validate for pb::UserListRequest {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        Validate::wrap(|e| {
+            Validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
+            Validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
+            Validate::name_opt(e, "name_ge", self.name_ge.as_ref().map(|x| &**x));
+            Validate::name_opt(e, "name_le", self.name_le.as_ref().map(|x| &**x));
+            Validate::limit_opt(e, "limit", self.limit);
+            Validate::uuid_opt(e, "offset_id", self.offset_id.as_ref().map(|x| &**x));
+            Validate::uuid_vec(e, "id", &self.id);
+            Validate::email_vec(e, "email", &self.email);
         })
     }
 }
 
 pub async fn list(
-    server: &Server,
-    request: MethodRequest<UserList>,
-) -> MethodResult<pb::UserListReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<UserList>,
+) -> GrpcMethodResult<pb::UserListReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         let data = audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::UserList,
             |driver, audit| {
                 let _service = pattern::key_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
 
-                driver.user_list(&req).map_err(MethodError::BadRequest)
+                driver.user_list(&req).map_err(GrpcMethodError::BadRequest)
             },
         )?;
         Ok((req, data))
@@ -47,22 +46,22 @@ pub async fn list(
     })
 }
 
-impl Validate for pb::UserCreateRequest {
-    fn validate(&self) -> Result<(), ValidationErrors> {
-        validate::wrap(|e| {
-            validate::name(e, "name", &self.name);
-            validate::email(e, "email", &self.email);
-            validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
-            validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
-            validate::password_opt(e, "password", self.password.as_ref().map(|x| &**x));
+impl validator::Validate for pb::UserCreateRequest {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        Validate::wrap(|e| {
+            Validate::name(e, "name", &self.name);
+            Validate::email(e, "email", &self.email);
+            Validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
+            Validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
+            Validate::password_opt(e, "password", self.password.as_ref().map(|x| &**x));
         })
     }
 }
 
 pub async fn create(
-    server: &Server,
-    request: MethodRequest<pb::UserCreateRequest>,
-) -> MethodResult<pb::UserCreateReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<pb::UserCreateRequest>,
+) -> GrpcMethodResult<pb::UserCreateReply> {
     let (audit_meta, auth, req) = request.into_inner();
     let password = req.password.clone();
     let req: UserCreate = req.into();
@@ -71,19 +70,21 @@ pub async fn create(
     let pwned_passwords = server.options().pwned_passwords_enabled();
     let password_meta = pattern::password_meta(client.as_ref(), pwned_passwords, password)
         .await
-        .map_err(MethodError::BadRequest)?;
+        .map_err(GrpcMethodError::BadRequest)?;
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         let data = audit_result_subject(
             driver.as_ref(),
             audit_meta,
             AuditType::UserCreate,
             |driver, audit| {
                 let _service = pattern::key_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
 
-                driver.user_create(&req).map_err(MethodError::BadRequest)
+                driver
+                    .user_create(&req)
+                    .map_err(GrpcMethodError::BadRequest)
             },
         )?;
         Ok((password_meta, data))
@@ -95,29 +96,29 @@ pub async fn create(
     })
 }
 
-impl Validate for pb::UserReadRequest {
-    fn validate(&self) -> Result<(), ValidationErrors> {
-        validate::wrap(|e| {
-            validate::uuid(e, "id", &self.id);
+impl validator::Validate for pb::UserReadRequest {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        Validate::wrap(|e| {
+            Validate::uuid(e, "id", &self.id);
         })
     }
 }
 
 pub async fn read(
-    server: &Server,
-    request: MethodRequest<UserRead>,
-) -> MethodResult<pb::UserReadReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<UserRead>,
+) -> GrpcMethodResult<pb::UserReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
             AuditType::UserRead,
             |driver, audit| {
                 let _service = pattern::key_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
 
                 read_inner(driver, &req)
             },
@@ -130,37 +131,39 @@ pub async fn read(
     })
 }
 
-impl Validate for pb::UserUpdateRequest {
-    fn validate(&self) -> Result<(), ValidationErrors> {
-        validate::wrap(|e| {
-            validate::uuid(e, "id", &self.id);
-            validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
-            validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
-            validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
+impl validator::Validate for pb::UserUpdateRequest {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        Validate::wrap(|e| {
+            Validate::uuid(e, "id", &self.id);
+            Validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
+            Validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
+            Validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
         })
     }
 }
 
 pub async fn update(
-    server: &Server,
-    request: MethodRequest<UserUpdate>,
-) -> MethodResult<pb::UserReadReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<UserUpdate>,
+) -> GrpcMethodResult<pb::UserReadReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         audit_result_diff(
             driver.as_ref(),
             audit_meta,
             AuditType::UserUpdate,
             |driver, audit| {
                 let _service = pattern::key_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
 
                 let read = UserRead::Id(req.id);
                 let previous_user = read_inner(driver, &read)?;
 
-                let user = driver.user_update(&req).map_err(MethodError::BadRequest)?;
+                let user = driver
+                    .user_update(&req)
+                    .map_err(GrpcMethodError::BadRequest)?;
                 Ok((previous_user, user))
             },
         )
@@ -172,23 +175,26 @@ pub async fn update(
     })
 }
 
-pub async fn delete(server: &Server, request: MethodRequest<UserRead>) -> MethodResult<()> {
+pub async fn delete(
+    server: &GrpcServer,
+    request: GrpcMethodRequest<UserRead>,
+) -> GrpcMethodResult<()> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
-    method_blocking(move || {
+    blocking_method(move || {
         audit_result_subject(
             driver.as_ref(),
             audit_meta,
             AuditType::UserDelete,
             |driver, audit| {
                 let _service = pattern::key_authenticate(driver, audit, &auth)
-                    .map_err(MethodError::Unauthorised)?;
+                    .map_err(GrpcMethodError::Unauthorised)?;
 
                 let user = read_inner(driver, &req)?;
                 driver
                     .user_delete(&user.id)
-                    .map_err(MethodError::BadRequest)
+                    .map_err(GrpcMethodError::BadRequest)
                     .map(|_| user)
             },
         )
@@ -198,10 +204,10 @@ pub async fn delete(server: &Server, request: MethodRequest<UserRead>) -> Method
     .map(|_data| ())
 }
 
-fn read_inner(driver: &Postgres, read: &UserRead) -> MethodResult<User> {
+fn read_inner(driver: &Postgres, read: &UserRead) -> GrpcMethodResult<User> {
     driver
         .user_read(read)
-        .map_err(MethodError::BadRequest)?
+        .map_err(GrpcMethodError::BadRequest)?
         .ok_or_else(|| DriverError::UserNotFound)
-        .map_err(MethodError::NotFound)
+        .map_err(GrpcMethodError::NotFound)
 }

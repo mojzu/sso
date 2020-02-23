@@ -1,580 +1,189 @@
 //! gRPC Server, Clients
 mod client;
-mod http;
 mod method;
 mod options;
-pub mod util;
-pub mod validate;
+mod server;
+mod util;
+
+pub use crate::grpc::{client::*, options::*, server::*, util::*};
 
 pub mod pb {
     //! Generated protobuf server and client items.
     tonic::include_proto!("sso");
-}
 
-pub use crate::grpc::{client::*, http::*, options::*, pb::sso_server::SsoServer};
+    use crate::KeyType as DriverKeyType;
+    use chrono::{DateTime, Utc};
+    use std::convert::TryInto;
+    use uuid::Uuid;
 
-use crate::*;
-use lettre::{file::FileTransport, SmtpClient, Transport};
-use lettre_email::Email;
-use prometheus::{HistogramTimer, HistogramVec, IntCounterVec};
-use std::fmt;
-use std::path::PathBuf;
-use std::sync::Arc;
-
-/// gRPC server.
-#[derive(Clone)]
-pub struct Server {
-    options: ServerOptions,
-    driver: Arc<Postgres>,
-    client: Arc<reqwest::Client>,
-    smtp_client: Arc<Option<SmtpClient>>,
-    count: IntCounterVec,
-    latency: HistogramVec,
-}
-
-impl fmt::Debug for Server {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Server {{ ... }}")
-    }
-}
-
-impl Server {
-    /// Returns new `Server`.
-    pub fn new(driver: Postgres, options: ServerOptions) -> Self {
-        let client = options.client().unwrap();
-        let smtp_client = options.smtp_client().unwrap();
-        let (count, latency) = Metrics::grpc_metrics();
-        Self {
-            options,
-            driver: Arc::new(driver),
-            client: Arc::new(client),
-            smtp_client: Arc::new(smtp_client),
-            count,
-            latency,
+    pub fn timestamp_opt_to_datetime_opt(
+        ti: Option<prost_types::Timestamp>,
+    ) -> Option<DateTime<Utc>> {
+        match ti {
+            Some(ti) => {
+                let st: std::time::SystemTime = ti.try_into().unwrap();
+                let dt: DateTime<Utc> = st.into();
+                Some(dt)
+            }
+            None => None,
         }
     }
 
-    /// Returns reference to `ServerOptions`.
-    fn options(&self) -> &ServerOptions {
-        &self.options
+    pub fn timestamp_opt_to_datetime(ti: Option<prost_types::Timestamp>) -> DateTime<Utc> {
+        timestamp_opt_to_datetime_opt(ti).unwrap()
     }
 
-    /// Returns reference to driver.
-    pub fn driver(&self) -> Arc<Postgres> {
-        self.driver.clone()
+    pub fn datetime_to_timestamp_opt(dt: DateTime<Utc>) -> Option<prost_types::Timestamp> {
+        let st: std::time::SystemTime = dt.into();
+        let ti: prost_types::Timestamp = st.into();
+        Some(ti)
     }
 
-    /// Returns reference to HTTP client.
-    fn client(&self) -> Arc<reqwest::Client> {
-        self.client.clone()
+    pub fn string_to_uuid(s: String) -> Uuid {
+        Uuid::parse_str(s.as_ref()).unwrap()
     }
 
-    /// Build email callback function. Must be called from blocking context.
-    /// If client is None and file directory path is provided, file transport is used.
-    fn smtp_email(&self) -> Box<dyn FnOnce(TemplateEmail) -> DriverResult<()> + Send> {
-        let client = self.smtp_client.clone();
-        let from_email = self.options.smtp_from_email();
-        let smtp_file = self.options.smtp_file();
+    pub fn string_opt_to_uuid_opt(s: Option<String>) -> Option<Uuid> {
+        match s {
+            Some(s) => {
+                let u: Uuid = Uuid::parse_str(s.as_ref()).unwrap();
+                Some(u)
+            }
+            None => None,
+        }
+    }
 
-        Box::new(move |email| {
-            let email_builder = Email::builder()
-                .to((email.to_email, email.to_name))
-                .subject(email.subject)
-                .text(email.text);
+    pub fn string_vec_to_uuid_vec_opt(s: Vec<String>) -> Option<Vec<Uuid>> {
+        if s.is_empty() {
+            None
+        } else {
+            Some(
+                s.into_iter()
+                    .map(|s| Uuid::parse_str(s.as_ref()).unwrap())
+                    .collect(),
+            )
+        }
+    }
 
-            match (client.as_ref(), smtp_file) {
-                (Some(client), _) => {
-                    let email = email_builder
-                        .from((from_email.unwrap(), email.from_name))
-                        .build()
-                        .map_err(DriverError::LettreEmail)?;
+    pub fn string_vec_to_string_vec_opt(s: Vec<String>) -> Option<Vec<String>> {
+        if s.is_empty() {
+            None
+        } else {
+            Some(s)
+        }
+    }
 
-                    let mut transport = client.clone().transport();
-                    transport.send(email.into()).map_err(DriverError::Lettre)?;
-                    Ok(())
+    pub fn i32_vec_to_key_type_vec_opt(s: Vec<i32>) -> Option<Vec<DriverKeyType>> {
+        if s.is_empty() {
+            None
+        } else {
+            Some(s.into_iter().map(DriverKeyType::from_i32).collect())
+        }
+    }
+
+    pub fn key_type_vec_opt_to_i32_vec(s: Option<Vec<DriverKeyType>>) -> Vec<i32> {
+        match s {
+            Some(s) => s.into_iter().map(|x| x as i32).collect(),
+            None => Vec::new(),
+        }
+    }
+
+    pub fn uuid_to_string(u: Uuid) -> String {
+        format!("{}", u)
+    }
+
+    pub fn uuid_opt_to_string_opt(u: Option<Uuid>) -> Option<String> {
+        match u {
+            Some(u) => Some(uuid_to_string(u)),
+            None => None,
+        }
+    }
+
+    pub fn uuid_vec_opt_to_string_vec(u: Option<Vec<Uuid>>) -> Vec<String> {
+        match u {
+            Some(u) => u
+                .into_iter()
+                .map::<String, _>(|x| format!("{}", x))
+                .collect(),
+            None => Vec::new(),
+        }
+    }
+
+    fn struct_kind_to_value(s: prost_types::value::Kind) -> serde_json::Value {
+        match s {
+            prost_types::value::Kind::NullValue(_x) => serde_json::Value::Null,
+            prost_types::value::Kind::NumberValue(x) => {
+                let n = serde_json::Number::from_f64(x);
+                serde_json::Value::Number(n.unwrap())
+            }
+            prost_types::value::Kind::StringValue(x) => serde_json::Value::String(x),
+            prost_types::value::Kind::BoolValue(x) => serde_json::Value::Bool(x),
+            prost_types::value::Kind::StructValue(x) => struct_opt_to_value_opt(Some(x)).unwrap(),
+            prost_types::value::Kind::ListValue(x) => {
+                let mut v = Vec::new();
+                for value in x.values {
+                    if let Some(kind) = value.kind {
+                        v.push(struct_kind_to_value(kind))
+                    }
                 }
-                (_, Some(smtp_file)) => {
-                    let email = email_builder
-                        .from(("file@localhost", email.from_name))
-                        .build()
-                        .map_err(DriverError::LettreEmail)?;
+                serde_json::Value::Array(v)
+            }
+        }
+    }
 
-                    let path = PathBuf::from(smtp_file);
-                    let mut transport = FileTransport::new(path);
-                    transport
-                        .send(email.into())
-                        .map_err(DriverError::LettreFile)?;
-                    Ok(())
+    pub fn struct_to_value(s: prost_types::Struct) -> serde_json::Value {
+        let mut m = serde_json::Map::default();
+        for (key, value) in s.fields {
+            if let Some(kind) = value.kind {
+                m.insert(key, struct_kind_to_value(kind));
+            }
+        }
+        serde_json::Value::Object(m)
+    }
+
+    pub fn struct_opt_to_value_opt(s: Option<prost_types::Struct>) -> Option<serde_json::Value> {
+        match s {
+            Some(s) => Some(struct_to_value(s)),
+            None => None,
+        }
+    }
+
+    fn value_to_struct_value(value: serde_json::Value) -> prost_types::Value {
+        let kind: prost_types::value::Kind = match value {
+            serde_json::Value::Null => prost_types::value::Kind::NullValue(0),
+            serde_json::Value::Bool(x) => prost_types::value::Kind::BoolValue(x),
+            serde_json::Value::Number(x) => {
+                prost_types::value::Kind::NumberValue(x.as_f64().unwrap())
+            }
+            serde_json::Value::String(x) => prost_types::value::Kind::StringValue(x),
+            serde_json::Value::Array(x) => {
+                let mut v = Vec::new();
+                for value in x {
+                    v.push(value_to_struct_value(value));
                 }
-                (None, None) => Err(DriverError::SmtpDisabled),
+                prost_types::value::Kind::ListValue(prost_types::ListValue { values: v })
             }
-        })
+            serde_json::Value::Object(x) => {
+                let mut fields = std::collections::BTreeMap::new();
+                for (key, value) in x {
+                    fields.insert(key, value_to_struct_value(value));
+                }
+                prost_types::value::Kind::StructValue(prost_types::Struct { fields })
+            }
+        };
+        prost_types::Value { kind: Some(kind) }
     }
 
-    fn pre(
-        &self,
-        path: &str,
-        req: tonic::Request<()>,
-    ) -> Result<(ServerMetrics, util::MethodRequest<()>), tonic::Status> {
-        let metrics = ServerMetrics::start(path, &self.count, &self.latency);
-        Ok((
-            metrics,
-            util::MethodRequest::from_unit(req, self.options().traefik_enabled())?,
-        ))
-    }
-
-    fn pre_validate<R, T>(
-        &self,
-        path: &str,
-        req: tonic::Request<R>,
-    ) -> Result<(ServerMetrics, util::MethodRequest<T>), tonic::Status>
-    where
-        R: validator::Validate,
-        T: From<R>,
-    {
-        let metrics = ServerMetrics::start(path, &self.count, &self.latency);
-        Ok((
-            metrics,
-            util::MethodRequest::from_request(req, self.options().traefik_enabled())?,
-        ))
-    }
-
-    fn post<T, E>(
-        &self,
-        metrics: ServerMetrics,
-        res: Result<T, E>,
-    ) -> Result<tonic::Response<T>, tonic::Status>
-    where
-        E: Into<tonic::Status>,
-    {
-        match res {
-            Ok(x) => {
-                metrics.end(0);
-                Ok(tonic::Response::new(x))
+    pub fn value_to_struct_opt(s: serde_json::Value) -> Option<prost_types::Struct> {
+        let mut fields = std::collections::BTreeMap::new();
+        match s {
+            serde_json::Value::Object(x) => {
+                for (key, value) in x {
+                    fields.insert(key, value_to_struct_value(value));
+                }
+                Some(prost_types::Struct { fields })
             }
-            Err(e) => {
-                let e: tonic::Status = e.into();
-                metrics.end(e.code() as u16);
-                Err(e)
-            }
+            _ => None,
         }
-    }
-}
-
-/// gRPC server metrics.
-pub struct ServerMetrics {
-    path: String,
-    count: IntCounterVec,
-    timer: HistogramTimer,
-}
-
-impl fmt::Debug for ServerMetrics {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ServerMetrics {{ path: {}, ... }}", self.path)
-    }
-}
-
-impl ServerMetrics {
-    /// Start
-    pub fn start<P: AsRef<str>>(path: P, count: &IntCounterVec, latency: &HistogramVec) -> Self {
-        let timer = latency.with_label_values(&[path.as_ref()]).start_timer();
-        Self {
-            path: path.as_ref().to_owned(),
-            count: count.clone(),
-            timer,
-        }
-    }
-
-    pub fn end(self, status: u16) {
-        let status = format!("{}", status);
-        self.timer.observe_duration();
-        self.count
-            .with_label_values(&[&self.path, &status])
-            .inc_by(1);
-    }
-}
-
-#[tonic::async_trait]
-impl pb::sso_server::Sso for Server {
-    async fn ping(&self, _: tonic::Request<()>) -> Result<tonic::Response<String>, tonic::Status> {
-        // Method implemented in HTTP server.
-        Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
-    }
-    async fn metrics(
-        &self,
-        _: tonic::Request<()>,
-    ) -> Result<tonic::Response<String>, tonic::Status> {
-        // Method implemented in HTTP server.
-        Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
-    }
-    async fn hook_traefik_self(
-        &self,
-        _: tonic::Request<()>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
-        // Method implemented in HTTP server.
-        Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
-    }
-    async fn hook_traefik_service(
-        &self,
-        _: tonic::Request<()>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
-        // Method implemented in HTTP server.
-        Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
-    }
-    async fn audit_list(
-        &self,
-        request: tonic::Request<pb::AuditListRequest>,
-    ) -> Result<tonic::Response<pb::AuditListReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("audit_list", request)?;
-        self.post(metrics, method::audit::list(self, request).await)
-    }
-    async fn audit_create(
-        &self,
-        request: tonic::Request<pb::AuditCreateRequest>,
-    ) -> Result<tonic::Response<pb::AuditReadReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("audit_create", request)?;
-        self.post(metrics, method::audit::create(self, request).await)
-    }
-    async fn audit_read(
-        &self,
-        request: tonic::Request<pb::AuditReadRequest>,
-    ) -> Result<tonic::Response<pb::AuditReadReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("audit_read", request)?;
-        self.post(metrics, method::audit::read(self, request).await)
-    }
-    async fn audit_update(
-        &self,
-        request: tonic::Request<pb::AuditUpdateRequest>,
-    ) -> Result<tonic::Response<pb::AuditReadReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("audit_update", request)?;
-        self.post(metrics, method::audit::update(self, request).await)
-    }
-    async fn key_list(
-        &self,
-        request: tonic::Request<pb::KeyListRequest>,
-    ) -> Result<tonic::Response<pb::KeyListReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("key_list", request)?;
-        self.post(metrics, method::key::list(self, request).await)
-    }
-    async fn key_create(
-        &self,
-        request: tonic::Request<pb::KeyCreateRequest>,
-    ) -> Result<tonic::Response<pb::KeyCreateReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("key_create", request)?;
-        self.post(metrics, method::key::create(self, request).await)
-    }
-    async fn key_read(
-        &self,
-        request: tonic::Request<pb::KeyReadRequest>,
-    ) -> Result<tonic::Response<pb::KeyReadReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("key_read", request)?;
-        self.post(metrics, method::key::read(self, request).await)
-    }
-    async fn key_update(
-        &self,
-        request: tonic::Request<pb::KeyUpdateRequest>,
-    ) -> Result<tonic::Response<pb::KeyReadReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("key_update", request)?;
-        self.post(metrics, method::key::update(self, request).await)
-    }
-    async fn key_delete(
-        &self,
-        request: tonic::Request<pb::KeyReadRequest>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("key_delete", request)?;
-        self.post(metrics, method::key::delete(self, request).await)
-    }
-    async fn service_list(
-        &self,
-        request: tonic::Request<pb::ServiceListRequest>,
-    ) -> Result<tonic::Response<pb::ServiceListReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("service_list", request)?;
-        self.post(metrics, method::service::list(self, request).await)
-    }
-    async fn service_create(
-        &self,
-        request: tonic::Request<pb::ServiceCreateRequest>,
-    ) -> Result<tonic::Response<pb::ServiceReadReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("service_create", request)?;
-        self.post(metrics, method::service::create(self, request).await)
-    }
-    async fn service_read(
-        &self,
-        request: tonic::Request<pb::ServiceReadRequest>,
-    ) -> Result<tonic::Response<pb::ServiceReadReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("service_read", request)?;
-        self.post(metrics, method::service::read(self, request).await)
-    }
-    async fn service_update(
-        &self,
-        request: tonic::Request<pb::ServiceUpdateRequest>,
-    ) -> Result<tonic::Response<pb::ServiceReadReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("service_update", request)?;
-        self.post(metrics, method::service::update(self, request).await)
-    }
-    async fn service_delete(
-        &self,
-        request: tonic::Request<pb::ServiceReadRequest>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("service_delete", request)?;
-        self.post(metrics, method::service::delete(self, request).await)
-    }
-    async fn user_list(
-        &self,
-        request: tonic::Request<pb::UserListRequest>,
-    ) -> Result<tonic::Response<pb::UserListReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("user_list", request)?;
-        self.post(metrics, method::user::list(self, request).await)
-    }
-    async fn user_create(
-        &self,
-        request: tonic::Request<pb::UserCreateRequest>,
-    ) -> Result<tonic::Response<pb::UserCreateReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("user_create", request)?;
-        self.post(metrics, method::user::create(self, request).await)
-    }
-    async fn user_read(
-        &self,
-        request: tonic::Request<pb::UserReadRequest>,
-    ) -> Result<tonic::Response<pb::UserReadReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("user_read", request)?;
-        self.post(metrics, method::user::read(self, request).await)
-    }
-    async fn user_update(
-        &self,
-        request: tonic::Request<pb::UserUpdateRequest>,
-    ) -> Result<tonic::Response<pb::UserReadReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("user_update", request)?;
-        self.post(metrics, method::user::update(self, request).await)
-    }
-    async fn user_delete(
-        &self,
-        request: tonic::Request<pb::UserReadRequest>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("user_delete", request)?;
-        self.post(metrics, method::user::delete(self, request).await)
-    }
-    async fn auth_key_verify(
-        &self,
-        request: tonic::Request<pb::AuthKeyRequest>,
-    ) -> Result<tonic::Response<pb::AuthKeyReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_key_verify", request)?;
-        self.post(metrics, method::auth::key::verify(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_key_revoke(
-        &self,
-        request: tonic::Request<pb::AuthKeyRequest>,
-    ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_key_revoke", request)?;
-        self.post(metrics, method::auth::key::revoke(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_token_verify(
-        &self,
-        request: tonic::Request<pb::AuthTokenRequest>,
-    ) -> Result<tonic::Response<pb::AuthTokenVerifyReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_token_verify", request)?;
-        self.post(metrics, method::auth::token::verify(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_token_refresh(
-        &self,
-        request: tonic::Request<pb::AuthTokenRequest>,
-    ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_token_refresh", request)?;
-        self.post(metrics, method::auth::token::refresh(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_token_revoke(
-        &self,
-        request: tonic::Request<pb::AuthTokenRequest>,
-    ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_token_revoke", request)?;
-        self.post(metrics, method::auth::token::revoke(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_totp_verify(
-        &self,
-        request: tonic::Request<pb::AuthTotpRequest>,
-    ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_totp_verify", request)?;
-        self.post(metrics, method::auth::totp_verify(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_csrf_create(
-        &self,
-        request: tonic::Request<pb::AuthCsrfCreateRequest>,
-    ) -> Result<tonic::Response<pb::AuthCsrfCreateReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_csrf_create", request)?;
-        self.post(metrics, method::auth::csrf_create(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_csrf_verify(
-        &self,
-        request: tonic::Request<pb::AuthCsrfVerifyRequest>,
-    ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_csrf_verify", request)?;
-        self.post(metrics, method::auth::csrf_verify(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_local_login(
-        &self,
-        request: tonic::Request<pb::AuthLoginRequest>,
-    ) -> Result<tonic::Response<pb::AuthLoginReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_local_login", request)?;
-        self.post(metrics, method::auth::local::login(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_local_register(
-        &self,
-        request: tonic::Request<pb::AuthRegisterRequest>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_local_register", request)?;
-        self.post(metrics, method::auth::local::register(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_local_register_confirm(
-        &self,
-        request: tonic::Request<pb::AuthRegisterConfirmRequest>,
-    ) -> Result<tonic::Response<pb::AuthPasswordMetaReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_local_register_confirm", request)?;
-        self.post(
-            metrics,
-            method::auth::local::register_confirm(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_local_register_revoke(
-        &self,
-        request: tonic::Request<pb::AuthTokenRequest>,
-    ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_local_register_revoke", request)?;
-        self.post(
-            metrics,
-            method::auth::local::register_revoke(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_local_reset_password(
-        &self,
-        request: tonic::Request<pb::AuthResetPasswordRequest>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_local_reset_password", request)?;
-        self.post(
-            metrics,
-            method::auth::local::reset_password(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_local_reset_password_confirm(
-        &self,
-        request: tonic::Request<pb::AuthResetPasswordConfirmRequest>,
-    ) -> Result<tonic::Response<pb::AuthPasswordMetaReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_local_reset_password_confirm", request)?;
-        self.post(
-            metrics,
-            method::auth::local::reset_password_confirm(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_local_reset_password_revoke(
-        &self,
-        request: tonic::Request<pb::AuthTokenRequest>,
-    ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_local_reset_password_revoke", request)?;
-        self.post(
-            metrics,
-            method::auth::local::reset_password_revoke(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_local_update_email(
-        &self,
-        request: tonic::Request<pb::AuthUpdateEmailRequest>,
-    ) -> Result<tonic::Response<()>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_local_update_email", request)?;
-        self.post(
-            metrics,
-            method::auth::local::update_email(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_local_update_email_revoke(
-        &self,
-        request: tonic::Request<pb::AuthTokenRequest>,
-    ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_local_update_email_revoke", request)?;
-        self.post(
-            metrics,
-            method::auth::local::update_email_revoke(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_local_update_password(
-        &self,
-        request: tonic::Request<pb::AuthUpdatePasswordRequest>,
-    ) -> Result<tonic::Response<pb::AuthPasswordMetaReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_local_update_password", request)?;
-        self.post(
-            metrics,
-            method::auth::local::update_password(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_local_update_password_revoke(
-        &self,
-        request: tonic::Request<pb::AuthTokenRequest>,
-    ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_local_update_password_revoke", request)?;
-        self.post(
-            metrics,
-            method::auth::local::update_password_revoke(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_github_oauth2_url(
-        &self,
-        request: tonic::Request<()>,
-    ) -> Result<tonic::Response<pb::AuthOauth2UrlReply>, tonic::Status> {
-        let (metrics, request) = self.pre("auth_github_oauth2_url", request)?;
-        self.post(
-            metrics,
-            method::auth::github::oauth2_url(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_github_oauth2_callback(
-        &self,
-        request: tonic::Request<pb::AuthOauth2CallbackRequest>,
-    ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_github_oauth2_callback", request)?;
-        self.post(
-            metrics,
-            method::auth::github::oauth2_callback(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_microsoft_oauth2_url(
-        &self,
-        request: tonic::Request<()>,
-    ) -> Result<tonic::Response<pb::AuthOauth2UrlReply>, tonic::Status> {
-        let (metrics, request) = self.pre("auth_microsoft_oauth2_url", request)?;
-        self.post(
-            metrics,
-            method::auth::microsoft::oauth2_url(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
-    }
-    async fn auth_microsoft_oauth2_callback(
-        &self,
-        request: tonic::Request<pb::AuthOauth2CallbackRequest>,
-    ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
-        let (metrics, request) = self.pre_validate("auth_microsoft_oauth2_callback", request)?;
-        self.post(
-            metrics,
-            method::auth::microsoft::oauth2_callback(self, request).await,
-        )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
     }
 }

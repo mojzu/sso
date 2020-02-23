@@ -1,19 +1,18 @@
-use crate::grpc::{validate, Server};
+use crate::grpc::GrpcServer;
 use crate::{
     grpc::{method::auth::oauth2_login, pb, util::*},
     *,
 };
-use validator::{Validate, ValidationErrors};
 
 pub async fn oauth2_url(
-    server: &Server,
-    request: MethodRequest<()>,
-) -> MethodResult<pb::AuthOauth2UrlReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<()>,
+) -> GrpcMethodResult<pb::AuthOauth2UrlReply> {
     let (audit_meta, auth, _) = request.into_inner();
     let driver = server.driver();
     let args = server.options().github_oauth2_args();
 
-    method_blocking(move || {
+    blocking_method(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
@@ -26,25 +25,25 @@ pub async fn oauth2_url(
     .map(|url| pb::AuthOauth2UrlReply { url })
 }
 
-impl Validate for pb::AuthOauth2CallbackRequest {
-    fn validate(&self) -> Result<(), ValidationErrors> {
-        validate::wrap(|e| {
-            validate::oauth2_token(e, "code", &self.code);
-            validate::oauth2_token(e, "state", &self.state);
+impl validator::Validate for pb::AuthOauth2CallbackRequest {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        Validate::wrap(|e| {
+            Validate::oauth2_token(e, "code", &self.code);
+            Validate::oauth2_token(e, "state", &self.state);
         })
     }
 }
 
 pub async fn oauth2_callback(
-    server: &Server,
-    request: MethodRequest<pb::AuthOauth2CallbackRequest>,
-) -> MethodResult<pb::AuthTokenReply> {
+    server: &GrpcServer,
+    request: GrpcMethodRequest<pb::AuthOauth2CallbackRequest>,
+) -> GrpcMethodResult<pb::AuthTokenReply> {
     let (audit_meta, auth, req) = request.into_inner();
 
     let driver = server.driver();
     let args = server.options().github_oauth2_args();
     let audit_meta1 = audit_meta.clone();
-    let (service, service_id, access_token) = method_blocking(move || {
+    let (service, service_id, access_token) = blocking_method(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta1,
@@ -58,11 +57,11 @@ pub async fn oauth2_callback(
     let client = server.client();
     let user_email = provider_github::api_user_email(&client, access_token)
         .await
-        .map_err(MethodError::BadRequest)?;
+        .map_err(GrpcMethodError::BadRequest)?;
 
     let driver = server.driver();
     let args = server.options().github_oauth2_args();
-    method_blocking(move || {
+    blocking_method(move || {
         audit_result_err(
             driver.as_ref(),
             audit_meta,
@@ -91,7 +90,7 @@ pub async fn oauth2_callback(
 
 mod provider_github {
     use crate::{
-        grpc::{pb, util::*, ServerOptionsProvider, ServerProviderOauth2Args},
+        grpc::{pb, util::*, GrpcServerOptionsProvider, ServerProviderOauth2Args},
         pattern::*,
         AuditBuilder, Csrf, CsrfCreate, DriverError, DriverResult, HeaderAuth, Postgres, Service,
         HEADER_AUTHORISATION,
@@ -108,12 +107,12 @@ mod provider_github {
         audit: &mut AuditBuilder,
         auth: &HeaderAuth,
         args: &ServerProviderOauth2Args,
-    ) -> MethodResult<String> {
+    ) -> GrpcMethodResult<String> {
         let service =
-            key_service_authenticate(driver, audit, auth).map_err(MethodError::Unauthorised)?;
+            key_service_authenticate(driver, audit, auth).map_err(GrpcMethodError::Unauthorised)?;
 
         // Generate the authorisation URL to which we'll redirect the user.
-        let client = new_client(&service, &args.provider).map_err(MethodError::BadRequest)?;
+        let client = new_client(&service, &args.provider).map_err(GrpcMethodError::BadRequest)?;
         let (authorise_url, csrf_state) = client
             .authorize_url(CsrfToken::new_random)
             .add_scope(Scope::new("user:email".to_string()))
@@ -121,12 +120,12 @@ mod provider_github {
 
         // Save the state and code verifier secrets as a CSRF key, value.
         let csrf_key = csrf_state.secret();
-        let conn = driver.conn().map_err(MethodError::BadRequest)?;
+        let conn = driver.conn().map_err(GrpcMethodError::BadRequest)?;
         Csrf::create(
             &conn,
             &CsrfCreate::new(csrf_key, csrf_key, args.access_token_expires, service.id),
         )
-        .map_err(MethodError::BadRequest)?;
+        .map_err(GrpcMethodError::BadRequest)?;
 
         Ok(authorise_url.to_string())
     }
@@ -137,25 +136,25 @@ mod provider_github {
         auth: &HeaderAuth,
         args: &ServerProviderOauth2Args,
         request: &pb::AuthOauth2CallbackRequest,
-    ) -> MethodResult<(Service, Uuid, String)> {
+    ) -> GrpcMethodResult<(Service, Uuid, String)> {
         let service =
-            key_service_authenticate(driver, audit, auth).map_err(MethodError::Unauthorised)?;
+            key_service_authenticate(driver, audit, auth).map_err(GrpcMethodError::Unauthorised)?;
 
         // Read the CSRF key using state value, rebuild code verifier from value.
-        let conn = driver.conn().map_err(MethodError::BadRequest)?;
+        let conn = driver.conn().map_err(GrpcMethodError::BadRequest)?;
         let csrf = Csrf::read(&conn, &request.state)
-            .map_err(MethodError::BadRequest)?
+            .map_err(GrpcMethodError::BadRequest)?
             .ok_or_else(|| DriverError::CsrfNotFoundOrUsed)
-            .map_err(MethodError::BadRequest)?;
+            .map_err(GrpcMethodError::BadRequest)?;
 
         // Exchange the code with a token.
-        let client = new_client(&service, &args.provider).map_err(MethodError::BadRequest)?;
+        let client = new_client(&service, &args.provider).map_err(GrpcMethodError::BadRequest)?;
         let code = AuthorizationCode::new(request.code.clone());
         let token = client
             .exchange_code(code)
             .request(http_client)
             .map_err(|err| DriverError::Oauth2Request(err.into()))
-            .map_err(MethodError::BadRequest)?;
+            .map_err(GrpcMethodError::BadRequest)?;
 
         // Return access token value.
         let (service_id, access_token) =
@@ -190,7 +189,7 @@ mod provider_github {
 
     fn new_client(
         service: &Service,
-        provider: &Option<ServerOptionsProvider>,
+        provider: &Option<GrpcServerOptionsProvider>,
     ) -> DriverResult<BasicClient> {
         let (provider_github_oauth2_url, provider) =
             match (&service.provider_github_oauth2_url, provider) {

@@ -20,12 +20,14 @@ extern crate serde_json;
 mod csrf;
 mod driver;
 mod env;
-pub mod grpc;
+mod grpc;
+mod http_server;
 mod jwt;
 mod schema;
+mod validate;
 
 pub use crate::driver::*;
-pub use crate::{csrf::*, env::*, jwt::*};
+pub use crate::{csrf::*, env::*, grpc::*, http_server::*, jwt::*, validate::*};
 
 use sentry::integrations::log::LoggerOptions;
 use std::io::Write;

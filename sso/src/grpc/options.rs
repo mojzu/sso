@@ -10,13 +10,13 @@ use std::fs::create_dir_all;
 
 /// gRPC server authentication provider options.
 #[derive(Debug, Clone)]
-pub struct ServerOptionsProvider {
+pub struct GrpcServerOptionsProvider {
     pub client_id: String,
     pub client_secret: String,
 }
 
-impl ServerOptionsProvider {
-    /// Returns new `ServerOptionsProvider`.
+impl GrpcServerOptionsProvider {
+    /// Returns new `GrpcServerOptionsProvider`.
     pub fn new(client_id: String, client_secret: String) -> Self {
         Self {
             client_id,
@@ -27,14 +27,14 @@ impl ServerOptionsProvider {
 
 /// gRPC server SMTP transport options.
 #[derive(Debug, Clone)]
-pub struct ServerOptionsSmtp {
+pub struct GrpcServerOptionsSmtp {
     host: String,
     port: u16,
     user: String,
     password: String,
 }
 
-impl ServerOptionsSmtp {
+impl GrpcServerOptionsSmtp {
     /// Create new SMTP options.
     pub fn new(host: String, port: u16, user: String, password: String) -> Self {
         Self {
@@ -48,7 +48,7 @@ impl ServerOptionsSmtp {
 
 /// gRPC server options.
 #[derive(Debug, Clone)]
-pub struct ServerOptions {
+pub struct GrpcServerOptions {
     /// User agent for outgoing HTTP requests.
     user_agent: String,
     /// Enable Pwned Passwords API to check passwords.
@@ -63,19 +63,19 @@ pub struct ServerOptions {
     /// Revoke token expiry time in seconds.
     revoke_token_expires: i64,
     /// SMTP transport.
-    smtp_transport: Option<ServerOptionsSmtp>,
+    smtp_transport: Option<GrpcServerOptionsSmtp>,
     /// SMTP file transport.
     ///
     /// Writes emails to files in directory, if server settings
     /// are defined this is ignored.
     smtp_file_transport: Option<String>,
     /// Github provider.
-    github: Option<ServerOptionsProvider>,
+    github: Option<GrpcServerOptionsProvider>,
     /// Microsoft provider.
-    microsoft: Option<ServerOptionsProvider>,
+    microsoft: Option<GrpcServerOptionsProvider>,
 }
 
-impl ServerOptions {
+impl GrpcServerOptions {
     /// Returns new server options.
     pub fn new<UA>(user_agent: UA, pwned_passwords_enabled: bool, traefik_enabled: bool) -> Self
     where
@@ -112,7 +112,7 @@ impl ServerOptions {
     }
 
     /// Set SMTP transport options.
-    pub fn smtp_transport(mut self, smtp_transport: Option<ServerOptionsSmtp>) -> Self {
+    pub fn smtp_transport(mut self, smtp_transport: Option<GrpcServerOptionsSmtp>) -> Self {
         self.smtp_transport = smtp_transport;
         self
     }
@@ -143,7 +143,7 @@ impl ServerOptions {
             let password = Env::string(password_name.as_ref())
                 .expect("Failed to read SMTP password environment variable.");
 
-            Some(ServerOptionsSmtp::new(host, port, user, password))
+            Some(GrpcServerOptionsSmtp::new(host, port, user, password))
         } else {
             None
         };
@@ -158,14 +158,13 @@ impl ServerOptions {
 
     // Create directory for SMTP file transport.
     pub fn smtp_file_transport_from_env<T: AsRef<str>>(self, file_name: T) -> Self {
-        let transport =
-            Env::string(file_name.as_ref()).expect("Failed to read SMTP file environment variable");
+        let transport = Env::string_opt(file_name.as_ref()).unwrap_or("./tmp".to_string());
         create_dir_all(&transport).expect("Failed to create SMTP file transport directory");
         self.smtp_file_transport(Some(transport))
     }
 
     /// Set Github provider.
-    pub fn github(mut self, github: Option<ServerOptionsProvider>) -> Self {
+    pub fn github(mut self, github: Option<GrpcServerOptionsProvider>) -> Self {
         self.github = github;
         self
     }
@@ -182,7 +181,7 @@ impl ServerOptions {
             let client_secret = Env::string(client_secret_name.as_ref())
                 .expect("Failed to read Github client secret environment variable");
 
-            Some(ServerOptionsProvider::new(client_id, client_secret))
+            Some(GrpcServerOptionsProvider::new(client_id, client_secret))
         } else {
             None
         };
@@ -190,7 +189,7 @@ impl ServerOptions {
     }
 
     /// Set Microsoft provider.
-    pub fn microsoft(mut self, microsoft: Option<ServerOptionsProvider>) -> Self {
+    pub fn microsoft(mut self, microsoft: Option<GrpcServerOptionsProvider>) -> Self {
         self.microsoft = microsoft;
         self
     }
@@ -211,7 +210,7 @@ impl ServerOptions {
             let client_secret = Env::string(client_secret_name.as_ref())
                 .expect("Failed to read Microsoft client secret environment variable");
 
-            Some(ServerOptionsProvider::new(client_id, client_secret))
+            Some(GrpcServerOptionsProvider::new(client_id, client_secret))
         } else {
             None
         };
@@ -312,14 +311,14 @@ impl ServerOptions {
 /// Authentication provider OAuth2 common arguments.
 #[derive(Debug)]
 pub(crate) struct ServerProviderOauth2Args {
-    pub provider: Option<ServerOptionsProvider>,
+    pub provider: Option<GrpcServerOptionsProvider>,
     pub access_token_expires: i64,
     pub refresh_token_expires: i64,
 }
 
 impl ServerProviderOauth2Args {
     pub fn new(
-        provider: Option<ServerOptionsProvider>,
+        provider: Option<GrpcServerOptionsProvider>,
         access_token_expires: i64,
         refresh_token_expires: i64,
     ) -> Self {

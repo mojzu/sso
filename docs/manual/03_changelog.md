@@ -14,6 +14,7 @@
 -   Replaced `user_id` field with `email` field for user update email and password endpoints.
 -   Manual updates.
 -   Services can use list services endpoint to list only themselves.
+-   Refactoring for improved library interface.
 
 ### Fixed
 
