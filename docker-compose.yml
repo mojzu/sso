@@ -72,6 +72,7 @@ services:
       - "traefik.http.routers.sso-grpc.service=sso-grpc"
       - "traefik.http.routers.sso-grpc.entrypoints=sso_entrypoint"
       - "traefik.http.routers.sso-grpc.rule=PathPrefix(`/`)"
+      # - "traefik.http.routers.sso-grpc.tls=true"
       - "traefik.http.routers.sso-grpc.middlewares=sso_grpc_forwardauth"
       - "traefik.http.middlewares.sso_grpc_forwardauth.forwardauth.address=http://sso-grpc:7043/hook/traefik/self"
       - "traefik.http.middlewares.sso_grpc_forwardauth.forwardauth.trustForwardHeader=false"
@@ -92,6 +93,7 @@ services:
       - "traefik.http.routers.sso-openapi.service=sso-openapi"
       - "traefik.http.routers.sso-openapi.entrypoints=sso_entrypoint"
       - "traefik.http.routers.sso-openapi.rule=PathPrefix(`/api`)"
+      # - "traefik.http.routers.sso-openapi.tls=true"
       - "traefik.http.routers.sso-openapi.middlewares=sso_openapi_stripprefix,sso_openapi_forwardauth"
       - "traefik.http.middlewares.sso_openapi_stripprefix.stripprefix.prefixes=/api"
       - "traefik.http.middlewares.sso_openapi_forwardauth.forwardauth.address=http://sso-grpc:7043/hook/traefik/self"
@@ -103,19 +105,13 @@ services:
   traefik:
     image: traefik:latest
     restart: always
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=compose"
-      - "--entrypoints.sso_entrypoint.address=:80"
-      - "--metrics.prometheus"
-      - "--accessLog"
     ports:
       - "80:80"
       - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./docker/build/cert:/cert"
+      - "./docker/traefik:/etc/traefik"
 
 networks:
   default:

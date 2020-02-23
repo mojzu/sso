@@ -164,3 +164,17 @@ docker build --tag "sso-build:latest" .
 docker-compose build --parallel
 (cd kubernetes/minikube/docker && bash build.sh)
 ```
+
+## Smallstep CA
+
+Create CA root certificate and certificate and key for server for testing, overwrite files in `docker/build/cert`.
+
+```bash
+mkdir -p volumes/ca
+docker run --rm --user $(id -u):$(id -g) --network host -v "$(pwd)/volumes/ca:/home/step" -it smallstep/step-ca step ca init
+# STDIN: Example, localhost, :443, example, guest
+echo "guest" > volumes/ca/secrets/password
+docker run --rm --user $(id -u):$(id -g) --network host -v "$(pwd)/volumes/ca:/home/step" -it smallstep/step-ca /bin/bash
+step ca certificate --offline sso.localhost sso.crt sso.key
+# STDIN: guest
+```

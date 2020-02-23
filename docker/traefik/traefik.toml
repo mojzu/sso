@@ -1,0 +1,21 @@
+# Traefik.
+# <https://docs.traefik.io/>
+[api]
+insecure = true
+
+[providers]
+    [providers.docker]
+        exposedbydefault = false
+        network = "compose"
+
+    [providers.file]
+        filename = "/etc/traefik/dynamic.toml"
+        watch = true
+
+[entrypoints]
+    [entrypoints.sso_entrypoint]
+        address = ":80"
+
+[metrics.prometheus]
+
+[accessLog]

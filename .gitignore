@@ -11,7 +11,10 @@
 /Cargo.lock
 
 # Temporary files.
-/tmp
+/tmp/
+
+# Docker volumes.
+/volumes/
 
 # Log files.
 *.log

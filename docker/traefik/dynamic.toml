@@ -1,0 +1,14 @@
+
+[tls.stores]
+  [tls.stores.default]
+    [tls.stores.default.defaultCertificate]
+      certFile = "/cert/sso.crt"
+      keyFile  = "/cert/sso.key"
+
+# # Mutual TLS.
+# # <https://docs.traefik.io/https/tls/#client-authentication-mtls>
+# [tls.options]
+#     [tls.options.default]
+#         [tls.options.default.clientAuth]
+#             caFiles = ["/cert/root_ca.crt"]
+#             clientAuthType = "RequireAndVerifyClientCert"

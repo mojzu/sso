@@ -125,6 +125,9 @@ ENV SSO_GRPC_URL="sso-grpc:7042"
 ENV SSO_TEST_URL="http://traefik:80" \
     SSO_TEST_KEY="UAMK24IW72UTDXZUY45MIPBPDRPIARQR6M"
 
+# Copy CA certificate files.
+ADD ./docker/build/cert /cert
+
 # Copy project files and set working directory.
 # These are required for docker-compose service builds.
 ADD . /build
