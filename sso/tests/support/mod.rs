@@ -36,13 +36,13 @@ pub fn client_create(key: Option<&str>) -> GrpcClientBlocking {
         Some(key) => GrpcClientBlocking::new(
             env_test_sso_url(),
             GrpcClientChannelTls::default(),
-            &GrpcClientOptions::default().authorisation(key),
+            &GrpcClientOptions::default().authorisation(Some(key.to_owned())),
         )
         .unwrap(),
         None => GrpcClientBlocking::new(
             env_test_sso_url(),
             GrpcClientChannelTls::default(),
-            &GrpcClientOptions::default().authorisation(env_test_sso_key()),
+            &GrpcClientOptions::default().authorisation(Some(env_test_sso_key())),
         )
         .unwrap(),
     }
@@ -53,8 +53,8 @@ pub fn client_user_create(key: &str, user_key: &str) -> GrpcClientBlocking {
         env_test_sso_url(),
         GrpcClientChannelTls::default(),
         &GrpcClientOptions::default()
-            .authorisation(key)
-            .user_authorisation(user_key),
+            .authorisation(Some(key.to_owned()))
+            .user_authorisation(Some(user_key.to_owned())),
     )
     .unwrap()
 }

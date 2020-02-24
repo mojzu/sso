@@ -28,11 +28,6 @@ services:
   prometheus:
     build: docker/prometheus
     restart: always
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
-      - "traefik.http.routers.prometheus.entrypoints=sso_entrypoint"
-      - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
 
   # Sso gRPC server.
   sso-grpc:
@@ -65,18 +60,6 @@ services:
       # SSO_MICROSOFT_CLIENT_ID: ""
       # SSO_MICROSOFT_CLIENT_SECRET: ""
     entrypoint: ["sso-grpc"]
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.sso-grpc.loadbalancer.server.scheme=h2c"
-      - "traefik.http.services.sso-grpc.loadbalancer.server.port=7042"
-      - "traefik.http.routers.sso-grpc.service=sso-grpc"
-      - "traefik.http.routers.sso-grpc.entrypoints=sso_entrypoint"
-      - "traefik.http.routers.sso-grpc.rule=PathPrefix(`/`)"
-      # - "traefik.http.routers.sso-grpc.tls=true"
-      - "traefik.http.routers.sso-grpc.middlewares=sso_grpc_forwardauth"
-      - "traefik.http.middlewares.sso_grpc_forwardauth.forwardauth.address=http://sso-grpc:7043/hook/traefik/self"
-      - "traefik.http.middlewares.sso_grpc_forwardauth.forwardauth.trustForwardHeader=false"
-      - "traefik.http.middlewares.sso_grpc_forwardauth.forwardauth.authResponseHeaders=Grpc-Metadata-Sso-Key-Id,Grpc-Metadata-Sso-Service-Id,Grpc-Metadata-Sso-User-Key-Id,Grpc-Metadata-Sso-User-Id"
 
   # Sso OpenAPI server.
   sso-openapi:
@@ -87,18 +70,6 @@ services:
       # gRPC server URL.
       SSO_GRPC_URL: "sso-grpc:7042"
     entrypoint: ["sso-openapi"]
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.sso-openapi.loadbalancer.server.port=8042"
-      - "traefik.http.routers.sso-openapi.service=sso-openapi"
-      - "traefik.http.routers.sso-openapi.entrypoints=sso_entrypoint"
-      - "traefik.http.routers.sso-openapi.rule=PathPrefix(`/api`)"
-      # - "traefik.http.routers.sso-openapi.tls=true"
-      - "traefik.http.routers.sso-openapi.middlewares=sso_openapi_stripprefix,sso_openapi_forwardauth"
-      - "traefik.http.middlewares.sso_openapi_stripprefix.stripprefix.prefixes=/api"
-      - "traefik.http.middlewares.sso_openapi_forwardauth.forwardauth.address=http://sso-grpc:7043/hook/traefik/self"
-      - "traefik.http.middlewares.sso_openapi_forwardauth.forwardauth.trustForwardHeader=false"
-      - "traefik.http.middlewares.sso_openapi_forwardauth.forwardauth.authResponseHeaders=Grpc-Metadata-Sso-Key-Id,Grpc-Metadata-Sso-Service-Id,Grpc-Metadata-Sso-User-Key-Id,Grpc-Metadata-Sso-User-Id"
 
   # Traefik.
   # <https://docs.traefik.io/>

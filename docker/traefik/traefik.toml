@@ -13,8 +13,10 @@ insecure = true
         watch = true
 
 [entrypoints]
-    [entrypoints.sso_entrypoint]
+    [entrypoints.ssoEntrypoint]
         address = ":80"
+    # [entrypoints.postgresEntrypoint]
+    #     address = ":5432"
 
 [metrics.prometheus]
 
