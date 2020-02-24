@@ -157,21 +157,13 @@ impl Default for GrpcClientOptions {
 }
 
 impl GrpcClientOptions {
-    pub fn authorisation<T, TS>(mut self, authorisation: T) -> Self
-    where
-        T: Into<Option<TS>>,
-        TS: Into<String>,
-    {
-        self.authorisation = authorisation.into().map(|x| x.into());
+    pub fn authorisation(mut self, authorisation: Option<String>) -> Self {
+        self.authorisation = authorisation;
         self
     }
 
-    pub fn user_authorisation<T, TS>(mut self, user_authorisation: T) -> Self
-    where
-        T: Into<Option<TS>>,
-        TS: Into<String>,
-    {
-        self.user_authorisation = user_authorisation.into().map(|x| x.into());
+    pub fn user_authorisation(mut self, user_authorisation: Option<String>) -> Self {
+        self.user_authorisation = user_authorisation;
         self
     }
 
@@ -216,16 +208,11 @@ impl SsoClient<Channel> {
 
     /// Authenticate user using headers, returns user if successful.
     /// If audit type argument is some, audit log ID is also returned.
-    pub async fn authenticate<T, TS>(
+    pub async fn authenticate(
         &mut self,
         auth: HeaderAuth,
-        audit: T,
-    ) -> Result<(User, Option<String>), Status>
-    where
-        T: Into<Option<TS>>,
-        TS: Into<String>,
-    {
-        let audit: Option<String> = audit.into().map(|x| x.into());
+        audit: Option<String>,
+    ) -> Result<(User, Option<String>), Status> {
         match auth {
             HeaderAuth::Traefik(x) => match (x.user_key_id, x.user_id) {
                 (Some(user_key_id), Some(user_id)) => {
@@ -320,12 +307,8 @@ impl GrpcClientBlocking {
     pub async fn authenticate<T, TS>(
         &mut self,
         auth: HeaderAuth,
-        audit: T,
-    ) -> Result<(User, Option<String>), Status>
-    where
-        T: Into<Option<TS>>,
-        TS: Into<String>,
-    {
+        audit: Option<String>,
+    ) -> Result<(User, Option<String>), Status> {
         self.rt.block_on(self.client.authenticate(auth, audit))
     }
 
