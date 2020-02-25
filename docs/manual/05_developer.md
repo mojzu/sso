@@ -172,9 +172,23 @@ Create CA root certificate and certificate and key for server for testing, overw
 ```bash
 mkdir -p volumes/ca
 docker run --rm --user $(id -u):$(id -g) --network host -v "$(pwd)/volumes/ca:/home/step" -it smallstep/step-ca step ca init
-# STDIN: Example, localhost, :443, example, guest
+# STDIN: Localhost, localhost, :443, localhost, guest
 echo "guest" > volumes/ca/secrets/password
 docker run --rm --user $(id -u):$(id -g) --network host -v "$(pwd)/volumes/ca:/home/step" -it smallstep/step-ca /bin/bash
-step ca certificate --offline sso.localhost sso.crt sso.key
+step ca certificate --offline --not-after 999h --san traefik sso.localhost sso.crt sso.key
+step certificate inspect sso.crt
 # STDIN: guest
+```
+
+Modify `volumes/ca/config/ca.json`.
+
+```json
+{
+  "authority": {
+    "claims": {
+      "maxTLSCertDuration": "999h",
+      "defaultTLSCertDuration": "999h"
+    }
+  }
+}
 ```

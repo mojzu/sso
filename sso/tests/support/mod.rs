@@ -31,17 +31,27 @@ fn env_test_sso_key() -> String {
     std::env::var("SSO_TEST_KEY").expect("SSO_TEST_KEY is undefined, integration test disabled")
 }
 
+fn channel_tls() -> GrpcClientChannelTls {
+    GrpcClientChannelTls::from_env(
+        "SSO_TEST_TLS_DOMAIN",
+        "SSO_TEST_TLS_CA_CERT",
+        "SSO_TEST_TLS_CLIENT_CERT",
+        "SSO_TEST_TLS_CLIENT_KEY",
+    )
+}
+
 pub fn client_create(key: Option<&str>) -> GrpcClientBlocking {
+    println!("{:?}", channel_tls());
     match key {
         Some(key) => GrpcClientBlocking::new(
             env_test_sso_url(),
-            GrpcClientChannelTls::default(),
+            channel_tls(),
             &GrpcClientOptions::default().authorisation(Some(key.to_owned())),
         )
         .unwrap(),
         None => GrpcClientBlocking::new(
             env_test_sso_url(),
-            GrpcClientChannelTls::default(),
+            channel_tls(),
             &GrpcClientOptions::default().authorisation(Some(env_test_sso_key())),
         )
         .unwrap(),
@@ -51,7 +61,7 @@ pub fn client_create(key: Option<&str>) -> GrpcClientBlocking {
 pub fn client_user_create(key: &str, user_key: &str) -> GrpcClientBlocking {
     GrpcClientBlocking::new(
         env_test_sso_url(),
-        GrpcClientChannelTls::default(),
+        channel_tls(),
         &GrpcClientOptions::default()
             .authorisation(Some(key.to_owned()))
             .user_authorisation(Some(user_key.to_owned())),

@@ -1,56 +1,63 @@
 
-# [tls.stores]
-#     [tls.stores.default]
-#         [tls.stores.default.defaultCertificate]
-#             certFile = "/cert/sso.crt"
-#             keyFile  = "/cert/sso.key"
+# Default certificate store.
+# <https://docs.traefik.io/https/tls/#default-certificate>
+[tls.stores]
+    [tls.stores.default]
+        [tls.stores.default.defaultCertificate]
+            certFile = "/cert/sso.crt"
+            keyFile  = "/cert/sso.key"
 
-# # Mutual TLS.
-# # <https://docs.traefik.io/https/tls/#client-authentication-mtls>
-# [tls.options]
-#     [tls.options.default]
-#         [tls.options.default.clientAuth]
-#             caFiles = ["/cert/root_ca.crt"]
-#             clientAuthType = "NoClientCert"
+# Mutual TLS.
+# <https://docs.traefik.io/https/tls/#client-authentication-mtls>
+[tls.options]
+    [tls.options.default]
+        minVersion = "VersionTLS12"
+
+        [tls.options.default.clientAuth]
+            caFiles = ["/cert/root_ca.crt"]
+            # clientAuthType = "RequireAndVerifyClientCert"
+            # clientAuthType = "VerifyClientCertIfGiven"
 
 [http.routers]
-    [http.routers.ssoOpenapiRouter]
-        entrypoints = ["ssoEntrypoint"]
-        rule = "PathPrefix(`/api`)"
-        middlewares = ["ssoOpenapiStripprefixMiddleware", "ssoForwardauthMiddleware"]
-        service = "ssoOpenapiService"
-        # [http.routers.ssoOpenapiRouter.tls]
+    [http.routers.SsoOpenapiRouter]
+        entrypoints = ["SsoEntrypoint"]
+        rule = "(Host(`traefik`) || Host(`sso.localhost`)) && PathPrefix(`/api`)"
+        middlewares = ["SsoOpenapiStripprefixMiddleware", "SsoForwardauthMiddleware"]
+        service = "SsoOpenapiService"
+        # [http.routers.SsoOpenapiRouter.tls]
+        #     options = "default"
 
-    [http.routers.ssoGrpcRouter]
-        entrypoints = ["ssoEntrypoint"]
-        rule = "PathPrefix(`/`)"
-        middlewares = ["ssoForwardauthMiddleware"]
-        service = "ssoGrpcService"
-        # [http.routers.ssoGrpcRouter.tls]
+    [http.routers.SsoGrpcRouter]
+        entrypoints = ["SsoEntrypoint"]
+        rule = "(Host(`traefik`) || Host(`sso.localhost`)) && PathPrefix(`/sso.Sso`)"
+        middlewares = ["SsoForwardauthMiddleware"]
+        service = "SsoGrpcService"
+        # [http.routers.SsoGrpcRouter.tls]
+        #     options = "default"
 
-    [http.routers.prometheusRouter]
-        entrypoints = ["ssoEntrypoint"]
+    [http.routers.PrometheusRouter]
+        entrypoints = ["SsoEntrypoint"]
         rule = "Host(`prometheus.localhost`)"
-        service = "prometheusService"
+        service = "PrometheusService"
 
 [http.services]
-    [http.services.ssoOpenapiService.loadBalancer]
-        [[http.services.ssoOpenapiService.loadBalancer.servers]]
+    [http.services.SsoOpenapiService.loadBalancer]
+        [[http.services.SsoOpenapiService.loadBalancer.servers]]
             url = "http://sso-openapi:8042"
 
-    [http.services.ssoGrpcService.loadBalancer]
-        [[http.services.ssoGrpcService.loadBalancer.servers]]
+    [http.services.SsoGrpcService.loadBalancer]
+        [[http.services.SsoGrpcService.loadBalancer.servers]]
             url = "h2c://sso-grpc:7042"
 
-    [http.services.prometheusService.loadBalancer]
-        [[http.services.prometheusService.loadBalancer.servers]]
+    [http.services.PrometheusService.loadBalancer]
+        [[http.services.PrometheusService.loadBalancer.servers]]
             url = "http://prometheus:9090"
 
 [http.middlewares]
-    [http.middlewares.ssoOpenapiStripprefixMiddleware.stripPrefix]
+    [http.middlewares.SsoOpenapiStripprefixMiddleware.stripPrefix]
         prefixes = ["/api"]
 
-    [http.middlewares.ssoForwardauthMiddleware.forwardAuth]
+    [http.middlewares.SsoForwardauthMiddleware.forwardAuth]
         address = "http://sso-grpc:7043/hook/traefik/self"
         trustForwardHeader = false
         authResponseHeaders = ["Grpc-Metadata-Sso-Key-Id","Grpc-Metadata-Sso-Service-Id","Grpc-Metadata-Sso-User-Key-Id","Grpc-Metadata-Sso-User-Id"]

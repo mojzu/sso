@@ -13,7 +13,7 @@ insecure = true
         watch = true
 
 [entrypoints]
-    [entrypoints.ssoEntrypoint]
+    [entrypoints.SsoEntrypoint]
         address = ":80"
     # [entrypoints.postgresEntrypoint]
     #     address = ":5432"
