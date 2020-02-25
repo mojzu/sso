@@ -188,6 +188,16 @@ pub enum HeaderAuthType {
     Token(String),
 }
 
+impl HeaderAuthType {
+    /// Returns header value for authentication type.
+    pub fn header_value(&self) -> String {
+        match self {
+            Self::Key(x) => format!("key {}", x),
+            Self::Token(x) => format!("token {}", x),
+        }
+    }
+}
+
 /// Header authentication data.
 #[derive(Debug, Clone)]
 pub enum HeaderAuth {

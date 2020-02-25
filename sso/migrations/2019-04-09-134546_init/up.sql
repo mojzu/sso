@@ -71,7 +71,7 @@ CREATE TABLE sso_csrf (
 
 CREATE TABLE sso_audit (
     "created_at"  TIMESTAMPTZ NOT NULL,
-    "updated_at" TIMESTAMPTZ NOT NULL,
+    "updated_at"  TIMESTAMPTZ NOT NULL,
     "id"          UUID        NOT NULL,
     "user_agent"  VARCHAR     NOT NULL,
     "remote"      VARCHAR     NOT NULL,

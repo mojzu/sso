@@ -145,6 +145,8 @@ impl GrpcClientChannel {
 pub struct GrpcClientOptions {
     pub authorisation: Option<String>,
     pub user_authorisation: Option<String>,
+    pub user_agent: Option<String>,
+    pub forwarded: Option<String>,
 }
 
 impl Default for GrpcClientOptions {
@@ -152,6 +154,8 @@ impl Default for GrpcClientOptions {
         Self {
             authorisation: None,
             user_authorisation: None,
+            user_agent: None,
+            forwarded: None,
         }
     }
 }
@@ -164,6 +168,16 @@ impl GrpcClientOptions {
 
     pub fn user_authorisation(mut self, user_authorisation: Option<String>) -> Self {
         self.user_authorisation = user_authorisation;
+        self
+    }
+
+    pub fn user_agent(mut self, user_agent: Option<String>) -> Self {
+        self.user_agent = user_agent;
+        self
+    }
+
+    pub fn forwarded(mut self, forwarded: Option<String>) -> Self {
+        self.forwarded = forwarded;
         self
     }
 
@@ -181,6 +195,20 @@ impl GrpcClientOptions {
             meta.insert(
                 HEADER_USER_AUTHORISATION,
                 MetadataValue::from_str(user_authorisation)
+                    .map_err(|_e| Status::invalid_argument(ERR_INVALID_METADATA))?,
+            );
+        }
+        if let Some(user_agent) = self.user_agent.as_ref() {
+            meta.insert(
+                HEADER_USER_AGENT,
+                MetadataValue::from_str(user_agent)
+                    .map_err(|_e| Status::invalid_argument(ERR_INVALID_METADATA))?,
+            );
+        }
+        if let Some(forwarded) = self.forwarded.as_ref() {
+            meta.insert(
+                HEADER_X_FORWARDED_FOR,
+                MetadataValue::from_str(forwarded)
                     .map_err(|_e| Status::invalid_argument(ERR_INVALID_METADATA))?,
             );
         }
