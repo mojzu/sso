@@ -1,13 +1,11 @@
-[pandoc-markdown]: https://pandoc.org/MANUAL.html#pandocs-markdown
-[pandoc]: https://pandoc.org/
-[postman]: https://www.getpostman.com/
-[openapi]: https://swagger.io/docs/specification/about/
 [nginx]: https://www.nginx.com/
 [prometheus]: https://prometheus.io/
+[pandoc]: https://pandoc.org/
+[pandoc-markdown]: https://pandoc.org/MANUAL.html#pandocs-markdown
+[openapi]: https://swagger.io/docs/specification/about/
 [reqwest]: https://github.com/seanmonstar/reqwest
 [validator]: https://github.com/Keats/validator
 [serde]: https://github.com/serde-rs/serde
-[serde_qs]: https://github.com/samscott89/serde_qs
 [utf-8]: https://en.wikipedia.org/wiki/UTF-8
 [protocol-buffers]: https://developers.google.com/protocol-buffers/
 [grpc]: https://grpc.io/
@@ -50,5 +48,14 @@
 [docker-compose-install]: https://docs.docker.com/compose/install/
 [kubernetes]: https://kubernetes.io/
 [minikube]: https://kubernetes.io/docs/tasks/tools/install-minikube/
+[kubernetes-liveness]: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+[kubernetes-checklist]: https://learnk8s.io/production-best-practices
 
 [autocert]: https://github.com/smallstep/autocert
+[owasp-session]: https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
+[owasp-jwt]: https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html#token-sidejacking
+[auth0-docs1]: https://auth0.com/docs/flows/guides/auth-code/add-login-auth-code
+[auth0-docs2]: https://auth0.com/docs/microsites/add-login/add-login-single-page-app
+[digitalocean-jwt]: https://www.digitalocean.com/community/tutorials/api-authentication-with-json-web-tokensjwt-and-passport
+[paragon-blog]: https://paragonie.com/blog/2016/02/one-login-rule-them-all-seamless-and-secure-cross-domain-authentication
+[fluentd-docker]: https://www.fluentd.org/guides/recipes/docker-logging

@@ -18,6 +18,7 @@ Todo:
     ☐ @high OpenAPI gateway CORS headers, check if override at proxy level works.
         Environment variable for allow origin header?
         Graceful shutdown for server support, exit code is 2, should be 0.
+        CORS set at traefik don't override.
     ☐ @low Service flags to allow access to endpoints.
         Trusted vs untrusted services?
     ✔ Crate dependency upgrades. @done(20-02-26)
@@ -43,7 +44,6 @@ Todo:
     ✔ Traefik rate limiting, forward auth, TLS/HTTPS support.
 
   Test:
-    ☐ Test TLS functionality.
     ☐ Password reset tests using lettre file transport (or write as .json?).
         Service 2 cannot confirm reset password.
         Confirm reset password success.
@@ -55,6 +55,7 @@ Todo:
     ☐ More tests on preventing spoofing, elevation of privelege.
     ☐ Test requests with other/unknown content types are handled correctly.
     ☐ More input tests including unicode passwords, bad strings, etc.
+    ✔ Test TLS functionality.
 
   Developer:
     ☐ Try flamegraph for profiling.

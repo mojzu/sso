@@ -65,7 +65,7 @@ The OWASP Application Security Verification Standard is being used as a referenc
 ### 1.5.2
 
 - API is JSON requests over HTTP so serialisation is required.
-- Using [serde][serde] and [serde_qs][serde_qs] for serialisation and deserialisation.
+- Using [serde][serde] for serialisation and deserialisation.
 
 ### 1.5.3
 
