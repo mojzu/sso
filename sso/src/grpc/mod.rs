@@ -39,6 +39,15 @@ pub mod pb {
         Some(ti)
     }
 
+    pub fn datetime_opt_to_timestamp_opt(
+        dt: Option<DateTime<Utc>>,
+    ) -> Option<prost_types::Timestamp> {
+        match dt {
+            Some(dt) => datetime_to_timestamp_opt(dt),
+            None => None,
+        }
+    }
+
     pub fn string_to_uuid(s: String) -> Uuid {
         Uuid::parse_str(s.as_ref()).unwrap()
     }
