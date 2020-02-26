@@ -10,7 +10,7 @@ const EMAIL_UPDATE_EMAIL: &str = "email_update_email";
 const EMAIL_UPDATE_PASSWORD: &str = "email_update_password";
 
 lazy_static! {
-    static ref HANDLEBARS: Handlebars = {
+    static ref HANDLEBARS: Handlebars<'static> = {
         let mut handlebars = Handlebars::new();
 
         handlebars

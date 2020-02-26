@@ -13,10 +13,10 @@ insecure = true
         watch = true
 
 [entrypoints]
-    [entrypoints.SsoEntrypoint]
+    [entrypoints.HttpEntrypoint]
         address = ":80"
-    # [entrypoints.postgresEntrypoint]
-    #     address = ":5432"
+    [entrypoints.HttpsEntrypoint]
+        address = ":443"
 
 [metrics.prometheus]
 

@@ -20,7 +20,7 @@ Todo:
         Graceful shutdown for server support, exit code is 2, should be 0.
     ☐ @low Service flags to allow access to endpoints.
         Trusted vs untrusted services?
-    ☐ @high Crate dependency upgrades.
+    ✔ Crate dependency upgrades. @done(20-02-26)
     ✔ Server and client TLS support.
     ✔ Sso async client configurable headers per client for upstream use.
 

@@ -16,11 +16,11 @@
         [tls.options.default.clientAuth]
             caFiles = ["/cert/root_ca.crt"]
             # clientAuthType = "RequireAndVerifyClientCert"
-            # clientAuthType = "VerifyClientCertIfGiven"
+            clientAuthType = "VerifyClientCertIfGiven"
 
 [http.routers]
     [http.routers.SsoOpenapiRouter]
-        entrypoints = ["SsoEntrypoint"]
+        entrypoints = ["HttpEntrypoint"]
         rule = "(Host(`traefik`) || Host(`sso.localhost`)) && PathPrefix(`/api`)"
         middlewares = ["SsoOpenapiStripprefixMiddleware", "SsoForwardauthMiddleware"]
         service = "SsoOpenapiService"
@@ -28,7 +28,7 @@
         #     options = "default"
 
     [http.routers.SsoGrpcRouter]
-        entrypoints = ["SsoEntrypoint"]
+        entrypoints = ["HttpEntrypoint"]
         rule = "(Host(`traefik`) || Host(`sso.localhost`)) && PathPrefix(`/sso.Sso`)"
         middlewares = ["SsoForwardauthMiddleware"]
         service = "SsoGrpcService"
@@ -36,9 +36,11 @@
         #     options = "default"
 
     [http.routers.PrometheusRouter]
-        entrypoints = ["SsoEntrypoint"]
+        entrypoints = ["HttpEntrypoint"]
         rule = "Host(`prometheus.localhost`)"
         service = "PrometheusService"
+        # [http.routers.PrometheusRouter.tls]
+        #     options = "default"
 
 [http.services]
     [http.services.SsoOpenapiService.loadBalancer]
