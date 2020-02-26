@@ -26,8 +26,6 @@ Todo:
 
   Documentation:
     ☐ Check CORS and other security headers using OWASP secure headers project.
-    ☐ Traefik rate limiting, forward auth, TLS/HTTPS support.
-        https://github.com/smallstep/autocert
     ☐ Prometheus alert rule for high CPU usage.
         How to get maximum for seconds over time?
     ☐ Manual guides check and other documentation, update where required.
@@ -35,13 +33,14 @@ Todo:
     ☐ Manual CLI guide, improved CLI commands.
     ☐ Manual style improvements, PDF output?
     ☐ Systemd unit file examples, sso, postgres, etc.
-    ☐ Kubernetes deployment examples.
+    ☐ Kubernetes deployment examples, improved documentation.
     ☐ Mutual TLS using rustls configuration and PKI for communication between services.
     ☐ Check this meets key management standard NIST SP 800-57.
     ☐ Evaluate data and identify/classify sensitive data.
     ☐ Mutual TLS encryption/authentication for postgres connection.
     ☐ Some kind of formalised procedures around source code changes.
     ☐ Up to date documentation and definitions of application components, diagrams.
+    ✔ Traefik rate limiting, forward auth, TLS/HTTPS support.
 
   Test:
     ☐ Test TLS functionality.
@@ -68,6 +67,7 @@ Todo:
   Features:
     ☐ Handle changes to password hash version.
     ☐ Service IP whitelist.
+        https://docs.traefik.io/middlewares/ipwhitelist/
     ☐ Option to enforce provider URLs HTTPS.
         Make this mandatory, how would development work?
         Flag(s) to require HTTPS to ensure all requests/responses are encrypted in transit?

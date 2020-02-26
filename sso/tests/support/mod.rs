@@ -41,7 +41,6 @@ fn channel_tls() -> GrpcClientChannelTls {
 }
 
 pub fn client_create(key: Option<&str>) -> GrpcClientBlocking {
-    println!("{:?}", channel_tls());
     match key {
         Some(key) => GrpcClientBlocking::new(
             env_test_sso_url(),

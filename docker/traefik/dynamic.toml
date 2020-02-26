@@ -22,7 +22,7 @@
     [http.routers.SsoOpenapiRouter]
         entrypoints = ["HttpEntrypoint"]
         rule = "(Host(`traefik`) || Host(`sso.localhost`)) && PathPrefix(`/api`)"
-        middlewares = ["SsoOpenapiStripprefixMiddleware", "SsoForwardauthMiddleware"]
+        middlewares = ["SsoRatelimitMiddleware", "SsoOpenapiStripprefixMiddleware", "SsoForwardauthMiddleware"]
         service = "SsoOpenapiService"
         # [http.routers.SsoOpenapiRouter.tls]
         #     options = "default"
@@ -30,7 +30,7 @@
     [http.routers.SsoGrpcRouter]
         entrypoints = ["HttpEntrypoint"]
         rule = "(Host(`traefik`) || Host(`sso.localhost`)) && PathPrefix(`/sso.Sso`)"
-        middlewares = ["SsoForwardauthMiddleware"]
+        middlewares = ["SsoRatelimitMiddleware", "SsoForwardauthMiddleware"]
         service = "SsoGrpcService"
         # [http.routers.SsoGrpcRouter.tls]
         #     options = "default"
@@ -63,6 +63,10 @@
         address = "http://sso-grpc:7043/hook/traefik/self"
         trustForwardHeader = false
         authResponseHeaders = ["Grpc-Metadata-Sso-Key-Id","Grpc-Metadata-Sso-Service-Id","Grpc-Metadata-Sso-User-Key-Id","Grpc-Metadata-Sso-User-Id"]
+
+    [http.middlewares.SsoRatelimitMiddleware.rateLimit]
+        average = 1000
+        burst = 500
 
 # [tcp.routers]
 #     [tcp.routers.postgresRouter]

@@ -388,6 +388,7 @@ font-size: 16px;
 <li><a href="#developer"><span class="toc-section-number">5</span> Developer</a>
 <ul>
 <li><a href="#minikube"><span class="toc-section-number">5.1</span> Minikube</a></li>
+<li><a href="#smallstep-ca"><span class="toc-section-number">5.2</span> Smallstep CA</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -551,6 +552,15 @@ font-size: 16px;
 <section id="prometheus" data-number="2.2.2">
 <h3 data-number="2.2.2"><span class="header-section-number">2.2.2</span> Prometheus</h3>
 <p>Example <a href="https://prometheus.io/">Prometheus</a> configuration and alerting rules can be found in the <code>docker/prometheus</code> directory of the repository.</p>
+</section>
+<section id="traefik" data-number="2.2.3">
+<h3 data-number="2.2.3"><span class="header-section-number">2.2.3</span> Traefik</h3>
+<p>Example <a href="https://docs.traefik.io">Traefik</a> configuration files can be found in the <code>docker/traefik</code> directory of the repository.</p>
+<ul>
+<li>Can apply <a href="https://docs.traefik.io/middlewares/ratelimit/">rate limit</a>.</li>
+<li>Can use <a href="https://docs.traefik.io/middlewares/forwardauth/">forward authentication</a> with <code>SSO_TRAEFIK</code> environment variable.</li>
+<li>Can use <a href="https://docs.traefik.io/routing/routers/#tls">router TLS</a> or <code>SSO_TLS_*</code> environment variables for encrypting traffic.</li>
+</ul>
 </section>
 </section>
 <section id="login" data-number="2.3">
@@ -1419,6 +1429,27 @@ font-size: 16px;
 <div class="sourceCode" id="cb79"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb79-1"><a href="#cb79-1"></a><span class="ex">docker</span> build --tag <span class="st">&quot;sso-build:latest&quot;</span> .</span>
 <span id="cb79-2"><a href="#cb79-2"></a><span class="ex">docker-compose</span> build --parallel</span>
 <span id="cb79-3"><a href="#cb79-3"></a><span class="kw">(</span><span class="bu">cd</span> kubernetes/minikube/docker <span class="kw">&amp;&amp;</span> <span class="fu">bash</span> build.sh<span class="kw">)</span></span></code></pre></div>
+</section>
+<section id="smallstep-ca" data-number="5.2">
+<h2 data-number="5.2"><span class="header-section-number">5.2</span> Smallstep CA</h2>
+<p>Create CA root certificate and certificate and key for server for testing, overwrite files in <code>docker/build/cert</code>.</p>
+<div class="sourceCode" id="cb80"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb80-1"><a href="#cb80-1"></a><span class="fu">mkdir</span> -p volumes/ca</span>
+<span id="cb80-2"><a href="#cb80-2"></a><span class="ex">docker</span> run --rm --user <span class="va">$(</span><span class="fu">id</span> -u<span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> -g<span class="va">)</span> --network host -v <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">/volumes/ca:/home/step&quot;</span> -it smallstep/step-ca step ca init</span>
+<span id="cb80-3"><a href="#cb80-3"></a><span class="co"># STDIN: Localhost, localhost, :443, localhost, guest</span></span>
+<span id="cb80-4"><a href="#cb80-4"></a><span class="bu">echo</span> <span class="st">&quot;guest&quot;</span> <span class="op">&gt;</span> volumes/ca/secrets/password</span>
+<span id="cb80-5"><a href="#cb80-5"></a><span class="ex">docker</span> run --rm --user <span class="va">$(</span><span class="fu">id</span> -u<span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> -g<span class="va">)</span> --network host -v <span class="st">&quot;</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">/volumes/ca:/home/step&quot;</span> -it smallstep/step-ca /bin/bash</span>
+<span id="cb80-6"><a href="#cb80-6"></a><span class="ex">step</span> ca certificate --offline --not-after 999h --san traefik sso.localhost sso.crt sso.key</span>
+<span id="cb80-7"><a href="#cb80-7"></a><span class="ex">step</span> certificate inspect sso.crt</span>
+<span id="cb80-8"><a href="#cb80-8"></a><span class="co"># STDIN: guest</span></span></code></pre></div>
+<p>Modify <code>volumes/ca/config/ca.json</code>.</p>
+<div class="sourceCode" id="cb81"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb81-1"><a href="#cb81-1"></a><span class="fu">{</span></span>
+<span id="cb81-2"><a href="#cb81-2"></a>  <span class="dt">&quot;authority&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb81-3"><a href="#cb81-3"></a>    <span class="dt">&quot;claims&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb81-4"><a href="#cb81-4"></a>      <span class="dt">&quot;maxTLSCertDuration&quot;</span><span class="fu">:</span> <span class="st">&quot;999h&quot;</span><span class="fu">,</span></span>
+<span id="cb81-5"><a href="#cb81-5"></a>      <span class="dt">&quot;defaultTLSCertDuration&quot;</span><span class="fu">:</span> <span class="st">&quot;999h&quot;</span></span>
+<span id="cb81-6"><a href="#cb81-6"></a>    <span class="fu">}</span></span>
+<span id="cb81-7"><a href="#cb81-7"></a>  <span class="fu">}</span></span>
+<span id="cb81-8"><a href="#cb81-8"></a><span class="fu">}</span></span></code></pre></div>
 </section>
 </section>
 </div>

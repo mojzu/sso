@@ -13,6 +13,10 @@
 [grpc]: https://grpc.io/
 [sso_crates_io]: https://crates.io/crates/sso
 [sso_github]: https://github.com/mojzu/sso
+[traefik]: https://docs.traefik.io
+[traefik-ratelimit]: https://docs.traefik.io/middlewares/ratelimit/
+[traefik-forwardauth]: https://docs.traefik.io/middlewares/forwardauth/
+[traefik-routers-tls]: https://docs.traefik.io/routing/routers/#tls
 
 [rust]: https://www.rust-lang.org/
 [rustup]: https://rustup.rs/
@@ -34,6 +38,7 @@
 [argon2]: https://en.wikipedia.org/wiki/Argon2
 [zxcvbn]: https://github.com/shssoichiro/zxcvbn-rs
 [webauthn]: https://webauthn.guide/
+[rustls]: https://github.com/ctz/rustls
 
 [diesel]: http://diesel.rs/
 [postgresql]: https://www.postgresql.org/
@@ -45,3 +50,5 @@
 [docker-compose-install]: https://docs.docker.com/compose/install/
 [kubernetes]: https://kubernetes.io/
 [minikube]: https://kubernetes.io/docs/tasks/tools/install-minikube/
+
+[autocert]: https://github.com/smallstep/autocert
