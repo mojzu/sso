@@ -1,6 +1,6 @@
 # ```bash
 # # Build image.
-# docker build --tag "sso/build:latest" .
+# docker build --tag "sso/build:latest" --build-arg UID=$(id -u) .
 #
 # # Create network.
 # docker network create compose
@@ -16,15 +16,17 @@
 FROM debian:10.2
 ENV DEBIAN_FRONTEND="noninteractive"
 
+# User ID argument to match host.
+ARG UID
+
 # Install dependencies.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     wget unzip ca-certificates build-essential libpq-dev libssl-dev pkg-config git \
     && rm -rf /var/lib/apt/lists/*;
 
-# Create user and group to match host.
-RUN groupadd --gid 1000 build \
-    && useradd --uid 1000 --gid build --shell /bin/bash --create-home build;
+# Create user to match host.
+RUN useradd --uid $UID --shell /bin/bash --create-home build;
 
 # Environment.
 ENV HOME="/root"
@@ -33,12 +35,12 @@ ENV HOME="/root"
 ENV RUSTUP_HOME="/usr/local/rustup" \
     CARGO_HOME="/usr/local/cargo" \
     PATH="/usr/local/cargo/bin:$PATH" \
-    RUST_VERSION="1.40.0" \
-    RUSTUP_URL="https://static.rust-lang.org/rustup/archive/1.20.2/x86_64-unknown-linux-gnu/rustup-init"
+    RUST_VERSION="1.41.1" \
+    RUSTUP_VERSION_URL="https://static.rust-lang.org/rustup/archive/1.21.1/x86_64-unknown-linux-gnu/rustup-init"
 
 # Install Rust toolchain.
 # <https://github.com/rust-lang/docker-rust>
-RUN wget -q "$RUSTUP_URL" \
+RUN wget -q "$RUSTUP_VERSION_URL" \
     && chmod +x rustup-init \
     && ./rustup-init -y --no-modify-path --profile default --default-toolchain $RUST_VERSION \
     && rm rustup-init \
@@ -46,21 +48,21 @@ RUN wget -q "$RUSTUP_URL" \
     && chmod 777 -R $HOME;
 
 # Install Rust tools.
-RUN cargo install --force cargo-make \
-    && cargo install --force diesel_cli --no-default-features --features "postgres" \
-    && cargo install --force cargo-audit;
+RUN cargo install --force cargo-make --version "~0.28" \
+    && cargo install --force diesel_cli --version "~1.4" --no-default-features --features "postgres" \
+    && cargo install --force cargo-audit --version "~0.11";
 
 # Go environment.
 ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH" \
-    GOLANG_URL="https://golang.org/dl/go1.13.5.linux-amd64.tar.gz" \
-    PROTOC_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.11.1/protoc-3.11.1-linux-x86_64.zip"
+    GOLANG_VERSION_URL="https://dl.google.com/go/go1.14.linux-amd64.tar.gz" \
+    PROTOC_VERSION_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip"
 
 # Install Go toolchain.
 # <https://github.com/docker-library/golang>
-RUN wget -O go.tgz -q "$GOLANG_URL" \
+RUN wget -O go.tgz -q "$GOLANG_VERSION_URL" \
     && tar -C /usr/local -xzf go.tgz \
     && rm go.tgz \
-    && wget -O protoc.zip -q "$PROTOC_URL" \
+    && wget -O protoc.zip -q "$PROTOC_VERSION_URL" \
     && unzip -o protoc.zip -d /usr/local bin/protoc \
     && unzip -o protoc.zip -d /usr/local 'include/*' \
     && chmod -R 777 /usr/local/bin/protoc \
@@ -76,17 +78,40 @@ RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway \
     && go get -u google.golang.org/grpc;
 
 # Pandoc environment.
-ENV PANDOC_URL="https://github.com/jgm/pandoc/releases/download/2.9/pandoc-2.9-1-amd64.deb"
+ENV PANDOC_VERSION_URL="https://github.com/jgm/pandoc/releases/download/2.9/pandoc-2.9-1-amd64.deb"
 
 # Install Pandoc.
 # <https://pandoc.org/installing.html>
-RUN wget -O pandoc.deb -q "$PANDOC_URL" \
+RUN wget -O pandoc.deb -q "$PANDOC_VERSION_URL" \
     && dpkg -i pandoc.deb \
     && rm pandoc.deb;
 
+# Set cargo cache directory in volume.
+# This prevents having to download dependencies in development builds.
+ENV CARGO_HOME="/build/.cargo"
+
+# Print installed versions script default command.
+ADD ./docker/build/versions.sh /versions.sh
+RUN chmod +x /versions.sh
+CMD ["/versions.sh"]
+
 # -----------------------
-# Development Environment
+# START Development Files
 # -----------------------
+
+# Copy CA certificate files.
+ADD ./docker/build/cert /cert
+RUN chmod +r -R /cert
+
+# Copy project files and set working directory.
+# These are required for docker-compose service builds.
+ADD . /build
+ADD ./docker/build/Cargo.toml /build/Cargo.toml
+WORKDIR /build
+
+# -----------------------------
+# START Development Environment
+# -----------------------------
 # This file is checked into Git and must not contain secrets!
 ENV RUST_BACKTRACE="1" \
     RUST_LOG="info,sso=debug"
@@ -129,21 +154,3 @@ ENV SSO_TEST_URL="http://traefik:80" \
 # ENV SSO_TEST_TLS_CA_CERT="/cert/root_ca.crt"
 # ENV SSO_TEST_TLS_CLIENT_CERT="" \
 #     SSO_TEST_TLS_CLIENT_KEY=""
-
-# Copy CA certificate files.
-ADD ./docker/build/cert /cert
-RUN chmod +r -R /cert
-
-# Copy project files and set working directory.
-# These are required for docker-compose service builds.
-ADD . /build
-ADD ./docker/build/Cargo.toml /build/Cargo.toml
-WORKDIR /build
-
-# Set cargo cache directory in volume.
-# This prevents having to download dependencies in development builds.
-ENV CARGO_HOME="/build/.cargo"
-
-ADD ./docker/build/versions.sh /versions.sh
-RUN chmod +x /versions.sh
-CMD ["/versions.sh"]

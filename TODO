@@ -63,6 +63,7 @@ Todo:
     ☐ Better library interface, require documentation, embeddable service?
         #![deny(missing_docs)]
     ☐ Further OWASP ASVS reading and notes, current notes out of date.
+    ☐ Check downloaded development tool file signatures (see docker images).
     ✔ Improve binaries main code, remove or replace unwrap.
 
   Features:
