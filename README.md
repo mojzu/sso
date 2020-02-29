@@ -8,6 +8,8 @@
 | Directory      | Description                                        |
 | -------------- | -------------------------------------------------- |
 | `/docker`      | Docker images.                                     |
-| `/docs`        | Manual sources.                                    |
+| `/docs`        | Manual build.                                      |
+| `/docs-src`    | Manual sources.                                    |
+| `/kubernetes`  | Kubernetes examples.                               |
 | `/sso`         | Authentication library, CLI and gRPC server crate. |
 | `/sso_openapi` | OpenAPI v2 gateway for gRPC server.                |

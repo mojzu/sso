@@ -125,10 +125,11 @@ Build [OpenAPI][openapi] gateway server.
 sso-build cargo make openapi-bin
 ```
 
-This manual is written in [Markdown][pandoc-markdown] and converted into other formats using [Pandoc][pandoc]. Build the HTML manual.
+This manual is written in [Markdown][pandoc-markdown] and build into a static website using [mkdocs][mkdocs].
 
 ```bash
-sso-build cargo make manual
+sso-mkdocs serve
+sso-mkdocs build
 ```
 
 Build crate documentation.

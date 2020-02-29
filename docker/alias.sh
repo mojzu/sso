@@ -14,3 +14,5 @@ sso-build-host() {
 alias sso-build-build='docker-compose -f docker/build.yml build'
 # Alias to run docker-compose sso project.
 alias sso='docker-compose -f docker/sso.yml -p sso'
+# Alias to run mkdocs container.
+alias sso-mkdocs='docker run --rm -it --user $(id -u):$(id -g) -p 8000:8000 -v "$(pwd):/build" sso/mkdocs:v1'

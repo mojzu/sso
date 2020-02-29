@@ -32,7 +32,6 @@ Todo:
     ☐ Manual guides check and other documentation, update where required.
     ☐ Manual revoke email update guide.
     ☐ Manual CLI guide, improved CLI commands.
-    ☐ Manual style improvements, PDF output?
     ☐ Systemd unit file examples, sso, postgres, etc.
     ☐ Kubernetes deployment examples, improved documentation.
     ☐ Mutual TLS using rustls configuration and PKI for communication between services.
@@ -41,6 +40,7 @@ Todo:
     ☐ Mutual TLS encryption/authentication for postgres connection.
     ☐ Some kind of formalised procedures around source code changes.
     ☐ Up to date documentation and definitions of application components, diagrams.
+    ✔ Manual style improvements. @done(20-02-29)
     ✔ Traefik rate limiting, forward auth, TLS/HTTPS support.
 
   Test:

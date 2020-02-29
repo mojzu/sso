@@ -1,0 +1,8 @@
+site_name: "sso-v0.10.0"
+docs_dir: docs-src
+site_dir: docs-1
+dev_addr: 0.0.0.0:8000
+nav:
+  - Home: index.md
+  - About: about.md
+theme: readthedocs

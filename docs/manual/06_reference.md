@@ -1,6 +1,6 @@
 [nginx]: https://www.nginx.com/
 [prometheus]: https://prometheus.io/
-[pandoc]: https://pandoc.org/
+[mkdocs]: https://www.mkdocs.org/
 [pandoc-markdown]: https://pandoc.org/MANUAL.html#pandocs-markdown
 [openapi]: https://swagger.io/docs/specification/about/
 [reqwest]: https://github.com/seanmonstar/reqwest

@@ -29,3 +29,10 @@ services:
       context: ../
       dockerfile: ./docker/sso/dockerfile
     image: sso/sso:v1
+
+  # MkDocs tool.
+  sso-mkdocs:
+    build:
+      context: ../
+      dockerfile: ./docker/mkdocs/dockerfile
+    image: sso/mkdocs:v1
