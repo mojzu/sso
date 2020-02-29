@@ -1,106 +1,106 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/introduction/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/guide/quickstart/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/guide/login/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/guide/register/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/guide/reset-password/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/guide/update-email/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/guide/update-password/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/guide/api-key/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/guide/oauth2-login/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/guide/csrf/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/guide/totp/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/guide/cli/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/guide/deployment/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/changelog/0.10.0/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/changelog/0.9.0/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/changelog/0.8.0/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/changelog/0.7.0/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/changelog/0.6.0/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/changelog/0.5.0/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/changelog/0.4.0/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/changelog/0.3.0/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/changelog/0.2.0/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/changelog/0.1.0/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/developer/design/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/developer/developer/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>None</loc>
+     <loc>https://mojzu.net/sso/developer/reference/</loc>
      <lastmod>2020-02-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
