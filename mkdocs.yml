@@ -7,7 +7,7 @@ docs_dir: docs-src
 site_dir: docs
 dev_addr: 0.0.0.0:8000
 nav:
-  - introduction.md
+  - index.md
   - Guides:
       - guide/quickstart.md
       - guide/login.md
