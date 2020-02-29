@@ -1,9 +1,10 @@
 # Developer
 
-A [Docker][docker] image contains the development tools, build it with the command.
+[Docker][docker] images contain the development tools, build them with the command.
 
 ```bash
-docker build --tag "sso/build:latest" .
+source docker/alias.sh
+sso-build-build
 ```
 
 Create a network for containers.
@@ -15,22 +16,22 @@ docker network create compose
 Development tools are run with the command.
 
 ```bash
-docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v "$(pwd):/build" sso/build:latest $ARGS
+docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v "$(pwd):/build" sso/build:v1 $ARGS
 ```
 
 Create an alias on Linux for the above with the command.
 
 ```bash
-alias sso-build='docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v "$(pwd):/build" sso/build:latest'
+alias sso-build='docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v "$(pwd):/build" sso/build:v1'
 ```
 
-Development environment variables are configured in `Dockerfile`.
+Development environment variables are configured in `docker/build/build.dockerfile`.
 
 Services are run using [Docker Compose][docker-compose], start them with the command.
 
 ```bash
-docker-compose build
-docker-compose up
+sso build
+sso up
 ```
 
 Create an alias on Linux to run `sso-build` container with a hostname, this allows you to replace compose services during development without using host networking mode.
@@ -39,7 +40,7 @@ Create an alias on Linux to run `sso-build` container with a hostname, this allo
 sso-build-host() {
     local host="$1"
     shift 1
-    docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v "$(pwd):/build" --hostname $host --name $host sso/build:latest "$@"
+    docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v "$(pwd):/build" --hostname $host --name $host sso/build:v1 "$@"
 }
 ```
 
@@ -49,14 +50,14 @@ To use the `sso-cli` command you can access the `sso-grpc` container.
 docker exec -it sso_sso-grpc_1 /bin/bash
 sso-cli --help
 sso-cli create-root-key root
-sso-cli sso-cli create-service-with-key test test.localhost --allow-register true --local-url test.localhost/auth/provider/local
+sso-cli create-service-with-key test test.localhost --allow-register true --local-url test.localhost/auth/provider/local
 ```
 
 Stop and destroy services with the commands.
 
 ```bash
-docker-compose stop
-docker-compose down
+sso stop
+sso down
 ```
 
 Create backup of `sso` database in `postgres` service. This backup will be restored automatically when the `postgres` service is rebuilt.
@@ -160,7 +161,7 @@ minikube ip
 (Re)build all Docker images and load images into Minikube.
 
 ```bash
-docker build --tag "sso-build:latest" .
+docker build --tag "sso-build:" .
 docker-compose build --parallel
 (cd kubernetes/minikube/docker && bash build.sh)
 ```

@@ -1,21 +1,9 @@
-# ```bash
-# # Build all services.
-# docker-compose build
-#
-# # Start services.
-# docker-compose up [$service]
-#
-# # Stop/destroy services.
-# docker-compose stop
-# docker-compose down
-# ```
 version: "3"
-
 services:
   # PostgreSQL.
   # <https://www.postgresql.org/>
   postgres:
-    build: docker/postgres
+    build: postgres
     restart: always
     environment:
       POSTGRES_USER: guest
@@ -26,13 +14,12 @@ services:
   # Prometheus.
   # <https://prometheus.io/>
   prometheus:
-    build: docker/prometheus
+    build: prometheus
     restart: always
 
   # Sso gRPC server.
   sso-grpc:
-    build: docker/sso
-    image: sso:latest
+    image: sso/sso:v1
     depends_on:
       - postgres
     restart: always
@@ -63,8 +50,7 @@ services:
 
   # Sso OpenAPI server.
   sso-openapi:
-    build: docker/sso
-    image: sso:latest
+    image: sso/sso:v1
     restart: always
     environment:
       # gRPC server URL.
@@ -74,7 +60,7 @@ services:
   # Traefik.
   # <https://docs.traefik.io/>
   traefik:
-    image: traefik:latest
+    image: traefik:v2.1.6
     restart: always
     ports:
       - "80:80"
@@ -82,8 +68,8 @@ services:
       - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./docker/build/cert:/cert"
-      - "./docker/traefik:/etc/traefik"
+      - "./build/cert:/cert"
+      - "./traefik:/etc/traefik"
 
 networks:
   default:

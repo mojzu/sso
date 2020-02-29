@@ -1,19 +1,4 @@
-# ```bash
-# # Build image.
-# docker build --tag "sso/build:latest" --build-arg UID=$(id -u) .
-#
-# # Create network.
-# docker network create compose
-#
-# # Add to `~/.bashrc`.
-# alias sso-build='docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v "$(pwd):/build" sso/build:latest'
-# sso-build-host() {
-#     local host="$1"
-#     shift 1
-#     docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v "$(pwd):/build" --hostname $host --name $host sso/build:latest "$@"
-# }
-# ```
-FROM debian:10.2
+FROM debian:10.3
 ENV DEBIAN_FRONTEND="noninteractive"
 
 # User ID argument to match host.
@@ -22,7 +7,7 @@ ARG UID
 # Install dependencies.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-    wget unzip ca-certificates build-essential libpq-dev libssl-dev pkg-config git \
+    wget unzip ca-certificates build-essential libpq-dev libssl-dev pkg-config git procps \
     && rm -rf /var/lib/apt/lists/*;
 
 # Create user to match host.
@@ -90,24 +75,17 @@ RUN wget -O pandoc.deb -q "$PANDOC_VERSION_URL" \
 # This prevents having to download dependencies in development builds.
 ENV CARGO_HOME="/build/.cargo"
 
-# Print installed versions script default command.
-ADD ./docker/build/versions.sh /versions.sh
-RUN chmod +x /versions.sh
-CMD ["/versions.sh"]
-
-# -----------------------
-# START Development Files
-# -----------------------
-
 # Copy CA certificate files.
 ADD ./docker/build/cert /cert
 RUN chmod +r -R /cert
 
-# Copy project files and set working directory.
-# These are required for docker-compose service builds.
-ADD . /build
-ADD ./docker/build/Cargo.toml /build/Cargo.toml
+# Set working directory.
 WORKDIR /build
+
+# Print installed versions script default command.
+ADD ./docker/build/versions.sh /versions.sh
+RUN chmod +x /versions.sh
+CMD ["/versions.sh"]
 
 # -----------------------------
 # START Development Environment
@@ -116,7 +94,6 @@ WORKDIR /build
 ENV RUST_BACKTRACE="1" \
     RUST_LOG="info,sso=debug"
 
-# sso
 # # Sentry DSN for logging integration.
 # ENV SSO_SENTRY_DSN=""
 ENV SSO_LOG_PRETTY="true"
