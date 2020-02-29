@@ -1,8 +1,35 @@
 site_name: "sso-v0.10.0"
 docs_dir: docs-src
-site_dir: docs-1
+site_dir: docs
 dev_addr: 0.0.0.0:8000
 nav:
-  - Home: index.md
-  - About: about.md
+  - introduction.md
+  - Guides:
+      - guide/quickstart.md
+      - guide/login.md
+      - guide/register.md
+      - guide/reset-password.md
+      - guide/update-email.md
+      - guide/update-password.md
+      - guide/api-key.md
+      - guide/oauth2-login.md
+      - guide/csrf.md
+      - guide/totp.md
+      - guide/cli.md
+      - guide/deployment.md
+  - Changelog:
+      - changelog/0.10.0.md
+      - changelog/0.9.0.md
+      - changelog/0.8.0.md
+      - changelog/0.7.0.md
+      - changelog/0.6.0.md
+      - changelog/0.5.0.md
+      - changelog/0.4.0.md
+      - changelog/0.3.0.md
+      - changelog/0.2.0.md
+      - changelog/0.1.0.md
+  - Developer:
+      - developer/design.md
+      - developer/developer.md
+      - developer/reference.md
 theme: readthedocs

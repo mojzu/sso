@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Developer - sso-v0.10.0</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../../css/theme.css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Developer";
+    var mkdocs_page_input_path = "developer/developer.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> sso-v0.10.0</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../introduction/">Introduction</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Guides</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../guide/quickstart/">Quickstart</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../guide/login/">Login</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../guide/register/">Register</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../guide/reset-password/">Reset Password</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../guide/update-email/">Update Email</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../guide/update-password/">Update Password</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../guide/api-key/">API Key</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../guide/oauth2-login/">OAuth2 Login</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../guide/csrf/">CSRF</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../guide/totp/">TOTP</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../guide/cli/">CLI</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../guide/deployment/">Deployment</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Changelog</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.10.0/">0.10.0 (?)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.9.0/">0.9.0 (2020-01-19)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.8.0/">0.8.0 (2019-11-03)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.7.0/">0.7.0 (2019-10-19)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.6.0/">0.6.0 (2019-10-07)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.5.0/">0.5.0 (2019-10-05)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.4.0/">0.4.0 (2019-09-09)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.3.0/">0.3.0 (2019-08-03)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.2.0/">0.2.0 (2019-07-07)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.1.0/">0.1.0 (2019-05-16)</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Developer</span></p>
+                <ul class="current">
+                    <li class="toctree-l1"><a class="reference internal" href="../design/">Design</a>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Developer</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#minikube">Minikube</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#smallstep-ca">Smallstep CA</a>
+    </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../reference/">Reference</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">sso-v0.10.0</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Developer &raquo;</li>
+        
+      
+    
+    <li>Developer</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="developer">Developer</h1>
+<p><a href="https://docs.docker.com/install/">Docker</a> images contain the development tools, build them with the command.</p>
+<pre><code class="bash">source docker/alias.sh
+sso-build-build
+</code></pre>
+
+<p>Create a network for containers.</p>
+<pre><code class="bash">docker network create compose
+</code></pre>
+
+<p>Development tools are run with the command.</p>
+<pre><code class="bash">docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v &quot;$(pwd):/build&quot; sso/build:v1 $ARGS
+</code></pre>
+
+<p>Create an alias on Linux for the above with the command.</p>
+<pre><code class="bash">alias sso-build='docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v &quot;$(pwd):/build&quot; sso/build:v1'
+</code></pre>
+
+<p>Development environment variables are configured in <code>docker/build/build.dockerfile</code>.</p>
+<p>Services are run using <a href="https://docs.docker.com/compose/">Docker Compose</a>, start them with the command.</p>
+<pre><code class="bash">sso build
+sso up
+</code></pre>
+
+<p>Create an alias on Linux to run <code>sso-build</code> container with a hostname, this allows you to replace compose services during development without using host networking mode.</p>
+<pre><code class="bash">sso-build-host() {
+    local host=&quot;$1&quot;
+    shift 1
+    docker run --rm -it --init --user $(id -u):$(id -g) --network compose -v &quot;$(pwd):/build&quot; --hostname $host --name $host sso/build:v1 &quot;$@&quot;
+}
+</code></pre>
+
+<p>To use the <code>sso-cli</code> command you can access the <code>sso-grpc</code> container.</p>
+<pre><code class="bash">docker exec -it sso_sso-grpc_1 /bin/bash
+sso-cli --help
+sso-cli create-root-key root
+sso-cli create-service-with-key test test.localhost --allow-register true --local-url test.localhost/auth/provider/local
+</code></pre>
+
+<p>Stop and destroy services with the commands.</p>
+<pre><code class="bash">sso stop
+sso down
+</code></pre>
+
+<p>Create backup of <code>sso</code> database in <code>postgres</code> service. This backup will be restored automatically when the <code>postgres</code> service is rebuilt.</p>
+<pre><code class="bash">docker exec sso_postgres_1 pg_dump -U guest --format=custom sso &gt; docker/postgres/pgdump/sso.pgdump
+</code></pre>
+
+<p>Reset database and create new <a href="https://www.postgresql.org/">PostgreSQL</a> database migrations with <a href="http://diesel.rs/">Diesel</a>. These commands expect <code>postgres</code> service is running.</p>
+<pre><code class="bash">sso-build cargo make postgres-reset
+sso-build cargo make postgres-migration $migration_name
+</code></pre>
+
+<p>Check source code using <a href="https://github.com/rust-lang/rust-clippy">clippy</a>.</p>
+<pre><code class="bash">sso-build cargo make clippy
+</code></pre>
+
+<p>Audit crate dependencies.</p>
+<pre><code class="bash">sso-build cargo make audit
+</code></pre>
+
+<p>Build libraries and binaries.</p>
+<pre><code class="bash">sso-build cargo make build
+sso-build cargo make release
+</code></pre>
+
+<p>Run development binaries.</p>
+<pre><code class="bash">sso-build cargo make sso-cli -- $ARGS
+sso-build cargo make sso-grpc
+sso-build cargo make sso-openapi
+</code></pre>
+
+<p>Run unit tests.</p>
+<pre><code class="bash">sso-build cargo make test
+</code></pre>
+
+<p>Run integration tests. This expects <code>sso-grpc</code> service is running and <code>SSO_TEST_URL</code> and <code>SSO_TEST_KEY</code> environment variables are defined. Where URL is the address of the gRPC server and key is a root key value returned by <code>sso-cli</code>.</p>
+<pre><code class="bash">sso-build cargo make test-integration
+for i in {1..50}; do sso-build cargo make test-integration; done
+</code></pre>
+
+<p>Compile <a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a> for <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> gateway server.</p>
+<pre><code class="bash">sso-build cargo make openapi-protoc
+</code></pre>
+
+<p>Build <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> gateway server.</p>
+<pre><code class="bash">sso-build cargo make openapi-bin
+</code></pre>
+
+<p>This manual is written in <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Markdown</a> and build into a static website using <a href="https://www.mkdocs.org/">mkdocs</a>.</p>
+<pre><code class="bash">sso-mkdocs serve
+sso-mkdocs build
+</code></pre>
+
+<p>Build crate documentation.</p>
+<pre><code class="bash">sso-build cargo make doc
+</code></pre>
+
+<p>Install crate locally.</p>
+<pre><code class="bash">cargo install --force --path sso
+</code></pre>
+
+<p><a href="https://doc.rust-lang.org/cargo/reference/publishing.html">To publish crate(s)</a>.</p>
+<h2 id="minikube">Minikube</h2>
+<p>Create a <a href="https://kubernetes.io/docs/tasks/tools/install-minikube/">Minikube</a> instance.</p>
+<pre><code class="bash">minikube start --vm-driver=virtualbox
+minikube status
+minikube stop
+minikube delete
+minikube dashboard
+minikube ip
+</code></pre>
+
+<p>(Re)build all Docker images and load images into Minikube.</p>
+<pre><code class="bash">docker build --tag &quot;sso-build:&quot; .
+docker-compose build --parallel
+(cd kubernetes/minikube/docker &amp;&amp; bash build.sh)
+</code></pre>
+
+<h2 id="smallstep-ca">Smallstep CA</h2>
+<p>Create CA root certificate and certificate and key for server for testing, overwrite files in <code>docker/build/cert</code>.</p>
+<pre><code class="bash">mkdir -p volumes/ca
+docker run --rm --user $(id -u):$(id -g) --network host -v &quot;$(pwd)/volumes/ca:/home/step&quot; -it smallstep/step-ca step ca init
+# STDIN: Localhost, localhost, :443, localhost, guest
+echo &quot;guest&quot; &gt; volumes/ca/secrets/password
+docker run --rm --user $(id -u):$(id -g) --network host -v &quot;$(pwd)/volumes/ca:/home/step&quot; -it smallstep/step-ca /bin/bash
+step ca certificate --offline --not-after 999h --san traefik sso.localhost sso.crt sso.key
+step certificate inspect sso.crt
+# STDIN: guest
+</code></pre>
+
+<p>Modify <code>volumes/ca/config/ca.json</code>.</p>
+<pre><code class="json">{
+  &quot;authority&quot;: {
+    &quot;claims&quot;: {
+      &quot;maxTLSCertDuration&quot;: &quot;999h&quot;,
+      &quot;defaultTLSCertDuration&quot;: &quot;999h&quot;
+    }
+  }
+}
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../reference/" class="btn btn-neutral float-right" title="Reference">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../design/" class="btn btn-neutral" title="Design"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../design/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../reference/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
