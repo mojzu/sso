@@ -1,48 +1,49 @@
+//! HTTP header functions.
+use crate::prelude::*;
 use http::{HeaderMap, HeaderValue};
-use uuid::Uuid;
 
 /// Authorization header.
-pub const HEADER_AUTHORISATION: &str = "authorization";
+pub const AUTHORISATION: &str = "authorization";
 
 /// User-Authorization header.
-pub const HEADER_USER_AUTHORISATION: &str = "user-authorization";
+pub const USER_AUTHORISATION: &str = "user-authorization";
 
 /// Service-Authorization header.
-pub const HEADER_SERVICE_AUTHORISATION: &str = "service-authorization";
+pub const SERVICE_AUTHORISATION: &str = "service-authorization";
 
 /// User-Agent header.
-pub const HEADER_USER_AGENT: &str = "user-agent";
+pub const USER_AGENT: &str = "user-agent";
 
 /// X-Forwarded-For header.
-pub const HEADER_X_FORWARDED_FOR: &str = "x-forwarded-for";
+pub const X_FORWARDED_FOR: &str = "x-forwarded-for";
 
 /// Grpc-Metadata-Sso-Key-Id header.
-pub const HEADER_GRPC_METADATA_SSO_KEY_ID: &str = "grpc-metadata-sso-key-id";
+pub const GRPC_METADATA_SSO_KEY_ID: &str = "grpc-metadata-sso-key-id";
 
 /// Grpc-Metadata-Sso-Service-Id header.
-pub const HEADER_GRPC_METADATA_SSO_SERVICE_ID: &str = "grpc-metadata-sso-service-id";
+pub const GRPC_METADATA_SSO_SERVICE_ID: &str = "grpc-metadata-sso-service-id";
 
 /// Grpc-Metadata-Sso-User-Key-Id header.
-pub const HEADER_GRPC_METADATA_SSO_USER_KEY_ID: &str = "grpc-metadata-sso-user-key-id";
+pub const GRPC_METADATA_SSO_USER_KEY_ID: &str = "grpc-metadata-sso-user-key-id";
 
 /// Grpc-Metadata-Sso-User-Id header.
-pub const HEADER_GRPC_METADATA_SSO_USER_ID: &str = "grpc-metadata-sso-user-id";
+pub const GRPC_METADATA_SSO_USER_ID: &str = "grpc-metadata-sso-user-id";
 
 /// Sso-Key-Id header.
-pub const HEADER_SSO_KEY_ID: &str = "sso-key-id";
+pub const SSO_KEY_ID: &str = "sso-key-id";
 
 /// Sso-Service-Id header.
-pub const HEADER_SSO_SERVICE_ID: &str = "sso-service-id";
+pub const SSO_SERVICE_ID: &str = "sso-service-id";
 
 /// Sso-User-Key-Id header.
-pub const HEADER_SSO_USER_KEY_ID: &str = "sso-user-key-id";
+pub const SSO_USER_KEY_ID: &str = "sso-user-key-id";
 
 /// Sso-User-Id header.
-pub const HEADER_SSO_USER_ID: &str = "sso-user-id";
+pub const SSO_USER_ID: &str = "sso-user-id";
 
 /// Returns Authorization header string.
-pub fn header_authorisation(map: &HeaderMap<HeaderValue>) -> Option<String> {
-    if let Some(x) = map.get(HEADER_AUTHORISATION) {
+pub fn authorisation(map: &HeaderMap<HeaderValue>) -> Option<String> {
+    if let Some(x) = map.get(AUTHORISATION) {
         match x.to_str() {
             Ok(x) => HeaderAuth::parse_key(x),
             Err(_e) => None,
@@ -53,8 +54,8 @@ pub fn header_authorisation(map: &HeaderMap<HeaderValue>) -> Option<String> {
 }
 
 /// Returns User-Authorization header string.
-pub fn header_user_authorisation(map: &HeaderMap<HeaderValue>) -> Option<HeaderAuthType> {
-    if let Some(x) = map.get(HEADER_USER_AUTHORISATION) {
+pub fn user_authorisation(map: &HeaderMap<HeaderValue>) -> Option<HeaderAuthType> {
+    if let Some(x) = map.get(USER_AUTHORISATION) {
         match x.to_str() {
             Ok(x) => HeaderAuth::parse_type(x),
             Err(_e) => None,
@@ -65,8 +66,8 @@ pub fn header_user_authorisation(map: &HeaderMap<HeaderValue>) -> Option<HeaderA
 }
 
 /// Returns Service-Authorization header string.
-pub fn header_service_authorisation(map: &HeaderMap<HeaderValue>) -> Option<String> {
-    if let Some(x) = map.get(HEADER_SERVICE_AUTHORISATION) {
+pub fn service_authorisation(map: &HeaderMap<HeaderValue>) -> Option<String> {
+    if let Some(x) = map.get(SERVICE_AUTHORISATION) {
         match x.to_str() {
             Ok(x) => HeaderAuth::parse_key(x),
             Err(_e) => None,
@@ -77,8 +78,8 @@ pub fn header_service_authorisation(map: &HeaderMap<HeaderValue>) -> Option<Stri
 }
 
 /// Returns User-Agent header string.
-pub fn header_user_agent(map: &HeaderMap<HeaderValue>) -> String {
-    if let Some(x) = map.get(HEADER_USER_AGENT) {
+pub fn user_agent(map: &HeaderMap<HeaderValue>) -> String {
+    if let Some(x) = map.get(USER_AGENT) {
         match x.to_str() {
             Ok(x) => x.to_owned(),
             Err(_e) => "".to_owned(),
@@ -89,8 +90,8 @@ pub fn header_user_agent(map: &HeaderMap<HeaderValue>) -> String {
 }
 
 /// Returns X-Forwarded-For header string.
-pub fn header_x_forwarded_for(map: &HeaderMap<HeaderValue>) -> Option<String> {
-    if let Some(x) = map.get(HEADER_X_FORWARDED_FOR) {
+pub fn x_forwarded_for(map: &HeaderMap<HeaderValue>) -> Option<String> {
+    if let Some(x) = map.get(X_FORWARDED_FOR) {
         match x.to_str() {
             Ok(x) => Some(x.to_owned()),
             Err(_e) => None,
@@ -101,11 +102,8 @@ pub fn header_x_forwarded_for(map: &HeaderMap<HeaderValue>) -> Option<String> {
 }
 
 /// Returns Sso-Key-Id header string.
-pub fn header_sso_key_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
-    if let Some(x) = map
-        .get(HEADER_SSO_KEY_ID)
-        .or(map.get(HEADER_GRPC_METADATA_SSO_KEY_ID))
-    {
+pub fn sso_key_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
+    if let Some(x) = map.get(SSO_KEY_ID).or_else(|| map.get(GRPC_METADATA_SSO_KEY_ID)) {
         match x.to_str() {
             Ok(x) => match Uuid::parse_str(x) {
                 Ok(x) => Some(x),
@@ -119,10 +117,10 @@ pub fn header_sso_key_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
 }
 
 /// Returns Sso-Service-Id header string.
-pub fn header_sso_service_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
+pub fn sso_service_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
     if let Some(x) = map
-        .get(HEADER_SSO_SERVICE_ID)
-        .or(map.get(HEADER_GRPC_METADATA_SSO_SERVICE_ID))
+        .get(SSO_SERVICE_ID)
+        .or_else(|| map.get(GRPC_METADATA_SSO_SERVICE_ID))
     {
         match x.to_str() {
             Ok(x) => match Uuid::parse_str(x) {
@@ -137,10 +135,10 @@ pub fn header_sso_service_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
 }
 
 /// Returns Sso-User-Key-Id header string.
-pub fn header_sso_user_key_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
+pub fn sso_user_key_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
     if let Some(x) = map
-        .get(HEADER_SSO_USER_KEY_ID)
-        .or(map.get(HEADER_GRPC_METADATA_SSO_USER_KEY_ID))
+        .get(SSO_USER_KEY_ID)
+        .or_else(|| map.get(GRPC_METADATA_SSO_USER_KEY_ID))
     {
         match x.to_str() {
             Ok(x) => match Uuid::parse_str(x) {
@@ -155,11 +153,8 @@ pub fn header_sso_user_key_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
 }
 
 /// Returns Sso-User-Id header string.
-pub fn header_sso_user_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
-    if let Some(x) = map
-        .get(HEADER_SSO_USER_ID)
-        .or(map.get(HEADER_GRPC_METADATA_SSO_USER_ID))
-    {
+pub fn sso_user_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
+    if let Some(x) = map.get(SSO_USER_ID).or_else(|| map.get(GRPC_METADATA_SSO_USER_ID)) {
         match x.to_str() {
             Ok(x) => match Uuid::parse_str(x) {
                 Ok(x) => Some(x),
@@ -246,13 +241,13 @@ impl HeaderAuth {
     pub fn from_header_map(map: &HeaderMap<HeaderValue>, traefik_enabled: bool) -> Self {
         if traefik_enabled {
             Self::Traefik(HeaderAuthTraefik {
-                key_id: header_sso_key_id(map),
-                service_id: header_sso_service_id(map),
-                user_key_id: header_sso_user_key_id(map),
-                user_id: header_sso_user_id(map),
+                key_id: sso_key_id(map),
+                service_id: sso_service_id(map),
+                user_key_id: sso_user_key_id(map),
+                user_id: sso_user_id(map),
             })
         } else {
-            match header_authorisation(map) {
+            match authorisation(map) {
                 Some(x) => match Self::parse_type(&x) {
                     Some(x) => Self::Header(x),
                     None => Self::None,

@@ -355,7 +355,7 @@ macro_rules! user_integration_test {
             assert_eq!(user1.id, user2.id);
             assert_ne!(user1.updated_at, user2.updated_at);
 
-            let update_type = AuditType::UserUpdate.to_string().unwrap();
+            let update_type = AuditType::UserUpdate.to_string();
             let audit_list = client
                 .audit_list(pb::AuditListRequest::type_subject(
                     vec![update_type],
@@ -392,7 +392,7 @@ macro_rules! user_integration_test {
             assert_eq!(user1.id, user2.id);
             assert_ne!(user1.updated_at, user2.updated_at);
 
-            let update_type = AuditType::UserUpdate.to_string().unwrap();
+            let update_type = AuditType::UserUpdate.to_string();
             let res = client
                 .audit_list(pb::AuditListRequest::type_subject(
                     vec![update_type],
@@ -429,7 +429,7 @@ macro_rules! user_integration_test {
             assert_eq!(user1.id, user2.id);
             assert_ne!(user1.updated_at, user2.updated_at);
 
-            let update_type = AuditType::UserUpdate.to_string().unwrap();
+            let update_type = AuditType::UserUpdate.to_string();
             let audit_list = client
                 .audit_list(pb::AuditListRequest::type_subject(
                     vec![update_type],

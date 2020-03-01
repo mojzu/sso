@@ -64,7 +64,7 @@ impl fmt::Display for Key {
         write!(f, "\n\tupdated_at {}", self.updated_at)?;
         write!(f, "\n\tis_enabled {}", self.is_enabled)?;
         write!(f, "\n\tis_revoked {}", self.is_revoked)?;
-        write!(f, "\n\ttype {}", self.type_.to_string().unwrap())?;
+        write!(f, "\n\ttype {}", self.type_)?;
         write!(f, "\n\tname {}", self.name)?;
         if let Some(service_id) = &self.service_id {
             write!(f, "\n\tservice_id {}", service_id)?;
@@ -117,7 +117,7 @@ impl fmt::Display for KeyWithValue {
         write!(f, "\n\tupdated_at {}", self.updated_at)?;
         write!(f, "\n\tis_enabled {}", self.is_enabled)?;
         write!(f, "\n\tis_revoked {}", self.is_revoked)?;
-        write!(f, "\n\ttype {}", self.type_.to_string().unwrap())?;
+        write!(f, "\n\ttype {}", self.type_)?;
         write!(f, "\n\tname {}", self.name)?;
         write!(f, "\n\tvalue {}", self.value)?;
         if let Some(service_id) = &self.service_id {

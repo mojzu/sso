@@ -180,28 +180,28 @@ impl GrpcClientOptions {
 
         if let Some(authorisation) = self.authorisation.as_ref() {
             meta.insert(
-                HEADER_AUTHORISATION,
+                header::AUTHORISATION,
                 MetadataValue::from_str(authorisation)
                     .map_err(|_e| Status::invalid_argument(ERR_INVALID_METADATA))?,
             );
         }
         if let Some(user_authorisation) = self.user_authorisation.as_ref() {
             meta.insert(
-                HEADER_USER_AUTHORISATION,
+                header::USER_AUTHORISATION,
                 MetadataValue::from_str(user_authorisation)
                     .map_err(|_e| Status::invalid_argument(ERR_INVALID_METADATA))?,
             );
         }
         if let Some(user_agent) = self.user_agent.as_ref() {
             meta.insert(
-                HEADER_USER_AGENT,
+                header::USER_AGENT,
                 MetadataValue::from_str(user_agent)
                     .map_err(|_e| Status::invalid_argument(ERR_INVALID_METADATA))?,
             );
         }
         if let Some(forwarded) = self.forwarded.as_ref() {
             meta.insert(
-                HEADER_X_FORWARDED_FOR,
+                header::X_FORWARDED_FOR,
                 MetadataValue::from_str(forwarded)
                     .map_err(|_e| Status::invalid_argument(ERR_INVALID_METADATA))?,
             );

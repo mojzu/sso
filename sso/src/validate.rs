@@ -1,4 +1,4 @@
-//! Validation functions.
+//! Input validation functions.
 use crate::prelude::*;
 use validator::{ValidationError, ValidationErrors};
 
@@ -230,6 +230,6 @@ pub fn validate<T>(x: T) -> DriverResult<T>
 where
     T: validator::Validate,
 {
-    x.validate().map_err(|e| DriverError::Validation(e))?;
+    x.validate().map_err(DriverError::Validation)?;
     Ok(x)
 }

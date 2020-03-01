@@ -1,8 +1,5 @@
 //! # Pattern functions.
-use crate::{
-    AuditBuilder, DriverError, DriverResult, HeaderAuth, HeaderAuthType, Jwt, KeyRead, KeyType,
-    KeyWithValue, Postgres, Service, ServiceRead, User, UserPasswordMeta, UserRead,
-};
+use crate::prelude::*;
 use libreauth::oath::TOTPBuilder;
 use reqwest::Client;
 use sha1::{Digest, Sha1};
@@ -48,7 +45,6 @@ pub fn key_root_authenticate(
     }?;
     key.ok_or_else(|| DriverError::KeyNotFound).map(|key| {
         audit.key(Some(&key));
-        ()
     })
 }
 

@@ -102,7 +102,7 @@ async fn traefik_service(
         AuditMeta::from_header_map(req.headers(), remote),
         HeaderAuth::from_header_map(req.headers(), false),
     );
-    let service_key = header_service_authorisation(req.headers());
+    let service_key = header::service_authorisation(req.headers());
 
     let driver = driver.clone();
     let audit_builder = blocking_method(move || {
@@ -138,19 +138,19 @@ fn response_unauthorised() -> Response<Body> {
 fn response_from_audit_builder(audit: AuditBuilder) -> Response<Body> {
     let mut builder = Response::builder().status(StatusCode::OK);
     if let Some(key_id) = audit.get_key_id() {
-        builder = builder.header(HEADER_GRPC_METADATA_SSO_KEY_ID, key_id.to_string());
+        builder = builder.header(header::GRPC_METADATA_SSO_KEY_ID, key_id.to_string());
     }
     if let Some(service_id) = audit.get_service_id() {
-        builder = builder.header(HEADER_GRPC_METADATA_SSO_SERVICE_ID, service_id.to_string());
+        builder = builder.header(header::GRPC_METADATA_SSO_SERVICE_ID, service_id.to_string());
     }
     if let Some(user_key_id) = audit.get_user_key_id() {
         builder = builder.header(
-            HEADER_GRPC_METADATA_SSO_USER_KEY_ID,
+            header::GRPC_METADATA_SSO_USER_KEY_ID,
             user_key_id.to_string(),
         );
     }
     if let Some(user_id) = audit.get_user_id() {
-        builder = builder.header(HEADER_GRPC_METADATA_SSO_USER_ID, user_id.to_string());
+        builder = builder.header(header::GRPC_METADATA_SSO_USER_ID, user_id.to_string());
     }
     builder.body(Body::empty()).unwrap()
 }

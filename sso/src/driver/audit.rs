@@ -1,13 +1,8 @@
-use crate::{
-    driver::header::*, impl_enum_to_from_string, DriverResult, KeyWithValue, Postgres, Service,
-    User,
-};
-use chrono::{DateTime, Utc};
+use crate::prelude::*;
 use http::{HeaderMap, HeaderValue};
 use serde::ser::Serialize;
 use serde_json::Value;
 use std::fmt;
-use uuid::Uuid;
 
 /// Audit type maximum length.
 pub const MAX_AUDIT_TYPE: usize = 200;
@@ -272,9 +267,9 @@ impl AuditMeta {
     where
         R: Into<String>,
     {
-        let user_agent = header_user_agent(map);
-        let forwarded = header_x_forwarded_for(map);
-        let user_authorisation = header_user_authorisation(map);
+        let user_agent = header::user_agent(map);
+        let forwarded = header::x_forwarded_for(map);
+        let user_authorisation = header::user_authorisation(map);
         Self::new(user_agent, remote, forwarded, user_authorisation)
     }
 
@@ -415,7 +410,7 @@ impl AuditBuilder {
         data: Option<S>,
     ) -> DriverResult<Audit> {
         let data = data.map(|x| serde_json::to_value(x).unwrap());
-        let audit_data = AuditCreate::new(self.meta.clone(), self.type_.to_string().unwrap())
+        let audit_data = AuditCreate::new(self.meta.clone(), self.type_.to_string())
             .status_code(Some(status_code))
             .subject(subject)
             .data(data)

@@ -168,7 +168,7 @@ mod provider_microsoft {
         let authorisation = format!("Bearer {}", access_token);
         let res = client
             .get("https://graph.microsoft.com/v1.0/me")
-            .header(HEADER_AUTHORISATION, authorisation)
+            .header(header::AUTHORISATION, authorisation)
             .send()
             .await
             .map_err(DriverError::Reqwest)?;

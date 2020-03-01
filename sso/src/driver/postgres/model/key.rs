@@ -1,12 +1,9 @@
 use crate::{
     driver::postgres::model::{ModelService, ModelUser},
+    prelude::*,
     schema::sso_key,
-    DriverError, DriverResult, Key, KeyCount, KeyCreate, KeyList, KeyListQuery, KeyRead,
-    KeyReadUserId, KeyReadUserValue, KeyType, KeyUpdate, KeyWithValue, ServiceRead, UserRead,
 };
-use chrono::{DateTime, Utc};
 use diesel::{dsl::sql, prelude::*, sql_types::BigInt, PgConnection};
-use uuid::Uuid;
 
 #[derive(Debug, Identifiable, Queryable)]
 #[table_name = "sso_key"]
@@ -32,7 +29,7 @@ impl From<ModelKey> for Key {
             id: key.id,
             is_enabled: key.is_enabled,
             is_revoked: key.is_revoked,
-            type_: KeyType::from_string(&key.type_).unwrap(),
+            type_: KeyType::from_str(&key.type_).unwrap(),
             name: key.name,
             service_id: key.service_id,
             user_id: key.user_id,
@@ -48,7 +45,7 @@ impl From<ModelKey> for KeyWithValue {
             id: key.id,
             is_enabled: key.is_enabled,
             is_revoked: key.is_revoked,
-            type_: KeyType::from_string(&key.type_).unwrap(),
+            type_: KeyType::from_str(&key.type_).unwrap(),
             name: key.name,
             value: key.value,
             service_id: key.service_id,
@@ -113,7 +110,7 @@ impl ModelKey {
             query = query.filter(sso_key::dsl::is_revoked.eq(is_revoked));
         }
         if let Some(type_) = &list.filter.type_ {
-            let type_: Vec<String> = type_.iter().map(|x| x.to_string().unwrap()).collect();
+            let type_: Vec<String> = type_.iter().map(|x| x.to_string()).collect();
             query = query.filter(sso_key::dsl::type_.eq(any(type_)));
         }
         if let Some(service_id) = &list.filter.service_id {
@@ -204,7 +201,7 @@ impl ModelKey {
             id: &id,
             is_enabled: create.is_enabled,
             is_revoked: create.is_revoked,
-            type_: create.type_.to_string().unwrap(),
+            type_: create.type_.to_string(),
             name: &create.name,
             value: &create.value,
             service_id: create.service_id.as_ref(),
@@ -380,7 +377,7 @@ impl ModelKey {
         conn: &PgConnection,
         read: &KeyReadUserId,
     ) -> DriverResult<Option<KeyWithValue>> {
-        let type_ = read.type_.to_string().unwrap();
+        let type_ = read.type_.to_string();
         sso_key::table
             .filter(
                 sso_key::dsl::user_id
@@ -401,7 +398,7 @@ impl ModelKey {
         conn: &PgConnection,
         read: &KeyReadUserValue,
     ) -> DriverResult<Option<KeyWithValue>> {
-        let type_ = read.type_.to_string().unwrap();
+        let type_ = read.type_.to_string();
         sso_key::table
             .filter(
                 sso_key::dsl::value

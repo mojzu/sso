@@ -1,18 +1,15 @@
 mod audit;
 mod error;
-mod header;
 mod key;
 mod metrics;
-pub mod pattern;
+pub(crate) mod pattern;
 mod postgres;
 mod service;
 mod template;
 mod user;
 
 pub use crate::driver::postgres::{Postgres, PostgresLockFn};
-pub use crate::driver::{
-    audit::*, error::*, header::*, key::*, metrics::*, service::*, template::*, user::*,
-};
+pub use crate::driver::{audit::*, error::*, key::*, metrics::*, service::*, template::*, user::*};
 
 /// Default limit.
 pub const DEFAULT_LIMIT: i64 = 50;

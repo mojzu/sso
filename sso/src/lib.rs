@@ -21,6 +21,7 @@ mod csrf;
 mod driver;
 mod env;
 mod grpc;
+pub mod header;
 mod http_server;
 mod jwt;
 mod prelude;
@@ -33,23 +34,24 @@ pub use crate::{csrf::*, env::*, grpc::*, http_server::*, jwt::*};
 use sentry::integrations::log::LoggerOptions;
 use std::io::Write;
 
-/// Implement `to_string` and `from_string` on simple enums.
+/// Implement `to_string` and `from_str` on simple enums.
 ///
 /// Enums must implement serde `Serialize` and `Deserialize` traits.
 /// Prefix can be used or empty string `""` for none.
 #[macro_export]
 macro_rules! impl_enum_to_from_string {
     ($x:ident, $prefix:expr) => {
-        impl $x {
-            /// Format as string.
-            pub fn to_string(self) -> ::serde_json::Result<String> {
-                let s = ::serde_json::to_string(&self)?;
+        impl ::std::fmt::Display for $x {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                let s = ::serde_json::to_string(&self).map_err(|_| ::std::fmt::Error)?;
                 let trim = s.trim_matches('"');
-                Ok(format!("{}{}", $prefix, trim))
+                write!(f, "{}{}", $prefix, trim)
             }
+        }
+        impl ::std::str::FromStr for $x {
+            type Err = ::serde_json::Error;
 
-            /// Parse from string.
-            pub fn from_string<S: Into<String>>(s: S) -> ::serde_json::Result<Self> {
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
                 let mut s: String = s.into();
                 let s = format!("\"{}\"", s.split_off($prefix.len()));
                 ::serde_json::from_str(&s)

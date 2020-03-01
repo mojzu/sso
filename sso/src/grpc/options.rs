@@ -120,7 +120,7 @@ impl GrpcServerOptions {
         pwned_passwords_enabled_name: T,
         traefik_enabled_name: T,
     ) -> Self {
-        let user_agent = Env::string_opt(user_agent_name.as_ref()).unwrap_or("sso".to_owned());
+        let user_agent = Env::string_opt(user_agent_name.as_ref()).unwrap_or_else(|| "sso".to_owned());
         let pwned_passwords_enabled = Env::value_opt::<bool>(pwned_passwords_enabled_name.as_ref())
             .expect("Failed to read Pwned Passwords enabled environment variable.")
             .unwrap_or(false);
@@ -210,7 +210,7 @@ impl GrpcServerOptions {
 
     // Create directory for SMTP file transport.
     pub fn smtp_file_transport_from_env<T: AsRef<str>>(self, file_name: T) -> Self {
-        let transport = Env::string_opt(file_name.as_ref()).unwrap_or("./tmp".to_string());
+        let transport = Env::string_opt(file_name.as_ref()).unwrap_or_else(|| "./tmp".to_string());
         fs::create_dir_all(&transport).expect("Failed to create SMTP file transport directory");
         self.smtp_file_transport(Some(transport))
     }

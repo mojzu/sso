@@ -165,7 +165,7 @@ mod provider_github {
         let authorisation = format!("token {}", access_token);
         let res = client
             .get("https://api.github.com/user")
-            .header(HEADER_AUTHORISATION, authorisation)
+            .header(header::AUTHORISATION, authorisation)
             .send()
             .await
             .map_err(DriverError::Reqwest)?;
