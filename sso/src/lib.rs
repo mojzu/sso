@@ -19,7 +19,7 @@ extern crate serde_json;
 
 mod csrf;
 mod driver;
-mod env;
+pub mod env;
 mod grpc;
 pub mod header;
 mod http_server;
@@ -29,7 +29,7 @@ mod schema;
 pub mod validate;
 
 pub use crate::driver::*;
-pub use crate::{csrf::*, env::*, grpc::*, http_server::*, jwt::*};
+pub use crate::{csrf::*, grpc::*, http_server::*, jwt::*};
 
 use sentry::integrations::log::LoggerOptions;
 use std::io::Write;
@@ -70,7 +70,7 @@ pub fn log_init<T>(sentry_dsn_name: T, pretty_name: T) -> Option<sentry::interna
 where
     T: AsRef<str>,
 {
-    let pretty = Env::value_opt::<bool>(pretty_name.as_ref())
+    let pretty = env::value_opt::<bool>(pretty_name.as_ref())
         .expect("Failed to read environment variable.")
         .unwrap_or(false);
 
@@ -100,7 +100,7 @@ where
         }
     });
 
-    match Env::string_opt(sentry_dsn_name.as_ref()) {
+    match env::string_opt(sentry_dsn_name.as_ref()) {
         Some(sentry_dsn) => {
             let guard = sentry::init(sentry_dsn);
             let mut options = LoggerOptions::default();

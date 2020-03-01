@@ -5,7 +5,7 @@ macro_rules! auth_csrf_integration_test {
         #[ignore]
         fn auth_csrf_create_unauthorised() {
             let mut client = client_create(Some(INVALID_KEY));
-            let body = pb::AuthCsrfCreateRequest::new(500);
+            let body = pb::AuthCsrfCreateRequest::default();
             let res = client.auth_csrf_create(body).unwrap_err();
             assert_eq!(res.code(), tonic::Code::Unauthenticated);
             assert_eq!(res.message(), ERR_REDACTED);
@@ -18,7 +18,7 @@ macro_rules! auth_csrf_integration_test {
             let (_service, service_key) = service_key_create(&mut client);
 
             let mut client = client_create(Some(&service_key.value));
-            let body = pb::AuthCsrfCreateRequest::new(500);
+            let body = pb::AuthCsrfCreateRequest::default();
             let res = client.auth_csrf_create(body).unwrap().into_inner();
             let csrf = res.csrf.unwrap();
 
@@ -35,7 +35,7 @@ macro_rules! auth_csrf_integration_test {
             let (_service, service_key) = service_key_create(&mut client);
 
             let mut client = client_create(Some(&service_key.value));
-            let body = pb::AuthCsrfCreateRequest::new(500);
+            let body = pb::AuthCsrfCreateRequest::default();
             let res = client.auth_csrf_create(body).unwrap().into_inner();
             let csrf = res.csrf.unwrap();
 

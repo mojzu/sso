@@ -112,9 +112,12 @@ mod provider_microsoft {
         let csrf_key = csrf_state.secret();
         let csrf_value = pkce_code_verifier.secret();
         let conn = driver.conn().map_err(GrpcMethodError::BadRequest)?;
-        Csrf::create(
+        CsrfCreate::create(
             &conn,
-            &CsrfCreate::new(csrf_key, csrf_value, args.access_token_expires, service.id),
+            csrf_key,
+            csrf_value,
+            args.access_token_expires,
+            service.id,
         )
         .map_err(GrpcMethodError::BadRequest)?;
 
@@ -133,7 +136,7 @@ mod provider_microsoft {
 
         // Read the CSRF key using state value, rebuild code verifier from value.
         let conn = driver.conn().map_err(GrpcMethodError::BadRequest)?;
-        let csrf = Csrf::read(&conn, &request.state)
+        let csrf = CsrfRead::read(&conn, &request.state)
             .map_err(GrpcMethodError::BadRequest)?
             .ok_or_else(|| DriverError::CsrfNotFoundOrUsed)
             .map_err(GrpcMethodError::BadRequest)?;

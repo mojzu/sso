@@ -51,14 +51,6 @@ pub async fn totp_verify(
     .map(|_data| pb::AuthAuditReply { audit: None })
 }
 
-impl validator::Validate for pb::AuthCsrfCreateRequest {
-    fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        validate::wrap(|e| {
-            validate::csrf_expires_s_opt(e, "expires_s", self.expires_s);
-        })
-    }
-}
-
 pub async fn csrf_create(
     server: &GrpcServer,
     request: GrpcMethodRequest<pb::AuthCsrfCreateRequest>,
@@ -75,28 +67,14 @@ pub async fn csrf_create(
                 let service = pattern::key_service_authenticate(driver, audit, &auth)
                     .map_err(GrpcMethodError::Unauthorised)?;
 
-                let expires_s = req.expires_s.unwrap_or(DEFAULT_CSRF_EXPIRES_S);
-                let expires = chrono::Duration::seconds(expires_s);
                 let conn = driver.conn().map_err(GrpcMethodError::BadRequest)?;
-                Csrf::create(&conn, &CsrfCreate::generate(expires, service.id))
-                    .map_err(GrpcMethodError::BadRequest)
+                CsrfCreate::request(&conn, &req, service.id).map_err(GrpcMethodError::BadRequest)
             },
         )
         .map_err(Into::into)
     })
     .await
-    .map(|data| pb::AuthCsrfCreateReply {
-        csrf: Some(data.into()),
-    })
-}
-
-impl validator::Validate for pb::AuthCsrfVerifyRequest {
-    fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        validate::wrap(|e| {
-            validate::csrf_token(e, "csrf", &self.csrf);
-            validate::audit_type_opt(e, "audit", self.audit.as_ref().map(|x| &**x))
-        })
-    }
+    .map(|data| pb::AuthCsrfCreateReply { csrf: Some(data) })
 }
 
 pub async fn csrf_verify(
@@ -116,14 +94,13 @@ pub async fn csrf_verify(
                     .map_err(GrpcMethodError::Unauthorised)?;
 
                 let conn = driver.conn().map_err(GrpcMethodError::BadRequest)?;
-                Csrf::verify(&conn, service.id, Some(req.csrf.clone()))
-                    .map_err(GrpcMethodError::BadRequest)
+                CsrfVerify::request(&conn, &req, service.id).map_err(GrpcMethodError::BadRequest)
             },
         )
         .map_err(Into::into)
     })
     .await
-    .map(|_data| pb::AuthAuditReply { audit: None })
+    .map(|_| pb::AuthAuditReply { audit: None })
 }
 
 fn oauth2_login(

@@ -3,9 +3,7 @@ mod model;
 
 use crate::{
     driver::postgres::model::{ModelAudit, ModelKey, ModelService, ModelUser},
-    Audit, AuditCreate, AuditList, AuditRead, AuditUpdate, DriverError, DriverResult, Env, Key,
-    KeyCount, KeyCreate, KeyList, KeyRead, KeyUpdate, KeyWithValue, Service, ServiceCreate,
-    ServiceList, ServiceRead, ServiceUpdate, User, UserCreate, UserList, UserRead, UserUpdate,
+    prelude::*,
 };
 use chrono::{DateTime, Utc};
 use diesel::{prelude::*, r2d2::ConnectionManager};
@@ -49,9 +47,9 @@ impl Postgres {
     where
         T: AsRef<str>,
     {
-        let url = Env::string(url_name.as_ref())
+        let url = env::string(url_name.as_ref())
             .expect("Failed to read postgres URL environment variable.");
-        let connections = Env::value_opt::<u32>(connections_name.as_ref())
+        let connections = env::value_opt::<u32>(connections_name.as_ref())
             .expect("Failed to read postgres connections environment variable.");
         Self::initialise(&url, connections).expect("Failed to initialise postgres connection.")
     }

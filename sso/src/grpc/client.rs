@@ -34,21 +34,21 @@ impl GrpcClientChannelTls {
         client_cert_name: T,
         client_key_name: T,
     ) -> Self {
-        let domain = Env::string_opt(domain_name.as_ref());
-        let cert = match Env::string_opt(ca_cert_name.as_ref()) {
+        let domain = env::string_opt(domain_name.as_ref());
+        let cert = match env::string_opt(ca_cert_name.as_ref()) {
             Some(ca_cert) => {
                 let ca_cert = fs::read(&ca_cert).expect("Failed to read TLS CA certificate file.");
                 Some(Certificate::from_pem(ca_cert))
             }
             None => None,
         };
-        let identity = if Env::has_any_name(&[client_cert_name.as_ref(), client_key_name.as_ref()])
+        let identity = if env::has_any_name(&[client_cert_name.as_ref(), client_key_name.as_ref()])
         {
-            let client_cert = Env::string(client_cert_name.as_ref())
+            let client_cert = env::string(client_cert_name.as_ref())
                 .expect("Failed to read TLS client certificate environment variable.");
             let client_cert =
                 fs::read(&client_cert).expect("Failed to read TLS client certificate file.");
-            let client_key = Env::string(client_key_name.as_ref())
+            let client_key = env::string(client_key_name.as_ref())
                 .expect("Failed to read TLS client key environment variable.");
             let client_key = fs::read(&client_key).expect("Failed to read TLS client key file.");
             Some(Identity::from_pem(client_cert, client_key))
@@ -117,7 +117,7 @@ impl GrpcClientChannel {
         client_cert_name: T,
         client_key_name: T,
     ) -> DriverResult<Self> {
-        let uri = Env::string(uri_name.as_ref())
+        let uri = env::string(uri_name.as_ref())
             .expect("Failed to read client URI environment variable.");
         let tls = GrpcClientChannelTls::from_env(
             domain_name,

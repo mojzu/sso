@@ -1301,14 +1301,6 @@ impl pb::AuthResetPasswordRequest {
     }
 }
 
-impl pb::AuthCsrfCreateRequest {
-    pub fn new(expires_s: i64) -> Self {
-        Self {
-            expires_s: Some(expires_s),
-        }
-    }
-}
-
 impl pb::AuthCsrfVerifyRequest {
     pub fn new<C>(csrf: C) -> Self
     where

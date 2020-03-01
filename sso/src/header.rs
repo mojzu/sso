@@ -103,7 +103,10 @@ pub fn x_forwarded_for(map: &HeaderMap<HeaderValue>) -> Option<String> {
 
 /// Returns Sso-Key-Id header string.
 pub fn sso_key_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
-    if let Some(x) = map.get(SSO_KEY_ID).or_else(|| map.get(GRPC_METADATA_SSO_KEY_ID)) {
+    if let Some(x) = map
+        .get(SSO_KEY_ID)
+        .or_else(|| map.get(GRPC_METADATA_SSO_KEY_ID))
+    {
         match x.to_str() {
             Ok(x) => match Uuid::parse_str(x) {
                 Ok(x) => Some(x),
@@ -154,7 +157,10 @@ pub fn sso_user_key_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
 
 /// Returns Sso-User-Id header string.
 pub fn sso_user_id(map: &HeaderMap<HeaderValue>) -> Option<Uuid> {
-    if let Some(x) = map.get(SSO_USER_ID).or_else(|| map.get(GRPC_METADATA_SSO_USER_ID)) {
+    if let Some(x) = map
+        .get(SSO_USER_ID)
+        .or_else(|| map.get(GRPC_METADATA_SSO_USER_ID))
+    {
         match x.to_str() {
             Ok(x) => match Uuid::parse_str(x) {
                 Ok(x) => Some(x),

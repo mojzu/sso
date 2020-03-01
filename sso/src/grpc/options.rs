@@ -120,11 +120,12 @@ impl GrpcServerOptions {
         pwned_passwords_enabled_name: T,
         traefik_enabled_name: T,
     ) -> Self {
-        let user_agent = Env::string_opt(user_agent_name.as_ref()).unwrap_or_else(|| "sso".to_owned());
-        let pwned_passwords_enabled = Env::value_opt::<bool>(pwned_passwords_enabled_name.as_ref())
+        let user_agent =
+            env::string_opt(user_agent_name.as_ref()).unwrap_or_else(|| "sso".to_owned());
+        let pwned_passwords_enabled = env::value_opt::<bool>(pwned_passwords_enabled_name.as_ref())
             .expect("Failed to read Pwned Passwords enabled environment variable.")
             .unwrap_or(false);
-        let traefik_enabled = Env::value_opt::<bool>(traefik_enabled_name.as_ref())
+        let traefik_enabled = env::value_opt::<bool>(traefik_enabled_name.as_ref())
             .expect("Failed to read Traefik enabled environment variable.")
             .unwrap_or(false);
 
@@ -137,18 +138,18 @@ impl GrpcServerOptions {
         key_name: T,
         client_ca_name: T,
     ) -> Self {
-        let identity = if Env::has_any_name(&[cert_name.as_ref(), key_name.as_ref()]) {
-            let cert = Env::string(cert_name.as_ref())
+        let identity = if env::has_any_name(&[cert_name.as_ref(), key_name.as_ref()]) {
+            let cert = env::string(cert_name.as_ref())
                 .expect("Failed to read TLS certificate environment variable.");
             let cert = fs::read(&cert).expect("Failed to read TLS certificate file.");
-            let key = Env::string(key_name.as_ref())
+            let key = env::string(key_name.as_ref())
                 .expect("Failed to read TLS key environment variable.");
             let key = fs::read(&key).expect("Failed to read TLS key file.");
             Some(Identity::from_pem(cert, key))
         } else {
             None
         };
-        let client_ca_root = match Env::string_opt(client_ca_name.as_ref()) {
+        let client_ca_root = match env::string_opt(client_ca_name.as_ref()) {
             Some(client_ca) => {
                 let client_ca =
                     fs::read(&client_ca).expect("Failed to read TLS client CA certificate file.");
@@ -180,19 +181,19 @@ impl GrpcServerOptions {
         user_name: T,
         password_name: T,
     ) -> Self {
-        let transport = if Env::has_any_name(&[
+        let transport = if env::has_any_name(&[
             host_name.as_ref(),
             port_name.as_ref(),
             user_name.as_ref(),
             password_name.as_ref(),
         ]) {
-            let host = Env::string(host_name.as_ref())
+            let host = env::string(host_name.as_ref())
                 .expect("Failed to read SMTP host environment variable.");
-            let port = Env::value::<u16>(port_name.as_ref())
+            let port = env::value::<u16>(port_name.as_ref())
                 .expect("Failed to read SMTP port environment variable.");
-            let user = Env::string(user_name.as_ref())
+            let user = env::string(user_name.as_ref())
                 .expect("Failed to read SMTP user environment variable.");
-            let password = Env::string(password_name.as_ref())
+            let password = env::string(password_name.as_ref())
                 .expect("Failed to read SMTP password environment variable.");
 
             Some(GrpcServerOptionsSmtp::new(host, port, user, password))
@@ -210,7 +211,7 @@ impl GrpcServerOptions {
 
     // Create directory for SMTP file transport.
     pub fn smtp_file_transport_from_env<T: AsRef<str>>(self, file_name: T) -> Self {
-        let transport = Env::string_opt(file_name.as_ref()).unwrap_or_else(|| "./tmp".to_string());
+        let transport = env::string_opt(file_name.as_ref()).unwrap_or_else(|| "./tmp".to_string());
         fs::create_dir_all(&transport).expect("Failed to create SMTP file transport directory");
         self.smtp_file_transport(Some(transport))
     }
@@ -226,11 +227,11 @@ impl GrpcServerOptions {
     /// If no variables are defined, returns None. Else all variables
     /// are required and an error message logged for each missing variable.
     pub fn github_from_env<T: AsRef<str>>(self, client_id_name: T, client_secret_name: T) -> Self {
-        let provider = if Env::has_any_name(&[client_id_name.as_ref(), client_secret_name.as_ref()])
+        let provider = if env::has_any_name(&[client_id_name.as_ref(), client_secret_name.as_ref()])
         {
-            let client_id = Env::string(client_id_name.as_ref())
+            let client_id = env::string(client_id_name.as_ref())
                 .expect("Failed to read Github client ID environment variable");
-            let client_secret = Env::string(client_secret_name.as_ref())
+            let client_secret = env::string(client_secret_name.as_ref())
                 .expect("Failed to read Github client secret environment variable");
 
             Some(GrpcServerOptionsProvider::new(client_id, client_secret))
@@ -255,11 +256,11 @@ impl GrpcServerOptions {
         client_id_name: T,
         client_secret_name: T,
     ) -> Self {
-        let provider = if Env::has_any_name(&[client_id_name.as_ref(), client_secret_name.as_ref()])
+        let provider = if env::has_any_name(&[client_id_name.as_ref(), client_secret_name.as_ref()])
         {
-            let client_id = Env::string(client_id_name.as_ref())
+            let client_id = env::string(client_id_name.as_ref())
                 .expect("Failed to read Microsoft client ID environment variable");
-            let client_secret = Env::string(client_secret_name.as_ref())
+            let client_secret = env::string(client_secret_name.as_ref())
                 .expect("Failed to read Microsoft client secret environment variable");
 
             Some(GrpcServerOptionsProvider::new(client_id, client_secret))

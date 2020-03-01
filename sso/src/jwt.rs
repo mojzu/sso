@@ -187,7 +187,7 @@ impl Jwt {
             &key.value,
             token.as_ref(),
         )?;
-        Csrf::verify(conn, service.id, csrf_key)?;
+        CsrfVerify::verify(conn, service.id, csrf_key)?;
         Ok(())
     }
 
@@ -225,7 +225,7 @@ impl Jwt {
             &key.value,
             token.as_ref(),
         )?;
-        Csrf::verify(conn, service.id, csrf_key)?;
+        CsrfVerify::verify(conn, service.id, csrf_key)?;
         Ok(())
     }
 
@@ -263,7 +263,7 @@ impl Jwt {
             &key.value,
             token.as_ref(),
         )?;
-        Csrf::verify(conn, service.id, csrf_key)?;
+        CsrfVerify::verify(conn, service.id, csrf_key)?;
         Ok(())
     }
 
@@ -301,7 +301,7 @@ impl Jwt {
             &key.value,
             token.as_ref(),
         )?;
-        Csrf::verify(conn, service.id, csrf_key)?;
+        CsrfVerify::verify(conn, service.id, csrf_key)?;
         Ok(())
     }
 
@@ -317,7 +317,7 @@ impl Jwt {
         let (_, csrf_key) =
             Self::decode(service.id, user.id, token_type, &key.value, token.as_ref())?;
         if let Some(csrf_key) = csrf_key {
-            Csrf::read(conn, &csrf_key)?;
+            CsrfRead::read(conn, &csrf_key)?;
         }
         Ok(())
     }
@@ -349,7 +349,7 @@ impl Jwt {
         key_value: &str,
         exp: Duration,
     ) -> DriverResult<(String, i64)> {
-        let csrf = Csrf::create(conn, &CsrfCreate::generate(exp, service_id))?;
+        let csrf = CsrfCreate::generate(conn, exp, service_id)?;
         let claims = JwtClaims::new_csrf(
             service_id.to_string(),
             user_id.to_string(),
