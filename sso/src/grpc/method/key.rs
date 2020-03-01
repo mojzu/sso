@@ -1,18 +1,15 @@
-use crate::{
-    grpc::{pb, util::*, GrpcServer},
-    *,
-};
+use crate::prelude::*;
 
 impl validator::Validate for pb::KeyListRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
-            Validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
-            Validate::limit_opt(e, "limit", self.limit);
-            Validate::uuid_vec(e, "id", &self.id);
-            Validate::key_type_vec(e, "type", &self.r#type);
-            Validate::uuid_vec(e, "service_id", &self.service_id);
-            Validate::uuid_vec(e, "user_id", &self.user_id);
+        validate::wrap(|e| {
+            validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
+            validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
+            validate::limit_opt(e, "limit", self.limit);
+            validate::uuid_vec(e, "id", &self.id);
+            validate::key_type_vec(e, "type", &self.r#type);
+            validate::uuid_vec(e, "service_id", &self.service_id);
+            validate::uuid_vec(e, "user_id", &self.user_id);
         })
     }
 }
@@ -49,11 +46,11 @@ pub async fn list(
 
 impl validator::Validate for pb::KeyCreateRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::key_type(e, "type", self.r#type);
-            Validate::name(e, "name", &self.name);
-            Validate::uuid_opt(e, "service_id", self.service_id.as_ref().map(|x| &**x));
-            Validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
+        validate::wrap(|e| {
+            validate::key_type(e, "type", self.r#type);
+            validate::name(e, "name", &self.name);
+            validate::uuid_opt(e, "service_id", self.service_id.as_ref().map(|x| &**x));
+            validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
         })
     }
 }
@@ -128,9 +125,9 @@ pub async fn create(
 
 impl validator::Validate for pb::KeyReadRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::uuid(e, "id", &self.id);
-            Validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+            validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
         })
     }
 }
@@ -164,9 +161,9 @@ pub async fn read(
 
 impl validator::Validate for pb::KeyUpdateRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::uuid(e, "id", &self.id);
-            Validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+            validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
         })
     }
 }

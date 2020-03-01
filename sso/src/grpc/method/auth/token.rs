@@ -1,13 +1,10 @@
-use crate::{
-    grpc::{pb, util::*, GrpcServer},
-    Jwt, *,
-};
+use crate::prelude::*;
 
 impl validator::Validate for pb::AuthTokenRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::token(e, "token", &self.token);
-            Validate::audit_type_opt(e, "audit", self.audit.as_ref().map(|x| &**x));
+        validate::wrap(|e| {
+            validate::token(e, "token", &self.token);
+            validate::audit_type_opt(e, "audit", self.audit.as_ref().map(|x| &**x));
         })
     }
 }

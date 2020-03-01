@@ -1,16 +1,12 @@
-use crate::{
-    grpc::{pb, util::*, GrpcServer},
-    *,
-};
-use uuid::Uuid;
+use crate::prelude::*;
 
 impl validator::Validate for pb::ServiceListRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
-            Validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
-            Validate::limit_opt(e, "limit", self.limit);
-            Validate::uuid_vec(e, "id", &self.id);
+        validate::wrap(|e| {
+            validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
+            validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
+            validate::limit_opt(e, "limit", self.limit);
+            validate::uuid_vec(e, "id", &self.id);
         })
     }
 }
@@ -50,25 +46,25 @@ pub async fn list(
 
 impl validator::Validate for pb::ServiceCreateRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::name(e, "name", &self.name);
-            Validate::url(e, "url", &self.url);
-            Validate::text_opt(
+        validate::wrap(|e| {
+            validate::name(e, "name", &self.name);
+            validate::url(e, "url", &self.url);
+            validate::text_opt(
                 e,
                 "user_email_text",
                 self.user_email_text.as_ref().map(|x| &**x),
             );
-            Validate::url_opt(
+            validate::url_opt(
                 e,
                 "provider_local_url",
                 self.provider_local_url.as_ref().map(|x| &**x),
             );
-            Validate::url_opt(
+            validate::url_opt(
                 e,
                 "provider_github_oauth2_url",
                 self.provider_github_oauth2_url.as_ref().map(|x| &**x),
             );
-            Validate::url_opt(
+            validate::url_opt(
                 e,
                 "provider_microsoft_oauth2_url",
                 self.provider_microsoft_oauth2_url.as_ref().map(|x| &**x),
@@ -108,8 +104,8 @@ pub async fn create(
 
 impl validator::Validate for pb::ServiceReadRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::uuid(e, "id", &self.id);
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
         })
     }
 }
@@ -143,26 +139,26 @@ pub async fn read(
 
 impl validator::Validate for pb::ServiceUpdateRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::uuid(e, "id", &self.id);
-            Validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
-            Validate::url_opt(e, "url", self.url.as_ref().map(|x| &**x));
-            Validate::text_opt(
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+            validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
+            validate::url_opt(e, "url", self.url.as_ref().map(|x| &**x));
+            validate::text_opt(
                 e,
                 "user_email_text",
                 self.user_email_text.as_ref().map(|x| &**x),
             );
-            Validate::url_opt(
+            validate::url_opt(
                 e,
                 "provider_local_url",
                 self.provider_local_url.as_ref().map(|x| &**x),
             );
-            Validate::url_opt(
+            validate::url_opt(
                 e,
                 "provider_github_oauth2_url",
                 self.provider_github_oauth2_url.as_ref().map(|x| &**x),
             );
-            Validate::url_opt(
+            validate::url_opt(
                 e,
                 "provider_microsoft_oauth2_url",
                 self.provider_microsoft_oauth2_url.as_ref().map(|x| &**x),

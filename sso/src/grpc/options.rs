@@ -1,4 +1,4 @@
-use crate::{DriverError, DriverResult, Env};
+use crate::prelude::*;
 use http::{header, HeaderMap};
 use lettre::{
     smtp::authentication::{Credentials, Mechanism},
@@ -75,12 +75,12 @@ pub struct GrpcServerOptions {
     pwned_passwords_enabled: bool,
     /// Enabled Traefik forward authentication.
     traefik_enabled: bool,
-    /// Access token expiry time in seconds.
-    access_token_expires: i64,
-    /// Refresh token expiry time in seconds.
-    refresh_token_expires: i64,
-    /// Revoke token expiry time in seconds.
-    revoke_token_expires: i64,
+    /// Access token expiry time duration.
+    access_token_expires: Duration,
+    /// Refresh token expiry time duration.
+    refresh_token_expires: Duration,
+    /// Revoke token expiry time duration.
+    revoke_token_expires: Duration,
     /// SMTP transport.
     smtp_transport: Option<GrpcServerOptionsSmtp>,
     /// SMTP file transport.
@@ -105,9 +105,9 @@ impl GrpcServerOptions {
             user_agent: user_agent.into(),
             pwned_passwords_enabled,
             traefik_enabled,
-            access_token_expires: 3_600,
-            refresh_token_expires: 86_400,
-            revoke_token_expires: 604_800,
+            access_token_expires: Duration::seconds(3_600),
+            refresh_token_expires: Duration::seconds(86_400),
+            revoke_token_expires: Duration::seconds(604_800),
             smtp_transport: None,
             smtp_file_transport: None,
             github: None,
@@ -310,17 +310,17 @@ impl GrpcServerOptions {
     }
 
     /// Returns access token expiry value.
-    pub fn access_token_expires(&self) -> i64 {
+    pub fn access_token_expires(&self) -> Duration {
         self.access_token_expires
     }
 
     /// Returns refresh token expiry value.
-    pub fn refresh_token_expires(&self) -> i64 {
+    pub fn refresh_token_expires(&self) -> Duration {
         self.refresh_token_expires
     }
 
     /// Returns revoke token expiry value.
-    pub fn revoke_token_expires(&self) -> i64 {
+    pub fn revoke_token_expires(&self) -> Duration {
         self.revoke_token_expires
     }
 
@@ -383,15 +383,15 @@ impl GrpcServerOptions {
 #[derive(Debug)]
 pub(crate) struct ServerProviderOauth2Args {
     pub provider: Option<GrpcServerOptionsProvider>,
-    pub access_token_expires: i64,
-    pub refresh_token_expires: i64,
+    pub access_token_expires: Duration,
+    pub refresh_token_expires: Duration,
 }
 
 impl ServerProviderOauth2Args {
     pub fn new(
         provider: Option<GrpcServerOptionsProvider>,
-        access_token_expires: i64,
-        refresh_token_expires: i64,
+        access_token_expires: Duration,
+        refresh_token_expires: Duration,
     ) -> Self {
         Self {
             provider,

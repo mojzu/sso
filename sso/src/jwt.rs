@@ -1,7 +1,6 @@
-use crate::{Csrf, CsrfCreate, DriverError, DriverResult, KeyWithValue, Service, User, UserToken};
+use crate::prelude::*;
 use diesel::PgConnection;
 use jsonwebtoken::{dangerous_unsafe_decode, DecodingKey, EncodingKey, Header, Validation};
-use uuid::Uuid;
 
 /// JSON web token types.
 #[derive(Debug)]
@@ -58,24 +57,23 @@ struct JwtClaims {
 
 impl JwtClaims {
     /// Returns new token of type without CSRF code.
-    fn new<IS, SU>(iss: IS, sub: SU, exp: i64, x_type: JwtType) -> Self
+    fn new<IS, SU>(iss: IS, sub: SU, exp: Duration, x_type: JwtType) -> Self
     where
         IS: Into<String>,
         SU: Into<String>,
     {
-        let dt = chrono::Utc::now();
-        let exp = dt.timestamp() + exp;
+        let dt = Utc::now() + exp;
         JwtClaims {
             iss: iss.into(),
             sub: sub.into(),
-            exp,
+            exp: dt.timestamp(),
             x_type: x_type.to_i64(),
             x_csrf: None,
         }
     }
 
     /// Returns new token of type with CSRF code.
-    fn new_csrf<IS, SU, CS>(iss: IS, sub: SU, exp: i64, x_type: JwtType, x_csrf: CS) -> Self
+    fn new_csrf<IS, SU, CS>(iss: IS, sub: SU, exp: Duration, x_type: JwtType, x_csrf: CS) -> Self
     where
         IS: Into<String>,
         SU: Into<String>,
@@ -129,8 +127,8 @@ impl Jwt {
         service: &Service,
         user: User,
         key: &KeyWithValue,
-        access_token_expires: i64,
-        refresh_token_expires: i64,
+        access_token_expires: Duration,
+        refresh_token_expires: Duration,
     ) -> DriverResult<UserToken> {
         let (access_token, access_token_expires) = Self::encode(
             service.id,
@@ -199,7 +197,7 @@ impl Jwt {
         service: &Service,
         user: &User,
         key: &KeyWithValue,
-        token_expires: i64,
+        token_expires: Duration,
     ) -> DriverResult<String> {
         let (token, _) = Self::encode_csrf(
             conn,
@@ -237,7 +235,7 @@ impl Jwt {
         service: &Service,
         user: &User,
         key: &KeyWithValue,
-        token_expires: i64,
+        token_expires: Duration,
     ) -> DriverResult<String> {
         let (token, _) = Self::encode_csrf(
             conn,
@@ -275,7 +273,7 @@ impl Jwt {
         service: &Service,
         user: &User,
         key: &KeyWithValue,
-        token_expires: i64,
+        token_expires: Duration,
     ) -> DriverResult<String> {
         let (token, _) = Self::encode_csrf(
             conn,
@@ -330,7 +328,7 @@ impl Jwt {
         user_id: Uuid,
         x_type: JwtType,
         key_value: &str,
-        exp: i64,
+        exp: Duration,
     ) -> DriverResult<(String, i64)> {
         let claims = JwtClaims::new(service_id.to_string(), user_id.to_string(), exp, x_type);
         let token = jsonwebtoken::encode(
@@ -349,7 +347,7 @@ impl Jwt {
         user_id: Uuid,
         x_type: JwtType,
         key_value: &str,
-        exp: i64,
+        exp: Duration,
     ) -> DriverResult<(String, i64)> {
         let csrf = Csrf::create(conn, &CsrfCreate::generate(exp, service_id))?;
         let claims = JwtClaims::new_csrf(

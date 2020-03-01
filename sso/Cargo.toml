@@ -43,7 +43,7 @@ lettre_email = "0.9"
 libreauth = "0.13"
 log = { version = "0.4", features = ["max_level_trace", "release_max_level_info"] }
 native-tls = "0.2"
-prometheus = { version = "0.7", features = ["default", "process"] }
+prometheus = { version = "0.8", features = ["default", "process"] }
 r2d2 = "0.8"
 reqwest = { version = "0.10", features = ["json", "rustls-tls"] }
 rustls = "0.17"

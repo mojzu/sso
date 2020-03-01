@@ -1,19 +1,15 @@
-use crate::{
-    grpc::{pb, util::*, GrpcServer},
-    *,
-};
-use chrono::Utc;
+use crate::prelude::*;
 
 impl validator::Validate for pb::AuditListRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::limit_opt(e, "limit", self.limit);
-            Validate::uuid_opt(e, "offset_id", self.offset_id.as_ref().map(|x| &**x));
-            Validate::uuid_vec(e, "id", &self.id);
-            Validate::audit_type_vec(e, "type", &self.r#type);
-            Validate::audit_subject_vec(e, "subject", &self.subject);
-            Validate::uuid_vec(e, "service_id", &self.service_id);
-            Validate::uuid_vec(e, "user_id", &self.user_id);
+        validate::wrap(|e| {
+            validate::limit_opt(e, "limit", self.limit);
+            validate::uuid_opt(e, "offset_id", self.offset_id.as_ref().map(|x| &**x));
+            validate::uuid_vec(e, "id", &self.id);
+            validate::audit_type_vec(e, "type", &self.r#type);
+            validate::audit_subject_vec(e, "subject", &self.subject);
+            validate::uuid_vec(e, "service_id", &self.service_id);
+            validate::uuid_vec(e, "user_id", &self.user_id);
         })
     }
 }
@@ -73,11 +69,11 @@ pub async fn list(
 
 impl validator::Validate for pb::AuditCreateRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::audit_type(e, "type", &self.r#type);
-            Validate::audit_subject_opt(e, "subject", self.subject.as_ref().map(|x| &**x));
-            Validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
-            Validate::uuid_opt(e, "user_key_id", self.user_key_id.as_ref().map(|x| &**x));
+        validate::wrap(|e| {
+            validate::audit_type(e, "type", &self.r#type);
+            validate::audit_subject_opt(e, "subject", self.subject.as_ref().map(|x| &**x));
+            validate::uuid_opt(e, "user_id", self.user_id.as_ref().map(|x| &**x));
+            validate::uuid_opt(e, "user_key_id", self.user_key_id.as_ref().map(|x| &**x));
         })
     }
 }
@@ -119,9 +115,9 @@ pub async fn create(
 
 impl validator::Validate for pb::AuditReadRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::uuid(e, "id", &self.id);
-            Validate::audit_subject_opt(e, "subject", self.subject.as_ref().map(|x| &**x));
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+            validate::audit_subject_opt(e, "subject", self.subject.as_ref().map(|x| &**x));
         })
     }
 }
@@ -158,9 +154,9 @@ pub async fn read(
 
 impl validator::Validate for pb::AuditUpdateRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::uuid(e, "id", &self.id);
-            Validate::audit_subject_opt(e, "subject", self.subject.as_ref().map(|x| &**x));
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+            validate::audit_subject_opt(e, "subject", self.subject.as_ref().map(|x| &**x));
         })
     }
 }

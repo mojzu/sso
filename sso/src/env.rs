@@ -1,5 +1,4 @@
-use crate::{DriverError, DriverResult};
-use std::str::FromStr;
+use crate::prelude::*;
 
 /// Environment variables.
 #[derive(Debug)]

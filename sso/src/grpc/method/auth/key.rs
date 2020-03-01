@@ -1,13 +1,10 @@
-use crate::{
-    grpc::{pb, util::*, GrpcServer},
-    *,
-};
+use crate::prelude::*;
 
 impl validator::Validate for pb::AuthKeyRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::key(e, "key", &self.key);
-            Validate::audit_type_opt(e, "audit", self.audit.as_ref().map(|x| &**x));
+        validate::wrap(|e| {
+            validate::key(e, "key", &self.key);
+            validate::audit_type_opt(e, "audit", self.audit.as_ref().map(|x| &**x));
         })
     }
 }

@@ -1,9 +1,7 @@
-use crate::{grpc::pb, schema::sso_csrf, DriverError, DriverResult};
-use chrono::{DateTime, Duration, Utc};
+use crate::{prelude::*, schema::sso_csrf};
 use diesel::{prelude::*, PgConnection};
 use libreauth::key::KeyBuilder;
 use std::fmt;
-use uuid::Uuid;
 
 /// CSRF key size in bytes.
 pub const CSRF_KEY_BYTES: usize = 11;
@@ -134,17 +132,17 @@ pub struct CsrfCreate {
 }
 
 impl CsrfCreate {
-    /// Generate random CSRF token with time to live in seconds.
-    pub fn generate(ttl_s: i64, service_id: Uuid) -> Self {
+    /// Generate random CSRF token with time to live.
+    pub fn generate(ttl: Duration, service_id: Uuid) -> Self {
         let key = KeyBuilder::new()
             .size(CSRF_KEY_BYTES)
             .generate()
             .as_base32();
-        Self::new(&key, &key, ttl_s, service_id)
+        Self::new(&key, &key, ttl, service_id)
     }
 
-    /// Create CSRF token with time to live in seconds. Key must be unique.
-    pub fn new<K, V>(key: K, value: V, ttl_s: i64, service_id: Uuid) -> Self
+    /// Create CSRF token with time to live. Key must be unique.
+    pub fn new<K, V>(key: K, value: V, ttl: Duration, service_id: Uuid) -> Self
     where
         K: Into<String>,
         V: Into<String>,
@@ -153,7 +151,7 @@ impl CsrfCreate {
             created_at: Utc::now(),
             key: key.into(),
             value: value.into(),
-            ttl: Utc::now() + Duration::seconds(ttl_s),
+            ttl: Utc::now() + ttl,
             service_id,
         }
     }

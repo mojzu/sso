@@ -1,14 +1,10 @@
-use crate::{
-    grpc::{pb, util::*, GrpcServer},
-    Jwt, *,
-};
-use uuid::Uuid;
+use crate::prelude::*;
 
 impl validator::Validate for pb::AuthLoginRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::email(e, "email", &self.email);
-            Validate::password(e, "password", &self.password);
+        validate::wrap(|e| {
+            validate::email(e, "email", &self.email);
+            validate::password(e, "password", &self.password);
         })
     }
 }
@@ -83,11 +79,11 @@ pub async fn login(
 
 impl validator::Validate for pb::AuthRegisterRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::name(e, "name", &self.name);
-            Validate::email(e, "email", &self.email);
-            Validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
-            Validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
+        validate::wrap(|e| {
+            validate::name(e, "name", &self.name);
+            validate::email(e, "email", &self.email);
+            validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
+            validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
         })
     }
 }
@@ -181,9 +177,9 @@ pub async fn register(
 
 impl validator::Validate for pb::AuthRegisterConfirmRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::token(e, "token", &self.token);
-            Validate::password_opt(e, "password", self.password.as_ref().map(|x| &**x));
+        validate::wrap(|e| {
+            validate::token(e, "token", &self.token);
+            validate::password_opt(e, "password", self.password.as_ref().map(|x| &**x));
         })
     }
 }
@@ -290,8 +286,8 @@ pub async fn register_revoke(
 
 impl validator::Validate for pb::AuthResetPasswordRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::email(e, "email", &self.email);
+        validate::wrap(|e| {
+            validate::email(e, "email", &self.email);
         })
     }
 }
@@ -354,9 +350,9 @@ pub async fn reset_password(
 
 impl validator::Validate for pb::AuthResetPasswordConfirmRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::token(e, "token", &self.token);
-            Validate::password(e, "password", &self.password);
+        validate::wrap(|e| {
+            validate::token(e, "token", &self.token);
+            validate::password(e, "password", &self.password);
         })
     }
 }
@@ -460,10 +456,10 @@ pub async fn reset_password_revoke(
 
 impl validator::Validate for pb::AuthUpdateEmailRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::email(e, "email", &self.email);
-            Validate::password(e, "password", &self.password);
-            Validate::email(e, "new_email", &self.new_email);
+        validate::wrap(|e| {
+            validate::email(e, "email", &self.email);
+            validate::password(e, "password", &self.password);
+            validate::email(e, "new_email", &self.new_email);
         })
     }
 }
@@ -553,10 +549,10 @@ pub async fn update_email_revoke(
 
 impl validator::Validate for pb::AuthUpdatePasswordRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::email(e, "email", &self.email);
-            Validate::password(e, "password", &self.password);
-            Validate::password(e, "new_password", &self.new_password);
+        validate::wrap(|e| {
+            validate::email(e, "email", &self.email);
+            validate::password(e, "password", &self.password);
+            validate::password(e, "new_password", &self.new_password);
         })
     }
 }

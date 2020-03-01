@@ -4,17 +4,13 @@ pub mod local;
 pub mod microsoft;
 pub mod token;
 
-use crate::{
-    grpc::{pb, util::*, GrpcServer},
-    *,
-};
-use uuid::Uuid;
+use crate::prelude::*;
 
 impl validator::Validate for pb::AuthTotpRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::uuid(e, "user_id", &self.user_id);
-            Validate::totp(e, "totp", &self.totp);
+        validate::wrap(|e| {
+            validate::uuid(e, "user_id", &self.user_id);
+            validate::totp(e, "totp", &self.totp);
         })
     }
 }
@@ -57,8 +53,8 @@ pub async fn totp_verify(
 
 impl validator::Validate for pb::AuthCsrfCreateRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::csrf_expires_s_opt(e, "expires_s", self.expires_s);
+        validate::wrap(|e| {
+            validate::csrf_expires_s_opt(e, "expires_s", self.expires_s);
         })
     }
 }
@@ -80,8 +76,9 @@ pub async fn csrf_create(
                     .map_err(GrpcMethodError::Unauthorised)?;
 
                 let expires_s = req.expires_s.unwrap_or(DEFAULT_CSRF_EXPIRES_S);
+                let expires = chrono::Duration::seconds(expires_s);
                 let conn = driver.conn().map_err(GrpcMethodError::BadRequest)?;
-                Csrf::create(&conn, &CsrfCreate::generate(expires_s, service.id))
+                Csrf::create(&conn, &CsrfCreate::generate(expires, service.id))
                     .map_err(GrpcMethodError::BadRequest)
             },
         )
@@ -95,9 +92,9 @@ pub async fn csrf_create(
 
 impl validator::Validate for pb::AuthCsrfVerifyRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::csrf_token(e, "csrf", &self.csrf);
-            Validate::audit_type_opt(e, "audit", self.audit.as_ref().map(|x| &**x))
+        validate::wrap(|e| {
+            validate::csrf_token(e, "csrf", &self.csrf);
+            validate::audit_type_opt(e, "audit", self.audit.as_ref().map(|x| &**x))
         })
     }
 }
@@ -135,8 +132,8 @@ fn oauth2_login(
     service: &Service,
     service_id: Uuid,
     email: String,
-    access_token_expires: i64,
-    refresh_token_expires: i64,
+    access_token_expires: Duration,
+    refresh_token_expires: Duration,
 ) -> GrpcMethodResult<UserToken> {
     // Check service making url and callback requests match.
     if service.id != service_id {

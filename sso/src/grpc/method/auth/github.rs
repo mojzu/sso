@@ -1,8 +1,4 @@
-use crate::grpc::GrpcServer;
-use crate::{
-    grpc::{method::auth::oauth2_login, pb, util::*},
-    *,
-};
+use crate::{grpc::method::auth::oauth2_login, prelude::*};
 
 pub async fn oauth2_url(
     server: &GrpcServer,
@@ -27,9 +23,9 @@ pub async fn oauth2_url(
 
 impl validator::Validate for pb::AuthOauth2CallbackRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::oauth2_token(e, "code", &self.code);
-            Validate::oauth2_token(e, "state", &self.state);
+        validate::wrap(|e| {
+            validate::oauth2_token(e, "code", &self.code);
+            validate::oauth2_token(e, "state", &self.state);
         })
     }
 }
@@ -89,18 +85,12 @@ pub async fn oauth2_callback(
 }
 
 mod provider_github {
-    use crate::{
-        grpc::{pb, util::*, GrpcServerOptionsProvider, ServerProviderOauth2Args},
-        pattern::*,
-        AuditBuilder, Csrf, CsrfCreate, DriverError, DriverResult, HeaderAuth, Postgres, Service,
-        HEADER_AUTHORISATION,
-    };
+    use crate::{pattern::*, prelude::*};
     use oauth2::{
         basic::BasicClient, reqwest::http_client, AuthUrl, AuthorizationCode, ClientId,
         ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
     };
     use reqwest::Client;
-    use uuid::Uuid;
 
     pub(crate) fn oauth2_url(
         driver: &Postgres,

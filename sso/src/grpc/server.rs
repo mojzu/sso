@@ -1,7 +1,4 @@
-use crate::{
-    grpc::{method, pb, util, GrpcServerOptions},
-    *,
-};
+use crate::{grpc::method, prelude::*};
 use lettre::{file::FileTransport, SmtpClient, Transport};
 use lettre_email::Email;
 use prometheus::{HistogramTimer, HistogramVec, IntCounterVec};
@@ -141,11 +138,11 @@ impl GrpcServer {
         &self,
         path: &str,
         req: tonic::Request<()>,
-    ) -> Result<(GrpcServerMetrics, util::GrpcMethodRequest<()>), tonic::Status> {
+    ) -> Result<(GrpcServerMetrics, GrpcMethodRequest<()>), tonic::Status> {
         let metrics = GrpcServerMetrics::start(path, &self.count, &self.latency);
         Ok((
             metrics,
-            util::GrpcMethodRequest::from_unit(req, self.options().traefik_enabled())?,
+            GrpcMethodRequest::from_unit(req, self.options().traefik_enabled())?,
         ))
     }
 
@@ -153,7 +150,7 @@ impl GrpcServer {
         &self,
         path: &str,
         req: tonic::Request<R>,
-    ) -> Result<(GrpcServerMetrics, util::GrpcMethodRequest<T>), tonic::Status>
+    ) -> Result<(GrpcServerMetrics, GrpcMethodRequest<T>), tonic::Status>
     where
         R: validator::Validate,
         T: From<R>,
@@ -161,7 +158,7 @@ impl GrpcServer {
         let metrics = GrpcServerMetrics::start(path, &self.count, &self.latency);
         Ok((
             metrics,
-            util::GrpcMethodRequest::from_request(req, self.options().traefik_enabled())?,
+            GrpcMethodRequest::from_request(req, self.options().traefik_enabled())?,
         ))
     }
 
@@ -191,28 +188,28 @@ impl GrpcServer {
 impl pb::sso_server::Sso for GrpcServer {
     async fn ping(&self, _: tonic::Request<()>) -> Result<tonic::Response<String>, tonic::Status> {
         // Method implemented in HTTP server.
-        Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
+        Err(tonic::Status::not_found(ERR_NOT_FOUND))
     }
     async fn metrics(
         &self,
         _: tonic::Request<()>,
     ) -> Result<tonic::Response<String>, tonic::Status> {
         // Method implemented in HTTP server.
-        Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
+        Err(tonic::Status::not_found(ERR_NOT_FOUND))
     }
     async fn hook_traefik_self(
         &self,
         _: tonic::Request<()>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
         // Method implemented in HTTP server.
-        Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
+        Err(tonic::Status::not_found(ERR_NOT_FOUND))
     }
     async fn hook_traefik_service(
         &self,
         _: tonic::Request<()>,
     ) -> Result<tonic::Response<()>, tonic::Status> {
         // Method implemented in HTTP server.
-        Err(tonic::Status::not_found(util::ERR_NOT_FOUND))
+        Err(tonic::Status::not_found(ERR_NOT_FOUND))
     }
     async fn audit_list(
         &self,
@@ -353,7 +350,7 @@ impl pb::sso_server::Sso for GrpcServer {
     ) -> Result<tonic::Response<pb::AuthKeyReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_key_verify", request)?;
         self.post(metrics, method::auth::key::verify(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+            .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_key_revoke(
         &self,
@@ -361,7 +358,7 @@ impl pb::sso_server::Sso for GrpcServer {
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_key_revoke", request)?;
         self.post(metrics, method::auth::key::revoke(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+            .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_token_verify(
         &self,
@@ -369,7 +366,7 @@ impl pb::sso_server::Sso for GrpcServer {
     ) -> Result<tonic::Response<pb::AuthTokenVerifyReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_token_verify", request)?;
         self.post(metrics, method::auth::token::verify(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+            .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_token_refresh(
         &self,
@@ -377,7 +374,7 @@ impl pb::sso_server::Sso for GrpcServer {
     ) -> Result<tonic::Response<pb::AuthTokenReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_token_refresh", request)?;
         self.post(metrics, method::auth::token::refresh(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+            .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_token_revoke(
         &self,
@@ -385,7 +382,7 @@ impl pb::sso_server::Sso for GrpcServer {
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_token_revoke", request)?;
         self.post(metrics, method::auth::token::revoke(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+            .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_totp_verify(
         &self,
@@ -393,7 +390,7 @@ impl pb::sso_server::Sso for GrpcServer {
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_totp_verify", request)?;
         self.post(metrics, method::auth::totp_verify(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+            .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_csrf_create(
         &self,
@@ -401,7 +398,7 @@ impl pb::sso_server::Sso for GrpcServer {
     ) -> Result<tonic::Response<pb::AuthCsrfCreateReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_csrf_create", request)?;
         self.post(metrics, method::auth::csrf_create(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+            .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_csrf_verify(
         &self,
@@ -409,7 +406,7 @@ impl pb::sso_server::Sso for GrpcServer {
     ) -> Result<tonic::Response<pb::AuthAuditReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_csrf_verify", request)?;
         self.post(metrics, method::auth::csrf_verify(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+            .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_local_login(
         &self,
@@ -417,7 +414,7 @@ impl pb::sso_server::Sso for GrpcServer {
     ) -> Result<tonic::Response<pb::AuthLoginReply>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_local_login", request)?;
         self.post(metrics, method::auth::local::login(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+            .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_local_register(
         &self,
@@ -425,7 +422,7 @@ impl pb::sso_server::Sso for GrpcServer {
     ) -> Result<tonic::Response<()>, tonic::Status> {
         let (metrics, request) = self.pre_validate("auth_local_register", request)?;
         self.post(metrics, method::auth::local::register(self, request).await)
-            .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+            .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_local_register_confirm(
         &self,
@@ -436,7 +433,7 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::local::register_confirm(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_local_register_revoke(
         &self,
@@ -447,7 +444,7 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::local::register_revoke(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_local_reset_password(
         &self,
@@ -458,7 +455,7 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::local::reset_password(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_local_reset_password_confirm(
         &self,
@@ -469,7 +466,7 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::local::reset_password_confirm(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_local_reset_password_revoke(
         &self,
@@ -480,7 +477,7 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::local::reset_password_revoke(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_local_update_email(
         &self,
@@ -491,7 +488,7 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::local::update_email(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_local_update_email_revoke(
         &self,
@@ -502,7 +499,7 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::local::update_email_revoke(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_local_update_password(
         &self,
@@ -513,7 +510,7 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::local::update_password(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_local_update_password_revoke(
         &self,
@@ -524,7 +521,7 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::local::update_password_revoke(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_github_oauth2_url(
         &self,
@@ -535,7 +532,7 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::github::oauth2_url(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_github_oauth2_callback(
         &self,
@@ -546,7 +543,7 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::github::oauth2_callback(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_microsoft_oauth2_url(
         &self,
@@ -557,7 +554,7 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::microsoft::oauth2_url(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
     async fn auth_microsoft_oauth2_callback(
         &self,
@@ -568,6 +565,6 @@ impl pb::sso_server::Sso for GrpcServer {
             metrics,
             method::auth::microsoft::oauth2_callback(self, request).await,
         )
-        .map_err(|e| tonic::Status::new(e.code(), util::ERR_REDACTED))
+        .map_err(|e| tonic::Status::new(e.code(), ERR_REDACTED))
     }
 }

@@ -1,19 +1,16 @@
-use crate::{
-    grpc::{pb, util::*, GrpcServer},
-    *,
-};
+use crate::prelude::*;
 
 impl validator::Validate for pb::UserListRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
-            Validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
-            Validate::name_opt(e, "name_ge", self.name_ge.as_ref().map(|x| &**x));
-            Validate::name_opt(e, "name_le", self.name_le.as_ref().map(|x| &**x));
-            Validate::limit_opt(e, "limit", self.limit);
-            Validate::uuid_opt(e, "offset_id", self.offset_id.as_ref().map(|x| &**x));
-            Validate::uuid_vec(e, "id", &self.id);
-            Validate::email_vec(e, "email", &self.email);
+        validate::wrap(|e| {
+            validate::uuid_opt(e, "gt", self.gt.as_ref().map(|x| &**x));
+            validate::uuid_opt(e, "lt", self.lt.as_ref().map(|x| &**x));
+            validate::name_opt(e, "name_ge", self.name_ge.as_ref().map(|x| &**x));
+            validate::name_opt(e, "name_le", self.name_le.as_ref().map(|x| &**x));
+            validate::limit_opt(e, "limit", self.limit);
+            validate::uuid_opt(e, "offset_id", self.offset_id.as_ref().map(|x| &**x));
+            validate::uuid_vec(e, "id", &self.id);
+            validate::email_vec(e, "email", &self.email);
         })
     }
 }
@@ -48,12 +45,12 @@ pub async fn list(
 
 impl validator::Validate for pb::UserCreateRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::name(e, "name", &self.name);
-            Validate::email(e, "email", &self.email);
-            Validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
-            Validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
-            Validate::password_opt(e, "password", self.password.as_ref().map(|x| &**x));
+        validate::wrap(|e| {
+            validate::name(e, "name", &self.name);
+            validate::email(e, "email", &self.email);
+            validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
+            validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
+            validate::password_opt(e, "password", self.password.as_ref().map(|x| &**x));
         })
     }
 }
@@ -98,8 +95,8 @@ pub async fn create(
 
 impl validator::Validate for pb::UserReadRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::uuid(e, "id", &self.id);
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
         })
     }
 }
@@ -133,11 +130,11 @@ pub async fn read(
 
 impl validator::Validate for pb::UserUpdateRequest {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        Validate::wrap(|e| {
-            Validate::uuid(e, "id", &self.id);
-            Validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
-            Validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
-            Validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
+        validate::wrap(|e| {
+            validate::uuid(e, "id", &self.id);
+            validate::name_opt(e, "name", self.name.as_ref().map(|x| &**x));
+            validate::locale_opt(e, "locale", self.locale.as_ref().map(|x| &**x));
+            validate::timezone_opt(e, "timezone", self.timezone.as_ref().map(|x| &**x));
         })
     }
 }

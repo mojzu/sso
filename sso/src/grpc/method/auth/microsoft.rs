@@ -1,7 +1,4 @@
-use crate::{
-    grpc::{method::auth::oauth2_login, pb, util::*, GrpcServer},
-    *,
-};
+use crate::{grpc::method::auth::oauth2_login, prelude::*};
 
 pub async fn oauth2_url(
     server: &GrpcServer,
@@ -79,12 +76,7 @@ pub async fn oauth2_callback(
 }
 
 mod provider_microsoft {
-    use crate::{
-        grpc::{pb, util::*, GrpcServerOptionsProvider, ServerProviderOauth2Args},
-        pattern::*,
-        AuditBuilder, Csrf, CsrfCreate, DriverError, DriverResult, HeaderAuth, Postgres, Service,
-        HEADER_AUTHORISATION,
-    };
+    use crate::{pattern::*, prelude::*};
     use oauth2::{
         basic::BasicClient, reqwest::http_client, AuthType, AuthUrl, AuthorizationCode, ClientId,
         ClientSecret, CsrfToken, PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, Scope,

@@ -1,4 +1,3 @@
-//! gRPC Server, Clients
 mod client;
 mod method;
 mod options;

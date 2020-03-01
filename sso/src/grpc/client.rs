@@ -1,12 +1,6 @@
-use crate::{
-    grpc::{
-        pb::{self, sso_client::SsoClient},
-        util::*,
-    },
-    *,
-};
+use crate::{grpc::pb::sso_client::SsoClient, prelude::*};
 use http::Uri;
-use std::{fmt, fs, str::FromStr};
+use std::{fmt, fs};
 use tokio::runtime::{Builder, Runtime};
 use tonic::{
     metadata::MetadataValue,

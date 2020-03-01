@@ -1,5 +1,4 @@
-//! Utility types and functions.
-use crate::{grpc::pb, *};
+use crate::prelude::*;
 use std::net::SocketAddr;
 use tokio::task;
 use tonic::{metadata::MetadataMap, Request, Status};
@@ -145,7 +144,7 @@ impl<T> GrpcMethodRequest<T> {
         let (audit, auth) =
             request_audit_auth(request.remote_addr(), request.metadata(), traefik_enabled)?;
         let message =
-            Validate::validate(request.into_inner()).map_err(GrpcMethodError::BadRequest)?;
+            validate::validate(request.into_inner()).map_err(GrpcMethodError::BadRequest)?;
         Ok(GrpcMethodRequest {
             audit,
             auth,
