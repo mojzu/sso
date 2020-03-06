@@ -5,10 +5,11 @@ ENV DEBIAN_FRONTEND="noninteractive"
 ARG UID
 
 # Install dependencies.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+    apt-get install -y -q --no-install-recommends \
     wget unzip ca-certificates build-essential libpq-dev libssl-dev pkg-config git procps \
-    && rm -rf /var/lib/apt/lists/*;
+    gnupg2 apt-transport-https openssh-client curl && \
+    rm -rf /var/lib/apt/lists/*;
 
 # Create user to match host.
 RUN useradd --uid $UID --shell /bin/bash --create-home build;
@@ -25,17 +26,17 @@ ENV RUSTUP_HOME="/usr/local/rustup" \
 
 # Install Rust toolchain.
 # <https://github.com/rust-lang/docker-rust>
-RUN wget -q "$RUSTUP_VERSION_URL" \
-    && chmod +x rustup-init \
-    && ./rustup-init -y --no-modify-path --profile default --default-toolchain $RUST_VERSION \
-    && rm rustup-init \
-    && chmod -R a+w $RUSTUP_HOME $CARGO_HOME \
-    && chmod 777 -R $HOME;
+RUN wget -q "$RUSTUP_VERSION_URL" && \
+    chmod +x rustup-init && \
+    ./rustup-init -y --no-modify-path --profile default --default-toolchain $RUST_VERSION && \
+    rm rustup-init && \
+    chmod -R a+w $RUSTUP_HOME $CARGO_HOME && \
+    chmod 777 -R $HOME;
 
 # Install Rust tools.
-RUN cargo install --force cargo-make --version "~0.28" \
-    && cargo install --force diesel_cli --version "~1.4" --no-default-features --features "postgres" \
-    && cargo install --force cargo-audit --version "~0.11";
+RUN cargo install --force cargo-make --version "~0.28" && \
+    cargo install --force diesel_cli --version "~1.4" --no-default-features --features "postgres" && \
+    cargo install --force cargo-audit --version "~0.11";
 
 # Go environment.
 ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH" \
@@ -44,32 +45,40 @@ ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH" \
 
 # Install Go toolchain.
 # <https://github.com/docker-library/golang>
-RUN wget -O go.tgz -q "$GOLANG_VERSION_URL" \
-    && tar -C /usr/local -xzf go.tgz \
-    && rm go.tgz \
-    && wget -O protoc.zip -q "$PROTOC_VERSION_URL" \
-    && unzip -o protoc.zip -d /usr/local bin/protoc \
-    && unzip -o protoc.zip -d /usr/local 'include/*' \
-    && chmod -R 777 /usr/local/bin/protoc \
-    && chmod -R 777 /usr/local/include/google \
-    && rm protoc.zip;
+RUN wget -O go.tgz -q "$GOLANG_VERSION_URL" && \
+    tar -C /usr/local -xzf go.tgz && \
+    rm go.tgz && \
+    wget -O protoc.zip -q "$PROTOC_VERSION_URL" && \
+    unzip -o protoc.zip -d /usr/local bin/protoc && \
+    unzip -o protoc.zip -d /usr/local 'include/*' && \
+    chmod -R 777 /usr/local/bin/protoc && \
+    chmod -R 777 /usr/local/include/google && \
+    rm protoc.zip;
 
 # Install Go tools.
 # <https://github.com/grpc-ecosystem/grpc-gateway>
 # <https://grpc-ecosystem.github.io/grpc-gateway/>
-RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway \
-    && go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger \
-    && go get -u github.com/golang/protobuf/protoc-gen-go \
-    && go get -u google.golang.org/grpc;
+RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway && \
+    go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger && \
+    go get -u github.com/golang/protobuf/protoc-gen-go && \
+    go get -u google.golang.org/grpc;
 
-# Pandoc environment.
-ENV PANDOC_VERSION_URL="https://github.com/jgm/pandoc/releases/download/2.9/pandoc-2.9-1-amd64.deb"
+# Dart environment.
+ENV DART_VERSION="2.7.1" \
+    DART_SDK="/usr/lib/dart" \
+    PATH="/usr/lib/dart/bin:/root/.pub-cache/bin:$PATH" \
+    PROTOC_PLUGIN_VERSION="19.0.0+1"
 
-# Install Pandoc.
-# <https://pandoc.org/installing.html>
-RUN wget -O pandoc.deb -q "$PANDOC_VERSION_URL" \
-    && dpkg -i pandoc.deb \
-    && rm pandoc.deb;
+# Install Dart tools.
+# <https://github.com/dart-lang/dart_docker>
+# <https://github.com/dart-lang/protobuf>
+RUN curl https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    curl https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list && \
+    curl https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_unstable.list > /etc/apt/sources.list.d/dart_unstable.list && \
+    apt-get update && \
+    apt-get install dart=$DART_VERSION-1 && \
+    rm -rf /var/lib/apt/lists/* && \
+    pub global activate protoc_plugin $PROTOC_PLUGIN_VERSION;
 
 # Set cargo cache directory in volume.
 # This prevents having to download dependencies in development builds.

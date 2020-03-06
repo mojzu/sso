@@ -4,12 +4,13 @@
 # - format (fmt)
 # - check
 
-[tasks.openapi-protoc]
+[tasks.protoc]
 workspace = false
 script = [
     "(cd sso/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --go_out=plugins=grpc:../../sso_openapi sso.proto)",
     "(cd sso/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --grpc-gateway_out=logtostderr=true:../../sso_openapi sso.proto)",
     "(cd sso/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --swagger_out=logtostderr=true:../../sso_openapi sso.proto)",
+    "(cd sso/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --dart_out=../../sso_openapi/dart sso.proto)",
 ]
 
 [tasks.openapi-bin]

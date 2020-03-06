@@ -116,7 +116,7 @@ for i in {1..50}; do sso-build cargo make test-integration; done
 Compile [Protocol Buffers][protocol-buffers] for [OpenAPI][openapi] gateway server.
 
 ```bash
-sso-build cargo make openapi-protoc
+sso-build cargo make protoc
 ```
 
 Build [OpenAPI][openapi] gateway server.

@@ -20,5 +20,5 @@ printf "\ngo\n"
 go version
 printf "\nprotoc\n"
 protoc --version
-printf "\npandoc\n"
-pandoc --version
+printf "\ndart\n"
+dart --version

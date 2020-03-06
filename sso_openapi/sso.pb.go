@@ -3765,7 +3765,9 @@ func init() {
 	proto.RegisterType((*AuthOauth2CallbackRequest)(nil), "sso.AuthOauth2CallbackRequest")
 }
 
-func init() { proto.RegisterFile("sso.proto", fileDescriptor_37aabceb39ca51ce) }
+func init() {
+	proto.RegisterFile("sso.proto", fileDescriptor_37aabceb39ca51ce)
+}
 
 var fileDescriptor_37aabceb39ca51ce = []byte{
 	// 3475 bytes of a gzipped FileDescriptorProto

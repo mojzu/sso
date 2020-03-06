@@ -1,6 +1,6 @@
 version: "3"
 services:
-  # Rust build tools.
+  # Build tools.
   sso-build:
     build:
       context: ../
@@ -9,14 +9,14 @@ services:
         - UID
     image: sso/build:v1
 
-  # Rust build cache.
+  # Build cache.
   sso-build-cache:
     build:
       context: ../
       dockerfile: ./docker/build/build-cache.dockerfile
     image: sso/build-cache:v1
 
-  # Rust build release.
+  # Build release.
   sso-build-release:
     build:
       context: ../

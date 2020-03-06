@@ -22,5 +22,6 @@
 # Ignore pgdump files.
 *.pgdump
 
-# Ignore sso_openapi binary.
+# Ignore sso_openapi binary, generated code.
 /sso_openapi/sso-openapi
+/sso_openapi/dart

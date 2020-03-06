@@ -36,7 +36,7 @@ diesel_migrations = { version = "1.4", features = ["postgres"] }
 env_logger = "0.7"
 failure = "0.1"
 handlebars = "3.0"
-jsonwebtoken = "7.0"
+jsonwebtoken = "7.1"
 lazy_static = "1.4"
 lettre = "0.9"
 lettre_email = "0.9"
