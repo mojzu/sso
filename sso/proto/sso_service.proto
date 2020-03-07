@@ -3,9 +3,71 @@ package sso;
 
 import "google/protobuf/empty.proto";
 
+import "openapi/annotations.proto";
 import "gateway/annotations.proto";
 
 import "sso.proto";
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+    info: {
+        title: "Single Sign-on Service";
+        version: "v1";
+    };
+	security_definitions: {
+        security: {
+            key: "ApiKeyAuth";
+            value: {
+                type: TYPE_API_KEY;
+                in: IN_HEADER;
+                name: "Authorization";
+            }
+        }
+    };
+    responses: {
+        key: "400";
+        value: {
+            description: "Returned when the request is invalid.";
+            schema {
+                json_schema {
+                    ref: ".sso.ErrorReply";
+                }
+            }
+        }
+    };
+    responses: {
+        key: "401";
+        value: {
+            description: "Returned when the request is not authenticated.";
+            schema {
+                json_schema {
+                    ref: ".sso.ErrorReply";
+                }
+            }
+        }
+    };
+    responses: {
+        key: "403";
+        value: {
+            description: "Returned when the request is not permitted.";
+            schema {
+                json_schema {
+                    ref: ".sso.ErrorReply";
+                }
+            }
+        }
+    };
+    responses: {
+        key: "404";
+        value: {
+            description: "Returned when the requested resource does not exist.";
+            schema {
+                json_schema {
+                    ref: ".sso.ErrorReply";
+                }
+            }
+        }
+    };
+};
 
 service SsoService {
     // Login with email and password.
