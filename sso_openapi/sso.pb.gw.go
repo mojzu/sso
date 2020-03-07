@@ -33,7 +33,7 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = descriptor.ForMessage
 
-func request_Sso_Ping_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_Ping_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
@@ -42,7 +42,7 @@ func request_Sso_Ping_0(ctx context.Context, marshaler runtime.Marshaler, client
 
 }
 
-func local_request_Sso_Ping_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_Ping_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
@@ -51,7 +51,7 @@ func local_request_Sso_Ping_0(ctx context.Context, marshaler runtime.Marshaler, 
 
 }
 
-func request_Sso_Metrics_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_Metrics_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
@@ -60,7 +60,7 @@ func request_Sso_Metrics_0(ctx context.Context, marshaler runtime.Marshaler, cli
 
 }
 
-func local_request_Sso_Metrics_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_Metrics_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
@@ -69,7 +69,7 @@ func local_request_Sso_Metrics_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
-func request_Sso_HookTraefikSelf_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_HookTraefikSelf_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
@@ -78,7 +78,7 @@ func request_Sso_HookTraefikSelf_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
-func local_request_Sso_HookTraefikSelf_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_HookTraefikSelf_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
@@ -87,7 +87,7 @@ func local_request_Sso_HookTraefikSelf_0(ctx context.Context, marshaler runtime.
 
 }
 
-func request_Sso_HookTraefikService_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_HookTraefikService_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
@@ -96,7 +96,7 @@ func request_Sso_HookTraefikService_0(ctx context.Context, marshaler runtime.Mar
 
 }
 
-func local_request_Sso_HookTraefikService_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_HookTraefikService_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
@@ -106,17 +106,17 @@ func local_request_Sso_HookTraefikService_0(ctx context.Context, marshaler runti
 }
 
 var (
-	filter_Sso_AuditList_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_SsoService_AuditList_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Sso_AuditList_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuditList_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuditListRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Sso_AuditList_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_SsoService_AuditList_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -125,11 +125,11 @@ func request_Sso_AuditList_0(ctx context.Context, marshaler runtime.Marshaler, c
 
 }
 
-func local_request_Sso_AuditList_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuditList_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuditListRequest
 	var metadata runtime.ServerMetadata
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Sso_AuditList_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_SsoService_AuditList_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -138,7 +138,7 @@ func local_request_Sso_AuditList_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
-func request_Sso_AuditCreate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuditCreate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuditCreateRequest
 	var metadata runtime.ServerMetadata
 
@@ -155,7 +155,7 @@ func request_Sso_AuditCreate_0(ctx context.Context, marshaler runtime.Marshaler,
 
 }
 
-func local_request_Sso_AuditCreate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuditCreate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuditCreateRequest
 	var metadata runtime.ServerMetadata
 
@@ -173,10 +173,10 @@ func local_request_Sso_AuditCreate_0(ctx context.Context, marshaler runtime.Mars
 }
 
 var (
-	filter_Sso_AuditRead_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_SsoService_AuditRead_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
-func request_Sso_AuditRead_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuditRead_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuditReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -201,7 +201,7 @@ func request_Sso_AuditRead_0(ctx context.Context, marshaler runtime.Marshaler, c
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Sso_AuditRead_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_SsoService_AuditRead_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -210,7 +210,7 @@ func request_Sso_AuditRead_0(ctx context.Context, marshaler runtime.Marshaler, c
 
 }
 
-func local_request_Sso_AuditRead_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuditRead_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuditReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -232,7 +232,7 @@ func local_request_Sso_AuditRead_0(ctx context.Context, marshaler runtime.Marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Sso_AuditRead_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_SsoService_AuditRead_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -241,7 +241,7 @@ func local_request_Sso_AuditRead_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
-func request_Sso_AuditUpdate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuditUpdate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuditUpdateRequest
 	var metadata runtime.ServerMetadata
 
@@ -276,7 +276,7 @@ func request_Sso_AuditUpdate_0(ctx context.Context, marshaler runtime.Marshaler,
 
 }
 
-func local_request_Sso_AuditUpdate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuditUpdate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuditUpdateRequest
 	var metadata runtime.ServerMetadata
 
@@ -312,17 +312,17 @@ func local_request_Sso_AuditUpdate_0(ctx context.Context, marshaler runtime.Mars
 }
 
 var (
-	filter_Sso_KeyList_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_SsoService_KeyList_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Sso_KeyList_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_KeyList_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq KeyListRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Sso_KeyList_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_SsoService_KeyList_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -331,11 +331,11 @@ func request_Sso_KeyList_0(ctx context.Context, marshaler runtime.Marshaler, cli
 
 }
 
-func local_request_Sso_KeyList_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_KeyList_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq KeyListRequest
 	var metadata runtime.ServerMetadata
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Sso_KeyList_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_SsoService_KeyList_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -344,7 +344,7 @@ func local_request_Sso_KeyList_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
-func request_Sso_KeyCreate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_KeyCreate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq KeyCreateRequest
 	var metadata runtime.ServerMetadata
 
@@ -361,7 +361,7 @@ func request_Sso_KeyCreate_0(ctx context.Context, marshaler runtime.Marshaler, c
 
 }
 
-func local_request_Sso_KeyCreate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_KeyCreate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq KeyCreateRequest
 	var metadata runtime.ServerMetadata
 
@@ -379,10 +379,10 @@ func local_request_Sso_KeyCreate_0(ctx context.Context, marshaler runtime.Marsha
 }
 
 var (
-	filter_Sso_KeyRead_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_SsoService_KeyRead_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
-func request_Sso_KeyRead_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_KeyRead_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq KeyReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -407,7 +407,7 @@ func request_Sso_KeyRead_0(ctx context.Context, marshaler runtime.Marshaler, cli
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Sso_KeyRead_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_SsoService_KeyRead_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -416,7 +416,7 @@ func request_Sso_KeyRead_0(ctx context.Context, marshaler runtime.Marshaler, cli
 
 }
 
-func local_request_Sso_KeyRead_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_KeyRead_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq KeyReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -438,7 +438,7 @@ func local_request_Sso_KeyRead_0(ctx context.Context, marshaler runtime.Marshale
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Sso_KeyRead_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_SsoService_KeyRead_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -447,7 +447,7 @@ func local_request_Sso_KeyRead_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
-func request_Sso_KeyUpdate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_KeyUpdate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq KeyUpdateRequest
 	var metadata runtime.ServerMetadata
 
@@ -482,7 +482,7 @@ func request_Sso_KeyUpdate_0(ctx context.Context, marshaler runtime.Marshaler, c
 
 }
 
-func local_request_Sso_KeyUpdate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_KeyUpdate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq KeyUpdateRequest
 	var metadata runtime.ServerMetadata
 
@@ -518,10 +518,10 @@ func local_request_Sso_KeyUpdate_0(ctx context.Context, marshaler runtime.Marsha
 }
 
 var (
-	filter_Sso_KeyDelete_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_SsoService_KeyDelete_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
-func request_Sso_KeyDelete_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_KeyDelete_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq KeyReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -546,7 +546,7 @@ func request_Sso_KeyDelete_0(ctx context.Context, marshaler runtime.Marshaler, c
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Sso_KeyDelete_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_SsoService_KeyDelete_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -555,7 +555,7 @@ func request_Sso_KeyDelete_0(ctx context.Context, marshaler runtime.Marshaler, c
 
 }
 
-func local_request_Sso_KeyDelete_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_KeyDelete_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq KeyReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -577,7 +577,7 @@ func local_request_Sso_KeyDelete_0(ctx context.Context, marshaler runtime.Marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Sso_KeyDelete_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_SsoService_KeyDelete_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -587,17 +587,17 @@ func local_request_Sso_KeyDelete_0(ctx context.Context, marshaler runtime.Marsha
 }
 
 var (
-	filter_Sso_ServiceList_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_SsoService_ServiceList_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Sso_ServiceList_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_ServiceList_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ServiceListRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Sso_ServiceList_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_SsoService_ServiceList_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -606,11 +606,11 @@ func request_Sso_ServiceList_0(ctx context.Context, marshaler runtime.Marshaler,
 
 }
 
-func local_request_Sso_ServiceList_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_ServiceList_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ServiceListRequest
 	var metadata runtime.ServerMetadata
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Sso_ServiceList_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_SsoService_ServiceList_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -619,7 +619,7 @@ func local_request_Sso_ServiceList_0(ctx context.Context, marshaler runtime.Mars
 
 }
 
-func request_Sso_ServiceCreate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_ServiceCreate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ServiceCreateRequest
 	var metadata runtime.ServerMetadata
 
@@ -636,7 +636,7 @@ func request_Sso_ServiceCreate_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
-func local_request_Sso_ServiceCreate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_ServiceCreate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ServiceCreateRequest
 	var metadata runtime.ServerMetadata
 
@@ -653,7 +653,7 @@ func local_request_Sso_ServiceCreate_0(ctx context.Context, marshaler runtime.Ma
 
 }
 
-func request_Sso_ServiceRead_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_ServiceRead_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ServiceReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -680,7 +680,7 @@ func request_Sso_ServiceRead_0(ctx context.Context, marshaler runtime.Marshaler,
 
 }
 
-func local_request_Sso_ServiceRead_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_ServiceRead_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ServiceReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -707,7 +707,7 @@ func local_request_Sso_ServiceRead_0(ctx context.Context, marshaler runtime.Mars
 
 }
 
-func request_Sso_ServiceUpdate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_ServiceUpdate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ServiceUpdateRequest
 	var metadata runtime.ServerMetadata
 
@@ -742,7 +742,7 @@ func request_Sso_ServiceUpdate_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
-func local_request_Sso_ServiceUpdate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_ServiceUpdate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ServiceUpdateRequest
 	var metadata runtime.ServerMetadata
 
@@ -777,7 +777,7 @@ func local_request_Sso_ServiceUpdate_0(ctx context.Context, marshaler runtime.Ma
 
 }
 
-func request_Sso_ServiceDelete_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_ServiceDelete_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ServiceReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -804,7 +804,7 @@ func request_Sso_ServiceDelete_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
-func local_request_Sso_ServiceDelete_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_ServiceDelete_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ServiceReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -832,17 +832,17 @@ func local_request_Sso_ServiceDelete_0(ctx context.Context, marshaler runtime.Ma
 }
 
 var (
-	filter_Sso_UserList_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_SsoService_UserList_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Sso_UserList_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_UserList_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq UserListRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Sso_UserList_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_SsoService_UserList_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -851,11 +851,11 @@ func request_Sso_UserList_0(ctx context.Context, marshaler runtime.Marshaler, cl
 
 }
 
-func local_request_Sso_UserList_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_UserList_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq UserListRequest
 	var metadata runtime.ServerMetadata
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Sso_UserList_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_SsoService_UserList_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -864,7 +864,7 @@ func local_request_Sso_UserList_0(ctx context.Context, marshaler runtime.Marshal
 
 }
 
-func request_Sso_UserCreate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_UserCreate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq UserCreateRequest
 	var metadata runtime.ServerMetadata
 
@@ -881,7 +881,7 @@ func request_Sso_UserCreate_0(ctx context.Context, marshaler runtime.Marshaler, 
 
 }
 
-func local_request_Sso_UserCreate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_UserCreate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq UserCreateRequest
 	var metadata runtime.ServerMetadata
 
@@ -898,7 +898,7 @@ func local_request_Sso_UserCreate_0(ctx context.Context, marshaler runtime.Marsh
 
 }
 
-func request_Sso_UserRead_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_UserRead_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq UserReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -925,7 +925,7 @@ func request_Sso_UserRead_0(ctx context.Context, marshaler runtime.Marshaler, cl
 
 }
 
-func local_request_Sso_UserRead_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_UserRead_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq UserReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -952,7 +952,7 @@ func local_request_Sso_UserRead_0(ctx context.Context, marshaler runtime.Marshal
 
 }
 
-func request_Sso_UserUpdate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_UserUpdate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq UserUpdateRequest
 	var metadata runtime.ServerMetadata
 
@@ -987,7 +987,7 @@ func request_Sso_UserUpdate_0(ctx context.Context, marshaler runtime.Marshaler, 
 
 }
 
-func local_request_Sso_UserUpdate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_UserUpdate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq UserUpdateRequest
 	var metadata runtime.ServerMetadata
 
@@ -1022,7 +1022,7 @@ func local_request_Sso_UserUpdate_0(ctx context.Context, marshaler runtime.Marsh
 
 }
 
-func request_Sso_UserDelete_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_UserDelete_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq UserReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -1049,7 +1049,7 @@ func request_Sso_UserDelete_0(ctx context.Context, marshaler runtime.Marshaler, 
 
 }
 
-func local_request_Sso_UserDelete_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_UserDelete_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq UserReadRequest
 	var metadata runtime.ServerMetadata
 
@@ -1076,7 +1076,7 @@ func local_request_Sso_UserDelete_0(ctx context.Context, marshaler runtime.Marsh
 
 }
 
-func request_Sso_AuthKeyVerify_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthKeyVerify_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthKeyRequest
 	var metadata runtime.ServerMetadata
 
@@ -1093,7 +1093,7 @@ func request_Sso_AuthKeyVerify_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
-func local_request_Sso_AuthKeyVerify_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthKeyVerify_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthKeyRequest
 	var metadata runtime.ServerMetadata
 
@@ -1110,7 +1110,7 @@ func local_request_Sso_AuthKeyVerify_0(ctx context.Context, marshaler runtime.Ma
 
 }
 
-func request_Sso_AuthKeyRevoke_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthKeyRevoke_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthKeyRequest
 	var metadata runtime.ServerMetadata
 
@@ -1127,7 +1127,7 @@ func request_Sso_AuthKeyRevoke_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
-func local_request_Sso_AuthKeyRevoke_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthKeyRevoke_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthKeyRequest
 	var metadata runtime.ServerMetadata
 
@@ -1144,7 +1144,7 @@ func local_request_Sso_AuthKeyRevoke_0(ctx context.Context, marshaler runtime.Ma
 
 }
 
-func request_Sso_AuthTokenVerify_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthTokenVerify_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1161,7 +1161,7 @@ func request_Sso_AuthTokenVerify_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
-func local_request_Sso_AuthTokenVerify_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthTokenVerify_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1178,7 +1178,7 @@ func local_request_Sso_AuthTokenVerify_0(ctx context.Context, marshaler runtime.
 
 }
 
-func request_Sso_AuthTokenRefresh_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthTokenRefresh_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1195,7 +1195,7 @@ func request_Sso_AuthTokenRefresh_0(ctx context.Context, marshaler runtime.Marsh
 
 }
 
-func local_request_Sso_AuthTokenRefresh_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthTokenRefresh_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1212,7 +1212,7 @@ func local_request_Sso_AuthTokenRefresh_0(ctx context.Context, marshaler runtime
 
 }
 
-func request_Sso_AuthTokenRevoke_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthTokenRevoke_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1229,7 +1229,7 @@ func request_Sso_AuthTokenRevoke_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
-func local_request_Sso_AuthTokenRevoke_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthTokenRevoke_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1246,7 +1246,7 @@ func local_request_Sso_AuthTokenRevoke_0(ctx context.Context, marshaler runtime.
 
 }
 
-func request_Sso_AuthTotpVerify_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthTotpVerify_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTotpRequest
 	var metadata runtime.ServerMetadata
 
@@ -1263,7 +1263,7 @@ func request_Sso_AuthTotpVerify_0(ctx context.Context, marshaler runtime.Marshal
 
 }
 
-func local_request_Sso_AuthTotpVerify_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthTotpVerify_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTotpRequest
 	var metadata runtime.ServerMetadata
 
@@ -1281,17 +1281,17 @@ func local_request_Sso_AuthTotpVerify_0(ctx context.Context, marshaler runtime.M
 }
 
 var (
-	filter_Sso_AuthCsrfCreate_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_SsoService_AuthCsrfCreate_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Sso_AuthCsrfCreate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthCsrfCreate_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthCsrfCreateRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Sso_AuthCsrfCreate_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_SsoService_AuthCsrfCreate_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -1300,11 +1300,11 @@ func request_Sso_AuthCsrfCreate_0(ctx context.Context, marshaler runtime.Marshal
 
 }
 
-func local_request_Sso_AuthCsrfCreate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthCsrfCreate_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthCsrfCreateRequest
 	var metadata runtime.ServerMetadata
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Sso_AuthCsrfCreate_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_SsoService_AuthCsrfCreate_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -1313,7 +1313,7 @@ func local_request_Sso_AuthCsrfCreate_0(ctx context.Context, marshaler runtime.M
 
 }
 
-func request_Sso_AuthCsrfVerify_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthCsrfVerify_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthCsrfVerifyRequest
 	var metadata runtime.ServerMetadata
 
@@ -1330,7 +1330,7 @@ func request_Sso_AuthCsrfVerify_0(ctx context.Context, marshaler runtime.Marshal
 
 }
 
-func local_request_Sso_AuthCsrfVerify_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthCsrfVerify_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthCsrfVerifyRequest
 	var metadata runtime.ServerMetadata
 
@@ -1347,7 +1347,7 @@ func local_request_Sso_AuthCsrfVerify_0(ctx context.Context, marshaler runtime.M
 
 }
 
-func request_Sso_AuthLocalLogin_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthLocalLogin_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthLoginRequest
 	var metadata runtime.ServerMetadata
 
@@ -1364,7 +1364,7 @@ func request_Sso_AuthLocalLogin_0(ctx context.Context, marshaler runtime.Marshal
 
 }
 
-func local_request_Sso_AuthLocalLogin_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthLocalLogin_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthLoginRequest
 	var metadata runtime.ServerMetadata
 
@@ -1381,7 +1381,7 @@ func local_request_Sso_AuthLocalLogin_0(ctx context.Context, marshaler runtime.M
 
 }
 
-func request_Sso_AuthLocalRegister_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthLocalRegister_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthRegisterRequest
 	var metadata runtime.ServerMetadata
 
@@ -1398,7 +1398,7 @@ func request_Sso_AuthLocalRegister_0(ctx context.Context, marshaler runtime.Mars
 
 }
 
-func local_request_Sso_AuthLocalRegister_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthLocalRegister_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthRegisterRequest
 	var metadata runtime.ServerMetadata
 
@@ -1415,7 +1415,7 @@ func local_request_Sso_AuthLocalRegister_0(ctx context.Context, marshaler runtim
 
 }
 
-func request_Sso_AuthLocalRegisterConfirm_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthLocalRegisterConfirm_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthRegisterConfirmRequest
 	var metadata runtime.ServerMetadata
 
@@ -1432,7 +1432,7 @@ func request_Sso_AuthLocalRegisterConfirm_0(ctx context.Context, marshaler runti
 
 }
 
-func local_request_Sso_AuthLocalRegisterConfirm_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthLocalRegisterConfirm_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthRegisterConfirmRequest
 	var metadata runtime.ServerMetadata
 
@@ -1449,7 +1449,7 @@ func local_request_Sso_AuthLocalRegisterConfirm_0(ctx context.Context, marshaler
 
 }
 
-func request_Sso_AuthLocalRegisterRevoke_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthLocalRegisterRevoke_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1466,7 +1466,7 @@ func request_Sso_AuthLocalRegisterRevoke_0(ctx context.Context, marshaler runtim
 
 }
 
-func local_request_Sso_AuthLocalRegisterRevoke_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthLocalRegisterRevoke_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1483,7 +1483,7 @@ func local_request_Sso_AuthLocalRegisterRevoke_0(ctx context.Context, marshaler 
 
 }
 
-func request_Sso_AuthLocalResetPassword_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthLocalResetPassword_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthResetPasswordRequest
 	var metadata runtime.ServerMetadata
 
@@ -1500,7 +1500,7 @@ func request_Sso_AuthLocalResetPassword_0(ctx context.Context, marshaler runtime
 
 }
 
-func local_request_Sso_AuthLocalResetPassword_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthLocalResetPassword_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthResetPasswordRequest
 	var metadata runtime.ServerMetadata
 
@@ -1517,7 +1517,7 @@ func local_request_Sso_AuthLocalResetPassword_0(ctx context.Context, marshaler r
 
 }
 
-func request_Sso_AuthLocalResetPasswordConfirm_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthLocalResetPasswordConfirm_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthResetPasswordConfirmRequest
 	var metadata runtime.ServerMetadata
 
@@ -1534,7 +1534,7 @@ func request_Sso_AuthLocalResetPasswordConfirm_0(ctx context.Context, marshaler 
 
 }
 
-func local_request_Sso_AuthLocalResetPasswordConfirm_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthLocalResetPasswordConfirm_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthResetPasswordConfirmRequest
 	var metadata runtime.ServerMetadata
 
@@ -1551,7 +1551,7 @@ func local_request_Sso_AuthLocalResetPasswordConfirm_0(ctx context.Context, mars
 
 }
 
-func request_Sso_AuthLocalResetPasswordRevoke_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthLocalResetPasswordRevoke_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1568,7 +1568,7 @@ func request_Sso_AuthLocalResetPasswordRevoke_0(ctx context.Context, marshaler r
 
 }
 
-func local_request_Sso_AuthLocalResetPasswordRevoke_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthLocalResetPasswordRevoke_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1585,7 +1585,7 @@ func local_request_Sso_AuthLocalResetPasswordRevoke_0(ctx context.Context, marsh
 
 }
 
-func request_Sso_AuthLocalUpdateEmail_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthLocalUpdateEmail_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthUpdateEmailRequest
 	var metadata runtime.ServerMetadata
 
@@ -1602,7 +1602,7 @@ func request_Sso_AuthLocalUpdateEmail_0(ctx context.Context, marshaler runtime.M
 
 }
 
-func local_request_Sso_AuthLocalUpdateEmail_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthLocalUpdateEmail_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthUpdateEmailRequest
 	var metadata runtime.ServerMetadata
 
@@ -1619,7 +1619,7 @@ func local_request_Sso_AuthLocalUpdateEmail_0(ctx context.Context, marshaler run
 
 }
 
-func request_Sso_AuthLocalUpdateEmailRevoke_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthLocalUpdateEmailRevoke_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1636,7 +1636,7 @@ func request_Sso_AuthLocalUpdateEmailRevoke_0(ctx context.Context, marshaler run
 
 }
 
-func local_request_Sso_AuthLocalUpdateEmailRevoke_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthLocalUpdateEmailRevoke_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1653,7 +1653,7 @@ func local_request_Sso_AuthLocalUpdateEmailRevoke_0(ctx context.Context, marshal
 
 }
 
-func request_Sso_AuthLocalUpdatePassword_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthLocalUpdatePassword_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthUpdatePasswordRequest
 	var metadata runtime.ServerMetadata
 
@@ -1670,7 +1670,7 @@ func request_Sso_AuthLocalUpdatePassword_0(ctx context.Context, marshaler runtim
 
 }
 
-func local_request_Sso_AuthLocalUpdatePassword_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthLocalUpdatePassword_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthUpdatePasswordRequest
 	var metadata runtime.ServerMetadata
 
@@ -1687,7 +1687,7 @@ func local_request_Sso_AuthLocalUpdatePassword_0(ctx context.Context, marshaler 
 
 }
 
-func request_Sso_AuthLocalUpdatePasswordRevoke_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthLocalUpdatePasswordRevoke_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1704,7 +1704,7 @@ func request_Sso_AuthLocalUpdatePasswordRevoke_0(ctx context.Context, marshaler 
 
 }
 
-func local_request_Sso_AuthLocalUpdatePasswordRevoke_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthLocalUpdatePasswordRevoke_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthTokenRequest
 	var metadata runtime.ServerMetadata
 
@@ -1721,7 +1721,7 @@ func local_request_Sso_AuthLocalUpdatePasswordRevoke_0(ctx context.Context, mars
 
 }
 
-func request_Sso_AuthGithubOauth2Url_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthGithubOauth2Url_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
@@ -1730,7 +1730,7 @@ func request_Sso_AuthGithubOauth2Url_0(ctx context.Context, marshaler runtime.Ma
 
 }
 
-func local_request_Sso_AuthGithubOauth2Url_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthGithubOauth2Url_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
@@ -1739,7 +1739,7 @@ func local_request_Sso_AuthGithubOauth2Url_0(ctx context.Context, marshaler runt
 
 }
 
-func request_Sso_AuthGithubOauth2Callback_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthGithubOauth2Callback_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthOauth2CallbackRequest
 	var metadata runtime.ServerMetadata
 
@@ -1756,7 +1756,7 @@ func request_Sso_AuthGithubOauth2Callback_0(ctx context.Context, marshaler runti
 
 }
 
-func local_request_Sso_AuthGithubOauth2Callback_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthGithubOauth2Callback_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthOauth2CallbackRequest
 	var metadata runtime.ServerMetadata
 
@@ -1773,7 +1773,7 @@ func local_request_Sso_AuthGithubOauth2Callback_0(ctx context.Context, marshaler
 
 }
 
-func request_Sso_AuthMicrosoftOauth2Url_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthMicrosoftOauth2Url_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
@@ -1782,7 +1782,7 @@ func request_Sso_AuthMicrosoftOauth2Url_0(ctx context.Context, marshaler runtime
 
 }
 
-func local_request_Sso_AuthMicrosoftOauth2Url_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthMicrosoftOauth2Url_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
 
@@ -1791,7 +1791,7 @@ func local_request_Sso_AuthMicrosoftOauth2Url_0(ctx context.Context, marshaler r
 
 }
 
-func request_Sso_AuthMicrosoftOauth2Callback_0(ctx context.Context, marshaler runtime.Marshaler, client SsoClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_SsoService_AuthMicrosoftOauth2Callback_0(ctx context.Context, marshaler runtime.Marshaler, client SsoServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthOauth2CallbackRequest
 	var metadata runtime.ServerMetadata
 
@@ -1808,7 +1808,7 @@ func request_Sso_AuthMicrosoftOauth2Callback_0(ctx context.Context, marshaler ru
 
 }
 
-func local_request_Sso_AuthMicrosoftOauth2Callback_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_SsoService_AuthMicrosoftOauth2Callback_0(ctx context.Context, marshaler runtime.Marshaler, server SsoServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq AuthOauth2CallbackRequest
 	var metadata runtime.ServerMetadata
 
@@ -1825,12 +1825,12 @@ func local_request_Sso_AuthMicrosoftOauth2Callback_0(ctx context.Context, marsha
 
 }
 
-// RegisterSsoHandlerServer registers the http handlers for service Sso to "mux".
-// UnaryRPC     :call SsoServer directly.
+// RegisterSsoServiceHandlerServer registers the http handlers for service SsoService to "mux".
+// UnaryRPC     :call SsoServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
-func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server SsoServer) error {
+func RegisterSsoServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server SsoServiceServer) error {
 
-	mux.Handle("GET", pattern_Sso_Ping_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_Ping_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1839,18 +1839,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_Ping_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_Ping_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_Ping_0(ctx, mux, outboundMarshaler, w, req, response_Sso_Ping_0{resp}, mux.GetForwardResponseOptions()...)
+		forward_SsoService_Ping_0(ctx, mux, outboundMarshaler, w, req, response_SsoService_Ping_0{resp}, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_Metrics_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_Metrics_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1859,18 +1859,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_Metrics_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_Metrics_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_Metrics_0(ctx, mux, outboundMarshaler, w, req, response_Sso_Metrics_0{resp}, mux.GetForwardResponseOptions()...)
+		forward_SsoService_Metrics_0(ctx, mux, outboundMarshaler, w, req, response_SsoService_Metrics_0{resp}, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_HookTraefikSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_HookTraefikSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1879,18 +1879,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_HookTraefikSelf_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_HookTraefikSelf_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_HookTraefikSelf_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_HookTraefikSelf_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_HookTraefikService_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_HookTraefikService_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1899,18 +1899,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_HookTraefikService_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_HookTraefikService_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_HookTraefikService_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_HookTraefikService_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_AuditList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_AuditList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1919,18 +1919,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuditList_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuditList_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuditList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuditList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuditCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuditCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1939,18 +1939,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuditCreate_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuditCreate_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuditCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuditCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_AuditRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_AuditRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1959,18 +1959,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuditRead_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuditRead_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuditRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuditRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PATCH", pattern_Sso_AuditUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PATCH", pattern_SsoService_AuditUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1979,18 +1979,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuditUpdate_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuditUpdate_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuditUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuditUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_KeyList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_KeyList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -1999,18 +1999,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_KeyList_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_KeyList_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_KeyList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_KeyList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_KeyCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_KeyCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2019,18 +2019,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_KeyCreate_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_KeyCreate_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_KeyCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_KeyCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_KeyRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_KeyRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2039,18 +2039,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_KeyRead_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_KeyRead_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_KeyRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_KeyRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PATCH", pattern_Sso_KeyUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PATCH", pattern_SsoService_KeyUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2059,18 +2059,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_KeyUpdate_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_KeyUpdate_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_KeyUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_KeyUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_Sso_KeyDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_SsoService_KeyDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2079,18 +2079,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_KeyDelete_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_KeyDelete_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_KeyDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_KeyDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_ServiceList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_ServiceList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2099,18 +2099,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_ServiceList_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_ServiceList_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_ServiceList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_ServiceList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_ServiceCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_ServiceCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2119,18 +2119,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_ServiceCreate_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_ServiceCreate_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_ServiceCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_ServiceCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_ServiceRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_ServiceRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2139,18 +2139,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_ServiceRead_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_ServiceRead_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_ServiceRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_ServiceRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PATCH", pattern_Sso_ServiceUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PATCH", pattern_SsoService_ServiceUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2159,18 +2159,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_ServiceUpdate_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_ServiceUpdate_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_ServiceUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_ServiceUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_Sso_ServiceDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_SsoService_ServiceDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2179,18 +2179,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_ServiceDelete_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_ServiceDelete_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_ServiceDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_ServiceDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_UserList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_UserList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2199,18 +2199,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_UserList_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_UserList_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_UserList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_UserList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_UserCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_UserCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2219,18 +2219,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_UserCreate_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_UserCreate_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_UserCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_UserCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_UserRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_UserRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2239,18 +2239,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_UserRead_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_UserRead_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_UserRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_UserRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PATCH", pattern_Sso_UserUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PATCH", pattern_SsoService_UserUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2259,18 +2259,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_UserUpdate_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_UserUpdate_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_UserUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_UserUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_Sso_UserDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_SsoService_UserDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2279,18 +2279,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_UserDelete_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_UserDelete_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_UserDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_UserDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthKeyVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthKeyVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2299,18 +2299,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthKeyVerify_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthKeyVerify_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthKeyVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthKeyVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthKeyRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthKeyRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2319,18 +2319,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthKeyRevoke_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthKeyRevoke_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthKeyRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthKeyRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthTokenVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthTokenVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2339,18 +2339,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthTokenVerify_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthTokenVerify_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthTokenVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthTokenVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthTokenRefresh_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthTokenRefresh_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2359,18 +2359,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthTokenRefresh_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthTokenRefresh_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthTokenRefresh_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthTokenRefresh_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthTokenRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthTokenRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2379,18 +2379,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthTokenRevoke_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthTokenRevoke_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthTokenRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthTokenRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthTotpVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthTotpVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2399,18 +2399,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthTotpVerify_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthTotpVerify_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthTotpVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthTotpVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_AuthCsrfCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_AuthCsrfCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2419,18 +2419,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthCsrfCreate_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthCsrfCreate_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthCsrfCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthCsrfCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthCsrfVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthCsrfVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2439,18 +2439,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthCsrfVerify_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthCsrfVerify_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthCsrfVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthCsrfVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalLogin_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalLogin_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2459,18 +2459,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthLocalLogin_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthLocalLogin_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalLogin_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalLogin_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalRegister_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalRegister_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2479,18 +2479,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthLocalRegister_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthLocalRegister_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalRegister_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalRegister_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalRegisterConfirm_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalRegisterConfirm_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2499,18 +2499,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthLocalRegisterConfirm_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthLocalRegisterConfirm_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalRegisterConfirm_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalRegisterConfirm_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalRegisterRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalRegisterRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2519,18 +2519,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthLocalRegisterRevoke_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthLocalRegisterRevoke_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalRegisterRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalRegisterRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalResetPassword_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalResetPassword_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2539,18 +2539,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthLocalResetPassword_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthLocalResetPassword_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalResetPassword_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalResetPassword_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalResetPasswordConfirm_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalResetPasswordConfirm_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2559,18 +2559,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthLocalResetPasswordConfirm_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthLocalResetPasswordConfirm_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalResetPasswordConfirm_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalResetPasswordConfirm_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalResetPasswordRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalResetPasswordRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2579,18 +2579,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthLocalResetPasswordRevoke_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthLocalResetPasswordRevoke_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalResetPasswordRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalResetPasswordRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalUpdateEmail_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalUpdateEmail_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2599,18 +2599,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthLocalUpdateEmail_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthLocalUpdateEmail_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalUpdateEmail_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalUpdateEmail_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalUpdateEmailRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalUpdateEmailRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2619,18 +2619,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthLocalUpdateEmailRevoke_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthLocalUpdateEmailRevoke_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalUpdateEmailRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalUpdateEmailRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalUpdatePassword_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalUpdatePassword_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2639,18 +2639,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthLocalUpdatePassword_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthLocalUpdatePassword_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalUpdatePassword_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalUpdatePassword_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalUpdatePasswordRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalUpdatePasswordRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2659,18 +2659,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthLocalUpdatePasswordRevoke_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthLocalUpdatePasswordRevoke_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalUpdatePasswordRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalUpdatePasswordRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_AuthGithubOauth2Url_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_AuthGithubOauth2Url_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2679,18 +2679,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthGithubOauth2Url_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthGithubOauth2Url_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthGithubOauth2Url_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthGithubOauth2Url_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthGithubOauth2Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthGithubOauth2Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2699,18 +2699,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthGithubOauth2Callback_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthGithubOauth2Callback_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthGithubOauth2Callback_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthGithubOauth2Callback_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_AuthMicrosoftOauth2Url_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_AuthMicrosoftOauth2Url_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2719,18 +2719,18 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthMicrosoftOauth2Url_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthMicrosoftOauth2Url_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthMicrosoftOauth2Url_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthMicrosoftOauth2Url_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthMicrosoftOauth2Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthMicrosoftOauth2Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2739,23 +2739,23 @@ func RegisterSsoHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Sso_AuthMicrosoftOauth2Callback_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_SsoService_AuthMicrosoftOauth2Callback_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthMicrosoftOauth2Callback_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthMicrosoftOauth2Callback_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
 	return nil
 }
 
-// RegisterSsoHandlerFromEndpoint is same as RegisterSsoHandler but
+// RegisterSsoServiceHandlerFromEndpoint is same as RegisterSsoServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
-func RegisterSsoHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+func RegisterSsoServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
 	conn, err := grpc.Dial(endpoint, opts...)
 	if err != nil {
 		return err
@@ -2775,23 +2775,23 @@ func RegisterSsoHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, 
 		}()
 	}()
 
-	return RegisterSsoHandler(ctx, mux, conn)
+	return RegisterSsoServiceHandler(ctx, mux, conn)
 }
 
-// RegisterSsoHandler registers the http handlers for service Sso to "mux".
+// RegisterSsoServiceHandler registers the http handlers for service SsoService to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterSsoHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return RegisterSsoHandlerClient(ctx, mux, NewSsoClient(conn))
+func RegisterSsoServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterSsoServiceHandlerClient(ctx, mux, NewSsoServiceClient(conn))
 }
 
-// RegisterSsoHandlerClient registers the http handlers for service Sso
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "SsoClient".
-// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "SsoClient"
+// RegisterSsoServiceHandlerClient registers the http handlers for service SsoService
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "SsoServiceClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "SsoServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "SsoClient" to call the correct interceptors.
-func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client SsoClient) error {
+// "SsoServiceClient" to call the correct interceptors.
+func RegisterSsoServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client SsoServiceClient) error {
 
-	mux.Handle("GET", pattern_Sso_Ping_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_Ping_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2800,18 +2800,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_Ping_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_Ping_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_Ping_0(ctx, mux, outboundMarshaler, w, req, response_Sso_Ping_0{resp}, mux.GetForwardResponseOptions()...)
+		forward_SsoService_Ping_0(ctx, mux, outboundMarshaler, w, req, response_SsoService_Ping_0{resp}, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_Metrics_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_Metrics_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2820,18 +2820,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_Metrics_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_Metrics_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_Metrics_0(ctx, mux, outboundMarshaler, w, req, response_Sso_Metrics_0{resp}, mux.GetForwardResponseOptions()...)
+		forward_SsoService_Metrics_0(ctx, mux, outboundMarshaler, w, req, response_SsoService_Metrics_0{resp}, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_HookTraefikSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_HookTraefikSelf_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2840,18 +2840,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_HookTraefikSelf_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_HookTraefikSelf_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_HookTraefikSelf_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_HookTraefikSelf_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_HookTraefikService_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_HookTraefikService_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2860,18 +2860,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_HookTraefikService_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_HookTraefikService_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_HookTraefikService_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_HookTraefikService_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_AuditList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_AuditList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2880,18 +2880,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuditList_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuditList_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuditList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuditList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuditCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuditCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2900,18 +2900,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuditCreate_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuditCreate_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuditCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuditCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_AuditRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_AuditRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2920,18 +2920,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuditRead_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuditRead_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuditRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuditRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PATCH", pattern_Sso_AuditUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PATCH", pattern_SsoService_AuditUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2940,18 +2940,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuditUpdate_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuditUpdate_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuditUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuditUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_KeyList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_KeyList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2960,18 +2960,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_KeyList_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_KeyList_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_KeyList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_KeyList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_KeyCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_KeyCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -2980,18 +2980,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_KeyCreate_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_KeyCreate_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_KeyCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_KeyCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_KeyRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_KeyRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3000,18 +3000,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_KeyRead_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_KeyRead_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_KeyRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_KeyRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PATCH", pattern_Sso_KeyUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PATCH", pattern_SsoService_KeyUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3020,18 +3020,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_KeyUpdate_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_KeyUpdate_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_KeyUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_KeyUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_Sso_KeyDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_SsoService_KeyDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3040,18 +3040,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_KeyDelete_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_KeyDelete_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_KeyDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_KeyDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_ServiceList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_ServiceList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3060,18 +3060,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_ServiceList_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_ServiceList_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_ServiceList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_ServiceList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_ServiceCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_ServiceCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3080,18 +3080,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_ServiceCreate_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_ServiceCreate_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_ServiceCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_ServiceCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_ServiceRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_ServiceRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3100,18 +3100,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_ServiceRead_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_ServiceRead_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_ServiceRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_ServiceRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PATCH", pattern_Sso_ServiceUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PATCH", pattern_SsoService_ServiceUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3120,18 +3120,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_ServiceUpdate_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_ServiceUpdate_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_ServiceUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_ServiceUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_Sso_ServiceDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_SsoService_ServiceDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3140,18 +3140,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_ServiceDelete_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_ServiceDelete_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_ServiceDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_ServiceDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_UserList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_UserList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3160,18 +3160,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_UserList_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_UserList_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_UserList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_UserList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_UserCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_UserCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3180,18 +3180,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_UserCreate_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_UserCreate_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_UserCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_UserCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_UserRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_UserRead_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3200,18 +3200,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_UserRead_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_UserRead_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_UserRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_UserRead_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PATCH", pattern_Sso_UserUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PATCH", pattern_SsoService_UserUpdate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3220,18 +3220,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_UserUpdate_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_UserUpdate_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_UserUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_UserUpdate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_Sso_UserDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_SsoService_UserDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3240,18 +3240,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_UserDelete_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_UserDelete_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_UserDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_UserDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthKeyVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthKeyVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3260,18 +3260,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthKeyVerify_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthKeyVerify_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthKeyVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthKeyVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthKeyRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthKeyRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3280,18 +3280,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthKeyRevoke_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthKeyRevoke_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthKeyRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthKeyRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthTokenVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthTokenVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3300,18 +3300,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthTokenVerify_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthTokenVerify_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthTokenVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthTokenVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthTokenRefresh_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthTokenRefresh_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3320,18 +3320,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthTokenRefresh_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthTokenRefresh_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthTokenRefresh_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthTokenRefresh_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthTokenRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthTokenRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3340,18 +3340,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthTokenRevoke_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthTokenRevoke_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthTokenRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthTokenRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthTotpVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthTotpVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3360,18 +3360,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthTotpVerify_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthTotpVerify_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthTotpVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthTotpVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_AuthCsrfCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_AuthCsrfCreate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3380,18 +3380,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthCsrfCreate_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthCsrfCreate_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthCsrfCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthCsrfCreate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthCsrfVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthCsrfVerify_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3400,18 +3400,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthCsrfVerify_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthCsrfVerify_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthCsrfVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthCsrfVerify_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalLogin_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalLogin_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3420,18 +3420,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthLocalLogin_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthLocalLogin_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalLogin_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalLogin_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalRegister_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalRegister_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3440,18 +3440,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthLocalRegister_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthLocalRegister_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalRegister_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalRegister_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalRegisterConfirm_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalRegisterConfirm_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3460,18 +3460,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthLocalRegisterConfirm_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthLocalRegisterConfirm_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalRegisterConfirm_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalRegisterConfirm_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalRegisterRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalRegisterRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3480,18 +3480,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthLocalRegisterRevoke_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthLocalRegisterRevoke_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalRegisterRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalRegisterRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalResetPassword_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalResetPassword_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3500,18 +3500,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthLocalResetPassword_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthLocalResetPassword_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalResetPassword_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalResetPassword_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalResetPasswordConfirm_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalResetPasswordConfirm_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3520,18 +3520,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthLocalResetPasswordConfirm_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthLocalResetPasswordConfirm_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalResetPasswordConfirm_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalResetPasswordConfirm_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalResetPasswordRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalResetPasswordRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3540,18 +3540,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthLocalResetPasswordRevoke_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthLocalResetPasswordRevoke_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalResetPasswordRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalResetPasswordRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalUpdateEmail_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalUpdateEmail_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3560,18 +3560,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthLocalUpdateEmail_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthLocalUpdateEmail_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalUpdateEmail_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalUpdateEmail_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalUpdateEmailRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalUpdateEmailRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3580,18 +3580,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthLocalUpdateEmailRevoke_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthLocalUpdateEmailRevoke_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalUpdateEmailRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalUpdateEmailRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalUpdatePassword_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalUpdatePassword_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3600,18 +3600,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthLocalUpdatePassword_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthLocalUpdatePassword_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalUpdatePassword_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalUpdatePassword_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthLocalUpdatePasswordRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthLocalUpdatePasswordRevoke_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3620,18 +3620,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthLocalUpdatePasswordRevoke_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthLocalUpdatePasswordRevoke_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthLocalUpdatePasswordRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthLocalUpdatePasswordRevoke_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_AuthGithubOauth2Url_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_AuthGithubOauth2Url_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3640,18 +3640,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthGithubOauth2Url_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthGithubOauth2Url_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthGithubOauth2Url_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthGithubOauth2Url_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthGithubOauth2Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthGithubOauth2Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3660,18 +3660,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthGithubOauth2Callback_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthGithubOauth2Callback_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthGithubOauth2Callback_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthGithubOauth2Callback_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Sso_AuthMicrosoftOauth2Url_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_SsoService_AuthMicrosoftOauth2Url_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3680,18 +3680,18 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthMicrosoftOauth2Url_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthMicrosoftOauth2Url_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthMicrosoftOauth2Url_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthMicrosoftOauth2Url_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Sso_AuthMicrosoftOauth2Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_SsoService_AuthMicrosoftOauth2Callback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -3700,222 +3700,222 @@ func RegisterSsoHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Sso_AuthMicrosoftOauth2Callback_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_SsoService_AuthMicrosoftOauth2Callback_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Sso_AuthMicrosoftOauth2Callback_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_SsoService_AuthMicrosoftOauth2Callback_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
 	return nil
 }
 
-type response_Sso_Ping_0 struct {
+type response_SsoService_Ping_0 struct {
 	proto.Message
 }
 
-func (m response_Sso_Ping_0) XXX_ResponseBody() interface{} {
+func (m response_SsoService_Ping_0) XXX_ResponseBody() interface{} {
 	response := m.Message.(*wrappers.StringValue)
 	return response.Value
 }
 
-type response_Sso_Metrics_0 struct {
+type response_SsoService_Metrics_0 struct {
 	proto.Message
 }
 
-func (m response_Sso_Metrics_0) XXX_ResponseBody() interface{} {
+func (m response_SsoService_Metrics_0) XXX_ResponseBody() interface{} {
 	response := m.Message.(*wrappers.StringValue)
 	return response.Value
 }
 
 var (
-	pattern_Sso_Ping_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"ping"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_Ping_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"ping"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_Metrics_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"metrics"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_Metrics_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"metrics"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_HookTraefikSelf_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"hook", "traefik", "self"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_HookTraefikSelf_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"hook", "traefik", "self"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_HookTraefikService_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"hook", "traefik", "service"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_HookTraefikService_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"hook", "traefik", "service"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuditList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "audit"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuditList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "audit"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuditCreate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "audit"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuditCreate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "audit"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuditRead_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "audit", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuditRead_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "audit", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuditUpdate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "audit", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuditUpdate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "audit", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_KeyList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "key"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_KeyList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "key"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_KeyCreate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "key"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_KeyCreate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "key"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_KeyRead_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "key", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_KeyRead_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "key", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_KeyUpdate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "key", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_KeyUpdate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "key", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_KeyDelete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "key", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_KeyDelete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "key", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_ServiceList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "service"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_ServiceList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "service"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_ServiceCreate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "service"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_ServiceCreate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "service"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_ServiceRead_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "service", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_ServiceRead_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "service", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_ServiceUpdate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "service", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_ServiceUpdate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "service", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_ServiceDelete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "service", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_ServiceDelete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "service", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_UserList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "user"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_UserList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "user"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_UserCreate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "user"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_UserCreate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "user"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_UserRead_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "user", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_UserRead_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "user", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_UserUpdate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "user", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_UserUpdate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "user", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_UserDelete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "user", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_UserDelete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "user", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthKeyVerify_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "auth", "key", "verify"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthKeyVerify_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "auth", "key", "verify"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthKeyRevoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "auth", "key", "revoke"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthKeyRevoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "auth", "key", "revoke"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthTokenVerify_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "auth", "token", "verify"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthTokenVerify_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "auth", "token", "verify"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthTokenRefresh_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "auth", "token", "refresh"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthTokenRefresh_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "auth", "token", "refresh"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthTokenRevoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "auth", "token", "revoke"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthTokenRevoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "auth", "token", "revoke"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthTotpVerify_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "totp"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthTotpVerify_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "totp"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthCsrfCreate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "csrf"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthCsrfCreate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "csrf"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthCsrfVerify_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "csrf"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthCsrfVerify_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "csrf"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthLocalLogin_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "local", "login"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthLocalLogin_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "local", "login"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthLocalRegister_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "local", "register"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthLocalRegister_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "local", "register"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthLocalRegisterConfirm_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "auth", "provider", "local", "register", "confirm"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthLocalRegisterConfirm_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "auth", "provider", "local", "register", "confirm"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthLocalRegisterRevoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "auth", "provider", "local", "register", "revoke"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthLocalRegisterRevoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "auth", "provider", "local", "register", "revoke"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthLocalResetPassword_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "local", "reset-password"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthLocalResetPassword_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "local", "reset-password"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthLocalResetPasswordConfirm_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "auth", "provider", "local", "reset-password", "confirm"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthLocalResetPasswordConfirm_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "auth", "provider", "local", "reset-password", "confirm"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthLocalResetPasswordRevoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "auth", "provider", "local", "reset-password", "revoke"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthLocalResetPasswordRevoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "auth", "provider", "local", "reset-password", "revoke"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthLocalUpdateEmail_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "local", "update-email"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthLocalUpdateEmail_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "local", "update-email"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthLocalUpdateEmailRevoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "auth", "provider", "local", "update-email", "revoke"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthLocalUpdateEmailRevoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "auth", "provider", "local", "update-email", "revoke"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthLocalUpdatePassword_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "local", "update-password"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthLocalUpdatePassword_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "local", "update-password"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthLocalUpdatePasswordRevoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "auth", "provider", "local", "update-password", "revoke"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthLocalUpdatePasswordRevoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"v1", "auth", "provider", "local", "update-password", "revoke"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthGithubOauth2Url_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "github", "oauth2"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthGithubOauth2Url_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "github", "oauth2"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthGithubOauth2Callback_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "github", "oauth2"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthGithubOauth2Callback_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "github", "oauth2"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthMicrosoftOauth2Url_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "microsoft", "oauth2"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthMicrosoftOauth2Url_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "microsoft", "oauth2"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Sso_AuthMicrosoftOauth2Callback_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "microsoft", "oauth2"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SsoService_AuthMicrosoftOauth2Callback_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "auth", "provider", "microsoft", "oauth2"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
-	forward_Sso_Ping_0 = runtime.ForwardResponseMessage
+	forward_SsoService_Ping_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_Metrics_0 = runtime.ForwardResponseMessage
+	forward_SsoService_Metrics_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_HookTraefikSelf_0 = runtime.ForwardResponseMessage
+	forward_SsoService_HookTraefikSelf_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_HookTraefikService_0 = runtime.ForwardResponseMessage
+	forward_SsoService_HookTraefikService_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuditList_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuditList_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuditCreate_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuditCreate_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuditRead_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuditRead_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuditUpdate_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuditUpdate_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_KeyList_0 = runtime.ForwardResponseMessage
+	forward_SsoService_KeyList_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_KeyCreate_0 = runtime.ForwardResponseMessage
+	forward_SsoService_KeyCreate_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_KeyRead_0 = runtime.ForwardResponseMessage
+	forward_SsoService_KeyRead_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_KeyUpdate_0 = runtime.ForwardResponseMessage
+	forward_SsoService_KeyUpdate_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_KeyDelete_0 = runtime.ForwardResponseMessage
+	forward_SsoService_KeyDelete_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_ServiceList_0 = runtime.ForwardResponseMessage
+	forward_SsoService_ServiceList_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_ServiceCreate_0 = runtime.ForwardResponseMessage
+	forward_SsoService_ServiceCreate_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_ServiceRead_0 = runtime.ForwardResponseMessage
+	forward_SsoService_ServiceRead_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_ServiceUpdate_0 = runtime.ForwardResponseMessage
+	forward_SsoService_ServiceUpdate_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_ServiceDelete_0 = runtime.ForwardResponseMessage
+	forward_SsoService_ServiceDelete_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_UserList_0 = runtime.ForwardResponseMessage
+	forward_SsoService_UserList_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_UserCreate_0 = runtime.ForwardResponseMessage
+	forward_SsoService_UserCreate_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_UserRead_0 = runtime.ForwardResponseMessage
+	forward_SsoService_UserRead_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_UserUpdate_0 = runtime.ForwardResponseMessage
+	forward_SsoService_UserUpdate_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_UserDelete_0 = runtime.ForwardResponseMessage
+	forward_SsoService_UserDelete_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthKeyVerify_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthKeyVerify_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthKeyRevoke_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthKeyRevoke_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthTokenVerify_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthTokenVerify_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthTokenRefresh_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthTokenRefresh_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthTokenRevoke_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthTokenRevoke_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthTotpVerify_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthTotpVerify_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthCsrfCreate_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthCsrfCreate_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthCsrfVerify_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthCsrfVerify_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthLocalLogin_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthLocalLogin_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthLocalRegister_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthLocalRegister_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthLocalRegisterConfirm_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthLocalRegisterConfirm_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthLocalRegisterRevoke_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthLocalRegisterRevoke_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthLocalResetPassword_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthLocalResetPassword_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthLocalResetPasswordConfirm_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthLocalResetPasswordConfirm_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthLocalResetPasswordRevoke_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthLocalResetPasswordRevoke_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthLocalUpdateEmail_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthLocalUpdateEmail_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthLocalUpdateEmailRevoke_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthLocalUpdateEmailRevoke_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthLocalUpdatePassword_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthLocalUpdatePassword_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthLocalUpdatePasswordRevoke_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthLocalUpdatePasswordRevoke_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthGithubOauth2Url_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthGithubOauth2Url_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthGithubOauth2Callback_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthGithubOauth2Callback_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthMicrosoftOauth2Url_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthMicrosoftOauth2Url_0 = runtime.ForwardResponseMessage
 
-	forward_Sso_AuthMicrosoftOauth2Callback_0 = runtime.ForwardResponseMessage
+	forward_SsoService_AuthMicrosoftOauth2Callback_0 = runtime.ForwardResponseMessage
 )

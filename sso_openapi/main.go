@@ -29,12 +29,12 @@ func run() error {
 	// Note: Make sure the gRPC server is running properly and accessible
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := RegisterSsoHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, opts)
+	err := RegisterSsoServiceHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, opts)
 	if err != nil {
 		return err
 	}
 
-    // CORS allow origin array.
+	// CORS allow origin array.
 	corsAllowOriginArray := sliceDeleteEmptyString(strings.Split(*corsAllowOrigin, ","))
 
 	// Start HTTP server (and proxy calls to gRPC server endpoint)

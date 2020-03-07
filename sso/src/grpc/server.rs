@@ -2,9 +2,7 @@ use crate::{grpc::method, prelude::*};
 use lettre::{file::FileTransport, SmtpClient, Transport};
 use lettre_email::Email;
 use prometheus::{HistogramTimer, HistogramVec, IntCounterVec};
-use std::fmt;
-use std::path::PathBuf;
-use std::sync::Arc;
+use std::{fmt, path::PathBuf, sync::Arc};
 
 /// gRPC server metrics.
 pub struct GrpcServerMetrics {
@@ -52,7 +50,7 @@ pub struct GrpcServer {
 
 impl fmt::Debug for GrpcServer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Server {{ ... }}")
+        write!(f, "GrpcServer {{ ... }}")
     }
 }
 
@@ -73,8 +71,8 @@ impl GrpcServer {
     }
 
     /// Returns tonic service.
-    pub fn service(self) -> pb::sso_server::SsoServer<Self> {
-        pb::sso_server::SsoServer::new(self)
+    pub fn service(self) -> pb::sso_service_server::SsoServiceServer<Self> {
+        pb::sso_service_server::SsoServiceServer::new(self)
     }
 
     /// Returns reference to `GrpcServerOptions`.
@@ -185,7 +183,7 @@ impl GrpcServer {
 }
 
 #[tonic::async_trait]
-impl pb::sso_server::Sso for GrpcServer {
+impl pb::sso_service_server::SsoService for GrpcServer {
     async fn ping(&self, _: tonic::Request<()>) -> Result<tonic::Response<String>, tonic::Status> {
         // Method implemented in HTTP server.
         Err(tonic::Status::not_found(ERR_NOT_FOUND))

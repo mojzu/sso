@@ -21,6 +21,7 @@ mod csrf;
 mod driver;
 pub mod env;
 mod grpc;
+mod grpc_service;
 pub mod header;
 mod http_server;
 mod jwt;
@@ -29,7 +30,7 @@ mod schema;
 pub mod validate;
 
 pub use crate::driver::*;
-pub use crate::{csrf::*, grpc::*, http_server::*, jwt::*};
+pub use crate::{csrf::*, grpc::*, grpc_service::*, http_server::*, jwt::*};
 
 use sentry::integrations::log::LoggerOptions;
 use std::io::Write;

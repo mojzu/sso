@@ -1,0 +1,143 @@
+syntax = "proto3";
+package sso;
+
+import "google/protobuf/empty.proto";
+
+import "gateway/annotations.proto";
+
+import "sso.proto";
+
+service ServiceService {
+    // Login with email and password.
+    //
+    // Local provider login authentication.
+    rpc AuthLocalLogin (AuthLoginRequest) returns (AuthLoginReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/login"
+            body: "*"
+        };
+    }
+
+    // Register user for service.
+    //
+    // Local provider user registration.
+    rpc AuthLocalRegister (AuthRegisterRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/register"
+            body: "*"
+        };
+    }
+
+    // Confirm user registration.
+    //
+    // Local provider user registration confirmation.
+    rpc AuthLocalRegisterConfirm (AuthRegisterConfirmRequest) returns (AuthPasswordMetaReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/register/confirm"
+            body: "*"
+        };
+    }
+
+    // Revoke user registration.
+    //
+    // Local provider user registration revokation.
+    rpc AuthLocalRegisterRevoke (AuthTokenRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/register/revoke"
+            body: "*"
+        };
+    }
+
+    // Reset user password.
+    //
+    // Local provider reset user password request.
+    rpc AuthLocalResetPassword (AuthResetPasswordRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/reset-password"
+            body: "*"
+        };
+    }
+
+    // Confirm user password reset.
+    //
+    // Local provider reset user password confirmation.
+    rpc AuthLocalResetPasswordConfirm (AuthResetPasswordConfirmRequest) returns (AuthPasswordMetaReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/reset-password/confirm"
+            body: "*"
+        };
+    }
+
+    // Revoke user password reset.
+    //
+    // Local provider reset user password revokation.
+    rpc AuthLocalResetPasswordRevoke (AuthTokenRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/reset-password/revoke"
+            body: "*"
+        };
+    }
+
+    // Update user email.
+    //
+    // Local provider update user email request.
+    rpc AuthLocalUpdateEmail (AuthUpdateEmailRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/update-email"
+            body: "*"
+        };
+    }
+
+    // Revoke user email update.
+    //
+    // Local provider update user email revokation.
+    rpc AuthLocalUpdateEmailRevoke (AuthTokenRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/update-email/revoke"
+            body: "*"
+        };
+    }
+
+    // Update user password.
+    //
+    // Local provider update user password request.
+    rpc AuthLocalUpdatePassword (AuthUpdatePasswordRequest) returns (AuthPasswordMetaReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/update-password"
+            body: "*"
+        };
+    }
+
+    // Revoke user password update.
+    //
+    // Local provider update user password revokation.
+    rpc AuthLocalUpdatePasswordRevoke (AuthTokenRequest) returns (AuthAuditReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/local/update-password/revoke"
+            body: "*"
+        };
+    }
+
+    // Get Microsoft OAuth2 URL.
+    rpc AuthMicrosoftOauth2Url (google.protobuf.Empty) returns (AuthOauth2UrlReply) {
+        option (google.api.http) = {
+            get: "/v1/auth/provider/microsoft/oauth2"
+        };
+    }
+
+    // Microsoft OAuth2 callback.
+    rpc AuthMicrosoftOauth2Callback (AuthOauth2CallbackRequest) returns (AuthTokenReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/provider/microsoft/oauth2"
+            body: "*"
+        };
+    }
+
+    // Refresh user access and refresh tokens.
+    rpc AuthTokenRefresh (AuthTokenRequest) returns (AuthTokenReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/token/refresh"
+            body: "*"
+        };
+    }
+}

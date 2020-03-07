@@ -1,4 +1,4 @@
-use crate::{grpc::pb::sso_client::SsoClient, prelude::*};
+use crate::{grpc::pb::sso_service_client::SsoServiceClient, prelude::*};
 use http::Uri;
 use std::{fmt, fs};
 use tokio::runtime::{Builder, Runtime};
@@ -212,18 +212,18 @@ impl GrpcClientOptions {
 }
 
 /// gRPC asynchronous client.
-pub type GrpcClient = SsoClient<Channel>;
+pub type GrpcClient = SsoServiceClient<Channel>;
 
-impl fmt::Debug for SsoClient<Channel> {
+impl fmt::Debug for SsoServiceClient<Channel> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "GrpcClient {{ }}")
     }
 }
 
-impl SsoClient<Channel> {
+impl SsoServiceClient<Channel> {
     /// Returns new gRPC asynchronous client.
     pub fn from_channel(channel: &GrpcClientChannel, options: GrpcClientOptions) -> Self {
-        SsoClient::with_interceptor(channel.channel(), move |req: Request<()>| {
+        SsoServiceClient::with_interceptor(channel.channel(), move |req: Request<()>| {
             options.interceptor(req)
         })
     }
@@ -284,7 +284,7 @@ impl SsoClient<Channel> {
 pub struct GrpcClientBlocking {
     rt: Runtime,
     channel: GrpcClientChannel,
-    client: SsoClient<Channel>,
+    client: SsoServiceClient<Channel>,
 }
 
 impl fmt::Debug for GrpcClientBlocking {
@@ -313,9 +313,10 @@ impl GrpcClientBlocking {
         let channel = rt.block_on(GrpcClientChannel::new(uri, tls))?;
 
         let options = options.clone();
-        let client = SsoClient::with_interceptor(channel.channel(), move |req: Request<()>| {
-            options.interceptor(req)
-        });
+        let client =
+            SsoServiceClient::with_interceptor(channel.channel(), move |req: Request<()>| {
+                options.interceptor(req)
+            });
 
         Ok(Self {
             rt,

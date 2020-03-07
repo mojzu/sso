@@ -55,7 +55,7 @@
           }
         },
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -103,7 +103,7 @@
           }
         },
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -151,7 +151,7 @@
           }
         },
         "tags": [
-          "Sso"
+          "SsoService"
         ],
         "security": []
       }
@@ -200,7 +200,7 @@
           }
         },
         "tags": [
-          "Sso"
+          "SsoService"
         ],
         "security": []
       }
@@ -337,7 +337,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "post": {
@@ -392,7 +392,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -455,7 +455,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "patch": {
@@ -517,7 +517,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -574,7 +574,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "post": {
@@ -629,7 +629,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -686,7 +686,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -743,7 +743,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -790,7 +790,7 @@
           }
         },
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "post": {
@@ -845,7 +845,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -903,7 +903,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -961,7 +961,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1019,7 +1019,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1077,7 +1077,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1135,7 +1135,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1193,7 +1193,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1251,7 +1251,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1309,7 +1309,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1367,7 +1367,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1425,7 +1425,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1483,7 +1483,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1530,7 +1530,7 @@
           }
         },
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "post": {
@@ -1585,7 +1585,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1642,7 +1642,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1699,7 +1699,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1756,7 +1756,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1813,7 +1813,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -1950,7 +1950,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "post": {
@@ -2006,7 +2006,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -2069,7 +2069,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "delete": {
@@ -2130,7 +2130,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "patch": {
@@ -2193,7 +2193,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -2284,7 +2284,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "post": {
@@ -2339,7 +2339,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -2395,7 +2395,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "delete": {
@@ -2449,7 +2449,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "patch": {
@@ -2512,7 +2512,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -2627,7 +2627,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "post": {
@@ -2683,7 +2683,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     },
@@ -2739,7 +2739,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "delete": {
@@ -2793,7 +2793,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       },
       "patch": {
@@ -2856,7 +2856,7 @@
           }
         ],
         "tags": [
-          "Sso"
+          "SsoService"
         ]
       }
     }

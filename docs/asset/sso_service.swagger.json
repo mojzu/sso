@@ -1,0 +1,813 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "sso_service.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/auth/provider/local/login": {
+      "post": {
+        "summary": "Login with email and password.",
+        "description": "Local provider login authentication.",
+        "operationId": "AuthLocalLogin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthLoginReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/register": {
+      "post": {
+        "summary": "Register user for service.",
+        "description": "Local provider user registration.",
+        "operationId": "AuthLocalRegister",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthRegisterRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/register/confirm": {
+      "post": {
+        "summary": "Confirm user registration.",
+        "description": "Local provider user registration confirmation.",
+        "operationId": "AuthLocalRegisterConfirm",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthPasswordMetaReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthRegisterConfirmRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/register/revoke": {
+      "post": {
+        "summary": "Revoke user registration.",
+        "description": "Local provider user registration revokation.",
+        "operationId": "AuthLocalRegisterRevoke",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/reset-password": {
+      "post": {
+        "summary": "Reset user password.",
+        "description": "Local provider reset user password request.",
+        "operationId": "AuthLocalResetPassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthResetPasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/reset-password/confirm": {
+      "post": {
+        "summary": "Confirm user password reset.",
+        "description": "Local provider reset user password confirmation.",
+        "operationId": "AuthLocalResetPasswordConfirm",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthPasswordMetaReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthResetPasswordConfirmRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/reset-password/revoke": {
+      "post": {
+        "summary": "Revoke user password reset.",
+        "description": "Local provider reset user password revokation.",
+        "operationId": "AuthLocalResetPasswordRevoke",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/update-email": {
+      "post": {
+        "summary": "Update user email.",
+        "description": "Local provider update user email request.",
+        "operationId": "AuthLocalUpdateEmail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthUpdateEmailRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/update-email/revoke": {
+      "post": {
+        "summary": "Revoke user email update.",
+        "description": "Local provider update user email revokation.",
+        "operationId": "AuthLocalUpdateEmailRevoke",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/update-password": {
+      "post": {
+        "summary": "Update user password.",
+        "description": "Local provider update user password request.",
+        "operationId": "AuthLocalUpdatePassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthPasswordMetaReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthUpdatePasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    },
+    "/v1/auth/provider/local/update-password/revoke": {
+      "post": {
+        "summary": "Revoke user password update.",
+        "description": "Local provider update user password revokation.",
+        "operationId": "AuthLocalUpdatePasswordRevoke",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthAuditReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    },
+    "/v1/auth/provider/microsoft/oauth2": {
+      "get": {
+        "summary": "Get Microsoft OAuth2 URL.",
+        "operationId": "AuthMicrosoftOauth2Url",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthOauth2UrlReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "ServiceService"
+        ]
+      },
+      "post": {
+        "summary": "Microsoft OAuth2 callback.",
+        "operationId": "AuthMicrosoftOauth2Callback",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthOauth2CallbackRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    },
+    "/v1/auth/token/refresh": {
+      "post": {
+        "summary": "Refresh user access and refresh tokens.",
+        "operationId": "AuthTokenRefresh",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ssoAuthTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ServiceService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string",
+          "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+        },
+        "value": {
+          "type": "string",
+          "format": "byte",
+          "description": "Must be a valid serialized protocol buffer of the above specified type."
+        }
+      },
+      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := ptypes.MarshalAny(foo)\n     ...\n     foo := \u0026pb.Foo{}\n     if err := ptypes.UnmarshalAny(any, foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "ssoAuthAuditReply": {
+      "type": "object",
+      "properties": {
+        "audit": {
+          "type": "string",
+          "description": "Audit UUID."
+        }
+      },
+      "description": "Authentication audit reply."
+    },
+    "ssoAuthLoginReply": {
+      "type": "object",
+      "properties": {
+        "meta": {
+          "$ref": "#/definitions/ssoAuthPasswordMeta",
+          "description": "Password metadata."
+        },
+        "user": {
+          "$ref": "#/definitions/ssoUser",
+          "description": "User."
+        },
+        "access": {
+          "$ref": "#/definitions/ssoAuthToken",
+          "description": "Access token."
+        },
+        "refresh": {
+          "$ref": "#/definitions/ssoAuthToken",
+          "description": "Refresh token."
+        }
+      },
+      "description": "Authentication login reply."
+    },
+    "ssoAuthLoginRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "User email."
+        },
+        "password": {
+          "type": "string",
+          "description": "User password."
+        }
+      },
+      "description": "Authentication login request."
+    },
+    "ssoAuthOauth2CallbackRequest": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Code."
+        },
+        "state": {
+          "type": "string",
+          "description": "State."
+        }
+      },
+      "description": "Authentication OAuth2 callback request."
+    },
+    "ssoAuthOauth2UrlReply": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "URL."
+        }
+      },
+      "description": "Authentication OAuth2 URL reply."
+    },
+    "ssoAuthPasswordMeta": {
+      "type": "object",
+      "properties": {
+        "password_strength": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Password strength."
+        },
+        "password_pwned": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Password pwned."
+        }
+      },
+      "description": "Authentication password metadata."
+    },
+    "ssoAuthPasswordMetaReply": {
+      "type": "object",
+      "properties": {
+        "meta": {
+          "$ref": "#/definitions/ssoAuthPasswordMeta",
+          "description": "Password metadata."
+        }
+      },
+      "description": "Authentication password metadata reply."
+    },
+    "ssoAuthRegisterConfirmRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Register token value."
+        },
+        "password": {
+          "type": "string",
+          "description": "User password."
+        },
+        "password_allow_reset": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "User password_allow_reset flag."
+        }
+      },
+      "description": "Authentication register confirm request."
+    },
+    "ssoAuthRegisterRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "User name."
+        },
+        "email": {
+          "type": "string",
+          "description": "User email."
+        },
+        "locale": {
+          "type": "string",
+          "description": "User locale."
+        },
+        "timezone": {
+          "type": "string",
+          "description": "User timezone."
+        }
+      },
+      "description": "Authentication register request."
+    },
+    "ssoAuthResetPasswordConfirmRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Reset password token."
+        },
+        "password": {
+          "type": "string",
+          "description": "User password."
+        }
+      },
+      "description": "Authentication reset password confirm request."
+    },
+    "ssoAuthResetPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "User email."
+        }
+      },
+      "description": "Authentication reset password request."
+    },
+    "ssoAuthToken": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Token value."
+        },
+        "token_expires": {
+          "type": "string",
+          "format": "int64",
+          "description": "Token expires."
+        }
+      },
+      "description": "Authentication token."
+    },
+    "ssoAuthTokenReply": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/ssoUser",
+          "description": "User."
+        },
+        "access": {
+          "$ref": "#/definitions/ssoAuthToken",
+          "description": "Access token."
+        },
+        "refresh": {
+          "$ref": "#/definitions/ssoAuthToken",
+          "description": "Refresh token."
+        },
+        "audit": {
+          "type": "string",
+          "description": "Audit UUID."
+        }
+      },
+      "description": "Authentication token reply."
+    },
+    "ssoAuthTokenRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Token value."
+        },
+        "audit": {
+          "type": "string",
+          "description": "Audit type."
+        }
+      },
+      "title": "Authentication token request/"
+    },
+    "ssoAuthUpdateEmailRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "User email."
+        },
+        "password": {
+          "type": "string",
+          "description": "User current password."
+        },
+        "new_email": {
+          "type": "string",
+          "description": "User new email address."
+        }
+      },
+      "description": "Authentication update email request."
+    },
+    "ssoAuthUpdatePasswordRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "User email."
+        },
+        "password": {
+          "type": "string",
+          "description": "User current password."
+        },
+        "new_password": {
+          "type": "string",
+          "description": "User new password."
+        }
+      },
+      "description": "Authentication update password request."
+    },
+    "ssoUser": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Created at date and time."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Updated at date and time."
+        },
+        "id": {
+          "type": "string",
+          "description": "UUID."
+        },
+        "is_enabled": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Is enabled flag."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email."
+        },
+        "locale": {
+          "type": "string",
+          "description": "Locale."
+        },
+        "timezone": {
+          "type": "string",
+          "description": "Timezone."
+        },
+        "password_allow_reset": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Password allow reset flag."
+        },
+        "password_require_update": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Password require update flag."
+        }
+      },
+      "description": "User."
+    }
+  }
+}
