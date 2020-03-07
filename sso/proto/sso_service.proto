@@ -7,7 +7,7 @@ import "gateway/annotations.proto";
 
 import "sso.proto";
 
-service ServiceService {
+service SsoService {
     // Login with email and password.
     //
     // Local provider login authentication.

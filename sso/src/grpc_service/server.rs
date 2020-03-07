@@ -37,8 +37,8 @@ impl GrpcServiceServer {
     }
 
     /// Returns tonic service.
-    pub fn service(self) -> pb::service_service_server::ServiceServiceServer<Self> {
-        pb::service_service_server::ServiceServiceServer::new(self)
+    pub fn service(self) -> pb::sso_service_server::SsoServiceServer<Self> {
+        pb::sso_service_server::SsoServiceServer::new(self)
     }
 
     /// Returns new client using channel and headers from audit meta.
@@ -105,7 +105,7 @@ impl GrpcServiceServer {
 }
 
 #[tonic::async_trait]
-impl pb::service_service_server::ServiceService for GrpcServiceServer {
+impl pb::sso_service_server::SsoService for GrpcServiceServer {
     async fn auth_local_login(
         &self,
         request: tonic::Request<pb::AuthLoginRequest>,

@@ -3,14 +3,14 @@ mod server;
 
 pub use crate::grpc_service::server::*;
 
-use crate::grpc::pb::service_service_client::ServiceServiceClient;
+use crate::grpc::pb::sso_service_client::SsoServiceClient;
 use std::fmt;
 use tonic::transport::Channel;
 
 /// gRPC service asynchronous client.
-pub type GrpcServiceClient = ServiceServiceClient<Channel>;
+pub type GrpcServiceClient = SsoServiceClient<Channel>;
 
-impl fmt::Debug for ServiceServiceClient<Channel> {
+impl fmt::Debug for SsoServiceClient<Channel> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "GrpcServiceClient {{ }}")
     }

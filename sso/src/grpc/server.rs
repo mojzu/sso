@@ -71,8 +71,8 @@ impl GrpcServer {
     }
 
     /// Returns tonic service.
-    pub fn service(self) -> pb::sso_service_server::SsoServiceServer<Self> {
-        pb::sso_service_server::SsoServiceServer::new(self)
+    pub fn service(self) -> pb::sso_server::SsoServer<Self> {
+        pb::sso_server::SsoServer::new(self)
     }
 
     /// Returns reference to `GrpcServerOptions`.
@@ -183,7 +183,7 @@ impl GrpcServer {
 }
 
 #[tonic::async_trait]
-impl pb::sso_service_server::SsoService for GrpcServer {
+impl pb::sso_server::Sso for GrpcServer {
     async fn ping(&self, _: tonic::Request<()>) -> Result<tonic::Response<String>, tonic::Status> {
         // Method implemented in HTTP server.
         Err(tonic::Status::not_found(ERR_NOT_FOUND))

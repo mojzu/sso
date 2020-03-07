@@ -41,7 +41,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     },
@@ -75,7 +75,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     },
@@ -109,7 +109,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     },
@@ -143,7 +143,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     },
@@ -177,7 +177,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     },
@@ -211,7 +211,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     },
@@ -245,7 +245,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     },
@@ -279,7 +279,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     },
@@ -313,7 +313,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     },
@@ -347,7 +347,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     },
@@ -381,7 +381,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     },
@@ -404,7 +404,7 @@
           }
         },
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       },
       "post": {
@@ -435,7 +435,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     },
@@ -468,7 +468,7 @@
           }
         ],
         "tags": [
-          "ServiceService"
+          "SsoService"
         ]
       }
     }

@@ -70,7 +70,7 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
     };
 };
 
-service SsoService {
+service Sso {
     // Ping server.
     //
     // Returns pong response for uptime tests. This endpoint is only available
