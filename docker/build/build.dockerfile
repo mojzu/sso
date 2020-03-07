@@ -36,7 +36,8 @@ RUN wget -q "$RUSTUP_VERSION_URL" && \
 # Install Rust tools.
 RUN cargo install --force cargo-make --version "~0.28" && \
     cargo install --force diesel_cli --version "~1.4" --no-default-features --features "postgres" && \
-    cargo install --force cargo-audit --version "~0.11";
+    cargo install --force cargo-audit --version "~0.11" && \
+    cargo install --force cargo-sort-ck --version "~1.1";
 
 # Go environment.
 ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH" \
@@ -132,6 +133,8 @@ ENV SSO_TRAEFIK="false"
 #     SSO_MICROSOFT_CLIENT_SECRET=""
 # gRPC server URL.
 ENV SSO_GRPC_URL="sso-grpc:7042"
+# CORS allow origins.
+ENV SSO_CORS_ALLOW_ORIGIN=""
 # Integration test variables.
 ENV SSO_TEST_URL="http://traefik:80" \
     SSO_TEST_KEY="UAMK24IW72UTDXZUY45MIPBPDRPIARQR6M"

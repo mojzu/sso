@@ -15,12 +15,10 @@ Todo:
     ☐ @high Check, test and refactor register and register confirm implementation.
         If any key already exists for service, do not create one.
         Add tests to check whether this flow can be used by used to access disabled user.
-    ☐ @high OpenAPI gateway CORS headers, check if override at proxy level works.
-        Environment variable for allow origin header?
-        Graceful shutdown for server support, exit code is 2, should be 0.
-        CORS set at traefik don't override.
     ☐ @low Service flags to allow access to endpoints.
         Trusted vs untrusted services?
+    ☐ @low OpenAPI gateway graceful shutdown, exit code is 2, should be 0.
+    ✔ OpenAPI gateway CORS headers, check if override at proxy level works. @done(20-03-07)
     ✔ Crate dependency upgrades. @done(20-02-26)
     ✔ Server and client TLS support.
     ✔ Sso async client configurable headers per client for upstream use.

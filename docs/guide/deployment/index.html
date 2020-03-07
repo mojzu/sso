@@ -83,6 +83,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#traefik">Traefik</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#cors">CORS</a>
+    </li>
     </ul>
                     </li>
                 </ul>
@@ -168,6 +170,12 @@
 <li>Can apply <a href="https://docs.traefik.io/middlewares/ratelimit/">rate limit</a>.</li>
 <li>Can use <a href="https://docs.traefik.io/middlewares/forwardauth/">forward authentication</a> with <code>SSO_TRAEFIK</code> environment variable.</li>
 <li>Can use <a href="https://docs.traefik.io/routing/routers/#tls">router TLS</a> or <code>SSO_TLS_*</code> environment variables for encrypting traffic.</li>
+</ul>
+<h2 id="cors">CORS</h2>
+<p>CORS for <code>sso-openapi</code> binary can be configured using <code>SSO_CORS_ALLOW_ORIGIN</code> environment variable.</p>
+<ul>
+<li>If variable is undefined or empty string, defaults to allow all CORS requests (allow origin <code>*</code> and handle preflight requests).</li>
+<li>If variable is not empty, is treated as a comma separated list of acceptable origin values. If origin is undefined or empty request is not handled. If origin matches then allow origin header is et and preflight requests are handled.</li>
 </ul>
               
             </div>

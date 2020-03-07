@@ -22,3 +22,10 @@ Example [Traefik][traefik] configuration files can be found in the `docker/traef
 [traefik-ratelimit]: https://docs.traefik.io/middlewares/ratelimit/
 [traefik-forwardauth]: https://docs.traefik.io/middlewares/forwardauth/
 [traefik-routers-tls]: https://docs.traefik.io/routing/routers/#tls
+
+## CORS
+
+CORS for `sso-openapi` binary can be configured using `SSO_CORS_ALLOW_ORIGIN` environment variable.
+
+- If variable is undefined or empty string, defaults to allow all CORS requests (allow origin `*` and handle preflight requests).
+- If variable is not empty, is treated as a comma separated list of acceptable origin values. If origin is undefined or empty request is not handled. If origin matches then allow origin header is et and preflight requests are handled.

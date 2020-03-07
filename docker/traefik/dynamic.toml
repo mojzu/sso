@@ -19,6 +19,14 @@
             clientAuthType = "VerifyClientCertIfGiven"
 
 [http.routers]
+    [http.routers.SsoOpenapiCorsRouter]
+        entrypoints = ["HttpEntrypoint"]
+        rule = "(Host(`traefik`) || Host(`sso.localhost`)) && PathPrefix(`/api`) && Method(`OPTIONS`)"
+        middlewares = ["SsoRatelimitMiddleware", "SsoOpenapiStripprefixMiddleware"]
+        service = "SsoOpenapiService"
+        # [http.routers.SsoOpenapiRouter.tls]
+        #     options = "default"
+
     [http.routers.SsoOpenapiRouter]
         entrypoints = ["HttpEntrypoint"]
         rule = "(Host(`traefik`) || Host(`sso.localhost`)) && PathPrefix(`/api`)"
@@ -63,12 +71,6 @@
         address = "http://sso-grpc:7043/hook/traefik/self"
         trustForwardHeader = false
         authResponseHeaders = ["Grpc-Metadata-Sso-Key-Id","Grpc-Metadata-Sso-Service-Id","Grpc-Metadata-Sso-User-Key-Id","Grpc-Metadata-Sso-User-Id"]
-
-    [http.middlewares.SsoCorsMiddleware.headers]
-        accessControlAllowOrigin = "localhost"
-        accessControlAllowMethods = ["GET", "OPTIONS"]
-        accessControlAllowHeaders = ["Content-Type", "Authorization"]
-        accessControlMaxAge = 100
 
     [http.middlewares.SsoRatelimitMiddleware.rateLimit]
         average = 1000

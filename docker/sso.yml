@@ -55,6 +55,8 @@ services:
     environment:
       # gRPC server URL.
       SSO_GRPC_URL: "sso-grpc:7042"
+      # CORS allow origins.
+      SSO_CORS_ALLOW_ORIGIN: ""
     entrypoint: ["sso-openapi"]
 
   # Traefik.
