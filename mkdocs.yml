@@ -22,6 +22,7 @@ nav:
       - guide/cli.md
       - guide/deployment.md
   - Changelog:
+      - changelog/0.11.0.md
       - changelog/0.10.0.md
       - changelog/0.9.0.md
       - changelog/0.8.0.md
