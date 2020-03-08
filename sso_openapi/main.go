@@ -75,6 +75,7 @@ func corsPreflightHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Headers", strings.Join(headers, ","))
 	methods := []string{"GET", "POST", "PATCH", "DELETE"}
 	w.Header().Set("Access-Control-Allow-Methods", strings.Join(methods, ","))
+	w.Header().Set("Access-Control-Max-Age", "86400")
 	glog.Infof("preflight request for %s", r.URL.Path)
 	w.WriteHeader(http.StatusNoContent)
 }
