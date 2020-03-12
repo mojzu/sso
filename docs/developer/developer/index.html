@@ -80,7 +80,9 @@
                 </ul>
                 <p class="caption"><span class="caption-text">Changelog</span></p>
                 <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.10.0/">0.10.0 (?)</a>
+                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.11.0/">0.11.0 (?)</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.10.0/">0.10.0 (2020-03-12)</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../../changelog/0.9.0/">0.9.0 (2020-01-19)</a>
                     </li>
@@ -158,7 +160,7 @@
                 <h1 id="developer">Developer</h1>
 <p><a href="https://docs.docker.com/install/">Docker</a> images contain the development tools, build them with the command.</p>
 <pre><code class="bash">source docker/alias.sh
-sso-build-build
+sso-build-update
 </code></pre>
 
 <p>Create a network for containers.</p>
@@ -234,6 +236,7 @@ sso-build cargo make sso-openapi
 <p>Run integration tests. This expects <code>sso-grpc</code> service is running and <code>SSO_TEST_URL</code> and <code>SSO_TEST_KEY</code> environment variables are defined. Where URL is the address of the gRPC server and key is a root key value returned by <code>sso-cli</code>.</p>
 <pre><code class="bash">sso-build cargo make test-integration
 for i in {1..50}; do sso-build cargo make test-integration; done
+docker run --rm -it --init --network compose sso/build-release:v1 /bin/bash
 </code></pre>
 
 <p>Compile <a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a> for <a href="https://swagger.io/docs/specification/about/">OpenAPI</a> gateway server.</p>

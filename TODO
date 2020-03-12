@@ -1,5 +1,9 @@
 Todo:
   Todo:
+    ☐ @high Check, test and refactor register and register confirm implementation.
+        If any key already exists for service, do not create one.
+        Add tests to check whether this flow can be used by used to access disabled user.
+    ☐ @high Update `sentry` and `env_logger` dependencies when able to publish with `0.18`.
     ☐ @low Handle more audit headers.
         x-forwarded-host, x-forwarded-uri, x-real-ip.
     ☐ @low JWT handling improvements.
@@ -12,9 +16,6 @@ Todo:
         Improve translation code between driver/grpc, unwrap check and cleanup.
         Improve code structure, driver/grpc interfaces (reduce repetition).
         Authentication mechanism code is split across files, cleaner code.
-    ☐ @high Check, test and refactor register and register confirm implementation.
-        If any key already exists for service, do not create one.
-        Add tests to check whether this flow can be used by used to access disabled user.
     ☐ @low Service flags to allow access to endpoints.
         Trusted vs untrusted services?
     ☐ @low OpenAPI gateway graceful shutdown, exit code is 2, should be 0.

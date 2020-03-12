@@ -4,7 +4,7 @@
 
 ```bash
 source docker/alias.sh
-sso-build-build
+sso-build-update
 ```
 
 Create a network for containers.
@@ -111,6 +111,7 @@ Run integration tests. This expects `sso-grpc` service is running and `SSO_TEST_
 ```bash
 sso-build cargo make test-integration
 for i in {1..50}; do sso-build cargo make test-integration; done
+docker run --rm -it --init --network compose sso/build-release:v1 /bin/bash
 ```
 
 Compile [Protocol Buffers][protocol-buffers] for [OpenAPI][openapi] gateway server.
