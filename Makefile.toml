@@ -11,6 +11,10 @@ script = [
     "(cd sso/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --grpc-gateway_out=logtostderr=true:../../sso_openapi sso.proto)",
     "(cd sso/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --swagger_out=logtostderr=true:../../sso_openapi sso.proto)",
     "(cd sso/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --swagger_out=logtostderr=true:../../sso_openapi sso_service.proto)",
+
+    "mkdir -p target/protoc/grpc-web",
+    "(cd sso/proto && protoc -I/usr/local/include -I. --js_out=import_style=commonjs:../../target/protoc/grpc-web --grpc-web_out=import_style=typescript,mode=grpcwebtext:../../target/protoc/grpc-web sso.proto)",
+    "(cd sso/proto && protoc -I/usr/local/include -I. --js_out=import_style=commonjs:../../target/protoc/grpc-web --grpc-web_out=import_style=typescript,mode=grpcwebtext:../../target/protoc/grpc-web sso_service.proto)",
 ]
 # "(cd sso/proto && protoc -I/usr/local/include -I. -I$HOME/go/src --dart_out=../../sso_openapi/dart sso.proto)",
 
@@ -57,6 +61,11 @@ dependencies = ["openapi-bin"]
 workspace = false
 command = "cargo"
 args = ["audit"]
+
+[tasks.sort-deps]
+workspace = false
+command = "cargo"
+args = ["sort-ck", "-w", "sso/Cargo.toml"]
 
 [tasks.build]
 workspace = false

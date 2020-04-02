@@ -214,12 +214,6 @@ impl GrpcClientOptions {
 /// gRPC asynchronous client.
 pub type GrpcClient = SsoClient<Channel>;
 
-impl fmt::Debug for SsoClient<Channel> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "GrpcClient {{ }}")
-    }
-}
-
 impl SsoClient<Channel> {
     /// Returns new gRPC asynchronous client.
     pub fn from_channel(channel: &GrpcClientChannel, options: GrpcClientOptions) -> Self {

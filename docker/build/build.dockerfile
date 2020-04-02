@@ -21,7 +21,7 @@ ENV HOME="/root"
 ENV RUSTUP_HOME="/usr/local/rustup" \
     CARGO_HOME="/usr/local/cargo" \
     PATH="/usr/local/cargo/bin:$PATH" \
-    RUST_VERSION="1.41.1" \
+    RUST_VERSION="1.42.0" \
     RUSTUP_VERSION_URL="https://static.rust-lang.org/rustup/archive/1.21.1/x86_64-unknown-linux-gnu/rustup-init"
 
 # Install Rust toolchain.
@@ -34,14 +34,18 @@ RUN wget -q "$RUSTUP_VERSION_URL" && \
     chmod 777 -R $HOME;
 
 # Install Rust tools.
-RUN cargo install --force cargo-make --version "~0.28" && \
+RUN cargo install --force cargo-make --version "~0.30" && \
     cargo install --force diesel_cli --version "~1.4" --no-default-features --features "postgres" && \
     cargo install --force cargo-audit --version "~0.11" && \
-    cargo install --force cargo-sort-ck --version "~1.1";
+    cargo install --force cargo-sort-ck --version "^2.0";
+
+# Set cargo cache directory in volume.
+# This prevents having to download dependencies in development builds.
+ENV CARGO_HOME="/build/.cargo"
 
 # Go environment.
 ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH" \
-    GOLANG_VERSION_URL="https://dl.google.com/go/go1.14.linux-amd64.tar.gz" \
+    GOLANG_VERSION_URL="https://dl.google.com/go/go1.14.1.linux-amd64.tar.gz" \
     PROTOC_VERSION_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip"
 
 # Install Go toolchain.
@@ -65,10 +69,10 @@ RUN go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway && 
     go get -u google.golang.org/grpc;
 
 # Dart environment.
-ENV DART_VERSION="2.7.1" \
+ENV DART_VERSION="2.7.2" \
     DART_SDK="/usr/lib/dart" \
     PATH="/usr/lib/dart/bin:/root/.pub-cache/bin:$PATH" \
-    PROTOC_PLUGIN_VERSION="19.0.0+1"
+    PROTOC_PLUGIN_VERSION="19.0.1"
 
 # Install Dart tools.
 # <https://github.com/dart-lang/dart_docker>
@@ -81,9 +85,12 @@ RUN curl https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - &
     rm -rf /var/lib/apt/lists/* && \
     pub global activate protoc_plugin $PROTOC_PLUGIN_VERSION;
 
-# Set cargo cache directory in volume.
-# This prevents having to download dependencies in development builds.
-ENV CARGO_HOME="/build/.cargo"
+# gRPC web generator environment.
+ENV GRPC_WEB_VERSION_URL="https://github.com/grpc/grpc-web/releases/download/1.0.7/protoc-gen-grpc-web-1.0.7-linux-x86_64"
+
+# Install gRPC web generator plugin.
+RUN wget -O /usr/local/bin/protoc-gen-grpc-web -q "$GRPC_WEB_VERSION_URL" && \
+    chmod +x /usr/local/bin/protoc-gen-grpc-web;
 
 # Copy CA certificate files.
 ADD ./docker/build/cert /cert
