@@ -185,8 +185,7 @@ impl GrpcServer {
 #[tonic::async_trait]
 impl pb::sso_server::Sso for GrpcServer {
     async fn ping(&self, _: tonic::Request<()>) -> Result<tonic::Response<String>, tonic::Status> {
-        // Method implemented in HTTP server.
-        Err(tonic::Status::not_found(ERR_NOT_FOUND))
+        Ok(tonic::Response::new("Pong".to_string()))
     }
     async fn metrics(
         &self,
