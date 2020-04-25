@@ -1,6 +1,6 @@
 [package]
 name = "sso"
-version = "0.10.1"
+version = "0.10.2"
 description = "Single sign-on authentication server."
 authors = [ "Sam Ward <git@mojzu.net>" ]
 license = "Unlicense"
@@ -72,7 +72,7 @@ zxcvbn = "2.0"
 [dependencies.sentry]
 version = "0.17"
 default-features = false
-features = [ "with_panic", "with_failure", "with_device_info", "with_rust_info", "with_env_logger" ]
+features = [ "with_panic", "with_failure", "with_device_info", "with_rust_info", "with_env_logger", "with_reqwest_transport" ]
 
 [dependencies.tokio]
 version = "0.2.14"

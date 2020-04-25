@@ -1,4 +1,4 @@
-site_name: sso-v0.10.0
+site_name: sso-v0.10.2
 site_url: https://mojzu.net/sso/
 repo_url: https://github.com/mojzu/sso
 site_author: "Sam Ward"
@@ -23,6 +23,7 @@ nav:
       - guide/deployment.md
   - Changelog:
       - changelog/0.11.0.md
+      - changelog/0.10.2.md
       - changelog/0.10.1.md
       - changelog/0.10.0.md
       - changelog/0.9.0.md
