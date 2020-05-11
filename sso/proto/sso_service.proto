@@ -1,5 +1,6 @@
 syntax = "proto3";
 package sso;
+option go_package = ".;sso";
 
 import "google/protobuf/empty.proto";
 
