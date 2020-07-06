@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use diesel::PgConnection;
-use jsonwebtoken::{dangerous_unsafe_decode, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{dangerous_insecure_decode, DecodingKey, EncodingKey, Header, Validation};
 
 /// JSON web token types.
 #[derive(Debug)]
@@ -107,7 +107,7 @@ impl Jwt {
     /// If matched, returns the `sub` claim, which may be a user ID and the token type.
     /// The user ID must be used to read a key that can safely decode the token.
     pub fn decode_unsafe_user(token: &str, service_id: Uuid) -> DriverResult<(Uuid, JwtType)> {
-        let claims: JwtClaims = dangerous_unsafe_decode(token)
+        let claims: JwtClaims = dangerous_insecure_decode(token)
             .map_err(DriverError::Jsonwebtoken)?
             .claims;
 

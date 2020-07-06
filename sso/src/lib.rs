@@ -32,7 +32,6 @@ pub mod validate;
 pub use crate::driver::*;
 pub use crate::{csrf::*, grpc::*, grpc_service::*, http_server::*, jwt::*};
 
-use sentry::integrations::log::LoggerOptions;
 use std::io::Write;
 
 /// Implement `to_string` and `from_str` on simple enums.
@@ -71,6 +70,8 @@ pub fn log_init<T>(sentry_dsn_name: T, pretty_name: T) -> Option<sentry::interna
 where
     T: AsRef<str>,
 {
+    use sentry::IntoDsn;
+
     let pretty = env::value_opt::<bool>(pretty_name.as_ref())
         .expect("Failed to read environment variable.")
         .unwrap_or(false);
@@ -103,12 +104,18 @@ where
 
     match env::string_opt(sentry_dsn_name.as_ref()) {
         Some(sentry_dsn) => {
-            let guard = sentry::init(sentry_dsn);
-            let mut options = LoggerOptions::default();
-            options.emit_warning_events = true;
+            let log_integration =
+                sentry_log::LogIntegration::default().with_env_logger_dest(Some(builder.build()));
 
-            sentry::integrations::env_logger::init(Some(builder.build()), options);
-            sentry::integrations::panic::register_panic_handler();
+            let guard = sentry::init(
+                sentry::ClientOptions {
+                    dsn: sentry_dsn.into_dsn().unwrap(),
+                    release: sentry::release_name!(),
+                    ..Default::default()
+                }
+                .add_integration(log_integration),
+            );
+
             Some(guard)
         }
         None => {

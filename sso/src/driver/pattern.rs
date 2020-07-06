@@ -395,8 +395,8 @@ async fn password_meta_pwned(client: &Client, enabled: bool, password: &str) -> 
     if enabled {
         // Make request to API using first 5 characters of SHA1 password hash.
         let mut hash = Sha1::new();
-        hash.input(password);
-        let hash = format!("{:X}", hash.result());
+        hash.update(password);
+        let hash = format!("{:X}", hash.finalize());
         let url = format!("https://api.pwnedpasswords.com/range/{:.5}", hash);
 
         match Url::parse(&url).map_err(DriverError::UrlParse) {
