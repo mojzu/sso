@@ -129,7 +129,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let addr = "0.0.0.0:7042".parse()?;
         info!("Listening on grpc://{}", addr);
         let mut builder = if let Some(tls_config) = grpc_tls_config {
-            Server::builder().tls_config(tls_config)
+            Server::builder().tls_config(tls_config).unwrap()
         } else {
             Server::builder()
         };

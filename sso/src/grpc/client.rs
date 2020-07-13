@@ -98,7 +98,7 @@ impl GrpcClientChannel {
         let uri = Uri::from_str(uri.as_ref()).map_err(DriverError::HttpUri)?;
         let endpoint: Endpoint = uri.into();
         let endpoint = if let Some(tls_config) = tls.config() {
-            endpoint.tls_config(tls_config)
+            endpoint.tls_config(tls_config).map_err(DriverError::TonicTransport)?
         } else {
             endpoint
         };
