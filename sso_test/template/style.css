@@ -1,0 +1,168 @@
+@tailwind base;
+
+@tailwind components;
+
+.s-container {
+    @apply flex flex-row items-center justify-center min-h-screen bg-white font-sans;
+}
+.s-container .s-container-inner {
+    @apply flex flex-col px-4 py-8 max-w-lg w-full;
+}
+
+.s-client {
+    @apply mb-8 text-center font-bold;
+}
+.s-client .s-client-name {
+    @apply text-2xl;
+}
+.s-client .s-client-uri {
+    @apply text-base text-blue-600 no-underline;
+}
+.s-client .s-client-uri:hover {
+    @apply underline;
+}
+
+.s-error {
+    @apply border rounded-sm shadow-md border border-red-700 text-white bg-red-600 px-3 py-2 mb-4;
+}
+.s-error .s-error-key {
+    @apply text-xs;
+}
+.s-error .s-error-value {
+    @apply font-bold text-sm;
+}
+.s-error .s-error-value.s-error-margin {
+    @apply mb-1;
+}
+
+.s-message {
+    @apply border rounded-sm shadow-md border border-blue-700 text-white bg-blue-600 px-3 py-2 mb-4;
+}
+.s-message .s-message-key {
+    @apply text-xs;
+}
+.s-message .s-message-value {
+    @apply font-bold text-sm;
+}
+
+.s-form {
+    @apply border rounded-sm shadow-md;
+}
+.s-form.s-form-mb-sm {
+    @apply mb-4;
+}
+.s-form.s-form-mb-lg {
+    @apply mb-12;
+}
+.s-form.s-form-mb-xl {
+    @apply mb-20;
+}
+.s-form .s-form-container {
+    @apply bg-white;
+}
+
+.s-form .s-form-input-container {
+    @apply -mt-px -ml-px -mr-px;
+}
+.s-form .s-form-input-container .s-form-input {
+    @apply appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900;
+}
+.s-form .s-form-input-container .s-form-input:focus {
+    @apply outline-none border-blue-300 z-10;
+}
+@screen md {
+    .s-form .s-form-input-container .s-form-input {
+        @apply text-sm leading-5;
+    }
+}
+
+.s-form .s-form-checkbox-container {
+    @apply -mt-px -ml-px -mr-px;
+}
+.s-form .s-form-checkbox-container .s-form-checkbox {
+    @apply block text-sm px-3 py-2 border;
+}
+.s-form .s-form-checkbox-container .s-form-checkbox .s-form-checkbox-label {
+    @apply text-gray-800;
+}
+
+.s-form .s-form-submit-container {
+    @apply flex flex-col;
+}
+.s-form .s-form-submit-container .s-form-submit {
+    @apply flex flex-row items-end justify-center w-full py-2 px-4 border border-transparent text-sm leading-5 font-bold text-gray-900 bg-gray-100 transition duration-150 ease-in-out;
+    position: relative;
+}
+.s-form .s-form-submit-container .s-form-submit:hover {
+    @apply bg-gray-200;
+}
+.s-form .s-form-submit-container .s-form-submit:focus {
+    @apply outline-none border-gray-500;
+}
+.s-form .s-form-submit-container .s-form-submit .s-form-submit-icon {
+    @apply mr-4;
+    position: absolute;
+    left: 1rem;
+    top: 0.5rem;
+}
+.s-form .s-form-submit-container .s-form-submit .s-form-submit-icon svg {
+    @apply fill-current;
+}
+
+.s-form .s-form-rounded-all {
+    @apply rounded-sm;
+}
+.s-form .s-form-rounded-top {
+    @apply rounded-none rounded-t-sm;
+}
+.s-form .s-form-rounded-bottom {
+    @apply rounded-none rounded-b-sm;
+}
+.s-form-title {
+    @apply text-sm text-gray-600 text-center font-bold mb-4;
+}
+
+.s-password-strength {
+    @apply text-sm px-3 py-2 text-gray-700;
+}
+.s-password-strength .s-password-strength-warning {
+    @apply text-yellow-800;
+}
+meter.s-password-strength-meter {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    @apply block m-0 w-full h-2;
+    background: none;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+meter.s-password-strength-meter::-webkit-meter-bar {
+    background: none;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+meter.s-password-strength-meter[value="1"]::-webkit-meter-optimum-value {
+    background: #e53e3e;
+}
+meter.s-password-strength-meter[value="2"]::-webkit-meter-optimum-value {
+    background: #f6e05e;
+}
+meter.s-password-strength-meter[value="3"]::-webkit-meter-optimum-value {
+    background: #f6ad55;
+}
+meter.s-password-strength-meter[value="4"]::-webkit-meter-optimum-value {
+    background: #38a169;
+}
+meter.s-password-strength-meter[value="1"]::-moz-meter-bar {
+    background: #e53e3e;
+}
+meter.s-password-strength-meter[value="2"]::-moz-meter-bar {
+    background: #f6e05e;
+}
+meter.s-password-strength-meter[value="3"]::-moz-meter-bar {
+    background: #f6ad55;
+}
+meter.s-password-strength-meter[value="4"]::-moz-meter-bar {
+    background: #38a169;
+}
+
+@tailwind utilities;

@@ -1,0 +1,79 @@
+[log]
+pretty = true
+
+[http]
+[http.public]
+bind = '0.0.0.0:7042'
+
+[http.private]
+bind = '0.0.0.0:7043'
+
+[http.cookie]
+key = 'lMWAjjggXpgcL1agyCPbImyqjOvaxzD9yCT787GdAv4='
+name = 'sso.id'
+domain = 'localhost'
+path = '/'
+secure = false
+max_age = 604800
+
+[oauth2]
+domain = 'http://localhost:7042/'
+path = ''
+
+[oauth2.clients]
+# b4f765eb-49d9-4d9f-bd4b-8c4b88850f84.QypqqfAUyzv4hu8lQWrRKjgsxr22UzaMKvvkbwBzkMw=
+[oauth2.clients.b4f765eb-49d9-4d9f-bd4b-8c4b88850f84]
+name = 'App'
+uri = 'http://localhost:8080/'
+secret = 'J0q+oMl+jCXdglu2RCEWJd6vBpxzg+dTIPJzyNkUMKE='
+redirect_uri = 'http://localhost:8080/oauth2'
+enable = true
+scope = []
+user_scope = ['admin', 'api']
+register_enable = true
+register_scope = []
+[oauth2.clients.b4f765eb-49d9-4d9f-bd4b-8c4b88850f84.ttl]
+csrf_s = 3600
+code_s = 3600
+oauth2_code_s = 3600
+token_access_s = 3600
+token_refresh_s = 86400
+[oauth2.clients.b4f765eb-49d9-4d9f-bd4b-8c4b88850f84.templates]
+[oauth2.clients.b4f765eb-49d9-4d9f-bd4b-8c4b88850f84.templates.html]
+file = 'template_html.hbs'
+[oauth2.clients.b4f765eb-49d9-4d9f-bd4b-8c4b88850f84.templates.mail_text]
+content = ''
+
+[oauth2.users]
+# daH1PqPo08fifuZVI2RuaW2jUg7KAQK0TncPNwAqswE=
+[oauth2.users.92232570-2b95-4db8-b05a-c1f91d48668d]
+name = 'Admin'
+email = 'admin@app.localhost'
+password = '$2a$06$SjFzDBAq3oOq/L2WS5bLouHRBEoWvr2oq6y6jDiIjPMU2GZjDwRuC'
+locale = ''
+timezone = ''
+enable = true
+[oauth2.users.92232570-2b95-4db8-b05a-c1f91d48668d.access.b4f765eb-49d9-4d9f-bd4b-8c4b88850f84]
+enable = true
+scope = ['admin', 'api']
+
+[oauth2.providers.sso]
+client_id = 'f5683aca-4b25-43e4-b6fe-3fb1002ec5fd'
+client_secret = 'f5683aca-4b25-43e4-b6fe-3fb1002ec5fd.0skM1U/uGZScXraYL9hjQ6bAicGvHiFHM1g9dHyJDTs='
+authorize_uri = 'http://localhost:7044/v2/oauth2/authorize'
+# Fix: Fixes URIs when running inside docker container
+token_uri = 'http://sso2:7042/v2/oauth2/token'
+introspect_uri = 'http://sso2:7042/v2/oauth2/introspect'
+
+[postgres]
+user = 'postgres'
+password = 'postgres'
+dbname = 'postgres'
+host = 'postgres'
+port = 5432
+
+[mailto]
+[mailto.stdout]
+enable = true
+[mailto.file]
+file = '/config/mailto/mailto.log'

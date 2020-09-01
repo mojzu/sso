@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="author" content="Sam Ward">
+  <link rel="canonical" href="https://mojzu.net/sso/developer/tasks/">
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Tasks - sso-0.11.0</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../../css/theme.css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Tasks";
+    var mkdocs_page_input_path = "developer/tasks.md";
+    var mkdocs_page_url = "/sso/developer/tasks/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> sso-0.11.0</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Developer</span></p>
+                <ul class="current">
+                    <li class="toctree-l1"><a class="reference internal" href="../start/">Start</a>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Tasks</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#all-clean">all - clean</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#all-distclean">all - distclean</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#cargo-sso_server">cargo - sso_server</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#docker-test-build">docker test - build</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#docker-test-up">docker test - up</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#docker-test-down">docker test - down</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#docker-test-protractor">docker test - protractor</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#mkdocs-serve">mkdocs - serve</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#mkdocs-build">mkdocs - build</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#npm-run-template-builder">npm - run template builder</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#npm-start-client-example-express-passport">npm - start client example (express, passport)</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#npm-run-host-tests">npm - run host tests</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#openapi-generate-client">openapi - generate client</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#postgres-build">postgres - build</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#postgres-up">postgres - up</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#postgres-down">postgres - down</a>
+    </li>
+    </ul>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">sso-0.11.0</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Developer &raquo;</li>
+        
+      
+    
+    <li>Tasks</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/mojzu/sso/edit/master/docs/developer/tasks.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="tasks">Tasks</h1>
+<h2 id="all-clean">all - clean</h2>
+<p>Removes build artifacts.</p>
+<h2 id="all-distclean">all - distclean</h2>
+<p>Removes build artifacts and installed dependencies and their caches.</p>
+<h2 id="cargo-sso_server">cargo - sso_server</h2>
+<p>Build and start <code>sso_server</code> using configuration file <code>.config/sso.toml</code>, available at <code>http://localhost:7042/</code>.</p>
+<!-- Todo: sso.example.toml file in .config -->
+
+<h2 id="docker-test-build">docker test - build</h2>
+<p>Build docker images in <code>.devcontainer/docker-test.yml</code>.</p>
+<h2 id="docker-test-up">docker test - up</h2>
+<p>Build and start docker compose services in <code>.devcontainer/docker-test.yml</code>.</p>
+<h2 id="docker-test-down">docker test - down</h2>
+<p>Stop and destroy docker compose services in <code>.devcontainer/docker-test.yml</code>.</p>
+<h2 id="docker-test-protractor">docker test - protractor</h2>
+<p>Run <a href="https://www.protractortest.org/">Protractor</a> tests against docker compose services in <code>.devcontainer/docker-test.yml</code>.</p>
+<h2 id="mkdocs-serve">mkdocs - serve</h2>
+<p>Run <a href="https://www.mkdocs.org/">mkdocs</a> live development server, available at <a href="http://localhost:8079">localhost:8079</a>.</p>
+<h2 id="mkdocs-build">mkdocs - build</h2>
+<p>Build <a href="https://www.mkdocs.org/">mkdocs</a> static site output in <code>docs</code> directory for github pages.</p>
+<h2 id="npm-run-template-builder">npm - run template builder</h2>
+<p>Build template files from sources in <code>sso_test/template</code>. The output file <code>sso_test/tmp/template/index.html</code> can be opened in a browser to check page styles, and <code>sso_test/tmp/template/template.html</code> can be added to the <code>sso</code> configuration file.</p>
+<h2 id="npm-start-client-example-express-passport">npm - start client example (express, passport)</h2>
+<p>Build and start client example application, available at <a href="http://localhost:8080">localhost:8080</a>.</p>
+<h2 id="npm-run-host-tests">npm - run host tests</h2>
+<p>Run tests in <code>sso_test/test/host.ts</code> file.</p>
+<h2 id="openapi-generate-client">openapi - generate client</h2>
+<p>Build TypeScript client using <a href="https://github.com/OpenAPITools/openapi-generator">OpenAPI Generator</a>. Binary <code>sso_server</code> must be running and available at <code>http://localhost:7042/</code>.</p>
+<h2 id="postgres-build">postgres - build</h2>
+<p>Build docker images in <code>.devcontainer/docker-postgres.yml</code>.</p>
+<h2 id="postgres-up">postgres - up</h2>
+<p>Build and start docker compose services in <code>.devcontainer/docker-postgres.yml</code>.</p>
+<p>Connection string is <code>postgres://postgres:postgres@localhost:5432/postgres</code>.</p>
+<p>Services include <a href="#pgadmin">pgAdmin</a> and <a href="#pghero">PgHero</a>.</p>
+<h2 id="postgres-down">postgres - down</h2>
+<p>Stop and destroy docker compose services in <code>.devcontainer/docker-postgres.yml</code>.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="../start/" class="btn btn-neutral" title="Start"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+      <p>Unlicense</p>
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/mojzu/sso/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../start/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

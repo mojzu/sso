@@ -1,0 +1,12 @@
+# Git ignored files.
+# <https://git-scm.com/docs/gitignore>
+.cargo
+.config
+.deprecated
+.npm
+node_modules
+target
+sso/target
+sso_test/tmp
+*.log
+*.pgdump

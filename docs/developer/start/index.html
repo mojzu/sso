@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="author" content="Sam Ward">
+  <link rel="canonical" href="https://mojzu.net/sso/developer/start/">
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Start - sso-0.11.0</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../../css/theme.css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Start";
+    var mkdocs_page_input_path = "developer/start.md";
+    var mkdocs_page_url = "/sso/developer/start/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> sso-0.11.0</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Developer</span></p>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Start</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#developing">Developing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#webdriver-manager">Webdriver Manager</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#pgadmin">pgAdmin</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#pghero">PgHero</a>
+    </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../tasks/">Tasks</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">sso-0.11.0</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Developer &raquo;</li>
+        
+      
+    
+    <li>Start</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/mojzu/sso/edit/master/docs/developer/start.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="start">Start</h1>
+<p>Clone repository and <code>Open folder in container</code>, using the vscode <a href="https://code.visualstudio.com/docs/remote/containers">Remote Development</a> extension.</p>
+<p>Run vscode <a href="https://code.visualstudio.com/docs/editor/tasks">Tasks</a> using the command palette or the Task Explorer extension.</p>
+<h2 id="developing">Developing</h2>
+<p>Run the following commands to compile and run tests during development, tests depend on <a href="#webdriver-manager">Webdriver Manager</a>.</p>
+<ul>
+<li><a href="../tasks/#postgres-build">postgres - build</a></li>
+<li><a href="../tasks/#postgres-up">postgres - up</a></li>
+<li><a href="../tasks/#cargo-sso_server">cargo - sso_server</a></li>
+<li><a href="../tasks/#npm-start-client-example-express-passport">npm - start client example (express, passport)</a></li>
+<li><a href="../tasks/#npm-run-host-tests">npm - run host tests</a></li>
+</ul>
+<p>To stop and destroy postgres services.</p>
+<ul>
+<li><a href="../tasks/#postgres-down">postgres - down</a></li>
+</ul>
+<h2 id="testing">Testing</h2>
+<p>Run the following commands to build docker images and run tests for production, tests depend on <a href="#webdriver-manager">Webdriver Manager</a>.</p>
+<ul>
+<li><a href="../tasks/#docker-test-build">docker test - build</a></li>
+<li><a href="../tasks/#docker-test-up">docker test - up</a></li>
+<li><a href="../tasks/#docker-test-protractor">docker test - protractor</a></li>
+</ul>
+<p>To stop and destroy test services.</p>
+<ul>
+<li><a href="../tasks/#docker-test-down">docker test - down</a></li>
+</ul>
+<h2 id="webdriver-manager">Webdriver Manager</h2>
+<p>Tests depend on <a href="https://www.npmjs.com/package/webdriver-manager">Webdriver Manager</a>, start it outside of the remote development container using the commands.</p>
+<pre><code class="bash">npm run webdriver-update
+npm run webdriver-start
+</code></pre>
+
+<h2 id="pgadmin">pgAdmin</h2>
+<p>Available at <a href="http://localhost:8000">localhost:8000</a> when postgres services are running.</p>
+<ul>
+<li>Login with username <code>guest</code> and password <code>guest</code></li>
+<li>Select <code>Add New Server</code><ul>
+<li>General - Name: <code>postgres</code></li>
+<li>Connection - Host name/address: <code>postgres</code></li>
+<li>Connection - Port: <code>5432</code></li>
+<li>Connection - Maintenance database: <code>postgres</code></li>
+<li>Connection - Username: <code>postgres</code></li>
+<li>Connection - Password: <code>postgres</code></li>
+<li>Connection - Save password: <code>yes</code></li>
+</ul>
+</li>
+<li>Save and select <code>postgres</code> from server list</li>
+</ul>
+<h2 id="pghero">PgHero</h2>
+<p>Available at <a href="http://localhost:8001">localhost:8001</a> when postgres services are running.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../tasks/" class="btn btn-neutral float-right" title="Tasks">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../.." class="btn btn-neutral" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+      <p>Unlicense</p>
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/mojzu/sso/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../.." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../tasks/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

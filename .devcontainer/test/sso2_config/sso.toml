@@ -1,0 +1,69 @@
+[log]
+pretty = true
+
+[http]
+[http.public]
+bind = '0.0.0.0:7042'
+
+[http.private]
+bind = '0.0.0.0:7043'
+
+[http.cookie]
+key = 'CMtzjTl9WJVIAwEAD3uI5bBOrLowUxa1cwhU1t/c+SU='
+name = 'sso2.id'
+domain = 'localhost'
+path = '/'
+secure = false
+max_age = 604800
+
+[oauth2]
+domain = 'http://localhost:7044/'
+path = ''
+
+[oauth2.clients]
+# f5683aca-4b25-43e4-b6fe-3fb1002ec5fd.0skM1U/uGZScXraYL9hjQ6bAicGvHiFHM1g9dHyJDTs=
+[oauth2.clients.f5683aca-4b25-43e4-b6fe-3fb1002ec5fd]
+name = 'Provider'
+uri = 'http://localhost:7042/'
+secret = 'DxA+ASApOOH+fBDeqiPTzIiwZiynxlHXEctqtAA9xMs='
+redirect_uri = 'http://localhost:7042/v2/oauth2/redirect'
+enable = true
+scope = []
+user_scope = []
+register_enable = true
+register_scope = []
+[oauth2.clients.f5683aca-4b25-43e4-b6fe-3fb1002ec5fd.ttl]
+csrf_s = 3600
+code_s = 3600
+oauth2_code_s = 3600
+token_access_s = 3600
+token_refresh_s = 86400
+[oauth2.clients.f5683aca-4b25-43e4-b6fe-3fb1002ec5fd.templates]
+[oauth2.clients.f5683aca-4b25-43e4-b6fe-3fb1002ec5fd.templates.html]
+file = 'template_html.hbs'
+[oauth2.clients.f5683aca-4b25-43e4-b6fe-3fb1002ec5fd.templates.mail_text]
+content = ''
+
+[oauth2.users]
+# V9MyJU1T5+WEycjlo9ZhmipCFU6xAygvDzvWW6xpQ6U=
+[oauth2.users.cae5799f-d506-4f64-8b77-6f42f38a503c]
+name = 'Provider Admin'
+email = 'provider.admin@app.localhost'
+password = '$2a$06$NSADDFlCOoSN1RtpWzs.G.Mu69z/fni2euWUKbv5I.8.qB9HmDnqC'
+locale = ''
+timezone = ''
+enable = true
+[oauth2.users.cae5799f-d506-4f64-8b77-6f42f38a503c.access.f5683aca-4b25-43e4-b6fe-3fb1002ec5fd]
+enable = true
+scope = []
+
+[postgres]
+user = 'postgres'
+password = 'postgres'
+dbname = 'postgres'
+host = 'postgres2'
+port = 5432
+
+[mailto]
+[mailto.stdout]
+enable = true

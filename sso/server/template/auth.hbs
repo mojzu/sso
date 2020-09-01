@@ -1,0 +1,132 @@
+<div class="s-container">
+    <div class="s-container-inner">
+        <div class="s-client">
+            <div class="s-client-name">{{ client_name }}</div>
+            <div class="s-client-uri">
+                <a href="{{ client_uri }}">{{ client_domain }}</a>
+            </div>
+        </div>
+
+        {{#if error}}<div class="s-error">
+            <div class="s-error-key">Error Code</div>
+            <div id="error-code" class="s-error-value s-error-margin">{{ error.code }}</div>
+            <div class="s-error-key">Error Description</div>
+            <div id="error-description" class="s-error-value s-error-margin">{{ error.description }}</div>
+            <div class="s-error-key">Audit ID</div>
+            <div id="error-audit-id" class="s-error-value">{{ error.audit_id }}</div>
+        </div>{{/if}}
+
+        {{#if oauth2_providers.sso}}<form method="post" enctype="application/x-www-form-urlencoded"
+            class="s-form s-form-mb-sm">
+            <div class="s-form-submit-container">
+                <button id="oauth2-sso-submit" class="s-form-submit s-form-rounded-all" type="submit">
+                    <div>Login with SSO</div>
+                </button>
+            </div>
+
+            <input type="hidden" name="oauth2_provider" value="sso">
+            <input type="hidden" name="auth_type" value="oauth2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        </form>{{/if}}
+
+        {{#if oauth2_providers.microsoft}}<form method="post" enctype="application/x-www-form-urlencoded"
+            class="s-form s-form-mb-sm">
+            <div class="s-form-submit-container">
+                <button id="oauth2-microsoft-submit" class="s-form-submit s-form-rounded-all" type="submit">
+                    <div class="s-form-submit-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21">
+                            <title>MS-SymbolLockup</title>
+                            <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+                            <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+                            <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+                            <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+                        </svg>
+                    </div>
+                    <div>Login with Microsoft</div>
+                </button>
+            </div>
+
+            <input type="hidden" name="oauth2_provider" value="microsoft">
+            <input type="hidden" name="auth_type" value="oauth2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        </form>{{/if}}
+
+        <form method="post" enctype="application/x-www-form-urlencoded" class="s-form s-form-mb-xl">
+            <div class="s-form-container">
+                <div class="s-form-input-container">
+                    <input id="password-login-email" class="s-form-input s-form-rounded-top" aria-label="Email address"
+                        name="email" type="email" placeholder="Email address" autocomplete="username"
+                        minlength="{{email.minlength}}" maxlength="{{email.maxlength}}"
+                        title="Enter an email address of {{email.minlength}}-{{email.maxlength}} characters" required>
+                </div>
+                <div class="s-form-input-container">
+                    <input id="password-login-password" class="s-form-input" aria-label="Password" name="password"
+                        type="password" placeholder="Password" autocomplete="current-password"
+                        minlength="{{password.minlength}}" maxlength="{{password.maxlength}}"
+                        title="Enter a password of {{password.minlength}}-{{password.maxlength}} characters" required>
+                </div>
+            </div>
+            <div class="s-form-submit-container">
+                <button id="password-login-submit" class="s-form-submit s-form-rounded-bottom" type="submit">
+                    <div class="s-form-submit-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.5 -0.5 12.1125 12.1125" height="21"
+                            width="21">
+                            <g transform="matrix(0.31746032,0,0,0.31746032,0.18058718,-83.353801)">
+                                <g aria-label="@" transform="matrix(0.94494048,0,0,0.94494048,-133.76577,-192.56319)">
+                                    <path
+                                        d="m 168.04,510.12891 q -1.16,0 -2.32,-0.28 -1.16,-0.28 -1.92,-1 -1.76,1.24 -4.44,1.24 -2,0 -3.68,-0.6 -1.64,-0.64 -2.84,-1.88 -1.16,-1.24 -1.84,-3.04 -0.64,-1.84 -0.64,-4.24 0,-2.04 0.64,-3.8 0.68,-1.76 1.96,-3.04 1.28,-1.32 3.12,-2.08 1.88,-0.76 4.24,-0.76 2.36,0 4.16,0.44 1.84,0.4 3.04,0.84 v 12.56 q 0,0.92 0.36,1.24 0.4,0.32 1.12,0.32 0.64,0 1.24,-0.36 0.64,-0.36 1.08,-1.28 0.44,-0.96 0.72,-2.56 0.28,-1.64 0.28,-4.12 0,-2.48 -0.88,-4.52 -0.84,-2.08 -2.48,-3.52 -1.6,-1.48 -3.96,-2.28 -2.32,-0.84 -5.28,-0.84 -2.84,0 -5.24,0.96 -2.36,0.96 -4.12,2.76 -1.72,1.76 -2.72,4.32 -0.96,2.56 -0.96,5.76 0,3.32 0.96,5.84 0.96,2.48 2.72,4.16 1.8,1.68 4.32,2.52 2.56,0.88 5.76,0.88 2,0 3.76,-0.28 1.8,-0.24 3,-0.48 l 0.6,3.76 q -1,0.32 -3.04,0.68 -2.04,0.36 -4.32,0.36 -3.84,0 -7.2,-1 -3.36,-1 -5.88,-3.12 -2.48,-2.12 -3.92,-5.4 -1.44,-3.32 -1.44,-7.92 0,-4.44 1.52,-7.76 1.52,-3.36 4,-5.6 2.48,-2.24 5.64,-3.36 3.2,-1.12 6.56,-1.12 3.68,0 6.84,1.04 3.16,1 5.44,2.96 2.32,1.96 3.64,4.88 1.32,2.88 1.32,6.64 0,2.92 -0.64,5.2 -0.6,2.24 -1.8,3.76 -1.16,1.52 -2.8,2.32 -1.64,0.8 -3.68,0.8 z m -5.64,-4.76 q -0.08,-0.32 -0.12,-0.92 -0.04,-0.64 -0.04,-1.2 v -8.16 q -0.8,-0.16 -1.68,-0.16 -1.32,0 -2.24,0.44 -0.92,0.4 -1.48,1.12 -0.56,0.72 -0.84,1.72 -0.24,0.96 -0.24,2.12 0,1.16 0.2,2.16 0.2,0.96 0.68,1.68 0.52,0.72 1.36,1.16 0.84,0.4 2.08,0.4 0.72,0 1.36,-0.08 0.64,-0.12 0.96,-0.28 z" />
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+                    <div>Login with email address and password</div>
+                </button>
+            </div>
+
+            <input type="hidden" name="auth_type" value="password_login">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        </form>
+
+        <div class="s-form-title">Forgot your password?</div>
+
+        <form method="post" enctype="application/x-www-form-urlencoded" class="s-form s-form-mb-lg">
+            <div class="s-form-container">
+                <div class="s-form-input-container">
+                    <input id="password-reset-email" class="s-form-input s-form-rounded-top" aria-label="Email address"
+                        name="email" type="email" placeholder="Email address" autocomplete="username"
+                        minlength="{{email.minlength}}" maxlength="{{email.maxlength}}"
+                        title="Enter an email address of {{email.minlength}}-{{email.maxlength}} characters" required>
+                </div>
+            </div>
+            <div class="s-form-submit-container">
+                <button id="password-reset-submit" class="s-form-submit s-form-rounded-bottom" type="submit">
+                    <div>Reset password with email address</div>
+                </button>
+            </div>
+
+            <input type="hidden" name="auth_type" value="password_reset">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        </form>
+
+        {{#if client_register_enable}}<div class="s-form-title">Don't have a login?</div>
+
+        <form method="post" enctype="application/x-www-form-urlencoded" class="s-form">
+            <div class="s-form-container">
+                <div class="s-form-input-container">
+                    <input id="register-email" class="s-form-input s-form-rounded-top" aria-label="Email address"
+                        name="email" type="email" placeholder="Email address" autocomplete="username"
+                        minlength="{{email.minlength}}" maxlength="{{email.maxlength}}"
+                        title="Enter an email address of {{email.minlength}}-{{email.maxlength}} characters" required>
+                </div>
+            </div>
+            <div class="s-form-submit-container">
+                <button id="register-submit" class="s-form-submit s-form-rounded-bottom" type="submit">
+                    <div>Register with email address</div>
+                </button>
+            </div>
+
+            <input type="hidden" name="auth_type" value="register">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        </form>{{/if}}
+    </div>
+</div>

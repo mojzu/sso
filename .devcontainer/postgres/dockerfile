@@ -1,0 +1,29 @@
+FROM postgis/postgis:13-3.0
+
+ENV POSTGRES_USER="postgres" \
+    POSTGRES_PASSWORD="postgres"
+
+RUN apt-get update \
+    # Verify dependencies are installed
+    && apt-get -y install build-essential wget unzip \
+    && wget -q -O - http://cpanmin.us | perl - --self-upgrade \
+    && cpanm TAP::Parser::SourceHandler::pgTAP \
+    #
+    # Install pgTAP
+    # <https://pgtap.org/>
+    && wget -q -O pgtap.zip http://api.pgxn.org/dist/pgtap/1.1.0/pgtap-1.1.0.zip \
+    && unzip -o pgtap.zip -d /usr/share/postgresql/13/contrib \
+    && rm pgtap.zip \
+    && cd /usr/share/postgresql/13/contrib/pgtap-1.1.0 \
+    && make \
+    && make install \
+    #
+    # Clean up
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+ADD postgres.conf /etc/postgresql/postgresql.conf
+ADD ./20_pgtap.sh /docker-entrypoint-initdb.d/20_pgtap.sh
+
+CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]

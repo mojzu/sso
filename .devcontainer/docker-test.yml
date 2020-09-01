@@ -1,0 +1,75 @@
+version: "3"
+services:
+  postgres:
+    image: sso/build-postgres:latest
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+
+  sso:
+    build:
+      context: test
+      dockerfile: sso.dockerfile
+    image: sso/test-sso:latest
+    restart: unless-stopped
+    environment:
+      RUST_BACKTRACE: "1"
+      RUST_LOG: "sso=info,sso_server=info"
+    ports:
+      - 7042:7042
+      - 7043:7043
+    volumes:
+      - "mailto:/config/mailto"
+    depends_on:
+      - postgres
+
+  client:
+    build:
+      context: test
+      dockerfile: client.dockerfile
+    image: sso/test-client:latest
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    depends_on:
+      - sso
+
+  protractor:
+    build:
+      context: test
+      dockerfile: protractor.dockerfile
+    image: sso/test-protractor:latest
+    restart: "no"
+    network_mode: "host"
+    entrypoint: ["echo", "sso/test-protractor image"]
+    volumes:
+      - "mailto:/opt/mailto"
+    depends_on:
+      - client
+
+  # Todo: Selenium service, how to work with webdriver?
+  # <https://github.com/SeleniumHQ/docker-selenium#debugging>
+
+  postgres2:
+    image: sso/build-postgres:latest
+    restart: unless-stopped
+    ports:
+      - 5433:5432
+
+  sso2:
+    build:
+      context: test
+      dockerfile: sso2.dockerfile
+    image: sso/test-sso2:latest
+    restart: unless-stopped
+    environment:
+      RUST_BACKTRACE: "1"
+      RUST_LOG: "sso=info,sso_server=info"
+    ports:
+      - 7044:7042
+      - 7045:7043
+    depends_on:
+      - postgres2
+
+volumes:
+  mailto:

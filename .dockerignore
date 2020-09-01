@@ -1,0 +1,14 @@
+# Docker ignored files.
+# <https://docs.docker.com/engine/reference/builder/#dockerignore-file>
+.cargo
+.config
+.git
+.deprecated
+.npm
+docs
+node_modules
+target
+sso/target
+sso_test/tmp
+*.log
+*.pgdump

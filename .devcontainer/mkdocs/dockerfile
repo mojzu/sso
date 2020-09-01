@@ -1,0 +1,9 @@
+FROM python:3.8.5-buster
+
+RUN pip install mkdocs
+
+RUN mkdir /workspace
+WORKDIR /workspace
+
+EXPOSE 8079
+ENTRYPOINT ["mkdocs"]

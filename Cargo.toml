@@ -1,0 +1,72 @@
+[package]
+name = "sso"
+version = "0.11.0"
+description = "Single sign-on authentication server."
+authors = [ "Sam Ward <git@mojzu.net>" ]
+license = "Unlicense"
+readme = "README.md"
+homepage = "https://mojzu.net/sso/"
+documentation = "https://docs.rs/crate/sso/"
+repository = "https://github.com/mojzu/sso"
+categories = [ "authentication", "web-programming", "command-line-utilities" ]
+edition = "2018"
+
+[lib]
+name = "sso"
+path = "sso/lib.rs"
+
+[[bin]]
+name = "sso_server"
+path = "sso/bin/server.rs"
+
+[[bin]]
+name = "sso_cli"
+path = "sso/bin/cli.rs"
+
+[dependencies]
+actix-http = "1.0"
+actix-identity = "0.2.1"
+actix-rt = "1.1"
+actix-server = "1.0"
+actix-web = "2.0"
+actix-web-httpauth = "0.4.2"
+chrono = { version = "0.4.15", features = [ "serde" ] }
+clap = "2.33"
+config = "0.10.1"
+deadpool-postgres = "0.5.6"
+email = "0.0.21"
+env_logger = "0.7.1"
+futures = "0.3.5"
+handlebars = "3.4"
+http = "0.2.1"
+jsonwebtoken = "7.2"
+lazy_static = "1.4"
+lettre = "0.9.3"
+lettre_email = "0.9.4"
+log = "0.4.11"
+native-tls = "0.2.4"
+oauth2 = { version = "3.0", features = [ "futures-03", "reqwest-010" ], default-features = false }
+opentelemetry = { git = "https://github.com/open-telemetry/opentelemetry-rust", features = [ "serialize" ] }
+opentelemetry-prometheus = { git = "https://github.com/open-telemetry/opentelemetry-rust" }
+paperclip = { version = "0.4.1", features = [ "v2", "actix", "chrono", "uuid" ] }
+paperclip-core = { version = "0.2.1", features = [ "v2", "actix" ] }
+paperclip-macros = { version = "0.3.1", features = [ "v2", "actix" ] }
+percent-encoding = "2.1"
+postgres-types = { version = "0.1.2", features = [ "derive" ] }
+prometheus = { version = "0.9.0", features = [ "process" ] }
+rand = "0.7.3"
+reqwest = { version = "0.10.8", features = [ "json" ] }
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+serde_urlencoded = "0.6.1"
+tokio = { version = "0.2.22", features = [ "rt-threaded", "macros", "signal", "fs" ] }
+tokio-postgres = { version = "0.5.5", features = [ "with-chrono-0_4", "with-uuid-0_8", "with-serde_json-1" ] }
+toml = "0.5.6"
+url = { version = "2.1", features = [ "serde" ] }
+uuid = { version = "0.8.1", features = [ "serde", "v4" ] }
+validator = "0.10.1"
+validator_derive = "0.10.1"
+
+[dev-dependencies]
+bytes = "0.5.6"

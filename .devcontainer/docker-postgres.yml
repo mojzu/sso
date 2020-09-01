@@ -1,0 +1,42 @@
+version: "3"
+services:
+  # PostgreSQL with PostGIS and pgTAP extensions.
+  # <https://registry.hub.docker.com/r/postgis/postgis/>
+  # <https://postgis.net/>
+  # <https://pgtap.org/>
+  postgres:
+    build:
+      context: postgres
+      dockerfile: dockerfile
+    image: sso/build-postgres:latest
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+
+  # pgAdmin
+  # <https://hub.docker.com/r/dpage/pgadmin4/>
+  # <https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html>
+  # <https://www.pgadmin.org/>
+  pgadmin:
+    image: dpage/pgadmin4:4.23
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: guest
+      PGADMIN_DEFAULT_PASSWORD: guest
+    ports:
+      - 8000:80
+
+  # PgHero
+  # <https://hub.docker.com/r/ankane/pghero/>
+  # <https://github.com/ankane/pghero>
+  pghero:
+    image: ankane/pghero:v2.6.0
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+    ports:
+      - 8001:8080
