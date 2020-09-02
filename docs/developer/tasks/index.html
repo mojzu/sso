@@ -51,6 +51,11 @@
                     <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
                     </li>
                 </ul>
+                <p class="caption"><span class="caption-text">User</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../user/start/">Start</a>
+                    </li>
+                </ul>
                 <p class="caption"><span class="caption-text">Developer</span></p>
                 <ul class="current">
                     <li class="toctree-l1"><a class="reference internal" href="../start/">Start</a>
@@ -60,6 +65,8 @@
     <li class="toctree-l2"><a class="reference internal" href="#all-clean">all - clean</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#all-distclean">all - distclean</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#cargo-install">cargo - install</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#cargo-sso_server">cargo - sso_server</a>
     </li>
@@ -136,10 +143,10 @@
 <p>Removes build artifacts.</p>
 <h2 id="all-distclean">all - distclean</h2>
 <p>Removes build artifacts and installed dependencies and their caches.</p>
+<h2 id="cargo-install">cargo - install</h2>
+<p>Installs <code>sso_server</code> and <code>sso_cli</code> into development container, which lets you run <code>sso_cli ...</code> instead of <code>cargo run --bin sso_cli -- ...</code> in the terminal.</p>
 <h2 id="cargo-sso_server">cargo - sso_server</h2>
 <p>Build and start <code>sso_server</code> using configuration file <code>.config/sso.toml</code>, available at <code>http://localhost:7042/</code>.</p>
-<!-- Todo: sso.example.toml file in .config -->
-
 <h2 id="docker-test-build">docker test - build</h2>
 <p>Build docker images in <code>.devcontainer/docker-test.yml</code>.</p>
 <h2 id="docker-test-up">docker test - up</h2>
@@ -165,7 +172,7 @@
 <h2 id="postgres-up">postgres - up</h2>
 <p>Build and start docker compose services in <code>.devcontainer/docker-postgres.yml</code>.</p>
 <p>Connection string is <code>postgres://postgres:postgres@localhost:5432/postgres</code>.</p>
-<p>Services include <a href="#pgadmin">pgAdmin</a> and <a href="#pghero">PgHero</a>.</p>
+<p>Services include <a href="../start/#pgadmin">pgAdmin</a> and <a href="../start/#pghero">PgHero</a>.</p>
 <h2 id="postgres-down">postgres - down</h2>
 <p>Stop and destroy docker compose services in <code>.devcontainer/docker-postgres.yml</code>.</p>
               

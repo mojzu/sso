@@ -52,7 +52,7 @@ impl Cli {
         println!("The client secret key is:\r\n");
         println!("{}.{}\r\n", client_id, secret);
 
-        println!("Add the following to the 'sso_config.toml' file:\r\n");
+        println!("Add the following to the configuration file:\r\n");
         println!("{}", toml::to_string_pretty(&wrapped).unwrap());
     }
 }

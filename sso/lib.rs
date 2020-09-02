@@ -31,6 +31,8 @@ pub use crate::{
 
 // Todo: Fix
 // - Metrics counters incrementing on each collection?
+// - Selenium service for docker-test.yml, how to work with webdriver?
+//     - https://github.com/SeleniumHQ/docker-selenium#debugging
 
 // Todo: Test
 // - OWASP tests
@@ -38,8 +40,8 @@ pub use crate::{
 // - What happens to flows when codes/etc. expire? E.g. test register and reload page
 
 // Todo: Refactor
-// - Check master branch for lost features during rewrite
-// - Rust client for integration
+// Todo: Check master branch for lost features during rewrite
+// Todo: Rust client for integration
 // - Postgres improve query to/from helper structs
 
 // Todo: Feature
@@ -58,30 +60,38 @@ pub use crate::{
 // - Token naming from request headers?
 // - Email/password updates when using oauth2?
 // - Replace reqwest with surf?
-// - Improved prometheus metrics, labelling
+// - Improved prometheus metrics, labelling, docker container for testing
+//     - https://prometheus.io/
 // - Prometheus alert definitions
 // - Opentelemetry Jaeger/other integration?
-//     - <https://github.com/open-telemetry/opentelemetry-rust/blob/master/examples/actix-http/src/main.rs>
+//     - https://github.com/open-telemetry/opentelemetry-rust/blob/master/examples/actix-http/src/main.rs
 // - Fluentd/sentry integration?
 // - Backup/restore functionality for config/database, cron job?
 //     - NAME-VERSION-TIMESTAMP format, rolling or incremental/encryption, error/alert in case of failure
 //     - Output to file, pg_dump for database, restore, migration/legacy support
 // - Update management/safety
-//     - <https://docs.rs/tokio-postgres/0.5.5/tokio_postgres/struct.Client.html#method.transaction>
+//     - https://docs.rs/tokio-postgres/0.5.5/tokio_postgres/struct.Client.html#method.transaction
 // - Runtime config changes support, for example to log level
 // - Error serialisation for log messages, additional info in panics
 // - TeamCity deployment, .deb, docker images?
 // - Unit/integration tests with postgres connection? Mocking libraries? pgTAP?
 // - Email HTML templates
 // - Pwned password support somehow, pass back as header in oauth2 flow? oidc related?
+//     - Config setting to enable/disable
 // - Audit retention, dump deleted logs to file?
 // - Email verification/accepting terms
 // - User metadata
 // - Possible JWT usage for ids/keys/etc., oidc related?
 // - PKCE support
-// - Forward authentication support (caddy, nginx?)
+// - Forward authentication support (caddy, nginx, traefik?)
 //     - Set client ID header on requests
 //     - SSO endpoints checks for auth cookie
 //     - If access denied authorize and redirect back to client
 // - Docker image upload and size labels (+ other labels?)
-//     - <https://shields.io/category/size>
+//     - https://docs.docker.com/docker-hub/builds/
+//     - https://shields.io/category/size
+//     - Default config for running compose example?
+// - Github Oauth2 provider support
+// - Expose more SMTP transport options?
+// - CORS support for API requests, or docs on how to add at proxy layer?
+// - TLS support/testing

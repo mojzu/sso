@@ -8,11 +8,13 @@ Removes build artifacts.
 
 Removes build artifacts and installed dependencies and their caches.
 
+## cargo - install
+
+Installs `sso_server` and `sso_cli` into development container, which lets you run `sso_cli ...` instead of `cargo run --bin sso_cli -- ...` in the terminal.
+
 ## cargo - sso_server
 
 Build and start `sso_server` using configuration file `.config/sso.toml`, available at `http://localhost:7042/`.
-
-<!-- Todo: sso.example.toml file in .config -->
 
 ## docker test - build
 
@@ -64,7 +66,7 @@ Build and start docker compose services in `.devcontainer/docker-postgres.yml`.
 
 Connection string is `postgres://postgres:postgres@localhost:5432/postgres`.
 
-Services include [pgAdmin](#pgadmin) and [PgHero](#pghero).
+Services include [pgAdmin](start.md#pgadmin) and [PgHero](start.md#pghero).
 
 ## postgres - down
 

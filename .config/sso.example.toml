@@ -1,0 +1,37 @@
+[log]
+pretty = true
+
+[postgres]
+user = 'postgres'
+password = 'postgres'
+dbname = 'postgres'
+host = 'localhost'
+port = 5432
+
+[http]
+[http.public]
+bind = '0.0.0.0:7042'
+
+[http.private]
+bind = '0.0.0.0:7043'
+
+[http.cookie]
+key = 'lMWAjjggXpgcL1agyCPbImyqjOvaxzD9yCT787GdAv4='
+name = 'sso.id'
+domain = 'localhost'
+path = '/'
+secure = false
+max_age = 604800
+
+[mailto]
+[mailto.stdout]
+enable = true
+
+[oauth2]
+domain = 'http://localhost:7042/'
+
+[oauth2.clients]
+
+[oauth2.users]
+
+[oauth2.providers]

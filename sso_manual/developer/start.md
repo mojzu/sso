@@ -4,11 +4,30 @@ Clone repository and `Open folder in container`, using the vscode [Remote Develo
 
 Run vscode [Tasks](https://code.visualstudio.com/docs/editor/tasks) using the command palette or the Task Explorer extension.
 
+## Configuration
+
+The `sso_server` and `sso_cli` binaries depend on a configuration file, by default this is read from `./.config/sso.toml` or it can be configured with the `--config` command line argument (For example `--config .config/sso.example`). An example configuration file can be found at `.config/sso.example.toml`.
+
+OAuth2 clients and users can be statically defined in this file, configuration can be generated using the `sso_cli` binary. A postgres database connection is required, the example configuration works with the postgres service started by the [postgres - up](tasks.md#postgres-up) task.
+
+Run the [cargo - install](tasks.md#cargo-install) task.
+
+To generate a client configuration run the following command, save the client secret key and copy the TOML output into the configuration file.
+
+```bash
+sso_cli generate client $NAME $REDIRECT_URI
+```
+
+to generate a user configuration run the following command, save the user password and copy the TOML output into the configuration file.
+
+```bash
+sso_cli generate user $NAME $EMAIL
+```
+
 ## Developing
 
 Run the following commands to compile and run tests during development, tests depend on [Webdriver Manager](#webdriver-manager).
 
--   [postgres - build](tasks.md#postgres-build)
 -   [postgres - up](tasks.md#postgres-up)
 -   [cargo - sso_server](tasks.md#cargo-sso_server)
 -   [npm - start client example (express, passport)](tasks.md#npm-start-client-example-express-passport)
@@ -22,7 +41,6 @@ To stop and destroy postgres services.
 
 Run the following commands to build docker images and run tests for production, tests depend on [Webdriver Manager](#webdriver-manager).
 
--   [docker test - build](tasks.md#docker-test-build)
 -   [docker test - up](tasks.md#docker-test-up)
 -   [docker test - protractor](tasks.md#docker-test-protractor)
 

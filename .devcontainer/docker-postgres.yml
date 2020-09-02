@@ -2,6 +2,7 @@ version: "3"
 services:
   # PostgreSQL with PostGIS and pgTAP extensions.
   # <https://registry.hub.docker.com/r/postgis/postgis/>
+  # <https://www.postgresql.org/>
   # <https://postgis.net/>
   # <https://pgtap.org/>
   postgres:

@@ -18,7 +18,6 @@ max_age = 604800
 
 [oauth2]
 domain = 'http://localhost:7042/'
-path = ''
 
 [oauth2.clients]
 # b4f765eb-49d9-4d9f-bd4b-8c4b88850f84.QypqqfAUyzv4hu8lQWrRKjgsxr22UzaMKvvkbwBzkMw=

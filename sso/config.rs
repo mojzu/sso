@@ -138,7 +138,6 @@ pub struct ConfigOauth2Providers {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigOauth2 {
     pub domain: Url,
-    pub path: String,
     pub clients: HashMap<Uuid, ConfigOauth2Client>,
     pub users: HashMap<Uuid, ConfigOauth2User>,
     #[serde(default)]

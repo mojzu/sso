@@ -180,6 +180,12 @@
       ]
     },
     {
+      "label": "cargo - install",
+      "type": "shell",
+      "command": "cargo install --path .",
+      "problemMatcher": []
+    },
+    {
       "label": "cargo - update",
       "type": "shell",
       "command": "cargo update",

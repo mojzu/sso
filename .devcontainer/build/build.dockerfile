@@ -55,7 +55,8 @@ RUN apt-get autoremove -y \
 ENV DEBIAN_FRONTEND=dialog
 
 # Set cache directories in volume
-ENV CARGO_HOME="/workspace/.cargo"
+ENV CARGO_HOME="/workspace/.cargo" \
+    PATH=/workspace/.cargo/bin:$PATH
 RUN npm config set cache /workspace/.npm --global
 
 # Fix: Fixes docker socket has incorrect group ownership

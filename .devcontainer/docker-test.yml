@@ -47,9 +47,6 @@ services:
     depends_on:
       - client
 
-  # Todo: Selenium service, how to work with webdriver?
-  # <https://github.com/SeleniumHQ/docker-selenium#debugging>
-
   postgres2:
     image: sso/build-postgres:latest
     restart: unless-stopped

@@ -51,10 +51,17 @@
                     <li class="toctree-l1"><a class="reference internal" href="../..">Introduction</a>
                     </li>
                 </ul>
+                <p class="caption"><span class="caption-text">User</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../user/start/">Start</a>
+                    </li>
+                </ul>
                 <p class="caption"><span class="caption-text">Developer</span></p>
                 <ul class="current">
                     <li class="toctree-l1 current"><a class="reference internal current" href="./">Start</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#developing">Developing</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a>
@@ -112,10 +119,21 @@
                 <h1 id="start">Start</h1>
 <p>Clone repository and <code>Open folder in container</code>, using the vscode <a href="https://code.visualstudio.com/docs/remote/containers">Remote Development</a> extension.</p>
 <p>Run vscode <a href="https://code.visualstudio.com/docs/editor/tasks">Tasks</a> using the command palette or the Task Explorer extension.</p>
+<h2 id="configuration">Configuration</h2>
+<p>The <code>sso_server</code> and <code>sso_cli</code> binaries depend on a configuration file, by default this is read from <code>./.config/sso.toml</code> or it can be configured with the <code>--config</code> command line argument (For example <code>--config .config/sso.example</code>). An example configuration file can be found at <code>.config/sso.example.toml</code>.</p>
+<p>OAuth2 clients and users can be statically defined in this file, configuration can be generated using the <code>sso_cli</code> binary. A postgres database connection is required, the example configuration works with the postgres service started by the <a href="../tasks/#postgres-up">postgres - up</a> task.</p>
+<p>Run the <a href="../tasks/#cargo-install">cargo - install</a> task.</p>
+<p>To generate a client configuration run the following command, save the client secret key and copy the TOML output into the configuration file.</p>
+<pre><code class="bash">sso_cli generate client $NAME $REDIRECT_URI
+</code></pre>
+
+<p>to generate a user configuration run the following command, save the user password and copy the TOML output into the configuration file.</p>
+<pre><code class="bash">sso_cli generate user $NAME $EMAIL
+</code></pre>
+
 <h2 id="developing">Developing</h2>
 <p>Run the following commands to compile and run tests during development, tests depend on <a href="#webdriver-manager">Webdriver Manager</a>.</p>
 <ul>
-<li><a href="../tasks/#postgres-build">postgres - build</a></li>
 <li><a href="../tasks/#postgres-up">postgres - up</a></li>
 <li><a href="../tasks/#cargo-sso_server">cargo - sso_server</a></li>
 <li><a href="../tasks/#npm-start-client-example-express-passport">npm - start client example (express, passport)</a></li>
@@ -128,7 +146,6 @@
 <h2 id="testing">Testing</h2>
 <p>Run the following commands to build docker images and run tests for production, tests depend on <a href="#webdriver-manager">Webdriver Manager</a>.</p>
 <ul>
-<li><a href="../tasks/#docker-test-build">docker test - build</a></li>
 <li><a href="../tasks/#docker-test-up">docker test - up</a></li>
 <li><a href="../tasks/#docker-test-protractor">docker test - protractor</a></li>
 </ul>
@@ -170,7 +187,7 @@ npm run webdriver-start
         <a href="../tasks/" class="btn btn-neutral float-right" title="Tasks">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../.." class="btn btn-neutral" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../user/start/" class="btn btn-neutral" title="Start"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -200,7 +217,7 @@ npm run webdriver-start
           <a href="https://github.com/mojzu/sso/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
-        <span><a href="../.." style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../../user/start/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
         <span style="margin-left: 15px"><a href="../tasks/" style="color: #fcfcfc">Next &raquo;</a></span>
