@@ -41,6 +41,8 @@ services:
     image: sso/test-protractor:latest
     restart: "no"
     network_mode: "host"
+    # This is here so tests do not run on container startup, tests
+    # are run with the `docker test - protractor` task
     entrypoint: ["echo", "sso/test-protractor image"]
     volumes:
       - "mailto:/opt/mailto"

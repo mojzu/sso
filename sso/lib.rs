@@ -62,7 +62,7 @@ pub use crate::{
 // - Replace reqwest with surf?
 // - Improved prometheus metrics, labelling, docker container for testing
 //     - https://prometheus.io/
-// - Prometheus alert definitions
+// - Prometheus alert definitions/examples
 // - Opentelemetry Jaeger/other integration?
 //     - https://github.com/open-telemetry/opentelemetry-rust/blob/master/examples/actix-http/src/main.rs
 // - Fluentd/sentry integration?
@@ -94,4 +94,6 @@ pub use crate::{
 // - Github Oauth2 provider support
 // - Expose more SMTP transport options?
 // - CORS support for API requests, or docs on how to add at proxy layer?
-// - TLS support/testing
+// - TLS support/testing, client authentication?
+// - Rate limiting support, or at proxy level?
+// - Kubernetes examples/support/integration

@@ -59,5 +59,9 @@ ENV CARGO_HOME="/workspace/.cargo" \
     PATH=/workspace/.cargo/bin:$PATH
 RUN npm config set cache /workspace/.npm --global
 
+# Add version printing script
+COPY .devcontainer/build/library-scripts/versions.sh /versions.sh
+RUN chmod +x /versions.sh
+
 # Fix: Fixes docker socket has incorrect group ownership
 RUN sudo chown vscode:999 /var/run/docker.sock

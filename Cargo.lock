@@ -1365,9 +1365,9 @@ checksum = "c3360c7b59e5ffa2653671fb74b4741a5d343c03f331c0a4aeda42b5c2b0ec7d"
 
 [[package]]
 name = "indexmap"
-version = "1.5.1"
+version = "1.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86b45e59b16c76b11bf9738fd5d38879d3bd28ad292d7b313608becb17ae2df9"
+checksum = "4e47a3566dd4fd4eec714ae6ceabdee0caec795be835c223d92c2d40f1e8cf1c"
 dependencies = [
  "autocfg 1.0.1",
  "hashbrown",
@@ -1863,7 +1863,7 @@ dependencies = [
 [[package]]
 name = "opentelemetry"
 version = "0.8.0"
-source = "git+https://github.com/open-telemetry/opentelemetry-rust#87282367c5a9dd81df818710c26cdb242270f558"
+source = "git+https://github.com/open-telemetry/opentelemetry-rust#de4ff0cc949c7f6d1fd7d947fe43fc98377e2ac7"
 dependencies = [
  "bincode",
  "dashmap",
@@ -1880,7 +1880,7 @@ dependencies = [
 [[package]]
 name = "opentelemetry-prometheus"
 version = "0.1.0"
-source = "git+https://github.com/open-telemetry/opentelemetry-rust#87282367c5a9dd81df818710c26cdb242270f558"
+source = "git+https://github.com/open-telemetry/opentelemetry-rust#de4ff0cc949c7f6d1fd7d947fe43fc98377e2ac7"
 dependencies = [
  "opentelemetry",
  "prometheus",
@@ -2199,9 +2199,9 @@ checksum = "eba180dafb9038b050a4c280019bbedf9f2467b61e5d892dcad585bb57aadc5a"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.19"
+version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04f5f085b5d71e2188cb8271e5da0161ad52c3f227a661a3c135fdf28e258b12"
+checksum = "175c513d55719db99da20232b06cda8bab6b83ec2d04e3283edf0213c37c1a29"
 dependencies = [
  "unicode-xid",
 ]

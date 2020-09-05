@@ -8,6 +8,7 @@ site_dir: docs
 dev_addr: 0.0.0.0:8079
 nav:
   - index.md
+  - changelog.md
   - User:
     - user/start.md
   - Developer:
