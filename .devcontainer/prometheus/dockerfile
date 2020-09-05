@@ -1,0 +1,4 @@
+FROM prom/prometheus:v2.20.1
+
+ADD prometheus.yml /etc/prometheus/
+ADD alert.rules.yml /etc/prometheus/

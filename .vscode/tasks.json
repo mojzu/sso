@@ -26,6 +26,12 @@
       "problemMatcher": []
     },
     {
+      "label": "postgres - ps",
+      "type": "shell",
+      "command": "docker-compose -f .devcontainer/docker-postgres.yml ps",
+      "problemMatcher": []
+    },
+    {
       "label": "postgres - read sample configuration file",
       "type": "shell",
       "command": "docker run -i --rm sso/build-postgres:latest cat /usr/share/postgresql/postgresql.conf.sample > postgres.conf",
@@ -70,6 +76,24 @@
       "type": "shell",
       "group": "build",
       "command": "docker-compose -f .devcontainer/docker-build.yml build",
+      "problemMatcher": []
+    },
+    {
+      "label": "docker - stats",
+      "type": "shell",
+      "command": "docker stats",
+      "problemMatcher": []
+    },
+    {
+      "label": "docker monitor - up",
+      "type": "shell",
+      "command": "docker-compose -f .devcontainer/docker-monitor.yml up",
+      "problemMatcher": []
+    },
+    {
+      "label": "docker monitor - down",
+      "type": "shell",
+      "command": "docker-compose -f .devcontainer/docker-monitor.yml down",
       "problemMatcher": []
     },
     {
@@ -135,6 +159,12 @@
       "label": "docker test - down",
       "type": "shell",
       "command": "docker-compose -f .devcontainer/docker-test.yml down",
+      "problemMatcher": []
+    },
+    {
+      "label": "docker test - ps",
+      "type": "shell",
+      "command": "docker-compose -f .devcontainer/docker-test.yml ps",
       "problemMatcher": []
     },
     {

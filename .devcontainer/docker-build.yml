@@ -16,6 +16,14 @@ services:
     restart: "no"
     entrypoint: ["echo", "sso/build-mkdocs image"]
 
+  build-prometheus:
+    build:
+      context: prometheus
+      dockerfile: dockerfile
+    image: sso/build-prometheus:latest
+    restart: "no"
+    entrypoint: ["echo", "sso/build-prometheus image"]
+
   build:
     build:
       context: ..
