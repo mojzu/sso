@@ -70,6 +70,10 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#documenting">Documenting</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#designing">Designing</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#webdriver-manager">Webdriver Manager</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#pgadmin">pgAdmin</a>
@@ -136,7 +140,7 @@
 </code></pre>
 
 <h2 id="developing">Developing</h2>
-<p>Run the following commands to compile and run tests during development, tests depend on <a href="#webdriver-manager">Webdriver Manager</a>.</p>
+<p>Run the following tasks to compile and run tests during development, tests depend on <a href="#webdriver-manager">Webdriver Manager</a>.</p>
 <ul>
 <li><a href="../tasks/#postgres-up">postgres - up</a></li>
 <li><a href="../tasks/#cargo-sso_server">cargo - sso_server</a></li>
@@ -148,7 +152,7 @@
 <li><a href="../tasks/#postgres-down">postgres - down</a></li>
 </ul>
 <h2 id="testing">Testing</h2>
-<p>Run the following commands to build docker images and run tests for production, tests depend on <a href="#webdriver-manager">Webdriver Manager</a>.</p>
+<p>Run the following tasks to build docker images and run tests for production, tests depend on <a href="#webdriver-manager">Webdriver Manager</a>.</p>
 <ul>
 <li><a href="../tasks/#docker-test-up">docker test - up</a></li>
 <li><a href="../tasks/#docker-test-protractor">docker test - protractor</a></li>
@@ -157,6 +161,15 @@
 <ul>
 <li><a href="../tasks/#docker-test-down">docker test - down</a></li>
 </ul>
+<h2 id="documenting">Documenting</h2>
+<p>Run the following tasks to serve the manual development server or build manual static site.</p>
+<ul>
+<li><a href="../tasks/#mkdocs-serve">mkdocs - serve</a></li>
+<li><a href="../tasks/#mkdocs-build">mkdocs - build</a></li>
+</ul>
+<h2 id="designing">Designing</h2>
+<p>Client HTML templates change the appearance of the web interface, run the template builder using the <code>npm - run template builder</code> task.</p>
+<p>Template source files are located in the <code>sso_test/template</code> directory. A build will write output files to the <code>sso_test/tmp/template</code> directory. Open <code>index.html</code> in a browser to check the appearance, and add <code>template.html</code> to the configuration file when complete.</p>
 <h2 id="webdriver-manager">Webdriver Manager</h2>
 <p>Tests depend on <a href="https://www.npmjs.com/package/webdriver-manager">Webdriver Manager</a>, start it outside of the remote development container using the commands.</p>
 <pre><code class="bash">npm run webdriver-update

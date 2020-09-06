@@ -26,7 +26,7 @@ sso_cli generate user $NAME $EMAIL
 
 ## Developing
 
-Run the following commands to compile and run tests during development, tests depend on [Webdriver Manager](#webdriver-manager).
+Run the following tasks to compile and run tests during development, tests depend on [Webdriver Manager](#webdriver-manager).
 
 -   [postgres - up](tasks.md#postgres-up)
 -   [cargo - sso_server](tasks.md#cargo-sso_server)
@@ -39,7 +39,7 @@ To stop and destroy postgres services.
 
 ## Testing
 
-Run the following commands to build docker images and run tests for production, tests depend on [Webdriver Manager](#webdriver-manager).
+Run the following tasks to build docker images and run tests for production, tests depend on [Webdriver Manager](#webdriver-manager).
 
 -   [docker test - up](tasks.md#docker-test-up)
 -   [docker test - protractor](tasks.md#docker-test-protractor)
@@ -47,6 +47,19 @@ Run the following commands to build docker images and run tests for production, 
 To stop and destroy test services.
 
 -   [docker test - down](tasks.md#docker-test-down)
+
+## Documenting
+
+Run the following tasks to serve the manual development server or build manual static site.
+
+-   [mkdocs - serve](tasks.md#mkdocs-serve)
+-   [mkdocs - build](tasks.md#mkdocs-build)
+
+## Designing
+
+Client HTML templates change the appearance of the web interface, run the template builder using the `npm - run template builder` task.
+
+Template source files are located in the `sso_test/template` directory. A build will write output files to the `sso_test/tmp/template` directory. Open `index.html` in a browser to check the appearance, and add `template.html` to the configuration file when complete.
 
 ## Webdriver Manager
 
