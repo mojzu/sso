@@ -1,4 +1,19 @@
+//! # Configuration
 use crate::internal::*;
+
+/// Log Configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigLog {
+    pub pretty: bool,
+}
+
+/// HTTP Configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigHttp {
+    pub public: ConfigHttpIf,
+    pub private: ConfigHttpIf,
+    pub cookie: ConfigHttpCookie,
+}
 
 /// HTTP Interface Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,49 +32,14 @@ pub struct ConfigHttpCookie {
     pub max_age: i64,
 }
 
-/// HTTP Configuration
+/// OAuth2 Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigHttp {
-    pub public: ConfigHttpIf,
-    pub private: ConfigHttpIf,
-    pub cookie: ConfigHttpCookie,
-}
-
-/// OAuth2 Client Template Configuration
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct ConfigOauth2ClientTemplate {
-    pub file: Option<String>,
+pub struct ConfigOauth2 {
+    pub domain: Url,
+    pub clients: HashMap<Uuid, ConfigOauth2Client>,
+    pub users: HashMap<Uuid, ConfigOauth2User>,
     #[serde(default)]
-    pub content: String,
-}
-
-/// OAuth2 Client Templates Configuration
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct ConfigOauth2ClientTemplates {
-    #[serde(default)]
-    pub html: ConfigOauth2ClientTemplate,
-    #[serde(default)]
-    pub mail_text: ConfigOauth2ClientTemplate,
-}
-
-/// OAuth2 Client TTL Configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigOauth2ClientTtl {
-    /// Number of seconds a CSRF token is valid for
-    #[serde(default = "default_as_3600")]
-    pub csrf_s: i64,
-    /// Number of seconds a code is valid for
-    #[serde(default = "default_as_3600")]
-    pub code_s: i64,
-    /// Number of seconds an OAuth2 code is valid for
-    #[serde(default = "default_as_3600")]
-    pub oauth2_code_s: i64,
-    /// Number of seconds an access token is valid for
-    #[serde(default = "default_as_3600")]
-    pub token_access_s: i64,
-    /// Number of seconds after access token expiry that refresh token is valid for
-    #[serde(default = "default_as_86400")]
-    pub token_refresh_s: i64,
+    pub providers: ConfigOauth2Providers,
 }
 
 /// OAuth2 Client Configuration
@@ -89,13 +69,41 @@ pub struct ConfigOauth2Client {
     pub templates: ConfigOauth2ClientTemplates,
 }
 
-/// OAuth2 User Access Configuration
+/// OAuth2 Client TTL Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigOauth2UserAccess {
-    #[serde(default = "default_as_true")]
-    pub enable: bool,
+pub struct ConfigOauth2ClientTtl {
+    /// Number of seconds a CSRF token is valid for
+    #[serde(default = "default_as_3600")]
+    pub csrf_s: i64,
+    /// Number of seconds a code is valid for
+    #[serde(default = "default_as_3600")]
+    pub code_s: i64,
+    /// Number of seconds an OAuth2 code is valid for
+    #[serde(default = "default_as_3600")]
+    pub oauth2_code_s: i64,
+    /// Number of seconds an access token is valid for
+    #[serde(default = "default_as_3600")]
+    pub token_access_s: i64,
+    /// Number of seconds after access token expiry that refresh token is valid for
+    #[serde(default = "default_as_86400")]
+    pub token_refresh_s: i64,
+}
+
+/// OAuth2 Client Templates Configuration
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct ConfigOauth2ClientTemplates {
     #[serde(default)]
-    pub scope: Vec<String>,
+    pub html: ConfigOauth2ClientTemplate,
+    #[serde(default)]
+    pub mail_text: ConfigOauth2ClientTemplate,
+}
+
+/// OAuth2 Client Template Configuration
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct ConfigOauth2ClientTemplate {
+    pub file: Option<String>,
+    #[serde(default)]
+    pub content: String,
 }
 
 /// OAuth2 User Configuration
@@ -116,6 +124,22 @@ pub struct ConfigOauth2User {
     pub access: HashMap<Uuid, ConfigOauth2UserAccess>,
 }
 
+/// OAuth2 User Access Configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigOauth2UserAccess {
+    #[serde(default = "default_as_true")]
+    pub enable: bool,
+    #[serde(default)]
+    pub scope: Vec<String>,
+}
+
+/// OAuth2 Providers Configuration
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct ConfigOauth2Providers {
+    pub sso: Option<ConfigOauth2Provider>,
+    pub microsoft: Option<ConfigOauth2Provider>,
+}
+
 /// OAuth2 Provider Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigOauth2Provider {
@@ -127,67 +151,6 @@ pub struct ConfigOauth2Provider {
     pub oidc_userinfo_uri: Option<Url>,
 }
 
-/// OAuth2 Providers Configuration
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct ConfigOauth2Providers {
-    pub sso: Option<ConfigOauth2Provider>,
-    pub microsoft: Option<ConfigOauth2Provider>,
-}
-
-/// OAuth2 Configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigOauth2 {
-    pub domain: Url,
-    pub clients: HashMap<Uuid, ConfigOauth2Client>,
-    pub users: HashMap<Uuid, ConfigOauth2User>,
-    #[serde(default)]
-    pub providers: ConfigOauth2Providers,
-}
-
-/// Log Configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigLog {
-    pub pretty: bool,
-}
-
-/// Stdout Mailto Configuration
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct ConfigMailtoStdout {
-    pub enable: bool,
-}
-
-/// File Mailto Configuration
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct ConfigMailtoFile {
-    pub file: Option<String>,
-}
-
-/// SMTP Login Mailto Configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigMailtoSmtpLogin {
-    pub user: String,
-    pub password: String,
-}
-
-/// SMTP Mailto Configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfigMailtoSmtp {
-    pub host: String,
-    pub port: u16,
-    pub from: String,
-    pub login: Option<ConfigMailtoSmtpLogin>,
-}
-
-/// Mailto Configuration
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct ConfigMailto {
-    #[serde(default)]
-    pub stdout: ConfigMailtoStdout,
-    #[serde(default)]
-    pub file: ConfigMailtoFile,
-    pub smtp: Option<ConfigMailtoSmtp>,
-}
-
 /// Configuration
 #[derive(Debug, Clone, Deserialize)]
 pub struct Config {
@@ -195,7 +158,15 @@ pub struct Config {
     pub http: ConfigHttp,
     pub oauth2: ConfigOauth2,
     pub postgres: deadpool_postgres::Config,
-    pub mailto: ConfigMailto,
+    #[serde(default)]
+    pub mailto: mailto::Config,
+    #[serde(default)]
+    pub metrics: metrics::Config,
+}
+
+/// Parse configuration from environment variables
+pub fn from_env(file_name: &str) -> Result<Config> {
+    Config::from_env(file_name)
 }
 
 impl Config {
@@ -232,13 +203,13 @@ impl Config {
                 application_name = "{}"
 
                 "#,
-                NAME
+                util::NAME
             ),
             config::FileFormat::Toml,
         ))?;
         cfg.merge(config::File::with_name(file_name))?;
 
-        cfg.merge(config::Environment::with_prefix(NAME).separator("_"))?;
+        cfg.merge(config::Environment::with_prefix(util::NAME).separator("_"))?;
 
         cfg.try_into().map_err(Error::ConfigError)
     }

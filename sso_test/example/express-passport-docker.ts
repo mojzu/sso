@@ -11,7 +11,6 @@ app_listen({
     clientId: CLIENT_ID,
     clientSecret: CLIENT_SECRET,
     authorizeUri: AUTHORIZE_URI,
-    // Fix: Fixes URIs when running inside docker container
     tokenUri: `http://sso:7042/v2/oauth2/token`,
     redirectUri: REDIRECT_URI,
     port: 8080,

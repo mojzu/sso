@@ -13,21 +13,21 @@ extern crate serde_json;
 #[macro_use]
 extern crate validator_derive;
 
-mod cli;
-mod client;
+pub mod cli;
 mod common;
-mod config;
+pub mod config;
 mod error;
+pub mod http_client;
+pub mod http_server;
 mod internal;
-mod mailto;
+pub mod mailto;
+pub mod metrics;
 pub mod oauth2;
 mod postgres;
-mod server;
-mod util;
+pub mod util;
+pub mod validate;
 
-pub use crate::{
-    cli::*, client::*, config::*, error::*, mailto::*, postgres::*, server::*, util::*,
-};
+pub use crate::error::*;
 
 // Todo: Fix
 // - Metrics counters incrementing on each collection?

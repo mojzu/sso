@@ -3,7 +3,7 @@ use tokio_postgres::Row;
 
 /// Postgres
 #[derive(Clone)]
-pub struct Postgres {
+pub(crate) struct Postgres {
     pool: deadpool_postgres::Pool,
 }
 
@@ -92,7 +92,11 @@ impl Postgres {
         Ok(value.to_string())
     }
 
-    pub async fn password_check(&self, email: &str, password: &str) -> Result<UserPasswordCheck> {
+    pub async fn password_check(
+        &self,
+        email: &str,
+        password: &str,
+    ) -> Result<PostgresUserPasswordCheck> {
         let conn = self.pool.get().await?;
 
         let statement = conn
@@ -104,7 +108,7 @@ impl Postgres {
         if rows.is_empty() {
             return Err("email not found".into());
         }
-        let row: UserPasswordCheck = rows.remove(0).into();
+        let row: PostgresUserPasswordCheck = rows.remove(0).into();
 
         if !row.enable {
             return Err("user is disabled".into());
@@ -969,7 +973,7 @@ impl Postgres {
     pub async fn access_read_many(
         &self,
         client: &Client,
-        req: RequestAccessRead,
+        _req: RequestAccessRead,
     ) -> Result<ResponseAccessMany> {
         let conn = self.pool.get().await?;
 
@@ -1301,14 +1305,14 @@ impl PostgresQuery {
     }
 }
 
-pub struct UserPasswordCheck {
+pub(crate) struct PostgresUserPasswordCheck {
     pub id: Uuid,
     pub check: bool,
     pub enable: bool,
     pub require_update: bool,
 }
 
-impl From<Row> for UserPasswordCheck {
+impl From<Row> for PostgresUserPasswordCheck {
     fn from(row: Row) -> Self {
         Self {
             id: row.get("id"),
@@ -1452,8 +1456,9 @@ impl From<&Row> for ResponseApiKey {
     }
 }
 
+/// Audit
 #[derive(Debug, Clone, Serialize)]
-pub struct Audit {
+pub(crate) struct Audit {
     pub client_id: Option<Uuid>,
     pub user_id: Option<Uuid>,
     pub token_id: Option<Uuid>,
@@ -1558,7 +1563,7 @@ impl Audit {
 /// Code Target Postgres Type
 #[derive(Debug, Clone, ToSql, FromSql)]
 #[postgres(name = "sso_code_target")]
-pub enum PostgresCodeTarget {
+pub(crate) enum PostgresCodeTarget {
     Auth,
     PasswordReset,
     Register,
@@ -1568,7 +1573,7 @@ pub enum PostgresCodeTarget {
 /// OAuth2 Provider Postgres Type
 #[derive(Debug, Clone, ToSql, FromSql)]
 #[postgres(name = "sso_oauth2_provider")]
-pub enum PostgresOauth2Provider {
+pub(crate) enum PostgresOauth2Provider {
     Sso,
     Microsoft,
 }
@@ -1595,14 +1600,14 @@ impl PostgresOauth2Provider {
 /// OAuth2 Target Postgres Type
 #[derive(Debug, Clone, ToSql, FromSql)]
 #[postgres(name = "sso_oauth2_target")]
-pub enum PostgresOauth2Target {
+pub(crate) enum PostgresOauth2Target {
     Auth,
     Register,
 }
 
 /// Code Postgres Type
 #[derive(Debug, Clone)]
-pub struct PostgresCode {
+pub(crate) struct PostgresCode {
     pub client_id: Uuid,
     pub user_id: Option<Uuid>,
     pub state: String,
@@ -1612,7 +1617,7 @@ pub struct PostgresCode {
 
 /// OAuth2 Code Postgres Type
 #[derive(Debug, Clone)]
-pub struct PostgresOauth2Code {
+pub(crate) struct PostgresOauth2Code {
     pub provider: PostgresOauth2Provider,
     pub target: PostgresOauth2Target,
     pub pkce: String,
@@ -1624,7 +1629,7 @@ pub struct PostgresOauth2Code {
 
 /// Token Postgres Type
 #[derive(Debug, Clone)]
-pub struct PostgresToken {
+pub(crate) struct PostgresToken {
     pub access_token: String,
     pub refresh_token: String,
     pub scope: oauth2::Scope,

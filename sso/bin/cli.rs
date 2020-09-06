@@ -102,36 +102,36 @@ async fn main() {
 
     let config_name = matches.value_of(ARG_CONFIG).unwrap_or(".config/sso");
     let config =
-        sso::Config::from_env(config_name).expect("parse configuration from environment failure");
+        sso::config::from_env(config_name).expect("parse configuration from environment failure");
     let config = config
         .load_templates()
         .await
         .expect("load template files failure");
 
-    sso::init_panic(config.log.pretty);
-    sso::init_log(config.log.pretty);
+    sso::util::init_panic(config.log.pretty);
+    sso::util::init_log(config.log.pretty);
 
     match matches.subcommand() {
         (CMD_GENERATE, Some(submatches)) => match submatches.subcommand() {
             (CMD_SECRET, Some(_submatches)) => {
-                sso::Cli::generate_secret(&config).await;
+                sso::cli::generate_secret(&config).await;
             }
             (CMD_PASSWORD, Some(_submatches)) => {
-                sso::Cli::generate_password(&config).await;
+                sso::cli::generate_password(&config).await;
             }
             (CMD_CLIENT, Some(submatches)) => {
                 let client_id = submatches.value_of(ARG_CLIENT_ID);
                 let client_name = submatches.value_of(ARG_CLIENT_NAME).unwrap();
                 let redirect_uri = submatches.value_of(ARG_REDIRECT_URI).unwrap();
                 let scope = submatches.value_of(ARG_SCOPE).unwrap_or("");
-                sso::Cli::generate_client(&config, client_id, client_name, redirect_uri, scope)
+                sso::cli::generate_client(&config, client_id, client_name, redirect_uri, scope)
                     .await;
             }
             (CMD_USER, Some(submatches)) => {
                 let user_id = submatches.value_of(ARG_USER_ID);
                 let user_name = submatches.value_of(ARG_USER_NAME).unwrap();
                 let user_email = submatches.value_of(ARG_USER_EMAIL).unwrap();
-                sso::Cli::generate_user(&config, user_id, user_name, user_email).await;
+                sso::cli::generate_user(&config, user_id, user_name, user_email).await;
             }
             _ => {
                 println!("{}", submatches.usage());
@@ -139,28 +139,28 @@ async fn main() {
         },
         (CMD_POSTGRES, Some(submatches)) => match submatches.subcommand() {
             (CMD_SETUP, Some(_submatches)) => {
-                sso::Cli::postgres_setup(&config).await;
+                sso::cli::postgres_setup(&config).await;
             }
             (CMD_TEARDOWN, Some(_submatches)) => {
-                sso::Cli::postgres_teardown(&config).await;
+                sso::cli::postgres_teardown(&config).await;
             }
             _ => {
                 println!("{}", submatches.usage());
             }
         },
         (CMD_BACKUP, Some(_submatches)) => {
-            sso::Cli::backup(&config).await;
+            sso::cli::backup(&config).await;
         }
         (CMD_AUDIT, Some(submatches)) => match submatches.subcommand() {
             (CMD_READ, Some(submatches)) => {
                 let id = submatches.value_of(ARG_ID);
                 let id = id.map(|x| x.parse::<i64>().unwrap());
-                sso::Cli::audit_read(&config, id).await;
+                sso::cli::audit_read(&config, id).await;
             }
             (CMD_RETENTION, Some(submatches)) => {
                 let days = submatches.value_of(ARG_DAYS).unwrap();
                 let days = days.parse::<i32>().unwrap();
-                sso::Cli::audit_retention(&config, days).await;
+                sso::cli::audit_retention(&config, days).await;
             }
             _ => {
                 println!("{}", submatches.usage());

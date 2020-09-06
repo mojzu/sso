@@ -1,3 +1,4 @@
+//! # Mailto
 use crate::internal::*;
 use lettre::{
     smtp::authentication::{Credentials, Mechanism},
@@ -7,36 +8,46 @@ use lettre_email::Email;
 use native_tls::{Protocol, TlsConnector};
 use tokio::prelude::*;
 
+/// Mailto Configuration
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct Config {
+    #[serde(default)]
+    pub stdout: ConfigStdout,
+    #[serde(default)]
+    pub file: ConfigFile,
+    pub smtp: Option<ConfigSmtp>,
+}
+
 /// Mailto
 #[derive(Clone)]
 pub struct Mailto {
-    pub config: Arc<ConfigMailto>,
-    pub file: Option<Arc<Mutex<tokio::fs::File>>>,
-    pub smtp: Option<MailtoSmtp>,
-    pub opentelemetry: Arc<ServerOpentelemetry>,
-}
-
-/// Mailto SMTP
-#[derive(Clone)]
-pub struct MailtoSmtp {
-    pub from: String,
-    pub client: SmtpClient,
+    config: Arc<Config>,
+    file: Option<Arc<Mutex<tokio::fs::File>>>,
+    smtp: Option<MailtoSmtp>,
+    opentelemetry: Arc<MailtoOpentelemetry>,
 }
 
 /// Mailto Send
 #[derive(Debug, Clone, Serialize)]
-pub struct MailtoSend {
+pub struct Send {
     to: String,
     subject: String,
     text: String,
 }
 
+/// Create mailto from configuration
+pub async fn from_config(metrics: &metrics::Metrics, config: Config) -> Result<Mailto> {
+    Mailto::from_config(metrics, config).await
+}
+
 impl Mailto {
+    /// Returns configuration
+    pub fn config(&self) -> &Config {
+        self.config.as_ref()
+    }
+
     /// Create mailto from configuration
-    pub async fn from_config(
-        config: ConfigMailto,
-        opentelemetry: Arc<ServerOpentelemetry>,
-    ) -> Self {
+    pub async fn from_config(metrics: &metrics::Metrics, config: Config) -> Result<Self> {
         let file = if let Some(file) = &config.file.file {
             let f = tokio::fs::File::create(file).await.unwrap();
             Some(f)
@@ -54,29 +65,53 @@ impl Mailto {
             None
         };
 
-        Self {
+        let opentelemetry = MailtoOpentelemetry {
+            ok_count: metrics
+                .meter()
+                .u64_counter("mailto_ok_count")
+                .with_description("Total number of mailto send successes.")
+                .init()
+                .bind(&[]),
+            err_count: metrics
+                .meter()
+                .u64_counter("mailto_err_count")
+                .with_description("Total number of mailto send errors.")
+                .init()
+                .bind(&[]),
+        };
+
+        Ok(Self {
             config: Arc::new(config),
             file: file.map(|x| Arc::new(Mutex::new(x))),
             smtp,
-            opentelemetry,
+            opentelemetry: Arc::new(opentelemetry),
+        })
+    }
+
+    /// Build mail
+    pub fn build(&self, to: &str, subject: &str, text: &str) -> Send {
+        Send {
+            to: to.to_string(),
+            subject: subject.to_string(),
+            text: text.to_string(),
         }
     }
 
     /// Send mail
-    pub async fn send(&self, send: MailtoSend) -> Result<()> {
+    pub async fn send(&self, send: Send) -> Result<()> {
         match self.send_inner(send).await {
             Ok(_) => {
-                self.opentelemetry.mailto_ok_count.add(1);
+                self.opentelemetry.ok_count.add(1);
                 Ok(())
             }
             Err(e) => {
-                self.opentelemetry.mailto_err_count.add(1);
+                self.opentelemetry.err_count.add(1);
                 Err(e)
             }
         }
     }
 
-    async fn send_inner(&self, send: MailtoSend) -> Result<()> {
+    async fn send_inner(&self, send: Send) -> Result<()> {
         let json_out = serde_json::to_string(&send).unwrap();
 
         if self.config.stdout.enable {
@@ -93,8 +128,8 @@ impl Mailto {
         Ok(())
     }
 
-    async fn smtp_send(&self, smtp: MailtoSmtp, send: MailtoSend) -> Result<()> {
-        blocking(move || {
+    async fn smtp_send(&self, smtp: MailtoSmtp, send: Send) -> Result<()> {
+        util::blocking(move || {
             let email = Email::builder()
                 .from(smtp.from)
                 .to(send.to)
@@ -109,7 +144,7 @@ impl Mailto {
         .await
     }
 
-    fn smtp_client(config: &ConfigMailtoSmtp) -> Result<SmtpClient> {
+    fn smtp_client(config: &ConfigSmtp) -> Result<SmtpClient> {
         let mut tls_builder = TlsConnector::builder();
         tls_builder.min_protocol_version(Some(Protocol::Tlsv10));
         let tls_parameters =
@@ -134,13 +169,44 @@ impl Mailto {
     }
 }
 
-impl MailtoSend {
-    /// Create new mail to send
-    pub fn new(to: &str, subject: &str, text: &str) -> Self {
-        Self {
-            to: to.to_string(),
-            subject: subject.to_string(),
-            text: text.to_string(),
-        }
-    }
+/// Stdout Mailto Configuration
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct ConfigStdout {
+    pub enable: bool,
+}
+
+/// File Mailto Configuration
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct ConfigFile {
+    pub file: Option<String>,
+}
+
+/// SMTP Mailto Configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigSmtp {
+    pub host: String,
+    pub port: u16,
+    pub from: String,
+    pub login: Option<ConfigSmtpLogin>,
+}
+
+/// SMTP Login Mailto Configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigSmtpLogin {
+    pub user: String,
+    pub password: String,
+}
+
+/// Mailto SMTP
+#[derive(Clone)]
+struct MailtoSmtp {
+    from: String,
+    client: SmtpClient,
+}
+
+/// Mailto Opentelemetry
+#[derive(Debug)]
+struct MailtoOpentelemetry {
+    ok_count: BoundCounter<'static, u64>,
+    err_count: BoundCounter<'static, u64>,
 }

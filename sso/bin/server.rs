@@ -29,14 +29,14 @@ async fn main() {
 
     let config_name = matches.value_of(ARG_CONFIG).unwrap_or(".config/sso");
     let config =
-        sso::Config::from_env(config_name).expect("parse configuration from environment failure");
+        sso::config::from_env(config_name).expect("parse configuration from environment failure");
     let config = config
         .load_templates()
         .await
         .expect("load template files failure");
 
-    sso::init_panic(config.log.pretty);
-    sso::init_log(config.log.pretty);
+    sso::util::init_panic(config.log.pretty);
+    sso::util::init_log(config.log.pretty);
 
     let local = tokio::task::LocalSet::new();
     let sys = actix_rt::System::run_in_tokio("server", &local);
@@ -44,7 +44,7 @@ async fn main() {
         .run_until(async move {
             debug!("start");
 
-            let server = sso::Server::from_config(config)
+            let server = sso::http_server::from_config(config)
                 .await
                 .expect("create server from environment failure");
 
@@ -67,11 +67,11 @@ async fn main() {
 
             info!(
                 "public interface listening on http://{}",
-                server.config.http.public.bind
+                server.config().http.public.bind
             );
             info!(
                 "private interface listening on http://{}",
-                server.config.http.private.bind
+                server.config().http.private.bind
             );
             sys.await.expect("actix system failure");
         })

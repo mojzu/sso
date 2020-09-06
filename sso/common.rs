@@ -481,29 +481,13 @@ pub struct ResponseApiKeyMany {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Apiv2Schema)]
 pub struct ResponseClient {
-    id: String,
-    name: String,
-    uri: String,
-    redirect_uri: String,
-    enable: bool,
-    scope: String,
-    user_scope: String,
-    register_enable: bool,
-    register_scope: String,
-}
-
-impl From<&Client> for ResponseClient {
-    fn from(x: &Client) -> Self {
-        Self {
-            id: x.client_id.to_string(),
-            name: x.client_name(),
-            uri: x.client_uri().as_str().to_string(),
-            redirect_uri: x.redirect_uri.as_str().to_string(),
-            enable: x.enable,
-            scope: x.scope.to_string(),
-            user_scope: x.user_scope.to_string(),
-            register_enable: x.register_enable,
-            register_scope: x.register_scope.to_string(),
-        }
-    }
+    pub id: String,
+    pub name: String,
+    pub uri: String,
+    pub redirect_uri: String,
+    pub enable: bool,
+    pub scope: String,
+    pub user_scope: String,
+    pub register_enable: bool,
+    pub register_scope: String,
 }
