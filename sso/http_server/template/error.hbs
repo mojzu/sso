@@ -1,19 +1,20 @@
 <div class="s-container">
     <div class="s-container-inner">
-        <div class="s-client">
+        <header class="s-client">
             <div class="s-client-name">{{ client_name }}</div>
             <div class="s-client-uri">
                 <a href="{{ client_uri }}">{{ client_domain }}</a>
             </div>
-        </div>
-
-        {{#if error}}<div class="s-error">
-            <div class="s-error-key">Error Code</div>
-            <div id="error-code" class="s-error-value s-error-margin">{{ error.code }}</div>
-            <div class="s-error-key">Error Description</div>
-            <div id="error-description" class="s-error-value s-error-margin">{{ error.description }}</div>
-            <div class="s-error-key">Audit ID</div>
-            <div id="error-audit-id" class="s-error-value">{{ error.audit_id }}</div>
-        </div>{{/if}}
+        </header>
+        <main>
+            {{#if error}}<div class="s-error">
+                <div class="s-error-key">Error Code</div>
+                <div id="error-code" class="s-error-value s-error-margin">{{ error.code }}</div>
+                <div class="s-error-key">Error Description</div>
+                <div id="error-description" class="s-error-value s-error-margin">{{ error.description }}</div>
+                <div class="s-error-key">Audit ID</div>
+                <div id="error-audit-id" class="s-error-value">{{ error.audit_id }}</div>
+            </div>{{/if}}
+        </main>
     </div>
 </div>

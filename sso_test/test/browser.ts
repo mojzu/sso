@@ -32,6 +32,7 @@ import {
     form_register_accept_oauth2_sso_submit,
     form_oauth2_sso_login_submit,
     api2,
+    AUTHORIZE_URI,
 } from "./util";
 
 describe("sso-browser", function () {
@@ -112,6 +113,27 @@ describe("sso-browser", function () {
         await error_check_code_description(
             "access_denied",
             "access is disabled"
+        );
+    });
+
+    it("should fail to login with too short or long password", async function () {
+        await browser_get_authorize();
+
+        await form_password_login_submit("admin@app.localhost", "guest");
+        // browser behaviour on minlength is to display error message
+        expect(await browser.getCurrentUrl()).toContain(AUTHORIZE_URI);
+
+        await browser_get_authorize();
+
+        await form_password_login_submit(
+            "admin@app.localhost",
+            "guestguestguestguestguestguestguestguestguestguestguestguestguest"
+        );
+        // browser behaviour on exceeding maxlength is to submit with value
+        // truncated to fit
+        await error_check_code_description(
+            "access_denied",
+            "password is incorrect"
         );
     });
 

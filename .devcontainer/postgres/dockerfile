@@ -1,3 +1,4 @@
+# depend: docker pull postgis/postgis:13-3.0
 FROM postgis/postgis:13-3.0
 
 ENV POSTGRES_USER="postgres" \

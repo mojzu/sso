@@ -13,5 +13,6 @@ nav:
     - user/start.md
   - Developer:
     - developer/start.md
+    - developer/design.md
     - developer/tasks.md
 theme: readthedocs

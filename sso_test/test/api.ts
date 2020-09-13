@@ -201,6 +201,31 @@ describe("sso-api", function () {
         }
     });
 
+    it("should fail to create user with too short or long password", async function () {
+        try {
+            await userCreate({
+                password: "guest",
+                allowReset: true,
+                requireUpdate: false,
+            });
+        } catch (e) {
+            expect(e.statusCode).toEqual(400);
+            expect(e.response.body.error).toEqual("BadRequest");
+            expect(e.response.body.message).toEqual("validation failed");
+        }
+        try {
+            await userCreate({
+                password: "guestguestguestguestguestguestguestguestguestguestguestguestguest",
+                allowReset: true,
+                requireUpdate: false,
+            });
+        } catch (e) {
+            expect(e.statusCode).toEqual(400);
+            expect(e.response.body.error).toEqual("BadRequest");
+            expect(e.response.body.message).toEqual("validation failed");
+        }
+    });
+
     it("should read users", async function () {
         let read = (await api.v2UserReadPost({})).body;
         expect(read).toBeDefined();

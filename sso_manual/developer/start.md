@@ -4,7 +4,7 @@ Clone repository and `Open folder in container`, using the vscode [Remote Develo
 
 Run vscode [Tasks](https://code.visualstudio.com/docs/editor/tasks) using the command palette or the Task Explorer extension.
 
-## Configuration
+## Configuring
 
 The `sso_server` and `sso_cli` binaries depend on a configuration file, by default this is read from `./.config/sso.toml` or it can be configured with the `--config` command line argument (For example `--config .config/sso.example`). An example configuration file can be found at `.config/sso.example.toml`.
 
@@ -60,6 +60,23 @@ Run the following tasks to serve the manual development server or build manual s
 Client HTML templates change the appearance of the web interface, run the template builder using the `npm - run template builder` task.
 
 Template source files are located in the `sso_test/template` directory. A build will write output files to the `sso_test/tmp/template` directory. Open `index.html` in a browser to check the appearance, and add `template.html` to the configuration file when complete.
+
+## Labels
+
+Some labels are used in comments throughout the code which can be searched for.
+
+-   `todo: ...`: Stuff to work on
+-   `fix: ...`: Notes on how something has been fixed
+-   `depend: ...`: Dependencies that should be upgraded occasionally
+
+For example.
+
+```bash
+# depend: package.json
+# run task: npm - update packages
+# depend: Cargo.toml
+# run task: cargo - update
+```
 
 ## Webdriver Manager
 

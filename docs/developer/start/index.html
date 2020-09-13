@@ -64,7 +64,7 @@
                 <ul class="current">
                     <li class="toctree-l1 current"><a class="reference internal current" href="./">Start</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
+    <li class="toctree-l2"><a class="reference internal" href="#configuring">Configuring</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#developing">Developing</a>
     </li>
@@ -74,6 +74,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#designing">Designing</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#labels">Labels</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#webdriver-manager">Webdriver Manager</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#pgadmin">pgAdmin</a>
@@ -81,6 +83,8 @@
     <li class="toctree-l2"><a class="reference internal" href="#pghero">PgHero</a>
     </li>
     </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../design/">Design</a>
                     </li>
                     <li class="toctree-l1"><a class="reference internal" href="../tasks/">Tasks</a>
                     </li>
@@ -127,7 +131,7 @@
                 <h1 id="start">Start</h1>
 <p>Clone repository and <code>Open folder in container</code>, using the vscode <a href="https://code.visualstudio.com/docs/remote/containers">Remote Development</a> extension.</p>
 <p>Run vscode <a href="https://code.visualstudio.com/docs/editor/tasks">Tasks</a> using the command palette or the Task Explorer extension.</p>
-<h2 id="configuration">Configuration</h2>
+<h2 id="configuring">Configuring</h2>
 <p>The <code>sso_server</code> and <code>sso_cli</code> binaries depend on a configuration file, by default this is read from <code>./.config/sso.toml</code> or it can be configured with the <code>--config</code> command line argument (For example <code>--config .config/sso.example</code>). An example configuration file can be found at <code>.config/sso.example.toml</code>.</p>
 <p>OAuth2 clients and users can be statically defined in this file, configuration can be generated using the <code>sso_cli</code> binary. A postgres database connection is required, the example configuration works with the postgres service started by the <a href="../tasks/#postgres-up">postgres - up</a> task.</p>
 <p>Run the <a href="../tasks/#cargo-install">cargo - install</a> task.</p>
@@ -170,6 +174,20 @@
 <h2 id="designing">Designing</h2>
 <p>Client HTML templates change the appearance of the web interface, run the template builder using the <code>npm - run template builder</code> task.</p>
 <p>Template source files are located in the <code>sso_test/template</code> directory. A build will write output files to the <code>sso_test/tmp/template</code> directory. Open <code>index.html</code> in a browser to check the appearance, and add <code>template.html</code> to the configuration file when complete.</p>
+<h2 id="labels">Labels</h2>
+<p>Some labels are used in comments throughout the code which can be searched for.</p>
+<ul>
+<li><code>todo: ...</code>: Stuff to work on</li>
+<li><code>fix: ...</code>: Notes on how something has been fixed</li>
+<li><code>depend: ...</code>: Dependencies that should be upgraded occasionally</li>
+</ul>
+<p>For example.</p>
+<pre><code class="bash"># depend: package.json
+# run task: npm - update packages
+# depend: Cargo.toml
+# run task: cargo - update
+</code></pre>
+
 <h2 id="webdriver-manager">Webdriver Manager</h2>
 <p>Tests depend on <a href="https://www.npmjs.com/package/webdriver-manager">Webdriver Manager</a>, start it outside of the remote development container using the commands.</p>
 <pre><code class="bash">npm run webdriver-update
@@ -201,7 +219,7 @@ npm run webdriver-start
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../tasks/" class="btn btn-neutral float-right" title="Tasks">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../design/" class="btn btn-neutral float-right" title="Design">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../../user/start/" class="btn btn-neutral" title="Start"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -237,7 +255,7 @@ npm run webdriver-start
         <span><a href="../../user/start/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../tasks/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../design/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

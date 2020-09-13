@@ -5,9 +5,13 @@ use std::fmt;
 #[api_v2_errors(code = 400, code = 401, code = 403, code = 404, code = 500)]
 #[derive(Debug)]
 pub enum HttpError {
+    /// Returned when the request is invalid
     BadRequest(Error),
+    /// Returned when the request is not authenticated
     Unauthorized(Error),
+    /// Returned when the request is not permitted
     Forbidden(Error),
+    /// Returned when the requested resource does not exist
     NotFound(Error),
     InternalServerError(Error),
 }

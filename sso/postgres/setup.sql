@@ -117,7 +117,7 @@ RETURNS VARCHAR
 LANGUAGE sql
 STRICT
 AS $$
-    SELECT crypt(p_password, gen_salt('bf'))
+    SELECT crypt(p_password, gen_salt('bf', 12))
 $$;
 
 CREATE OR REPLACE FUNCTION sso._password_check(

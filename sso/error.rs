@@ -1,21 +1,31 @@
 use crate::oauth2;
 
 /// Error
-///
-/// Howto: Add an error variant.
 #[derive(Debug)]
 pub enum Error {
+    /// String
     Message(String),
+    /// oauth2::ErrorResponse
     Oauth2(oauth2::ErrorResponse),
+    /// std::io::Error
     IoError(std::io::Error),
+    /// config::ConfigError
     ConfigError(config::ConfigError),
+    /// tokio_postgres::Error
     TokioPostgresError(tokio_postgres::Error),
+    /// deadpool_postgres::config::ConfigError
     DeadpoolPostgresConfigError(deadpool_postgres::config::ConfigError),
+    /// deadpool_postgres::PoolError
     DeadpoolPoolError(deadpool_postgres::PoolError),
+    /// reqwest::Error
     ReqwestError(reqwest::Error),
+    /// handlebars::TemplateRenderError
     HandlebarsTemplateRender(handlebars::TemplateRenderError),
+    /// lettre::smtp::error::Error
     Lettre(lettre::smtp::error::Error),
+    /// lettre_email::error::Error
     LettreEmail(lettre_email::error::Error),
+    /// validator::ValidationErrors
     Validation(validator::ValidationErrors),
 }
 

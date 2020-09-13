@@ -16,7 +16,7 @@ export interface Config {
 export function app_listen(config: Config) {
     const app = express();
 
-    // Fix: Fixes client does not support basic authentication
+    // fix: Fixes client does not support basic authentication
     const basicAuth = `Basic ${new Buffer(
         config.clientId + ":" + config.clientSecret
     ).toString("base64")}`;

@@ -8,7 +8,7 @@ describe("sso-host", function () {
     });
 
     it("should run", async function () {
-        // Fix: Fixes must run all tests inside docker container, can develop tests here
+        // fix: Fixes must run all tests inside docker container, can develop tests here
         await browser_sleep(5);
     });
 });

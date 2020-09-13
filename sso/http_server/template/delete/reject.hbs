@@ -1,29 +1,30 @@
 <div class="s-container">
     <div class="s-container-inner">
-        <div class="s-client">
+        <header class="s-client">
             <div class="s-client-name">{{ client_name }}</div>
             <div class="s-client-uri">
                 <a href="{{ client_uri }}">{{ client_domain }}</a>
             </div>
-        </div>
+        </header>
+        <main>
+            {{#if error}}<div class="s-error">
+                <div class="s-error-key">Error Code</div>
+                <div id="error-code" class="s-error-value s-error-margin">{{ error.code }}</div>
+                <div class="s-error-key">Error Description</div>
+                <div id="error-description" class="s-error-value s-error-margin">{{ error.description }}</div>
+                <div class="s-error-key">Audit ID</div>
+                <div id="error-audit-id" class="s-error-value">{{ error.audit_id }}</div>
+            </div>{{/if}}
 
-        {{#if error}}<div class="s-error">
-            <div class="s-error-key">Error Code</div>
-            <div id="error-code" class="s-error-value s-error-margin">{{ error.code }}</div>
-            <div class="s-error-key">Error Description</div>
-            <div id="error-description" class="s-error-value s-error-margin">{{ error.description }}</div>
-            <div class="s-error-key">Audit ID</div>
-            <div id="error-audit-id" class="s-error-value">{{ error.audit_id }}</div>
-        </div>{{/if}}
+            <form method="post" enctype="application/x-www-form-urlencoded" class="s-form">
+                <div class="s-form-submit-container">
+                    <button id="submit" class="s-form-submit s-form-rounded-all" type="submit">
+                        <div>Reject delete user request</div>
+                    </button>
+                </div>
 
-        <form method="post" enctype="application/x-www-form-urlencoded" class="s-form">
-            <div class="s-form-submit-container">
-                <button id="submit" class="s-form-submit s-form-rounded-all" type="submit">
-                    <div>Reject delete user request</div>
-                </button>
-            </div>
-
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        </form>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            </form>
+        </main>
     </div>
 </div>

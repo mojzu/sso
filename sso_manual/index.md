@@ -10,7 +10,7 @@
 - [GitHub](https://github.com/mojzu/sso)
 - [crates.io](https://crates.io/crates/sso)
 
-<!-- Todo: Remove this when not relevant -->
+<!-- todo: Remove this when not relevant -->
 This `main` branch is intended to replace the `master` branch, it is still under development.
 
 ## Disclaimer
@@ -28,4 +28,4 @@ Now that I've explained what you shouldn't do, let me explain how to do it.
 
 ## Overview
 
-<!-- Todo: Rewrite documentation/guides from earlier versions -->
+<!-- todo: Rewrite documentation/guides from earlier versions -->

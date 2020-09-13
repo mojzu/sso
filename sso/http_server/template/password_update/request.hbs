@@ -1,61 +1,65 @@
 <div class="s-container">
     <div class="s-container-inner">
-        <div class="s-client">
+        <header class="s-client">
             <div class="s-client-name">{{ client_name }}</div>
             <div class="s-client-uri">
                 <a href="{{ client_uri }}">{{ client_domain }}</a>
             </div>
-        </div>
+        </header>
+        <main>
+            {{#if error}}<div class="s-error">
+                <div class="s-error-key">Error Code</div>
+                <div id="error-code" class="s-error-value s-error-margin">{{ error.code }}</div>
+                <div class="s-error-key">Error Description</div>
+                <div id="error-description" class="s-error-value s-error-margin">{{ error.description }}</div>
+                <div class="s-error-key">Audit ID</div>
+                <div id="error-audit-id" class="s-error-value">{{ error.audit_id }}</div>
+            </div>{{/if}}
 
-        {{#if error}}<div class="s-error">
-            <div class="s-error-key">Error Code</div>
-            <div id="error-code" class="s-error-value s-error-margin">{{ error.code }}</div>
-            <div class="s-error-key">Error Description</div>
-            <div id="error-description" class="s-error-value s-error-margin">{{ error.description }}</div>
-            <div class="s-error-key">Audit ID</div>
-            <div id="error-audit-id" class="s-error-value">{{ error.audit_id }}</div>
-        </div>{{/if}}
+            {{#if message}}<div class="s-message">
+                <div class="s-message-key">Message</div>
+                <div id="message-text" class="s-message-value">{{message}}</div>
+            </div>{{/if}}
 
-        {{#if message}}<div class="s-message">
-            <div class="s-message-key">Message</div>
-            <div id="message-text" class="s-message-value">{{message}}</div>
-        </div>{{/if}}
+            <form method="post" enctype="application/x-www-form-urlencoded" class="s-form">
+                <div class="s-form-container">
+                    <div class="s-form-input-container">
+                        <input id="password" class="s-form-input s-form-rounded-top" aria-label="Password"
+                            name="password" type="password" placeholder="Password" autocomplete="current-password"
+                            minlength="{{password.minlength}}" maxlength="{{password.maxlength}}"
+                            title="Enter a password of {{password.minlength}}-{{password.maxlength}} characters"
+                            required>
+                    </div>
+                    <div class="s-form-input-container">
+                        <input id="password-new" class="s-form-input" aria-label="New password" name="password_new"
+                            type="password" placeholder="New password" autocomplete="new-password"
+                            minlength="{{password.minlength}}" maxlength="{{password.maxlength}}"
+                            title="Enter a password of {{password.minlength}}-{{password.maxlength}} characters"
+                            required>
+                    </div>
+                    <div class="s-form-input-container">
+                        <input id="password-confirm" class="s-form-input" aria-label="Confirm password"
+                            name="password_confirm" type="password" placeholder="Confirm password"
+                            autocomplete="new-password" minlength="{{password.minlength}}"
+                            maxlength="{{password.maxlength}}"
+                            title="Enter a password of {{password.minlength}}-{{password.maxlength}} characters"
+                            required>
+                    </div>
+                    <div class="s-password-strength">
+                        <div>Password Strength</div>
+                        <div id="password-strength-warning" class="s-password-strength-warning"></div>
+                    </div>
+                    <meter max="4" id="password-strength-meter" class="s-password-strength-meter"></meter>
+                </div>
+                <div class="s-form-submit-container">
+                    <button id="submit" class="s-form-submit s-form-rounded-bottom" type="submit">
+                        <div>Update password</div>
+                    </button>
+                </div>
 
-        <form method="post" enctype="application/x-www-form-urlencoded" class="s-form">
-            <div class="s-form-container">
-                <div class="s-form-input-container">
-                    <input id="password" class="s-form-input s-form-rounded-top" aria-label="Password" name="password"
-                        type="password" placeholder="Password" autocomplete="current-password"
-                        minlength="{{password.minlength}}" maxlength="{{password.maxlength}}"
-                        title="Enter a password of {{password.minlength}}-{{password.maxlength}} characters" required>
-                </div>
-                <div class="s-form-input-container">
-                    <input id="password-new" class="s-form-input" aria-label="New password" name="password_new"
-                        type="password" placeholder="New password" autocomplete="new-password"
-                        minlength="{{password.minlength}}" maxlength="{{password.maxlength}}"
-                        title="Enter a password of {{password.minlength}}-{{password.maxlength}} characters" required>
-                </div>
-                <div class="s-form-input-container">
-                    <input id="password-confirm" class="s-form-input" aria-label="Confirm password"
-                        name="password_confirm" type="password" placeholder="Confirm password"
-                        autocomplete="new-password" minlength="{{password.minlength}}"
-                        maxlength="{{password.maxlength}}"
-                        title="Enter a password of {{password.minlength}}-{{password.maxlength}} characters" required>
-                </div>
-                <div class="s-password-strength">
-                    <div>Password Strength</div>
-                    <div id="password-strength-warning" class="s-password-strength-warning"></div>
-                </div>
-                <meter max="4" id="password-strength-meter" class="s-password-strength-meter"></meter>
-            </div>
-            <div class="s-form-submit-container">
-                <button id="submit" class="s-form-submit s-form-rounded-bottom" type="submit">
-                    <div>Update password</div>
-                </button>
-            </div>
-
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        </form>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            </form>
+        </main>
     </div>
 </div>
 

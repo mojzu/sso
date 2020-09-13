@@ -37,7 +37,7 @@ apt-get update \
     && rustup update 2>&1 \
     && rustup component add rls rust-analysis rust-src rustfmt clippy 2>&1
 
-# Install Cargo crates
+# depend: Install Cargo crates
 cargo install --force cargo-audit --version "~0.12" \
 && cargo install --force cargo-make --version "~0.32" \
-&& cargo install --force cargo-sort-ck --version "^2.0"
+&& cargo install --force cargo-sort-ck --version "^2.1"

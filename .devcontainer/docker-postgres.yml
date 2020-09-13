@@ -18,8 +18,9 @@ services:
   # <https://hub.docker.com/r/dpage/pgadmin4/>
   # <https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html>
   # <https://www.pgadmin.org/>
+  # depend: docker pull dpage/pgadmin4:4.25
   pgadmin:
-    image: dpage/pgadmin4:4.23
+    image: dpage/pgadmin4:4.25
     restart: unless-stopped
     depends_on:
       - postgres
@@ -32,8 +33,9 @@ services:
   # PgHero
   # <https://hub.docker.com/r/ankane/pghero/>
   # <https://github.com/ankane/pghero>
+  # depend: docker pull ankane/pghero:v2.7.2
   pghero:
-    image: ankane/pghero:v2.6.0
+    image: ankane/pghero:v2.7.2
     restart: unless-stopped
     depends_on:
       - postgres

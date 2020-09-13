@@ -1,5 +1,6 @@
 FROM sso/build-release:latest as build
 
+# depend: docker pull debian:10.5
 FROM debian:10.5
 ENV DEBIAN_FRONTEND="noninteractive"
 

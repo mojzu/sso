@@ -1,4 +1,4 @@
-# docker pull buildpack-deps:buster
+# depend: docker pull buildpack-deps:buster
 FROM buildpack-deps:buster
 
 # <https://github.com/microsoft/vscode-dev-containers>
@@ -28,7 +28,7 @@ RUN apt-get update \
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
 
-# install_rust.sh
+# depend: install_rust.sh
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
@@ -38,8 +38,8 @@ COPY .devcontainer/install_rust.sh /opt/install_rust.sh
 RUN chmod +x /opt/install_rust.sh \
     && /opt/install_rust.sh
 
-# install_node.sh
-ENV NODE_VERSION=14.9.0 \
+# depend: install_node.sh
+ENV NODE_VERSION=14.10.1 \
     YARN_VERSION=1.22.5
 
 COPY .devcontainer/install_node.sh /opt/install_node.sh
@@ -63,5 +63,5 @@ RUN npm config set cache /workspace/.npm --global
 COPY .devcontainer/build/library-scripts/versions.sh /versions.sh
 RUN chmod +x /versions.sh
 
-# Fix: Fixes docker socket has incorrect group ownership
+# fix: Fixes docker socket has incorrect group ownership
 RUN sudo chown vscode:999 /var/run/docker.sock
