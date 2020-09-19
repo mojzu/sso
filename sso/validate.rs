@@ -117,22 +117,39 @@ pub fn oauth2_provider(value: &str) -> std::result::Result<(), ValidationError> 
 
 /// Validates a locale
 pub fn locale(value: &str) -> std::result::Result<(), ValidationError> {
-    if value.len() > 100 {
-        return Err(ValidationError::new("locale_invalid"));
+    use unic_langid::LanguageIdentifier;
+
+    if !value.is_empty() {
+        if let Err(_e) = value.parse::<LanguageIdentifier>() {
+            return Err(ValidationError::new("locale_invalid"));
+        }
+        if value.len() > 100 {
+            return Err(ValidationError::new("locale_invalid"));
+        }
     }
     Ok(())
 }
 
 /// Validates a timezone
 pub fn timezone(value: &str) -> std::result::Result<(), ValidationError> {
-    if value.len() > 500 {
-        return Err(ValidationError::new("timezone_invalid"));
+    use chrono_tz::Tz;
+
+    if !value.is_empty() {
+        if let Err(_e) = Tz::from_str(value) {
+            return Err(ValidationError::new("timezone_invalid"));
+        }
+        if value.len() > 500 {
+            return Err(ValidationError::new("timezone_invalid"));
+        }
     }
     Ok(())
 }
 
-pub(crate) const PASSWORD_MIN: usize = 8;
-pub(crate) const PASSWORD_MAX: usize = 64;
+/// Password minimum length
+pub const PASSWORD_MIN: usize = 8;
+
+/// Password maximum length
+pub const PASSWORD_MAX: usize = 64;
 
 /// Validates a password
 pub fn password(value: &str) -> std::result::Result<(), ValidationError> {
@@ -142,8 +159,11 @@ pub fn password(value: &str) -> std::result::Result<(), ValidationError> {
     Ok(())
 }
 
-pub(crate) const NAME_MIN: usize = 1;
-pub(crate) const NAME_MAX: usize = 100;
+/// Name minimum length
+pub const NAME_MIN: usize = 1;
+
+/// Name maximum length
+pub const NAME_MAX: usize = 100;
 
 /// Validates a name
 pub fn name(value: &str) -> std::result::Result<(), ValidationError> {

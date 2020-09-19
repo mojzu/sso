@@ -20,7 +20,7 @@ max_age = 604800
 domain = 'http://localhost:7042/'
 
 [oauth2.clients]
-# b4f765eb-49d9-4d9f-bd4b-8c4b88850f84.QypqqfAUyzv4hu8lQWrRKjgsxr22UzaMKvvkbwBzkMw=
+# QypqqfAUyzv4hu8lQWrRKjgsxr22UzaMKvvkbwBzkMw=
 [oauth2.clients.b4f765eb-49d9-4d9f-bd4b-8c4b88850f84]
 name = 'App'
 uri = 'http://localhost:8080/'
@@ -58,7 +58,7 @@ scope = ['admin', 'api']
 
 [oauth2.providers.sso]
 client_id = 'f5683aca-4b25-43e4-b6fe-3fb1002ec5fd'
-client_secret = 'f5683aca-4b25-43e4-b6fe-3fb1002ec5fd.0skM1U/uGZScXraYL9hjQ6bAicGvHiFHM1g9dHyJDTs='
+client_secret = '0skM1U/uGZScXraYL9hjQ6bAicGvHiFHM1g9dHyJDTs='
 authorize_uri = 'http://localhost:7044/v2/oauth2/authorize'
 token_uri = 'http://sso2:7042/v2/oauth2/token'
 introspect_uri = 'http://sso2:7042/v2/oauth2/introspect'

@@ -81,6 +81,16 @@ impl Postgres {
         PostgresQuery::secret_hash(&conn, secret, value).await
     }
 
+    pub async fn secret_check(
+        &self,
+        secret: &str,
+        value: &str,
+        matches_hash: &str,
+    ) -> Result<bool> {
+        let conn = self.pool.get().await?;
+        PostgresQuery::secret_check(&conn, secret, value, matches_hash).await
+    }
+
     pub async fn password_hash(&self, password: &str) -> Result<String> {
         let client = self.pool.get().await?;
 
@@ -1213,6 +1223,19 @@ impl PostgresQuery {
     ) -> Result<String> {
         let st = conn.prepare("SELECT sso._secret_hash($1, $2)").await?;
         let row = conn.query_one(&st, &[&secret, &value]).await?;
+        Ok(row.get(0))
+    }
+
+    async fn secret_check(
+        conn: &deadpool_postgres::Client,
+        secret: &str,
+        value: &str,
+        matches_hash: &str,
+    ) -> Result<bool> {
+        let st = conn.prepare("SELECT sso._secret_check($1, $2, $3)").await?;
+        let row = conn
+            .query_one(&st, &[&secret, &matches_hash, &value])
+            .await?;
         Ok(row.get(0))
     }
 

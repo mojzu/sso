@@ -1,5 +1,7 @@
 //! # sso
 //!
+#![recursion_limit = "1024"]
+#![deny(missing_debug_implementations)]
 // todo: Enable this and use to check public interface
 //#![deny(missing_docs)]
 
@@ -65,8 +67,8 @@ pub use crate::error::*;
 //     - https://github.com/ramosbugs/openidconnect-rs
 // - User stat table support
 //     - Last login, token uses information
-// - Translations based on locale (unic-langid)
-// - Use timezones in user communications (chrono-tz)
+// - Translations based on locale
+// - Use timezones in user communications
 // - Confirm emails for reset/update/etc.
 // - Variable length secrets? api keys
 // - Token naming from request headers?
@@ -77,7 +79,7 @@ pub use crate::error::*;
 // - Prometheus alert definitions/examples
 // - Opentelemetry Jaeger/other integration?
 //     - https://github.com/open-telemetry/opentelemetry-rust/blob/master/examples/actix-http/src/main.rs
-// - Fluentd/sentry logging integration?
+// - Fluentd/sentry logging integration? DSN configuration
 // - Backup/restore functionality for config/database, cron job?
 //     - NAME-VERSION-TIMESTAMP format, rolling or incremental/encryption, error/alert in case of failure
 //     - Output to file, pg_dump for database, restore, migration/legacy support
@@ -130,3 +132,4 @@ pub use crate::error::*;
 // - Client/user groups for segmentation
 // - GDPR and other data protection compliance research
 // - Constant time responses for authentication endpoints to resist timing attacks
+// - CSRF length configuration?

@@ -16,7 +16,9 @@ mod route_user_access;
 mod route_user_api_key;
 mod template;
 
-use crate::{http_server::error::*, internal::*};
+pub use crate::http_server::error::*;
+
+use crate::internal::*;
 use ::oauth2::basic::BasicClient;
 
 /// HTTP Server
@@ -366,5 +368,11 @@ impl ServerUri {
         uri.set_path("/v2/auth/delete");
         uri.query_pairs_mut().clear().append_pair("code", &code);
         uri
+    }
+}
+
+impl std::fmt::Debug for HttpServer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "HttpServer {{ config, ... }}")
     }
 }

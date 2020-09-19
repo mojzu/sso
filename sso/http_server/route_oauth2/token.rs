@@ -41,7 +41,7 @@ async fn post(
             .map_err(HttpError::bad_request)?;
 
         let client = server
-            .client_from_secret(request.client_secret())
+            .client_from_secret(&auth.id(), request.client_secret())
             .await
             .map_err(HttpError::unauthorized)?;
 

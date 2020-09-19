@@ -48,8 +48,11 @@ pub async fn generate_client(
         oauth2: ClientsWrapper { clients },
     };
 
+    println!("The client ID key is:\r\n");
+    println!("{}\r\n", client_id);
+
     println!("The client secret key is:\r\n");
-    println!("{}.{}\r\n", client_id, secret);
+    println!("{}\r\n", secret);
 
     println!("Add the following to the configuration file:\r\n");
     println!("{}", toml::to_string_pretty(&wrapped).unwrap());

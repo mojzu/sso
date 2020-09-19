@@ -29,6 +29,7 @@ ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
 
 # depend: install_rust.sh
+# todo: Build hangs when using 1.46?
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
@@ -39,7 +40,7 @@ RUN chmod +x /opt/install_rust.sh \
     && /opt/install_rust.sh
 
 # depend: install_node.sh
-ENV NODE_VERSION=14.10.1 \
+ENV NODE_VERSION=14.11.0 \
     YARN_VERSION=1.22.5
 
 COPY .devcontainer/install_node.sh /opt/install_node.sh

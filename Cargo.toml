@@ -24,7 +24,7 @@ name = "sso_cli"
 path = "sso/bin/cli.rs"
 
 [features]
-default = []
+default = [ ]
 
 [dependencies]
 actix-http = "1.0"
@@ -34,6 +34,7 @@ actix-server = "1.0"
 actix-web = "2.0"
 actix-web-httpauth = "0.4.2"
 chrono = { version = "0.4.15", features = [ "serde" ] }
+chrono-tz = "0.5.3"
 clap = "2.33"
 config = "0.10.1"
 deadpool-postgres = "0.5.6"
@@ -67,6 +68,7 @@ serde_urlencoded = "0.7.0"
 tokio = { version = "0.2.22", features = [ "rt-threaded", "macros", "signal", "fs" ] }
 tokio-postgres = { version = "0.5.5", features = [ "with-chrono-0_4", "with-uuid-0_8", "with-serde_json-1" ] }
 toml = "0.5.6"
+unic-langid = "0.9.0"
 url = { version = "2.1", features = [ "serde" ] }
 uuid = { version = "0.8.1", features = [ "serde", "v4" ] }
 validator = "0.11.0"

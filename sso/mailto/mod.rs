@@ -210,3 +210,9 @@ struct MailtoOpentelemetry {
     ok_count: BoundCounter<'static, u64>,
     err_count: BoundCounter<'static, u64>,
 }
+
+impl std::fmt::Debug for Mailto {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Mailto {{ config, ... }}")
+    }
+}

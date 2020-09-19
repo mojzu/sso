@@ -1,6 +1,6 @@
 import { browser } from "protractor";
 import "jasmine";
-import { api, userCreate, CLIENT_ID, PASSWORD1 } from "./util";
+import { api, userCreate, CLIENT_ID, PASSWORD1, mailAddress } from "./util";
 
 describe("sso-api", function () {
     beforeEach(async function () {
@@ -215,7 +215,8 @@ describe("sso-api", function () {
         }
         try {
             await userCreate({
-                password: "guestguestguestguestguestguestguestguestguestguestguestguestguest",
+                password:
+                    "guestguestguestguestguestguestguestguestguestguestguestguestguest",
                 allowReset: true,
                 requireUpdate: false,
             });
@@ -224,6 +225,74 @@ describe("sso-api", function () {
             expect(e.response.body.error).toEqual("BadRequest");
             expect(e.response.body.message).toEqual("validation failed");
         }
+    });
+
+    it("should fail to create user with invalid locale", async function () {
+        try {
+            await api.v2UserCreatePost({
+                email: mailAddress(),
+                enable: true,
+                locale: "notalocale",
+                name: "test",
+                scope: "",
+                timezone: "",
+                password: null,
+            });
+            fail();
+        } catch (e) {
+            expect(e.statusCode).toEqual(400);
+            expect(e.response.body.error).toEqual("BadRequest");
+            expect(e.response.body.message).toEqual("validation failed");
+        }
+    });
+
+    it("should create user with valid locale", async function () {
+        const user = await api.v2UserCreatePost({
+            email: mailAddress(),
+            enable: true,
+            locale: "en-GB",
+            name: "test",
+            scope: "",
+            timezone: "",
+            password: null,
+        });
+        expect(user.body).toBeDefined();
+        expect(user.body.locale).toEqual("en-GB");
+        expect(user.body.timezone).toEqual("");
+    });
+
+    it("should fail to create user with invalid timezone", async function () {
+        try {
+            await api.v2UserCreatePost({
+                email: mailAddress(),
+                enable: true,
+                locale: "",
+                name: "test",
+                scope: "",
+                timezone: "notatimezone",
+                password: null,
+            });
+            fail();
+        } catch (e) {
+            expect(e.statusCode).toEqual(400);
+            expect(e.response.body.error).toEqual("BadRequest");
+            expect(e.response.body.message).toEqual("validation failed");
+        }
+    });
+
+    it("should create user with valid timezone", async function () {
+        const user = await api.v2UserCreatePost({
+            email: mailAddress(),
+            enable: true,
+            locale: "",
+            name: "test",
+            scope: "",
+            timezone: "Etc/UTC",
+            password: null,
+        });
+        expect(user.body).toBeDefined();
+        expect(user.body.timezone).toEqual("Etc/UTC");
+        expect(user.body.locale).toEqual("");
     });
 
     it("should read users", async function () {

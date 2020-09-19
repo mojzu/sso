@@ -66,9 +66,11 @@
                     </li>
                     <li class="toctree-l1 current"><a class="reference internal current" href="./">Design</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#client-secrets">Client Secrets</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#user-passwords">User Passwords</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#client-secrets">Client Secrets</a>
+    <li class="toctree-l2"><a class="reference internal" href="#tokens">Tokens</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#api-keys">API Keys</a>
     </li>
@@ -117,11 +119,18 @@
             <div class="section">
               
                 <h1 id="design">Design</h1>
+<h2 id="client-secrets">Client Secrets</h2>
+<ul>
+<li><a href="https://www.oauth.com/oauth2-servers/client-registration/client-id-secret/">The Client ID and Secret</a></li>
+</ul>
+<p>Client secrets are 256 bit random keys generated using the pgcrypto extension. The client ID and secret produce a SHA256 HMAC which is stored in the configuration file.</p>
+<p>The client authenticates requests to the server using HTTP basic authentication, the server checks that the client ID and secret HMAC match the stored HMAC.</p>
+<p>Secrets are generated using the <code>sso._secret_generate</code> SQL function, HMACs are generated using the <code>sso._secret_hash</code> SQL function and checked using the <code>sso._secret_check</code> SQL function. These functions are defined in <code>postgres/setup.sql</code> and available as functions in the <code>Postgres</code> module.</p>
 <h2 id="user-passwords">User Passwords</h2>
 <ul>
 <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html">OWASP - Password Storage Cheat Sheet</a></li>
 </ul>
-<p>User passwords are stored as Bcrypt hashes using the pgcrypto extension with a work factor of 12.</p>
+<p>User passwords are stored as Bcrypt hashes using the pgcrypto extension with a work factor of 12. User password hashes may be stored in the configuration file and the database.</p>
 <p>Password length is validated by the server with a minimum of 8 and maximum of 64.</p>
 <p>HTML client interface includes <code>zxcvbn</code> password strength check, this is only run by the client browser.</p>
 <p>Plaintext passwords are not logged or audited by the server, and the code attempts to keep them in memory for as little time as required. But passwords are sent in plaintext to the database as a query parameter for hashing/checking, which could be a problem depending on how database logging is configured.</p>
@@ -136,8 +145,8 @@
 </ul>
 <!-- todo: Urls are https or localhost -->
 
-<h2 id="client-secrets">Client Secrets</h2>
-<!-- todo: Client secrets oauth2 info/best practices -->
+<h2 id="tokens">Tokens</h2>
+<!-- todo: Tokens info/best practices -->
 
 <h2 id="api-keys">API Keys</h2>
 <!-- todo: API keys info/best practices -->

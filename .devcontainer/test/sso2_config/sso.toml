@@ -20,7 +20,7 @@ max_age = 604800
 domain = 'http://localhost:7044/'
 
 [oauth2.clients]
-# f5683aca-4b25-43e4-b6fe-3fb1002ec5fd.0skM1U/uGZScXraYL9hjQ6bAicGvHiFHM1g9dHyJDTs=
+# 0skM1U/uGZScXraYL9hjQ6bAicGvHiFHM1g9dHyJDTs=
 [oauth2.clients.f5683aca-4b25-43e4-b6fe-3fb1002ec5fd]
 name = 'Provider'
 uri = 'http://localhost:7042/'

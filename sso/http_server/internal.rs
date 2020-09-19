@@ -1,30 +1,29 @@
-pub use crate::{
+pub(crate) use crate::{
     http_server::{client::*, error::*, template::*},
     internal::*,
 };
-pub use actix_http::ResponseError;
-pub use paperclip::actix::{
+pub(crate) use paperclip::actix::{
     api_v2_operation,
-    web::{self, Data, Form, HttpRequest, HttpResponse, Json, Path, Query},
+    web::{Data, Form, HttpRequest, HttpResponse, Json, Query},
 };
 
 use std::{fmt, time::SystemTime};
 
 #[derive(Debug, Clone)]
-pub struct UserLoginArgs {
+pub(crate) struct UserLoginArgs {
     pub email: String,
     pub password: String,
 }
 
 #[derive(Debug, Clone)]
-pub struct UserRegisterAcceptArgs {
+pub(crate) struct UserRegisterAcceptArgs {
     pub name: String,
     pub password: String,
     pub password_allow_reset: bool,
 }
 
 #[derive(Debug, Clone)]
-pub struct UserRegisterPasswordArgs {
+pub(crate) struct UserRegisterPasswordArgs {
     pub password: String,
     pub password_confirm: String,
 }
@@ -358,7 +357,7 @@ impl HttpServer {
             Some(client_secret) => Ok(client_secret.to_string()),
             None => Err(HttpError::unauthorized("client_secret is required")),
         }?;
-        self.client_from_secret(&client_secret)
+        self.client_from_secret(&auth.id(), &client_secret)
             .await
             .map_err(HttpError::unauthorized)
     }
@@ -393,15 +392,15 @@ impl HttpServer {
         &self,
         id: Uuid,
         client: &ConfigOauth2Client,
-        secret: String,
+        secret: &str,
     ) -> oauth2::Result<()> {
-        let secret_check = self
+        let check = self
             .postgres
-            .secret_hash(&secret, &id.to_string())
+            .secret_check(secret, &id.to_string(), &client.secret)
             .await
             .map_err(|_e| oauth2::ErrorResponse::server_error("secret_hash error"))?;
 
-        if client.secret == secret_check {
+        if check {
             Ok(())
         } else {
             Err(oauth2::ErrorResponse::unauthorized_client(
@@ -476,15 +475,23 @@ impl HttpServer {
         }
     }
 
-    pub(crate) async fn client_from_secret(&self, client_secret: &str) -> oauth2::Result<Client> {
-        let (id, secret) = self
-            .postgres
-            .key_secret_extract(client_secret)
-            .map_err(oauth2::ErrorResponse::unauthorized_client)?;
-
+    pub(crate) async fn client_from_secret(
+        &self,
+        client_id: &str,
+        client_secret: &str,
+    ) -> oauth2::Result<Client> {
+        let id = match Uuid::parse_str(client_id) {
+            Ok(id) => id,
+            Err(_e) => {
+                return Err(oauth2::ErrorResponse::unauthorized_client(
+                    "client_id invalid",
+                ))
+            }
+        };
         match self.config.oauth2.clients.get(&id) {
             Some(client) => {
-                self.client_secret_verify(id, &client, secret).await?;
+                self.client_secret_verify(id, &client, client_secret)
+                    .await?;
                 self.client_from_config(id, client)
             }
             None => Err(oauth2::ErrorResponse::unauthorized_client(

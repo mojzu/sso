@@ -57,3 +57,9 @@ impl Metrics {
         (encoder.format_type().to_string(), buffer)
     }
 }
+
+impl std::fmt::Debug for Metrics {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Metrics {{ config, exporter, meter }}")
+    }
+}

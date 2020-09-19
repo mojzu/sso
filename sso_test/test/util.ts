@@ -13,7 +13,6 @@ import * as path from "path";
 import * as urijs from "urijs";
 import {
     DefaultApi,
-    DefaultApiApiKeys,
     RequestUserCreatePassword,
     ResponseUser,
 } from "../client/api";
@@ -22,8 +21,7 @@ export const CLIENT_DOMAIN = "http://localhost:7042";
 export const AUTHORIZE_URI = `${CLIENT_DOMAIN}/v2/oauth2/authorize`;
 export const TOKEN_URI = `${CLIENT_DOMAIN}/v2/oauth2/token`;
 export const CLIENT_ID = "b4f765eb-49d9-4d9f-bd4b-8c4b88850f84";
-export const CLIENT_SECRET =
-    "b4f765eb-49d9-4d9f-bd4b-8c4b88850f84.QypqqfAUyzv4hu8lQWrRKjgsxr22UzaMKvvkbwBzkMw=";
+export const CLIENT_SECRET = "QypqqfAUyzv4hu8lQWrRKjgsxr22UzaMKvvkbwBzkMw=";
 export const REDIRECT_URI = "http://localhost:8080/oauth2";
 export const AUTH_URI = `${CLIENT_DOMAIN}/v2/auth`;
 
@@ -345,14 +343,10 @@ export async function browser_check_authorized(): Promise<Token> {
     return { access, refresh };
 }
 
-export const api = new DefaultApi(
-    CLIENT_ID,
-    CLIENT_SECRET,
-    CLIENT_DOMAIN,
-);
+export const api = new DefaultApi(CLIENT_ID, CLIENT_SECRET, CLIENT_DOMAIN);
 
 export const api2 = new DefaultApi(
     "f5683aca-4b25-43e4-b6fe-3fb1002ec5fd",
-    "f5683aca-4b25-43e4-b6fe-3fb1002ec5fd.0skM1U/uGZScXraYL9hjQ6bAicGvHiFHM1g9dHyJDTs=",
+    "0skM1U/uGZScXraYL9hjQ6bAicGvHiFHM1g9dHyJDTs=",
     "http://localhost:7044"
 );

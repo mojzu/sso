@@ -1,4 +1,4 @@
-use crate::{http_server::*, internal::*};
+use crate::http_server::*;
 use actix_web::{guard, HttpResponse};
 use paperclip::actix::{
     api_v2_operation,
@@ -6,7 +6,7 @@ use paperclip::actix::{
 };
 
 /// Server API
-pub struct ServerApi;
+pub(crate) struct ServerApi;
 
 impl ServerApi {
     fn public_v2_oauth2() -> web::Scope {
