@@ -13,14 +13,17 @@ pub enum HttpError {
     Forbidden(Error),
     /// Returned when the requested resource does not exist
     NotFound(Error),
+    /// Returned when server has encountered a situation it doesn't know how to handle
     InternalServerError(Error),
 }
 
 impl HttpError {
+    /// Bad request error
     pub fn bad_request<E: Into<Error>>(e: E) -> Self {
         Self::BadRequest(e.into())
     }
 
+    /// Unauthorized error
     pub fn unauthorized<E: Into<Error>>(e: E) -> Self {
         Self::Unauthorized(e.into())
     }

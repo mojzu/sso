@@ -1,5 +1,6 @@
 use crate::internal::*;
 
+/// Read audit logs
 pub async fn audit_read(config: &Config, id: Option<i64>) {
     let postgres = Postgres::from_config(config).await.unwrap();
 

@@ -10,6 +10,7 @@ struct ClientsWrapper {
     clients: HashMap<String, ConfigOauth2Client>,
 }
 
+/// Generate client configuration
 pub async fn generate_client(
     config: &Config,
     client_id: Option<&str>,

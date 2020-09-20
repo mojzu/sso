@@ -14,6 +14,7 @@ name = 'sso2.id'
 domain = 'localhost'
 path = '/'
 secure = false
+same_site = 'strict'
 max_age = 604800
 
 [oauth2]

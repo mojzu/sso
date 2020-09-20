@@ -28,12 +28,22 @@ pub trait SerializeJson {
 /// [RFC](https://tools.ietf.org/html/rfc6749#section-5.2)
 #[derive(Debug, Clone, Copy)]
 pub enum ErrorCode {
+    /// The request is missing a required parameter
     InvalidRequest,
+    /// Client authentication failed
     UnauthorizedClient,
+    /// The resource owner or authorization server denied the request
     AccessDenied,
+    /// The authorization server does not support obtaining an authorization
+    /// code using this method
     UnsupportedResponseType,
+    /// The requested scope is invalid, unknown, or malformed
     InvalidScope,
+    /// The authorization server encountered an unexpected condition that
+    /// prevented it from fulfilling the request
     ServerError,
+    /// The authorization server is currently unable to handle the request due
+    /// to a temporary overloading or maintenance of the server
     TemporarilyUnavailable,
 }
 
@@ -513,7 +523,9 @@ pub trait ClientIf {
 /// Parsed token request for code grant (access token) or refresh token
 #[derive(Debug, Clone)]
 pub enum TokenParseRequest {
+    /// Access token request
     Access(AccessTokenRequest),
+    /// Refresh token request
     Refresh(RefreshTokenRequest),
 }
 

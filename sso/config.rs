@@ -4,40 +4,57 @@ use crate::internal::*;
 /// Log Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigLog {
+    /// Pretty logs enable flag
     pub pretty: bool,
 }
 
 /// HTTP Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigHttp {
+    /// Public server configuration
     pub public: ConfigHttpIf,
+    /// Private server configuration
     pub private: ConfigHttpIf,
+    /// Cookie configuration
     pub cookie: ConfigHttpCookie,
 }
 
 /// HTTP Interface Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigHttpIf {
+    /// Bind address
     pub bind: String,
 }
 
 /// HTTP Cookie Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigHttpCookie {
+    /// Master cookie encryption/signing key
     pub key: String,
+    /// Cookie name
     pub name: String,
+    /// Cookie domain
     pub domain: String,
+    /// Cookie path
     pub path: String,
+    /// Cookie secure
     pub secure: bool,
+    /// Cookie same site (strict or lax)
+    pub same_site: String,
+    /// Cookie max age
     pub max_age: i64,
 }
 
 /// OAuth2 Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigOauth2 {
+    /// Public domain
     pub domain: Url,
+    /// Clients configuration
     pub clients: HashMap<Uuid, ConfigOauth2Client>,
+    /// Users configuration
     pub users: HashMap<Uuid, ConfigOauth2User>,
+    /// Providers configuration
     #[serde(default)]
     pub providers: ConfigOauth2Providers,
 }
@@ -45,10 +62,15 @@ pub struct ConfigOauth2 {
 /// OAuth2 Client Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigOauth2Client {
+    /// Client name
     pub name: String,
+    /// Client URI
     pub uri: Url,
+    /// Client secret
     pub secret: String,
+    /// Client redirect URI
     pub redirect_uri: Url,
+    /// Enable flag
     #[serde(default = "default_as_true")]
     pub enable: bool,
     /// Scope assigned to client
@@ -63,8 +85,10 @@ pub struct ConfigOauth2Client {
     /// Scope given to user on registration with client
     #[serde(default)]
     pub register_scope: Vec<String>,
+    /// Token TTL configuration
     #[serde(default)]
     pub ttl: ConfigOauth2ClientTtl,
+    /// Template configuration
     #[serde(default)]
     pub templates: ConfigOauth2ClientTemplates,
 }
@@ -92,8 +116,10 @@ pub struct ConfigOauth2ClientTtl {
 /// OAuth2 Client Templates Configuration
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ConfigOauth2ClientTemplates {
+    /// HTML template
     #[serde(default)]
     pub html: ConfigOauth2ClientTemplate,
+    /// Mail text template
     #[serde(default)]
     pub mail_text: ConfigOauth2ClientTemplate,
 }
@@ -101,7 +127,9 @@ pub struct ConfigOauth2ClientTemplates {
 /// OAuth2 Client Template Configuration
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ConfigOauth2ClientTemplate {
+    /// Template file
     pub file: Option<String>,
+    /// Template string
     #[serde(default)]
     pub content: String,
 }
@@ -115,20 +143,26 @@ pub struct ConfigOauth2User {
     pub email: String,
     /// User password hash (optional)
     pub password: Option<String>,
+    /// User locale
     #[serde(default)]
     pub locale: String,
+    /// User timezone
     #[serde(default)]
     pub timezone: String,
+    /// User enable flag
     #[serde(default = "default_as_true")]
     pub enable: bool,
+    /// User access
     pub access: HashMap<Uuid, ConfigOauth2UserAccess>,
 }
 
 /// OAuth2 User Access Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigOauth2UserAccess {
+    /// Access enable flag
     #[serde(default = "default_as_true")]
     pub enable: bool,
+    /// Access scope
     #[serde(default)]
     pub scope: Vec<String>,
 }
@@ -136,30 +170,44 @@ pub struct ConfigOauth2UserAccess {
 /// OAuth2 Providers Configuration
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ConfigOauth2Providers {
+    /// SSO provider
     pub sso: Option<ConfigOauth2Provider>,
+    /// Microsoft provider
     pub microsoft: Option<ConfigOauth2Provider>,
 }
 
 /// OAuth2 Provider Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigOauth2Provider {
+    /// Client ID
     pub client_id: String,
+    /// Client secret
     pub client_secret: String,
+    /// Authorization URI
     pub authorize_uri: Url,
+    /// Token URI
     pub token_uri: Url,
+    /// Introspection URI
     pub introspect_uri: Option<Url>,
+    /// OIDC userinfo URI
     pub oidc_userinfo_uri: Option<Url>,
 }
 
 /// Configuration
 #[derive(Debug, Clone, Deserialize)]
 pub struct Config {
+    /// Log configuration
     pub log: ConfigLog,
+    /// HTTP server configuration
     pub http: ConfigHttp,
+    /// OAuth2 configuration
     pub oauth2: ConfigOauth2,
+    /// Postgres configuration
     pub postgres: deadpool_postgres::Config,
+    /// Mailto configuration
     #[serde(default)]
     pub mailto: mailto::Config,
+    /// Metrics configuration
     #[serde(default)]
     pub metrics: metrics::Config,
 }
@@ -193,6 +241,7 @@ impl Config {
                 domain = ""
                 path = "/"
                 secure = true
+                same_site = "strict"
                 max_age = 604800
 
                 [oauth2]
@@ -214,6 +263,7 @@ impl Config {
         cfg.try_into().map_err(Error::ConfigError)
     }
 
+    /// Load configuration template files
     pub async fn load_templates(mut self) -> Result<Self> {
         let mut clients: HashMap<Uuid, ConfigOauth2Client> = HashMap::new();
 

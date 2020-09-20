@@ -3,14 +3,17 @@
 pub struct Scope(Vec<String>);
 
 impl Scope {
+    /// Returns inner vector
     pub fn into_inner(self) -> Vec<String> {
         self.0
     }
 
+    /// Returns scope from string vector
     pub fn from_ref<T: AsRef<str>>(scope: &[T]) -> Self {
         Self(scope.iter().map(|x| x.as_ref().to_string()).collect())
     }
 
+    /// Returns scope from space separated scope string
     pub fn from_string<T: AsRef<str>>(scope: T) -> Self {
         Self(
             scope
@@ -22,22 +25,27 @@ impl Scope {
         )
     }
 
+    /// Returns space separated scope string
     pub fn to_string(&self) -> String {
         self.0.join(" ")
     }
 
+    /// Trims extra spaces from scope string
     pub fn from_to_string<T: AsRef<str>>(scope: T) -> String {
         Self::from_string(scope).to_string()
     }
 
+    /// Returns reference to inner vector
     pub fn as_ref(&self) -> &[String] {
         self.0.as_ref()
     }
 
+    /// Returns true if scope is empty
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
+    /// Returns true if this scope contains scope argument
     pub fn contains(&self, scope: &Self) -> bool {
         for value in scope.as_ref().iter() {
             if !self.0.contains(value) {

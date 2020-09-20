@@ -557,7 +557,7 @@ impl HttpServer {
     ) -> oauth2::Result<(String, LoginAction)> {
         let check = self
             .postgres
-            .password_check(&args.email, &args.password)
+            .user_password_check(&args.email, &args.password)
             .await
             .map_err(oauth2::ErrorResponse::access_denied)?;
 
@@ -603,6 +603,7 @@ impl HttpServer {
                     "uri_reject": uri_reject,
                     "client_name": client.client_name,
                     "client_uri": client.client_uri,
+                    "audit": audit.template,
                 }),
             )
             .unwrap();
@@ -709,6 +710,7 @@ impl HttpServer {
                     "uri_reject": uri_reject,
                     "client_name": client.client_name,
                     "client_uri": client.client_uri,
+                    "audit": audit.template,
                 }),
             )
             .unwrap();
@@ -797,6 +799,7 @@ impl HttpServer {
                     "uri_reject": uri_reject,
                     "client_name": client.client_name,
                     "client_uri": client.client_uri,
+                    "audit": audit.template,
                 }),
             )
             .unwrap();

@@ -21,6 +21,7 @@ name = 'sso.id'
 domain = 'localhost'
 path = '/'
 secure = false
+same_site = 'strict'
 max_age = 604800
 
 [mailto]

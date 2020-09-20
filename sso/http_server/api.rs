@@ -175,7 +175,18 @@ async fn health(server: Data<HttpServer>, req: HttpRequest) -> HttpResult<Json<S
 
 #[api_v2_operation(summary = "Server metrics in Prometheus exposition format")]
 async fn metrics(server: Data<HttpServer>, req: HttpRequest) -> HttpResult<HttpResponse> {
-    server_request!(&server, &req, async { Ok(server.metrics_response()) })
+    server_request!(&server, &req, async {
+        // Using blocking doesn't appear to fix incrementing counters behaviour here
+        // Is it because metrics are using sync instruments? is opentelemetry example wrong?
+        let metrics = server.metrics.clone();
+        let (format_type, buffer) = util::blocking(move || Ok(metrics.encode()))
+            .await
+            .map_err(HttpError::InternalServerError)?;
+
+        Ok(actix_web::HttpResponse::build(http::StatusCode::OK)
+            .content_type(format_type)
+            .body(buffer))
+    })
 }
 
 #[cfg(test)]

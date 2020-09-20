@@ -1,9 +1,11 @@
 //! # sso
 //!
 #![recursion_limit = "1024"]
+#![type_length_limit = "4096"]
 #![deny(missing_debug_implementations)]
-// todo: Enable this and use to check public interface
-//#![deny(missing_docs)]
+#![deny(missing_docs)]
+// todo: Enable this to error on unused variables
+// #![deny(unused_variables)]
 
 #[macro_use]
 extern crate paperclip_macros;
@@ -39,6 +41,14 @@ pub use crate::error::*;
 // - Selenium service for docker-test.yml, how to work with webdriver?
 //     - https://github.com/SeleniumHQ/docker-selenium#debugging
 
+// todo: Refactor
+// todo: Check master branch for lost features during rewrite
+// todo: Rust client for integration
+// - Postgres improve query to/from helper structs
+// - Embeddable services/support for integrations?
+// - Check for panicable code (unwrap, etc.), rewrite and test
+// - Register template strings in Handlebars
+
 // todo: Test
 // - OWASP tests
 // - Register fails when disabled for client
@@ -48,15 +58,29 @@ pub use crate::error::*;
 // - More tests for data access, is client data masked correctly
 // - Test requests with other/unknown content types are handled correctly
 // - More input tests including unicode passwords, bad strings, etc.
-
-// todo: Refactor
-// todo: Check master branch for lost features during rewrite
-// todo: Rust client for integration
-// - Postgres improve query to/from helper structs
-// - Embeddable services/support for integrations?
-// - Check for panicable code (unwrap, etc.), rewrite and test
+// - User password flag tests (reset, update required etc)
 
 // todo: Feature
+// - Pwned password support somehow, pass back as header in oauth2 flow? oidc related?
+//     - Config setting to enable/disable
+// - Docker image upload and size labels (+ other labels?)
+//     - https://docs.docker.com/docker-hub/builds/
+//     - https://shields.io/category/size
+//     - Default config for running compose example?
+// - Confirm emails for reset/update/etc.
+// - Token naming from request headers?
+// - Email/password updates when using oauth2?
+// - Forward authentication support (caddy, nginx, traefik?)
+//     - Set client ID header on requests
+//     - SSO endpoints checks for auth cookie
+//     - If access denied authorize and redirect back to client
+// - PKCE support
+// - Github Oauth2 provider support
+//     - More generic Oauth2 provider support, method of configuration?
+// - Expose more SMTP transport options?
+// - CORS support for API requests, or docs on how to add at proxy layer?
+//     - OWASP secure headers project
+// - TLS support/testing, client authentication?
 // - OWASP research, OWASP ASVS reading and notes
 //     - https://cheatsheetseries.owasp.org
 // - Oauth2 research, OIDC, other RFC support?
@@ -69,10 +93,6 @@ pub use crate::error::*;
 //     - Last login, token uses information
 // - Translations based on locale
 // - Use timezones in user communications
-// - Confirm emails for reset/update/etc.
-// - Variable length secrets? api keys
-// - Token naming from request headers?
-// - Email/password updates when using oauth2?
 // - Replace reqwest with surf?
 // - Improved prometheus metrics, labelling, docker container for testing
 //     - https://prometheus.io/
@@ -89,30 +109,12 @@ pub use crate::error::*;
 // - Runtime config changes support, for example to log level
 // - Error serialisation for log messages, additional info in panics
 // - TeamCity deployment, .deb, docker images?
-// - Unit/integration tests with postgres connection? Mocking libraries? pgTAP?
 // - Email HTML templates, translation/formatting using user locale and timezone
-// - Pwned password support somehow, pass back as header in oauth2 flow? oidc related?
-//     - Config setting to enable/disable
 // - Audit retention, dump deleted logs to file? Audit log metrics and prometheus alert rules?
 // - Email verification/accepting terms
 // - User metadata, may require access controls
 // - Possible JWT usage for ids/keys/etc., oidc related?
 //     - https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet_for_Java.html
-// - PKCE support
-// - Forward authentication support (caddy, nginx, traefik?)
-//     - Set client ID header on requests
-//     - SSO endpoints checks for auth cookie
-//     - If access denied authorize and redirect back to client
-// - Docker image upload and size labels (+ other labels?)
-//     - https://docs.docker.com/docker-hub/builds/
-//     - https://shields.io/category/size
-//     - Default config for running compose example?
-// - Github Oauth2 provider support
-//     - More generic Oauth2 provider support, method of configuration?
-// - Expose more SMTP transport options?
-// - CORS support for API requests, or docs on how to add at proxy layer?
-//     - OWASP secure headers project
-// - TLS support/testing, client authentication?
 // - Rate limiting support, or at proxy level?
 // - Kubernetes examples/support/integration, also systemd examples?
 // - Token revokation support, totp (libreauth) support/options? webauthn? sqrl?
@@ -132,4 +134,3 @@ pub use crate::error::*;
 // - Client/user groups for segmentation
 // - GDPR and other data protection compliance research
 // - Constant time responses for authentication endpoints to resist timing attacks
-// - CSRF length configuration?

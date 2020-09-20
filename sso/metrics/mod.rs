@@ -4,6 +4,7 @@ use crate::internal::*;
 /// Metrics Configuration
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Config {
+    /// Name
     #[serde(default = "default_as_sso")]
     pub name: String,
 }
@@ -39,10 +40,12 @@ impl Metrics {
         })
     }
 
+    /// Returns opentelemetry meter
     pub fn meter(&self) -> &opentelemetry::api::metrics::Meter {
         self.meter.as_ref()
     }
 
+    /// Returns exposition format type and string
     pub fn encode(&self) -> (String, Vec<u8>) {
         use prometheus::{Encoder, TextEncoder};
 

@@ -19,6 +19,7 @@ struct Backup {
     metrics: metrics::Config,
 }
 
+/// Backup configuration
 pub async fn backup(config: &Config) {
     use tokio::fs::File;
     use tokio::prelude::*;

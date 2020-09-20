@@ -163,6 +163,13 @@ This request was made by the following client.
 
 {{client_name}}
 {{{client_uri}}}
+
+{{#if audit}}More technical information about this request.
+
+Timestamp: {{audit.timestamp}}
+Peer Address: {{audit.peer}}
+Remote Address: {{audit.remote}}
+User Agent: {{audit.user_agent}}{{/if}}
 "#;
 
 pub const TEMPLATE_MAIL_REGISTER: &str = r#"
@@ -184,6 +191,13 @@ This request was made by the following client.
 
 {{client_name}}
 {{{client_uri}}}
+
+{{#if audit}}More technical information about this request.
+
+Timestamp: {{audit.timestamp}}
+Peer Address: {{audit.peer}}
+Remote Address: {{audit.remote}}
+User Agent: {{audit.user_agent}}{{/if}}
 "#;
 
 pub const TEMPLATE_MAIL_DELETE: &str = r#"
@@ -205,4 +219,11 @@ This request was made by the following client.
 
 {{client_name}}
 {{{client_uri}}}
+
+{{#if audit}}More technical information about this request.
+
+Timestamp: {{audit.timestamp}}
+Peer Address: {{audit.peer}}
+Remote Address: {{audit.remote}}
+User Agent: {{audit.user_agent}}{{/if}}
 "#;

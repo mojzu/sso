@@ -92,42 +92,24 @@ impl Postgres {
     }
 
     pub async fn password_hash(&self, password: &str) -> Result<String> {
-        let client = self.pool.get().await?;
-
-        let statement = client.prepare("SELECT sso._password_hash($1)").await?;
-
-        let rows = client.query(&statement, &[&password.to_string()]).await?;
-        let value: &str = rows[0].get(0);
-
-        Ok(value.to_string())
+        let conn = self.pool.get().await?;
+        PostgresQuery::password_hash(&conn, &password.to_string()).await
     }
 
-    pub async fn password_check(
+    pub async fn user_password_check(
         &self,
         email: &str,
         password: &str,
     ) -> Result<PostgresUserPasswordCheck> {
         let conn = self.pool.get().await?;
-
-        let statement = conn
-            .prepare(include_str!("user_password_check.sql"))
-            .await?;
-
-        let mut rows = conn.query(&statement, &[&email, &password]).await?;
-
-        if rows.is_empty() {
-            return Err("email not found".into());
-        }
-        let row: PostgresUserPasswordCheck = rows.remove(0).into();
-
-        if !row.enable {
+        let check = PostgresQuery::user_password_check(&conn, email, password).await?;
+        if !check.enable {
             return Err("user is disabled".into());
         }
-        if !row.check {
+        if !check.check {
             return Err("password is incorrect".into());
         }
-
-        Ok(row)
+        Ok(check)
     }
 
     pub async fn user_read(
@@ -136,16 +118,8 @@ impl Postgres {
         req: RequestUserRead,
     ) -> Result<ResponseUserMany> {
         let conn = self.pool.get().await?;
-
-        let statement = conn.prepare(include_str!("user_read.sql")).await?;
-
-        let rows = conn
-            .query(&statement, &[&client.client_id, &req.id, &req.email])
-            .await?;
-
-        Ok(ResponseUserMany {
-            data: rows.into_iter().map(|x| x.into()).collect(),
-        })
+        let data = PostgresQuery::user_read(&conn, &client.client_id, &req).await?;
+        Ok(ResponseUserMany { data })
     }
 
     pub async fn user_update(
@@ -154,24 +128,9 @@ impl Postgres {
         req: RequestUserUpdate,
     ) -> Result<ResponseUser> {
         let conn = self.pool.get().await?;
+        let updated = PostgresQuery::user_update(&conn, &req).await?;
 
-        let statement = conn.prepare(include_str!("user_update.sql")).await?;
-
-        let count = conn
-            .execute(
-                &statement,
-                &[
-                    &req.id,
-                    &req.name,
-                    &req.email,
-                    &req.locale,
-                    &req.timezone,
-                    &req.enable,
-                ],
-            )
-            .await?;
-
-        if count == 1 {
+        if updated {
             if let Some(password) = req.password {
                 self.user_password_update2(req.id, password).await?;
             }
@@ -200,17 +159,7 @@ impl Postgres {
         req: RequestUserAccessRead,
     ) -> Result<ResponseAccess> {
         let conn = self.pool.get().await?;
-
-        let statement = conn.prepare(include_str!("user_access_read.sql")).await?;
-        let mut rows = conn
-            .query(&statement, &[&client.client_id, &req.user_id])
-            .await?;
-
-        if rows.is_empty() {
-            return Err(Error::from("access not found"));
-        }
-        let row: ResponseAccess = rows.remove(0).into();
-        Ok(row)
+        PostgresQuery::user_access_read(&conn, &client.client_id, &req).await
     }
 
     pub async fn user_access_insert(
@@ -225,24 +174,9 @@ impl Postgres {
         }
 
         let conn = self.pool.get().await?;
+        let mut user = PostgresQuery::user_insert(&conn, &user_id, &req).await?;
 
-        let statement = conn.prepare(include_str!("user_insert.sql")).await?;
-
-        let rows = conn
-            .query(
-                &statement,
-                &[
-                    &user_id,
-                    &req.name,
-                    &req.email,
-                    &req.locale,
-                    &req.timezone,
-                    &req.enable,
-                ],
-            )
-            .await?;
-
-        let password = if let Some(password) = &req.password {
+        user.password = if let Some(password) = &req.password {
             let res = self
                 .user_password_upsert(
                     user_id,
@@ -256,8 +190,8 @@ impl Postgres {
             None
         };
 
-        let access = self
-            .access_upsert(
+        user.access = Some(
+            self.access_upsert(
                 client,
                 RequestAccessUpdate {
                     user_id,
@@ -265,48 +199,19 @@ impl Postgres {
                     scope: scope.to_string(),
                 },
             )
-            .await?;
-
-        Ok(ResponseUser {
-            id: rows[0].get("id"),
-            created_at: rows[0].get("created_at"),
-            updated_at: rows[0].get("updated_at"),
-            name: rows[0].get("name"),
-            email: rows[0].get("email"),
-            locale: rows[0].get("locale"),
-            timezone: rows[0].get("timezone"),
-            enable: rows[0].get("enable"),
-            static_: rows[0].get("static"),
-            password,
-            oauth2_provider: Vec::new(),
-            oauth2_provider_count: 0,
-            access: Some(access),
-        })
+            .await?,
+        );
+        Ok(user)
     }
 
     async fn user_upsert_email(&self, name: &str, email: &str) -> Result<Uuid> {
-        let client = self.pool.get().await?;
-
-        let statement = client
-            .prepare(include_str!("user_upsert_email.sql"))
-            .await?;
-
-        let id = Uuid::new_v4();
-        let rows = client.query(&statement, &[&id, &name, &email]).await?;
-        let id: Uuid = rows[0].get("id");
-
-        Ok(id)
+        let conn = self.pool.get().await?;
+        PostgresQuery::user_upsert_email(&conn, name, email).await
     }
 
     pub async fn user_password_reset_accept(&self, id: Uuid, password: &str) -> Result<()> {
-        let client = self.pool.get().await?;
-
-        let statement = client
-            .prepare(include_str!("user_password_reset_accept.sql"))
-            .await?;
-
-        client.query(&statement, &[&id, &password]).await?;
-        Ok(())
+        let conn = self.pool.get().await?;
+        PostgresQuery::user_password_reset_accept(&conn, &id, password).await
     }
 
     pub async fn user_email_update(&self, id: Uuid, password: &str, email_new: &str) -> Result<()> {
@@ -1239,6 +1144,12 @@ impl PostgresQuery {
         Ok(row.get(0))
     }
 
+    async fn password_hash(conn: &deadpool_postgres::Client, password: &str) -> Result<String> {
+        let st = conn.prepare("SELECT sso._password_hash($1)").await?;
+        let row = conn.query_one(&st, &[&password]).await?;
+        Ok(row.get(0))
+    }
+
     async fn user_upsert_static(
         conn: &deadpool_postgres::Client,
         id: &Uuid,
@@ -1261,6 +1172,41 @@ impl PostgresQuery {
         Ok(rows)
     }
 
+    async fn user_upsert_email(
+        conn: &deadpool_postgres::Client,
+        name: &str,
+        email: &str,
+    ) -> Result<Uuid> {
+        let st = conn.prepare(include_str!("user/upsert_email.sql")).await?;
+
+        let id = Uuid::new_v4();
+        let row = conn.query_one(&st, &[&id, &name, &email]).await?;
+        Ok(row.get("id"))
+    }
+
+    async fn user_insert(
+        conn: &deadpool_postgres::Client,
+        id: &Uuid,
+        req: &RequestUserCreate,
+    ) -> Result<ResponseUser> {
+        let st = conn.prepare(include_str!("user/insert.sql")).await?;
+
+        let row = conn
+            .query_one(
+                &st,
+                &[
+                    &id,
+                    &req.name,
+                    &req.email,
+                    &req.locale,
+                    &req.timezone,
+                    &req.enable,
+                ],
+            )
+            .await?;
+        Ok(row.into())
+    }
+
     async fn user_password_upsert(
         conn: &deadpool_postgres::Client,
         id: &Uuid,
@@ -1281,6 +1227,68 @@ impl PostgresQuery {
         Ok(row.into())
     }
 
+    async fn user_update(
+        conn: &deadpool_postgres::Client,
+        req: &RequestUserUpdate,
+    ) -> Result<bool> {
+        let st = conn.prepare(include_str!("user/update.sql")).await?;
+        let count = conn
+            .execute(
+                &st,
+                &[
+                    &req.id,
+                    &req.name,
+                    &req.email,
+                    &req.locale,
+                    &req.timezone,
+                    &req.enable,
+                ],
+            )
+            .await?;
+        Ok(count == 1)
+    }
+
+    async fn user_read(
+        conn: &deadpool_postgres::Client,
+        client_id: &Uuid,
+        req: &RequestUserRead,
+    ) -> Result<Vec<ResponseUser>> {
+        let st = conn.prepare(include_str!("user/read.sql")).await?;
+
+        let rows = conn.query(&st, &[&client_id, &req.id, &req.email]).await?;
+
+        Ok(rows.into_iter().map(|x| x.into()).collect())
+    }
+
+    async fn user_password_check(
+        conn: &deadpool_postgres::Client,
+        email: &str,
+        password: &str,
+    ) -> Result<PostgresUserPasswordCheck> {
+        let st = conn
+            .prepare(include_str!("user/password_check.sql"))
+            .await?;
+
+        let mut rows = conn.query(&st, &[&email, &password]).await?;
+        if rows.is_empty() {
+            return Err("email not found".into());
+        }
+        Ok(rows.remove(0).into())
+    }
+
+    async fn user_password_reset_accept(
+        conn: &deadpool_postgres::Client,
+        id: &Uuid,
+        password: &str,
+    ) -> Result<()> {
+        let st = conn
+            .prepare(include_str!("user/password_reset_accept.sql"))
+            .await?;
+
+        conn.execute(&st, &[&id, &password]).await?;
+        Ok(())
+    }
+
     async fn user_delete_static(
         conn: &deadpool_postgres::Client,
         exclude_id: &Vec<Uuid>,
@@ -1288,6 +1296,20 @@ impl PostgresQuery {
         let st = conn.prepare(include_str!("user/delete_static.sql")).await?;
         let rows = conn.execute(&st, &[exclude_id]).await?;
         Ok(rows)
+    }
+
+    async fn user_access_read(
+        conn: &deadpool_postgres::Client,
+        client_id: &Uuid,
+        req: &RequestUserAccessRead,
+    ) -> Result<ResponseAccess> {
+        let st = conn.prepare(include_str!("user/access_read.sql")).await?;
+
+        let mut rows = conn.query(&st, &[&client_id, &req.user_id]).await?;
+        if rows.is_empty() {
+            return Err(Error::from("access not found"));
+        }
+        Ok(rows.remove(0).into())
     }
 
     async fn access_upsert(
@@ -1479,6 +1501,15 @@ impl From<&Row> for ResponseApiKey {
     }
 }
 
+/// Audit template data
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct AuditTemplate {
+    pub timestamp: String,
+    pub peer: String,
+    pub remote: String,
+    pub user_agent: String,
+}
+
 /// Audit
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct Audit {
@@ -1490,6 +1521,7 @@ pub(crate) struct Audit {
     pub subject: Option<String>,
     pub data: Value,
     pub status_code: Option<i16>,
+    pub template: Option<AuditTemplate>,
 }
 
 impl std::fmt::Display for Audit {
@@ -1509,6 +1541,7 @@ impl Audit {
             subject: None,
             data: json!({}),
             status_code: None,
+            template: None,
         };
         audit.set_data_http_request(req);
         audit
@@ -1535,16 +1568,25 @@ impl Audit {
         let info = req.connection_info();
         let headers = req.headers();
         let user_agent = headers.get("user-agent").map(|x| x.to_str().unwrap());
+        let peer = req.peer_addr().map(|x| format!("{}", x));
+        let remote = info.remote();
 
         self.set_data(
             "http_request",
             json!({
+                "peer": peer,
                 "scheme": info.scheme(),
                 "host": info.host(),
-                "remote": info.remote(),
+                "remote": remote,
                 "user_agent": user_agent,
             }),
         );
+        self.template = Some(AuditTemplate {
+            timestamp: Utc::now().to_rfc3339(),
+            peer: peer.unwrap_or("unknown".into()),
+            remote: remote.unwrap_or("unknown").into(),
+            user_agent: user_agent.unwrap_or("unknown").into(),
+        });
     }
 
     pub fn set_data_err(&mut self, err: &oauth2::ErrorResponse) {
@@ -1579,6 +1621,7 @@ impl Audit {
             subject: req.subject,
             data: req.data,
             status_code: req.status_code,
+            template: None,
         }
     }
 }

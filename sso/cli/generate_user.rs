@@ -10,6 +10,7 @@ struct UsersWrapper {
     users: HashMap<String, ConfigOauth2User>,
 }
 
+/// Generate user configuration
 pub async fn generate_user(
     config: &Config,
     user_id: Option<&str>,

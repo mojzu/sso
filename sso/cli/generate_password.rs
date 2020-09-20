@@ -1,5 +1,6 @@
 use crate::internal::*;
 
+/// Generate password
 pub async fn generate_password(config: &Config) {
     let postgres = Postgres::from_config(config).await.unwrap();
     let password = postgres.secret_generate().await.unwrap();

@@ -11,10 +11,13 @@ use tokio::prelude::*;
 /// Mailto Configuration
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Config {
+    /// Stdout configuration
     #[serde(default)]
     pub stdout: ConfigStdout,
+    /// File configuration
     #[serde(default)]
     pub file: ConfigFile,
+    /// SMTP configuration
     pub smtp: Option<ConfigSmtp>,
 }
 
@@ -172,28 +175,36 @@ impl Mailto {
 /// Stdout Mailto Configuration
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ConfigStdout {
+    /// Enable flag
     pub enable: bool,
 }
 
 /// File Mailto Configuration
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ConfigFile {
+    /// File path
     pub file: Option<String>,
 }
 
 /// SMTP Mailto Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigSmtp {
+    /// Server hostname
     pub host: String,
+    /// Server port
     pub port: u16,
+    /// From email address
     pub from: String,
+    /// Server login configuration
     pub login: Option<ConfigSmtpLogin>,
 }
 
 /// SMTP Login Mailto Configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigSmtpLogin {
+    /// Username
     pub user: String,
+    /// Password
     pub password: String,
 }
 

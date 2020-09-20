@@ -125,6 +125,8 @@ impl HttpServer {
         let cookie_domain = self.config.http.cookie.domain.clone();
         let cookie_path = self.config.http.cookie.path.clone();
         let cookie_secure = self.config.http.cookie.secure;
+        let cookie_same_site = Self::cookie_same_site(&self.config.http.cookie.same_site)
+            .expect("failed to parse same_site");
         let cookie_max_age = self.config.http.cookie.max_age;
 
         Ok(actix_web::HttpServer::new(move || {
@@ -137,7 +139,7 @@ impl HttpServer {
                         .path(&cookie_path)
                         .secure(cookie_secure)
                         .max_age(cookie_max_age)
-                        .same_site(actix_web::cookie::SameSite::Strict),
+                        .same_site(cookie_same_site),
                 ))
                 .data(server.clone())
                 .with_json_spec_at("openapi.json")
@@ -197,14 +199,6 @@ impl HttpServer {
         self.client.get(&url).send().await?.error_for_status()?;
 
         Ok(())
-    }
-
-    /// Returns Prometheus exposition text
-    pub(crate) fn metrics_response(&self) -> actix_web::HttpResponse {
-        let (format_type, buffer) = self.metrics.encode();
-        actix_web::HttpResponse::build(http::StatusCode::OK)
-            .content_type(format_type)
-            .body(buffer)
     }
 
     pub(crate) fn uri_oauth2_authorize(&self) -> Url {
@@ -282,6 +276,14 @@ impl HttpServer {
             Ok(Some(client))
         } else {
             Ok(None)
+        }
+    }
+
+    fn cookie_same_site(value: &str) -> Result<actix_web::cookie::SameSite> {
+        match value {
+            "strict" => Ok(actix_web::cookie::SameSite::Strict),
+            "lax" => Ok(actix_web::cookie::SameSite::Lax),
+            _ => Err(Error::from("cookie.same_site invalid")),
         }
     }
 }
