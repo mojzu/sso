@@ -1426,7 +1426,7 @@ impl From<Row> for ResponseUser {
             static_: row.get("static"),
             password: ResponseUserPassword::try_from(&row),
             oauth2_provider: Vec::new(),
-            oauth2_provider_count: row.get("oauth2_provider_count"),
+            oauth2_provider_count: row.try_get("oauth2_provider_count").unwrap_or(0),
             access: ResponseAccess::try_from(&row),
         }
     }
