@@ -1,7 +1,7 @@
 //! # sso
 //!
 #![recursion_limit = "1024"]
-#![type_length_limit = "4096"]
+#![type_length_limit = "65536"]
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
 #![deny(unused_variables)]
