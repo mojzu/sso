@@ -71,7 +71,7 @@ pub async fn post(
                 AuthorizeFormParse::PasswordLogin(request) => {
                     let ident = server.request_identity(&req).await;
                     let (user_id, action) = server.user_password_login(&mut audit, request).await?;
-                    ident.remember(user_id.clone());
+                    ident.remember(user_id);
 
                     let redirect_uri = match action {
                         LoginAction::Login => {

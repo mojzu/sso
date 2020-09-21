@@ -18,26 +18,16 @@ impl Scope {
         Self(
             scope
                 .as_ref()
-                .split(" ")
+                .split(' ')
                 .map(|x| x.trim().to_string())
                 .filter(|x| !x.is_empty())
                 .collect(),
         )
     }
 
-    /// Returns space separated scope string
-    pub fn to_string(&self) -> String {
-        self.0.join(" ")
-    }
-
     /// Trims extra spaces from scope string
     pub fn from_to_string<T: AsRef<str>>(scope: T) -> String {
         Self::from_string(scope).to_string()
-    }
-
-    /// Returns reference to inner vector
-    pub fn as_ref(&self) -> &[String] {
-        self.0.as_ref()
     }
 
     /// Returns true if scope is empty
@@ -53,6 +43,18 @@ impl Scope {
             }
         }
         true
+    }
+}
+
+impl std::fmt::Display for Scope {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0.join(" "))
+    }
+}
+
+impl AsRef<[String]> for Scope {
+    fn as_ref(&self) -> &[String] {
+        self.0.as_ref()
     }
 }
 

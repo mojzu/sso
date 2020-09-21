@@ -34,9 +34,11 @@ pub(crate) struct ServerRequest {
 }
 
 macro_rules! server_request {
-    ($server:expr, $req:expr, $e:expr) => {
-        $server.request($server.pre($req).await, $e.await).await;
-    };
+    ($server:expr, $req:expr, $e:expr) => {{
+        let server_request = $server.pre($req).await;
+        let server_response = $e.await;
+        $server.request(server_request, server_response).await
+    }};
 }
 
 macro_rules! server_oauth2_validate {
@@ -220,7 +222,7 @@ impl HttpServer {
     ) -> oauth2::Result<actix_web::HttpResponse> {
         let output = client
             .template_html(&self.handlebars, template, self.template_context(client))
-            .map_err(|e| oauth2::ErrorResponse::server_error(e))?;
+            .map_err(oauth2::ErrorResponse::server_error)?;
 
         Ok(actix_web::HttpResponse::Ok()
             .content_type("text/html; charset=utf-8")
@@ -236,7 +238,7 @@ impl HttpServer {
     ) -> oauth2::Result<actix_web::HttpResponse> {
         let output = client
             .template_html(&self.handlebars, template, context)
-            .map_err(|e| oauth2::ErrorResponse::server_error(e))?;
+            .map_err(oauth2::ErrorResponse::server_error)?;
 
         Ok(actix_web::HttpResponse::Ok()
             .content_type("text/html; charset=utf-8")
@@ -251,7 +253,7 @@ impl HttpServer {
     ) -> oauth2::Result<String> {
         let output = client
             .template_mail_text(&self.handlebars, template, context)
-            .map_err(|e| oauth2::ErrorResponse::server_error(e))?;
+            .map_err(oauth2::ErrorResponse::server_error)?;
 
         Ok(output)
     }
@@ -354,7 +356,7 @@ impl Client {
 impl HttpServer {
     pub(crate) async fn client_required(&self, auth: BasicAuth) -> HttpResult<Client> {
         let client_secret = match auth.secret() {
-            Some(client_secret) => Ok(client_secret.to_string()),
+            Some(client_secret) => Ok(client_secret),
             None => Err(HttpError::unauthorized("client_secret is required")),
         }?;
         self.client_from_secret(&auth.id(), &client_secret)
@@ -509,7 +511,7 @@ impl HttpServer {
             .postgres
             .code_read_client(code)
             .await
-            .map_err(|e| oauth2::ErrorResponse::invalid_request(e))?;
+            .map_err(oauth2::ErrorResponse::invalid_request)?;
 
         let client = match self.config.oauth2.clients.get(&id) {
             Some(client) => self.client_from_config(id, client),
@@ -530,7 +532,7 @@ impl HttpServer {
             .postgres
             .oauth2_code_read_client(csrf)
             .await
-            .map_err(|e| oauth2::ErrorResponse::invalid_request(e))?;
+            .map_err(oauth2::ErrorResponse::invalid_request)?;
 
         let client = match self.config.oauth2.clients.get(&id) {
             Some(client) => self.client_from_config(id, client),
@@ -552,7 +554,7 @@ pub enum LoginAction {
 impl HttpServer {
     pub(crate) async fn user_password_login(
         &self,
-        audit: &mut Audit,
+        _audit: &mut Audit,
         args: UserLoginArgs,
     ) -> oauth2::Result<(String, LoginAction)> {
         let check = self
@@ -617,7 +619,7 @@ impl HttpServer {
 
     pub(crate) async fn user_password_reset_accept(
         &self,
-        audit: &mut Audit,
+        _audit: &mut Audit,
         client: &Client,
         code: String,
         password: String,
@@ -637,7 +639,7 @@ impl HttpServer {
 
     pub(crate) async fn user_password_reset_reject(
         &self,
-        audit: &mut Audit,
+        _audit: &mut Audit,
         client: &Client,
         code: String,
     ) -> oauth2::Result<()> {
@@ -663,7 +665,7 @@ impl HttpServer {
 
     pub(crate) async fn user_password_update(
         &self,
-        audit: &mut Audit,
+        _audit: &mut Audit,
         id: Uuid,
         password: String,
         password_new: String,
@@ -724,7 +726,7 @@ impl HttpServer {
 
     pub(crate) async fn user_register_accept_password(
         &self,
-        audit: &mut Audit,
+        _audit: &mut Audit,
         client: &Client,
         code: String,
         args: UserRegisterAcceptArgs,
@@ -752,7 +754,7 @@ impl HttpServer {
 
     pub(crate) async fn user_register_reject(
         &self,
-        audit: &mut Audit,
+        _audit: &mut Audit,
         client: &Client,
         code: String,
     ) -> oauth2::Result<()> {
@@ -813,7 +815,7 @@ impl HttpServer {
 
     pub(crate) async fn user_delete_accept(
         &self,
-        audit: &mut Audit,
+        _audit: &mut Audit,
         client: &Client,
         id: Uuid,
         code: String,
@@ -839,9 +841,9 @@ impl HttpServer {
 
     pub(crate) async fn user_delete_reject(
         &self,
-        audit: &mut Audit,
+        _audit: &mut Audit,
         client: &Client,
-        id: Uuid,
+        _id: Uuid,
         code: String,
     ) -> oauth2::Result<()> {
         self.postgres
@@ -969,7 +971,7 @@ pub enum Oauth2Redirect {
 impl HttpServer {
     pub(crate) async fn oauth2_provider_redirect_request(
         &self,
-        audit: &mut Audit,
+        _audit: &mut Audit,
         client: &Client,
         provider: PostgresOauth2Provider,
         request: oauth2::AuthorizationCodeRequest,
@@ -1031,7 +1033,7 @@ impl HttpServer {
 
     pub(crate) async fn oauth2_provider_redirect_register_request(
         &self,
-        audit: &mut Audit,
+        _audit: &mut Audit,
         client: &Client,
         code: String,
         provider: PostgresOauth2Provider,
@@ -1178,7 +1180,7 @@ impl HttpServer {
 
     pub(crate) async fn oauth2_provider_redirect_response(
         &self,
-        audit: &mut Audit,
+        _audit: &mut Audit,
         client: &Client,
         request: RequestOauth2RedirectQuery,
     ) -> oauth2::Result<(String, Oauth2Redirect)> {
@@ -1300,7 +1302,7 @@ impl HttpServer {
 
     pub(crate) async fn oauth2_authorization_code(
         &self,
-        audit: &mut Audit,
+        _audit: &mut Audit,
         client: &Client,
         request: oauth2::AuthorizationCodeRequest,
         user_id: String,

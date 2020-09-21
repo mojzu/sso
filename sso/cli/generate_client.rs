@@ -31,7 +31,7 @@ pub async fn generate_client(
     let value = ConfigOauth2Client {
         name: client_name.to_string(),
         uri: Url::parse(redirect_uri).unwrap(),
-        secret: client_secret.to_string(),
+        secret: client_secret,
         redirect_uri: Url::parse(redirect_uri).unwrap(),
         enable: true,
         scope: scope.into_inner(),

@@ -73,9 +73,10 @@ For example.
 
 ```bash
 # depend: package.json
-# run task: npm - update packages
+# run task `npm - update packages`
 # depend: Cargo.toml
-# run task: cargo - update
+# run task `cargo - update`
+# fix: autoprefixer must be < 10 or postcss will error
 ```
 
 ## Webdriver Manager

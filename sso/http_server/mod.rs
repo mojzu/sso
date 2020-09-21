@@ -60,6 +60,7 @@ impl HttpServer {
         let postgres = Postgres::from_config(&config).await?;
 
         let client = reqwest::Client::builder()
+            .use_rustls_tls()
             .user_agent(util::USER_AGENT)
             .build()?;
 

@@ -60,7 +60,7 @@ impl Postgres {
             }
         }
 
-        PostgresQuery::user_delete_static(&conn, &exclude_user_id).await?;
+        PostgresQuery::user_delete_static(&conn, exclude_user_id).await?;
 
         Ok(())
     }
@@ -1291,10 +1291,10 @@ impl PostgresQuery {
 
     async fn user_delete_static(
         conn: &deadpool_postgres::Client,
-        exclude_id: &Vec<Uuid>,
+        exclude_id: Vec<Uuid>,
     ) -> Result<u64> {
         let st = conn.prepare(include_str!("user/delete_static.sql")).await?;
-        let rows = conn.execute(&st, &[exclude_id]).await?;
+        let rows = conn.execute(&st, &[&exclude_id]).await?;
         Ok(rows)
     }
 
@@ -1505,8 +1505,8 @@ impl From<&Row> for ResponseApiKey {
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct AuditTemplate {
     pub timestamp: String,
-    pub peer: String,
     pub remote: String,
+    pub realip_remote: String,
     pub user_agent: String,
 }
 
@@ -1568,23 +1568,23 @@ impl Audit {
         let info = req.connection_info();
         let headers = req.headers();
         let user_agent = headers.get("user-agent").map(|x| x.to_str().unwrap());
-        let peer = req.peer_addr().map(|x| format!("{}", x));
-        let remote = info.remote();
+        let remote = info.remote_addr();
+        let realip_remote = info.realip_remote_addr();
 
         self.set_data(
             "http_request",
             json!({
-                "peer": peer,
                 "scheme": info.scheme(),
                 "host": info.host(),
-                "remote": remote,
+                "remote_addr": remote,
+                "realip_remote_addr": realip_remote,
                 "user_agent": user_agent,
             }),
         );
         self.template = Some(AuditTemplate {
             timestamp: Utc::now().to_rfc3339(),
-            peer: peer.unwrap_or("unknown".into()),
             remote: remote.unwrap_or("unknown").into(),
+            realip_remote: realip_remote.unwrap_or("unknown").into(),
             user_agent: user_agent.unwrap_or("unknown").into(),
         });
     }
@@ -1652,13 +1652,6 @@ impl PostgresOauth2Provider {
             _ => Err(oauth2::ErrorResponse::invalid_request(
                 "oauth2_provider is invalid",
             )),
-        }
-    }
-
-    pub fn to_str(&self) -> &str {
-        match self {
-            Self::Sso => "sso",
-            Self::Microsoft => "microsoft",
         }
     }
 }

@@ -34,7 +34,7 @@ pub async fn backup(config: &Config) {
             password: config.postgres.password.clone(),
             dbname: config.postgres.dbname.clone(),
             host: config.postgres.host.clone(),
-            port: config.postgres.port.clone(),
+            port: config.postgres.port,
         },
         mailto: config.mailto.clone(),
         metrics: config.metrics.clone(),

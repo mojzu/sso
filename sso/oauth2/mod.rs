@@ -886,7 +886,7 @@ mod tests {
 
         assert_eq!(
             Some(introspect_res).serialize_json(),
-            r#"{"active":true,"client_id":"client-id-xyz","scope":"scope-1 scope-2","username":"username-xyz"}"#
+            r#"{"active":true,"client_id":"client-id-xyz","scope":"scope-1 scope-2","sub":"user-id-xyz","username":"username-xyz"}"#
         );
 
         // If authorization server returned refresh token, client makes request to authorization server to refresh token

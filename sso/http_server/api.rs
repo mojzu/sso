@@ -161,11 +161,13 @@ impl ServerApi {
     }
 }
 
+/// Returns response for uptime and kubernetes liveness tests
 #[api_v2_operation(summary = "Server ping")]
 async fn ping(server: Data<HttpServer>, req: HttpRequest) -> HttpResult<Json<String>> {
     server_request!(&server, &req, async { Ok(Json("ok".to_string())) })
 }
 
+/// Returns response for kubernetes readiness tests
 #[api_v2_operation(summary = "Server health")]
 async fn health(server: Data<HttpServer>, req: HttpRequest) -> HttpResult<Json<String>> {
     server_request!(&server, &req, async {
@@ -173,6 +175,7 @@ async fn health(server: Data<HttpServer>, req: HttpRequest) -> HttpResult<Json<S
     })
 }
 
+/// Returns metrics in Prometheus exposition format
 #[api_v2_operation(summary = "Server metrics in Prometheus exposition format")]
 async fn metrics(server: Data<HttpServer>, req: HttpRequest) -> HttpResult<HttpResponse> {
     server_request!(&server, &req, async {
@@ -187,29 +190,4 @@ async fn metrics(server: Data<HttpServer>, req: HttpRequest) -> HttpResult<HttpR
             .content_type(format_type)
             .body(buffer))
     })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use actix_web::{test, App};
-
-    #[actix_rt::test]
-    async fn test_private_ping() {
-        let mut app = test::init_service(App::new().service(ServerApi::private())).await;
-        let req = test::TestRequest::with_uri("/ping").to_request();
-        let res = test::call_service(&mut app, req).await;
-
-        assert!(res.status().is_success());
-        let content_type = res
-            .headers()
-            .get("content-type")
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
-        assert_eq!(content_type, "application/json");
-        let body = test::read_body(res).await;
-        assert_eq!(body, bytes::Bytes::from_static(b"\"ok\""));
-    }
 }

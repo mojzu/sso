@@ -29,7 +29,7 @@ pub async fn generate_user(
     let mut access = HashMap::new();
     for (id, _client) in config.oauth2.clients.iter() {
         access.insert(
-            id.clone(),
+            *id,
             ConfigOauth2UserAccess {
                 enable: true,
                 scope: Vec::new(),
@@ -44,7 +44,7 @@ pub async fn generate_user(
         locale: "".to_string(),
         timezone: "".to_string(),
         enable: true,
-        access: access,
+        access,
     };
 
     let mut users = HashMap::new();

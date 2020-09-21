@@ -167,8 +167,8 @@ This request was made by the following client.
 {{#if audit}}More technical information about this request.
 
 Timestamp: {{audit.timestamp}}
-Peer Address: {{audit.peer}}
 Remote Address: {{audit.remote}}
+Forwarded For Address: {{audit.realip_remote}}
 User Agent: {{audit.user_agent}}{{/if}}
 "#;
 
@@ -195,8 +195,8 @@ This request was made by the following client.
 {{#if audit}}More technical information about this request.
 
 Timestamp: {{audit.timestamp}}
-Peer Address: {{audit.peer}}
 Remote Address: {{audit.remote}}
+Forwarded For Address: {{audit.realip_remote}}
 User Agent: {{audit.user_agent}}{{/if}}
 "#;
 
@@ -223,7 +223,7 @@ This request was made by the following client.
 {{#if audit}}More technical information about this request.
 
 Timestamp: {{audit.timestamp}}
-Peer Address: {{audit.peer}}
 Remote Address: {{audit.remote}}
+Forwarded For Address: {{audit.realip_remote}}
 User Agent: {{audit.user_agent}}{{/if}}
 "#;

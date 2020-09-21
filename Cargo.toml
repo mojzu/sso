@@ -27,12 +27,12 @@ path = "sso/bin/cli.rs"
 default = [ ]
 
 [dependencies]
-actix-http = "1.0"
-actix-identity = "0.2.1"
+actix-http = "2.0"
+actix-identity = "0.3.0"
 actix-rt = "1.1"
 actix-server = "1.0"
-actix-web = "2.0"
-actix-web-httpauth = "0.4.2"
+actix-web = "3.0"
+actix-web-httpauth = "0.5.0"
 chrono = { version = "0.4.15", features = [ "serde" ] }
 chrono-tz = "0.5.3"
 clap = "2.33"
@@ -52,9 +52,9 @@ native-tls = "0.2.4"
 oauth2 = { version = "3.0", features = [ "futures-03", "reqwest-010" ], default-features = false }
 opentelemetry = { git = "https://github.com/open-telemetry/opentelemetry-rust", features = [ "serialize" ] }
 opentelemetry-prometheus = { git = "https://github.com/open-telemetry/opentelemetry-rust" }
-paperclip = { version = "0.4.1", features = [ "v2", "actix", "chrono", "uuid" ] }
-paperclip-core = { version = "0.2.1", features = [ "v2", "actix" ] }
-paperclip-macros = { version = "0.3.1", features = [ "v2", "actix" ] }
+paperclip = { git = "https://github.com/wafflespeanut/paperclip", features = [ "v2", "actix", "chrono", "uuid" ] }
+paperclip-core = { git = "https://github.com/wafflespeanut/paperclip", features = [ "v2", "actix", "uuid" ] }
+paperclip-macros = { git = "https://github.com/wafflespeanut/paperclip", features = [ "v2", "actix" ] }
 percent-encoding = "2.1"
 postgres-types = { version = "0.1.2", features = [ "derive" ] }
 prometheus = { version = "0.9.0", features = [ "process" ] }

@@ -2,7 +2,7 @@
 use crate::internal::*;
 
 /// Validates a vector of email address strings
-pub fn email_vec(values: &Vec<String>) -> std::result::Result<(), ValidationError> {
+pub fn email_vec(values: &[String]) -> std::result::Result<(), ValidationError> {
     for value in values {
         if !validator::validate_email(value) {
             return Err(ValidationError::new("email_invalid"));
@@ -20,7 +20,7 @@ pub fn id(value: i64) -> std::result::Result<(), ValidationError> {
 }
 
 /// Validates a vector of database IDs
-pub fn id_vec(values: &Vec<i64>) -> std::result::Result<(), ValidationError> {
+pub fn id_vec(values: &[i64]) -> std::result::Result<(), ValidationError> {
     for value in values {
         id(*value)?;
     }
@@ -29,14 +29,14 @@ pub fn id_vec(values: &Vec<i64>) -> std::result::Result<(), ValidationError> {
 
 /// Validates an audit type
 pub fn audit_type(value: &str) -> std::result::Result<(), ValidationError> {
-    if value.len() < 1 || value.len() > 100 {
+    if value.is_empty() || value.len() > 100 {
         return Err(ValidationError::new("audit_type_invalid"));
     }
     Ok(())
 }
 
 /// Validates a vector of audit types
-pub fn audit_type_vec(values: &Vec<String>) -> std::result::Result<(), ValidationError> {
+pub fn audit_type_vec(values: &[String]) -> std::result::Result<(), ValidationError> {
     for value in values {
         audit_type(value)?;
     }
@@ -45,14 +45,14 @@ pub fn audit_type_vec(values: &Vec<String>) -> std::result::Result<(), Validatio
 
 /// Validates an audit subject
 pub fn audit_subject(value: &str) -> std::result::Result<(), ValidationError> {
-    if value.len() < 1 || value.len() > 1000 {
+    if value.is_empty() || value.len() > 1000 {
         return Err(ValidationError::new("audit_subject_invalid"));
     }
     Ok(())
 }
 
 /// Validates a vector of audit subjects
-pub fn audit_subject_vec(values: &Vec<String>) -> std::result::Result<(), ValidationError> {
+pub fn audit_subject_vec(values: &[String]) -> std::result::Result<(), ValidationError> {
     for value in values {
         audit_subject(value)?;
     }
@@ -61,7 +61,7 @@ pub fn audit_subject_vec(values: &Vec<String>) -> std::result::Result<(), Valida
 
 /// Validates a client ID
 pub fn client_id(value: &str) -> std::result::Result<(), ValidationError> {
-    if value.len() < 1 || value.len() > 100 {
+    if value.is_empty() || value.len() > 100 {
         return Err(ValidationError::new("client_id_invalid"));
     }
     Ok(())
@@ -69,7 +69,7 @@ pub fn client_id(value: &str) -> std::result::Result<(), ValidationError> {
 
 /// Validates a CSRF token
 pub fn csrf_token(value: &str) -> std::result::Result<(), ValidationError> {
-    if value.len() < 1 || value.len() > 500 {
+    if value.is_empty() || value.len() > 500 {
         return Err(ValidationError::new("csrf_token_invalid"));
     }
     Ok(())
@@ -77,7 +77,7 @@ pub fn csrf_token(value: &str) -> std::result::Result<(), ValidationError> {
 
 /// Validates a code
 pub fn code(value: &str) -> std::result::Result<(), ValidationError> {
-    if value.len() < 1 || value.len() > 1000 {
+    if value.is_empty() || value.len() > 1000 {
         return Err(ValidationError::new("code_invalid"));
     }
     Ok(())
@@ -85,7 +85,7 @@ pub fn code(value: &str) -> std::result::Result<(), ValidationError> {
 
 /// Validates a state
 pub fn state(value: &str) -> std::result::Result<(), ValidationError> {
-    if value.len() < 1 || value.len() > 1000 {
+    if value.is_empty() || value.len() > 1000 {
         return Err(ValidationError::new("state_invalid"));
     }
     Ok(())
@@ -93,7 +93,7 @@ pub fn state(value: &str) -> std::result::Result<(), ValidationError> {
 
 /// Validates a token
 pub fn token(value: &str) -> std::result::Result<(), ValidationError> {
-    if value.len() < 1 || value.len() > 1000 {
+    if value.is_empty() || value.len() > 1000 {
         return Err(ValidationError::new("token_invalid"));
     }
     Ok(())
@@ -109,7 +109,7 @@ pub fn scope(value: &str) -> std::result::Result<(), ValidationError> {
 
 /// Validates an OAuth2 provider
 pub fn oauth2_provider(value: &str) -> std::result::Result<(), ValidationError> {
-    if value.len() < 1 || value.len() > 20 {
+    if value.is_empty() || value.len() > 20 {
         return Err(ValidationError::new("oauth2_provider_invalid"));
     }
     Ok(())

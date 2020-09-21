@@ -4,8 +4,7 @@
 #![type_length_limit = "4096"]
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
-// todo: Enable this to error on unused variables
-// #![deny(unused_variables)]
+#![deny(unused_variables)]
 
 #[macro_use]
 extern crate paperclip_macros;
@@ -48,6 +47,8 @@ pub use crate::error::*;
 // - Embeddable services/support for integrations?
 // - Check for panicable code (unwrap, etc.), rewrite and test
 // - Register template strings in Handlebars
+// - Use `_audit: &mut Audit` variables
+// - How to set title "SSO" and version "v2" in generated spec
 
 // todo: Test
 // - OWASP tests
@@ -67,6 +68,7 @@ pub use crate::error::*;
 //     - https://docs.docker.com/docker-hub/builds/
 //     - https://shields.io/category/size
 //     - Default config for running compose example?
+//     - https://docs.docker.com/docker-hub/builds/automated-testing/#enable-automated-tests-on-a-repository
 // - Confirm emails for reset/update/etc.
 // - Token naming from request headers?
 // - Email/password updates when using oauth2?
