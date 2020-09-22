@@ -1,0 +1,2552 @@
+{
+  "swagger": "2.0",
+  "definitions": {
+    "RequestAccessDelete": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "user_id"
+      ]
+    },
+    "RequestAccessRead": {},
+    "RequestAccessUpdate": {
+      "type": "object",
+      "properties": {
+        "enable": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "enable",
+        "scope",
+        "user_id"
+      ]
+    },
+    "RequestApiKeyCreate": {
+      "type": "object",
+      "properties": {
+        "enable": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "enable",
+        "name",
+        "scope",
+        "user_id"
+      ]
+    },
+    "RequestApiKeyDelete": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "RequestApiKeyRead": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "user_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+    },
+    "RequestApiKeyUpdate": {
+      "type": "object",
+      "properties": {
+        "enable": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "RequestApiKeyVerify": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "key"
+      ]
+    },
+    "RequestAuditCreate": {
+      "type": "object",
+      "properties": {
+        "api_key_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "audit_type": {
+          "type": "string"
+        },
+        "data": {
+          "description": "Audit log data object",
+          "type": "object"
+        },
+        "status_code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "subject": {
+          "description": "Audit log subject",
+          "type": "string"
+        },
+        "token_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "user_id": {
+          "description": "Audit log user UUID",
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "audit_type",
+        "data"
+      ]
+    },
+    "RequestAuditRead": {
+      "type": "object",
+      "properties": {
+        "audit_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "seek": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "limit": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "required": [
+            "limit"
+          ]
+        },
+        "subject": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "user_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "required": [
+        "seek"
+      ]
+    },
+    "RequestCsrf": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "token"
+      ]
+    },
+    "RequestOauth2Introspect": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "token"
+      ]
+    },
+    "RequestOauth2Token": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "grant_type": {
+          "type": "string"
+        },
+        "redirect_uri": {
+          "type": "string"
+        },
+        "refresh_token": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "grant_type"
+      ]
+    },
+    "RequestUserAccessRead": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "user_id"
+      ]
+    },
+    "RequestUserCreate": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "description": "User email address",
+          "type": "string"
+        },
+        "enable": {
+          "description": "User enable flag",
+          "type": "boolean"
+        },
+        "locale": {
+          "description": "User locale",
+          "type": "string"
+        },
+        "name": {
+          "description": "User name",
+          "type": "string"
+        },
+        "password": {
+          "type": "object",
+          "description": "User password",
+          "properties": {
+            "allow_reset": {
+              "description": "User allow password reset flag",
+              "type": "boolean"
+            },
+            "password": {
+              "description": "User password",
+              "type": "string"
+            },
+            "require_update": {
+              "description": "User require password update flag",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "allow_reset",
+            "password",
+            "require_update"
+          ]
+        },
+        "scope": {
+          "description": "User access scope",
+          "type": "string"
+        },
+        "timezone": {
+          "description": "User timezone",
+          "type": "string"
+        }
+      },
+      "required": [
+        "email",
+        "enable",
+        "locale",
+        "name",
+        "scope",
+        "timezone"
+      ]
+    },
+    "RequestUserDelete": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "RequestUserRead": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+    },
+    "RequestUserUpdate": {
+      "type": "object",
+      "properties": {
+        "access": {
+          "type": "object",
+          "properties": {
+            "enable": {
+              "type": "boolean"
+            },
+            "scope": {
+              "type": "string"
+            }
+          }
+        },
+        "email": {
+          "type": "string"
+        },
+        "enable": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "locale": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "password": {
+          "type": "object",
+          "properties": {
+            "allow_reset": {
+              "type": "boolean"
+            },
+            "require_update": {
+              "type": "boolean"
+            }
+          }
+        },
+        "timezone": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "ResponseAccess": {
+      "type": "object",
+      "properties": {
+        "client_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "enable": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "static": {
+          "type": "boolean"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "client_id",
+        "created_at",
+        "enable",
+        "scope",
+        "static",
+        "updated_at",
+        "user_id"
+      ]
+    },
+    "ResponseAccessMany": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "client_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "enable": {
+                "type": "boolean"
+              },
+              "scope": {
+                "type": "string"
+              },
+              "static": {
+                "type": "boolean"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "user_id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "client_id",
+              "created_at",
+              "enable",
+              "scope",
+              "static",
+              "updated_at",
+              "user_id"
+            ]
+          }
+        }
+      },
+      "required": [
+        "data"
+      ]
+    },
+    "ResponseApiKey": {
+      "type": "object",
+      "properties": {
+        "client_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "enable": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "client_id",
+        "created_at",
+        "enable",
+        "id",
+        "name",
+        "scope",
+        "updated_at",
+        "user_id"
+      ]
+    },
+    "ResponseApiKeyMany": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "client_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "enable": {
+                "type": "boolean"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "scope": {
+                "type": "string"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "user_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "client_id",
+              "created_at",
+              "enable",
+              "id",
+              "name",
+              "scope",
+              "updated_at",
+              "user_id"
+            ]
+          }
+        }
+      },
+      "required": [
+        "data"
+      ]
+    },
+    "ResponseAudit": {
+      "type": "object",
+      "properties": {
+        "api_key_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "audit_type": {
+          "type": "string"
+        },
+        "client_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data": {
+          "type": "object"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "status_code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "token_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "audit_type",
+        "created_at",
+        "id"
+      ]
+    },
+    "ResponseAuditMany": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "api_key_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "audit_type": {
+                "type": "string"
+              },
+              "client_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "data": {
+                "type": "object"
+              },
+              "id": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "status_code": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "subject": {
+                "type": "string"
+              },
+              "token_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "user_id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "audit_type",
+              "created_at",
+              "id"
+            ]
+          }
+        }
+      },
+      "required": [
+        "data"
+      ]
+    },
+    "ResponseClient": {
+      "type": "object",
+      "properties": {
+        "enable": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "redirect_uri": {
+          "type": "string"
+        },
+        "register_enable": {
+          "type": "boolean"
+        },
+        "register_scope": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "user_scope": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "enable",
+        "id",
+        "name",
+        "redirect_uri",
+        "register_enable",
+        "register_scope",
+        "scope",
+        "uri",
+        "user_scope"
+      ]
+    },
+    "ResponseCsrf": {
+      "type": "object",
+      "properties": {
+        "client_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "token": {
+          "type": "string"
+        },
+        "ttl": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "client_id",
+        "created_at",
+        "token",
+        "ttl"
+      ]
+    },
+    "ResponseUser": {
+      "type": "object",
+      "properties": {
+        "access": {
+          "type": "object",
+          "properties": {
+            "client_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "enable": {
+              "type": "boolean"
+            },
+            "scope": {
+              "type": "string"
+            },
+            "static": {
+              "type": "boolean"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "user_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "client_id",
+            "created_at",
+            "enable",
+            "scope",
+            "static",
+            "updated_at",
+            "user_id"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "email": {
+          "type": "string"
+        },
+        "enable": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "locale": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "oauth2_provider": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "oauth2_provider": {
+                "type": "string"
+              },
+              "static": {
+                "type": "boolean"
+              },
+              "sub": {
+                "type": "string"
+              },
+              "user_id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "created_at",
+              "oauth2_provider",
+              "static",
+              "sub",
+              "user_id"
+            ]
+          }
+        },
+        "oauth2_provider_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "password": {
+          "type": "object",
+          "properties": {
+            "allow_reset": {
+              "type": "boolean"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "require_update": {
+              "type": "boolean"
+            },
+            "static": {
+              "type": "boolean"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "user_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "allow_reset",
+            "created_at",
+            "require_update",
+            "static",
+            "updated_at",
+            "user_id"
+          ]
+        },
+        "static": {
+          "type": "boolean"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "created_at",
+        "email",
+        "enable",
+        "id",
+        "locale",
+        "name",
+        "oauth2_provider",
+        "oauth2_provider_count",
+        "static",
+        "timezone",
+        "updated_at"
+      ]
+    },
+    "ResponseUserMany": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "access": {
+                "type": "object",
+                "properties": {
+                  "client_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "enable": {
+                    "type": "boolean"
+                  },
+                  "scope": {
+                    "type": "string"
+                  },
+                  "static": {
+                    "type": "boolean"
+                  },
+                  "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "user_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "client_id",
+                  "created_at",
+                  "enable",
+                  "scope",
+                  "static",
+                  "updated_at",
+                  "user_id"
+                ]
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "email": {
+                "type": "string"
+              },
+              "enable": {
+                "type": "boolean"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "locale": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "oauth2_provider": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "oauth2_provider": {
+                      "type": "string"
+                    },
+                    "static": {
+                      "type": "boolean"
+                    },
+                    "sub": {
+                      "type": "string"
+                    },
+                    "user_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "created_at",
+                    "oauth2_provider",
+                    "static",
+                    "sub",
+                    "user_id"
+                  ]
+                }
+              },
+              "oauth2_provider_count": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "password": {
+                "type": "object",
+                "properties": {
+                  "allow_reset": {
+                    "type": "boolean"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "require_update": {
+                    "type": "boolean"
+                  },
+                  "static": {
+                    "type": "boolean"
+                  },
+                  "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "user_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "allow_reset",
+                  "created_at",
+                  "require_update",
+                  "static",
+                  "updated_at",
+                  "user_id"
+                ]
+              },
+              "static": {
+                "type": "boolean"
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "created_at",
+              "email",
+              "enable",
+              "id",
+              "locale",
+              "name",
+              "oauth2_provider",
+              "oauth2_provider_count",
+              "static",
+              "timezone",
+              "updated_at"
+            ]
+          }
+        }
+      },
+      "required": [
+        "data"
+      ]
+    }
+  },
+  "paths": {
+    "/ping": {
+      "get": {
+        "summary": "Server ping",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/script/password_strength.js": {
+      "get": {
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/script/zxcvbn.js": {
+      "get": {
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/v2/audit/create": {
+      "post": {
+        "summary": "Create audit log",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseAudit"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestAuditCreate"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/audit/read": {
+      "post": {
+        "summary": "Read audit logs",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseAuditMany"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestAuditRead"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/auth/delete": {
+      "post": {
+        "summary": "Delete user interface",
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "client_id",
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "in": "query",
+            "name": "code",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "redirect_uri",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "response_type",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "csrf_token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "password",
+            "required": true,
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "/v2/auth/email-update": {
+      "post": {
+        "summary": "User update email interface",
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "client_id",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "in": "query",
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "redirect_uri",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "csrf_token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "email_confirm",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "email_new",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "password",
+            "required": true,
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "/v2/auth/logout": {
+      "get": {
+        "summary": "User logout interface",
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "client_id",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "in": "query",
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "redirect_uri",
+            "required": true,
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "/v2/auth/password-reset": {
+      "post": {
+        "summary": "User reset password interface",
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "response_type",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "csrf_token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "password_confirm",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "password_new",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "/v2/auth/password-update": {
+      "post": {
+        "summary": "User update password interface",
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "client_id",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "in": "query",
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "redirect_uri",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "csrf_token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "password",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "password_confirm",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "password_new",
+            "required": true,
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "/v2/auth/register": {
+      "post": {
+        "summary": "User registration interface",
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "response_type",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "csrf_token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "oauth2_provider",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "password",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "password_allow_reset",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "password_confirm",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "register_type",
+            "required": true,
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "/v2/client/access/delete": {
+      "post": {
+        "summary": "Delete user access",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestAccessDelete"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/client/access/read": {
+      "post": {
+        "summary": "Read user access",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseAccessMany"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestAccessRead"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/client/access/update": {
+      "post": {
+        "summary": "Update user access",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseAccess"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestAccessUpdate"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/client/read": {
+      "post": {
+        "summary": "Read authenticated client",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseClient"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/v2/csrf/create": {
+      "post": {
+        "summary": "Create CSRF token",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseCsrf"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/v2/csrf/verify": {
+      "post": {
+        "summary": "Verify CSRF token",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestCsrf"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/oauth2/authorize": {
+      "post": {
+        "summary": "OAuth2 authorization endpoint",
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "client_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "redirect_uri",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "response_type",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "scope",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "auth_type",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "csrf_token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "email",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "oauth2_provider",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "password",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "/v2/oauth2/introspect": {
+      "post": {
+        "summary": "OAuth2 token introspection endpoint",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestOauth2Introspect"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/oauth2/redirect": {
+      "get": {
+        "summary": "OAuth2 redirect endpoint",
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": true,
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "/v2/oauth2/token": {
+      "post": {
+        "summary": "OAuth2 token endpoint",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestOauth2Token"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/user/access/delete": {
+      "post": {
+        "summary": "Delete user access",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestAccessDelete"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/user/access/read": {
+      "post": {
+        "summary": "Read user access",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseAccess"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestUserAccessRead"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/user/access/update": {
+      "post": {
+        "summary": "Update user access",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseAccess"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestAccessUpdate"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/user/api-key/create": {
+      "post": {
+        "summary": "Create user API key",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseApiKey"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestApiKeyCreate"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/user/api-key/delete": {
+      "post": {
+        "summary": "Delete user API key",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestApiKeyDelete"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/user/api-key/read": {
+      "post": {
+        "summary": "Read user API key",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseApiKeyMany"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestApiKeyRead"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/user/api-key/update": {
+      "post": {
+        "summary": "Update user API key",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseApiKey"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestApiKeyUpdate"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/user/api-key/verify": {
+      "post": {
+        "summary": "Verify user API key",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseApiKey"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestApiKeyVerify"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/user/create": {
+      "post": {
+        "summary": "Create user",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseUser"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestUserCreate"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/user/delete": {
+      "post": {
+        "summary": "Delete user",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestUserDelete"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/user/read": {
+      "post": {
+        "summary": "Read users",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseUserMany"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestUserRead"
+            }
+          }
+        ]
+      }
+    },
+    "/v2/user/update": {
+      "post": {
+        "summary": "Update user",
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseUser"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestUserUpdate"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "securityDefinitions": {
+    "basicAuth": {
+      "type": "basic"
+    }
+  },
+  "info": {
+    "version": "v2",
+    "title": "Single Sign-On API"
+  }
+}

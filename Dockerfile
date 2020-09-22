@@ -2,8 +2,9 @@
 FROM rust:1.45.2-buster as vendor
 
 WORKDIR /build
-COPY ./Cargo.toml .
-COPY ./Cargo.lock .
+COPY ./Cargo.toml /build/Cargo.toml
+COPY ./Cargo.lock /build/Cargo.lock
+COPY ./sso_client/Cargo.toml /build/sso_client/Cargo.toml
 RUN mkdir .cargo \
     && cargo vendor > .cargo/config
 
@@ -12,7 +13,7 @@ FROM rust:1.45.2-buster as build
 
 COPY --from=vendor /build /build
 WORKDIR /build
-COPY ./sso sso
+COPY ./sso /build/sso
 RUN cargo build --release
 
 # depend: docker pull debian:10.5

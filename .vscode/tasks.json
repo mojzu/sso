@@ -118,13 +118,25 @@
       ]
     },
     {
-      "label": "openapi - generate client",
+      "label": "openapi - generate typescript client",
       "type": "shell",
       "command": "sudo chown vscode:vscode -R /workspace/sso_test && (cd /workspace/sso_test/client && rm -rf .openapi-generator .gitignore .openapi-generator-ignore git_push.sh)",
       "problemMatcher": [],
       "dependsOn": [
         "openapi - _2"
       ]
+    },
+    {
+      "label": "openapi - wget openapi",
+      "type": "shell",
+      "command": "wget -O sso_manual/openapi.json localhost:7042/openapi.json",
+      "problemMatcher": []
+    },
+    {
+      "label": "openapi - generate rust client",
+      "type": "shell",
+      "command": "./.cargo/bin/paperclip --api v2 -o sso_client sso_manual/openapi.json",
+      "problemMatcher": []
     },
     {
       "label": "docker test - build",

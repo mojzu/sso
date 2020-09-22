@@ -52,9 +52,19 @@ Build and start client example application, available at [localhost:8080](http:/
 
 Run tests in `sso_test/test/host.ts` file.
 
-## openapi - generate client
+## openapi - generate typescript client
 
 Build TypeScript client using [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator). Binary `sso_server` must be running and available at `http://localhost:7042/`.
+
+## openapi - wget openapi
+
+Download a copy of `openapi.json` file from server and save to `sso_manual/openapi.json`.
+
+<!-- todo: Use same spec file in openapi typescript generation -->
+
+## openapi - generate rust client
+
+Generate rust client using [paperclip](https://github.com/wafflespeanut/paperclip).
 
 ## postgres - build
 

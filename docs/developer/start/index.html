@@ -72,6 +72,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#documenting">Documenting</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#client-generation">Client Generation</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#designing">Designing</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#labels">Labels</a>
@@ -171,6 +173,17 @@
 <li><a href="../tasks/#mkdocs-serve">mkdocs - serve</a></li>
 <li><a href="../tasks/#mkdocs-build">mkdocs - build</a></li>
 </ul>
+<h2 id="client-generation">Client Generation</h2>
+<p>The crate <code>sso_client</code> is generated using <a href="https://github.com/wafflespeanut/paperclip">paperclip</a>, install it in the development container with the following command.</p>
+<pre><code class="bash">cargo install paperclip --git https://github.com/wafflespeanut/paperclip --features cli
+</code></pre>
+
+<p>When <code>sso_server</code> is running, run the following tasks to download a copy of the OpenAPI specification file and generate the client.</p>
+<ul>
+<li><a href="../tasks/#openapi-wget-openapi">openapi - wget openapi</a></li>
+<li><a href="../tasks/#openapi-generate-rust-client">openapi - generate rust client</a></li>
+</ul>
+<p>fix: File requires manual changes, adding <code>"type": "object"</code> to definitions, or paperclip will not generate the expected files.</p>
 <h2 id="designing">Designing</h2>
 <p>Client HTML templates change the appearance of the web interface, run the template builder using the <code>npm - run template builder</code> task.</p>
 <p>Template source files are located in the <code>sso_test/template</code> directory. A build will write output files to the <code>sso_test/tmp/template</code> directory. Open <code>index.html</code> in a browser to check the appearance, and add <code>template.html</code> to the configuration file when complete.</p>
@@ -183,9 +196,10 @@
 </ul>
 <p>For example.</p>
 <pre><code class="bash"># depend: package.json
-# run task: npm - update packages
+# run task `npm - update packages`
 # depend: Cargo.toml
-# run task: cargo - update
+# run task `cargo - update`
+# fix: autoprefixer must be &lt; 10 or postcss will error
 </code></pre>
 
 <h2 id="webdriver-manager">Webdriver Manager</h2>

@@ -37,14 +37,10 @@ pub use crate::error::*;
 
 // todo: Fix
 // - Metrics counters incrementing on each collection?
-// - Selenium service for docker-test.yml, how to work with webdriver?
-//     - https://github.com/SeleniumHQ/docker-selenium#debugging
 
 // todo: Refactor
 // todo: Check master branch for lost features during rewrite
-// todo: Rust client for integration
 // - Postgres improve query to/from helper structs
-// - Embeddable services/support for integrations?
 // - Check for panicable code (unwrap, etc.), rewrite and test
 // - Register template strings in Handlebars
 // - Use `_audit: &mut Audit` variables
@@ -52,6 +48,7 @@ pub use crate::error::*;
 
 // todo: Test
 // - OWASP tests
+// - Rust client integration test
 // - Register fails when disabled for client
 // - What happens to flows when codes/etc. expire? E.g. test register and reload page
 // - Password reset tests with multiple clients, cannot reuse tokens, etc.
@@ -69,6 +66,8 @@ pub use crate::error::*;
 //     - https://shields.io/category/size
 //     - Default config for running compose example?
 //     - https://docs.docker.com/docker-hub/builds/automated-testing/#enable-automated-tests-on-a-repository
+// - Selenium service for docker-test.yml, how to work with webdriver?
+//     - https://github.com/SeleniumHQ/docker-selenium#debugging
 // - Confirm emails for reset/update/etc.
 // - Token naming from request headers?
 // - Email/password updates when using oauth2?
@@ -136,3 +135,4 @@ pub use crate::error::*;
 // - Client/user groups for segmentation
 // - GDPR and other data protection compliance research
 // - Constant time responses for authentication endpoints to resist timing attacks
+// - Embeddable services/support for integrations?

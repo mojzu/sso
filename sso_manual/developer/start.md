@@ -55,6 +55,21 @@ Run the following tasks to serve the manual development server or build manual s
 -   [mkdocs - serve](tasks.md#mkdocs-serve)
 -   [mkdocs - build](tasks.md#mkdocs-build)
 
+## Client Generation
+
+The crate `sso_client` is generated using [paperclip](https://github.com/wafflespeanut/paperclip), install it in the development container with the following command.
+
+```bash
+cargo install paperclip --git https://github.com/wafflespeanut/paperclip --features cli
+```
+
+When `sso_server` is running, run the following tasks to download a copy of the OpenAPI specification file and generate the client.
+
+-   [openapi - wget openapi](tasks.md#openapi-wget-openapi)
+-   [openapi - generate rust client](tasks.md#openapi-generate-rust-client)
+
+fix: File requires manual changes, adding `"type": "object"` to definitions, or paperclip will not generate the expected files.
+
 ## Designing
 
 Client HTML templates change the appearance of the web interface, run the template builder using the `npm - run template builder` task.
