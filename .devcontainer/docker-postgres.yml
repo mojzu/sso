@@ -18,9 +18,9 @@ services:
   # <https://hub.docker.com/r/dpage/pgadmin4/>
   # <https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html>
   # <https://www.pgadmin.org/>
-  # depend: docker pull dpage/pgadmin4:4.25
+  # depend: docker pull dpage/pgadmin4:4.26
   pgadmin:
-    image: dpage/pgadmin4:4.25
+    image: dpage/pgadmin4:4.26
     restart: unless-stopped
     depends_on:
       - postgres

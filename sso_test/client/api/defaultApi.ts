@@ -127,6 +127,7 @@ export class DefaultApi {
 
     /**
      * 
+     * @summary Server ping
      */
     public async pingGet (options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: string;  }> {
         const localVarPath = this.basePath + '/ping';
@@ -294,6 +295,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Create audit log
      * @param body 
      */
     public async v2AuditCreatePost (body: RequestAuditCreate, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseAudit;  }> {
@@ -365,6 +367,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Read audit logs
      * @param body 
      */
     public async v2AuditReadPost (body: RequestAuditRead, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseAuditMany;  }> {
@@ -436,6 +439,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Delete user interface
      * @param csrfToken 
      * @param password 
      * @param clientId 
@@ -529,6 +533,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary User update email interface
      * @param clientId 
      * @param redirectUri 
      * @param csrfToken 
@@ -647,6 +652,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary User logout interface
      * @param clientId 
      * @param redirectUri 
      * @param message 
@@ -725,6 +731,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary User reset password interface
      * @param code 
      * @param responseType 
      * @param csrfToken 
@@ -818,6 +825,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary User update password interface
      * @param clientId 
      * @param redirectUri 
      * @param csrfToken 
@@ -936,6 +944,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary User registration interface
      * @param code 
      * @param responseType 
      * @param csrfToken 
@@ -1054,6 +1063,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Delete user access
      * @param body 
      */
     public async v2ClientAccessDeletePost (body: RequestAccessDelete, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: object;  }> {
@@ -1125,6 +1135,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Read user access
      * @param body 
      */
     public async v2ClientAccessReadPost (body: object, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseAccessMany;  }> {
@@ -1196,6 +1207,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Update user access
      * @param body 
      */
     public async v2ClientAccessUpdatePost (body: RequestAccessUpdate, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseAccess;  }> {
@@ -1267,6 +1279,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Read authenticated client
      */
     public async v2ClientReadPost (options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseClient;  }> {
         const localVarPath = this.basePath + '/v2/client/read';
@@ -1331,6 +1344,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Create CSRF token
      */
     public async v2CsrfCreatePost (options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseCsrf;  }> {
         const localVarPath = this.basePath + '/v2/csrf/create';
@@ -1395,6 +1409,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Verify CSRF token
      * @param body 
      */
     public async v2CsrfVerifyPost (body: RequestCsrf, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: object;  }> {
@@ -1466,6 +1481,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary OAuth2 authorization endpoint
      * @param clientId 
      * @param redirectUri 
      * @param responseType 
@@ -1599,6 +1615,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary OAuth2 token introspection endpoint
      * @param body 
      */
     public async v2Oauth2IntrospectPost (body: RequestOauth2Introspect, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body?: any;  }> {
@@ -1662,6 +1679,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary OAuth2 redirect endpoint
      * @param code 
      * @param state 
      */
@@ -1735,6 +1753,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary OAuth2 token endpoint
      * @param body 
      */
     public async v2Oauth2TokenPost (body: RequestOauth2Token, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body?: any;  }> {
@@ -1798,6 +1817,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Delete user access
      * @param body 
      */
     public async v2UserAccessDeletePost (body: RequestAccessDelete, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: object;  }> {
@@ -1869,6 +1889,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Read user access
      * @param body 
      */
     public async v2UserAccessReadPost (body: RequestUserAccessRead, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseAccess;  }> {
@@ -1940,6 +1961,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Update user access
      * @param body 
      */
     public async v2UserAccessUpdatePost (body: RequestAccessUpdate, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseAccess;  }> {
@@ -2011,6 +2033,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Create user API key
      * @param body 
      */
     public async v2UserApiKeyCreatePost (body: RequestApiKeyCreate, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseApiKey;  }> {
@@ -2082,6 +2105,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Delete user API key
      * @param body 
      */
     public async v2UserApiKeyDeletePost (body: RequestApiKeyDelete, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: object;  }> {
@@ -2153,6 +2177,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Read user API key
      * @param body 
      */
     public async v2UserApiKeyReadPost (body: RequestApiKeyRead, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseApiKeyMany;  }> {
@@ -2224,6 +2249,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Update user API key
      * @param body 
      */
     public async v2UserApiKeyUpdatePost (body: RequestApiKeyUpdate, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseApiKey;  }> {
@@ -2295,6 +2321,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Verify user API key
      * @param body 
      */
     public async v2UserApiKeyVerifyPost (body: RequestApiKeyVerify, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseApiKey;  }> {
@@ -2366,6 +2393,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Create user
      * @param body 
      */
     public async v2UserCreatePost (body: RequestUserCreate, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseUser;  }> {
@@ -2437,6 +2465,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Delete user
      * @param body 
      */
     public async v2UserDeletePost (body: RequestUserDelete, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: object;  }> {
@@ -2508,6 +2537,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Read users
      * @param body 
      */
     public async v2UserReadPost (body: RequestUserRead, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseUserMany;  }> {
@@ -2579,6 +2609,7 @@ export class DefaultApi {
     }
     /**
      * 
+     * @summary Update user
      * @param body 
      */
     public async v2UserUpdatePost (body: RequestUserUpdate, options: {headers: {[name: string]: string}} = {headers: {}}) : Promise<{ response: http.IncomingMessage; body: ResponseUser;  }> {

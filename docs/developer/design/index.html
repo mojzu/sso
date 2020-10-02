@@ -70,6 +70,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#user-passwords">User Passwords</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#sessions">Sessions</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#tokens">Tokens</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#api-keys">API Keys</a>
@@ -119,13 +121,16 @@
             <div class="section">
               
                 <h1 id="design">Design</h1>
+<ul>
+<li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html">OWASP - Authentication Cheat Sheet</a></li>
+</ul>
 <h2 id="client-secrets">Client Secrets</h2>
 <ul>
 <li><a href="https://www.oauth.com/oauth2-servers/client-registration/client-id-secret/">The Client ID and Secret</a></li>
 </ul>
-<p>Client secrets are 256 bit random keys generated using the pgcrypto extension. The client ID and secret produce a SHA256 HMAC which is stored in the configuration file.</p>
+<p>Client secrets are 256 bit random keys generated using the pgcrypto extension. The client ID and secret produce a SHA256 HMAC, which is stored in the configuration file.</p>
 <p>The client authenticates requests to the server using HTTP basic authentication, the server checks that the client ID and secret HMAC match the stored HMAC.</p>
-<p>Secrets are generated using the <code>sso._secret_generate</code> SQL function, HMACs are generated using the <code>sso._secret_hash</code> SQL function and checked using the <code>sso._secret_check</code> SQL function. These functions are defined in <code>postgres/setup.sql</code> and available as functions in the <code>Postgres</code> module.</p>
+<p>Secrets are generated using the <code>sso._secret_generate</code> SQL function, HMACs are generated using <code>sso._secret_hash</code> and checked using <code>sso._secret_check</code>. These functions are defined in <code>postgres/setup.sql</code> and available as functions in the <code>Postgres</code> module.</p>
 <h2 id="user-passwords">User Passwords</h2>
 <ul>
 <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html">OWASP - Password Storage Cheat Sheet</a></li>
@@ -145,11 +150,25 @@
 </ul>
 <!-- todo: Urls are https or localhost -->
 
+<h2 id="sessions">Sessions</h2>
+<ul>
+<li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html">OWASP - Session Management Cheat Sheet</a></li>
+</ul>
 <h2 id="tokens">Tokens</h2>
-<!-- todo: Tokens info/best practices -->
-
+<p>User access and refresh tokens are 256 bit random keys generated using the pgcrypto extension. The token ID and access or refresh secret produce a SHA256 HMAC, which is AES encrypted with the client secret.</p>
+<p>User access and refresh tokens can be used with the OAuth2 introspection endpoint, the server decrypts the token using the requesting clients secret key, and then checks the token ID and secret HMAC were produced using the token access or refresh secret.</p>
+<p>This method is different to client secret checks which is inconsistent, however these should probably be some kind of JWT instead for OIDC support.</p>
+<ul>
+<li><a href="https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html">OWASP - JSON Web Token Cheat Sheet</a></li>
+</ul>
+<p>Secrets are generated using the <code>sso._secret_generate</code> SQL function, HMACs are generated using <code>sso._secret_hash</code>, tokens are encrypted using <code>sso._secret_encrypt</code>, tokens are decrypted using <code>sso._secret_decrypt</code> and checked using <code>sso._secret_check</code>.</p>
 <h2 id="api-keys">API Keys</h2>
-<!-- todo: API keys info/best practices -->
+<ul>
+<li><a href="https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html">OWASP - REST Security Cheat Sheet</a></li>
+</ul>
+<p>API keys are 256 bit random keys generated using the pgcrypto extension. The API key ID and secret produce a SHA256 HMAC, which is stored in the database.</p>
+<p>User API keys can be verified with the API key verify endpoint, the server checks the API key ID and secret HMAC match the stored HMAC.</p>
+<p>Secrets are generated using the <code>sso._secret_generate</code> SQL function, HMACs are generated using <code>sso._secret_hash</code> and checked using <code>sso._secret_check</code>.</p>
               
             </div>
           </div>

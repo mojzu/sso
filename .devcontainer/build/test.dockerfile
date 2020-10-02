@@ -1,7 +1,7 @@
 FROM sso/build-release:latest as build
 
-# depend: docker pull node:14.10-buster
-FROM node:14.10-buster
+# depend: docker pull node:14.11-buster
+FROM node:14.11-buster
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
