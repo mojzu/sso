@@ -42,6 +42,9 @@ To stop and destroy postgres services.
 Run the following tasks to build docker images and run tests for production, tests depend on [Webdriver Manager](#webdriver-manager).
 
 -   [docker test - up](tasks.md#docker-test-up)
+
+Tests are run automatically when containers are ready, to rerun them.
+
 -   [docker test - protractor](tasks.md#docker-test-protractor)
 
 To stop and destroy test services.

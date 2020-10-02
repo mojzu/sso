@@ -35,7 +35,7 @@ export function mailAddress(): string {
     for (let i = 0; i < 12; i++) {
         name += char.charAt(Math.floor(Math.random() * charLen));
     }
-    return `${name}@test.localhost`;
+    return `${name}@test.dev`;
 }
 
 export type Mail = { to: string; subject: string; text: string };

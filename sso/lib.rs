@@ -66,8 +66,6 @@ pub use crate::error::*;
 //     - https://shields.io/category/size
 //     - Default config for running compose example?
 //     - https://docs.docker.com/docker-hub/builds/automated-testing/#enable-automated-tests-on-a-repository
-// - Selenium service for docker-test.yml, how to work with webdriver?
-//     - https://github.com/SeleniumHQ/docker-selenium#debugging
 // - Confirm emails for reset/update/etc.
 // - Token naming from request headers?
 // - Email/password updates when using oauth2?

@@ -48,7 +48,7 @@ content = ''
 # V9MyJU1T5+WEycjlo9ZhmipCFU6xAygvDzvWW6xpQ6U=
 [oauth2.users.cae5799f-d506-4f64-8b77-6f42f38a503c]
 name = 'Provider Admin'
-email = 'provider.admin@app.localhost'
+email = 'provider.admin@app.dev'
 password = '$2a$06$NSADDFlCOoSN1RtpWzs.G.Mu69z/fni2euWUKbv5I.8.qB9HmDnqC'
 locale = ''
 timezone = ''

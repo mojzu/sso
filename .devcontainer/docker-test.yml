@@ -8,8 +8,8 @@ services:
 
   sso:
     build:
-      context: test
-      dockerfile: sso.dockerfile
+      context: ..
+      dockerfile: .devcontainer/test/sso.dockerfile
     image: sso/test-sso:latest
     restart: unless-stopped
     environment:
@@ -22,32 +22,21 @@ services:
       - "mailto:/config/mailto"
     depends_on:
       - postgres
+    entrypoint: ["/wait-for-it.sh", "postgres:5432"]
+    command: ["--", "sso_server", "--config", "sso"]
 
   client:
     build:
-      context: test
-      dockerfile: client.dockerfile
+      context: ..
+      dockerfile: .devcontainer/test/client.dockerfile
     image: sso/test-client:latest
     restart: unless-stopped
     ports:
       - 8080:8080
     depends_on:
       - sso
-
-  protractor:
-    build:
-      context: test
-      dockerfile: protractor.dockerfile
-    image: sso/test-protractor:latest
-    restart: "no"
-    network_mode: "host"
-    # This is here so tests do not run on container startup, tests
-    # are run with the `docker test - protractor` task
-    entrypoint: ["echo", "sso/test-protractor image"]
-    volumes:
-      - "mailto:/opt/mailto"
-    depends_on:
-      - client
+    entrypoint: ["/wait-for-it.sh", "sso:7042"]
+    command: ["--", "node", "/opt/sso_test/tmp/example/express-passport-docker.js"]
 
   postgres2:
     image: sso/build-postgres:latest
@@ -57,8 +46,8 @@ services:
 
   sso2:
     build:
-      context: test
-      dockerfile: sso2.dockerfile
+      context: ..
+      dockerfile: .devcontainer/test/sso2.dockerfile
     image: sso/test-sso2:latest
     restart: unless-stopped
     environment:
@@ -69,6 +58,24 @@ services:
       - 7045:7043
     depends_on:
       - postgres2
+    entrypoint: ["/wait-for-it.sh", "postgres2:5432"]
+    command: ["--", "sso_server", "--config", "sso"]
+
+  protractor:
+    build:
+      context: ..
+      dockerfile: .devcontainer/test/protractor.dockerfile
+    image: sso/test-protractor:latest
+    restart: "no"
+    # todo: Remove host network mode when using selenium docker containers
+    network_mode: "host"
+    volumes:
+      - "mailto:/opt/mailto"
+    depends_on:
+      - client
+      - selenium
+    entrypoint: ["/wait-for-it.sh", "client:8080"]
+    command: ["--", "npm", "run", "protractor", "sso_test/tmp/conf.docker.js"]
 
 volumes:
   mailto:

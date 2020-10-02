@@ -48,7 +48,7 @@ content = ''
 # daH1PqPo08fifuZVI2RuaW2jUg7KAQK0TncPNwAqswE=
 [oauth2.users.92232570-2b95-4db8-b05a-c1f91d48668d]
 name = 'Admin'
-email = 'admin@app.localhost'
+email = 'admin@app.dev'
 password = '$2a$06$SjFzDBAq3oOq/L2WS5bLouHRBEoWvr2oq6y6jDiIjPMU2GZjDwRuC'
 locale = ''
 timezone = ''

@@ -30,6 +30,10 @@ COPY --from=build /build/target/release/sso_server /usr/local/bin/sso_server
 RUN chmod +x /usr/local/bin/sso_cli \
     /usr/local/bin/sso_server
 
+COPY .devcontainer/build/scripts/wait-for-it.sh /wait-for-it.sh
+RUN chmod +x /wait-for-it.sh
+
 RUN mkdir -p /config
 WORKDIR /config
-ENTRYPOINT ["sso_server", "--config", "sso"]
+ENTRYPOINT ["sso_server"]
+CMD ["--config", "sso"]

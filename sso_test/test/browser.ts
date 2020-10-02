@@ -45,7 +45,7 @@ describe("sso-browser", function () {
         await browser_get_authorize();
 
         await form_password_login_submit(
-            "admin@app.localhost",
+            "admin@app.dev",
             "daH1PqPo08fifuZVI2RuaW2jUg7KAQK0TncPNwAqswE="
         );
 
@@ -56,7 +56,7 @@ describe("sso-browser", function () {
         await browser_get_authorize();
 
         await form_password_login_submit(
-            "thisemailisunknown@app.localhost",
+            "thisemailisunknown@app.dev",
             PASSWORD1
         );
 
@@ -67,7 +67,7 @@ describe("sso-browser", function () {
         await browser_get_authorize();
 
         await form_password_login_submit(
-            "admin@app.localhost",
+            "admin@app.dev",
             "thispasswordiswrong"
         );
 
@@ -119,14 +119,14 @@ describe("sso-browser", function () {
     it("should fail to login with too short or long password", async function () {
         await browser_get_authorize();
 
-        await form_password_login_submit("admin@app.localhost", "guest");
+        await form_password_login_submit("admin@app.dev", "guest");
         // browser behaviour on minlength is to display error message
         expect(await browser.getCurrentUrl()).toContain(AUTHORIZE_URI);
 
         await browser_get_authorize();
 
         await form_password_login_submit(
-            "admin@app.localhost",
+            "admin@app.dev",
             "guestguestguestguestguestguestguestguestguestguestguestguestguest"
         );
         // browser behaviour on exceeding maxlength is to submit with value
@@ -393,7 +393,7 @@ describe("sso-browser", function () {
         await browser_get_authorize();
 
         await form_password_login_submit(
-            "admin@app.localhost",
+            "admin@app.dev",
             "daH1PqPo08fifuZVI2RuaW2jUg7KAQK0TncPNwAqswE="
         );
 
@@ -416,7 +416,7 @@ describe("sso-browser", function () {
         await browser_get_authorize();
 
         await form_password_login_submit(
-            "admin@app.localhost",
+            "admin@app.dev",
             "daH1PqPo08fifuZVI2RuaW2jUg7KAQK0TncPNwAqswE="
         );
 
