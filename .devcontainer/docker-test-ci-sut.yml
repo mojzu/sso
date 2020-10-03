@@ -1,0 +1,19 @@
+version: "3"
+services:
+  sut:
+    image: sso-build/test:latest
+    restart: "no"
+    environment:
+      # test: Set environment variables for docker tests
+      # Trailing slash is added to CLIENT_URI as it is present in configuration
+      TEST_SSO_URI: "http://sso:7042"
+      TEST_SSO2_URI: "http://sso2:7042"
+      TEST_CLIENT_URI: "http://client:8080/"
+      TEST_COOKIE_DOMAIN: "sso"
+    volumes:
+      - "mailto:/opt/mailto"
+    depends_on:
+      - client
+      - selenium
+    entrypoint: ["/wait-for-it.sh", "client:8080"]
+    command: ["--", "npm", "run", "protractor", "sso_test/tmp/conf.docker-ci.js"]

@@ -1,4 +1,4 @@
-FROM sso/sso:latest
+FROM sso-build/sso:latest
 
-COPY .devcontainer/test/sso_config/sso.toml /config/sso.toml
-COPY .devcontainer/test/sso_config/template_html.hbs /config/template_html.hbs
+COPY .devcontainer/test/sso.toml /config/sso.toml
+COPY .devcontainer/test/sso_template.hbs /config/template_html.hbs

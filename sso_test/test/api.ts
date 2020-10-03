@@ -1,6 +1,13 @@
 import { browser } from "protractor";
 import "jasmine";
-import { api, userCreate, CLIENT_ID, PASSWORD1, mailAddress } from "./util";
+import {
+    api,
+    userCreate,
+    CLIENT_ID,
+    PASSWORD1,
+    mailAddress,
+    CLIENT_URI,
+} from "./util";
 
 describe("sso-api", function () {
     beforeEach(async function () {
@@ -38,8 +45,8 @@ describe("sso-api", function () {
 
         expect(client.id).toEqual("b4f765eb-49d9-4d9f-bd4b-8c4b88850f84");
         expect(client.name).toEqual("App");
-        expect(client.uri).toEqual("http://localhost:8080/");
-        expect(client.redirectUri).toEqual("http://localhost:8080/oauth2");
+        expect(client.uri).toEqual(CLIENT_URI);
+        expect(client.redirectUri).toEqual(`${CLIENT_URI}oauth2`);
         expect(client.userScope).toEqual("admin api");
         expect(client.registerEnable).toEqual(true);
         expect(client.registerScope).toEqual("");

@@ -4,25 +4,25 @@ services:
     build:
       context: postgres
       dockerfile: dockerfile
-    image: sso/build-postgres:latest
+    image: sso-build/postgres:latest
     restart: "no"
-    entrypoint: ["echo", "sso/build-postgres image"]
+    entrypoint: ["echo", "sso-build/postgres image"]
 
   build-mkdocs:
     build:
       context: mkdocs
       dockerfile: dockerfile
-    image: sso/build-mkdocs:latest
+    image: sso-build/mkdocs:latest
     restart: "no"
-    entrypoint: ["echo", "sso/build-mkdocs image"]
+    entrypoint: ["echo", "sso-build/mkdocs image"]
 
   build-prometheus:
     build:
       context: prometheus
       dockerfile: dockerfile
-    image: sso/build-prometheus:latest
+    image: sso-build/prometheus:latest
     restart: "no"
-    entrypoint: ["echo", "sso/build-prometheus image"]
+    entrypoint: ["echo", "sso-build/prometheus image"]
 
   build:
     build:
@@ -31,38 +31,42 @@ services:
       args:
         USER_UID: 1000
         USER_GID: 1000
-    image: sso/build:latest
+    image: sso-build:latest
     restart: "no"
-    entrypoint: ["echo", "sso/build image"]
+    entrypoint: ["echo", "sso-build image"]
 
-  build-cache:
+  build-cache-rust:
     build:
       context: ..
-      dockerfile: .devcontainer/build/cache.dockerfile
-    image: sso/build-cache:latest
+      dockerfile: .devcontainer/build/cache-rust.dockerfile
+    image: sso-build/cache-rust:latest
     restart: "no"
-    entrypoint: ["echo", "sso/build-cache image"]
+    entrypoint: ["echo", "sso-build/cache-rust image"]
 
-  build-release:
+  build-cache-node:
     build:
       context: ..
-      dockerfile: .devcontainer/build/release.dockerfile
-    image: sso/build-release:latest
+      dockerfile: .devcontainer/build/cache-node.dockerfile
+    image: sso-build/cache-node:latest
     restart: "no"
-    entrypoint: ["echo", "sso/build-release image"]
+    entrypoint: ["echo", "sso-build/cache-node image"]
 
   build-test:
     build:
       context: ..
       dockerfile: .devcontainer/build/test.dockerfile
-    image: sso/build-test:latest
+    image: sso-build/test:latest
     restart: "no"
-    entrypoint: ["echo", "sso/build-test image"]
+    depends_on:
+      - build-cache-node
+    entrypoint: ["echo", "sso-build/test image"]
 
   build-sso:
     build:
       context: ..
       dockerfile: .devcontainer/build/sso.dockerfile
-    image: sso/sso:latest
+    image: sso-build/sso:latest
     restart: "no"
-    entrypoint: ["echo", "sso/sso image"]
+    depends_on:
+      - build-cache-rust
+    entrypoint: ["echo", "sso-build/sso image"]

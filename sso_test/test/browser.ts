@@ -33,12 +33,14 @@ import {
     form_oauth2_sso_login_submit,
     api2,
     AUTHORIZE_URI,
+    CLIENT_URI,
+    browser_delete_cookies,
 } from "./util";
 
 describe("sso-browser", function () {
     beforeEach(async function () {
         browser.waitForAngularEnabled(false);
-        await browser.manage().deleteAllCookies();
+        await browser_delete_cookies();
     });
 
     it("should login successfully", async function () {
@@ -157,7 +159,7 @@ describe("sso-browser", function () {
 
         await form_password_update_submit(PASSWORD1, PASSWORD2, PASSWORD2);
 
-        browser.get("http://localhost:8080/");
+        browser.get(CLIENT_URI);
 
         await browser_check_authorized();
     });
@@ -213,7 +215,7 @@ describe("sso-browser", function () {
         let email = mailAddress();
         await form_email_update_submit(PASSWORD1, email, email);
 
-        await browser.manage().deleteAllCookies();
+        await browser_delete_cookies();
 
         await browser_get_authorize();
 
@@ -263,7 +265,7 @@ describe("sso-browser", function () {
 
         await form_password_update_submit(PASSWORD1, PASSWORD2, PASSWORD2);
 
-        await browser.manage().deleteAllCookies();
+        await browser_delete_cookies();
 
         await browser_get_authorize();
 
@@ -308,7 +310,7 @@ describe("sso-browser", function () {
 
         await form_register_accept_password(email, PASSWORD1, PASSWORD1);
 
-        browser.get("http://localhost:8080/");
+        browser.get(CLIENT_URI);
 
         await browser_check_authorized();
     });
@@ -350,11 +352,11 @@ describe("sso-browser", function () {
 
         await form_register_accept_oauth2_sso_submit(user.email, PASSWORD1);
 
-        browser.get("http://localhost:8080/");
+        browser.get(CLIENT_URI);
 
         await browser_check_authorized();
 
-        await browser.manage().deleteAllCookies();
+        await browser_delete_cookies();
 
         await browser_get_authorize();
 
@@ -380,7 +382,7 @@ describe("sso-browser", function () {
 
         await form_delete_accept_submit(user.email, PASSWORD1);
 
-        await browser.manage().deleteAllCookies();
+        await browser_delete_cookies();
 
         await browser_get_authorize();
 

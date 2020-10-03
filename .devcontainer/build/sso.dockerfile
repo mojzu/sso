@@ -1,4 +1,4 @@
-FROM sso/build-release:latest as build
+FROM sso-build/cache-rust:latest as build
 
 # depend: docker pull debian:10.5
 FROM debian:10.5

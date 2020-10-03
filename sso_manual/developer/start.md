@@ -41,15 +41,15 @@ To stop and destroy postgres services.
 
 Run the following tasks to build docker images and run tests for production, tests depend on [Webdriver Manager](#webdriver-manager).
 
+-   [docker test - build](tasks.md#docker-test-build)
 -   [docker test - up](tasks.md#docker-test-up)
-
-Tests are run automatically when containers are ready, to rerun them.
-
 -   [docker test - protractor](tasks.md#docker-test-protractor)
 
 To stop and destroy test services.
 
 -   [docker test - down](tasks.md#docker-test-down)
+
+Commands to run test CI locally can be found in `.github/workflows/docker.yml`.
 
 ## Documenting
 
@@ -86,6 +86,7 @@ Some labels are used in comments throughout the code which can be searched for.
 -   `todo: ...`: Stuff to work on
 -   `fix: ...`: Notes on how something has been fixed
 -   `depend: ...`: Dependencies that should be upgraded occasionally
+-   `test: ...`: Notes related to testing
 
 For example.
 

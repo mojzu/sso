@@ -160,16 +160,15 @@
 <h2 id="testing">Testing</h2>
 <p>Run the following tasks to build docker images and run tests for production, tests depend on <a href="#webdriver-manager">Webdriver Manager</a>.</p>
 <ul>
+<li><a href="../tasks/#docker-test-build">docker test - build</a></li>
 <li><a href="../tasks/#docker-test-up">docker test - up</a></li>
-</ul>
-<p>Tests are run automatically when containers are ready, to rerun them.</p>
-<ul>
 <li><a href="../tasks/#docker-test-protractor">docker test - protractor</a></li>
 </ul>
 <p>To stop and destroy test services.</p>
 <ul>
 <li><a href="../tasks/#docker-test-down">docker test - down</a></li>
 </ul>
+<p>Commands to run test CI locally can be found in <code>.github/workflows/docker.yml</code>.</p>
 <h2 id="documenting">Documenting</h2>
 <p>Run the following tasks to serve the manual development server or build manual static site.</p>
 <ul>
@@ -196,6 +195,7 @@
 <li><code>todo: ...</code>: Stuff to work on</li>
 <li><code>fix: ...</code>: Notes on how something has been fixed</li>
 <li><code>depend: ...</code>: Dependencies that should be upgraded occasionally</li>
+<li><code>test: ...</code>: Notes related to testing</li>
 </ul>
 <p>For example.</p>
 <pre><code class="bash"># depend: package.json

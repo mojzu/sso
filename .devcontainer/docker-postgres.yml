@@ -9,7 +9,7 @@ services:
     build:
       context: postgres
       dockerfile: dockerfile
-    image: sso/build-postgres:latest
+    image: sso-build/postgres:latest
     restart: unless-stopped
     ports:
       - 5432:5432

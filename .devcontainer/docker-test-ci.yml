@@ -1,0 +1,108 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:13
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+      - 5432:5432
+
+  sso:
+    build:
+      context: ..
+      dockerfile: .devcontainer/test-ci/sso.dockerfile
+    image: sso-build/test-ci-sso:latest
+    restart: unless-stopped
+    environment:
+      RUST_BACKTRACE: "1"
+      RUST_LOG: "sso=info,sso_server=info"
+    ports:
+      - 7042:7042
+      - 7043:7043
+    volumes:
+      - "mailto:/config/mailto"
+    depends_on:
+      - postgres
+    entrypoint: ["/wait-for-it.sh", "postgres:5432"]
+    command: ["--", "sso_server", "--config", "sso"]
+
+  client:
+    image: sso-build/test:latest
+    restart: unless-stopped
+    environment:
+      # test: Set environment variables for docker tests
+      # Trailing slash is added to CLIENT_URI as it is present in configuration
+      TEST_SSO_URI: "http://sso:7042"
+      TEST_SSO2_URI: "http://sso2:7042"
+      TEST_CLIENT_URI: "http://client:8080/"
+      TEST_COOKIE_DOMAIN: "sso"
+    ports:
+      - 8080:8080
+    depends_on:
+      - sso
+    entrypoint: ["/wait-for-it.sh", "sso:7042"]
+    command: ["--", "node", "/opt/sso_test/tmp/example/express-passport-docker.js"]
+
+  postgres2:
+    image: postgres:13
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+      - 5433:5432
+
+  sso2:
+    build:
+      context: ..
+      dockerfile: .devcontainer/test-ci/sso2.dockerfile
+    image: sso-build/test-ci-sso2:latest
+    restart: unless-stopped
+    environment:
+      RUST_BACKTRACE: "1"
+      RUST_LOG: "sso=info,sso_server=info"
+    ports:
+      - 7044:7042
+      - 7045:7043
+    depends_on:
+      - postgres2
+    entrypoint: ["/wait-for-it.sh", "postgres2:5432"]
+    command: ["--", "sso_server", "--config", "sso"]
+
+  selenium:
+    image: selenium/hub:4.0.0-alpha-7-prerelease-20200921
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"
+
+  selenium-chrome:
+    image: selenium/node-chrome:4.0.0-alpha-7-prerelease-20200921
+    volumes:
+      - /dev/shm:/dev/shm
+    depends_on:
+      - selenium
+    environment:
+      - SE_EVENT_BUS_HOST=selenium
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+    ports:
+      - "6900:5900"
+
+  selenium-firefox:
+    image: selenium/node-firefox:4.0.0-alpha-7-prerelease-20200921
+    volumes:
+      - /dev/shm:/dev/shm
+    depends_on:
+      - selenium
+    environment:
+      - SE_EVENT_BUS_HOST=selenium
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+    ports:
+      - "6901:5900"
+
+volumes:
+  mailto:

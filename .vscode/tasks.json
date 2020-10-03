@@ -34,7 +34,7 @@
     {
       "label": "postgres - read sample configuration file",
       "type": "shell",
-      "command": "docker run -i --rm sso/build-postgres:latest cat /usr/share/postgresql/postgresql.conf.sample > postgres.conf",
+      "command": "docker run -i --rm sso-build/postgres:latest cat /usr/share/postgresql/postgresql.conf.sample > postgres.conf",
       "problemMatcher": [],
       "dependsOn": [
         "postgres - build"
@@ -142,20 +142,20 @@
       "label": "docker test - build",
       "type": "shell",
       "group": "build",
-      "command": "docker-compose -f .devcontainer/docker-build.yml -f .devcontainer/docker-selenium.yml -f .devcontainer/docker-test.yml build",
+      "command": "docker-compose -f .devcontainer/docker-build.yml -f .devcontainer/docker-test.yml build",
       "problemMatcher": []
     },
     {
       "label": "docker test - build (no cache)",
       "type": "shell",
       "group": "build",
-      "command": "docker-compose -f .devcontainer/docker-build.yml -f .devcontainer/docker-selenium.yml -f .devcontainer/docker-test.yml build --no-cache",
+      "command": "docker-compose -f .devcontainer/docker-build.yml -f .devcontainer/docker-test.yml build --no-cache",
       "problemMatcher": []
     },
     {
       "label": "docker test - up",
       "type": "shell",
-      "command": "docker-compose -f .devcontainer/docker-selenium.yml -f .devcontainer/docker-test.yml up",
+      "command": "docker-compose -f .devcontainer/docker-test.yml up",
       "problemMatcher": [],
       "dependsOn": [
         "docker test - build"
@@ -164,25 +164,25 @@
     {
       "label": "docker test - protractor",
       "type": "shell",
-      "command": "docker-compose -f .devcontainer/docker-selenium.yml -f .devcontainer/docker-test.yml run --rm --entrypoint 'npm run protractor sso_test/tmp/conf.docker.js' protractor",
+      "command": "docker-compose -f .devcontainer/docker-test.yml run --rm --entrypoint 'npm run protractor sso_test/tmp/conf.docker.js' protractor",
       "problemMatcher": [],
     },
     {
       "label": "docker test - down",
       "type": "shell",
-      "command": "docker-compose -f .devcontainer/docker-selenium.yml -f .devcontainer/docker-test.yml down",
+      "command": "docker-compose -f .devcontainer/docker-test.yml down",
       "problemMatcher": []
     },
     {
       "label": "docker test - ps",
       "type": "shell",
-      "command": "docker-compose -f .devcontainer/docker-selenium.yml -f .devcontainer/docker-test.yml ps",
+      "command": "docker-compose -f .devcontainer/docker-test.yml ps",
       "problemMatcher": []
     },
     {
       "label": "docker test - remove images",
       "type": "shell",
-      "command": "docker-compose -f .devcontainer/docker-selenium.yml -f .devcontainer/docker-test.yml down --rmi all -v",
+      "command": "docker-compose -f .devcontainer/docker-test.yml down --rmi all -v",
       "problemMatcher": []
     },
     {
@@ -323,7 +323,7 @@
     {
       "label": "mkdocs - serve",
       "type": "shell",
-      "command": "docker run --rm -v '${env:LOCAL_WORKSPACE_FOLDER}:/workspace' -p 8079:8079 sso/build-mkdocs:latest serve",
+      "command": "docker run --rm -v '${env:LOCAL_WORKSPACE_FOLDER}:/workspace' -p 8079:8079 sso-build/mkdocs:latest serve",
       "problemMatcher": []
     },
     {
@@ -335,7 +335,7 @@
     {
       "label": "mkdocs - _2",
       "type": "shell",
-      "command": "docker run --rm -v '${env:LOCAL_WORKSPACE_FOLDER}:/workspace' -p 8079:8079 sso/build-mkdocs:latest build",
+      "command": "docker run --rm -v '${env:LOCAL_WORKSPACE_FOLDER}:/workspace' -p 8079:8079 sso-build/mkdocs:latest build",
       "problemMatcher": [],
       "dependsOn": [
         "mkdocs - _1"

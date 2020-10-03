@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+    tags:
+      - v*
+
   pull_request:
     branches:
       - main
@@ -12,10 +15,26 @@ on:
 env:
   IMAGE_NAME: sso
 
-# todo: Docker compose tests run here and image publishing?
+# todo: Docker image publish/push to registry here
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run Tests
+        run: |
+          docker-compose -f .devcontainer/docker-build.yml build build-cache-rust build-sso build-cache-node build-test
+          docker-compose -f .devcontainer/docker-test-ci.yml build
+          docker-compose -f .devcontainer/docker-test-ci.yml up -d
+          sleep 15
+          docker-compose -f .devcontainer/docker-test-ci.yml -f .devcontainer/docker-test-ci-sut.yml run sut
+
   build:
+    needs: test
+
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
 
@@ -23,4 +42,6 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build Image
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME
+        run: |
+          docker-compose -f .devcontainer/docker-build.yml build build-cache-rust build-sso
+          docker tag sso-build/sso:latest $IMAGE_NAME

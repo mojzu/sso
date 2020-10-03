@@ -128,27 +128,45 @@
 <ul>
 <li><a href="https://www.oauth.com/oauth2-servers/client-registration/client-id-secret/">The Client ID and Secret</a></li>
 </ul>
-<p>Client secrets are 256 bit random keys generated using the pgcrypto extension. The client ID and secret produce a SHA256 HMAC, which is stored in the configuration file.</p>
-<p>The client authenticates requests to the server using HTTP basic authentication, the server checks that the client ID and secret HMAC match the stored HMAC.</p>
-<p>Secrets are generated using the <code>sso._secret_generate</code> SQL function, HMACs are generated using <code>sso._secret_hash</code> and checked using <code>sso._secret_check</code>. These functions are defined in <code>postgres/setup.sql</code> and available as functions in the <code>Postgres</code> module.</p>
+<p>Client secrets are 256 bit random keys generated using the pgcrypto extension. The client ID and client secret are used to produce a SHA256 HMAC, which is stored in the configuration file.</p>
+<p>The client authenticates its requests to the server using HTTP basic authentication, the server checks the HMAC of the client ID and client secret match the HMAC stored in the configuration file.</p>
+<p>See SQL functions in <a href="../../sso/postgres/setup.sql">setup.sql</a>.</p>
+<ul>
+<li><code>sso._secret_generate</code></li>
+<li><code>sso._secret_hash</code></li>
+<li><code>sso._secret_check</code></li>
+</ul>
+<p>See Rust functions in <a href="../../sso/postgres/mod.rs">postgres/mod.rs</a>.</p>
+<ul>
+<li><code>Postgres::secret_generate</code></li>
+<li><code>Postgres::secret_hash</code></li>
+<li><code>Postgres::secret_check</code></li>
+</ul>
 <h2 id="user-passwords">User Passwords</h2>
 <ul>
 <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html">OWASP - Password Storage Cheat Sheet</a></li>
+<li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">OWASP - Forgot Password Cheat Sheet</a></li>
 </ul>
-<p>User passwords are stored as Bcrypt hashes using the pgcrypto extension with a work factor of 12. User password hashes may be stored in the configuration file and the database.</p>
+<p>User passwords are stored as <a href="https://en.wikipedia.org/wiki/Bcrypt">bcrypt</a> hashes using the pgcrypto extension with a work factor of 12. User password hashes may be stored in the configuration file and in the database.</p>
 <p>Password length is validated by the server with a minimum of 8 and maximum of 64.</p>
-<p>HTML client interface includes <code>zxcvbn</code> password strength check, this is only run by the client browser.</p>
+<p>HTML client interface includes <code>zxcvbn</code> password strength check, this is only run by the user's browser.</p>
 <p>Plaintext passwords are not logged or audited by the server, and the code attempts to keep them in memory for as little time as required. But passwords are sent in plaintext to the database as a query parameter for hashing/checking, which could be a problem depending on how database logging is configured.</p>
 <p>There is currently no method for upgrading legacy hashes.</p>
-<p>Hashes are generated using the <code>sso._password_hash</code> SQL function, and are checked against a password using the <code>sso._password_check</code> SQL function. These functions are defined in <code>postgres/setup.sql</code> and available as functions in the <code>Postgres</code> module.</p>
+<p>See SQL functions in <a href="../../sso/postgres/setup.sql">setup.sql</a>.</p>
+<ul>
+<li><code>sso._password_hash</code></li>
+<li><code>sso._password_check</code></li>
+</ul>
+<p>See Rust functions in <a href="../../sso/postgres/mod.rs">postgres/mod.rs</a>.</p>
+<ul>
+<li><code>Postgres::password_hash</code></li>
+<li><code>Postgres::user_password_check</code></li>
+</ul>
 <!-- todo: Use peppering/pre-hashing? -->
 
 <!-- todo: Legacy hash upgrade mechanism -->
 
-<ul>
-<li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">OWASP - Forgot Password Cheat Sheet</a></li>
-</ul>
-<!-- todo: Urls are https or localhost -->
+<!-- todo: Urls are https or localhost, how to manage docker domains? -->
 
 <h2 id="sessions">Sessions</h2>
 <ul>
@@ -161,14 +179,32 @@
 <ul>
 <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html">OWASP - JSON Web Token Cheat Sheet</a></li>
 </ul>
-<p>Secrets are generated using the <code>sso._secret_generate</code> SQL function, HMACs are generated using <code>sso._secret_hash</code>, tokens are encrypted using <code>sso._secret_encrypt</code>, tokens are decrypted using <code>sso._secret_decrypt</code> and checked using <code>sso._secret_check</code>.</p>
+<p>See SQL functions in <a href="../../sso/postgres/setup.sql">setup.sql</a>.</p>
+<ul>
+<li><code>sso._secret_generate</code></li>
+<li><code>sso._secret_hash</code></li>
+<li><code>sso._secret_encrypt</code></li>
+<li><code>sso._secret_decrypt</code></li>
+<li><code>sso._secret_check</code></li>
+</ul>
 <h2 id="api-keys">API Keys</h2>
 <ul>
 <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html">OWASP - REST Security Cheat Sheet</a></li>
 </ul>
-<p>API keys are 256 bit random keys generated using the pgcrypto extension. The API key ID and secret produce a SHA256 HMAC, which is stored in the database.</p>
-<p>User API keys can be verified with the API key verify endpoint, the server checks the API key ID and secret HMAC match the stored HMAC.</p>
-<p>Secrets are generated using the <code>sso._secret_generate</code> SQL function, HMACs are generated using <code>sso._secret_hash</code> and checked using <code>sso._secret_check</code>.</p>
+<p>API keys are 256 bit random keys generated using the pgcrypto extension. The key ID and key secret produce a SHA256 HMAC, which is stored in the database.</p>
+<p>User API keys can be verified with the API key verification endpoint, the server checks the HMAC of the key ID and key secret match the HMAC stored in the database.</p>
+<p>See SQL functions in <a href="../../sso/postgres/setup.sql">setup.sql</a>.</p>
+<ul>
+<li><code>sso._secret_generate</code></li>
+<li><code>sso._secret_hash</code></li>
+<li><code>sso._secret_check</code></li>
+</ul>
+<p>See Rust functions in <a href="../../sso/postgres/mod.rs">postgres/mod.rs</a>.</p>
+<ul>
+<li><code>Postgres::secret_generate</code></li>
+<li><code>Postgres::secret_hash</code></li>
+<li><code>Postgres::secret_check</code></li>
+</ul>
               
             </div>
           </div>

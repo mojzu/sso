@@ -1,7 +1,7 @@
 version: "3"
 services:
   postgres:
-    image: sso/build-postgres:latest
+    image: sso-build/postgres:latest
     restart: unless-stopped
     ports:
       - 5432:5432
@@ -10,7 +10,7 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/test/sso.dockerfile
-    image: sso/test-sso:latest
+    image: sso-build/test-sso:latest
     restart: unless-stopped
     environment:
       RUST_BACKTRACE: "1"
@@ -26,10 +26,7 @@ services:
     command: ["--", "sso_server", "--config", "sso"]
 
   client:
-    build:
-      context: ..
-      dockerfile: .devcontainer/test/client.dockerfile
-    image: sso/test-client:latest
+    image: sso-build/test:latest
     restart: unless-stopped
     ports:
       - 8080:8080
@@ -39,7 +36,7 @@ services:
     command: ["--", "node", "/opt/sso_test/tmp/example/express-passport-docker.js"]
 
   postgres2:
-    image: sso/build-postgres:latest
+    image: sso-build/postgres:latest
     restart: unless-stopped
     ports:
       - 5433:5432
@@ -48,7 +45,7 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/test/sso2.dockerfile
-    image: sso/test-sso2:latest
+    image: sso-build/test-sso2:latest
     restart: unless-stopped
     environment:
       RUST_BACKTRACE: "1"
@@ -62,20 +59,15 @@ services:
     command: ["--", "sso_server", "--config", "sso"]
 
   protractor:
-    build:
-      context: ..
-      dockerfile: .devcontainer/test/protractor.dockerfile
-    image: sso/test-protractor:latest
+    image: sso-build/test:latest
     restart: "no"
-    # todo: Remove host network mode when using selenium docker containers
     network_mode: "host"
     volumes:
       - "mailto:/opt/mailto"
     depends_on:
       - client
-      - selenium
     entrypoint: ["/wait-for-it.sh", "client:8080"]
-    command: ["--", "npm", "run", "protractor", "sso_test/tmp/conf.docker.js"]
+    command: ["--", "echo", "ready to run protractor tests task"]
 
 volumes:
   mailto:

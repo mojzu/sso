@@ -17,7 +17,7 @@ export function app_listen(config: Config) {
     const app = express();
 
     // fix: Fixes client does not support basic authentication
-    const basicAuth = `Basic ${new Buffer(
+    const basicAuth = `Basic ${Buffer.from(
         config.clientId + ":" + config.clientSecret
     ).toString("base64")}`;
 
@@ -94,8 +94,10 @@ export function app_listen(config: Config) {
     });
 
     app.listen(config.port, () => {
-        console.log(`listening at http://localhost:${config.port}`);
+        console.log(`listening at http://127.0.0.1:${config.port}`);
     });
 
     return app;
 }
+
+// todo: Better/more examples with clean shutdown
