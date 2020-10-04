@@ -70,6 +70,7 @@ When `sso_server` is running, run the following tasks to download a copy of the 
 
 -   [openapi - wget openapi](tasks.md#openapi-wget-openapi)
 -   [openapi - generate rust client](tasks.md#openapi-generate-rust-client)
+-   [openapi - generate typescript client](tasks.md#openapi-generate-typescript-client)
 
 fix: File requires manual changes, adding `"type": "object"` to definitions, or paperclip will not generate the expected files.
 

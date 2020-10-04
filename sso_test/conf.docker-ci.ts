@@ -4,6 +4,7 @@ export let config: Config = {
     framework: "jasmine",
     multiCapabilities: [
         // todo: Fix firefox gets errors when running in test-ci container
+        // Works locally with firefox so maybe something to do with alpha container?
         // {
         //     browserName: "firefox",
         // },

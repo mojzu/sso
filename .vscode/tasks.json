@@ -111,7 +111,7 @@
     {
       "label": "openapi - _2",
       "type": "shell",
-      "command": "docker run --rm -v '${env:LOCAL_WORKSPACE_FOLDER}/sso_test:/workspace' --network host openapitools/openapi-generator-cli generate -i http://localhost:7042/openapi.json -g typescript-node -o /workspace/client",
+      "command": "docker run --rm -v '${env:LOCAL_WORKSPACE_FOLDER}:/workspace' --network host openapitools/openapi-generator-cli generate -i /workspace/sso_manual/openapi.json -g typescript-node -o /workspace/sso_test/client",
       "problemMatcher": [],
       "dependsOn": [
         "openapi - _1"

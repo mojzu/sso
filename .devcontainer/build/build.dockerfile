@@ -29,7 +29,7 @@ ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
 
 # depend: install_rust.sh
-# todo: Build hangs when using Rust 1.46? Retest after adding crate attributes
+# todo: Build hangs when using Rust 1.46? Crate attributes did not resolve, although type_length_limit reports were different
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \

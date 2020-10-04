@@ -94,9 +94,9 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#npm-run-host-tests">npm - run host tests</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#openapi-generate-typescript-client">openapi - generate typescript client</a>
-    </li>
     <li class="toctree-l2"><a class="reference internal" href="#openapi-wget-openapi">openapi - wget openapi</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#openapi-generate-typescript-client">openapi - generate typescript client</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#openapi-generate-rust-client">openapi - generate rust client</a>
     </li>
@@ -175,12 +175,10 @@
 <p>Build and start client example application, available at <a href="http://localhost:8080">localhost:8080</a>.</p>
 <h2 id="npm-run-host-tests">npm - run host tests</h2>
 <p>Run tests in <code>sso_test/test/host.ts</code> file.</p>
-<h2 id="openapi-generate-typescript-client">openapi - generate typescript client</h2>
-<p>Build TypeScript client using <a href="https://github.com/OpenAPITools/openapi-generator">OpenAPI Generator</a>. Binary <code>sso_server</code> must be running and available at <code>http://localhost:7042/</code>.</p>
 <h2 id="openapi-wget-openapi">openapi - wget openapi</h2>
-<p>Download a copy of <code>openapi.json</code> file from server and save to <code>sso_manual/openapi.json</code>.</p>
-<!-- todo: Use same spec file in openapi typescript generation -->
-
+<p>Download a copy of <code>openapi.json</code> file from server and save to <code>sso_manual/openapi.json</code>. This file is required for client generation tasks.</p>
+<h2 id="openapi-generate-typescript-client">openapi - generate typescript client</h2>
+<p>Generate TypeScript client using <a href="https://github.com/OpenAPITools/openapi-generator">OpenAPI Generator</a>.</p>
 <h2 id="openapi-generate-rust-client">openapi - generate rust client</h2>
 <p>Generate rust client using <a href="https://github.com/wafflespeanut/paperclip">paperclip</a>.</p>
 <h2 id="postgres-build">postgres - build</h2>

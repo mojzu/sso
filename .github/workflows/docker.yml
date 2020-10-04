@@ -15,8 +15,6 @@ on:
 env:
   IMAGE_NAME: sso
 
-# todo: Docker image publish/push to registry here
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -45,3 +43,32 @@ jobs:
         run: |
           docker-compose -f .devcontainer/docker-build.yml build build-cache-rust build-sso
           docker tag sso-build/sso:latest $IMAGE_NAME
+
+      # Docker hub container registry
+      # https://docs.docker.com/docker-hub/access-tokens/
+
+      - name: Container Registry Login
+        run: |
+          echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u mojzu --password-stdin
+
+      - name: Container Registry Push
+        run: |
+          IMAGE_ID=mojzu/$IMAGE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+
+          # Strip "v" prefix from tag name
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+
+          # Use Docker `latest` tag convention
+          [ "$VERSION" == "main" ] && VERSION=latest
+
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+
+          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION

@@ -61,11 +61,7 @@ pub use crate::error::*;
 // todo: Feature
 // - Pwned password support somehow, pass back as header in oauth2 flow? oidc related?
 //     - Config setting to enable/disable
-// - Docker image upload and size labels (+ other labels?)
-//     - https://docs.docker.com/docker-hub/builds/
-//     - https://shields.io/category/size
-//     - Default config for running compose example?
-//     - https://docs.docker.com/docker-hub/builds/automated-testing/#enable-automated-tests-on-a-repository
+// - Docker default compose for running example (part of manual)?
 // - Confirm emails for reset/update/etc.
 // - Token naming from request headers?
 // - Email/password updates when using oauth2?
@@ -93,7 +89,7 @@ pub use crate::error::*;
 // - Translations based on locale
 // - Use timezones in user communications
 // - Replace reqwest with surf?
-// - Improved prometheus metrics, labelling, docker container for testing
+// - Improved prometheus metrics, labelling
 //     - https://prometheus.io/
 // - Prometheus alert definitions/examples
 // - Opentelemetry Jaeger/other integration?
@@ -107,7 +103,6 @@ pub use crate::error::*;
 //     - https://docs.rs/tokio-postgres/0.5.5/tokio_postgres/struct.Client.html#method.transaction
 // - Runtime config changes support, for example to log level
 // - Error serialisation for log messages, additional info in panics
-// - TeamCity deployment, .deb, docker images?
 // - Email HTML templates, translation/formatting using user locale and timezone
 // - Audit retention, dump deleted logs to file? Audit log metrics and prometheus alert rules?
 // - Email verification/accepting terms

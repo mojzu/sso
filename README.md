@@ -8,5 +8,6 @@
 [Single sign-on](https://en.wikipedia.org/wiki/Single_sign-on) authentication server.
 
 - [Manual](https://mojzu.net/sso/)
-- [GitHub](https://github.com/mojzu/sso)
-- [crates.io](https://crates.io/crates/sso)
+- [Docker Image](https://hub.docker.com/r/mojzu/sso)
+- [Rust Crate](https://crates.io/crates/sso)
+- [Git Repository](https://github.com/mojzu/sso)
