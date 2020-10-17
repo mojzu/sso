@@ -29,7 +29,7 @@ pub async fn get(
                     .oauth2_authorization_code(&mut audit, &client, request, id)
                     .await?;
 
-                server.response_redirect(redirect_uri)
+                Ok(server.response_redirect(redirect_uri))
             } else {
                 let context = server.template_csrf_context(&client).await?;
 
@@ -81,7 +81,7 @@ pub async fn post(
                             .uri_auth_password_update(&client, Some("Password update is required")),
                     };
 
-                    server.response_redirect(redirect_uri)
+                    Ok(server.response_redirect(redirect_uri))
                 }
                 AuthorizeFormParse::PasswordReset(email) => {
                     server
@@ -100,7 +100,7 @@ pub async fn post(
                         )
                         .await?;
 
-                    server.response_redirect(redirect_uri)
+                    Ok(server.response_redirect(redirect_uri))
                 }
                 AuthorizeFormParse::Register(email) => {
                     server

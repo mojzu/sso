@@ -28,7 +28,7 @@ pub async fn get(
                         .oauth2_authorization_code(&mut audit, &client, oauth2_request, id)
                         .await?;
 
-                    server.response_redirect(redirect_uri)
+                    Ok(server.response_redirect(redirect_uri))
                 }
                 Oauth2Redirect::Register => {
                     server.response_template(&client, TEMPLATE_AUTH_REGISTER_ACCEPT_OK)

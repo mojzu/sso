@@ -3,6 +3,7 @@ mod scope;
 
 pub use scope::*;
 
+use std::fmt;
 use url::Url;
 
 /// User-agent redirections
@@ -112,6 +113,12 @@ impl ErrorResponse {
             error: ErrorCode::ServerError,
             error_description: description.into(),
         }
+    }
+}
+
+impl fmt::Display for ErrorResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 

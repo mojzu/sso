@@ -2,7 +2,6 @@
 #[macro_use]
 mod internal;
 mod api;
-pub(crate) mod client;
 mod error;
 mod route_audit;
 mod route_auth;
@@ -14,6 +13,7 @@ mod route_script;
 mod route_user;
 mod route_user_access;
 mod route_user_api_key;
+mod route_well_known;
 mod template;
 
 pub use crate::http_server::error::*;

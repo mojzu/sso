@@ -1,5 +1,5 @@
 pub(crate) use crate::{
-    http_server::{client::*, error::*, template::*},
+    http_server::{error::*, template::*},
     internal::*,
 };
 pub(crate) use paperclip::actix::{
@@ -7,7 +7,7 @@ pub(crate) use paperclip::actix::{
     web::{Data, Form, HttpRequest, HttpResponse, Json, Query},
 };
 
-use std::{fmt, time::SystemTime};
+use std::time::SystemTime;
 
 #[derive(Debug, Clone)]
 pub(crate) struct UserLoginArgs {
@@ -189,10 +189,10 @@ impl HttpServer {
     }
 
     /// Redirect using URI
-    pub(crate) fn response_redirect(&self, uri: Url) -> oauth2::Result<actix_web::HttpResponse> {
-        Ok(actix_web::HttpResponse::Found()
+    pub(crate) fn response_redirect(&self, uri: Url) -> actix_web::HttpResponse {
+        actix_web::HttpResponse::Found()
             .header("location", uri.as_str())
-            .finish())
+            .finish()
     }
 
     /// JSON response
@@ -542,6 +542,15 @@ impl HttpServer {
         }?;
         audit.set_client(&client);
         Ok(client)
+    }
+
+    pub(crate) async fn client_from_user_id(
+        &self,
+        _audit: &mut Audit,
+        _user_id: Uuid,
+    ) -> Result<Client> {
+        // todo: Implement this, how to figure out which client?
+        unimplemented!();
     }
 }
 
@@ -944,12 +953,6 @@ impl actix_web::FromRequest for BasicAuth {
     }
 }
 
-impl fmt::Display for oauth2::ErrorResponse {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
 impl actix_http::ResponseError for oauth2::ErrorResponse {
     fn status_code(&self) -> http::StatusCode {
         http::StatusCode::BAD_REQUEST
@@ -966,6 +969,19 @@ impl actix_http::ResponseError for oauth2::ErrorResponse {
 pub enum Oauth2Redirect {
     Auth(oauth2::AuthorizationCodeRequest),
     Register,
+}
+
+impl HttpServer {
+    pub(crate) fn well_known_openid_configuration(&self) -> Result<ResponseOpenidConfiguration> {
+        Ok(ResponseOpenidConfiguration {
+            // todo: Rename this field, external_uri/issuer?
+            issuer: self.config.oauth2.domain.to_string(),
+            authorization_endpoint: self.uri_oauth2_authorize().to_string(),
+            token_endpoint: self.uri_oauth2_token().to_string(),
+            token_endpoint_auth_methods_supported: vec!["client_secret_basic".to_string()],
+            // todo: Implement rest of fields
+        })
+    }
 }
 
 impl HttpServer {

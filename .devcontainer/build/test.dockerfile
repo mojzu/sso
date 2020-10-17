@@ -1,7 +1,7 @@
 FROM sso-build/cache-node:latest as build
 
-# depend: docker pull node:14.12.0-buster
-FROM node:14.12.0-buster
+# depend: docker pull node:14.13-buster
+FROM node:14.13-buster
 
 # Install dependencies
 RUN apt-get update \

@@ -5,7 +5,7 @@ apt-get update \
     && apt-get -y install --no-install-recommends wget build-essential libssl-dev pkg-config 2>&1
 
 # <https://github.com/rust-lang/docker-rust>
-# <https://github.com/rust-lang/docker-rust/blob/master/1.46.0/buster/Dockerfile>
+# <https://github.com/rust-lang/docker-rust/blob/master/1.47.0/buster/Dockerfile>
 set -eux; \
 dpkgArch="$(dpkg --print-architecture)"; \
 case "${dpkgArch##*-}" in \

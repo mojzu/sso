@@ -39,8 +39,8 @@ clap = "2.33"
 config = "0.10.1"
 deadpool-postgres = "0.5.6"
 email = "0.0.21"
-env_logger = "0.7.1"
-futures = "0.3.5"
+env_logger = "0.8.1"
+futures = "0.3.6"
 handlebars = "3.5"
 http = "0.2.1"
 jsonwebtoken = "7.2"
@@ -57,7 +57,7 @@ paperclip-core = { git = "https://github.com/wafflespeanut/paperclip", features 
 paperclip-macros = { git = "https://github.com/wafflespeanut/paperclip", features = [ "v2", "actix" ] }
 percent-encoding = "2.1"
 postgres-types = { version = "0.1.2", features = [ "derive" ] }
-prometheus = { version = "0.9.0", features = [ "process" ] }
+prometheus = { version = "0.10.0", features = [ "process" ] }
 rand = "0.7.3"
 reqwest = { version = "0.10.8", features = [ "json", "rustls-tls" ] }
 rustls = "0.18.1"
@@ -67,7 +67,7 @@ serde_json = "1.0"
 serde_urlencoded = "0.7.0"
 tokio = { version = "0.2.22", features = [ "rt-threaded", "macros", "signal", "fs" ] }
 tokio-postgres = { version = "0.5.5", features = [ "with-chrono-0_4", "with-uuid-0_8", "with-serde_json-1" ] }
-toml = "0.5.6"
+toml = "0.5.7"
 unic-langid = "0.9.0"
 url = { version = "2.1", features = [ "serde" ] }
 uuid = { version = "0.8.1", features = [ "serde", "v4" ] }

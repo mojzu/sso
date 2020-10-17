@@ -766,6 +766,32 @@
         "ttl"
       ]
     },
+    "ResponseOpenidConfiguration": {
+      "type": "object",
+      "properties": {
+        "authorization_endpoint": {
+          "type": "string"
+        },
+        "issuer": {
+          "type": "string"
+        },
+        "token_endpoint": {
+          "type": "string"
+        },
+        "token_endpoint_auth_methods_supported": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "authorization_endpoint",
+        "issuer",
+        "token_endpoint",
+        "token_endpoint_auth_methods_supported"
+      ]
+    },
     "ResponseUser": {
       "type": "object",
       "properties": {
@@ -1093,6 +1119,56 @@
     }
   },
   "paths": {
+    "/.well-known/change-password": {
+      "get": {
+        "summary": "Change password endpoint",
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/.well-known/openid-configuration": {
+      "get": {
+        "summary": "OpenID connect discovery endpoint",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseOpenidConfiguration"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/ping": {
       "get": {
         "summary": "Server ping",

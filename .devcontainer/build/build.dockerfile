@@ -29,18 +29,20 @@ ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
 
 # depend: install_rust.sh
-# todo: Build hangs when using Rust 1.46? Crate attributes did not resolve, although type_length_limit reports were different
+# todo: Build hangs when using Rust 1.47? Crate attributes did not resolve, although type_length_limit reports were different
+# https://github.com/rust-lang/rust/issues/75992
+# https://github.com/rust-lang/rust/issues/77737
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
-    RUST_VERSION=1.45.2
+    RUST_VERSION=1.47.0
 
 COPY .devcontainer/install_rust.sh /opt/install_rust.sh
 RUN chmod +x /opt/install_rust.sh \
     && /opt/install_rust.sh
 
 # depend: install_node.sh
-ENV NODE_VERSION=14.11.0 \
+ENV NODE_VERSION=14.13.1 \
     YARN_VERSION=1.22.5
 
 COPY .devcontainer/install_node.sh /opt/install_node.sh
@@ -54,6 +56,11 @@ RUN apt-get autoremove -y \
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
+
+# fix: Fixes build hangs using Rust 1.47
+RUN rustup toolchain install 1.45.2 \
+    && rustup default 1.45.2 \
+    && rustup component add rustfmt rls clippy
 
 # Set cache directories in volume
 ENV CARGO_HOME="/workspace/.cargo" \

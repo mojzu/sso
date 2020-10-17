@@ -145,11 +145,24 @@ impl ServerApi {
             )
     }
 
+    fn public_well_known() -> web::Scope {
+        web::scope("/.well-known")
+            .route(
+                "/openid-configuration",
+                web::get().to(route_well_known::openid_configuration::get),
+            )
+            .route(
+                "/change-password",
+                web::get().to(route_well_known::change_password::get),
+            )
+    }
+
     pub fn public() -> web::Scope {
         web::scope("")
             .route("/ping", web::get().to(ping))
             .service(Self::public_v2())
             .service(Self::public_script())
+            .service(Self::public_well_known())
     }
 
     pub fn private() -> web::Scope {

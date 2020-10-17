@@ -32,6 +32,7 @@ export * from './responseAuditMany';
 export * from './responseAuditManyData';
 export * from './responseClient';
 export * from './responseCsrf';
+export * from './responseOpenidConfiguration';
 export * from './responseUser';
 export * from './responseUserMany';
 export * from './responseUserManyData';
@@ -83,6 +84,7 @@ import { ResponseAuditMany } from './responseAuditMany';
 import { ResponseAuditManyData } from './responseAuditManyData';
 import { ResponseClient } from './responseClient';
 import { ResponseCsrf } from './responseCsrf';
+import { ResponseOpenidConfiguration } from './responseOpenidConfiguration';
 import { ResponseUser } from './responseUser';
 import { ResponseUserMany } from './responseUserMany';
 import { ResponseUserManyData } from './responseUserManyData';
@@ -137,6 +139,7 @@ let typeMap: {[index: string]: any} = {
     "ResponseAuditManyData": ResponseAuditManyData,
     "ResponseClient": ResponseClient,
     "ResponseCsrf": ResponseCsrf,
+    "ResponseOpenidConfiguration": ResponseOpenidConfiguration,
     "ResponseUser": ResponseUser,
     "ResponseUserMany": ResponseUserMany,
     "ResponseUserManyData": ResponseUserManyData,

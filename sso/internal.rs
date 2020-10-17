@@ -2,7 +2,7 @@ pub(crate) use crate::{
     common::*,
     config::*,
     error::*,
-    http_server::{client::*, *},
+    http_server::*,
     mailto, metrics,
     oauth2::{self, AuthorizationServerIf, ClientIf, SerializeJson, UserRedirectUri},
     postgres::*,

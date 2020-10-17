@@ -66,7 +66,7 @@ pub async fn post(
                                 )
                                 .await?;
 
-                            server.response_redirect(redirect_uri)
+                            Ok(server.response_redirect(redirect_uri))
                         }
                     }
                 }

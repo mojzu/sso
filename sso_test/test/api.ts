@@ -7,6 +7,7 @@ import {
     PASSWORD1,
     mailAddress,
     CLIENT_URI,
+    SSO_URI,
 } from "./util";
 
 describe("sso-api", function () {
@@ -17,6 +18,21 @@ describe("sso-api", function () {
     it("should ping server", async function () {
         let response = await api.pingGet();
         expect(response.body).toEqual("ok");
+    });
+
+    it("should get well known openid configuration", async function () {
+        let response = await api.wellKnownOpenidConfigurationGet();
+        expect(response.body).toBeDefined();
+        let body = response.body;
+
+        expect(body.issuer).toEqual(`${SSO_URI}/`);
+        expect(body.authorizationEndpoint).toEqual(
+            `${SSO_URI}/v2/oauth2/authorize`
+        );
+        expect(body.tokenEndpoint).toEqual(`${SSO_URI}/v2/oauth2/token`);
+        expect(body.tokenEndpointAuthMethodsSupported).toEqual([
+            "client_secret_basic",
+        ]);
     });
 
     it("should create and verify csrf token", async function () {

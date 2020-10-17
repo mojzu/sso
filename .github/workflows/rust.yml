@@ -19,16 +19,24 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Check Format
+      # todo: Remove this step when compilation under latest stable (1.47) is fixed
+      - name: Rust 1.45.2
+        run: |
+          rustup toolchain install 1.45.2
+          rustup default 1.45.2
+          rustup component add rustfmt rls clippy
+
+      - name: Format
         run: cargo fmt -- --check
 
-# todo: Enable these when compilation under 1.46 is fixed
-# - name: Clippy
-# run: cargo clippy --all -- -D warnings
-# - name: Build
-#   run: cargo build --verbose
-# - name: Test
-#   run: cargo test --verbose
+      - name: Clippy
+        run: cargo clippy --all -- -D warnings
+
+      - name: Build
+        run: cargo build --verbose
+
+      - name: Test
+        run: cargo test --verbose
 
 # todo: Cargo audit CI, would this be useful? Points to dependencies of dependencies
 # - name: Audit
