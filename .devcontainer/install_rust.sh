@@ -38,7 +38,10 @@ apt-get update \
     && rustup component add rls rust-analysis rust-src rustfmt clippy 2>&1
 
 # depend: Install Cargo crates
-cargo install --force cargo-audit --version "~0.12" \
+cargo install --force cargo-audit --version "~0.13" \
 && cargo install --force cargo-make --version "~0.32"
+
 # todo: Fix compilation error for cargo-sort-ck 2.1.1
+# caused by smol_str requiring rust > 1.45
+# https://github.com/rust-analyzer/smol_str/issues/27
 # && cargo install --force cargo-sort-ck --version "^2.1"

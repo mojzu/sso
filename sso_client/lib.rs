@@ -105,6 +105,10 @@ pub mod response_csrf {
     include!("./response_csrf.rs");
 }
 
+pub mod response_openid_configuration {
+    include!("./response_openid_configuration.rs");
+}
+
 pub mod response_user {
     include!("./response_user.rs");
 }

@@ -49,6 +49,8 @@
     "spmeesseman.vscode-taskexplorer"
   ],
 
+  // todo: Fix reuses ports breaking docker-compose files
+  // https://github.com/microsoft/vscode-remote-release/issues/1009
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
 

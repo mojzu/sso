@@ -138,13 +138,11 @@
 <p>OAuth2 clients and users can be statically defined in this file, configuration can be generated using the <code>sso_cli</code> binary. A postgres database connection is required, the example configuration works with the postgres service started by the <a href="../tasks/#postgres-up">postgres - up</a> task.</p>
 <p>Run the <a href="../tasks/#cargo-install">cargo - install</a> task.</p>
 <p>To generate a client configuration run the following command, save the client secret key and copy the TOML output into the configuration file.</p>
-<pre><code class="bash">sso_cli generate client $NAME $REDIRECT_URI
+<pre><code class="language-bash">sso_cli generate client $NAME $REDIRECT_URI
 </code></pre>
-
 <p>to generate a user configuration run the following command, save the user password and copy the TOML output into the configuration file.</p>
-<pre><code class="bash">sso_cli generate user $NAME $EMAIL
+<pre><code class="language-bash">sso_cli generate user $NAME $EMAIL
 </code></pre>
-
 <h2 id="developing">Developing</h2>
 <p>Run the following tasks to compile and run tests during development, tests depend on <a href="#webdriver-manager">Webdriver Manager</a>.</p>
 <ul>
@@ -177,16 +175,16 @@
 </ul>
 <h2 id="client-generation">Client Generation</h2>
 <p>The crate <code>sso_client</code> is generated using <a href="https://github.com/wafflespeanut/paperclip">paperclip</a>, install it in the development container with the following command.</p>
-<pre><code class="bash">cargo install paperclip --git https://github.com/wafflespeanut/paperclip --features cli
+<pre><code class="language-bash">cargo install paperclip --git https://github.com/wafflespeanut/paperclip --features cli
 </code></pre>
-
 <p>When <code>sso_server</code> is running, run the following tasks to download a copy of the OpenAPI specification file and generate the client.</p>
 <ul>
 <li><a href="../tasks/#openapi-wget-openapi">openapi - wget openapi</a></li>
 <li><a href="../tasks/#openapi-generate-rust-client">openapi - generate rust client</a></li>
 <li><a href="../tasks/#openapi-generate-typescript-client">openapi - generate typescript client</a></li>
 </ul>
-<p>fix: File requires manual changes, adding <code>"type": "object"</code> to definitions, or paperclip will not generate the expected files.</p>
+<p>fix: File requires manual changes, adding <code>"type": "object"</code> to definitions, or paperclip will not generate the expected files.
+fix: Rust client requires manual changes, <code>Any</code> to <code>std::any::Any</code>.</p>
 <h2 id="designing">Designing</h2>
 <p>Client HTML templates change the appearance of the web interface, run the template builder using the <code>npm - run template builder</code> task.</p>
 <p>Template source files are located in the <code>sso_test/template</code> directory. A build will write output files to the <code>sso_test/tmp/template</code> directory. Open <code>index.html</code> in a browser to check the appearance, and add <code>template.html</code> to the configuration file when complete.</p>
@@ -199,19 +197,17 @@
 <li><code>test: ...</code>: Notes related to testing</li>
 </ul>
 <p>For example.</p>
-<pre><code class="bash"># depend: package.json
+<pre><code class="language-bash"># depend: package.json
 # run task `npm - update packages`
 # depend: Cargo.toml
 # run task `cargo - update`
 # fix: autoprefixer must be &lt; 10 or postcss will error
 </code></pre>
-
 <h2 id="webdriver-manager">Webdriver Manager</h2>
 <p>Tests depend on <a href="https://www.npmjs.com/package/webdriver-manager">Webdriver Manager</a>, start it outside of the remote development container using the commands.</p>
-<pre><code class="bash">npm run webdriver-update
+<pre><code class="language-bash">npm run webdriver-update
 npm run webdriver-start
 </code></pre>
-
 <h2 id="pgadmin">pgAdmin</h2>
 <p>Available at <a href="http://localhost:8000">localhost:8000</a> when postgres services are running.</p>
 <ul>

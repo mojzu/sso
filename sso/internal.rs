@@ -9,7 +9,7 @@ pub(crate) use crate::{
     util, validate,
 };
 pub(crate) use chrono::{DateTime, Utc};
-pub(crate) use opentelemetry::api::metrics::{BoundCounter, BoundValueRecorder};
+pub(crate) use opentelemetry::metrics::{BoundCounter, BoundValueRecorder};
 pub(crate) use paperclip::actix::OpenApiExt;
 pub(crate) use serde_json::Value;
 pub(crate) use std::{

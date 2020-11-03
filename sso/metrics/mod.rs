@@ -14,7 +14,7 @@ pub struct Config {
 pub struct Metrics {
     config: Arc<Config>,
     exporter: Arc<opentelemetry_prometheus::PrometheusExporter>,
-    meter: Arc<opentelemetry::api::metrics::Meter>,
+    meter: Arc<opentelemetry::metrics::Meter>,
 }
 
 /// Create metrics from configuration
@@ -41,7 +41,7 @@ impl Metrics {
     }
 
     /// Returns opentelemetry meter
-    pub fn meter(&self) -> &opentelemetry::api::metrics::Meter {
+    pub fn meter(&self) -> &opentelemetry::metrics::Meter {
         self.meter.as_ref()
     }
 
