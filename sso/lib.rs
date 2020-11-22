@@ -70,6 +70,7 @@ pub use crate::error::*;
 //     - SSO endpoints checks for auth cookie
 //     - If access denied authorize and redirect back to client
 // - PKCE support
+// - Matrix client oauth2, other integrations testing?
 // - Github Oauth2 provider support
 //     - More generic Oauth2 provider support, method of configuration?
 // - Expose more SMTP transport options?

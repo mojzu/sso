@@ -49,7 +49,6 @@ See Rust functions in [postgres/mod.rs](../../sso/postgres/mod.rs).
 
 <!-- todo: Use peppering/pre-hashing? -->
 <!-- todo: Legacy hash upgrade mechanism -->
-
 <!-- todo: Urls are https or localhost, how to manage docker domains? -->
 
 ## Sessions

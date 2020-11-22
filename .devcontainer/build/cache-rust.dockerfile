@@ -1,5 +1,5 @@
-# depend: docker pull rust:1.45.2-buster
-FROM rust:1.45.2-buster
+# depend: docker pull rust:1.48.0-buster
+FROM rust:1.48.0-buster
 
 WORKDIR /build
 

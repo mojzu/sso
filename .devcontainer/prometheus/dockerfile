@@ -1,5 +1,5 @@
-# depend: docker pull prom/prometheus:v2.21.0
-FROM prom/prometheus:v2.21.0
+# depend: docker pull prom/prometheus:v2.22.2
+FROM prom/prometheus:v2.22.2
 
 ADD prometheus.yml /etc/prometheus/
 ADD alert.rules.yml /etc/prometheus/

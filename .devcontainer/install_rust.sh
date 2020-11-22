@@ -5,7 +5,7 @@ apt-get update \
     && apt-get -y install --no-install-recommends wget build-essential libssl-dev pkg-config 2>&1
 
 # <https://github.com/rust-lang/docker-rust>
-# <https://github.com/rust-lang/docker-rust/blob/master/1.47.0/buster/Dockerfile>
+# <https://github.com/rust-lang/docker-rust/blob/master/1.48.0/buster/Dockerfile>
 set -eux; \
 dpkgArch="$(dpkg --print-architecture)"; \
 case "${dpkgArch##*-}" in \
@@ -39,9 +39,5 @@ apt-get update \
 
 # depend: Install Cargo crates
 cargo install --force cargo-audit --version "~0.13" \
-&& cargo install --force cargo-make --version "~0.32"
-
-# todo: Fix compilation error for cargo-sort-ck 2.1.1
-# caused by smol_str requiring rust > 1.45
-# https://github.com/rust-analyzer/smol_str/issues/27
-# && cargo install --force cargo-sort-ck --version "^2.1"
+&& cargo install --force cargo-make --version "~0.32" \
+&& cargo install --force cargo-sort-ck --version "^2.1"
