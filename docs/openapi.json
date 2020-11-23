@@ -13,7 +13,9 @@
         "user_id"
       ]
     },
-    "RequestAccessRead": {},
+    "RequestAccessRead": {
+      "type": "object"
+    },
     "RequestAccessUpdate": {
       "type": "object",
       "properties": {
@@ -279,8 +281,8 @@
           "type": "string"
         },
         "password": {
-          "type": "object",
           "description": "User password",
+          "type": "object",
           "properties": {
             "allow_reset": {
               "description": "User allow password reset flag",
@@ -611,6 +613,7 @@
           "format": "date-time"
         },
         "data": {
+          "description": "Audit log data object",
           "type": "object"
         },
         "id": {
@@ -663,6 +666,7 @@
                 "format": "date-time"
               },
               "data": {
+                "description": "Audit log data object",
                 "type": "object"
               },
               "id": {
@@ -2623,6 +2627,6 @@
   },
   "info": {
     "version": "v2",
-    "title": "Single Sign-On API"
+    "title": "Single Sign-On API (Public)"
   }
 }

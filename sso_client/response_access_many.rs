@@ -23,11 +23,6 @@ impl ResponseAccessMany {
             _data: core::marker::PhantomData,
         }
     }
-
-    #[inline]
-    pub fn post() -> ResponseAccessManyPostBuilder {
-        ResponseAccessManyPostBuilder
-    }
 }
 
 impl Into<ResponseAccessMany> for ResponseAccessManyBuilder<crate::generics::DataExists> {
@@ -48,21 +43,6 @@ impl<Data> ResponseAccessManyBuilder<Data> {
     pub fn data(mut self, value: impl Iterator<Item = crate::response_access_many::ResponseAccessManyDataItemBuilder<crate::generics::ClientIdExists, crate::generics::CreatedAtExists, crate::generics::EnableExists, crate::generics::ScopeExists, crate::generics::StaticExists, crate::generics::UpdatedAtExists, crate::generics::UserIdExists>>) -> ResponseAccessManyBuilder<crate::generics::DataExists> {
         self.body.data = value.map(|value| value.into()).collect::<Vec<_>>().into();
         unsafe { std::mem::transmute(self) }
-    }
-}
-
-/// Builder created by [`ResponseAccessMany::post`](./struct.ResponseAccessMany.html#method.post) method for a `POST` operation associated with `ResponseAccessMany`.
-#[derive(Debug, Clone)]
-pub struct ResponseAccessManyPostBuilder;
-
-
-impl<Client: crate::client::ApiClient + Sync + 'static> crate::client::Sendable<Client> for ResponseAccessManyPostBuilder {
-    type Output = ResponseAccessMany;
-
-    const METHOD: http::Method = http::Method::POST;
-
-    fn rel_path(&self) -> std::borrow::Cow<'static, str> {
-        "/v2/client/access/read".into()
     }
 }
 

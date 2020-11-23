@@ -29,6 +29,7 @@ mod internal;
 pub mod mailto;
 pub mod metrics;
 pub mod oauth2;
+pub mod openid;
 mod postgres;
 pub mod util;
 pub mod validate;
@@ -44,7 +45,7 @@ pub use crate::error::*;
 // - Check for panicable code (unwrap, etc.), rewrite and test
 // - Register template strings in Handlebars
 // - Use `_audit: &mut Audit` variables
-// - How to set title "SSO" and version "v2" in generated spec
+// - Use lettre alpha for async mailto?
 
 // todo: Test
 // - OWASP tests

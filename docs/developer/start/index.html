@@ -183,9 +183,10 @@
 <li><a href="../tasks/#openapi-generate-rust-client">openapi - generate rust client</a></li>
 <li><a href="../tasks/#openapi-generate-typescript-client">openapi - generate typescript client</a></li>
 </ul>
-<p>fix: File requires manual changes, adding <code>"type": "object"</code> to definitions, or paperclip will not generate the expected files.
-fix: Rust client requires manual changes, <code>Any</code> to <code>std::any::Any</code>.
-todo: Above line will probably need changing with other client changes.</p>
+<p>fix: File requires manual changes, adding <code>"type": "object"</code> to audit log data definitions, or paperclip will not generate the expected files. Check against checked out file.</p>
+<!-- fix: Rust client requires manual changes, `Any` to `std::any::Any`. -->
+<!-- todo: Above line will probably need changing with other client changes. -->
+
 <h2 id="designing">Designing</h2>
 <p>Client HTML templates change the appearance of the web interface, run the template builder using the <code>npm - run template builder</code> task.</p>
 <p>Template source files are located in the <code>sso_test/template</code> directory. A build will write output files to the <code>sso_test/tmp/template</code> directory. Open <code>index.html</code> in a browser to check the appearance, and add <code>template.html</code> to the configuration file when complete.</p>
@@ -202,6 +203,7 @@ todo: Above line will probably need changing with other client changes.</p>
 # run task `npm - update packages`
 # depend: Cargo.toml
 # run task `cargo - update`
+# todo: Update tokio/tokio-postgres/deadpool-postgres/rustls to 0.3/etc. when supported by actix_rt (LocalSet struct changes)
 </code></pre>
 <h2 id="webdriver-manager">Webdriver Manager</h2>
 <p>Tests depend on <a href="https://www.npmjs.com/package/webdriver-manager">Webdriver Manager</a>, start it outside of the remote development container using the commands.</p>

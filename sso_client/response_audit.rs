@@ -4,6 +4,7 @@ pub struct ResponseAudit {
     pub audit_type: String,
     pub client_id: Option<String>,
     pub created_at: String,
+    /// Audit log data object
     pub data: Option<crate::response_audit::ResponseAuditData>,
     pub id: i64,
     pub status_code: Option<i32>,
@@ -11,6 +12,8 @@ pub struct ResponseAudit {
     pub token_id: Option<String>,
     pub user_id: Option<String>,
 }
+
+/// Audit log data object
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ResponseAuditData {}
 
@@ -67,6 +70,7 @@ impl<AuditType, CreatedAt, Id> ResponseAuditBuilder<AuditType, CreatedAt, Id> {
         unsafe { std::mem::transmute(self) }
     }
 
+    /// Audit log data object
     #[inline]
     pub fn data(mut self, value: crate::response_audit::ResponseAuditData) -> Self {
         self.body.data = Some(value.into());

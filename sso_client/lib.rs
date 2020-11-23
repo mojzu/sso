@@ -9,6 +9,10 @@ pub mod request_access_delete {
     include!("./request_access_delete.rs");
 }
 
+pub mod request_access_read {
+    include!("./request_access_read.rs");
+}
+
 pub mod request_access_update {
     include!("./request_access_update.rs");
 }

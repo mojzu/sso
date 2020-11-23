@@ -414,6 +414,7 @@ pub struct ResponseAudit {
     pub audit_type: String,
     pub subject: Option<String>,
     pub status_code: Option<i16>,
+    /// Audit log data object
     pub data: Option<serde_json::Value>,
 }
 

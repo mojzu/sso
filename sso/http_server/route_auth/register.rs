@@ -149,10 +149,7 @@ impl AuthRegisterFormParse {
                 }
                 let password_allow_reset =
                     if let Some(password_allow_reset) = req.password_allow_reset.as_deref() {
-                        match password_allow_reset {
-                            "true" => true,
-                            _ => false,
-                        }
+                        matches!(password_allow_reset, "true")
                     } else {
                         false
                     };

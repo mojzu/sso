@@ -72,7 +72,10 @@ When `sso_server` is running, run the following tasks to download a copy of the 
 -   [openapi - generate rust client](tasks.md#openapi-generate-rust-client)
 -   [openapi - generate typescript client](tasks.md#openapi-generate-typescript-client)
 
-fix: File requires manual changes, adding `"type": "object"` to definitions, or paperclip will not generate the expected files.
+fix: File requires manual changes, adding `"type": "object"` to audit log data definitions, or paperclip will not generate the expected files. Check against checked out file.
+
+<!-- fix: Rust client requires manual changes, `Any` to `std::any::Any`. -->
+<!-- todo: Above line will probably need changing with other client changes. -->
 
 ## Designing
 
@@ -96,6 +99,7 @@ For example.
 # run task `npm - update packages`
 # depend: Cargo.toml
 # run task `cargo - update`
+# todo: Update tokio/tokio-postgres/deadpool-postgres/rustls to 0.3/etc. when supported by actix_rt (LocalSet struct changes)
 ```
 
 ## Webdriver Manager

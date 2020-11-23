@@ -8,6 +8,7 @@ pub struct ResponseAuditManyDataItem {
     pub audit_type: String,
     pub client_id: Option<String>,
     pub created_at: String,
+    /// Audit log data object
     pub data: Option<crate::response_audit_many::ResponseAuditManyDataItemData>,
     pub id: i64,
     pub status_code: Option<i32>,
@@ -15,6 +16,8 @@ pub struct ResponseAuditManyDataItem {
     pub token_id: Option<String>,
     pub user_id: Option<String>,
 }
+
+/// Audit log data object
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ResponseAuditManyDataItemData {}
 
@@ -103,6 +106,7 @@ impl<AuditType, CreatedAt, Id> ResponseAuditManyDataItemBuilder<AuditType, Creat
         unsafe { std::mem::transmute(self) }
     }
 
+    /// Audit log data object
     #[inline]
     pub fn data(mut self, value: crate::response_audit_many::ResponseAuditManyDataItemData) -> Self {
         self.body.data = Some(value.into());

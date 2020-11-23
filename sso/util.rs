@@ -10,6 +10,12 @@ pub static VERSION: &str = env!("CARGO_PKG_VERSION");
 /// HTTP Client User Agent
 pub static USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
+/// API Version
+pub static API_VERSION: &str = "v2";
+
+/// API Title
+pub static API_TITLE: &str = "Single Sign-On API";
+
 /// Initialise panic for single-line JSON output
 pub fn init_panic(pretty: bool) {
     if !pretty {

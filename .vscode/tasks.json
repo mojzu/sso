@@ -129,7 +129,7 @@
     {
       "label": "openapi - wget openapi",
       "type": "shell",
-      "command": "wget -O sso_manual/openapi.json localhost:7042/openapi.json",
+      "command": "wget -O sso_manual/openapi.json localhost:7042/openapi.json && wget -O sso_manual/openapi-private.json localhost:7043/openapi.json",
       "problemMatcher": []
     },
     {
