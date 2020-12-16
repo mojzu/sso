@@ -1,7 +1,7 @@
 FROM sso-build/cache-rust:latest as build
 
-# depend: docker pull debian:10.6
-FROM debian:10.6
+# depend: docker pull debian:10.7
+FROM debian:10.7
 ENV DEBIAN_FRONTEND="noninteractive"
 
 # Install dependencies

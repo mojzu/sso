@@ -37,6 +37,7 @@ jobs:
       - name: Test
         run: cargo test --verbose
 
-# todo: Cargo audit CI, would this be useful? Points to dependencies of dependencies
-# - name: Audit
-#   run: cargo audit --deny-warnings
+      # fix: Allow warnings while this points to dependencies of dependencies
+      # Add `--deny-warnings` flag at some point
+      - name: Audit
+        run: cargo audit
