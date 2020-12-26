@@ -39,7 +39,7 @@ RUN chmod +x /opt/install_rust.sh \
     && /opt/install_rust.sh
 
 # depend: install_node.sh
-ENV NODE_VERSION=14.15.2 \
+ENV NODE_VERSION=14.15.3 \
     YARN_VERSION=1.22.5
 
 COPY .devcontainer/install_node.sh /opt/install_node.sh

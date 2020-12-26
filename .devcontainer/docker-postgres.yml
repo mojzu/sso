@@ -33,9 +33,9 @@ services:
   # PgHero
   # <https://hub.docker.com/r/ankane/pghero/>
   # <https://github.com/ankane/pghero>
-  # depend: docker pull ankane/pghero:v2.7.2
+  # depend: docker pull ankane/pghero:v2.7.3
   pghero:
-    image: ankane/pghero:v2.7.2
+    image: ankane/pghero:v2.7.3
     restart: unless-stopped
     depends_on:
       - postgres
