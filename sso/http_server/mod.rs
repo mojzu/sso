@@ -131,10 +131,12 @@ impl HttpServer {
         let cookie_max_age = self.config.http.cookie.max_age;
 
         Ok(actix_web::HttpServer::new(move || {
-            let mut spec = paperclip::v2::models::DefaultApiRaw::default();
-            spec.info = paperclip::v2::models::Info {
-                version: util::API_VERSION.into(),
-                title: format!("{} (Public)", util::API_TITLE),
+            let spec = paperclip::v2::models::DefaultApiRaw {
+                info: paperclip::v2::models::Info {
+                    version: util::API_VERSION.into(),
+                    title: format!("{} (Public)", util::API_TITLE),
+                    ..Default::default()
+                },
                 ..Default::default()
             };
 
@@ -165,10 +167,12 @@ impl HttpServer {
         let bind = &self.config.http.private.bind;
 
         Ok(actix_web::HttpServer::new(move || {
-            let mut spec = paperclip::v2::models::DefaultApiRaw::default();
-            spec.info = paperclip::v2::models::Info {
-                version: util::API_VERSION.into(),
-                title: format!("{} (Private)", util::API_TITLE),
+            let spec = paperclip::v2::models::DefaultApiRaw {
+                info: paperclip::v2::models::Info {
+                    version: util::API_VERSION.into(),
+                    title: format!("{} (Private)", util::API_TITLE),
+                    ..Default::default()
+                },
                 ..Default::default()
             };
 

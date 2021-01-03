@@ -25,7 +25,7 @@ pub struct Config {
 #[derive(Clone)]
 pub struct Mailto {
     config: Arc<Config>,
-    file: Option<Arc<Mutex<tokio::fs::File>>>,
+    file: Option<Arc<tokio::sync::Mutex<tokio::fs::File>>>,
     smtp: Option<MailtoSmtp>,
     opentelemetry: Arc<MailtoOpentelemetry>,
 }
@@ -85,7 +85,7 @@ impl Mailto {
 
         Ok(Self {
             config: Arc::new(config),
-            file: file.map(|x| Arc::new(Mutex::new(x))),
+            file: file.map(|x| Arc::new(tokio::sync::Mutex::new(x))),
             smtp,
             opentelemetry: Arc::new(opentelemetry),
         })
@@ -121,7 +121,7 @@ impl Mailto {
             println!("{}", json_out);
         }
         if let Some(file) = self.file.as_ref() {
-            let mut file = file.lock().unwrap();
+            let mut file = file.lock().await;
             let line = format!("{}\n", json_out);
             file.write(line.as_bytes()).await.unwrap();
         }

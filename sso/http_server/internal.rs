@@ -921,8 +921,10 @@ impl paperclip_core::v2::schema::Apiv2Schema for BasicAuth {
     const NAME: Option<&'static str> = Some("basicAuth");
 
     fn security_scheme() -> Option<paperclip::v2::models::SecurityScheme> {
-        let mut scheme = paperclip::v2::models::SecurityScheme::default();
-        scheme.type_ = "basic".to_string();
+        let scheme = paperclip::v2::models::SecurityScheme {
+            type_: "basic".to_string(),
+            ..Default::default()
+        };
         Some(scheme)
     }
 }

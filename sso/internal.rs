@@ -18,7 +18,7 @@ pub(crate) use std::{
     convert::{TryFrom, TryInto},
     ops::Deref,
     str::FromStr,
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 pub(crate) use url::Url;
 pub(crate) use uuid::Uuid;
