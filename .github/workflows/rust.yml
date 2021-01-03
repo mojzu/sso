@@ -17,11 +17,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # depend: Update Rust version here
       - uses: actions/checkout@v2
-      - name: Rust 1.48.0
+      - name: Rust 1.49.0
         uses: actions-rs/toolchain@v1
         with:
-            toolchain: 1.48.0
+            toolchain: 1.49.0
             default: true
             components: rustfmt, clippy
 

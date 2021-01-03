@@ -5,6 +5,7 @@
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
 #![deny(unused_variables)]
+#![warn(clippy::all)]
 
 #[macro_use]
 extern crate paperclip_macros;

@@ -32,7 +32,7 @@ CMD [ "sleep", "infinity" ]
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
-    RUST_VERSION=1.48.0
+    RUST_VERSION=1.49.0
 
 COPY .devcontainer/install_rust.sh /opt/install_rust.sh
 RUN chmod +x /opt/install_rust.sh \
