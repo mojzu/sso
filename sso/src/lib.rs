@@ -66,7 +66,7 @@ macro_rules! impl_enum_to_from_string {
 /// Logs are formatted as single line JSON objects by defaullt, for integration with
 /// fluentd. Logs are formatted as coloured, multi-line JSON objects if `pretty_name`
 /// environment variable is set to `true`.
-pub fn log_init<T>(sentry_dsn_name: T, pretty_name: T) -> Option<sentry::internals::ClientInitGuard>
+pub fn log_init<T>(sentry_dsn_name: T, pretty_name: T) -> Option<sentry::ClientInitGuard>
 where
     T: AsRef<str>,
 {
@@ -104,17 +104,14 @@ where
 
     match env::string_opt(sentry_dsn_name.as_ref()) {
         Some(sentry_dsn) => {
-            let log_integration =
-                sentry_log::LogIntegration::default().with_env_logger_dest(Some(builder.build()));
+            let logger = sentry_log::SentryLogger::with_dest(builder.build());
+            log::set_boxed_logger(Box::new(logger)).unwrap();
 
-            let guard = sentry::init(
-                sentry::ClientOptions {
-                    dsn: sentry_dsn.into_dsn().unwrap(),
-                    release: sentry::release_name!(),
-                    ..Default::default()
-                }
-                .add_integration(log_integration),
-            );
+            let guard = sentry::init(sentry::ClientOptions {
+                dsn: sentry_dsn.into_dsn().unwrap(),
+                release: sentry::release_name!(),
+                ..Default::default()
+            });
 
             Some(guard)
         }

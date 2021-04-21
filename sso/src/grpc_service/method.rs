@@ -62,7 +62,7 @@ pub async fn local_reset_password(
         .auth_local_reset_password(req)
         .await?
         .into_inner();
-    Ok(res.into())
+    Ok(res)
 }
 
 pub async fn local_reset_password_confirm(
@@ -101,7 +101,7 @@ pub async fn local_update_email(
         .auth_local_update_email(req)
         .await?
         .into_inner();
-    Ok(res.into())
+    Ok(res)
 }
 
 pub async fn local_update_email_revoke(

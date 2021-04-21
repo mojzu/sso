@@ -168,7 +168,7 @@ impl ModelAudit {
         conn: &PgConnection,
         from: &DateTime<Utc>,
         service_id_mask: Option<&Uuid>,
-    ) -> DriverResult<Vec<(String, u16, i64)>> {
+    ) -> DriverResult<Vec<(String, u16, u64)>> {
         diesel::sql_query(include_str!("audit_read_metrics.sql"))
             .bind::<sql_types::Timestamptz, _>(from)
             .bind::<sql_types::Nullable<sql_types::Uuid>, _>(service_id_mask)
@@ -176,7 +176,7 @@ impl ModelAudit {
             .map_err(DriverError::DieselResult)
             .map(|x| {
                 x.into_iter()
-                    .map(|x| (x.type_, x.status_code as u16, x.count))
+                    .map(|x| (x.type_, x.status_code as u16, x.count as u64))
                     .collect()
             })
     }

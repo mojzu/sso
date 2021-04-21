@@ -300,8 +300,7 @@ impl GrpcClientBlocking {
         tls: GrpcClientChannelTls,
         options: &GrpcClientOptions,
     ) -> DriverResult<Self> {
-        let mut rt = Builder::new()
-            .basic_scheduler()
+        let rt = Builder::new_current_thread()
             .enable_all()
             .build()
             .expect("Failed to build runtime.");

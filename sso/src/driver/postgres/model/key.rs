@@ -186,11 +186,10 @@ impl ModelKey {
         }
         if let Some(service_id) = &create.service_id {
             ModelService::read(conn, &ServiceRead::new(*service_id), None)?
-                .ok_or_else(|| DriverError::ServiceNotFound)?;
+                .ok_or(DriverError::ServiceNotFound)?;
         }
         if let Some(user_id) = &create.user_id {
-            ModelUser::read(conn, &UserRead::Id(*user_id))?
-                .ok_or_else(|| DriverError::UserNotFound)?;
+            ModelUser::read(conn, &UserRead::Id(*user_id))?.ok_or(DriverError::UserNotFound)?;
         }
 
         let now = Utc::now();
